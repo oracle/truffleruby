@@ -61,6 +61,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
                     receiver,
                     name,
                     null,
+                    null,
                     RubyNode.EMPTY_ARGUMENTS,
                     DispatchAction.RESPOND_TO_METHOD,
                     MissingBehavior.RETURN_MISSING,

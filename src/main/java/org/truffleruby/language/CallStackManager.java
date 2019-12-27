@@ -52,6 +52,8 @@ public class CallStackManager {
 
     @TruffleBoundary
     public Frame getCallerFrameIgnoringSend(FrameAccess frameAccess) {
+        // System.err.printf("Getting a caller frame...\n");
+        // new Error().printStackTrace();
         return getCallerFrameIgnoringSend(f -> isRubyFrameAndNotSend(f.getFrame(FrameAccess.READ_ONLY)), frameAccess);
     }
 

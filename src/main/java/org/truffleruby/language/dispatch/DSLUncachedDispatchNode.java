@@ -33,6 +33,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -49,6 +50,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             VirtualFrame frame,
             Object receiver,
             Object name,
+            MaterializedFrame callerFrame,
             DynamicObject block,
             Object[] arguments,
             DispatchAction dispatchAction,
@@ -59,6 +61,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
                 frame,
                 receiver,
                 name,
+                callerFrame,
                 block,
                 arguments,
                 dispatchAction,
@@ -71,6 +74,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             Frame frame,
             Object receiver,
             Object name,
+            MaterializedFrame callerFrame,
             DynamicObject block,
             Object[] arguments,
             DispatchAction dispatchAction,
@@ -88,6 +92,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             Frame frame,
             Object receiver,
             Object name,
+            MaterializedFrame callerFrame,
             DynamicObject block,
             Object[] arguments,
             DispatchAction dispatchAction,
@@ -141,7 +146,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
 
         if (method != null) {
             if (cachedDispatchAction == DispatchAction.CALL_METHOD) {
-                return call(indirectCallNode, method, receiver, block, arguments);
+                return call(indirectCallNode, callerFrame, method, receiver, block, arguments);
             } else if (cachedDispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return !method.isUnimplemented();
             } else {
@@ -187,7 +192,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
             final DynamicObject nameSymbol = toSymbolNode.executeToSymbol(name);
             final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(arguments, nameSymbol);
 
-            return call(indirectCallNode, methodMissing, receiver, block, modifiedArgumentsObjects);
+            return call(indirectCallNode, callerFrame, methodMissing, receiver, block, modifiedArgumentsObjects);
         } else if (cachedDispatchAction == DispatchAction.RESPOND_TO_METHOD) {
             return false;
         } else {
@@ -197,13 +202,14 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseWithoutContextNode
 
     private Object call(
             IndirectCallNode indirectCallNode,
+            MaterializedFrame callerFrame,
             InternalMethod method,
             Object receiverObject,
             DynamicObject blockObject,
             Object[] argumentsObjects) {
         return indirectCallNode.call(
                 method.getCallTarget(),
-                RubyArguments.pack(null, null, method, null, receiverObject, blockObject, argumentsObjects));
+                RubyArguments.pack(null, callerFrame, method, null, receiverObject, blockObject, argumentsObjects));
     }
 
 }

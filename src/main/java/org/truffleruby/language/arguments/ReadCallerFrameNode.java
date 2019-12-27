@@ -9,8 +9,9 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.FrameSendingNode;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.dispatch.CachedDispatchNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -19,6 +20,7 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -26,6 +28,7 @@ public class ReadCallerFrameNode extends RubyBaseNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
     @CompilationFinal private volatile boolean deoptWhenNotPassedCallerFrame = true;
+    @Child private NotOptimizedWarningNode notOptimizedNode = null;
 
     public static ReadCallerFrameNode create() {
         return new ReadCallerFrameNode();
@@ -52,6 +55,7 @@ public class ReadCallerFrameNode extends RubyBaseNode {
         if (!notifyCallerToSendFrame()) {
             // If we fail to notify the call node (e.g., because it is a UncachedDispatchNode which is not handled yet),
             // we don't want to deoptimize this CallTarget on every call.
+            getNotOptimizedNode().warn("Unoptimized reading of caller frame.");
             deoptWhenNotPassedCallerFrame = false;
         }
         return getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE).materialize();
@@ -59,15 +63,28 @@ public class ReadCallerFrameNode extends RubyBaseNode {
 
     private boolean notifyCallerToSendFrame() {
         final Node callerNode = getContext().getCallStack().getCallerNode(1, false);
-        if (callerNode instanceof DirectCallNode) {
-            final Node parent = callerNode.getParent();
-            if (parent instanceof CachedDispatchNode) {
-                ((CachedDispatchNode) parent).startSendingOwnFrame();
-                return true;
+        if (callerNode instanceof DirectCallNode || callerNode instanceof IndirectCallNode) {
+            Node parent = callerNode.getParent();
+            while (parent != null) {
+                if (parent instanceof FrameSendingNode) {
+                    ((FrameSendingNode) parent).startSendingOwnFrame();
+                    return true;
+                }
+                if (parent instanceof RubyBaseNode) {
+                    return false;
+                }
+                parent = parent.getParent();
             }
         }
 
         return false;
     }
 
+    public NotOptimizedWarningNode getNotOptimizedNode() {
+        if (notOptimizedNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            notOptimizedNode = insert(NotOptimizedWarningNode.create());
+        }
+        return notOptimizedNode;
+    }
 }

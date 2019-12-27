@@ -10,7 +10,7 @@
 package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public abstract class CallSuperMethodNode extends RubyBaseNode {
+public abstract class CallSuperMethodNode extends FrameSendingNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.createBinaryProfile();
 
@@ -50,7 +50,7 @@ public abstract class CallSuperMethodNode extends RubyBaseNode {
         }
 
         final Object[] frameArguments = RubyArguments
-                .pack(null, null, superMethod, null, self, (DynamicObject) block, arguments);
+                .pack(null, getFrameIfRequired(frame), superMethod, null, self, (DynamicObject) block, arguments);
 
         return callMethod(superMethod, frameArguments);
     }
