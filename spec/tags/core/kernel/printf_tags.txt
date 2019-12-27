@@ -131,3 +131,4 @@ fails:Kernel.printf formatting io is specified other formats % alone raises an A
 fails:Kernel.printf formatting io is specified faulty key sets the Hash as the receiver of KeyError
 fails:Kernel.printf formatting io is specified faulty key sets the unmatched key as the key of KeyError
 fails:Kernel.printf formatting io is not specified other formats % alone raises an ArgumentError
+fails:Kernel.printf formatting io is specified faulty key raises a KeyError

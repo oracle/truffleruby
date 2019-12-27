@@ -36,9 +36,8 @@ describe "RUBY_PLATFORM" do
   end
 
   platform_is :darwin do
-    it 'contains the current kernel major version' do
-      kernel_version = `uname -r`
-      RUBY_PLATFORM.should =~ /#{kernel_version.split('.').first}/
+    it 'ends with the build time kernel major version on darwin' do
+      RUBY_PLATFORM.should =~ /-darwin\d+$/
     end
   end
 end
