@@ -68,7 +68,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> BACKTRACE_ON_RESCUE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> CEXT_LOCK_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> CEXTS_KEEP_HANDLES_ALIVE_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> CEXTS_KEEP_HANDLES_ALIVE_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> OPTIONS_LOG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_AUTOLOAD_KEY = new OptionKey<>(false);

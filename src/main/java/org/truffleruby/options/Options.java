@@ -118,7 +118,7 @@ public class Options {
     public final boolean CEXTS;
     /** --cexts-lock=true */
     public final boolean CEXT_LOCK;
-    /** --keep-handles-alive=true */
+    /** --keep-handles-alive=false */
     public final boolean CEXTS_KEEP_HANDLES_ALIVE;
     /** --options-log=false */
     public final boolean OPTIONS_LOG;
