@@ -48,7 +48,6 @@ void Init_gc_spec(void) {
   rb_define_method(cls, "rb_gc_enable", gc_spec_rb_gc_enable, 0);
   rb_define_method(cls, "rb_gc_disable", gc_spec_rb_gc_disable, 0);
   rb_define_method(cls, "rb_gc", gc_spec_rb_gc, 0);
-  rb_define_method(cls, "rb_gc_adjust_memory_usage", gc_spec_rb_gc_adjust_memory_usage, 1);
   rb_define_method(cls, "rb_gc_register_mark_object", gc_spec_rb_gc_register_mark_object, 1);
 }
 
