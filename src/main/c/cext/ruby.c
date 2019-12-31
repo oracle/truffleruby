@@ -3245,7 +3245,7 @@ long rb_str_coderange_scan_restartable(const char *s, const char *e, rb_encoding
 }
 
 int rb_enc_str_asciionly_p(VALUE str) {
-  rb_tr_error("rb_enc_str_asciionly_p not implemented");
+  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(str, "ascii_only?"));
 }
 
 int rb_enc_unicode_p(rb_encoding *enc) {
@@ -4711,7 +4711,7 @@ void rb_define_virtual_variable(const char *name, VALUE (*getter)(ANYARGS), void
 }
 
 void rb_gc_register_mark_object(VALUE obj) {
-  rb_tr_error("rb_gc_register_mark_object not implemented");
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_gc_register_mark_object", obj);
 }
 
 ID rb_check_id(volatile VALUE *namep) {
