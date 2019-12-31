@@ -94,6 +94,7 @@ public class RubyContext {
     @CompilationFinal private Options options;
     @CompilationFinal private String rubyHome;
     @CompilationFinal private TruffleFile rubyHomeTruffleFile;
+    @CompilationFinal private boolean hadHome;
 
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
     private final SafepointManager safepointManager = new SafepointManager(this);
@@ -122,7 +123,7 @@ public class RubyContext {
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
-    @CompilationFinal BacktraceFormatter defaultBacktraceFormatter;
+    @CompilationFinal private BacktraceFormatter defaultBacktraceFormatter;
     private final BacktraceFormatter userBacktraceFormatter;
     private final RopeCache ropeCache;
     private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
@@ -258,6 +259,11 @@ public class RubyContext {
             random = null;
             // Cannot save the root Java Thread instance in the image
             threadManager.resetMainThread();
+            // Do not save image generator paths in the image heap
+            hadHome = rubyHome != null;
+            rubyHome = null;
+            rubyHomeTruffleFile = null;
+            featureLoader.setWorkingDirectory(null);
         } else {
             initialized = true;
         }
@@ -275,9 +281,8 @@ public class RubyContext {
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv);
-        final String oldHome = this.rubyHome;
         final String newHome = findRubyHome(newOptions);
-        if (!compatibleOptions(oldOptions, newOptions, oldHome, newHome)) {
+        if (!compatibleOptions(oldOptions, newOptions, this.hadHome, newHome != null)) {
             return false;
         }
         this.options = newOptions;
@@ -337,7 +342,7 @@ public class RubyContext {
         }
     }
 
-    private boolean compatibleOptions(Options oldOptions, Options newOptions, String oldHome, String newHome) {
+    private boolean compatibleOptions(Options oldOptions, Options newOptions, boolean hadHome, boolean hasHome) {
         final String notReusingContext = "not reusing pre-initialized context: ";
 
         if (!newOptions.PREINITIALIZATION) {
@@ -350,9 +355,8 @@ public class RubyContext {
             return false; // Should load the specified core files
         }
 
-        if ((oldHome != null) != (newHome != null)) {
-            RubyLanguage.LOGGER
-                    .fine(notReusingContext + "Ruby home is " + (newHome != null ? "set (" + newHome + ")" : "unset"));
+        if (hadHome != hasHome) {
+            RubyLanguage.LOGGER.fine(notReusingContext + "Ruby home is " + (hasHome ? "set" : "unset"));
             return false;
         }
 
