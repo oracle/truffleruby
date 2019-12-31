@@ -1453,11 +1453,9 @@ module Truffle::CExt
     NATIVETHREAD_LOCKS.delete(lock)
   end
 
-  BASIC_OBJECT_ALLOCATE = BasicObject.method(:__allocate__).unbind
-
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
-    object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
+    object = ruby_class.__send__(:__dynamic_object_factory__)
     data_holder = DataHolder.new(data)
     hidden_variable_set object, DATA_HOLDER, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
@@ -1467,7 +1465,7 @@ module Truffle::CExt
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free, size)
     ruby_class = Object unless ruby_class
-    object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
+    object = ruby_class.__send__(:__dynamic_object_factory__)
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, DATA_HOLDER, data_holder
