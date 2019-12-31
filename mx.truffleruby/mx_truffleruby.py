@@ -59,6 +59,7 @@ def miniruby_for_building_cexts(args):
         '--home=' + root,
         '--launcher=' + mx_binary + ' -p ' + root + ' miniruby_for_building_cexts',
         '--disable-gems',
+        '--disable-rubyopt',
     ]
     mx.run_java(jvm_args + ['org.truffleruby.launcher.RubyLauncher'] + options + args)
 

@@ -85,12 +85,12 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                      * being called as these options need to be passed when starting the new VM
                      * process. The new process gets all arguments and options including those from
                      * ENV variables. To avoid processing options from ENV variables twice,
-                     * READ_RUBYOPT is set to false. Only the native launcher can apply native and
+                     * --disable-rubyopt is passed. Only the native launcher can apply native and
                      * jvm options (it is too late for the running JVM to apply --jvm options),
                      * therefore this is not done on JVM.
                      */
                     final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
-                    args.add(index, "--disable=rubyopt");
+                    args.add(index, "--disable-rubyopt");
                     args.addAll(index + 1, rubyoptArgs);
                     args.addAll(index + 1 + rubyoptArgs.size(), trufflerubyoptArgs);
                 }
