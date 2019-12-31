@@ -3524,6 +3524,7 @@ VALUE rb_class_inherited(VALUE super, VALUE klass) {
 }
 
 VALUE rb_define_class_id(ID id, VALUE super) {
+  // id is deliberately ignored - see MRI
   if (super == NULL) {
     super = rb_cObject;
   }
@@ -3535,6 +3536,7 @@ VALUE rb_module_new(void) {
 }
 
 VALUE rb_define_module_id(ID id) {
+  // id is deliberately ignored - see MRI
   return rb_module_new();
 }
 
