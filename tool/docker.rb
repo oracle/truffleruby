@@ -268,7 +268,7 @@ class JT
         end
 
         configs.each do |c|
-          lines << "RUN ruby #{c} --engine.CompilationExceptionsAreThrown --engine.IterativePartialEscape pe/pe.rb || true"
+          lines << "RUN ruby #{c} --experimental-options --engine.CompilationExceptionsAreThrown --engine.IterativePartialEscape pe/pe.rb || true"
         end
       end
 
