@@ -81,7 +81,7 @@ public class LiteralMethodDefinitionNode extends RubyNode {
 
         addMethodNode.executeAddMethod(module, method, visibility);
 
-        return getSymbol(name);
+        return method.getMethodNameSymbol();
     }
 
 }

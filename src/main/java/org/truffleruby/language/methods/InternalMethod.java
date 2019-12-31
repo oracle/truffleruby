@@ -44,7 +44,7 @@ public class InternalMethod implements ObjectGraphNode {
     /** A flag to tell whether there exist refinements of this method */
     private final boolean refined;
     private final DynamicObject proc; // only if method is created from a Proc
-    private final DynamicObject methodNameSymbol; // unused, but stored to keep present in the symbol table
+    private final DynamicObject methodNameSymbol; // also needed to keep the symbol present in the symbol table
 
     private final RootCallTarget callTarget;
     private final DynamicObject capturedBlock;
@@ -172,6 +172,10 @@ public class InternalMethod implements ObjectGraphNode {
 
     public String getName() {
         return name;
+    }
+
+    public DynamicObject getMethodNameSymbol() {
+        return methodNameSymbol;
     }
 
     public Visibility getVisibility() {
