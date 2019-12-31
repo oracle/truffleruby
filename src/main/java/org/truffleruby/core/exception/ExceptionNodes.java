@@ -43,7 +43,7 @@ public abstract class ExceptionNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        protected DynamicObject allocateNameError(DynamicObject rubyClass) {
+        protected DynamicObject allocateException(DynamicObject rubyClass) {
             return allocateObjectNode
                     .allocate(rubyClass, Layouts.EXCEPTION.build(nil(), null, null, nil(), null, null));
         }
