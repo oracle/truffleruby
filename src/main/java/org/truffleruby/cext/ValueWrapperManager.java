@@ -10,8 +10,9 @@
 package org.truffleruby.cext;
 
 import java.lang.ref.WeakReference;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -189,7 +190,7 @@ public class ValueWrapperManager {
 
         public static final HandleBlock DUMMY_BLOCK = new HandleBlock(null, 0, null);
 
-        private static final Set<HandleBlock> keepAlive = new HashSet<>();
+        private static final Set<HandleBlock> keepAlive = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
         private final long base;
         @SuppressWarnings("rawtypes") private final ValueWrapper[] wrappers;
