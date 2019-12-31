@@ -351,13 +351,14 @@ module Truffle::CExt
     when Symbol
       T_SYMBOL
     when Integer
-      #rb_tr_cached_type. The final type must be calculated for each number.
+      # See #rb_tr_cached_type, the final type must be calculated for each number.
       T_FIXNUM
     when Time
       T_DATA
     when Data
       T_DATA
     when BasicObject
+      # See #rb_tr_cached_type, the final type must be calculated for each object.
       T_NONE
     else
       raise "unknown type #{value.class}"
