@@ -212,7 +212,7 @@ public abstract class UnboundMethodNodes {
 
     }
 
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = {"__allocate__", "__dynamic_object_factory__"}, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @TruffleBoundary

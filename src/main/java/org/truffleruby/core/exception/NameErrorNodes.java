@@ -25,7 +25,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreModule(value = "NameError", isClass = true)
 public abstract class NameErrorNodes {
 
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = {"__allocate__", "__dynamic_object_factory__"}, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();

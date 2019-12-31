@@ -644,7 +644,7 @@ public abstract class MatchDataNodes {
 
     // Defined only so that #initialize_copy works for #dup and #clone.
     // MatchData.allocate is undefined, see regexp.rb.
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = {"__allocate__", "__dynamic_object_factory__"}, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class InternalAllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
