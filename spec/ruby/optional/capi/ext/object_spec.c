@@ -347,7 +347,7 @@ static VALUE object_spec_rb_class_inherited_p(VALUE self, VALUE mod, VALUE arg) 
 
 static VALUE speced_allocator(VALUE klass) {
   VALUE instance = rb_newobj_of(klass, 0);
-  rb_funcall(instance, rb_intern("instance_variable_set"), 2, ID2SYM(rb_intern("@from_custom_allocator")), Qtrue);
+  rb_iv_set(instance, "@from_custom_allocator", Qtrue);
   return instance;
 }
 
