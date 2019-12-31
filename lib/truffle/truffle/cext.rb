@@ -1279,11 +1279,8 @@ module Truffle::CExt
     eval(str)
   end
 
-  BASIC_ALLOC = ::BasicObject.singleton_class.instance_method(:__allocate__)
-
   def rb_newobj_of(ruby_class)
-    # we need to bypass __allocate__ on ruby_class
-    BASIC_ALLOC.bind(ruby_class).call
+    ruby_class.__send__(:__dynamic_object_factory__)
   end
 
   def rb_define_alloc_func(ruby_class, function)
