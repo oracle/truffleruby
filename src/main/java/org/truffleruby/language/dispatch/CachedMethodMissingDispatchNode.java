@@ -12,6 +12,8 @@ package org.truffleruby.language.dispatch;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
 
@@ -34,6 +36,8 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
     @Child private MetaClassNode metaClassNode;
     @Child private DirectCallNode callNode;
 
+    private final DynamicObject cachedNameAsSymbol;
+
     public CachedMethodMissingDispatchNode(
             RubyContext context,
             Object cachedName,
@@ -50,6 +54,16 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         this.methodMissing = methodMissingLookup.getMethod();
         this.metaClassNode = MetaClassNode.create();
         this.callNode = Truffle.getRuntime().createDirectCallNode(methodMissing.getCallTarget());
+
+        if (RubyGuards.isRubySymbol(cachedName)) {
+            cachedNameAsSymbol = (DynamicObject) cachedName;
+        } else if (RubyGuards.isRubyString(cachedName)) {
+            cachedNameAsSymbol = context.getSymbolTable().getSymbol(StringOperations.rope((DynamicObject) cachedName));
+        } else if (cachedName instanceof String) {
+            cachedNameAsSymbol = context.getSymbolTable().getSymbol((String) cachedName);
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     @Override
@@ -114,7 +128,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         switch (getDispatchAction()) {
             case CALL_METHOD:
                 // When calling #method_missing we need to prepend the symbol
-                final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(argumentsObjects, getCachedNameAsSymbol());
+                final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(argumentsObjects, cachedNameAsSymbol);
 
                 return call(callNode, frame, methodMissing, receiverObject, blockObject, modifiedArgumentsObjects);
 

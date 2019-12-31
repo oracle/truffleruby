@@ -107,7 +107,7 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
     public String toString() {
         return StringUtils.format(
                 "CachedBoxedDispatchNode(:%s, %s@%x, %s)",
-                getCachedNameAsSymbol().toString(),
+                getCachedName().toString(),
                 expectedReceiver,
                 expectedReceiver.hashCode(),
                 method == null ? "null" : method.toString());

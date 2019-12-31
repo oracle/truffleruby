@@ -30,7 +30,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public abstract class CachedDispatchNode extends DispatchNode {
 
     private final Object cachedName;
-    private final DynamicObject cachedNameAsSymbol;
 
     @Child protected DispatchNode next;
     @Child private RopeNodes.BytesEqualNode ropeEqualsNode;
@@ -48,15 +47,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
                 (RubyGuards.isRubyString(cachedName));
         this.cachedName = cachedName;
 
-        if (RubyGuards.isRubySymbol(cachedName)) {
-            cachedNameAsSymbol = (DynamicObject) cachedName;
-        } else if (RubyGuards.isRubyString(cachedName)) {
-            cachedNameAsSymbol = context.getSymbolTable().getSymbol(StringOperations.rope((DynamicObject) cachedName));
+        if (RubyGuards.isRubyString(cachedName)) {
             ropeEqualsNode = RopeNodes.BytesEqualNode.create();
-        } else if (cachedName instanceof String) {
-            cachedNameAsSymbol = context.getSymbolTable().getSymbol((String) cachedName);
-        } else {
-            throw new UnsupportedOperationException();
         }
 
         this.next = next;
@@ -97,8 +89,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
         }
     }
 
-    protected DynamicObject getCachedNameAsSymbol() {
-        return cachedNameAsSymbol;
+    public Object getCachedName() {
+        return cachedName;
     }
 
     protected abstract void reassessSplittingInliningStrategy();
