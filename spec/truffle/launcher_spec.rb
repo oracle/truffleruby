@@ -302,6 +302,7 @@ describe "The launcher" do
     it "applies Truffle options" do
       options = [
         "--engine.TraceCompilation",
+        "--experimental-options",
         "--engine.BackgroundCompilation=false",
       ].join(" ")
       out = ruby_exe("2000.times {}", options: options, args: "2>&1")
