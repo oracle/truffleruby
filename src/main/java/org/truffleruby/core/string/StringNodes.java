@@ -2855,6 +2855,8 @@ public abstract class StringNodes {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
+        // NOTE: MBC = Multi-Byte Character set
+
         @Specialization(
                 guards = {
                         "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
@@ -2876,9 +2878,10 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
-            final byte[] outputBytes = bytesNode.execute(rope);
-            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, cr, outputBytes);
-            if (modifiedProfile.profile(modified)) {
+            final byte[] inputBytes = bytesNode.execute(rope);
+            final byte[] outputBytes = StringSupport.multiByteUpcaseAsciiOnly(encoding, cr, inputBytes);
+            
+            if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
                         string,
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
