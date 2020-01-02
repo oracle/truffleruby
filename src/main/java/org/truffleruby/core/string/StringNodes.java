@@ -2855,13 +2855,11 @@ public abstract class StringNodes {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        // NOTE: MBC = Multi-Byte Character set
-
         @Specialization(
                 guards = {
                         "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
                         "caseMappingOptions == CASE_ASCII_ONLY",
-                        "rope(string).getEncoding().isAsciiCompatible()" })
+                        "isAsciiCompatible(string)" })
         protected DynamicObject upcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
@@ -2886,14 +2884,13 @@ public abstract class StringNodes {
                 StringOperations.setRope(
                         string,
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
-
                 return string;
             } else {
                 return nil();
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
+        @Specialization
         protected DynamicObject upcaseMBC(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
