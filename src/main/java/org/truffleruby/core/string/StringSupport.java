@@ -1411,23 +1411,32 @@ public final class StringSupport {
         return newByteLength;
     }
 
+    /**
+     * Returns a copy of {@code bytes} but with ASCII characters downcased, or {@code bytes} itself
+     * if no ASCII characters need upcasing. The encoding must be ASCII-compatible (i.e. represent
+     * each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
+     */
     @TruffleBoundary
-    public static boolean multiByteDowncaseAsciiOnly(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] multiByteDowncaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
+        assert enc.isAsciiCompatible();
         boolean modify = false;
         int s = 0;
         final int end = bytes.length;
 
         while (s < end) {
-            if (enc.isAsciiCompatible() && isAsciiUppercase(bytes[s])) {
+            if (isAsciiUppercase(bytes[s])) {
+                if (!modify) {
+                    bytes = bytes.clone();
+                    modify = true;
+                }
                 bytes[s] ^= 0x20;
-                modify = true;
                 s++;
             } else {
                 s += characterLength(enc, codeRange, bytes, s, end);
             }
         }
 
-        return modify;
+        return bytes;
     }
 
     @TruffleBoundary

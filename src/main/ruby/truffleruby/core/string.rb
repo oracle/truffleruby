@@ -1564,7 +1564,7 @@ class String
 
   def downcase!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, true)
-    TrufflePrimitive.downcase! self, mapped_options
+    TrufflePrimitive.string_downcase! self, mapped_options
   end
 
   def downcase(*options)

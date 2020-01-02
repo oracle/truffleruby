@@ -1083,7 +1083,7 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "downcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_downcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -1102,7 +1102,8 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY" })
+                        "caseMappingOptions == CASE_ASCII_ONLY",
+                        "isAsciiCompatible(string)" })
         protected DynamicObject downcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
@@ -1120,21 +1121,20 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
-            final byte[] outputBytes = bytesNode.execute(rope);
-            final boolean modified = StringSupport.multiByteDowncaseAsciiOnly(encoding, cr, outputBytes);
+            final byte[] inputBytes = bytesNode.execute(rope);
+            final byte[] outputBytes = StringSupport.multiByteDowncaseAsciiCompatible(encoding, cr, inputBytes);
 
-            if (modifiedProfile.profile(modified)) {
+            if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
                         string,
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
-
                 return string;
             } else {
                 return nil();
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
+        @Specialization
         protected DynamicObject downcaseMBC(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
