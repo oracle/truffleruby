@@ -1575,7 +1575,7 @@ class String
 
   def upcase!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
-    TrufflePrimitive.upcase! self, mapped_options
+    TrufflePrimitive.string_upcase! self, mapped_options
   end
 
   def upcase(*options)

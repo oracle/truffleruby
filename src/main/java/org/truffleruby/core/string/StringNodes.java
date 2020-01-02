@@ -2839,7 +2839,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "upcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_upcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
