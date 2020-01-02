@@ -1471,16 +1471,18 @@ public final class StringSupport {
 
     /**
      * Returns a copy of {@code bytes} but with ASCII characters upcased, or {@code bytes} itself
-     * if no ASCII characters need upcasing.
+     * if no ASCII characters need upcasing. The encoding must be ASCII-compatible (i.e. represent
+     * each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
-    public static byte[] multiByteUpcaseAsciiOnly(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] multiByteUpcaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
+        assert enc.isAsciiCompatible();
         boolean modify = false;
         int s = 0;
         final int end = bytes.length;
 
         while (s < end) {
-            if (enc.isAsciiCompatible() && isAsciiLowercase(bytes[s])) {
+            if (isAsciiLowercase(bytes[s])) {
                 if (!modify) {
                     bytes = bytes.clone();
                     modify = true;

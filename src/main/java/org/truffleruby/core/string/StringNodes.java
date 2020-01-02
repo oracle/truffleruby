@@ -2860,7 +2860,8 @@ public abstract class StringNodes {
         @Specialization(
                 guards = {
                         "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY" })
+                        "caseMappingOptions == CASE_ASCII_ONLY",
+                        "rope(string).getEncoding().isAsciiCompatible()" })
         protected DynamicObject upcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
@@ -2879,8 +2880,8 @@ public abstract class StringNodes {
             }
 
             final byte[] inputBytes = bytesNode.execute(rope);
-            final byte[] outputBytes = StringSupport.multiByteUpcaseAsciiOnly(encoding, cr, inputBytes);
-            
+            final byte[] outputBytes = StringSupport.multiByteUpcaseAsciiCompatible(encoding, cr, inputBytes);
+
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
                         string,
