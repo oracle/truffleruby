@@ -54,6 +54,7 @@ Bug fixes:
 * Make top-level methods available in `Context#getBindings()` (#1838).
 * Made `Kernel#caller_locations` accept a range argument, and return `nil` when appropriate.
 * Made `rb_respond_to` work with primitives (#1869, @chrisseaton).
+* Fixed issue with missing backtrace for `rescue $ERROR_INFO` (#1660).
 
 Compatibility:
 

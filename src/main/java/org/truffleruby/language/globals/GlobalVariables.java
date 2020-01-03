@@ -72,7 +72,8 @@ public class GlobalVariables {
         final GlobalVariableStorage storage = getStorage(oldName);
 
         final GlobalVariableStorage previousStorage = variables.put(newName, storage);
-        if (previousStorage != null) {
+        // If previousStorage == storage, we already have that alias and should not invalidate
+        if (previousStorage != null && previousStorage != storage) {
             previousStorage.getValidAssumption().invalidate();
         }
     }
