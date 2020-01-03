@@ -1281,7 +1281,7 @@ module Truffle::CExt
   end
 
   def rb_newobj_of(ruby_class)
-    ruby_class.__send__(:__dynamic_object_factory__)
+    ruby_class.__send__(:__layout_allocate__)
   end
 
   def rb_define_alloc_func(ruby_class, function)
@@ -1456,7 +1456,7 @@ module Truffle::CExt
 
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
-    object = ruby_class.__send__(:__dynamic_object_factory__)
+    object = ruby_class.__send__(:__layout_allocate__)
     data_holder = DataHolder.new(data)
     hidden_variable_set object, DATA_HOLDER, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
@@ -1466,7 +1466,7 @@ module Truffle::CExt
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free, size)
     ruby_class = Object unless ruby_class
-    object = ruby_class.__send__(:__dynamic_object_factory__)
+    object = ruby_class.__send__(:__layout_allocate__)
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, DATA_HOLDER, data_holder

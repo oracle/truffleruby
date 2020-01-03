@@ -39,7 +39,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule(value = "Mutex", isClass = true)
 public abstract class MutexNodes {
 
-    @CoreMethod(names = {"__allocate__", "__dynamic_object_factory__"}, constructor = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
