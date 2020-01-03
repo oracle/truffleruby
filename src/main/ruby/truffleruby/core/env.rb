@@ -315,6 +315,17 @@ class << ENV
     key ? [key, value] : nil
   end
 
+  def slice(*keys)
+    result = {}
+    keys.each do |k|
+      value = lookup(k)
+      unless value.nil?
+        result[k] = value
+      end
+    end
+    result
+  end
+
   def set_encoding(value)
     return unless value.kind_of? String
     if Encoding.default_internal && value.ascii_only?
