@@ -3532,15 +3532,20 @@ VALUE rb_class_inherited(VALUE super, VALUE klass) {
 }
 
 VALUE rb_define_class_id(ID id, VALUE super) {
-  rb_tr_error("rb_define_class_id not implemented");
+  // id is deliberately ignored - see MRI
+  if (super == NULL) {
+    super = rb_cObject;
+  }
+  return rb_class_new(super);
 }
 
 VALUE rb_module_new(void) {
-  rb_tr_error("rb_module_new not implemented");
+  return RUBY_CEXT_INVOKE("rb_module_new");
 }
 
 VALUE rb_define_module_id(ID id) {
-  rb_tr_error("rb_define_module_id not implemented");
+  // id is deliberately ignored - see MRI
+  return rb_module_new();
 }
 
 VALUE rb_define_module_id_under(VALUE outer, ID id) {

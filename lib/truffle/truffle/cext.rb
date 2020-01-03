@@ -1524,6 +1524,10 @@ module Truffle::CExt
     end
   end
 
+  def rb_module_new
+    Module.new
+  end
+
   def rb_ensure(b_proc, data1, e_proc, data2)
     begin
       TrufflePrimitive.cext_unwrap(TrufflePrimitive.call_with_c_mutex(b_proc, [data1]))

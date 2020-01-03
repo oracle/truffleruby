@@ -75,6 +75,7 @@ Compatibility:
 * Include the major kernel version in `RUBY_PLATFORM` on macOS like MRI (#1860, @eightbitraptor).
 * Implemented `Enumerator::Chain`, `Enumerator#+`, and `Enumerable#chain` (#1859, #1858).
 * Implemented `Thread#backtrace_locations` and `Exception#backtrace_locations` (#1556).
+* Implemented `rb_module_new`, `rb_define_class_id`, `rb_define_module_id`, (#1876, @chrisseaton).
 
 Performance:
 
