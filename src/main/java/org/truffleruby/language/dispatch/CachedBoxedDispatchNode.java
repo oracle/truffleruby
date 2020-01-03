@@ -108,9 +108,9 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
     public String toString() {
         return StringUtils.format(
                 "CachedBoxedDispatchNode(:%s, %x, %s)",
-                getCachedName().toString(),
+                getCachedName(),
                 expectedShape.hashCode(),
-                method == null ? "null" : method.toString());
+                method);
     }
 
 }
