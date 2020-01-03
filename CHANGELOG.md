@@ -11,20 +11,20 @@ Bug fixes:
 * Dump and load instance variables in subclasses of `Exception` (#1766, @rafaelfranca).
 * Fix `Date._iso8601` and `Date._rfc3339` when the string is an invalid date (#1773, @rafaelfranca).
 * Fail earlier for bad handle unwrapping (#1777, @chrisseaton).
-* Match out of range ArgumentError message with MRI (#1774, @rafaelfranca)
-* Raise Encoding::CompatibilityError with incompatible encodings on regexp (#1775, @rafaelfranca).
-* Fixed interactions between attributes and instance variables in structs (#1776, @chrisseaton).
+* Match out of range `ArgumentError` message with MRI (#1774, @rafaelfranca)
+* Raise `Encoding::CompatibilityError` with incompatible encodings on `Regexp` (#1775, @rafaelfranca).
+* Fixed interactions between attributes and instance variables in `Struct` (#1776, @chrisseaton).
 * Coercion fixes for `TCPServer.new` (#1780, @XrXr)
 * Fix `Float#<=>` not calling `coerce` when `other` argument responds to it (#1783, @XrXr).
 * Do not warn / crash when requiring a file that sets and trigger autoload on itself (#1779, @XrXr).
-* Strip trailing whitespaces when BigDecimal gets a string (#1796, @XrXr).
-* Default `close_others` in `Process.exec` to false like Ruby 2.6 (#1798, @XrXr).
+* Strip trailing whitespaces when creating a `BigDecimal` with a `String` (#1796, @XrXr).
+* Default `close_others` in `Process.exec` to `false` like Ruby 2.6 (#1798, @XrXr).
 * Don't clone methods when setting method to the same visibility (#1794, @XrXr).
-* BigDecimal() deal with large rationals precisely (#1797, @XrXr).
+* `BigDecimal()` deal with large rationals precisely (#1797, @XrXr).
 * Make it possible to call `instance_exec` with `rb_block_call` (#1802, @XrXr).
-* Struct.new: check for duplicate members (#1803, @XrXr).
+* Check for duplicate members in `Struct.new` (#1803, @XrXr).
 * `Process::Status#to_i` return raw `waitpid(2)` status (#1800, @XrXr).
-* Process#exec: set close-on-exec to false for fd redirection (#1805, @XrXr, @rafaelfranca).
+* `Process#exec`: set close-on-exec to false for fd redirection (#1805, @XrXr, @rafaelfranca).
 * Building C extensions should now work with frozen string literals (#1786).
 * Keep the Truffle working directory in sync with the native working directory.
 * Rename `to_native` to `polyglot_to_native` to match `polyglot_pointer?` and `polyglot_address` methods.
@@ -34,21 +34,21 @@ Bug fixes:
 * Fixed `Module#to_s` and `Module#inspect` to not return an extra `#<Class:` for singleton classes.
 * Arrays backed by native storage now allocate the correct amount of memory (#1828).
 * Fixed issue in `ConditionVariable#wait` that could lose a `ConditionVariable#signal`.
-* Do not leak TruffleRuby specific method Array#swap (#1816)
+* Do not expose TruffleRuby-specific method `Array#swap` (#1816)
 * Fixed `#inspect` on broken UTF-8 sequences (#1842, @chrisseaton).
-* `Truffle::Interop.keys` should report methods of String and Symbol (#1817)
+* `Truffle::Interop.keys` should report methods of `String` and `Symbol` (#1817)
 * `Kernel#sprintf` encoding validity has been fixed (#1852, @XrXr).
-* Fixed File.fnmatch causes ArrayIndexOutOfBoundsException (#1845).
+* Fixed `ArrayIndexOutOfBoundsException` in `File.fnmatch` (#1845).
 * Make `String#concat` work with no or multiple arguments (#1519).
 * Make `Array#concat` work with no or multiple arguments (#1519).
-* Fixed BigDecimal coerce initial argument using `to_str` (#1826).
-* Fixed `NameError`, `NoMethodError`, and `SystemCallError` dup with internal field data.
+* Coerce `BigDecimal(arg)` using `to_str` (#1826).
+* Fixed `NameError#dup`, `NoMethodError#dup`, and `SystemCallError#dup` to copy internal fields.
 * Make `Enumerable#chunk` work without a block (#1518).
-* Fixed issue with `SystemCallError.new` setting a backtrace.
+* Fixed issue with `SystemCallError.new` setting a backtrace too early.
 * Fixed `BigDecimal#to_s` formatting issue (#1711).
 * Run `END` keyword block only once at exit.
-* Implement Numeric#clone method to return self.
-* Fixed `Symbol#to_proc` to create proc with nil `source_location` (#1663).
+* Implement `Numeric#clone` to return `self`.
+* Fixed `Symbol#to_proc` to create a `Proc` with `nil` `source_location` (#1663).
 * Make `GC.start` work with keyword arguments.
 * Fixed `Kernel#clone` for `nil`, `true`, `false`, `Integer`, and `Symbol`.
 * Make top-level methods available in `Context#getBindings()` (#1838).
@@ -62,7 +62,7 @@ Compatibility:
 * Implemented the `unit` argument of `Time.at` (#1791, @XrXr).
 * Implemented `keyword_init: true` for `Struct.new` (#1789, @XrXr).
 * Implemented `MatchData#dup` (#1792, @XrXr).
-* Implemented a native storage strategy for arrays to allow better C extension compatibility.
+* Implemented a native storage strategy for `Array` to allow better C extension compatibility.
 * Implemented `rb_check_symbol_cstr` (#1814).
 * Implemented `rb_hash_start` (#1841, @XrXr).
 * JCodings has been updated from 1.0.42 to 1.0.45.
@@ -79,8 +79,8 @@ Compatibility:
 Performance:
 
 * Use a smaller limit for identity-based inline caches to improve warmup by avoiding too many deoptimizations.
-* Long array strategies now correctly declare that they accept Integers, reducing deoptimisations and proomotions to Object arrays.
-* Enable inline caching of symbol conversion for `rb_iv_get` and `rb_iv_set`.
+* `long[]` array storage now correctly declare that they accept `int` values, reducing deoptimisations and promotions to `Object[]` storage.
+* Enable inline caching of `Symbol` conversion for `rb_iv_get` and `rb_iv_set`.
 * `rb_type` information is now cached on classes as a hidden variable to improve performance.
 * Change to using thread local buffers for socket calls to reduce allocations.
 * Refactor `IO.select` to reduce copying and optimisation boundaries.
