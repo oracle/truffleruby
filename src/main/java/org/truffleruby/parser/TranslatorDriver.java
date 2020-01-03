@@ -44,6 +44,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.LoadRequiredLibrariesNode;
+import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -55,6 +56,7 @@ import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
@@ -273,6 +275,10 @@ public class TranslatorDriver {
             truffleNode = Translator.sequence(
                     sourceIndexLength,
                     Arrays.asList(translator.initFlipFlopStates(sourceIndexLength), truffleNode));
+        }
+
+        if (parserContext == ParserContext.TOP_LEVEL_FIRST && context.getOptions().GETS_LOOP) {
+            truffleNode = new WhileNode(new WhileNode.WhileRepeatingNode(context, new KernelGetsNode(), truffleNode));
         }
 
         if (beginNode != null) {

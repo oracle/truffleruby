@@ -6,7 +6,6 @@ USER:
     WORKING_DIRECTORY: [[working-directory, -C], string, '', Interpreter will switch to this directory]
     DEBUG: [[debug, -d], boolean, false, 'Sets $DEBUG to this value']
     VERBOSITY: [[verbose, -v, -w, -W], enum/verbosity, false, 'Sets $VERBOSE to this value']
-
     SOURCE_ENCODING: [[source-encoding, -K], string, '', Source encoding]
     INTERNAL_ENCODING: [[internal-encoding, -E, -U], string, '', Internal encoding]
     EXTERNAL_ENCODING: [[external-encoding, -E], string, '', External encoding]
@@ -81,6 +80,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
   EXPERIMENTAL:
     # Options corresponding to MRI options, which are only meaningful when using the TruffleRuby launcher
     ARGV_GLOBALS: [[argv-globals, -s], boolean, false, Parse options in script argv into global variables]
+    GETS_LOOP: [[gets-loop, -n], boolean, false, 'assume while gets(); ... end loop around your script']
     IGNORE_LINES_BEFORE_RUBY_SHEBANG: [[ignore-lines-before-ruby-shebang, -x], boolean, false, "strip off text before #!ruby line"]
     SYNTAX_CHECK: [[syntax-check, -c], boolean, false, Do not execute just check syntax]
 
