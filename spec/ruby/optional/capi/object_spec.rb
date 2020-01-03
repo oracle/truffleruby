@@ -110,6 +110,11 @@ describe "CApiObject" do
       @o.rb_respond_to(ObjectTest.new, :foo).should == true
       @o.rb_respond_to(ObjectTest.new, :bar).should == false
     end
+
+    it "can be used with primitives" do
+      @o.rb_respond_to(true, :object_id).should == true
+      @o.rb_respond_to(14, :succ).should == true
+    end
   end
 
   describe "rb_obj_respond_to" do
