@@ -113,8 +113,12 @@ class << ENV
   end
   alias_method :each_pair, :each
 
-  def each_key(&block)
-    @variables.each(&block)
+  def each_key
+    return to_enum(:each_key) { size } unless block_given?
+    @variables.each do |name|
+      yield set_encoding(name)
+    end
+    self
   end
 
   def each_value
