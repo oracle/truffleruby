@@ -1329,6 +1329,38 @@ public final class StringSupport {
 
     // region Case Mapping Methods
 
+    @TruffleBoundary
+    private static int caseMapChar(int codePoint, Encoding enc, byte[] stringBytes, int stringByteOffset,
+            RopeBuilder builder, IntHolder flags, byte[] workBuffer) {
+        final IntHolder fromP = new IntHolder();
+        fromP.value = stringByteOffset;
+
+        final int clen = enc.codeToMbcLength(codePoint);
+
+        final int newByteLength = enc
+                .caseMap(flags, stringBytes, fromP, fromP.value + clen, workBuffer, 0, workBuffer.length);
+
+        if (clen == newByteLength) {
+            System.arraycopy(workBuffer, 0, stringBytes, stringByteOffset, newByteLength);
+        } else {
+            final int tailLength = stringBytes.length - (stringByteOffset + clen);
+            final int newBufferLength = stringByteOffset + newByteLength + tailLength;
+            final byte[] newBuffer = Arrays.copyOf(stringBytes, newBufferLength);
+
+            System.arraycopy(workBuffer, 0, newBuffer, stringByteOffset, newByteLength);
+            System.arraycopy(
+                    stringBytes,
+                    stringByteOffset + clen,
+                    newBuffer,
+                    stringByteOffset + newByteLength,
+                    tailLength);
+
+            builder.unsafeReplace(newBuffer, newBufferLength);
+        }
+
+        return newByteLength;
+    }
+
     /**
      * Returns a copy of {@code bytes} but with ASCII characters' case swapped, or {@code bytes}
      * itself if the string doesn't require changes. The encoding must be ASCII-compatible (i.e.
@@ -1384,38 +1416,6 @@ public final class StringSupport {
         }
 
         return modified;
-    }
-
-    @TruffleBoundary
-    private static int caseMapChar(int codePoint, Encoding enc, byte[] stringBytes, int stringByteOffset,
-            RopeBuilder builder, IntHolder flags, byte[] workBuffer) {
-        final IntHolder fromP = new IntHolder();
-        fromP.value = stringByteOffset;
-
-        final int clen = enc.codeToMbcLength(codePoint);
-
-        final int newByteLength = enc
-                .caseMap(flags, stringBytes, fromP, fromP.value + clen, workBuffer, 0, workBuffer.length);
-
-        if (clen == newByteLength) {
-            System.arraycopy(workBuffer, 0, stringBytes, stringByteOffset, newByteLength);
-        } else {
-            final int tailLength = stringBytes.length - (stringByteOffset + clen);
-            final int newBufferLength = stringByteOffset + newByteLength + tailLength;
-            final byte[] newBuffer = Arrays.copyOf(stringBytes, newBufferLength);
-
-            System.arraycopy(workBuffer, 0, newBuffer, stringByteOffset, newByteLength);
-            System.arraycopy(
-                    stringBytes,
-                    stringByteOffset + clen,
-                    newBuffer,
-                    stringByteOffset + newByteLength,
-                    tailLength);
-
-            builder.unsafeReplace(newBuffer, newBufferLength);
-        }
-
-        return newByteLength;
     }
 
     /**
