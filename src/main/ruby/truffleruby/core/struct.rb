@@ -309,7 +309,9 @@ class Struct
     val = TrufflePrimitive.vm_hash_start(CLASS_SALT)
     val = TrufflePrimitive.vm_hash_update(val, size)
     return val if Thread.detect_outermost_recursion self do
-      _attrs.each { |var| TrufflePrimitive.vm_hash_update(val, TrufflePrimitive.object_hidden_var_get(self, var).hash) }
+      _attrs.each do |var|
+        val = TrufflePrimitive.vm_hash_update(val, TrufflePrimitive.object_hidden_var_get(self, var).hash)
+      end
     end
     TrufflePrimitive.vm_hash_end(val)
   end
