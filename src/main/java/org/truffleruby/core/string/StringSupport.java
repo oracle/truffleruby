@@ -1331,23 +1331,32 @@ public final class StringSupport {
      * rb_str_swapcase / rb_str_swapcase_bang
      */
 
+    /**
+     * Returns a copy of {@code bytes} but with ASCII characters' case swapped, or {@code bytes}
+     * itself if the string doesn't require changes. The encoding must be ASCII-compatible (i.e.
+     * represent each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
+     */
     @TruffleBoundary
-    public static boolean multiByteSwapcaseAsciiOnly(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] multiByteSwapcaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
+        assert enc.isAsciiCompatible();
         boolean modify = false;
         int s = 0;
         final int end = bytes.length;
 
         while (s < end) {
-            if (enc.isAsciiCompatible() && isAsciiAlpha(bytes[s])) {
+            if (isAsciiAlpha(bytes[s])) {
+                if (!modify) {
+                    bytes = bytes.clone();
+                    modify = true;
+                }
                 bytes[s] ^= 0x20;
-                modify = true;
                 s++;
             } else {
                 s += characterLength(enc, codeRange, bytes, s, end);
             }
         }
 
-        return modify;
+        return bytes;
     }
 
     @TruffleBoundary

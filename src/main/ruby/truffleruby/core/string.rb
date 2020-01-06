@@ -292,7 +292,7 @@ class String
 
   def swapcase!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
-    TrufflePrimitive.swapcase! self, mapped_options
+    TrufflePrimitive.string_swapcase! self, mapped_options
   end
 
   def swapcase(*options)

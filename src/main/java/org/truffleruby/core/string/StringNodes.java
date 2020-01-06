@@ -1784,26 +1784,20 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "swapcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_swapcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "isAsciiCompatMapping(caseMappingOptions)" })
+        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject swapcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createSwapCase()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY" })
+        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject swapcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -1822,21 +1816,20 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
-            final byte[] bytes = rope.getBytesCopy();
-            final boolean modified = StringSupport.multiByteSwapcaseAsciiOnly(enc, cr, bytes);
+            final byte[] inputBytes = rope.getBytesCopy();
+            final byte[] outputBytes = StringSupport.multiByteSwapcaseAsciiCompatible(enc, cr, inputBytes);
 
-            if (modifiedProfile.profile(modified)) {
+            if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
                         string,
-                        makeLeafRopeNode.executeMake(bytes, enc, cr, characterLengthNode.execute(rope)));
-
+                        makeLeafRopeNode.executeMake(outputBytes, enc, cr, characterLengthNode.execute(rope)));
                 return string;
             } else {
                 return nil();
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
+        @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected DynamicObject swapcase(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
