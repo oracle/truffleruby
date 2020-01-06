@@ -106,12 +106,4 @@ public class StringGuards {
         return !isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode) &&
                 !isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode);
     }
-
-    public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions,
-            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-        return (StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
-                !isAsciiCompatMapping(caseMappingOptions)) ||
-                (!StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
-                        caseMappingOptions != Config.CASE_ASCII_ONLY);
-    }
 }
