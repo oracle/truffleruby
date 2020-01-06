@@ -3698,7 +3698,7 @@ void rb_remove_method_id(VALUE klass, ID mid) {
 }
 
 rb_alloc_func_t rb_get_alloc_func(VALUE klass) {
-  rb_tr_error("rb_get_alloc_func not implemented");
+  return RUBY_CEXT_INVOKE_NO_WRAP("rb_get_alloc_func", klass);
 }
 
 void rb_clear_constant_cache(void) {
@@ -4680,7 +4680,8 @@ VALUE rb_newobj(void) {
 }
 
 VALUE rb_newobj_of(VALUE klass, VALUE flags) {
-  rb_tr_error("rb_newobj_of not implemented");
+  // ignore flags for now
+  return RUBY_CEXT_INVOKE("rb_newobj_of", klass);
 }
 
 VALUE rb_obj_setup(VALUE obj, VALUE klass, VALUE type) {

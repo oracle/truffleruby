@@ -58,7 +58,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
 
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization

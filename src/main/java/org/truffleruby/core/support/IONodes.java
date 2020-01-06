@@ -103,7 +103,7 @@ public abstract class IONodes {
 
     private static final int CLOSED_FD = -1;
 
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

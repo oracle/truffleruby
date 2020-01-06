@@ -37,7 +37,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @CoreModule(value = "SizedQueue", isClass = true)
 public abstract class SizedQueueNodes {
 
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

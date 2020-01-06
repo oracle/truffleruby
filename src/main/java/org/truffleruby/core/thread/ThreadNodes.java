@@ -92,7 +92,7 @@ import com.oracle.truffle.api.source.SourceSection;
 @CoreModule(value = "Thread", isClass = true)
 public abstract class ThreadNodes {
 
-    @CoreMethod(names = "__allocate__", constructor = true, visibility = Visibility.PRIVATE)
+    @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization

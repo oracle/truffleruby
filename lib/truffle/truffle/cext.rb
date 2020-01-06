@@ -14,6 +14,7 @@ module Truffle::CExt
   DATA_HOLDER = Object.new
   DATA_MEMSIZER = Object.new
   RB_TYPE = Object.new
+  ALLOCATOR_FUNC = Object.new
 
   extend self
 
@@ -350,13 +351,14 @@ module Truffle::CExt
     when Symbol
       T_SYMBOL
     when Integer
-      #rb_tr_cached_type. The final type must be calculated for each number.
+      # See #rb_tr_cached_type, the final type must be calculated for each number.
       T_FIXNUM
     when Time
       T_DATA
     when Data
       T_DATA
     when BasicObject
+      # See #rb_tr_cached_type, the final type must be calculated for each object.
       T_NONE
     else
       raise "unknown type #{value.class}"
@@ -1282,6 +1284,10 @@ module Truffle::CExt
     eval(str)
   end
 
+  def rb_newobj_of(ruby_class)
+    ruby_class.__send__(:__layout_allocate__)
+  end
+
   def rb_define_alloc_func(ruby_class, function)
     ruby_class.singleton_class.define_method(:__allocate__) do
       TrufflePrimitive.cext_unwrap(TrufflePrimitive.call_with_c_mutex(function, [TrufflePrimitive.cext_wrap(self)]))
@@ -1289,10 +1295,26 @@ module Truffle::CExt
     class << ruby_class
       private :__allocate__
     end
+    hidden_variable_set(ruby_class.singleton_class, ALLOCATOR_FUNC, function)
+  end
+
+  def rb_get_alloc_func(ruby_class)
+    return nil unless Class === ruby_class
+    begin
+      allocate_method = ruby_class.method(:__allocate__).owner
+    rescue NameError
+      nil
+    else
+      hidden_variable_get(allocate_method, ALLOCATOR_FUNC)
+    end
   end
 
   def rb_undef_alloc_func(ruby_class)
     ruby_class.singleton_class.send(:undef_method, :__allocate__)
+  rescue NameError
+    nil # it's fine to call this on a class that doesn't have an allocator
+  else
+    hidden_variable_set(ruby_class.singleton_class, ALLOCATOR_FUNC, nil)
   end
 
   def rb_alias(mod, new_name, old_name)
@@ -1436,11 +1458,9 @@ module Truffle::CExt
     NATIVETHREAD_LOCKS.delete(lock)
   end
 
-  BASIC_OBJECT_ALLOCATE = BasicObject.method(:__allocate__).unbind
-
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
-    object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
+    object = ruby_class.__send__(:__layout_allocate__)
     data_holder = DataHolder.new(data)
     hidden_variable_set object, DATA_HOLDER, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
@@ -1450,7 +1470,7 @@ module Truffle::CExt
 
   def rb_data_typed_object_wrap(ruby_class, data, data_type, mark, free, size)
     ruby_class = Object unless ruby_class
-    object = BASIC_OBJECT_ALLOCATE.bind(ruby_class).call
+    object = ruby_class.__send__(:__layout_allocate__)
     data_holder = DataHolder.new(data)
     hidden_variable_set object, :data_type, data_type
     hidden_variable_set object, DATA_HOLDER, data_holder
