@@ -1553,7 +1553,7 @@ class String
 
   def capitalize!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
-    TrufflePrimitive.capitalize! self, mapped_options
+    TrufflePrimitive.string_capitalize! self, mapped_options
   end
 
   def capitalize(*options)

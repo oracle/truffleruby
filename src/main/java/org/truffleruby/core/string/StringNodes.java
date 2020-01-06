@@ -2915,7 +2915,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "capitalize!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_capitalize!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -2926,10 +2926,8 @@ public abstract class StringNodes {
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "isAsciiCompatMapping(caseMappingOptions)" })
+
+        @Specialization(guards = "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected DynamicObject capitalizeSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
@@ -2978,14 +2976,11 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY" })
+        @Specialization(guards = "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected DynamicObject capitalizeBangMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
-                @Cached BranchProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                                                           @Cached BranchProfile dummyEncodingProfile,
+                                                           @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
+                                                           @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
 
             final Rope rope = rope(string);
@@ -2994,46 +2989,33 @@ public abstract class StringNodes {
             if (enc.isDummy()) {
                 dummyEncodingProfile.enter();
                 throw new RaiseException(
-                        getContext(),
-                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                    getContext(),
+                    coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
             if (emptyStringProfile.profile(rope.isEmpty())) {
                 return nil();
             }
 
-            int s = 0;
-            int end = rope.byteLength();
-            final byte[] bytes = bytesNode.execute(rope);
             final CodeRange cr = codeRangeNode.execute(rope);
-            boolean modified = false;
+            final byte[] inputBytes = rope.getBytes();
+            final byte[] outputBytes = StringSupport.multiByteCapitalizeAsciiCompatible(enc, cr, inputBytes);
 
-            while (s < end) {
-                if (enc.isAsciiCompatible() && StringSupport.isAsciiAlpha(bytes[s])) {
-                    bytes[s] ^= 0x20;
-                    modified = true;
-                    s++;
-                } else {
-                    s += StringSupport.characterLength(enc, cr, bytes, s, end);
-                    // Raise error if invalid.
-                }
-            }
-
-            if (modifiedProfile.profile(modified)) {
+            if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
-                        string,
-                        makeLeafRopeNode.executeMake(
-                                bytes,
-                                rope.getEncoding(),
-                                cr,
-                                characterLengthNode.execute(rope)));
+                    string,
+                    makeLeafRopeNode.executeMake(
+                        outputBytes,
+                        enc,
+                        cr,
+                        characterLengthNode.execute(rope)));
                 return string;
             }
 
             return nil();
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
+        @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected DynamicObject capitalizeBang(DynamicObject string, int caseMappingOptions,
                 @Cached BranchProfile dummyEncodingProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
@@ -3060,7 +3042,6 @@ public abstract class StringNodes {
                         string,
                         makeLeafRopeNode
                                 .executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
-
                 return string;
             } else {
                 return nil();

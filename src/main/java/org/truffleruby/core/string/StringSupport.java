@@ -1552,6 +1552,44 @@ public final class StringSupport {
         return modify;
     }
 
+    /**
+     * Returns a copy of {@code bytes} but capitalized (affecting only ASCII characters), or {@code
+     * bytes} itself if the string doesn't require changes. The encoding must be ASCII-compatible
+     * (i.e. represent each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
+     */
+    @TruffleBoundary
+    public static byte[] multiByteCapitalizeAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
+        assert enc.isAsciiCompatible();
+        boolean modified = false;
+        final int end = bytes.length;
+
+        if (end == 0) {
+            return bytes;
+        }
+
+        if (StringSupport.isAsciiLowercase(bytes[0])) {
+            bytes = bytes.clone();
+            bytes[0] ^= 0x20;
+            modified = true;
+        }
+
+        int s = 1;
+        while (s < end) {
+            if (StringSupport.isAsciiUppercase(bytes[s])) {
+                if (!modified) {
+                    bytes = bytes.clone();
+                    modified = true;
+                }
+                bytes[s] ^= 0x20;
+                s++;
+            } else {
+                s += StringSupport.characterLength(enc, codeRange, bytes, s, end);
+            }
+        }
+
+        return bytes;
+    }
+
     @TruffleBoundary
     public static boolean multiByteCapitalize(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
             int caseMappingOptions) {
