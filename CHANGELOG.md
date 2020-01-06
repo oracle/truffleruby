@@ -79,6 +79,7 @@ Compatibility:
 * Implemented `Thread#backtrace_locations` and `Exception#backtrace_locations` (#1556).
 * Implemented `rb_module_new`, `rb_define_class_id`, `rb_define_module_id`, (#1876, @chrisseaton).
 * Implemented `-n` CLI option (#1532).
+* Cache the `Symbol` of method names in call nodes only when needed (#1872).
 
 Performance:
 
