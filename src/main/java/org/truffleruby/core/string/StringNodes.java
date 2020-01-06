@@ -1106,7 +1106,6 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
-            final CodeRange cr = codeRangeNode.execute(rope);
 
             if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
@@ -1114,6 +1113,7 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
+            final CodeRange cr = codeRangeNode.execute(rope);
             final byte[] inputBytes = bytesNode.execute(rope);
             final byte[] outputBytes = StringSupport.multiByteDowncaseAsciiCompatible(encoding, cr, inputBytes);
 
@@ -1808,7 +1808,6 @@ public abstract class StringNodes {
 
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
-            final CodeRange cr = codeRangeNode.execute(rope);
 
             if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(
@@ -1816,6 +1815,7 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
+            final CodeRange cr = codeRangeNode.execute(rope);
             final byte[] inputBytes = rope.getBytesCopy();
             final byte[] outputBytes = StringSupport.multiByteSwapcaseAsciiCompatible(enc, cr, inputBytes);
 
@@ -2848,7 +2848,6 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
-            final CodeRange cr = codeRangeNode.execute(rope);
 
             if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
@@ -2856,6 +2855,7 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
+            final CodeRange cr = codeRangeNode.execute(rope);
             final byte[] inputBytes = bytesNode.execute(rope);
             final byte[] outputBytes = StringSupport.multiByteUpcaseAsciiCompatible(encoding, cr, inputBytes);
 
