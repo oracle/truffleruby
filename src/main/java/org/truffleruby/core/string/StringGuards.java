@@ -84,9 +84,8 @@ public class StringGuards {
      * (ASCII-only or full Unicode).
      */
     public static boolean isSingleByteCaseMapping(DynamicObject string, int caseMappingOptions,
-              RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-        return isSingleByteOptimizable(string, singleByteOptimizableNode)
-            && isAsciiCompatMapping(caseMappingOptions);
+            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        return isSingleByteOptimizable(string, singleByteOptimizableNode) && isAsciiCompatMapping(caseMappingOptions);
     }
 
     /**
@@ -94,10 +93,9 @@ public class StringGuards {
      * #isSingleByteCaseMapping} is not applicable.
      */
     public static boolean isSimpleAsciiCaseMapping(DynamicObject string, int caseMappingOptions,
-           RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-        return !isSingleByteOptimizable(string, singleByteOptimizableNode)
-            && caseMappingOptions == Config.CASE_ASCII_ONLY
-            && isAsciiCompatible(string);
+            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        return !isSingleByteOptimizable(string, singleByteOptimizableNode) &&
+                caseMappingOptions == Config.CASE_ASCII_ONLY && isAsciiCompatible(string);
     }
 
     /**
@@ -105,15 +103,15 @@ public class StringGuards {
      */
     public static boolean isComplexCaseMapping(DynamicObject string, int caseMappingOptions,
             RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-        return !isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)
-            && !isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode);
+        return !isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode) &&
+                !isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode);
     }
 
     public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions,
-                                            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
         return (StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
-            !isAsciiCompatMapping(caseMappingOptions)) ||
-            (!StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
-                caseMappingOptions != Config.CASE_ASCII_ONLY);
+                !isAsciiCompatMapping(caseMappingOptions)) ||
+                (!StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
+                        caseMappingOptions != Config.CASE_ASCII_ONLY);
     }
 }

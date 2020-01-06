@@ -2978,9 +2978,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected DynamicObject capitalizeBangMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
-                                                           @Cached BranchProfile dummyEncodingProfile,
-                                                           @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
-                                                           @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached BranchProfile dummyEncodingProfile,
+                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
+                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
 
             final Rope rope = rope(string);
@@ -2989,8 +2989,8 @@ public abstract class StringNodes {
             if (enc.isDummy()) {
                 dummyEncodingProfile.enter();
                 throw new RaiseException(
-                    getContext(),
-                    coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
+                        getContext(),
+                        coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
             if (emptyStringProfile.profile(rope.isEmpty())) {
@@ -3003,12 +3003,12 @@ public abstract class StringNodes {
 
             if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
-                    string,
-                    makeLeafRopeNode.executeMake(
-                        outputBytes,
-                        enc,
-                        cr,
-                        characterLengthNode.execute(rope)));
+                        string,
+                        makeLeafRopeNode.executeMake(
+                                outputBytes,
+                                enc,
+                                cr,
+                                characterLengthNode.execute(rope)));
                 return string;
             }
 
