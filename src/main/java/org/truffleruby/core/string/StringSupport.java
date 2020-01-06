@@ -914,14 +914,14 @@ public final class StringSupport {
         int t = s;
         int send = s + rubyString.byteLength();
         byte[] bytes = rubyString.getBytesCopy();
-        boolean modify = false;
+        boolean modified = false;
         boolean asciiCompatible = enc.isAsciiCompatible();
         CodeRange cr = asciiCompatible ? CR_7BIT : CR_VALID;
         while (s < send) {
             int c;
             if (asciiCompatible && Encoding.isAscii(c = bytes[s] & 0xff)) {
                 if (squeeze[c]) {
-                    modify = true;
+                    modified = true;
                 } else {
                     if (t != s) {
                         bytes[t] = (byte) c;
@@ -933,7 +933,7 @@ public final class StringSupport {
                 c = codePoint(enc, rubyString.getCodeRange(), bytes, s, send);
                 int cl = codeLength(enc, c);
                 if (trFind(c, squeeze, tables)) {
-                    modify = true;
+                    modified = true;
                 } else {
                     if (t != s) {
                         enc.codeToMbc(c, bytes, t);
@@ -947,7 +947,7 @@ public final class StringSupport {
             }
         }
 
-        return modify ? RopeOperations.create(ArrayUtils.extractRange(bytes, 0, t), enc, cr) : null;
+        return modified ? RopeOperations.create(ArrayUtils.extractRange(bytes, 0, t), enc, cr) : null;
     }
 
     /**
@@ -983,7 +983,7 @@ public final class StringSupport {
         int c, c0, last = 0;
         final int[] trans = new int[StringSupport.TRANS_SIZE];
         final StringSupport.TR trRepl = new StringSupport.TR(replStr);
-        boolean modify = false;
+        boolean modified = false;
         IntHash<Integer> hash = null;
         boolean singlebyte = self.isSingleByteOptimizable();
 
@@ -1083,7 +1083,7 @@ public final class StringSupport {
                     }
                     save = c;
                     tlen = codeLength(enc, c);
-                    modify = true;
+                    modified = true;
                 } else {
                     save = -1;
                     c = c0;
@@ -1099,7 +1099,7 @@ public final class StringSupport {
                 enc.codeToMbc(c, buf, t);
                 // MRI does not check s < send again because their null terminator can still be compared
                 if (mayModify && (s >= send || ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0)) {
-                    modify = true;
+                    modified = true;
                 }
                 cr = CHECK_IF_ASCII(c, cr);
                 t += tlen;
@@ -1117,7 +1117,7 @@ public final class StringSupport {
                     } else {
                         sbytes[s] = (byte) last;
                     }
-                    modify = true;
+                    modified = true;
                 }
                 cr = CHECK_IF_ASCII(c, cr);
                 s++;
@@ -1156,7 +1156,7 @@ public final class StringSupport {
                 }
                 if (c != -1) {
                     tlen = codeLength(enc, c);
-                    modify = true;
+                    modified = true;
                 } else {
                     c = c0;
                     if (enc != e1) {
@@ -1171,7 +1171,7 @@ public final class StringSupport {
                 //                if (s != t) {
                 enc.codeToMbc(c, buf, t);
                 if (mayModify && ArrayUtils.memcmp(sbytes, s, buf, t, tlen) != 0) {
-                    modify = true;
+                    modified = true;
                 }
                 //                }
 
@@ -1183,7 +1183,7 @@ public final class StringSupport {
             ret = RopeOperations.create(ArrayUtils.extractRange(buf, 0, t), enc, cr);
         }
 
-        if (modify) {
+        if (modified) {
             return ret;
         }
 
@@ -1339,15 +1339,15 @@ public final class StringSupport {
     @TruffleBoundary
     public static byte[] multiByteSwapcaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
-        boolean modify = false;
+        boolean modified = false;
         int s = 0;
         final int end = bytes.length;
 
         while (s < end) {
             if (isAsciiAlpha(bytes[s])) {
-                if (!modify) {
+                if (!modified) {
                     bytes = bytes.clone();
-                    modify = true;
+                    modified = true;
                 }
                 bytes[s] ^= 0x20;
                 s++;
@@ -1367,7 +1367,7 @@ public final class StringSupport {
         final IntHolder flagP = new IntHolder();
         flagP.value = caseMappingOptions | Config.CASE_UPCASE | Config.CASE_DOWNCASE;
 
-        boolean modify = false;
+        boolean modified = false;
         int s = 0;
         byte[] bytes = builder.getUnsafeBytes();
 
@@ -1375,7 +1375,7 @@ public final class StringSupport {
             int c = codePoint(enc, originalCodeRange, bytes, s, bytes.length);
             if (enc.isUpper(c) || enc.isLower(c)) {
                 s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
-                modify = true;
+                modified = true;
 
                 if (bytes != builder.getUnsafeBytes()) {
                     bytes = builder.getUnsafeBytes();
@@ -1385,7 +1385,7 @@ public final class StringSupport {
             }
         }
 
-        return modify;
+        return modified;
     }
 
     @TruffleBoundary
@@ -1428,15 +1428,15 @@ public final class StringSupport {
     @TruffleBoundary
     public static byte[] multiByteDowncaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
-        boolean modify = false;
+        boolean modified = false;
         int s = 0;
         final int end = bytes.length;
 
         while (s < end) {
             if (isAsciiUppercase(bytes[s])) {
-                if (!modify) {
+                if (!modified) {
                     bytes = bytes.clone();
-                    modify = true;
+                    modified = true;
                 }
                 bytes[s] ^= 0x20;
                 s++;
@@ -1459,21 +1459,21 @@ public final class StringSupport {
         final boolean isFold = (caseMappingOptions & Config.CASE_FOLD) != 0;
         final boolean isTurkic = (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) != 0;
 
-        boolean modify = false;
+        boolean modified = false;
         int s = 0;
         byte[] bytes = builder.getUnsafeBytes();
 
         while (s < bytes.length) {
             if (!isTurkic && enc.isAsciiCompatible() && isAsciiUppercase(bytes[s])) {
                 bytes[s] ^= 0x20;
-                modify = true;
+                modified = true;
                 s++;
             } else {
                 final int c = codePoint(enc, originalCodeRange, bytes, s, bytes.length);
 
                 if (isFold || enc.isUpper(c)) {
                     s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
-                    modify = true;
+                    modified = true;
 
                     if (bytes != builder.getUnsafeBytes()) {
                         bytes = builder.getUnsafeBytes();
@@ -1484,7 +1484,7 @@ public final class StringSupport {
             }
         }
 
-        return modify;
+        return modified;
     }
 
     /**
@@ -1495,15 +1495,15 @@ public final class StringSupport {
     @TruffleBoundary
     public static byte[] multiByteUpcaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
-        boolean modify = false;
+        boolean modified = false;
         int s = 0;
         final int end = bytes.length;
 
         while (s < end) {
             if (isAsciiLowercase(bytes[s])) {
-                if (!modify) {
+                if (!modified) {
                     bytes = bytes.clone();
-                    modify = true;
+                    modified = true;
                 }
                 bytes[s] ^= 0x20;
                 s++;
@@ -1524,21 +1524,21 @@ public final class StringSupport {
         flagP.value = caseMappingOptions | Config.CASE_UPCASE;
 
         final boolean isTurkic = (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) != 0;
-        boolean modify = false;
+        boolean modified = false;
         int s = 0;
         byte[] bytes = builder.getUnsafeBytes();
 
         while (s < bytes.length) {
             if (!isTurkic && enc.isAsciiCompatible() && isAsciiLowercase(bytes[s])) {
                 bytes[s] ^= 0x20;
-                modify = true;
+                modified = true;
                 s++;
             } else {
                 final int c = codePoint(enc, originalCodeRange, bytes, s, bytes.length);
 
                 if (enc.isLower(c)) {
                     s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
-                    modify = true;
+                    modified = true;
 
                     if (bytes != builder.getUnsafeBytes()) {
                         bytes = builder.getUnsafeBytes();
@@ -1549,7 +1549,7 @@ public final class StringSupport {
             }
         }
 
-        return modify;
+        return modified;
     }
 
     /**
@@ -1599,7 +1599,7 @@ public final class StringSupport {
         flagP.value = caseMappingOptions | Config.CASE_UPCASE | Config.CASE_TITLECASE;
 
         final boolean isTurkic = (caseMappingOptions & Config.CASE_FOLD_TURKISH_AZERI) != 0;
-        boolean modify = false;
+        boolean modified = false;
         int s = 0;
         byte[] bytes = builder.getUnsafeBytes();
         boolean upcasing = true;
@@ -1608,14 +1608,14 @@ public final class StringSupport {
             if (!isTurkic && enc.isAsciiCompatible() &&
                     ((upcasing && isAsciiLowercase(bytes[s])) || (!upcasing && isAsciiUppercase(bytes[s])))) {
                 bytes[s] ^= 0x20;
-                modify = true;
+                modified = true;
                 s++;
             } else {
                 final int c = codePoint(enc, originalCodeRange, bytes, s, bytes.length);
 
                 if ((upcasing && enc.isLower(c)) || (!upcasing && enc.isUpper(c))) {
                     s += caseMapChar(c, enc, bytes, s, builder, flagP, buf);
-                    modify = true;
+                    modified = true;
 
                     if (bytes != builder.getUnsafeBytes()) {
                         bytes = builder.getUnsafeBytes();
@@ -1631,7 +1631,7 @@ public final class StringSupport {
             }
         }
 
-        return modify;
+        return modified;
     }
 
     public static boolean isAsciiLowercase(byte c) {
