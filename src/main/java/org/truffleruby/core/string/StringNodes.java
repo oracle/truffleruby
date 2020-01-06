@@ -1090,20 +1090,13 @@ public abstract class StringNodes {
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "isAsciiCompatMapping(caseMappingOptions)" })
+        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject downcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createUpperToLower()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY",
-                        "isAsciiCompatible(string)" })
+        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject downcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
@@ -1134,7 +1127,7 @@ public abstract class StringNodes {
             }
         }
 
-        @Specialization
+        @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject downcaseMBC(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -2846,20 +2839,13 @@ public abstract class StringNodes {
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "isAsciiCompatMapping(caseMappingOptions)" })
+        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject upcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createLowerToUpper()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY",
-                        "isAsciiCompatible(string)" })
+        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject upcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
@@ -2890,7 +2876,7 @@ public abstract class StringNodes {
             }
         }
 
-        @Specialization
+        @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject upcaseMBC(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,

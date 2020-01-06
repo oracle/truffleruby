@@ -72,16 +72,48 @@ public class StringGuards {
                 (singleByteNode.execute(patternRope) || patternRope.getEncoding().isUTF8());
     }
 
+    /**
+     * The case mapping is simple (ASCII-only or full Unicode): no complex option like Turkic, case-folding, etc.
+     */
     public static boolean isAsciiCompatMapping(int caseMappingOptions) {
         return caseMappingOptions == CASE_FULL_UNICODE || caseMappingOptions == Config.CASE_ASCII_ONLY;
     }
 
-    public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions,
-            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
-        return (StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
-                !isAsciiCompatMapping(caseMappingOptions)) ||
-                (!StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
-                        caseMappingOptions != Config.CASE_ASCII_ONLY);
+    /**
+     * The string can be optimized to single-byte representation and is a simple case mapping
+     * (ASCII-only or full Unicode).
+     */
+    public static boolean isSingleByteCaseMapping(DynamicObject string, int caseMappingOptions,
+              RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        return isSingleByteOptimizable(string, singleByteOptimizableNode)
+            && isAsciiCompatMapping(caseMappingOptions);
     }
 
+    /**
+     * The string's encoding is ASCII-compatible, the mapping is ASCII-only and {@link
+     * #isSingleByteCaseMapping} is not applicable.
+     */
+    public static boolean isSimpleAsciiCaseMapping(DynamicObject string, int caseMappingOptions,
+           RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        return !isSingleByteOptimizable(string, singleByteOptimizableNode)
+            && caseMappingOptions == Config.CASE_ASCII_ONLY
+            && isAsciiCompatible(string);
+    }
+
+    /**
+     * Both {@link #isSingleByteCaseMapping} and {@link #isSimpleAsciiCaseMapping} are not applicable.
+     */
+    public static boolean isComplexCaseMapping(DynamicObject string, int caseMappingOptions,
+            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        return !isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)
+            && !isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode);
+    }
+
+    public static boolean isFullCaseMapping(DynamicObject string, int caseMappingOptions,
+                                            RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
+        return (StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
+            !isAsciiCompatMapping(caseMappingOptions)) ||
+            (!StringGuards.isSingleByteOptimizable(string, singleByteOptimizableNode) &&
+                caseMappingOptions != Config.CASE_ASCII_ONLY);
+    }
 }
