@@ -106,6 +106,9 @@ public class PrintfSimpleParser {
                             if (config.getAbsoluteArgumentIndex() != null) {
                                 throw new InvalidFormatException("value given twice - " + r.getNumber() + "$");
                             }
+                            if (arguments.length < r.getNumber()) {
+                                throw new InvalidFormatException("too few arguments");
+                            }
                             checkPosArg(argType, r.getNumber());
                             argType = ArgType.NUMBERED;
                             argTypeSet = true;

@@ -56,6 +56,7 @@ Bug fixes:
 * Made `rb_respond_to` work with primitives (#1869, @chrisseaton).
 * Fixed issue with missing backtrace for `rescue $ERROR_INFO` (#1660).
 * Fixed `Struct#hash` for `keyword_init: true` `Struct`.
+* Fixed `printf` should raise error when not enough arguments for positional argument.
 
 Compatibility:
 

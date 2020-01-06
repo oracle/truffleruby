@@ -2,7 +2,6 @@ fails:StringIO#printf formatting other formats c raises ArgumentError if argumen
 fails:StringIO#printf formatting other formats c supports Unicode characters
 fails:StringIO#printf formatting other formats s does not try to convert with to_str
 fails:StringIO#printf formatting other formats % is escaped by %
-fails:StringIO#printf formatting flags (digit)$ raises exception if argument number is bigger than actual arguments list
 fails:StringIO#printf formatting flags # applies to format o does nothing for negative argument
 fails:StringIO#printf formatting flags # applies to formats bBxX does nothing for zero argument
 fails:StringIO#printf formatting flags # applies to formats aAeEfgG forces a decimal point to be added, even if no digits follow
