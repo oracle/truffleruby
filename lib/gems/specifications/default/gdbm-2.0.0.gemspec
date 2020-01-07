@@ -10,15 +10,15 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2019-02-01"
+  s.date = "2020-01-07"
   s.description = "Ruby extension for GNU dbm.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/gdbm/extconf.rb".freeze]
-  s.files = ["ext/gdbm/extconf.rb".freeze, "gdbm.bundle".freeze]
+  s.files = ["ext/gdbm/extconf.rb".freeze, "gdbm.so".freeze]
   s.homepage = "https://github.com/ruby/gdbm".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.0.1".freeze
+  s.rubygems_version = "3.0.3".freeze
   s.summary = "Ruby extension for GNU dbm.".freeze
 
   if s.respond_to? :specification_version then

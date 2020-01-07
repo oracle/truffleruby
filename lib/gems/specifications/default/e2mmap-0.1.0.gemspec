@@ -9,13 +9,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Keiju ISHITSUKA".freeze]
   s.bindir = "exe".freeze
-  s.date = "2019-02-01"
+  s.date = "2020-01-07"
   s.description = "Module for defining custom exceptions with specific messages.".freeze
   s.email = ["keiju@ruby-lang.org".freeze]
   s.files = ["e2mmap.rb".freeze]
   s.homepage = "https://github.com/ruby/e2mmap".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.0.1".freeze
+  s.rubygems_version = "3.0.3".freeze
   s.summary = "Module for defining custom exceptions with specific messages.".freeze
 
   if s.respond_to? :specification_version then

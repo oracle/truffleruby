@@ -14,11 +14,11 @@ Gem::Specification.new do |s|
   s.description = "add console capabilities to IO instances.".freeze
   s.email = "nobu@ruby-lang.org".freeze
   s.extensions = ["ext/io/console/extconf.rb".freeze]
-  s.files = ["ext/io/console/extconf.rb".freeze, "io/console.bundle".freeze, "io/console/size.rb".freeze]
+  s.files = ["ext/io/console/extconf.rb".freeze, "io/console.so".freeze, "io/console/size.rb".freeze]
   s.homepage = "https://github.com/ruby/io-console".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.2.0".freeze)
-  s.rubygems_version = "3.0.1".freeze
+  s.rubygems_version = "3.0.3".freeze
   s.summary = "Console interface".freeze
 
   if s.respond_to? :specification_version then

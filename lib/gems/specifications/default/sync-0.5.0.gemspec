@@ -9,13 +9,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Keiju ISHITSUKA".freeze]
   s.bindir = "exe".freeze
-  s.date = "2019-02-01"
+  s.date = "2020-01-07"
   s.description = "A module that provides a two-phase lock with a counter.".freeze
   s.email = ["keiju@ruby-lang.org".freeze]
   s.files = ["sync.rb".freeze]
   s.homepage = "https://github.com/ruby/sync".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.0.1".freeze
+  s.rubygems_version = "3.0.3".freeze
   s.summary = "A module that provides a two-phase lock with a counter.".freeze
 
   if s.respond_to? :specification_version then

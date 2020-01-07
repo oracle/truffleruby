@@ -1,28 +1,42 @@
-# coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'net/telnet/version'
+# -*- encoding: utf-8 -*-
+# stub: net-telnet 0.2.0 ruby lib
 
-Gem::Specification.new do |spec|
-  spec.name          = "net-telnet"
-  spec.version       = Net::Telnet::VERSION
-  spec.authors       = ["SHIBATA Hiroshi"]
-  spec.email         = ["hsbt@ruby-lang.org"]
+Gem::Specification.new do |s|
+  s.name = "net-telnet".freeze
+  s.version = "0.2.0"
 
-  spec.summary       = %q{Provides telnet client functionality.}
-  spec.description   = %q{Provides telnet client functionality.}
-  spec.homepage      = "https://github.com/ruby/net-telnet"
-  spec.license       = "ruby"
+  s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
+  s.require_paths = ["lib".freeze]
+  s.authors = ["SHIBATA Hiroshi".freeze]
+  s.bindir = "exe".freeze
+  s.date = "2018-07-25"
+  s.description = "Provides telnet client functionality.".freeze
+  s.email = ["hsbt@ruby-lang.org".freeze]
+  s.files = [".gitignore".freeze, ".travis.yml".freeze, "Gemfile".freeze, "LICENSE.txt".freeze, "README.md".freeze, "Rakefile".freeze, "bin/console".freeze, "bin/setup".freeze, "lib/net-telnet.rb".freeze, "lib/net/telnet.rb".freeze, "lib/net/telnet/version.rb".freeze, "net-telnet.gemspec".freeze]
+  s.homepage = "https://github.com/ruby/net-telnet".freeze
+  s.licenses = ["ruby".freeze]
+  s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
+  s.rubygems_version = "2.7.6".freeze
+  s.summary = "Provides telnet client functionality.".freeze
 
-  spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  spec.bindir        = "exe"
-  spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
-  spec.require_paths = ["lib"]
+  if s.respond_to? :specification_version then
+    s.specification_version = 4
 
-  spec.required_ruby_version = '>= 2.3.0'
-
-  spec.add_development_dependency "bundler"
-  spec.add_development_dependency "rake"
-  spec.add_development_dependency 'minitest'
-  spec.add_development_dependency "mspec"
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
+      s.add_development_dependency(%q<rake>.freeze, [">= 0"])
+      s.add_development_dependency(%q<minitest>.freeze, [">= 0"])
+      s.add_development_dependency(%q<mspec>.freeze, [">= 0"])
+    else
+      s.add_dependency(%q<bundler>.freeze, [">= 0"])
+      s.add_dependency(%q<rake>.freeze, [">= 0"])
+      s.add_dependency(%q<minitest>.freeze, [">= 0"])
+      s.add_dependency(%q<mspec>.freeze, [">= 0"])
+    end
+  else
+    s.add_dependency(%q<bundler>.freeze, [">= 0"])
+    s.add_dependency(%q<rake>.freeze, [">= 0"])
+    s.add_dependency(%q<minitest>.freeze, [">= 0"])
+    s.add_dependency(%q<mspec>.freeze, [">= 0"])
+  end
 end

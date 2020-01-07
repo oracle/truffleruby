@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
-# stub: rdoc 6.1.0 ruby lib
+# stub: rdoc 6.1.2 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "rdoc".freeze
-  s.version = "6.1.0"
+  s.version = "6.1.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 2.2".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Eric Hodel".freeze, "Dave Thomas".freeze, "Phil Hagelberg".freeze, "Tony Strauss".freeze, "Zachary Scott".freeze, "Hiroshi SHIBATA".freeze, "ITOYANAGI Sakura".freeze]
   s.bindir = "exe".freeze
-  s.date = "2019-02-01"
+  s.date = "2020-01-07"
   s.description = "RDoc produces HTML and command-line documentation for Ruby projects.\nRDoc includes the +rdoc+ and +ri+ tools for generating and displaying documentation from the command-line.\n".freeze
   s.email = ["drbrain@segment7.net".freeze, "".freeze, "".freeze, "".freeze, "mail@zzak.io".freeze, "hsbt@ruby-lang.org".freeze, "aycabta@gmail.com".freeze]
   s.executables = ["rdoc".freeze, "ri".freeze]
@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.licenses = ["Ruby".freeze]
   s.rdoc_options = ["--main".freeze, "README.rdoc".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.2.2".freeze)
-  s.rubygems_version = "3.0.1".freeze
+  s.rubygems_version = "3.0.3".freeze
   s.summary = "RDoc produces HTML and command-line documentation for Ruby projects".freeze
 
   if s.respond_to? :specification_version then
