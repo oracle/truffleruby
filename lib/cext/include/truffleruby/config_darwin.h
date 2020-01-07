@@ -34,8 +34,6 @@
 #define HAVE_LOCALE_H 1
 #define HAVE_MALLOC_MALLOC_H 1
 #define HAVE_PWD_H 1
-#define HAVE_SANITIZER_ASAN_INTERFACE_H 1
-#define HAVE_SANITIZER_MSAN_INTERFACE_H 1
 #define HAVE_STDALIGN_H 1
 #define HAVE_SYS_ATTR_H 1
 #define HAVE_SYS_FCNTL_H 1
@@ -51,8 +49,6 @@
 #define HAVE_TIME_H 1
 #define HAVE_UCONTEXT_H 1
 #define HAVE_UTIME_H 1
-#define HAVE_GMP_H 1
-#define HAVE_LIBGMP 1
 #define HAVE_TYPEOF 1
 #define HAVE_LONG_LONG 1
 #define HAVE_OFF_T 1
@@ -397,5 +393,5 @@
 #define RUBY_JMP_BUF sigjmp_buf
 #define USE_MJIT 1
 #define HAVE_PTHREAD_H 1
-#define RUBY_PLATFORM "x86_64-darwin18"
+#define RUBY_PLATFORM "x86_64-darwin19"
 #endif /* INCLUDE_RUBY_CONFIG_H */
