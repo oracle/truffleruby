@@ -79,40 +79,22 @@ You will need to copy that file to
 Look in `../ruby/ext/json` to see the version of `flori/json` being used, and
 then copy the original source of `flori/json` into `lib/json`.
 
-## Updating .gemspec of default gems
+## Updating default and bundled gems
 
-Default gems are imported from MRI files, except the .gemspec files in
-`lib/gems/specifications/default`.
-To update those, copy the files over from an installed MRI.
+You need a clean install (e.g., no extra gems installed) of MRI for this.
+
 ```
+rm -rf lib/gems/gems
+cp -R ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/gems lib/gems
+
 rm -rf lib/gems/specifications/default
 cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/specifications/default lib/gems/specifications
 ```
 
-If any of these gemspecs has executables (`s.executables = ...`), then those
-files must be copied under `lib/gems/gems/GEM-VERSION/exe` for `Gem.bin_path` to
-work:
-```
-grep -R executables lib/gems/specifications/default
-cp -R ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/gems/GEM-VERSION lib/gems/gems
-```
-
-Note: `gem install --default` might help with this, but it does not seem to
-create the executable files currently, even on MRI.
-
 ## Updating bundled gems
 
-To update a bundled gem, follow these steps:
-
-* Remove the current gem and gemspec from `lib/gems/gems` and
-  `lib/gems/specifications`
-* Run the gem install command with the desired version
-  `gem install rake -v 10.4.2 --no-doc`
-* Update the project `.gitignore` to allow the newly install gem sources
-  and gemspec
-* Copy from the build directory `lib` to the source `lib`
-* If the gem installs any executables like `rake` in `bin` ensure that the
-  shebang has a format as follows:
+If the gem installs any executables like `rake` in `bin` ensure that the
+shebang has a format as follows:
 
 ```bash
 #!/usr/bin/env bash

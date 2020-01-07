@@ -9,14 +9,14 @@ Gem::Specification.new do |s|
   s.metadata = { "source_code_uri" => "https://github.com/ruby/fileutils" } if s.respond_to? :metadata=
   s.require_paths = ["lib".freeze]
   s.authors = ["Minero Aoki".freeze]
-  s.date = "2019-02-01"
+  s.date = "2020-01-07"
   s.description = "Several file utility methods for copying, moving, removing, etc.".freeze
   s.email = [nil]
   s.files = ["fileutils.rb".freeze, "fileutils/version.rb".freeze]
   s.homepage = "https://github.com/ruby/fileutils".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)
-  s.rubygems_version = "3.0.1".freeze
+  s.rubygems_version = "3.0.3".freeze
   s.summary = "Several file utility methods for copying, moving, removing, etc.".freeze
 
   if s.respond_to? :specification_version then
