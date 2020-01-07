@@ -1083,27 +1083,21 @@ public abstract class StringNodes {
         }
     }
 
-    @Primitive(name = "downcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_downcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringDowncaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "isAsciiCompatMapping(caseMappingOptions)" })
+        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject downcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createUpperToLower()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY" })
-        protected DynamicObject downcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
+        protected DynamicObject downcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -1112,7 +1106,6 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
-            final CodeRange cr = codeRangeNode.execute(rope);
 
             if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
@@ -1120,22 +1113,22 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
-            final byte[] outputBytes = bytesNode.execute(rope);
-            final boolean modified = StringSupport.multiByteDowncaseAsciiOnly(encoding, cr, outputBytes);
+            final CodeRange cr = codeRangeNode.execute(rope);
+            final byte[] inputBytes = bytesNode.execute(rope);
+            final byte[] outputBytes = StringSupport.downcaseMultiByteAsciiSimple(encoding, cr, inputBytes);
 
-            if (modifiedProfile.profile(modified)) {
+            if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
                         string,
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
-
                 return string;
             } else {
                 return nil();
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected DynamicObject downcaseMBC(DynamicObject string, int caseMappingOptions,
+        @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
+        protected DynamicObject downcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
@@ -1152,7 +1145,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .multiByteDowncase(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .downcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(
@@ -1791,27 +1784,22 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "swapcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_swapcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringSwapcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "isAsciiCompatMapping(caseMappingOptions)" })
+        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject swapcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createSwapCase()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY" })
-        protected DynamicObject swapcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
+        protected DynamicObject swapcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
+                @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
@@ -1821,7 +1809,6 @@ public abstract class StringNodes {
 
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
-            final CodeRange cr = codeRangeNode.execute(rope);
 
             if (dummyEncodingProfile.profile(enc.isDummy())) {
                 throw new RaiseException(
@@ -1829,22 +1816,22 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(enc, this));
             }
 
-            final byte[] bytes = rope.getBytesCopy();
-            final boolean modified = StringSupport.multiByteSwapcaseAsciiOnly(enc, cr, bytes);
+            final CodeRange cr = codeRangeNode.execute(rope);
+            final byte[] inputBytes = bytesNode.execute(rope);
+            final byte[] outputBytes = StringSupport.swapcaseMultiByteAsciiSimple(enc, cr, inputBytes);
 
-            if (modifiedProfile.profile(modified)) {
+            if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
                         string,
-                        makeLeafRopeNode.executeMake(bytes, enc, cr, characterLengthNode.execute(rope)));
-
+                        makeLeafRopeNode.executeMake(outputBytes, enc, cr, characterLengthNode.execute(rope)));
                 return string;
             } else {
                 return nil();
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected DynamicObject swapcase(DynamicObject string, int caseMappingOptions,
+        @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
+        protected DynamicObject swapcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
@@ -1863,7 +1850,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .multiByteSwapcase(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .swapCaseMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
 
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(
@@ -2839,27 +2826,21 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "upcase!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_upcase!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringUpcaseBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "isAsciiCompatMapping(caseMappingOptions)" })
+        @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
         protected DynamicObject upcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createLowerToUpper()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY" })
-        protected DynamicObject upcaseMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+        @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
+        protected DynamicObject upcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -2868,7 +2849,6 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
-            final CodeRange cr = codeRangeNode.execute(rope);
 
             if (dummyEncodingProfile.profile(encoding.isDummy())) {
                 throw new RaiseException(
@@ -2876,21 +2856,22 @@ public abstract class StringNodes {
                         coreExceptions().encodingCompatibilityErrorIncompatibleWithOperation(encoding, this));
             }
 
-            final byte[] outputBytes = bytesNode.execute(rope);
-            final boolean modified = StringSupport.multiByteUpcaseAsciiOnly(encoding, cr, outputBytes);
-            if (modifiedProfile.profile(modified)) {
+            final CodeRange cr = codeRangeNode.execute(rope);
+            final byte[] inputBytes = bytesNode.execute(rope);
+            final byte[] outputBytes = StringSupport.upcaseMultiByteAsciiSimple(encoding, cr, inputBytes);
+
+            if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
                         string,
                         makeLeafRopeNode.executeMake(outputBytes, encoding, cr, characterLengthNode.execute(rope)));
-
                 return string;
             } else {
                 return nil();
             }
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected DynamicObject upcaseMBC(DynamicObject string, int caseMappingOptions,
+        @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
+        protected DynamicObject upcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
@@ -2907,7 +2888,7 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .multiByteUpcase(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .upcaseMultiByteComplex(encoding, codeRangeNode.execute(rope), builder, caseMappingOptions);
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(
                         string,
@@ -2935,7 +2916,7 @@ public abstract class StringNodes {
 
     }
 
-    @Primitive(name = "capitalize!", raiseIfFrozen = 0, lowerFixnum = 1)
+    @Primitive(name = "string_capitalize!", raiseIfFrozen = 0, lowerFixnum = 1)
     @ImportStatic({ StringGuards.class, Config.class })
     public abstract static class StringCapitalizeBangPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
@@ -2946,10 +2927,7 @@ public abstract class StringNodes {
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
 
-        @Specialization(
-                guards = {
-                        "isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "isAsciiCompatMapping(caseMappingOptions)" })
+        @Specialization(guards = "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected DynamicObject capitalizeSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
@@ -2998,11 +2976,8 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(
-                guards = {
-                        "!isSingleByteOptimizable(string, singleByteOptimizableNode)",
-                        "caseMappingOptions == CASE_ASCII_ONLY" })
-        protected DynamicObject capitalizeBangMBCAsciiOnly(DynamicObject string, int caseMappingOptions,
+        @Specialization(guards = "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
+        protected DynamicObject capitalizeMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
                 @Cached BranchProfile dummyEncodingProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
@@ -3022,29 +2997,16 @@ public abstract class StringNodes {
                 return nil();
             }
 
-            int s = 0;
-            int end = rope.byteLength();
-            final byte[] bytes = bytesNode.execute(rope);
             final CodeRange cr = codeRangeNode.execute(rope);
-            boolean modified = false;
+            final byte[] inputBytes = bytesNode.execute(rope);
+            final byte[] outputBytes = StringSupport.capitalizeMultiByteAsciiSimple(enc, cr, inputBytes);
 
-            while (s < end) {
-                if (enc.isAsciiCompatible() && StringSupport.isAsciiAlpha(bytes[s])) {
-                    bytes[s] ^= 0x20;
-                    modified = true;
-                    s++;
-                } else {
-                    s += StringSupport.characterLength(enc, cr, bytes, s, end);
-                    // Raise error if invalid.
-                }
-            }
-
-            if (modifiedProfile.profile(modified)) {
+            if (modifiedProfile.profile(inputBytes != outputBytes)) {
                 StringOperations.setRope(
                         string,
                         makeLeafRopeNode.executeMake(
-                                bytes,
-                                rope.getEncoding(),
+                                outputBytes,
+                                enc,
                                 cr,
                                 characterLengthNode.execute(rope)));
                 return string;
@@ -3053,8 +3015,8 @@ public abstract class StringNodes {
             return nil();
         }
 
-        @Specialization(guards = "isFullCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected DynamicObject capitalizeBang(DynamicObject string, int caseMappingOptions,
+        @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
+        protected DynamicObject capitalizeMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached BranchProfile dummyEncodingProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
@@ -3074,13 +3036,12 @@ public abstract class StringNodes {
 
             final RopeBuilder builder = RopeBuilder.createRopeBuilder(bytesNode.execute(rope), rope.getEncoding());
             final boolean modified = StringSupport
-                    .multiByteCapitalize(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
+                    .capitalizeMultiByteComplex(enc, codeRangeNode.execute(rope), builder, caseMappingOptions);
             if (modifiedProfile.profile(modified)) {
                 StringOperations.setRope(
                         string,
                         makeLeafRopeNode
                                 .executeMake(builder.getBytes(), rope.getEncoding(), CR_UNKNOWN, NotProvided.INSTANCE));
-
                 return string;
             } else {
                 return nil();

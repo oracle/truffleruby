@@ -292,7 +292,7 @@ class String
 
   def swapcase!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
-    TrufflePrimitive.swapcase! self, mapped_options
+    TrufflePrimitive.string_swapcase! self, mapped_options
   end
 
   def swapcase(*options)
@@ -1553,7 +1553,7 @@ class String
 
   def capitalize!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
-    TrufflePrimitive.capitalize! self, mapped_options
+    TrufflePrimitive.string_capitalize! self, mapped_options
   end
 
   def capitalize(*options)
@@ -1564,7 +1564,7 @@ class String
 
   def downcase!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, true)
-    TrufflePrimitive.downcase! self, mapped_options
+    TrufflePrimitive.string_downcase! self, mapped_options
   end
 
   def downcase(*options)
@@ -1575,7 +1575,7 @@ class String
 
   def upcase!(*options)
     mapped_options = Truffle::StringOperations.validate_case_mapping_options(options, false)
-    TrufflePrimitive.upcase! self, mapped_options
+    TrufflePrimitive.string_upcase! self, mapped_options
   end
 
   def upcase(*options)
