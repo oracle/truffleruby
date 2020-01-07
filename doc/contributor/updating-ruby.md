@@ -72,6 +72,7 @@ You will need to copy that file to
 * Update `doc/contributor/stdlib.md`
 * Update method lists - see `spec/truffle/methods_spec.rb`
 * Update `ci.jsonnet` to use the corresponding MRI version for benchmarking
+* Grep for the old version with `git grep -F x.y.z`
 
 ## Update libraries from third-party repos
 

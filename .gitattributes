@@ -1,6 +1,6 @@
 # Merge options
 
-/CHANGELOG.md merge=union
+#/CHANGELOG.md merge=union
 
 # Rules for GitHub's Linguist language-classification system. We're abusing the
 # 'vendored' attribute to exclude files as a lot of this isn't really vendored,
