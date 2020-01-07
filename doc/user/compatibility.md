@@ -87,10 +87,6 @@ more explanation on this.
 
 `RubyVM` is not intended for users and is not implemented.
 
-#### RDoc HTML generation
-
-TruffleRuby does not include the Darkfish theme for RDoc.
-
 ## Features with major differences
 
 #### Threads run in parallel

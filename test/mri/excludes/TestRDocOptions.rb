@@ -1,6 +1,2 @@
 exclude :test_parse_root, "slightly different path inspect string"
 exclude :test_parse_page_dir, "slightly different path inspect string"
-exclude :test_generator_descriptions, "needs investigation"
-exclude :test_parse_template, "needs investigation"
-exclude :test_parse_template_nonexistent, "needs investigation"
-exclude :test_parse_default, "needs investigation"
