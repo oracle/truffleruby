@@ -576,7 +576,11 @@ ossl_dyn_destroy_callback(struct CRYPTO_dynlock_value *l, const char *file, int 
 static void ossl_threadid_func(CRYPTO_THREADID *id)
 {
     /* register native thread id */
+#ifdef TRUFFLERUBY
+    CRYPTO_THREADID_set_pointer(id, (void *)rb_tr_obj_id(rb_nativethread_self()));
+#else
     CRYPTO_THREADID_set_pointer(id, (void *)rb_nativethread_self());
+#endif
 }
 
 static struct CRYPTO_dynlock_value *ossl_locks;

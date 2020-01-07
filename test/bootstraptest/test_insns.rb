@@ -87,7 +87,7 @@ tests = [
   [ 'putiseq',                  %q{ -> { true }.() }, ],
   [ 'putstring',                %q{ "true" }, ],
   [ 'tostring / concatstrings', %q{ "#{true}" }, ],
-  [ 'freezestring',             %q{ "#{true}" }, fsl, ],
+  [ 'freezestring',             %q{ "#{true}" }, fsl, :tagged ],
   [ 'freezestring',             %q{ "#{true}" }, '-d', fsl, ],
   [ 'toregexp',                 %q{ /#{true}/ =~ "true" && $~ }, ],
   [ 'intern',                   %q{ :"#{true}" }, ],
@@ -273,7 +273,7 @@ tests = [
     x = once(128); x = once(7); x = once(16);
     x =~ "true" && $~
   },
-  [ 'once', <<~'},', ],         # {
+  [ 'once', <<~'},', :tagged],         # {
     # inter-thread lockup situation
     def once n
       return Thread.start n do |m|
@@ -410,11 +410,18 @@ tests = [
   [ 'opt_call_c_function', 'Struct.new(:x).new.x = true', ],
 ]
 
+def opts(a)
+  opts = {}
+  opts[a.pop] = true if a.last == :tagged
+  opts.merge! a.pop if a.last.is_a?(Hash)
+  [*a, opts]
+end
+
 # normal path
-tests.compact.each {|(insn, expr, *a)| assert_equal 'true', expr, insn, *a }
+tests.compact.each {|(insn, expr, *a)| assert_equal 'true', expr, insn, *opts(a) }
 
 # with trace
 tests.compact.each {|(insn, expr, *a)|
   progn = "set_trace_func(proc{})\n" + expr
-  assert_equal 'true', progn, insn, *a
+  assert_equal 'true', progn, insn, *opts(a)
 }

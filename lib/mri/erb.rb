@@ -891,11 +891,13 @@ class ERB
   def result(b=new_toplevel)
     if @safe_level
       proc do
+      begin # TruffleRuby for ensure
         prev_safe_level = $SAFE
         $SAFE = @safe_level
         eval(@src, b, (@filename || '(erb)'), @lineno)
       ensure
         $SAFE = prev_safe_level
+      end
       end.call
     else
       eval(@src, b, (@filename || '(erb)'), @lineno)
@@ -938,7 +940,11 @@ class ERB
   def def_method(mod, methodname, fname='(ERB)')
     src = self.src.sub(/^(?!#|$)/) {"def #{methodname}\n"} << "\nend\n"
     mod.module_eval do
-      eval(src, binding, fname, -1)
+      if defined?(::TruffleRuby)
+        eval(src, binding, fname)
+      else
+        eval(src, binding, fname, -1)
+      end
     end
   end
 

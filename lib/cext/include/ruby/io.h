@@ -64,42 +64,11 @@ PACKED_STRUCT_UNALIGNED(struct rb_io_buffer_t {
 typedef struct rb_io_buffer_t rb_io_buffer_t;
 
 typedef struct rb_io_t {
-    FILE *stdio_file;		/* stdio ptr for read/write if available */
-    int fd;                     /* file descriptor */
-    int mode;			/* mode flags: FMODE_XXXs */
-    rb_pid_t pid;		/* child's pid (for pipes) */
-    int lineno;			/* number of lines read */
-    VALUE pathv;		/* pathname for file */
-    void (*finalize)(struct rb_io_t*,int); /* finalize proc */
-
-    rb_io_buffer_t wbuf, rbuf;
-
-    VALUE tied_io_for_writing;
-
-    /*
-     * enc  enc2 read action                      write action
-     * NULL NULL force_encoding(default_external) write the byte sequence of str
-     * e1   NULL force_encoding(e1)               convert str.encoding to e1
-     * e1   e2   convert from e2 to e1            convert str.encoding to e2
-     */
-    struct rb_io_enc_t {
-        rb_encoding *enc;
-        rb_encoding *enc2;
-        int ecflags;
-        VALUE ecopts;
-    } encs;
-
-    rb_econv_t *readconv;
-    rb_io_buffer_t cbuf;
-
-    rb_econv_t *writeconv;
-    VALUE writeconv_asciicompat;
-    int writeconv_initialized;
-    int writeconv_pre_ecflags;
-    VALUE writeconv_pre_ecopts;
-
-    VALUE write_lock;
+  int mode;
+  int fd;
 } rb_io_t;
+
+POLYGLOT_DECLARE_STRUCT(rb_io_t)
 
 #define HAVE_RB_IO_T 1
 
@@ -122,7 +91,8 @@ typedef struct rb_io_t {
 /* #define FMODE_INET                  0x00400000 */
 /* #define FMODE_INET6                 0x00800000 */
 
-#define GetOpenFile(obj,fp) rb_io_check_closed((fp) = RFILE(rb_io_taint_check(obj))->fptr)
+#define GetOpenFile(file, pointer) rb_io_check_closed((pointer) = polyglot_as_rb_io_t(RUBY_CEXT_INVOKE_NO_WRAP("GetOpenFile", file)))
+
 
 #define MakeOpenFile(obj, fp) do {\
     (fp) = rb_io_make_open_file(obj);\

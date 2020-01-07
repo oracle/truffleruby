@@ -109,6 +109,11 @@ class Gem::TestCase < (defined?(Minitest::Test) ? Minitest::Test : MiniTest::Uni
 
   extend Gem::Deprecate
 
+  if defined?(::TruffleRuby)
+    # Added to avoid hardcoded paths
+    TEST_DIR = ENV.fetch('RUBYGEMS_TEST_PATH', File.expand_path('../../../test', __FILE__))
+  end
+
   attr_accessor :fetcher # :nodoc:
 
   attr_accessor :gem_repo # :nodoc:
@@ -1353,9 +1358,14 @@ Also, a list:
   end
 
   @@ruby = rubybin
-  gempath = File.expand_path('../../../test/rubygems', __FILE__)
-  @@good_rake = "#{rubybin} #{escape_path(gempath, 'good_rake.rb')}"
-  @@bad_rake = "#{rubybin} #{escape_path(gempath, 'bad_rake.rb')}"
+  if defined?(::TruffleRuby)
+    @@good_rake = "#{rubybin} \"#{TEST_DIR}/rubygems/good_rake.rb\""
+    @@bad_rake = "#{rubybin} \"#{TEST_DIR}/rubygems/bad_rake.rb\""
+  else
+    gempath = File.expand_path('../../../test/rubygems', __FILE__)
+    @@good_rake = "#{rubybin} #{escape_path(gempath, 'good_rake.rb')}"
+    @@bad_rake = "#{rubybin} #{escape_path(gempath, 'bad_rake.rb')}"
+  end
 
   ##
   # Construct a new Gem::Dependency.
@@ -1543,14 +1553,23 @@ Also, a list:
 
   def self.cert_path(cert_name)
     if 32 == (Time.at(2**32) rescue 32)
-      cert_file =
-        File.expand_path "../../../test/rubygems/#{cert_name}_cert_32.pem",
-                         __FILE__
+      if defined?(::TruffleRuby)
+        cert_file =
+          "#{TEST_DIR}/rubygems/#{cert_name}_cert_32.pem"
+      else
+        cert_file =
+          File.expand_path "../../../test/rubygems/#{cert_name}_cert_32.pem",
+                           __FILE__
+      end
 
       return cert_file if File.exist? cert_file
     end
 
-    File.expand_path "../../../test/rubygems/#{cert_name}_cert.pem", __FILE__
+    if defined?(::TruffleRuby)
+      "#{TEST_DIR}/rubygems/#{cert_name}_cert.pem"
+    else
+      File.expand_path "../../../test/rubygems/#{cert_name}_cert.pem", __FILE__
+    end
   end
 
   ##
@@ -1568,7 +1587,11 @@ Also, a list:
   # Returns the path to the key named +key_name+ from <tt>test/rubygems</tt>
 
   def self.key_path(key_name)
-    File.expand_path "../../../test/rubygems/#{key_name}_key.pem", __FILE__
+    if defined?(::TruffleRuby)
+      "#{TEST_DIR}/rubygems/#{key_name}_key.pem"
+    else
+      File.expand_path "../../../test/rubygems/#{key_name}_key.pem", __FILE__
+    end
   end
 
   # :stopdoc:

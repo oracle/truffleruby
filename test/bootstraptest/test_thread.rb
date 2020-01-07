@@ -343,7 +343,7 @@ assert_equal 'ok', %q{
   rescue Exception
     :ok
   end
-}
+}, tagged: true
 
 assert_equal 'ok', %q{
   begin
@@ -355,7 +355,7 @@ assert_equal 'ok', %q{
   rescue Exception
     :ok
   end
-}
+}, tagged: true
 
 assert_equal 'ok', %q{
   m = Thread::Mutex.new

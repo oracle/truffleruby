@@ -34,8 +34,9 @@ typedef union rb_thread_lock_union {
 
 #elif defined(HAVE_PTHREAD_H)
 #include <pthread.h>
-typedef pthread_t rb_nativethread_id_t;
-typedef pthread_mutex_t rb_nativethread_lock_t;
+typedef void *rb_nativethread_id_t;
+typedef void *rb_nativethread_lock_t;
+
 
 #else
 #error "unsupported thread type"
@@ -46,10 +47,10 @@ RUBY_SYMBOL_EXPORT_BEGIN
 
 rb_nativethread_id_t rb_nativethread_self();
 
-void rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock);
-void rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock);
-void rb_nativethread_lock_lock(rb_nativethread_lock_t *lock);
-void rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
+MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock);
+MUST_INLINE int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock);
+MUST_INLINE int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock);
+MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
 
 RUBY_SYMBOL_EXPORT_END
 

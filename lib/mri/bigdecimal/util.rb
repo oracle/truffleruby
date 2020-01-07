@@ -6,7 +6,7 @@
 #++
 
 require 'bigdecimal'
-require 'bigdecimal/util.so'
+require 'bigdecimal/util.so' if RUBY_ENGINE != 'truffleruby'
 
 class Integer < Numeric
   # call-seq:
@@ -66,6 +66,10 @@ class String
   #
   # See also BigDecimal::new.
   #
+  # TruffleRuby: MRI defines this method in C. We define it in Ruby for simplicity & clarity.
+  def to_d
+    TrufflePrimitive.bigdecimal_new self, Truffle::UNDEFINED, false
+  end
 end
 
 

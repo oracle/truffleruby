@@ -309,7 +309,7 @@ Init_limits(void)
     DEFINE(FLT_RADIX, LONG2NUM(FLT_RADIX));
 #endif
 #ifdef FLT_ROUNDS
-    DEFINE(FLT_ROUNDS, LONG2NUM(FLT_ROUNDS));
+    // DEFINE(FLT_ROUNDS, LONG2NUM(FLT_ROUNDS)); @llvm.flt.rounds unsupported in Sulong
 #endif
 #ifdef FLT_EVAL_METHOD
     DEFINE(FLT_EVAL_METHOD, LONG2NUM(FLT_EVAL_METHOD));
