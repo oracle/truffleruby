@@ -9,7 +9,6 @@ fails:String#% other formats c raises ArgumentError if argument is an empty stri
 fails:String#% other formats c supports Unicode characters
 fails:String#% other formats s does not try to convert with to_str
 fails:String#% other formats % alone raises an ArgumentError
-fails:String#% flags (digit)$ raises exception if argument number is bigger than actual arguments list
 fails:String#% flags # applies to format o does nothing for negative argument
 fails:String#% flags # applies to formats bBxX does nothing for zero argument
 fails:String#% flags # applies to formats aAeEfgG forces a decimal point to be added, even if no digits follow

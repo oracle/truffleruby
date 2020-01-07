@@ -60,6 +60,7 @@ Bug fixes:
 * Fixed `String#capitalize!` for strings that weren't full ASCII.
 * Fixed enumeration issue in `ENV.{select, filter}`.
 * Fixed `Complex` and `Rational` should be frozen after initializing.
+* Fixed `printf` should raise error when not enough arguments for positional argument.
 
 Compatibility:
 

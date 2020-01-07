@@ -1,7 +1,6 @@
 fails:File#printf other formats c raises ArgumentError if argument is an empty string
 fails:File#printf other formats c supports Unicode characters
 fails:File#printf other formats s does not try to convert with to_str
-fails:File#printf flags (digit)$ raises exception if argument number is bigger than actual arguments list
 fails:File#printf flags # applies to format o does nothing for negative argument
 fails:File#printf flags # applies to formats bBxX does nothing for zero argument
 fails:File#printf flags # applies to formats aAeEfgG forces a decimal point to be added, even if no digits follow

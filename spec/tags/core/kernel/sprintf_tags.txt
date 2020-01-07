@@ -4,7 +4,6 @@ fails:Kernel#sprintf raises Encoding::CompatibilityError if both encodings are A
 fails:Kernel#sprintf other formats c raises ArgumentError if argument is an empty string
 fails:Kernel#sprintf other formats c supports Unicode characters
 fails:Kernel#sprintf other formats s does not try to convert with to_str
-fails:Kernel#sprintf flags (digit)$ raises exception if argument number is bigger than actual arguments list
 fails:Kernel#sprintf flags # applies to format o does nothing for negative argument
 fails:Kernel#sprintf flags # applies to formats bBxX does nothing for zero argument
 fails:Kernel#sprintf flags # applies to formats aAeEfgG forces a decimal point to be added, even if no digits follow
@@ -21,7 +20,6 @@ fails:Kernel.sprintf raises Encoding::CompatibilityError if both encodings are A
 fails:Kernel.sprintf other formats c raises ArgumentError if argument is an empty string
 fails:Kernel.sprintf other formats c supports Unicode characters
 fails:Kernel.sprintf other formats s does not try to convert with to_str
-fails:Kernel.sprintf flags (digit)$ raises exception if argument number is bigger than actual arguments list
 fails:Kernel.sprintf flags # applies to format o does nothing for negative argument
 fails:Kernel.sprintf flags # applies to formats bBxX does nothing for zero argument
 fails:Kernel.sprintf flags # applies to formats aAeEfgG forces a decimal point to be added, even if no digits follow
