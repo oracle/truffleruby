@@ -386,6 +386,7 @@ class Rational < Numeric
   def initialize(num, den)
     @numerator = num
     @denominator = den
+    freeze
   end
   private :initialize
 
