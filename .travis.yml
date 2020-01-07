@@ -1,5 +1,5 @@
 language: ruby
-rvm: 2.6.2
+rvm: 2.6.5
 install:
   - |
       export ECLIPSE_EXE=$HOME/eclipse-cache/eclipse/eclipse
