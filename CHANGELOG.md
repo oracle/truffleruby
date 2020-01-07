@@ -58,6 +58,7 @@ Bug fixes:
 * Fixed `Struct#hash` for `keyword_init: true` `Struct`.
 * Fixed `String#{upcase!,downcase!,swapcase!}(:ascii)` for non-ASCII-compatible encodings like UTF-16.
 * Fixed `String#capitalize!` for strings that weren't full ASCII.
+* Fixed enumeration issue in `ENV.{select, filter}`.
 
 Compatibility:
 

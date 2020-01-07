@@ -240,7 +240,7 @@ class << ENV
   end
 
   def select(&blk)
-    return to_enum { size } unless block_given?
+    return to_enum(:select) { size } unless block_given?
     to_hash.select(&blk)
   end
   alias_method :filter, :select
