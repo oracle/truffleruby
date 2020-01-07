@@ -1494,13 +1494,6 @@ public class ParserSupport {
             if (current.exists(name) >= 0) {
                 yyerror("duplicated argument name");
             }
-
-            if (warnings.isVerbose() && current.isDefined(name) >= 0) {
-                warnings.warning(
-                        file,
-                        lexer.getPosition().toSourceSection(lexer.getSource()).getStartLine(),
-                        "shadowing outer local variable - " + name);
-            }
         } else if (current.exists(name) >= 0) {
             yyerror("duplicated argument name");
         }
