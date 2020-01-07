@@ -25,8 +25,10 @@ dir_config("kerberos")
 
 Logging::message "=== OpenSSL for Ruby configurator ===\n"
 
-# Add -Werror=deprecated-declarations to $warnflags if available
-OpenSSL.deprecated_warning_flag
+unless defined?(::TruffleRuby) # Let it be lazily computed only if needed
+  # Add -Werror=deprecated-declarations to $warnflags if available
+  OpenSSL.deprecated_warning_flag
+end
 
 ##
 # Adds -DOSSL_DEBUG for compilation and some more targets when GCC is used
@@ -37,8 +39,10 @@ if with_config("debug") or enable_config("debug")
 end
 
 Logging::message "=== Checking for system dependent stuff... ===\n"
-have_library("nsl", "t_open")
-have_library("socket", "socket")
+unless defined?(::TruffleRuby) # These do not exist on any of our supported platforms
+  have_library("nsl", "t_open")
+  have_library("socket", "socket")
+end
 if $mswin || $mingw
   have_library("ws2_32")
 end
@@ -105,6 +109,13 @@ unless result
       "is installed."
   end
 end
+
+# TruffleRuby: do not perform all checks again if extconf.h already exists
+extconf_h = "#{__dir__}/extconf.h"
+if File.exist?(extconf_h) && File.mtime(extconf_h) >= File.mtime(__FILE__ )
+  $extconf_h = extconf_h
+else
+### START of checks
 
 unless checking_for("OpenSSL version is 1.0.1 or later") {
     try_static_assert("OPENSSL_VERSION_NUMBER >= 0x10001000L", "openssl/opensslv.h") }
@@ -175,5 +186,9 @@ have_func("EVP_PBE_scrypt")
 Logging::message "=== Checking done. ===\n"
 
 create_header
+
+### END of checks
+end
+
 create_makefile("openssl")
 Logging::message "Done.\n"

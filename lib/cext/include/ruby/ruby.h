@@ -1775,7 +1775,7 @@ VALUE rb_check_symbol(volatile VALUE *namep);
 #define RUBY_CONST_ID_CACHE(result, str)		\
     {							\
 	static ID rb_intern_id_cache;			\
-	if (!rb_intern_id_cache)			\
+	if (!polyglot_is_value(rb_intern_id_cache)) \
 	    rb_intern_id_cache = rb_intern2((str), (long)strlen(str)); \
 	result rb_intern_id_cache;			\
     }

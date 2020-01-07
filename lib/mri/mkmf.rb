@@ -374,6 +374,15 @@ module MakeMakefile
       end
     end
 
+    if defined?(::TruffleRuby)
+      def self::read_log
+        return 'no log file' unless @logfile
+        log_close
+        return 'log file does not exist' unless File.exist?(@logfile)
+        "\nContents of #{@logfile}:\n#{File.binread(@logfile)}"
+      end
+    end
+
     def self::postpone
       tmplog = "mkmftmp#{@postpone += 1}.log"
       open do
@@ -425,7 +434,13 @@ module MakeMakefile
         end
         result
       else
-        system(libpath_env, command)
+        if defined?(::TruffleRuby)
+          result = system(libpath_env, command)
+          puts "Process failed: #{$?.inspect}" unless result
+          result
+        else
+          system(libpath_env, command)
+        end
       end
     end
   end
@@ -489,6 +504,7 @@ EOM
       raise <<MSG
 The compiler failed to generate an executable file.
 You have to install development tools first.
+#{Logging::read_log if defined?(::TruffleRuby)}
 MSG
     end
     begin
@@ -2644,7 +2660,11 @@ MESSAGE
   def mkmf_failed(path)
     unless $makefile_created or File.exist?("Makefile")
       opts = $arg_config.collect {|t, n| "\t#{t}#{n ? "=#{n}" : ""}\n"}
-      abort "*** #{path} failed ***\n" + FailedMessage + opts.join
+      if defined?(::TruffleRuby)
+        abort "*** #{path} failed ***\n" + FailedMessage + opts.join + Logging::read_log
+      else
+        abort "*** #{path} failed ***\n" + FailedMessage + opts.join
+      end
     end
   end
 
