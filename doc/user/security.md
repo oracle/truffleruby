@@ -37,6 +37,10 @@ https://www.ruby-lang.org/en/security/.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2019-16255 | A code injection vulnerability of Shell#[] and Shell#test | [Fix](https://github.com/ruby/ruby/commit/d6adc68dc9c74a33b3ca012af171e2d59f0dea10) | MRI test | Same
+CVE-2019-16254 | HTTP response splitting in WEBrick (Additional fix) | [Fix](https://github.com/ruby/ruby/commit/3ce238b5f9795581eb84114dcfbdf4aa086bfecc) | MRI test | Same
+CVE-2019-15845 | A NUL injection vulnerability of File.fnmatch and File.fnmatch? | [Fix](https://github.com/ruby/ruby/commit/a0a2640b398cffd351f87d3f6243103add66575b) | MRI test | Check for NUL bytes
+CVE-2019-16201 | Regular Expression Denial of Service vulnerability of WEBrick’s Digest access authentication | [Fix](https://github.com/ruby/ruby/commit/36e057e26ef2104bc2349799d6c52d22bb1c7d03) | MRI test | Same
 CVE-2019-8320 | Delete directory using symlink when decompressing `tar` | Check the expanded path | Tested in MRI `test/rubygems/test_gem_package.rb` | Applied the same patch
 CVE-2019-8321 | Escape sequence injection in `verbose` | Sanitise message | Tested in `ruby/spec` `:security` | Applied the same patch
 CVE-2019-8322 | Escape sequence injection in `gem owner` | Sanitise message | Tested in `ruby/spec` `:security` | Applied the same patch
