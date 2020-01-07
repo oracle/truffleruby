@@ -86,6 +86,7 @@ Compatibility:
 * Implemented `-n` CLI option (#1532).
 * Cache the `Symbol` of method names in call nodes only when needed (#1872).
 * Implemented `rb_get_alloc_func` and related functions (#1874, @XrXr).
+* Support for the Darkfish theme for RDoc generation has been added back.
 
 Performance:
 
