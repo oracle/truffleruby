@@ -320,8 +320,6 @@ static VALUE mSyslog_log(int argc, VALUE *argv, VALUE self)
     return self;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat"
 /* Returns an inspect() string summarizing the object state.
  */
 static VALUE mSyslog_inspect(VALUE self)
@@ -338,7 +336,6 @@ static VALUE mSyslog_inspect(VALUE self)
 		      syslog_facility,
 		      syslog_mask);
 }
-#pragma GCC diagnostic pop
 
 /* Returns self, for backward compatibility.
  */

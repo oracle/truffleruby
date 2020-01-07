@@ -111,7 +111,6 @@ class Gem::Specification < Gem::BasicSpecification
   # rubocop:disable Style/MutableConstant
   LOAD_CACHE = {} # :nodoc:
   # rubocop:enable Style/MutableConstant
-  LOAD_CACHE_MUTEX = Mutex.new
 
   private_constant :LOAD_CACHE if defined? private_constant
 
@@ -760,9 +759,7 @@ class Gem::Specification < Gem::BasicSpecification
   end
 
   def self._clear_load_cache # :nodoc:
-    LOAD_CACHE_MUTEX.synchronize do
-      LOAD_CACHE.clear
-    end
+    LOAD_CACHE.clear
   end
 
   def self.each_gemspec(dirs) # :nodoc:
@@ -1157,7 +1154,7 @@ class Gem::Specification < Gem::BasicSpecification
   def self.load(file)
     return unless file
 
-    _spec = LOAD_CACHE_MUTEX.synchronize { LOAD_CACHE[file] }
+    _spec = LOAD_CACHE[file]
     return _spec if _spec
 
     file = file.dup.untaint
@@ -1172,14 +1169,7 @@ class Gem::Specification < Gem::BasicSpecification
 
       if Gem::Specification === _spec
         _spec.loaded_from = File.expand_path file.to_s
-        LOAD_CACHE_MUTEX.synchronize do
-          prev = LOAD_CACHE[file]
-          if prev
-            _spec = prev
-          else
-            LOAD_CACHE[file] = _spec
-          end
-        end
+        LOAD_CACHE[file] = _spec
         return _spec
       end
 

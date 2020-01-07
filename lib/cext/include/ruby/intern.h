@@ -54,7 +54,7 @@ RUBY_SYMBOL_EXPORT_BEGIN
 
 /* array.c */
 void rb_mem_clear(register VALUE*, register long);
-#define rb_assoc_new(a, b) rb_ary_new3(2, a, b)
+VALUE rb_assoc_new(VALUE, VALUE);
 VALUE rb_check_array_type(VALUE);
 VALUE rb_ary_new(void);
 VALUE rb_ary_new_capa(long capa);
@@ -63,12 +63,12 @@ VALUE rb_ary_new_from_values(long n, const VALUE *elts);
 VALUE rb_ary_tmp_new(long);
 void rb_ary_free(VALUE);
 void rb_ary_modify(VALUE);
-#define rb_ary_freeze(array) rb_obj_freeze(array)
+VALUE rb_ary_freeze(VALUE);
 VALUE rb_ary_shared_with_p(VALUE, VALUE);
 VALUE rb_ary_aref(int, const VALUE*, VALUE);
 VALUE rb_ary_subseq(VALUE, long, long);
 void rb_ary_store(VALUE, long, VALUE);
-#define rb_ary_dup(array) rb_obj_dup(array)
+VALUE rb_ary_dup(VALUE);
 VALUE rb_ary_resurrect(VALUE ary);
 VALUE rb_ary_to_ary(VALUE);
 VALUE rb_ary_to_s(VALUE);
@@ -291,6 +291,23 @@ void rb_check_trusted(VALUE);
 	} \
     } while (0)
 #define rb_check_trusted_internal(obj) ((void) 0)
+#ifdef __GNUC__
+#define rb_check_frozen(obj) __extension__({rb_check_frozen_internal(obj);})
+#define rb_check_trusted(obj) __extension__({rb_check_trusted_internal(obj);})
+#else
+static inline void
+rb_check_frozen_inline(VALUE obj)
+{
+    rb_check_frozen_internal(obj);
+}
+#define rb_check_frozen(obj) rb_check_frozen_inline(obj)
+static inline void
+rb_check_trusted_inline(VALUE obj)
+{
+    rb_check_trusted_internal(obj);
+}
+#define rb_check_trusted(obj) rb_check_trusted_inline(obj)
+#endif
 void rb_check_copyable(VALUE obj, VALUE orig);
 
 #define RB_OBJ_INIT_COPY(obj, orig) \
@@ -302,8 +319,14 @@ int rb_sourceline(void);
 const char *rb_sourcefile(void);
 VALUE rb_check_funcall(VALUE, ID, int, const VALUE*);
 
-NORETURN(void rb_error_arity(int, int, int));
-void rb_check_arity(int argc, int min, int max);
+NORETURN(MJIT_STATIC void rb_error_arity(int, int, int));
+static inline int
+rb_check_arity(int argc, int min, int max)
+{
+    if ((argc < min) || (max != UNLIMITED_ARGUMENTS && argc > max))
+	rb_error_arity(argc, min, max);
+    return argc;
+}
 #define rb_check_arity rb_check_arity /* for ifdef */
 
 #if defined(NFDBITS) && defined(HAVE_RB_FD_INIT)
@@ -509,7 +532,7 @@ void rb_hash_foreach(VALUE, int (*)(ANYARGS), VALUE);
 VALUE rb_hash(VALUE);
 VALUE rb_hash_new(void);
 VALUE rb_hash_dup(VALUE);
-#define rb_hash_freeze(array) rb_obj_freeze(array)
+VALUE rb_hash_freeze(VALUE);
 VALUE rb_hash_aref(VALUE, VALUE);
 VALUE rb_hash_lookup(VALUE, VALUE);
 VALUE rb_hash_lookup2(VALUE, VALUE, VALUE);
@@ -731,11 +754,11 @@ VALUE rb_str_buf_append(VALUE, VALUE);
 VALUE rb_str_buf_cat(VALUE, const char*, long);
 VALUE rb_str_buf_cat2(VALUE, const char*);
 VALUE rb_str_buf_cat_ascii(VALUE, const char*);
-VALUE rb_obj_as_string(VALUE object);
+VALUE rb_obj_as_string(VALUE);
 VALUE rb_check_string_type(VALUE);
 void rb_must_asciicompat(VALUE);
-#define rb_str_dup(string) rb_obj_dup(string)
-#define rb_str_resurrect(string) rb_obj_dup(string)
+VALUE rb_str_dup(VALUE);
+VALUE rb_str_resurrect(VALUE str);
 VALUE rb_str_locktmp(VALUE);
 VALUE rb_str_unlocktmp(VALUE);
 VALUE rb_str_dup_frozen(VALUE);
@@ -748,7 +771,7 @@ VALUE rb_str_subseq(VALUE, long, long);
 char *rb_str_subpos(VALUE, long, long*);
 void rb_str_modify(VALUE);
 void rb_str_modify_expand(VALUE, long);
-#define rb_str_freeze(string) rb_obj_freeze(string)
+VALUE rb_str_freeze(VALUE);
 void rb_str_set_len(VALUE, long);
 VALUE rb_str_resize(VALUE, long);
 VALUE rb_str_cat(VALUE, const char*, long);
@@ -772,7 +795,7 @@ VALUE rb_str_equal(VALUE str1, VALUE str2);
 VALUE rb_str_drop_bytes(VALUE, long);
 void rb_str_update(VALUE, long, long, VALUE);
 VALUE rb_str_replace(VALUE, VALUE);
-#define rb_str_inspect(string) rb_inspect(string)
+VALUE rb_str_inspect(VALUE);
 VALUE rb_str_dump(VALUE);
 VALUE rb_str_split(VALUE, const char*);
 void rb_str_setter(VALUE, ID, VALUE*);
@@ -788,21 +811,66 @@ VALUE rb_str_scrub(VALUE, VALUE);
 VALUE rb_sym_all_symbols(void);
 
 #ifdef HAVE_BUILTIN___BUILTIN_CONSTANT_P
-VALUE rb_str_new_cstr(const char *string);
+#define rb_str_new(str, len) RB_GNUC_EXTENSION_BLOCK(	\
+    (__builtin_constant_p(str) && __builtin_constant_p(len)) ? \
+	rb_str_new_static((str), (len)) : \
+	rb_str_new((str), (len))	  \
+)
+#define rb_str_new_cstr(str) RB_GNUC_EXTENSION_BLOCK(	\
+    (__builtin_constant_p(str)) ?		\
+	rb_str_new_static((str), (long)strlen(str)) : \
+	rb_str_new_cstr(str)			\
+)
+#define rb_usascii_str_new(str, len) RB_GNUC_EXTENSION_BLOCK( \
+    (__builtin_constant_p(str) && __builtin_constant_p(len)) ? \
+	rb_usascii_str_new_static((str), (len)) : \
+	rb_usascii_str_new((str), (len))	  \
+)
 #define rb_utf8_str_new(str, len) RB_GNUC_EXTENSION_BLOCK( \
     (__builtin_constant_p(str) && __builtin_constant_p(len)) ? \
 	rb_utf8_str_new_static((str), (len)) : \
 	rb_utf8_str_new((str), (len))	  \
+)
+#define rb_tainted_str_new_cstr(str) RB_GNUC_EXTENSION_BLOCK( \
+    (__builtin_constant_p(str)) ?	       \
+	rb_tainted_str_new((str), (long)strlen(str)) : \
+	rb_tainted_str_new_cstr(str)	       \
+)
+#define rb_usascii_str_new_cstr(str) RB_GNUC_EXTENSION_BLOCK( \
+    (__builtin_constant_p(str)) ?	       \
+	rb_usascii_str_new_static((str), (long)strlen(str)) : \
+	rb_usascii_str_new_cstr(str)	       \
 )
 #define rb_utf8_str_new_cstr(str) RB_GNUC_EXTENSION_BLOCK( \
     (__builtin_constant_p(str)) ?		\
 	rb_utf8_str_new_static((str), (long)strlen(str)) : \
 	rb_utf8_str_new_cstr(str)		\
 )
+#define rb_external_str_new_cstr(str) RB_GNUC_EXTENSION_BLOCK( \
+    (__builtin_constant_p(str)) ?		\
+	rb_external_str_new((str), (long)strlen(str)) : \
+	rb_external_str_new_cstr(str)		\
+)
+#define rb_locale_str_new_cstr(str) RB_GNUC_EXTENSION_BLOCK( \
+    (__builtin_constant_p(str)) ?	       \
+	rb_locale_str_new((str), (long)strlen(str)) :  \
+	rb_locale_str_new_cstr(str)	       \
+)
+#define rb_str_buf_new_cstr(str) RB_GNUC_EXTENSION_BLOCK( \
+    (__builtin_constant_p(str)) ?		\
+	rb_str_buf_cat(rb_str_buf_new((long)strlen(str)), \
+		       (str), (long)strlen(str)) : \
+	rb_str_buf_new_cstr(str)		\
+)
 #define rb_str_cat_cstr(str, ptr) RB_GNUC_EXTENSION_BLOCK( \
     (__builtin_constant_p(ptr)) ?	        \
 	rb_str_cat((str), (ptr), (long)strlen(ptr)) : \
 	rb_str_cat_cstr((str), (ptr))		\
+)
+#define rb_exc_new_cstr(klass, ptr) RB_GNUC_EXTENSION_BLOCK( \
+    (__builtin_constant_p(ptr)) ?	        \
+	rb_exc_new((klass), (ptr), (long)strlen(ptr)) : \
+	rb_exc_new_cstr((klass), (ptr))		\
 )
 #endif
 #define rb_str_new2 rb_str_new_cstr
@@ -812,7 +880,9 @@ VALUE rb_str_new_cstr(const char *string);
 #define rb_tainted_str_new2 rb_tainted_str_new_cstr
 #define rb_str_buf_new2 rb_str_buf_new_cstr
 #define rb_usascii_str_new2 rb_usascii_str_new_cstr
+#define rb_str_buf_cat rb_str_cat
 #define rb_str_buf_cat2 rb_str_cat_cstr
+#define rb_str_cat2 rb_str_cat_cstr
 #define rb_strlen_lit(str) (sizeof(str "") - 1)
 #define rb_str_new_lit(str) rb_str_new_static((str), rb_strlen_lit(str))
 #define rb_usascii_str_new_lit(str) rb_usascii_str_new_static((str), rb_strlen_lit(str))

@@ -847,7 +847,7 @@ zstream_discard_input(struct zstream *z, long len)
 {
     if (NIL_P(z->input)) {
     }
-    else if (rb_tr_hidden_p(z->input)) {
+    else if (RBASIC_CLASS(z->input) == 0) {
 	/* hidden, we created z->input and have complete control */
 	char *ptr;
 	long oldlen, newlen;
@@ -883,7 +883,7 @@ zstream_discard_input(struct zstream *z, long len)
 static void
 zstream_reset_input(struct zstream *z)
 {
-    if (!NIL_P(z->input) && rb_tr_hidden_p(z->input)) {
+    if (!NIL_P(z->input) && RBASIC_CLASS(z->input) == 0) {
 	rb_str_resize(z->input, 0);
     }
     else {

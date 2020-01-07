@@ -95,4 +95,4 @@ class TestRipper::Lexer < Test::Unit::TestCase
     assert_equal "string\#{nil}\n",
       Ripper.slice(%(<<HERE\nstring\#{nil}\nHERE), "heredoc_beg .*? nl $(.*?) heredoc_end", 1)
   end
-end if ripper_test
+end

@@ -110,12 +110,10 @@ class TestRequire < Test::Unit::TestCase
       nil
     else
       proc do |require_path|
-      begin # TruffleRuby extra begin for ensure
         $SAFE = 1
         require(require_path)
       ensure
         $SAFE = 0
-      end
       end
     end
 

@@ -12,17 +12,6 @@ begin
 rescue LoadError
 end
 
-class Integer
-  if defined?(::TruffleRuby)
-    FIXNUM_MIN = Truffle::Platform::LONG_MIN
-    FIXNUM_MAX = Truffle::Platform::LONG_MAX
-  else
-    require "rbconfig/sizeof"
-    FIXNUM_MIN = -(1 << (8 * RbConfig::SIZEOF['long'] - 2))
-    FIXNUM_MAX = (1 << (8 * RbConfig::SIZEOF['long'] - 2)) - 1
-  end
-end
-
 module EnvUtil
   def rubybin
     if ruby = ENV["RUBY"]
@@ -66,9 +55,6 @@ module EnvUtil
       @original_verbose = $VERBOSE
     end
   end
-
-  # TruffleRuby: startup can take longer, especially on highly loaded CI machines
-  self.subprocess_timeout_scale = 3
 
   def apply_timeout_scale(t)
     if scale = EnvUtil.subprocess_timeout_scale
@@ -161,7 +147,7 @@ module EnvUtil
       stderr = stderr_filter.call(stderr) if stderr_filter
       if timeout_error
         bt = caller_locations
-        msg = "execution of #{bt.shift.label} expired (took longer than #{timeout} seconds)"
+        msg = "execution of #{bt.shift.label} expired timeout (#{timeout} sec)"
         msg = Test::Unit::Assertions::FailDesc[status, msg, [stdout, stderr].join("\n")].()
         raise timeout_error, msg, bt.map(&:to_s)
       end
