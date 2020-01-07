@@ -62,6 +62,7 @@ Bug fixes:
 * Fixed `Complex` and `Rational` should be frozen after initializing.
 * Fixed `printf` should raise error when not enough arguments for positional argument.
 * Removed "shadowing outer local variable" warning.
+* Fixed parameter conversion to `String` in ENV methods.
 
 Compatibility:
 

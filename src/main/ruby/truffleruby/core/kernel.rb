@@ -146,18 +146,12 @@ module Kernel
 
   ##
   # MRI uses a macro named StringValue which has essentially the same
-  # semantics as obj.coerce_to(String, :to_str), but rather than using that
+  # semantics as Truffle::Type.rb_convert_type obj, String, :to_str, but rather than using that
   # long construction everywhere, we define a private method similar to
   # String().
-  #
-  # Another possibility would be to change String() as follows:
-  #
-  #   String(obj, sym=:to_s)
-  #
-  # and use String(obj, :to_str) instead of StringValue(obj)
 
   def StringValue(obj)
-    Truffle::Type.coerce_to obj, String, :to_str
+    Truffle::Type.rb_convert_type obj, String, :to_str
   end
   module_function :StringValue
 

@@ -188,6 +188,8 @@ class << ENV
   end
 
   def has_value?(value)
+    value = Truffle::Type.rb_check_convert_type(value, String, :to_str)
+    return nil if value.nil?
     each { |_k, v| return true if v == value }
     false
   end
@@ -199,6 +201,7 @@ class << ENV
   end
 
   def index(value)
+    value = StringValue(value);
     each do |k, v|
       return k if v == value
     end
@@ -306,7 +309,8 @@ class << ENV
   end
 
   def rassoc(value)
-    value = StringValue(value)
+    value = Truffle::Type.rb_check_convert_type(value, String, :to_str)
+    return nil if value.nil?
     key = index(value)
     key ? [key, value] : nil
   end

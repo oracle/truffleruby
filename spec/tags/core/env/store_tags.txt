@@ -1,2 +1,0 @@
-fails:ENV.store raises TypeError when the key is not coercible to String
-fails:ENV.store raises TypeError when the value is not coercible to String

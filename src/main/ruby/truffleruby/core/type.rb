@@ -289,7 +289,7 @@ module Truffle
       r = check_funcall(obj, meth)
       if TrufflePrimitive.undefined?(r)
         if raise_on_error
-          raise TypeError, "can't convert #{object_class(obj)} into #{cls} with #{meth}"
+          raise TypeError, Truffle::ExceptionOperations.conversion_error_message(r, meth, obj, cls)
         end
         return nil
       end
