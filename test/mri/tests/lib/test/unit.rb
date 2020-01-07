@@ -773,14 +773,7 @@ module Test
           else
             color = @failed_color
           end
-          begin
-            msg = msg.split(/$/, 2)
-          rescue
-            msg.force_encoding('US-ASCII')
-            p msg.bytes
-            p msg
-            msg = msg.split(/$/, 2)
-          end
+          msg = msg.split(/$/, 2)
           $stdout.printf("%s%s%3d) %s%s%s\n",
                          sep, color, @report_count += 1,
                          msg[0], @reset_color, msg[1])
