@@ -44,11 +44,13 @@ You'll usually get some conflicts to work out.
 
 Configuration files must be regenerated from ruby for Linux and macOS
 and copied into `lib/cext/include/truffleruby`. In the MRI repository
-do the folowing
+do the following:
 
 ```
+graalvm_clang=$(jt ruby -e 'puts RbConfig::CONFIG["CC"]')
+
 autoconf
-CC=clang ./configure
+CC=$graalvm_clang ./configure
 ```
 
 The output of configure should report that it has created or updated a
