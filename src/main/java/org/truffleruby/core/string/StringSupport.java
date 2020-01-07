@@ -1327,9 +1327,7 @@ public final class StringSupport {
         return false;
     }
 
-    /**
-     * rb_str_swapcase / rb_str_swapcase_bang
-     */
+    // region Case Mapping Methods
 
     /**
      * Returns a copy of {@code bytes} but with ASCII characters' case swapped, or {@code bytes}
@@ -1337,7 +1335,7 @@ public final class StringSupport {
      * represent each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
-    public static byte[] multiByteSwapcaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] swapcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = 0;
@@ -1360,7 +1358,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteSwapcase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+    public static boolean swapCaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
             int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
@@ -1426,7 +1424,7 @@ public final class StringSupport {
      * each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
-    public static byte[] multiByteDowncaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] downcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = 0;
@@ -1449,7 +1447,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteDowncase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+    public static boolean downcaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
             int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
@@ -1493,7 +1491,7 @@ public final class StringSupport {
      * each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
-    public static byte[] multiByteUpcaseAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] upcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         int s = 0;
@@ -1516,7 +1514,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteUpcase(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+    public static boolean upcaseMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
             int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
@@ -1558,7 +1556,7 @@ public final class StringSupport {
      * (i.e. represent each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
-    public static byte[] multiByteCapitalizeAsciiCompatible(Encoding enc, CodeRange codeRange, byte[] bytes) {
+    public static byte[] capitalizeMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();
         boolean modified = false;
         final int end = bytes.length;
@@ -1591,7 +1589,7 @@ public final class StringSupport {
     }
 
     @TruffleBoundary
-    public static boolean multiByteCapitalize(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
+    public static boolean capitalizeMultiByteComplex(Encoding enc, CodeRange originalCodeRange, RopeBuilder builder,
             int caseMappingOptions) {
         byte[] buf = new byte[CASE_MAP_BUFFER_SIZE];
 
@@ -1634,6 +1632,9 @@ public final class StringSupport {
         return modified;
     }
 
+    //endregion
+    //region Predicates
+
     public static boolean isAsciiLowercase(byte c) {
         return c >= 'a' && c <= 'z';
     }
@@ -1664,4 +1665,6 @@ public final class StringSupport {
     public static boolean isAsciiCodepoint(int value) {
         return value >= 0 && value < 128;
     }
+
+    //endregion
 }
