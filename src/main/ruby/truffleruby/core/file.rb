@@ -719,6 +719,7 @@ class File < IO
 
   def self.fnmatch(pattern, path, flags=0)
     pattern = StringValue(pattern)
+    Truffle::Type.check_null_safe(pattern)
     path    = Truffle::Type.coerce_to_path(path)
     flags   = Truffle::Type.coerce_to_int(flags)
     brace_match = false
