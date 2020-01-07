@@ -1571,25 +1571,21 @@ module DRb
           info = Thread.current['DRb']
           if @block
             @result = Thread.new do
-            begin # TruffleRuby bare ensure
               Thread.current['DRb'] = info
               prev_safe_level = $SAFE
               $SAFE = @safe_level
               perform_with_block
             ensure
               $SAFE = prev_safe_level
-            end
             end.value
           else
             @result = Thread.new do
-            begin # TruffleRuby bare ensure
               Thread.current['DRb'] = info
               prev_safe_level = $SAFE
               $SAFE = @safe_level
               perform_without_block
             ensure
               $SAFE = prev_safe_level
-            end
             end.value
           end
         else
