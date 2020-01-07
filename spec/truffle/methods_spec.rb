@@ -9,7 +9,7 @@
 require_relative '../ruby/spec_helper'
 
 # Switch to MRI, the version we are compatible with, and run:
-# $ jt test spec/truffle/methods_spec.rb -t ruby
+# $ jt -u ruby test spec/truffle/methods_spec.rb
 # to regenerate the files under methods/.
 
 # jt test and jt tag can be used as normal,
