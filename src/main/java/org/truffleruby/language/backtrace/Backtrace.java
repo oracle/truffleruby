@@ -225,10 +225,6 @@ public class Backtrace {
             final Node callNode = stackTraceElement.getLocation();
 
             if (callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
-                // TODO(norswap, 24 Dec. 2019)
-                //   Seems wrong to me, this causes frames that would otherwise be ignored to
-                //   count towards the omitted frames.}
-                ++i;
                 continue;
             }
 
