@@ -269,17 +269,35 @@ public class Backtrace {
      * <p>The length can be negative, in which case it is treated as a range ending. Use -1 to
      * get the maximum length.
      *
-     * <p>If the stack trace hasn't been filled yet, this method will fill it.
+     * <p>This causes the activations to be computed if not yet the case.
      *
      * @param length the maximum number of locations to return (if positive), or -1 minus the
      *               number of items to exclude at the end. You can use
      *               {@link GetBacktraceException#UNLIMITED} to signal that you want all locations.
      *
+     * @param node the node at which we're requiring the backtrace. Can be null if the backtrace
+     *             is associated with a ruby exception or if we are sure the activations have
+     *             already been computed.
+     *
      */
-    public DynamicObject getBacktraceLocations(int length) {
+    public DynamicObject getBacktraceLocations(int length, Node node) {
 
         final RubyContext context = RubyLanguage.getCurrentContext();
-        final int activationsLength = getActivations().length;
+
+        final int activationsLength;
+        if (this.raiseException != null) {
+            // When dealing with the backtrace of a Ruby exception, we use the wrapping
+            // exception and we don't set a limit on the retrieved activations.
+            activationsLength = getActivations().length;
+        }
+        else {
+            // We can't set an effective limit when dealing with negative range endings.
+            final int stackTraceElementsLimit = length < 0
+                    ? GetBacktraceException.UNLIMITED
+                    : omitted + length;
+            final Throwable e = new GetBacktraceException(node, stackTraceElementsLimit);
+            activationsLength = getActivations(e).length;
+        }
         
         // Omitting more locations than available should return nil.
         if (activationsLength == 0) {

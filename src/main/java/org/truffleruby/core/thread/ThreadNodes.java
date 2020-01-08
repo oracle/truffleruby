@@ -153,7 +153,7 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         private DynamicObject backtraceLocationsInternal(DynamicObject rubyThread, int omit, int length) {
-            final Memo<Backtrace> backtraceMemo = new Memo<>(null);
+            final Memo<DynamicObject> backtraceLocationsMemo = new Memo<>(null);
 
             // We can't set an effective limit when dealing with negative range endings.
             final int stackTraceElementsLimit = length < 0
@@ -162,9 +162,7 @@ public abstract class ThreadNodes {
 
             final SafepointAction safepointAction = (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
-                backtraceMemo.set(backtrace);
-                // Fill in the stack trace.
-                backtrace.getActivations(new GetBacktraceException(this, stackTraceElementsLimit));
+                backtraceLocationsMemo.set(backtrace.getBacktraceLocations(length, this));
             };
 
             getContext()
@@ -172,11 +170,9 @@ public abstract class ThreadNodes {
                     .pauseRubyThreadAndExecute(rubyThread, this, safepointAction);
 
             // If the thread is dead or aborting the SafepointAction will not run.
-            if (backtraceMemo.get() == null) {
-                return nil();
-            }
-
-            return backtraceMemo.get().getBacktraceLocations(length);
+            return backtraceLocationsMemo.get() == null
+                    ? nil()
+                    : backtraceLocationsMemo.get();
         }
     }
 

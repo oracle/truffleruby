@@ -324,10 +324,7 @@ public abstract class KernelNodes {
                     ? GetBacktraceException.UNLIMITED
                     : omitted + length;
 
-            // Fill in the stack trace.
-            backtrace.getActivations(new GetBacktraceException(this, limit));
-
-            return backtrace.getBacktraceLocations(length);
+            return backtrace.getBacktraceLocations(length, this);
         }
     }
 
