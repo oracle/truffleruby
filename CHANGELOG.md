@@ -4,6 +4,7 @@ New features:
 
 * Enable and document `--coverage` option (#1840, @chrisseaton).
 * Update the internal LLVM toolchain to LLVM 9 and reduce its download size.
+* Updated to Ruby 2.6.5 (#1749).
 
 Bug fixes:
 
@@ -92,6 +93,7 @@ Compatibility:
 * Implemented `rb_get_alloc_func` and related functions (#1874, @XrXr).
 * Implemented `rb_module_new`, `rb_define_class_id`, `rb_define_module_id`, (#1876, @chrisseaton).
 * Implemented `ENV.slice`.
+* Support for the Darkfish theme for RDoc generation has been added back.
 
 Performance:
 

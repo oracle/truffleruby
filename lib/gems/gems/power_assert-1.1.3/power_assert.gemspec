@@ -1,31 +1,52 @@
-# coding: utf-8
-lib = File.expand_path('../lib', __FILE__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'power_assert/version'
+# -*- encoding: utf-8 -*-
+# stub: power_assert 1.1.3 ruby lib
 
 Gem::Specification.new do |s|
-  s.name        = 'power_assert'
-  s.version     = PowerAssert::VERSION
-  s.authors     = ['Kazuki Tsujimoto']
-  s.email       = ['kazuki@callcc.net']
-  s.homepage    = 'https://github.com/k-tsj/power_assert'
-  s.summary     = "Power Assert for Ruby"
-  s.description = "Power Assert for Ruby. Power Assert shows each value of variables and method calls in the expression. It is useful for testing, providing which value wasn't correct when the condition is not satisfied."
+  s.name = "power_assert".freeze
+  s.version = "1.1.3"
 
-  s.files         = `git ls-files -z`.split("\x0").reject do |f|
-    f.match(%r{^(test|spec|features|benchmark)/})
+  s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
+  s.require_paths = ["lib".freeze]
+  s.authors = ["Kazuki Tsujimoto".freeze]
+  s.bindir = "exe".freeze
+  s.date = "2018-06-24"
+  s.description = "Power Assert for Ruby. Power Assert shows each value of variables and method calls in the expression. It is useful for testing, providing which value wasn't correct when the condition is not satisfied.".freeze
+  s.email = ["kazuki@callcc.net".freeze]
+  s.extra_rdoc_files = ["README.rdoc".freeze]
+  s.files = [".gitignore".freeze, ".travis.yml".freeze, "BSDL".freeze, "COPYING".freeze, "Gemfile".freeze, "LEGAL".freeze, "README.rdoc".freeze, "Rakefile".freeze, "bin/console".freeze, "bin/setup".freeze, "lib/power_assert.rb".freeze, "lib/power_assert/colorize.rb".freeze, "lib/power_assert/configuration.rb".freeze, "lib/power_assert/context.rb".freeze, "lib/power_assert/enable_tracepoint_events.rb".freeze, "lib/power_assert/inspector.rb".freeze, "lib/power_assert/parser.rb".freeze, "lib/power_assert/version.rb".freeze, "power_assert.gemspec".freeze]
+  s.homepage = "https://github.com/k-tsj/power_assert".freeze
+  s.licenses = ["2-clause BSDL".freeze, "Ruby's".freeze]
+  s.rdoc_options = ["--main".freeze, "README.rdoc".freeze]
+  s.rubygems_version = "2.7.6".freeze
+  s.summary = "Power Assert for Ruby".freeze
+
+  if s.respond_to? :specification_version then
+    s.specification_version = 4
+
+    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
+      s.add_development_dependency(%q<test-unit>.freeze, [">= 0"])
+      s.add_development_dependency(%q<rake>.freeze, [">= 0"])
+      s.add_development_dependency(%q<simplecov>.freeze, [">= 0"])
+      s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
+      s.add_development_dependency(%q<pry>.freeze, [">= 0"])
+      s.add_development_dependency(%q<byebug>.freeze, [">= 0"])
+      s.add_development_dependency(%q<benchmark-ips>.freeze, [">= 0"])
+    else
+      s.add_dependency(%q<test-unit>.freeze, [">= 0"])
+      s.add_dependency(%q<rake>.freeze, [">= 0"])
+      s.add_dependency(%q<simplecov>.freeze, [">= 0"])
+      s.add_dependency(%q<bundler>.freeze, [">= 0"])
+      s.add_dependency(%q<pry>.freeze, [">= 0"])
+      s.add_dependency(%q<byebug>.freeze, [">= 0"])
+      s.add_dependency(%q<benchmark-ips>.freeze, [">= 0"])
+    end
+  else
+    s.add_dependency(%q<test-unit>.freeze, [">= 0"])
+    s.add_dependency(%q<rake>.freeze, [">= 0"])
+    s.add_dependency(%q<simplecov>.freeze, [">= 0"])
+    s.add_dependency(%q<bundler>.freeze, [">= 0"])
+    s.add_dependency(%q<pry>.freeze, [">= 0"])
+    s.add_dependency(%q<byebug>.freeze, [">= 0"])
+    s.add_dependency(%q<benchmark-ips>.freeze, [">= 0"])
   end
-  s.bindir        = 'exe'
-  s.executables   = s.files.grep(%r{^exe/}) { |f| File.basename(f) }
-  s.require_paths = ['lib']
-  s.add_development_dependency 'test-unit'
-  s.add_development_dependency 'rake'
-  s.add_development_dependency 'simplecov'
-  s.add_development_dependency 'bundler'
-  s.add_development_dependency 'pry'
-  s.add_development_dependency 'byebug'
-  s.add_development_dependency 'benchmark-ips'
-  s.extra_rdoc_files = ['README.rdoc']
-  s.rdoc_options     = ['--main', 'README.rdoc']
-  s.licenses         = ['2-clause BSDL', "Ruby's"]
 end

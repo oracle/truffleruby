@@ -12,17 +12,6 @@ begin
 rescue LoadError
 end
 
-class Integer
-  if defined?(::TruffleRuby)
-    FIXNUM_MIN = Truffle::Platform::LONG_MIN
-    FIXNUM_MAX = Truffle::Platform::LONG_MAX
-  else
-    require "rbconfig/sizeof"
-    FIXNUM_MIN = -(1 << (8 * RbConfig::SIZEOF['long'] - 2))
-    FIXNUM_MAX = (1 << (8 * RbConfig::SIZEOF['long'] - 2)) - 1
-  end
-end
-
 module EnvUtil
   def rubybin
     if ruby = ENV["RUBY"]

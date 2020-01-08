@@ -74,6 +74,7 @@
 #define SIZEOF_TIME_T 8
 #define SIZEOF_CLOCK_T 8
 #define PACKED_STRUCT(x) x __attribute__((packed))
+#define USE_UNALIGNED_MEMBER_ACCESS 1
 #define PRI_LL_PREFIX "ll"
 #define HAVE_PID_T 1
 #define rb_pid_t pid_t
@@ -222,6 +223,7 @@
 #define HAVE_CRYPT 1
 #define HAVE_DUP2 1
 #define HAVE_ERF 1
+#define HAVE_EXPLICIT_BZERO 1
 #define HAVE_FFS 1
 #define HAVE_FINITE 1
 #define HAVE_FLOCK 1
@@ -351,6 +353,7 @@
 #define HAVE_WAITPID 1
 #define HAVE_CRYPT_H 1
 #define HAVE_STRUCT_CRYPT_DATA_INITIALIZED 1
+#define HAVE_BUILTIN___BUILTIN_ALLOCA_WITH_ALIGN 1
 #define HAVE_BUILTIN___BUILTIN_ASSUME_ALIGNED 1
 #define HAVE_BUILTIN___BUILTIN_BSWAP16 1
 #define HAVE_BUILTIN___BUILTIN_BSWAP32 1

@@ -1,7 +1,7 @@
 # Compatibility
 
 TruffleRuby aims to be fully compatible with the standard implementation of
-Ruby, MRI, version 2.6.2, revision 67232.
+Ruby, MRI, version 2.6.5.
 
 Any incompatibility with MRI is considered a bug, except for rare cases detailed below.
 If you find an incompatibility with MRI, please [report](https://github.com/oracle/truffleruby/issues) it to us.
@@ -86,10 +86,6 @@ more explanation on this.
 #### Internal MRI functionality
 
 `RubyVM` is not intended for users and is not implemented.
-
-#### RDoc HTML generation
-
-TruffleRuby does not include the Darkfish theme for RDoc.
 
 ## Features with major differences
 
