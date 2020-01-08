@@ -193,7 +193,9 @@ module ObjectSpace
   module_function :trace_object_allocations
 
   def trace_object_allocations_clear
-    ALLOCATIONS.clear
+    Truffle::System.synchronized(ALLOCATIONS) do
+      ALLOCATIONS.clear
+    end
   end
   module_function :trace_object_allocations_clear
 
@@ -213,21 +215,27 @@ module ObjectSpace
   module_function :trace_object_allocations_stop
 
   def allocation_class_path(object)
-    allocation = ALLOCATIONS[object]
+    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+      ALLOCATIONS[object]
+    end
     return nil if allocation.nil?
     allocation.class_path
   end
   module_function :allocation_class_path
 
   def allocation_generation(object)
-    allocation = ALLOCATIONS[object]
+    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+      ALLOCATIONS[object]
+    end
     return nil if allocation.nil?
     allocation.generation
   end
   module_function :allocation_generation
 
   def allocation_method_id(object)
-    allocation = ALLOCATIONS[object]
+    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+      ALLOCATIONS[object]
+    end
     return nil if allocation.nil?
 
     method_id = allocation.method_id
@@ -238,14 +246,18 @@ module ObjectSpace
   module_function :allocation_method_id
 
   def allocation_sourcefile(object)
-    allocation = ALLOCATIONS[object]
+    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+      ALLOCATIONS[object]
+    end
     return nil if allocation.nil?
     allocation.sourcefile
   end
   module_function :allocation_sourcefile
 
   def allocation_sourceline(object)
-    allocation = ALLOCATIONS[object]
+    allocation = Truffle::System.synchronized(ALLOCATIONS) do
+      ALLOCATIONS[object]
+    end
     return nil if allocation.nil?
     allocation.sourceline
   end
@@ -256,7 +268,10 @@ module ObjectSpace
   ALLOCATIONS = {}.compare_by_identity
 
   def trace_allocation(object, class_path, method_id, sourcefile, sourceline, generation)
-    ALLOCATIONS[object] = Allocation.new(class_path, method_id, sourcefile, sourceline, generation)
+    allocation = Allocation.new(class_path, method_id, sourcefile, sourceline, generation)
+    Truffle::System.synchronized(ALLOCATIONS) do
+      ALLOCATIONS[object] = allocation
+    end
   end
   module_function :trace_allocation
 
