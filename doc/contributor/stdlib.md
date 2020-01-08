@@ -123,56 +123,18 @@ originals. At the moment, we're just storing sources in our repository and
 shipping the full set as MRI does, and we'll tackle issue when they come in
 future versions of Ruby.
 
-Keep these versions in sync with `versions.json`.
-
 ### Default gems
 
+To list default gems, use:
 ```
-gem list | grep default:
+$ gem list | grep default:
 ```
-
-* `bigdecimal` (default: 1.4.1)
-* `bundler` (default: 1.17.2)
-* `cmath` (default: 1.0.0)
-* `csv` (default: 3.0.4)
-* `date` (default: 2.0.0)
-* `dbm` (default: 1.0.0)
-* `e2mmap` (default: 0.1.0)
-* `etc` (default: 1.0.1)
-* `fcntl` (default: 1.0.0)
-* `fiddle` (default: 1.0.0)
-* `fileutils` (default: 1.1.0)
-* `forwardable` (default: 1.2.0)
-* `gdbm` (default: 2.0.0)
-* `io-console` (default: 0.4.7)
-* `ipaddr` (default: 1.2.2)
-* `irb` (default: 1.0.0)
-* `json` (default: 2.1.0, 2.0.2)
-* `logger` (default: 1.3.0)
-* `matrix` (default: 0.1.0)
-* `mutex_m` (default: 0.1.0)
-* `openssl` (default: 2.1.2)
-* `ostruct` (default: 0.1.0)
-* `prime` (default: 0.1.0)
-* `psych` (default: 3.1.0)
-* `rdoc` (default: 6.1.0)
-* `rexml` (default: 3.1.9)
-* `rss` (default: 0.2.7)
-* `scanf` (default: 1.0.0)
-* `sdbm` (default: 1.0.0)
-* `shell` (default: 0.7)
-* `stringio` (default: 0.0.2)
-* `strscan` (default: 1.0.0)
-* `sync` (default: 0.5.0)
-* `thwait` (default: 0.1.0)
-* `tracer` (default: 0.1.0)
-* `webrick` (default: 1.4.2)
-* `zlib` (default: 1.0.0)
 
 ### Bundled gems
 
+The list of bundled gems is available in MRI under `gems/bundled_gems`
 ```
-gems/bundled_gems
+$ cat gems/bundled_gems
 ```
 
 * `did_you_mean` 1.3.0 (helper to suggest method names on method missing)
