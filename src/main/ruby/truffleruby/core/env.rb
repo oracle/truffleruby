@@ -201,11 +201,8 @@ class << ENV
   end
 
   def index(value)
-    value = StringValue(value);
-    each do |k, v|
-      return k if v == value
-    end
-    nil
+    warn 'warning: ENV.index is deprecated; use ENV.key'
+    key(value)
   end
 
   def invert
@@ -213,7 +210,11 @@ class << ENV
   end
 
   def key(value)
-    index(value)
+    value = StringValue(value);
+    each do |k, v|
+      return k if v == value
+    end
+    nil
   end
 
   def keys
@@ -311,7 +312,7 @@ class << ENV
   def rassoc(value)
     value = Truffle::Type.rb_check_convert_type(value, String, :to_str)
     return nil if value.nil?
-    key = index(value)
+    key = key(value)
     key ? [key, value] : nil
   end
 

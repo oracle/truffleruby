@@ -63,6 +63,7 @@ Bug fixes:
 * Fixed `printf` should raise error when not enough arguments for positional argument.
 * Removed "shadowing outer local variable" warning.
 * Fixed parameter conversion to `String` in ENV methods.
+* Fixed deprecation warning when `ENV.index` is called.
 
 Compatibility:
 
