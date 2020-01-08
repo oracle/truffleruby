@@ -89,6 +89,8 @@ Compatibility:
 * Implemented `-n` CLI option (#1532).
 * Cache the `Symbol` of method names in call nodes only when needed (#1872).
 * Implemented `rb_get_alloc_func` and related functions (#1874, @XrXr).
+* Implemented `rb_module_new`, `rb_define_class_id`, `rb_define_module_id`, (#1876, @chrisseaton).
+* Implemented `ENV.slice`.
 
 Performance:
 
