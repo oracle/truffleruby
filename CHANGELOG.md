@@ -65,6 +65,7 @@ Bug fixes:
 * Removed "shadowing outer local variable" warning.
 * Fixed parameter conversion to `String` in ENV methods.
 * Fixed deprecation warning when `ENV.index` is called.
+* Fixed `ENV.udpate` implementation.
 
 Compatibility:
 
