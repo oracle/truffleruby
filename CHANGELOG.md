@@ -7,6 +7,7 @@ New features:
 Compatibility:
 
 * Implemented `rb_gc_register_mark_object` and `rb_enc_str_asciionly_p` (#1856, @chrisseaton).
+* Support for the Darkfish theme for RDoc generation has been added back.
 
 # 19.3.0
 
