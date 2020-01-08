@@ -478,7 +478,8 @@ public abstract class StringNodes {
         }
 
         @ExplodeLoop
-        @Specialization(guards = { "wasProvided(first)", "rest.length > 0", "rest.length == cachedLength" })
+        @Specialization(guards = { "wasProvided(first)", "rest.length > 0", "rest.length == " +
+                "cachedLength", "cachedLength <= 8" })
         protected Object concatMany(DynamicObject string, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached ConcatNode argConcatNode,
@@ -486,12 +487,10 @@ public abstract class StringNodes {
             Rope rope = StringOperations.rope(string);
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (int i = 0; i < cachedLength; ++i) {
-                if (selfArgProfile.profile(rest[i] == string)) {
-                    Object copy = createString(getContext(), rope);
-                    result = argConcatNode.executeConcat(string, copy, EMPTY_ARGUMENTS);
-                } else {
-                    result = argConcatNode.executeConcat(string, rest[i], EMPTY_ARGUMENTS);
-                }
+                final Object argOrCopy = selfArgProfile.profile(rest[i] == string)
+                        ? createString(getContext(), rope)
+                        : rest[i];
+                result = argConcatNode.executeConcat(string, argOrCopy, EMPTY_ARGUMENTS);
             }
             return result;
         }
