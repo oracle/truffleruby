@@ -891,13 +891,11 @@ class ERB
   def result(b=new_toplevel)
     if @safe_level
       proc do
-      begin # TruffleRuby for ensure
         prev_safe_level = $SAFE
         $SAFE = @safe_level
         eval(@src, b, (@filename || '(erb)'), @lineno)
       ensure
         $SAFE = prev_safe_level
-      end
       end.call
     else
       eval(@src, b, (@filename || '(erb)'), @lineno)

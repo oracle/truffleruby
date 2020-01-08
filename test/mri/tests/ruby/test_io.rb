@@ -2542,12 +2542,10 @@ class TestIO < Test::Unit::TestCase
 
     capture.clear
     assert_warning(/[.#]write is outdated/) do
-    begin # TruffleRuby extra begin for ensure
       stdout, $stdout = $stdout, capture
       puts "hey"
     ensure
       $stdout = stdout
-    end
     end
     assert_equal("hey\n", capture)
   end

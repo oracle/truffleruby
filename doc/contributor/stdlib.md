@@ -155,7 +155,7 @@ gem list | grep default:
 * `ostruct` (default: 0.1.0)
 * `prime` (default: 0.1.0)
 * `psych` (default: 3.1.0)
-* `rdoc` (default: 6.1.0)
+* `rdoc` (default: 6.1.2)
 * `rexml` (default: 3.1.9)
 * `rss` (default: 0.2.7)
 * `scanf` (default: 1.0.0)

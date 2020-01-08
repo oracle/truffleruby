@@ -9,13 +9,13 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["SHIBATA Hiroshi".freeze]
   s.bindir = "exe".freeze
-  s.date = "2019-02-01"
+  s.date = "2020-01-07"
   s.description = "Provides a simple logging utility for outputting messages.".freeze
   s.email = ["hsbt@ruby-lang.org".freeze]
   s.files = ["logger.rb".freeze]
   s.homepage = "https://github.com/ruby/logger".freeze
   s.licenses = ["BSD-2-Clause".freeze]
-  s.rubygems_version = "3.0.1".freeze
+  s.rubygems_version = "3.0.3".freeze
   s.summary = "Provides a simple logging utility for outputting messages.".freeze
 
   if s.respond_to? :specification_version then

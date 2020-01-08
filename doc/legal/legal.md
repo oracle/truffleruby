@@ -19,7 +19,7 @@ See `epl-2.0.txt`, `gpl-2.txt`, `lgpl-2.1.txt`.
 ## MRI
 
 The standard implementation of Ruby is MRI. TruffleRuby contains code from MRI
-version 2.6.1, including:
+version 2.6.5, including:
 
 * the standard library in `lib/mri`, 
 * Ruby C extension API in `lib/cext/include` and `src/main/c/cext`, 
@@ -44,6 +44,9 @@ CC0 public domain dedication, see `ccan-cc0.txt`.
 `lib/cext/include/ccan/list` is a utility from CCAN and is available under the
 terms of 'BSD-MIT', see `ccan-bsd-mit.txt`. Despite the filename 'BSD-MIT' this
 is the conventional MIT licence.
+
+RDoc Darkfish theme fonts under `lib/mri/rdoc/generator/template/darkfish/` are
+available under the terms of the SIL Open Font License 1.1, see `ofl.txt`.
 
 The header file `lib/cext/include/ruby/onigmo.h` is part of Onigmo, available
 under the same 2-clause BSD licence as Ruby.

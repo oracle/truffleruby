@@ -1,7 +1,7 @@
 {
   "ruby": {
-    "version": "2.6.2",
-    "revision": 67232
+    "version": "2.6.5",
+    "revision": 67812
   },
 
   "gems": {
@@ -10,7 +10,7 @@
       "gem": "3.0.3",
       "irb": "1.0.0",
       "rake": "12.3.2",
-      "rdoc": "6.1.0"
+      "rdoc": "6.1.2"
     },
 
     "bundled": {

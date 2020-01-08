@@ -321,6 +321,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     // ruby --help | ruby -e 'puts STDIN.readlines.map{|line|"out.println(#{line.chomp.inspect});"}'
     // replace ruby by truffleruby for the first line, and remove unsupported flags.
     // Also add an extra out.println(); before out.println("Features:");
+    // Remove the "Dump List:" section and jit-related lines.
     private static void printHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\\0, if no argument)");
@@ -362,6 +363,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("                  freeze all string literals (default: disabled)");
     }
 
+    // Same as above, but with "ruby -h"
     private static void printShortHelp(PrintStream out) {
         out.println("Usage: truffleruby [switches] [--] [programfile] [arguments]");
         out.println("  -0[octal]       specify record separator (\\0, if no argument)");
@@ -381,7 +383,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         out.println("  -s              enable some switch parsing for switches after script name");
         out.println("  -S              look for the script using PATH environment variable");
         out.println("  -T[level=1]     turn on tainting checks");
-        out.println("  -v              print version number, then turn on verbose mode");
+        out.println("  -v              print the version number, then turn on verbose mode");
         out.println("  -w              turn warnings on for your script");
         out.println("  -W[level=2]     set warning level; 0=silence, 1=medium, 2=verbose");
         out.println("  -x[directory]   strip off text before #!ruby line and perhaps cd to directory");
