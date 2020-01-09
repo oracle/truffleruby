@@ -1,3 +1,0 @@
-fails:ENV.update returns ENV when no block given
-fails:ENV.update returns ENV when block given
-fails:ENV.update adds the parameter hash to ENV, returning ENV

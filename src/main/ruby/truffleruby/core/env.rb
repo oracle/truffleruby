@@ -295,11 +295,14 @@ class << ENV
   end
 
   def update(other)
+    return self if equal?(other)
+    other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
     if block_given?
       other.each { |k, v| self[k] = yield(k, lookup(k), v) }
     else
       other.each { |k, v| self[k] = v }
     end
+    self
   end
 
   def keep_if(&block)
