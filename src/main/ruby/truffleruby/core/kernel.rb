@@ -505,14 +505,30 @@ module Kernel
   module_function :syscall
 
   def system(*args)
+    options = Truffle::Type.try_convert(args.last, Hash, :to_hash)
+    exception = if options
+                  args[-1] = options
+                  options.delete(:exception)
+                else
+                  false
+                end
+
     begin
       pid = Process.spawn(*args)
-    rescue SystemCallError
+    rescue SystemCallError => e
+      raise e if exception
       return nil
     end
 
     Process.waitpid pid
-    $?.exitstatus == 0
+    result = $?.exitstatus == 0
+    return true if result
+    if exception
+      # TODO  (bjfish, 9 Jan 2020): refactoring needed for more descriptive errors
+      raise RuntimeError, 'command failed'
+    else
+      return false
+    end
   end
   module_function :system
 
