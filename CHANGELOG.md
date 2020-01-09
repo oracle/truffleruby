@@ -96,6 +96,7 @@ Compatibility:
 * Implemented `rb_module_new`, `rb_define_class_id`, `rb_define_module_id`, (#1876, @chrisseaton).
 * Implemented `ENV.slice`.
 * Support for the Darkfish theme for RDoc generation has been added back.
+* Implemented `Random.bytes`.
 
 Performance:
 
