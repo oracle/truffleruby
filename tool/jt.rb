@@ -215,6 +215,10 @@ module Utilities
   end
   alias_method :require_ruby_launcher!, :ruby_launcher
 
+  def ruby_home
+    File.expand_path('../..', ruby_launcher)
+  end
+
   def truffleruby_native!
     unless truffleruby_native?
       raise "The ruby executable #{ruby_launcher} is not native."
@@ -908,7 +912,7 @@ module Commands
       # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
       # The home needs to be set, otherwise TruffleFile does not allow access to files in the TruffleRuby home,
       # because it cannot find the correct home.
-      home = "-Druby.home=#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/#{language_dir}/ruby"
+      home = "-Druby.home=#{ruby_home}"
       mx 'unittest', home, *tests
     when 'tck' then mx 'tck', *rest
     else
@@ -1144,7 +1148,7 @@ EOS
 
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
-        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, "mxbuild/truffleruby-jvm/#{language_dir}/ruby/lib/truffle/post_install_hook.sh")
+        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, "#{ruby_home}/lib/truffle/post_install_hook.sh")
 
       when 'gems'
         # Test that we can compile and run some real C extensions
