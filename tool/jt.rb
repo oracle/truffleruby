@@ -1750,8 +1750,6 @@ EOS
   end
 
   def benchmark(*args)
-    require_ruby_launcher!
-
     vm_args = []
     if truffleruby?
       vm_args << '--experimental-options' << '--engine.CompilationExceptionsAreFatal'
