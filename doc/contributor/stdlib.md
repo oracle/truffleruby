@@ -117,11 +117,8 @@ See https://stdgems.org.
 > they get automatically installed when you install Ruby. They can be
 > uninstalled and they are maintained outside of Ruby core.
 
-We aren't sure how installing standard gems from RubyGems will work with
-TruffleRuby in the future, as our versions sometimes differ from the
-originals. At the moment, we're just storing sources in our repository and
-shipping the full set as MRI does, and we'll tackle issue when they come in
-future versions of Ruby.
+It is not clear yet how installing default gems from RubyGems will work with
+TruffleRuby in the future, as some default gems we use differ from the originals.
 
 ### Default gems
 
