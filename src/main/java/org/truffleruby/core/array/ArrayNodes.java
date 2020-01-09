@@ -429,7 +429,11 @@ public abstract class ArrayNodes {
         }
 
         @ExplodeLoop
-        @Specialization(guards = { "wasProvided(first)", "rest.length > 0", "rest.length == cachedLength" })
+        @Specialization(guards = {
+                "wasProvided(first)",
+                "rest.length > 0",
+                "rest.length == cachedLength",
+                "cachedLength <= 8" })
         protected Object concatMany(DynamicObject array, DynamicObject first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached("createInternal()") ToAryNode toAryNode,
@@ -442,11 +446,10 @@ public abstract class ArrayNodes {
             DynamicObject copy = createArray(store, size);
             DynamicObject result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
             for (int i = 0; i < cachedLength; ++i) {
-                if (selfArgProfile.profile(rest[i] == array)) {
-                    result = appendManyNode.executeAppendMany(array, copy);
-                } else {
-                    result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(rest[i]));
-                }
+                final DynamicObject argOrCopy = selfArgProfile.profile(rest[i] == array)
+                        ? copy
+                        : toAryNode.executeToAry(rest[i]);
+                result = appendManyNode.executeAppendMany(array, argOrCopy);
             }
             return result;
         }
