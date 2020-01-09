@@ -66,6 +66,7 @@ Bug fixes:
 * Fixed parameter conversion to `String` in ENV methods.
 * Fixed deprecation warning when `ENV.index` is called.
 * Fixed issue with `ENV.each_key`.
+* Fixed `ENV.replace` implementation.
 
 Compatibility:
 

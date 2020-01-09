@@ -243,8 +243,15 @@ class << ENV
   end
 
   def replace(other)
-    clear
-    other.each { |k, v| self[k] = v }
+    return self if equal?(other)
+    other = Truffle::Type.rb_convert_type(other, Hash, :to_hash)
+    keys_to_delete = keys
+    other.each do |k, v|
+      self[k] = v
+      keys_to_delete.delete(k)
+    end
+    keys_to_delete.each { |k| delete(k) }
+    self
   end
 
   def select(&blk)
