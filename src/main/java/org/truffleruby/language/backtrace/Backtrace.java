@@ -214,17 +214,19 @@ public class Backtrace {
         final RubyContext context = RubyLanguage.getCurrentContext();
         final CallStackManager callStackManager = context.getCallStack();
 
-        int i = 0;
+        int elementCount = 0;
+        int activationCount = 0;
         for (TruffleStackTraceElement stackTraceElement : stackTrace) {
-            if (i < omitted) {
-                ++i;
+            assert elementCount != 0 || stackTraceElement.getLocation() == location;
+            final Node callNode = stackTraceElement.getLocation();
+            ++elementCount;
+
+            if (callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
                 continue;
             }
 
-            assert i != 0 || stackTraceElement.getLocation() == location;
-            final Node callNode = stackTraceElement.getLocation();
-
-            if (callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
+            if (activationCount < omitted) {
+                ++activationCount;
                 continue;
             }
 
@@ -243,17 +245,17 @@ public class Backtrace {
                 activations.add(new Activation(callNode, methodName));
             }
 
-            i++;
+            activationCount++;
         }
 
         // If there are activations with a InternalMethod but no caller information above in the
         // stack, then all of these activations are internal as they are not called from user code.
         while (!activations.isEmpty() && activations.get(activations.size() - 1).getCallNode() == null) {
             activations.remove(activations.size() - 1);
-            --i;
+            --activationCount;
         }
 
-        this.totalUnderlyingActivations = i;
+        this.totalUnderlyingActivations = activationCount;
         return this.activations = activations.toArray(new Activation[activations.size()]);
     }
 
@@ -306,10 +308,10 @@ public class Backtrace {
                     : ArrayHelpers.createEmptyArray(context);
         }
 
-        // NOTE (norswap, 18 Dec 2019)
-        //  TruffleStackTrace#getStackTrace (hence Backtrace#getActivations too) does not
-        //  always respect TruffleException#getStackTraceElementLimit(), so we need to use Math#min.
-        //  The reason: it doesn't count frames whose RootNode is internal towards the limit.
+        // NOTE (norswap, 08 Jan 2020)
+        //  It used to be that TruffleException#getStackTraceElementLimit() wasn't respected
+        //  due to a mishandling of internal frames. That's why we used Math.min and not just
+        //  length. Leaving it in just in case.
         final int locationsLength = length < 0
                 ? activationsLength + 1 + length
                 : Math.min(activationsLength, length);
