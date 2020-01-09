@@ -185,16 +185,19 @@ module Utilities
     return @ruby_launcher if defined? @ruby_launcher
 
     @ruby_name ||= ENV['RUBY_BIN'] || 'jvm'
-    @ruby_launcher = if @ruby_name == 'ruby'
-                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
-                     elsif File.executable?(@ruby_name)
-                       @ruby_name
-                     else
-                       "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/#{language_dir}/ruby/bin/ruby"
-                     end
+    ruby_launcher = if @ruby_name == 'ruby'
+                      ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
+                    elsif File.executable?(@ruby_name)
+                      @ruby_name
+                    else
+                      "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/#{language_dir}/ruby/bin/ruby"
+                    end
 
-    raise "The Ruby executable #{@ruby_launcher} does not exist" unless File.exist?(@ruby_launcher)
-    raise "The Ruby executable #{@ruby_launcher} is not executable" unless File.executable?(@ruby_launcher)
+    raise "The Ruby executable #{ruby_launcher} does not exist" unless File.exist?(ruby_launcher)
+    ruby_launcher = File.realpath(ruby_launcher)
+
+    raise "The Ruby executable #{ruby_launcher} is not executable" unless File.executable?(ruby_launcher)
+    @ruby_launcher = ruby_launcher
 
     unless @silent
       shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/ruby$], '').sub(%r[/#{language_dir}/ruby$], '')
@@ -210,7 +213,6 @@ module Utilities
     ENV['RUBY_BIN'] = ruby_launcher
     @ruby_launcher
   end
-
   alias_method :require_ruby_launcher!, :ruby_launcher
 
   def truffleruby_native!
@@ -239,8 +241,7 @@ module Utilities
     return @truffleruby_compiler = true if truffleruby_native?
 
     # Detect if the compiler is present by reading the $graalvm_home/release file
-    # Use realpath to always use the executable in languages/ruby/bin/
-    graalvm_home = File.expand_path("../../../..#{'/..' * language_dir.count('/')}", File.realpath(ruby_launcher))
+    graalvm_home = File.expand_path("../../../..#{'/..' * language_dir.count('/')}", ruby_launcher)
     @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
       line.include?('"compiler":') || line.include?("'compiler':")
     end
