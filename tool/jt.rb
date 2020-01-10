@@ -185,16 +185,19 @@ module Utilities
     return @ruby_launcher if defined? @ruby_launcher
 
     @ruby_name ||= ENV['RUBY_BIN'] || 'jvm'
-    @ruby_launcher = if @ruby_name == 'ruby'
-                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
-                     elsif File.executable?(@ruby_name)
-                       @ruby_name
-                     else
-                       "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/#{language_dir}/ruby/bin/ruby"
-                     end
+    ruby_launcher = if @ruby_name == 'ruby'
+                      ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
+                    elsif File.executable?(@ruby_name)
+                      @ruby_name
+                    else
+                      "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/#{language_dir}/ruby/bin/ruby"
+                    end
 
-    raise "The Ruby executable #{@ruby_launcher} does not exist" unless File.exist?(@ruby_launcher)
-    raise "The Ruby executable #{@ruby_launcher} is not executable" unless File.executable?(@ruby_launcher)
+    raise "The Ruby executable #{ruby_launcher} does not exist" unless File.exist?(ruby_launcher)
+    ruby_launcher = File.realpath(ruby_launcher)
+
+    raise "The Ruby executable #{ruby_launcher} is not executable" unless File.executable?(ruby_launcher)
+    @ruby_launcher = ruby_launcher
 
     unless @silent
       shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/ruby$], '').sub(%r[/#{language_dir}/ruby$], '')
@@ -210,8 +213,11 @@ module Utilities
     ENV['RUBY_BIN'] = ruby_launcher
     @ruby_launcher
   end
-
   alias_method :require_ruby_launcher!, :ruby_launcher
+
+  def ruby_home
+    File.expand_path('../..', ruby_launcher)
+  end
 
   def truffleruby_native!
     unless truffleruby_native?
@@ -239,8 +245,7 @@ module Utilities
     return @truffleruby_compiler = true if truffleruby_native?
 
     # Detect if the compiler is present by reading the $graalvm_home/release file
-    # Use realpath to always use the executable in languages/ruby/bin/
-    graalvm_home = File.expand_path("../../../..#{'/..' * language_dir.count('/')}", File.realpath(ruby_launcher))
+    graalvm_home = File.expand_path("..#{'/..' * (language_dir.count('/') + 1)}", ruby_home)
     @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
       line.include?('"compiler":') || line.include?("'compiler':")
     end
@@ -907,7 +912,7 @@ module Commands
       # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
       # The home needs to be set, otherwise TruffleFile does not allow access to files in the TruffleRuby home,
       # because it cannot find the correct home.
-      home = "-Druby.home=#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-jvm/#{language_dir}/ruby"
+      home = "-Druby.home=#{ruby_home}"
       mx 'unittest', home, *tests
     when 'tck' then mx 'tck', *rest
     else
@@ -1143,7 +1148,7 @@ EOS
 
         # Test that running the post-install hook works, even when opt &
         # llvm-link are not on PATH, as it is the case on macOS.
-        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, "mxbuild/truffleruby-jvm/#{language_dir}/ruby/lib/truffle/post_install_hook.sh")
+        sh({'TRUFFLERUBY_RECOMPILE_OPENSSL' => 'true'}, "#{ruby_home}/lib/truffle/post_install_hook.sh")
 
       when 'gems'
         # Test that we can compile and run some real C extensions
@@ -1745,8 +1750,6 @@ EOS
   end
 
   def benchmark(*args)
-    require_ruby_launcher!
-
     vm_args = []
     if truffleruby?
       vm_args << '--experimental-options' << '--engine.CompilationExceptionsAreFatal'

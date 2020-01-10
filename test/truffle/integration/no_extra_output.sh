@@ -27,15 +27,15 @@ function check() {
 
 echo "Basic test of the output"
 
-jt --silent ruby -e 'puts 3*4' 1>temp.txt 2>&1
+$RUBY_BIN -e 'puts 3*4' 1>temp.txt 2>&1
 check $?
 
 echo "Basic test of the output with lazy options disabled"
 
-jt --silent ruby --lazy-default=false -e 'puts 3*4' 1>temp.txt 2>&1
+$RUBY_BIN --experimental-options --lazy-default=false -e 'puts 3*4' 1>temp.txt 2>&1
 check $?
 
 echo "Test loading many standard libraries"
 
-jt --silent ruby --lazy-default=false test/truffle/integration/no_extra_output/all_stdlibs.rb 1>temp.txt 2>&1
+$RUBY_BIN --experimental-options --lazy-default=false test/truffle/integration/no_extra_output/all_stdlibs.rb 1>temp.txt 2>&1
 check $?
