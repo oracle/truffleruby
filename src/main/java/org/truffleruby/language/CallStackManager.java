@@ -228,11 +228,6 @@ public class CallStackManager {
             }
         }
 
-        if (rootNode != null && rootNode.isInternal() &&
-                !BacktraceFormatter.isCore(context, rootNode.getSourceSection())) {
-            return true;
-        }
-
         return rootNode instanceof InternalRootNode || callNode.getEncapsulatingSourceSection() == null;
 
     }
