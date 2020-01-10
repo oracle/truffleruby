@@ -1091,26 +1091,6 @@ public abstract class RopeNodes {
             }
         }
 
-        // Version without a node
-        @TruffleBoundary
-        public static Rope withEncodingSlow(Rope originalRope, Encoding newEncoding) {
-            if (originalRope.getEncoding() == newEncoding) {
-                return originalRope;
-            }
-
-            if (originalRope.getCodeRange() == CR_7BIT && newEncoding.isAsciiCompatible()) {
-                return originalRope.withEncoding(newEncoding, CR_7BIT);
-            }
-
-            if (newEncoding == ASCIIEncoding.INSTANCE && originalRope.getCodeRange() == CR_VALID &&
-                    originalRope.getEncoding().isAsciiCompatible()) {
-                // ASCII-compatible CR_VALID strings are also CR_VALID in binary.
-                return originalRope.withEncoding(newEncoding, CR_VALID);
-            }
-
-            return RopeOperations.create(originalRope.getBytes(), newEncoding, CR_UNKNOWN);
-        }
-
         private Rope rescanBytesForEncoding(Rope rope, Encoding encoding, BytesNode bytesNode,
                 MakeLeafRopeNode makeLeafRopeNode) {
             return makeLeafRopeNode.executeMake(bytesNode.execute(rope), encoding, CR_UNKNOWN, NotProvided.INSTANCE);
