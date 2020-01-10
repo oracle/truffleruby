@@ -144,6 +144,10 @@ class Random
     Thread.current.randomizer.random(limit)
   end
 
+  def self.bytes(length)
+    TrufflePrimitive.randomizer_bytes(Thread.current.randomizer, length)
+  end
+
   def initialize(seed=undefined)
     @randomizer = Truffle::Randomizer.new
     if !TrufflePrimitive.undefined?(seed)

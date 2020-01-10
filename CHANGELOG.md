@@ -99,6 +99,7 @@ Compatibility:
 * Implemented `ENV.slice`.
 * Support for the Darkfish theme for RDoc generation has been added back.
 * Implemented `Kernel#system` `exception: true` option.
+* Implemented `Random.bytes`.
 
 Performance:
 
