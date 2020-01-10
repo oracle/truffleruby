@@ -34,7 +34,7 @@ public class RepeatingRope extends ManagedRope {
 
     @Override
     public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        return new RepeatingRope((ManagedRope) child.withEncoding(newEncoding, newCodeRange), times);
+        return new RepeatingRope((ManagedRope) RopeOperations.withEncoding(child, newEncoding), times);
     }
 
     @Override

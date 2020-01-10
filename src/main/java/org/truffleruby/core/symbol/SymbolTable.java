@@ -131,7 +131,7 @@ public class SymbolTable implements ReHashable {
         }
 
         if (rope.isAsciiOnly() && rope.getEncoding() != USASCIIEncoding.INSTANCE) {
-            rope = rope.withEncoding(USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            rope = RopeOperations.withEncoding(rope, USASCIIEncoding.INSTANCE);
         }
 
         return new RopeKey(rope, hashing);

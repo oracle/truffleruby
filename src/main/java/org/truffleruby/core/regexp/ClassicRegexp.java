@@ -722,7 +722,7 @@ public class ClassicRegexp implements ReOptions {
                 p += cl;
             }
             if (asciiOnly) {
-                return bs.withEncoding(USASCIIEncoding.INSTANCE, CR_7BIT);
+                return RopeOperations.withEncoding(bs, USASCIIEncoding.INSTANCE);
             }
             return bs;
         } while (false);
