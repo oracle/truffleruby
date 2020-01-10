@@ -38,6 +38,12 @@ public abstract class Rope {
         this.bytes = bytes;
     }
 
+    /**
+     * Fast-path encoding change when there is little to do.
+     *
+     * @param newEncoding the new Encoding
+     * @param newCodeRange always CR-7BIT, except when newEncoding is BINARY can also be CR-VALID
+     */
     public abstract Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange);
 
     public abstract int characterLength();
