@@ -1075,7 +1075,7 @@ public abstract class RopeNodes {
                 } else if (binaryEncodingProfile.profile(encoding == ASCIIEncoding.INSTANCE &&
                         rope.getCodeRange() == CR_VALID &&
                         rope.getEncoding().isAsciiCompatible())) {
-                    // ASCII-compatible CR_VALID strings are also CR_VALID in binary.
+                    // ASCII-compatible CR_VALID strings are also CR_VALID in binary, but they might change character length.
                     return cachedRopeClass.cast(rope).withEncoding(ASCIIEncoding.INSTANCE, CR_VALID);
                 } else {
                     // The rope either has a broken code range or isn't ASCII-compatible. In the case of a broken
