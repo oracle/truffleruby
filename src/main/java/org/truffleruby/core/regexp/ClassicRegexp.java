@@ -669,7 +669,8 @@ public class ClassicRegexp implements ReOptions {
     private static final int QUOTED_V = 11;
 
     @TruffleBoundary
-    public static Rope quote19(Rope bs, boolean asciiOnly) {
+    public static Rope quote19(Rope bs) {
+        final boolean asciiOnly = bs.isAsciiOnly();
         int p = 0;
         int end = bs.byteLength();
         final byte[] bytes = bs.getBytes();

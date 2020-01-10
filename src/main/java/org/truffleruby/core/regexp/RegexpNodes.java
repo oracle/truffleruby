@@ -211,7 +211,7 @@ public abstract class RegexpNodes {
         @Specialization(guards = "isRubyString(raw)")
         protected DynamicObject quoteString(DynamicObject raw) {
             final Rope rope = StringOperations.rope(raw);
-            return getMakeStringNode().fromRope(ClassicRegexp.quote19(rope, rope.isAsciiOnly()));
+            return getMakeStringNode().fromRope(ClassicRegexp.quote19(rope));
         }
 
         @Specialization(guards = "isRubySymbol(raw)")
