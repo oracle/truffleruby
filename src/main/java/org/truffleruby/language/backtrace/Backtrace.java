@@ -95,11 +95,9 @@ public class Backtrace {
      * Creates a backtrace for the given Truffle exception, setting the
      * {@link #getLocation() location} and {@link #getSourceLocation() source location} accordingly,
      * and computing the activations eagerly (since the exception itself is not retained).
-     *
-     * <p>This is not/should not be used for constructing the backtrace associated with Ruby
-     * exceptions.
      */
     public Backtrace(TruffleException exception) {
+        assert !(exception instanceof RaiseException);
         this.location = exception.getLocation();
         this.sourceLocation = exception.getSourceLocation();
         this.omitted = 0;
@@ -148,8 +146,6 @@ public class Backtrace {
 
     /**
      * Sets the wrapper for the Ruby exception associated with this backtrace.
-     *
-     * <p>Do not set the raise exception twice on the same backtrace!
      */
     public void setRaiseException(RaiseException raiseException) {
         assert this.raiseException == null : "the RaiseException of a Backtrace must not be set again, otherwise the original backtrace is lost";
@@ -308,12 +304,10 @@ public class Backtrace {
                     : ArrayHelpers.createEmptyArray(context);
         }
 
-        // NOTE (norswap, 08 Jan 2020)
-        //  It used to be that TruffleException#getStackTraceElementLimit() wasn't respected
-        //  due to a mishandling of internal frames. That's why we used Math.min and not just
-        //  length. Leaving it in just in case.
         final int locationsLength = length < 0
                 ? activationsLength + 1 + length
+                // We use Math.min because length > activationsLength is possible and
+                // activationsLength > length is too whenever there is a #raiseException set.
                 : Math.min(activationsLength, length);
 
         final Object[] locations = new Object[locationsLength];
