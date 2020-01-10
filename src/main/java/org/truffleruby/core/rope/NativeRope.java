@@ -190,6 +190,10 @@ public class NativeRope extends Rope {
 
     @Override
     public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
+        return withEncoding(newEncoding);
+    }
+
+    public NativeRope withEncoding(Encoding newEncoding) {
         return new NativeRope(pointer, byteLength(), newEncoding, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
     }
 

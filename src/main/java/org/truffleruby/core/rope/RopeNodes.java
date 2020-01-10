@@ -1054,7 +1054,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getEncoding() != encoding")
         protected Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding) {
-            return rope.withEncoding(encoding, CodeRange.CR_UNKNOWN);
+            return rope.withEncoding(encoding);
         }
 
         @Specialization(
