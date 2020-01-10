@@ -55,13 +55,15 @@ public class LazyIntRope extends LazyRope {
     }
 
     @Override
-    public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        if (newCodeRange != getCodeRange()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
-        }
-
+    Rope withEncoding7bit(Encoding newEncoding) {
+        assert getCodeRange() == CodeRange.CR_7BIT;
         return new LazyIntRope(value, newEncoding, length(value));
+    }
+
+    @Override
+    Rope withBinaryEncoding() {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        throw new UnsupportedOperationException("Must only be called for CR_VALID Strings");
     }
 
     @Override

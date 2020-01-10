@@ -11,7 +11,7 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
-import org.truffleruby.core.string.StringSupport;
+import org.jcodings.specific.ASCIIEncoding;
 
 import com.oracle.truffle.api.CompilerDirectives;
 
@@ -25,15 +25,13 @@ public class ValidLeafRope extends LeafRope {
     }
 
     @Override
-    public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        if (newCodeRange != getCodeRange()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
-        }
+    Rope withEncoding7bit(Encoding newEncoding) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        throw new UnsupportedOperationException("Must only be called for ASCII-only Strings");
+    }
 
-        final int newCharacterLength = StringSupport
-                .strLength(newEncoding, getRawBytes(), 0, byteLength(), newCodeRange);
-
-        return new ValidLeafRope(getRawBytes(), newEncoding, newCharacterLength);
+    @Override
+    Rope withBinaryEncoding() {
+        return new ValidLeafRope(getRawBytes(), ASCIIEncoding.INSTANCE, byteLength());
     }
 }

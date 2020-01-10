@@ -39,7 +39,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.rope.RopeNodes.WithEncodingNode;
 import org.truffleruby.core.rope.RopeNodesFactory.WithEncodingNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringOperations;

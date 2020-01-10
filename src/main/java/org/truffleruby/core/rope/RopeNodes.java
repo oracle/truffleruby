@@ -1070,12 +1070,14 @@ public abstract class RopeNodes {
             if (asciiCompatibleProfile.profile(encoding.isAsciiCompatible())) {
                 if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
                     // ASCII-only strings can trivially convert to other ASCII-compatible encodings.
-                    return cachedRopeClass.cast(rope).withEncoding(encoding, CR_7BIT);
+                    return cachedRopeClass.cast(rope).withEncoding7bit(encoding);
                 } else if (binaryEncodingProfile.profile(encoding == ASCIIEncoding.INSTANCE &&
                         rope.getCodeRange() == CR_VALID &&
                         rope.getEncoding().isAsciiCompatible())) {
                     // ASCII-compatible CR_VALID strings are also CR_VALID in binary, but they might change character length.
-                    return cachedRopeClass.cast(rope).withEncoding(ASCIIEncoding.INSTANCE, CR_VALID);
+                    final Rope binary = cachedRopeClass.cast(rope).withBinaryEncoding();
+                    assert binary.getCodeRange() == CR_VALID;
+                    return binary;
                 } else {
                     // The rope either has a broken code range or isn't ASCII-compatible. In the case of a broken
                     // code range, we must perform a new code range scan with the target encoding to see if it's still

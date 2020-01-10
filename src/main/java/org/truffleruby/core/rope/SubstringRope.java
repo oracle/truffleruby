@@ -12,7 +12,7 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import org.jcodings.specific.ASCIIEncoding;
 
 public class SubstringRope extends ManagedRope {
 
@@ -46,19 +46,27 @@ public class SubstringRope extends ManagedRope {
     }
 
     @Override
-    public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        if (newCodeRange != getCodeRange()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
-        }
-
+    Rope withEncoding7bit(Encoding newEncoding) {
+        assert getCodeRange() == CodeRange.CR_7BIT;
         return new SubstringRope(
                 getChild(),
                 newEncoding,
                 getByteOffset(),
                 byteLength(),
                 characterLength(),
-                newCodeRange);
+                CodeRange.CR_7BIT);
+    }
+
+    @Override
+    Rope withBinaryEncoding() {
+        assert getCodeRange() == CodeRange.CR_VALID;
+        return new SubstringRope(
+                getChild(),
+                ASCIIEncoding.INSTANCE,
+                getByteOffset(),
+                byteLength(),
+                byteLength(),
+                CodeRange.CR_VALID);
     }
 
     @Override

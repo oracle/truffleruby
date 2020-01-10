@@ -189,11 +189,16 @@ public class NativeRope extends Rope {
     }
 
     @Override
-    public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
+    Rope withEncoding7bit(Encoding newEncoding) {
         return withEncoding(newEncoding);
     }
 
-    public NativeRope withEncoding(Encoding newEncoding) {
+    @Override
+    Rope withBinaryEncoding() {
+        return withEncoding(ASCIIEncoding.INSTANCE);
+    }
+
+    NativeRope withEncoding(Encoding newEncoding) {
         return new NativeRope(pointer, byteLength(), newEncoding, UNKNOWN_CHARACTER_LENGTH, CodeRange.CR_UNKNOWN);
     }
 

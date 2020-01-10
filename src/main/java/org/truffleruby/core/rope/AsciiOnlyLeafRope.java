@@ -23,12 +23,13 @@ public class AsciiOnlyLeafRope extends LeafRope {
     }
 
     @Override
-    public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        if (newCodeRange != getCodeRange()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
-        }
-
+    Rope withEncoding7bit(Encoding newEncoding) {
         return new AsciiOnlyLeafRope(getRawBytes(), newEncoding);
+    }
+
+    @Override
+    Rope withBinaryEncoding() {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        throw new UnsupportedOperationException("Must only be called for CR_VALID Strings");
     }
 }

@@ -11,6 +11,7 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
 
 /**
  * A RepeatingRope always has the same encoding as its child
@@ -33,8 +34,15 @@ public class RepeatingRope extends ManagedRope {
     }
 
     @Override
-    public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
+    Rope withEncoding7bit(Encoding newEncoding) {
+        assert getCodeRange() == CodeRange.CR_7BIT;
         return new RepeatingRope((ManagedRope) RopeOperations.withEncoding(child, newEncoding), times);
+    }
+
+    @Override
+    Rope withBinaryEncoding() {
+        assert getCodeRange() == CodeRange.CR_VALID;
+        return new RepeatingRope((ManagedRope) RopeOperations.withEncoding(child, ASCIIEncoding.INSTANCE), times);
     }
 
     @Override
