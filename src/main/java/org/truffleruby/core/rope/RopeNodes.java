@@ -467,7 +467,6 @@ public abstract class RopeNodes {
         protected Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
                 @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isLeftSingleByteOptimizableProfile,
                 @Cached("createBinaryProfile()") ConditionProfile shouldRebalanceProfile) {
             try {
                 Math.addExact(left.byteLength(), right.byteLength());
