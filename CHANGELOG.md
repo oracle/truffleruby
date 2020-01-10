@@ -68,6 +68,7 @@ Bug fixes:
 * Fixed issue with `ENV.each_key`.
 * Fixed `ENV.replace` implementation.
 * Fixed `ENV.udpate` implementation.
+* Fixed argument handling in `Kernel.printf`.
 
 Compatibility:
 

@@ -586,7 +586,14 @@ module Kernel
   module_function :__dir__
 
   def printf(*args)
-    print sprintf(*args)
+    return nil if args.empty?
+    if Truffle::Type.object_kind_of?(args[0], String)
+      print sprintf(*args)
+    else
+      io = args.shift
+      io.write(sprintf(*args))
+    end
+    nil
   end
   module_function :printf
 
