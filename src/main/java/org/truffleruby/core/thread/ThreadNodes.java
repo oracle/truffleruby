@@ -155,11 +155,6 @@ public abstract class ThreadNodes {
         private DynamicObject backtraceLocationsInternal(DynamicObject rubyThread, int omit, int length) {
             final Memo<DynamicObject> backtraceLocationsMemo = new Memo<>(null);
 
-            // We can't set an effective limit when dealing with negative range endings.
-            final int stackTraceElementsLimit = length < 0
-                    ? GetBacktraceException.UNLIMITED
-                    : omit + length;
-
             final SafepointAction safepointAction = (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
                 backtraceLocationsMemo.set(backtrace.getBacktraceLocations(length, this));

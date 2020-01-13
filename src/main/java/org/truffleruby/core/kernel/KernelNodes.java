@@ -318,12 +318,6 @@ public abstract class KernelNodes {
             // Always skip #caller_locations.
             final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
-
-            // We can't set an effective limit when dealing with negative range endings.
-            final int limit = length < 0
-                    ? GetBacktraceException.UNLIMITED
-                    : omitted + length;
-
             return backtrace.getBacktraceLocations(length, this);
         }
     }

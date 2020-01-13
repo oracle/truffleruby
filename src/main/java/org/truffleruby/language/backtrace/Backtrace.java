@@ -53,7 +53,8 @@ import com.oracle.truffle.api.source.SourceSection;
  * may have set a custom backtrace (an array of strings).
  *
  * <p>In general, there isn't any guarantee that the getters will return non-null values, excepted
- * {@link #getActivations(), {@link #getActivations(Throwable)} and {@link #getBacktraceLocations(int)}.
+ * {@link #getActivations()}, {@link #getActivations(Throwable)} and
+ * {@link #getBacktraceLocations(int, Node)}.
  *
  * <p>NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions
  * on the backtrace object and generally require being very defensive depending on the information
@@ -245,7 +246,7 @@ public class Backtrace {
                 activations.add(new Activation(callNode, methodName));
             }
 
-            activationCount++;
+            ++activationCount;
         }
 
         // If there are activations with a InternalMethod but no caller information above in the
@@ -291,8 +292,7 @@ public class Backtrace {
             // When dealing with the backtrace of a Ruby exception, we use the wrapping
             // exception and we don't set a limit on the retrieved activations.
             activationsLength = getActivations().length;
-        }
-        else {
+        } else {
             // We can't set an effective limit when dealing with negative range endings.
             final int stackTraceElementsLimit = length < 0
                     ? GetBacktraceException.UNLIMITED
@@ -300,7 +300,7 @@ public class Backtrace {
             final Throwable e = new GetBacktraceException(node, stackTraceElementsLimit);
             activationsLength = getActivations(e).length;
         }
-        
+
         // Omitting more locations than available should return nil.
         if (activationsLength == 0) {
             return omitted > totalUnderlyingActivations
@@ -315,7 +315,7 @@ public class Backtrace {
         final int locationsLength = length < 0
                 ? activationsLength + 1 + length
                 : Math.min(activationsLength, length);
-        
+
         final Object[] locations = new Object[locationsLength];
         final DynamicObjectFactory factory = context.getCoreLibrary().threadBacktraceLocationFactory;
         for (int i = 0; i < locationsLength; i++) {
