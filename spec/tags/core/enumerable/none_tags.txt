@@ -1,1 +1,0 @@
-fails:Enumerable#none? raises an ArgumentError when any arguments provided
