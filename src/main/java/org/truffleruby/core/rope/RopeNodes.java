@@ -467,7 +467,6 @@ public abstract class RopeNodes {
         protected Rope concat(ManagedRope left, ManagedRope right, Encoding encoding,
                 @Cached("createBinaryProfile()") ConditionProfile sameCodeRangeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile brokenCodeRangeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isLeftSingleByteOptimizableProfile,
                 @Cached("createBinaryProfile()") ConditionProfile shouldRebalanceProfile) {
             try {
                 Math.addExact(left.byteLength(), right.byteLength());
@@ -1054,7 +1053,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getEncoding() != encoding")
         protected Rope nativeRopeWithEncoding(NativeRope rope, Encoding encoding) {
-            return rope.withEncoding(encoding, rope.getCodeRange());
+            return rope.withEncoding(encoding);
         }
 
         @Specialization(
@@ -1071,12 +1070,14 @@ public abstract class RopeNodes {
             if (asciiCompatibleProfile.profile(encoding.isAsciiCompatible())) {
                 if (asciiOnlyProfile.profile(rope.isAsciiOnly())) {
                     // ASCII-only strings can trivially convert to other ASCII-compatible encodings.
-                    return cachedRopeClass.cast(rope).withEncoding(encoding, CR_7BIT);
+                    return cachedRopeClass.cast(rope).withEncoding7bit(encoding);
                 } else if (binaryEncodingProfile.profile(encoding == ASCIIEncoding.INSTANCE &&
                         rope.getCodeRange() == CR_VALID &&
                         rope.getEncoding().isAsciiCompatible())) {
-                    // ASCII-compatible CR_VALID strings are also CR_VALID in binary.
-                    return cachedRopeClass.cast(rope).withEncoding(ASCIIEncoding.INSTANCE, CR_VALID);
+                    // ASCII-compatible CR_VALID strings are also CR_VALID in binary, but they might change character length.
+                    final Rope binary = cachedRopeClass.cast(rope).withBinaryEncoding();
+                    assert binary.getCodeRange() == CR_VALID;
+                    return binary;
                 } else {
                     // The rope either has a broken code range or isn't ASCII-compatible. In the case of a broken
                     // code range, we must perform a new code range scan with the target encoding to see if it's still
@@ -1089,26 +1090,6 @@ public abstract class RopeNodes {
                 // must perform a full code range scan and character length calculation.
                 return rescanBytesForEncoding(rope, encoding, bytesNode, makeLeafRopeNode);
             }
-        }
-
-        // Version without a node
-        @TruffleBoundary
-        public static Rope withEncodingSlow(Rope originalRope, Encoding newEncoding) {
-            if (originalRope.getEncoding() == newEncoding) {
-                return originalRope;
-            }
-
-            if (originalRope.getCodeRange() == CR_7BIT && newEncoding.isAsciiCompatible()) {
-                return originalRope.withEncoding(newEncoding, CR_7BIT);
-            }
-
-            if (newEncoding == ASCIIEncoding.INSTANCE && originalRope.getCodeRange() == CR_VALID &&
-                    originalRope.getEncoding().isAsciiCompatible()) {
-                // ASCII-compatible CR_VALID strings are also CR_VALID in binary.
-                return originalRope.withEncoding(newEncoding, CR_VALID);
-            }
-
-            return RopeOperations.create(originalRope.getBytes(), newEncoding, CR_UNKNOWN);
         }
 
         private Rope rescanBytesForEncoding(Rope rope, Encoding encoding, BytesNode bytesNode,

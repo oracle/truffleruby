@@ -69,6 +69,7 @@ Bug fixes:
 * Fixed `ENV.replace` implementation.
 * Fixed `ENV.udpate` implementation.
 * Fixed argument handling in `Kernel.printf`.
+* Fixed character length after conversion to binary from a non-US-ASCII String.
 
 Compatibility:
 

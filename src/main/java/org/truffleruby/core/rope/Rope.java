@@ -38,7 +38,19 @@ public abstract class Rope {
         this.bytes = bytes;
     }
 
-    public abstract Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange);
+    /**
+     * Only used internally by WithEncodingNode.
+     * Returns a Rope with the given Encoding.
+     * Both the original and new Encodings must be ASCII-compatible and the rope must be {@link #isAsciiOnly()}.
+     */
+    abstract Rope withEncoding7bit(Encoding newEncoding);
+
+    /**
+     * Only used internally by WithEncodingNode.
+     * Returns a Rope with the BINARY Encoding.
+     * The original Encoding must be ASCII-compatible and {@link #getCodeRange()} must be {@link CodeRange#CR_VALID} to call this.
+     */
+    abstract Rope withBinaryEncoding();
 
     public abstract int characterLength();
 

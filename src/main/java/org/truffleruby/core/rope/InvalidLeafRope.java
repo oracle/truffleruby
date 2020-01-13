@@ -23,13 +23,14 @@ public class InvalidLeafRope extends LeafRope {
     }
 
     @Override
-    public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        if (newCodeRange != getCodeRange()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
-        }
+    Rope withEncoding7bit(Encoding newEncoding) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        throw new UnsupportedOperationException("Must only be called for ASCII-only Strings");
+    }
 
-        final int newCharacterLength = RopeOperations.strLength(newEncoding, getRawBytes(), 0, byteLength());
-        return new InvalidLeafRope(getRawBytes(), newEncoding, newCharacterLength);
+    @Override
+    Rope withBinaryEncoding() {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        throw new UnsupportedOperationException("Must only be called for CR_VALID Strings");
     }
 }

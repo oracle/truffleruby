@@ -11,8 +11,8 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.jcodings.specific.ASCIIEncoding;
 
 public class ConcatRope extends ManagedRope {
 
@@ -27,7 +27,7 @@ public class ConcatRope extends ManagedRope {
             CodeRange codeRange,
             int depth,
             boolean balanced) {
-        this(left, right, encoding, codeRange, depth, null, balanced);
+        this(left, right, encoding, codeRange, left.characterLength() + right.characterLength(), depth, null, balanced);
     }
 
     private ConcatRope(
@@ -35,6 +35,7 @@ public class ConcatRope extends ManagedRope {
             ManagedRope right,
             Encoding encoding,
             CodeRange codeRange,
+            int characterLength,
             int depth,
             byte[] bytes,
             boolean balanced) {
@@ -42,7 +43,7 @@ public class ConcatRope extends ManagedRope {
                 encoding,
                 codeRange,
                 left.byteLength() + right.byteLength(),
-                left.characterLength() + right.characterLength(),
+                characterLength,
                 depth,
                 bytes);
         this.left = left;
@@ -51,13 +52,31 @@ public class ConcatRope extends ManagedRope {
     }
 
     @Override
-    public Rope withEncoding(Encoding newEncoding, CodeRange newCodeRange) {
-        if (newCodeRange != getCodeRange()) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException("Cannot fast-path updating encoding with different code range.");
-        }
+    Rope withEncoding7bit(Encoding newEncoding) {
+        assert getCodeRange() == CodeRange.CR_7BIT;
+        return new ConcatRope(
+                getLeft(),
+                getRight(),
+                newEncoding,
+                CodeRange.CR_7BIT,
+                characterLength(),
+                depth(),
+                getRawBytes(),
+                balanced);
+    }
 
-        return new ConcatRope(getLeft(), getRight(), newEncoding, newCodeRange, depth(), getRawBytes(), balanced);
+    @Override
+    Rope withBinaryEncoding() {
+        assert getCodeRange() == CodeRange.CR_VALID;
+        return new ConcatRope(
+                getLeft(),
+                getRight(),
+                ASCIIEncoding.INSTANCE,
+                CodeRange.CR_VALID,
+                byteLength(),
+                depth(),
+                getRawBytes(),
+                balanced);
     }
 
     @Override

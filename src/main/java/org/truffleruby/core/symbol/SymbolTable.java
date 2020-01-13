@@ -24,7 +24,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.hash.ReHashable;
-import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
@@ -131,7 +130,7 @@ public class SymbolTable implements ReHashable {
         }
 
         if (rope.isAsciiOnly() && rope.getEncoding() != USASCIIEncoding.INSTANCE) {
-            rope = rope.withEncoding(USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+            rope = RopeOperations.withEncoding(rope, USASCIIEncoding.INSTANCE);
         }
 
         return new RopeKey(rope, hashing);

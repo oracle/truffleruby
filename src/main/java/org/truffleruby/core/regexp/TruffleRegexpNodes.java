@@ -39,7 +39,6 @@ import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
@@ -71,7 +70,6 @@ public class TruffleRegexpNodes {
         @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private RopeNodes.AsciiOnlyNode asciiOnlyNode = RopeNodes.AsciiOnlyNode.create();
 
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getDefaultCacheLimit()")
         protected Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
@@ -101,8 +99,7 @@ public class TruffleRegexpNodes {
         public DynamicObject string(Object obj) {
             if (RubyGuards.isRubyString(obj)) {
                 final Rope rope = StringOperations.rope((DynamicObject) obj);
-                final boolean isAsciiOnly = asciiOnlyNode.execute(rope);
-                return makeStringNode.fromRope(ClassicRegexp.quote19(rope, isAsciiOnly));
+                return makeStringNode.fromRope(ClassicRegexp.quote19(rope));
             } else {
                 return toSNode.execute((DynamicObject) obj);
             }

@@ -39,7 +39,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.rope.RopeNodes.WithEncodingNode;
+import org.truffleruby.core.rope.RopeNodesFactory.WithEncodingNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
@@ -132,7 +132,7 @@ public class RopeOperations {
     }
 
     public static Rope withEncoding(Rope originalRope, Encoding newEncoding) {
-        return WithEncodingNode.withEncodingSlow(originalRope, newEncoding);
+        return WithEncodingNodeGen.getUncached().executeWithEncoding(originalRope, newEncoding);
     }
 
     public static Rope encodeAscii(String value, Encoding encoding) {
