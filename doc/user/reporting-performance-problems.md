@@ -25,7 +25,7 @@ show them so it may be a new problem to some people in the Ruby community.
 To experiment with how fast TruffleRuby can be we recommend using the
 [Enterprise Edition of GraalVM and rebuilding the Ruby executable images](installing-graalvm.md).
 
-## Using the JVM configuration
+## Using the JVM Configuration
 
 For the best peak performance, you want to use the JVM configuration, using
 `--jvm`. The default native configuration starts faster but doesn't quite reach
@@ -36,7 +36,7 @@ benchmark. If you want to write simpler benchmarks that just run a while loop
 with a simple timer (which we would not recommend anyway), then use the default
 native mode so that startup and warmup time is shorter.
 
-## How to check for basic performance problems
+## How to Check for Basic Performance Problems
 
 If you are examining the performance of TruffleRuby, we would recommend that you
 always run with the `--engine.TraceCompilation` flag. If you see
@@ -45,7 +45,7 @@ indicator that something is not working as intended and you may need to examine
 why, or ask us to help you do so. If you don't run with this flag Truffle will
 try to work around errors and you will not see that there is a problem.
 
-## How to write a performance benchmark
+## How to Write a Performance Benchmark
 
 We recommend that you use
 [`benchmark-ips`](https://github.com/evanphx/benchmark-ips), by Evan Phoenix, to

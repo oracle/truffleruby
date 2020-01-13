@@ -46,7 +46,7 @@ Features:
 TruffleRuby also reads the `RUBYOPT` environment variable, as in standard
 Ruby, if run from the Ruby launcher.
 
-## Unlisted Ruby switches
+## Unlisted Ruby Switches
 
 MRI has some extra Ruby switches which are aren't normally listed in help output
 but are documented in the Ruby manual page.
@@ -59,7 +59,7 @@ but are documented in the Ruby manual page.
                   the same as --external-encoding=external and optionally --internal-encoding=internal
 ```
 
-## TruffleRuby options
+## TruffleRuby Options
 
 TruffleRuby options are set via `--option=value`, or you can use
 `--ruby.option=value` from any launcher. You can omit `=value` to set to `true`.
@@ -83,7 +83,7 @@ run from the Ruby launcher.
 `--` or the first non-option argument stops processing of TrufflRuby and VM
 options in the same way it stops processing of Ruby arguments.
 
-## VM options
+## VM Options
 
 To set options in the underlying VM, use `--vm.`, valid for both the native
 configuration and the JVM configuration.
@@ -93,12 +93,12 @@ For example `--vm.Dsystem_property=value` or `--vm.ea`.
 To set the classpath, use the `=` notation, rather than two separate arguments.
 For example `--vm.cp=lib.jar` or `--vm.classpath=lib.jar`.
 
-## Other binary switches
+## Other Binary Switches
 
 Other binaries, such as `irb`, `gem`, and so on, support exactly the same
 switches as in standard Ruby.
 
-## Determining the TruffleRuby home
+## Determining the TruffleRuby Home
 
 TruffleRuby needs to know where to locate files such as the standard library.
 These are stored in the TruffleRuby home directory.

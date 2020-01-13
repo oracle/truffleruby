@@ -1,4 +1,4 @@
-# The Standalone Distribution
+# Standalone Distribution
 
 There are three ways to install TruffleRuby, see
 [getting started](../../README.md#getting-started). The recommended way is

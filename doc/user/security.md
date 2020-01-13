@@ -6,7 +6,7 @@ guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerabili
 rather than by something public such as a GitHub issue or a Gitter
 conversation.
 
-## Unimplemented security features
+## Unimplemented Security Features
 
 Ruby's `$SAFE` feature adds additional checks around how tainted data is used.
 However tainting data correctly and then the checks for it are inconsistent
@@ -133,22 +133,22 @@ CVE-2010-1330 | The regular expression engine in JRuby before 1.4.1, when `$KCOD
 
 ## Other Dependency Vulnerabilities
 
-## zlib
+### zlib
 
 We are not aware of any known vulnerabilities, but consider potential
 vulnerabilities in your system `zlib`.
 
-## libssl
+### libssl
 
 Consider potential vulnerabilities in your system `libssl`.
 
-## FFI
+### FFI
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
 CVE-2018-1000201 | A DLL loading issue can be hijacked on Windows when a `Symbol` is used for the library name | Treat Symbols the same as Strings in `ffi_lib` | | Applied the same mitigation, by using a version of FFI which fixed this vulnerability
 
-# Notes on hashing
+## Notes on Hashing
 
 TruffleRuby uses `MurmurHash2` hashing with a seed from `/dev/urandom` - it
 cannot be configured to use any other hashing algorithm. For hashing strings we

@@ -8,23 +8,23 @@ If you experience `openssl`-related errors, it might help to recompile the
 This is done automatically by Ruby managers, and mentioned in the post-install
 message when installing TruffleRuby via `gu install` in GraalVM.
 
-## RedHat-based: Fedora, Oracle Linux, etc
+### RedHat-based: Fedora, Oracle Linux, etc
 
 ```bash
 $ sudo dnf install openssl-devel
 ```
 
-## Debian-based: Ubuntu, etc
+### Debian-based: Ubuntu, etc
 
 ```bash
 $ sudo apt-get install libssl-dev
 ```
 
-## macOS
+### macOS
 
 On macOS the system version is too old.
 
-### Homebrew
+#### Homebrew
 
 We recommend installing libssl via [Homebrew](https://brew.sh).
 
@@ -32,7 +32,7 @@ We recommend installing libssl via [Homebrew](https://brew.sh).
 $ brew install openssl
 ```
 
-### MacPorts
+#### MacPorts
 
 MacPorts should also work but is not actively tested.
 

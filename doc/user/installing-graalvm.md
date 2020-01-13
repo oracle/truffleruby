@@ -19,7 +19,7 @@ x86 64-bit systems (note that TruffleRuby does not support Windows yet).
 
 To get the best performance you want to use the Enterprise Edition.
 
-## Installing the base image
+## Installing the Base Image
 
 GraalVM starts with a base image which provides the platform for
 high-performance language runtimes.
@@ -38,7 +38,7 @@ Whichever edition you get you will get a tarball which you can extract. There
 will be a `bin` directory (`Contents/Home/bin` on macOS) which you can add to
 your `$PATH` if you want to.
 
-## Installing Ruby and other languages
+## Installing Ruby and Other Languages
 
 After installing GraalVM you then need to install the Ruby language into it.
 This is done using the `gu` command. The Ruby package is the same for both
@@ -74,7 +74,7 @@ haven't done so already:
 gu install native-image
 ```
 
-## Using a Ruby package manager
+## Using a Ruby Manager
 
 Inside the GraalVM is a `jre/languages/ruby` or `languages/ruby` directory which
 has the usual structure of a Ruby implementation. It is recommended to add this
