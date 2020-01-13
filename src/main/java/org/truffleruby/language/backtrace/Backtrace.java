@@ -31,16 +31,59 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
+/**
+ * Represents a backtrace: a list of activations (~ call sites).
+ *
+ * <p>A backtrace is always constructed from a Java throwable, but does not always correspond to a
+ * Ruby exception (e.g. {@code Kernel.caller_locations}). Whenever constructing a backtrace from a
+ * Ruby exception, it will be encapsulated in a Java throwable ({@link RaiseException}).
+ *
+ * <p>Whenever a backtrace is associated with a Ruby exception, there is a 1-1-1 match between
+ * the backtrace, the Ruby exception (which has a backtrace field) and the
+ * {@link #getRaiseException() raiseException} stored in the backtrace (which encapsulates the
+ * Ruby exception).
+ *
+ * <p>NOTE(norswap): At least, that's how it should work, but there are cases where a Ruby
+ * exception's backtrace may not link back to the exception (e.g. in {@code
+ * TranslateExceptionNode#translateThrowable}).
+ *
+ * <p>Note in passing that not all Ruby exceptions have an associated backtrace (simply creating an
+ * exception via {@code Exception.new} does not fill its backtrace), nor does the associated
+ * backtrace necessarily match the result of {@code Exception#backtrace} in Ruby, because the user
+ * may have set a custom backtrace (an array of strings).
+ *
+ * <p>In general, there isn't any guarantee that the getters will return non-null values, excepted
+ * {@link #getActivations()}, {@link #getActivations(Throwable)} and
+ * {@link #getBacktraceLocations(int, Node)}.
+ *
+ * <p>NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions
+ * on the backtrace object and generally require being very defensive depending on the information
+ * available - but fixing this would require a dangerous refactoring for little benefit.
+ *
+ * <p>Also note that the activations are recorded lazily when one of the aforementionned methods is
+ * called, excepted when specified otherwise in the constructor. The activations will match the
+ * state of the Truffle call stack whenever the activations are recorded (so, during the constructor
+ * call or first method call).
+ */
 public class Backtrace {
 
-    private final Node location;
-    /** Only set for SyntaxError, where getLocation() does not represent where the error occurred. */
-    private final SourceSection sourceLocation;
-    private RaiseException raiseException;
-    private Activation[] activations;
-    private final int omitted;
-    private final Throwable javaThrowable;
+    // See accessors for info on most undocumented fields.
 
+    private final Node location;
+    private final SourceSection sourceLocation;
+    private final int omitted;
+    private RaiseException raiseException;
+    private final Throwable javaThrowable;
+    private Activation[] activations;
+
+    /** How many activations would there be if omitted was 0? */
+    private int totalUnderlyingActivations;
+
+    // region Constructors
+
+    /**
+     * Fully explicit constructor.
+     */
     public Backtrace(Node location, SourceSection sourceLocation, int omitted, Throwable javaThrowable) {
         this.location = location;
         this.sourceLocation = sourceLocation;
@@ -48,32 +91,98 @@ public class Backtrace {
         this.javaThrowable = javaThrowable;
     }
 
+    /**
+     * Creates a backtrace for the given Truffle exception, setting the
+     * {@link #getLocation() location} and {@link #getSourceLocation() source location} accordingly,
+     * and computing the activations eagerly (since the exception itself is not retained).
+     */
     public Backtrace(TruffleException exception) {
+        assert !(exception instanceof RaiseException);
         this.location = exception.getLocation();
         this.sourceLocation = exception.getSourceLocation();
         this.omitted = 0;
         this.javaThrowable = null;
-
         this.activations = getActivations((Throwable) exception);
     }
 
+    /**
+     * Creates a backtrace for the given throwable, in which only the activations and the backtrace
+     * locations may be retrieved. The activations are computed eagerly, since the exception itself
+     * is not retained.
+     */
     public Backtrace(Throwable exception) {
         this.location = null;
         this.sourceLocation = null;
         this.omitted = 0;
         this.javaThrowable = null;
-
         this.activations = getActivations(exception);
     }
 
+    // endregion
+    // region Accessors
+
+    /**
+     * AST node that caused the associated exception, if the info is available, or null.
+     */
+    public Node getLocation() {
+        return location;
+    }
+
+    /**
+     * Only set for {@code SyntaxError}, where it represents where the error occurred
+     * (while {@link #getLocation()} does not).
+     */
+    public SourceSection getSourceLocation() {
+        return sourceLocation;
+    }
+
+    /**
+     * Returns the wrapper for the Ruby exception associated with this backtrace, if any, and
+     * null otherwise.
+     */
+    public RaiseException getRaiseException() {
+        return raiseException;
+    }
+
+    /**
+     * Sets the wrapper for the Ruby exception associated with this backtrace.
+     */
+    public void setRaiseException(RaiseException raiseException) {
+        assert this.raiseException == null : "the RaiseException of a Backtrace must not be set again, otherwise the original backtrace is lost";
+        this.raiseException = raiseException;
+    }
+
+    /**
+     * Returns the number of activations to omit from the top (= most recently called) of the
+     * activation stack.
+     */
+    public int getOmitted() {
+        return omitted;
+    }
+
+    /**
+     * Returns the Java exception the associated Ruby exception was translated from, if any.
+     * (This is not the same as {@link #getRaiseException() the raise exception} which is simply
+     * a wrapper around the Ruby exception.)
+     */
+    public Throwable getJavaThrowable() {
+        return javaThrowable;
+    }
+
+    // endregion
+
+    /**
+     * Used to copy the backtrace when copying {@code exception}.
+     */
     public Backtrace copy(RubyContext context, DynamicObject exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
-        // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception
+        // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception.
         RaiseException newRaiseException = new RaiseException(
                 context,
                 exception,
                 this.raiseException.isInternalError());
         // Copy the TruffleStackTrace
+        //noinspection ThrowableNotThrown
         TruffleStackTrace.fillIn(this.raiseException);
         assert this.raiseException.getCause() != null;
         newRaiseException.initCause(this.raiseException.getCause());
@@ -83,145 +192,129 @@ public class Backtrace {
         return copy;
     }
 
-    public Node getLocation() {
-        return location;
-    }
+    @TruffleBoundary
+    public Activation[] getActivations(Throwable truffleException) {
+        if (this.activations != null) {
+            return this.activations;
+        }
 
-    public SourceSection getSourceLocation() {
-        return sourceLocation;
-    }
+        if (truffleException == null) {
+            truffleException = new GetBacktraceException(location, GetBacktraceException.UNLIMITED);
+        }
 
-    public RaiseException getRaiseException() {
-        return raiseException;
-    }
+        // The stacktrace is computed here if it was not already computed and stored in the
+        // TruffleException with TruffleStackTraceElement.fillIn().
+        final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStackTrace(truffleException);
+        assert stackTrace != null;
 
-    public void setRaiseException(RaiseException raiseException) {
-        assert this.raiseException == null : "the RaiseException of a Backtrace must not be set again, otherwise the original backtrace is lost";
-        this.raiseException = raiseException;
+        final List<Activation> activations = new ArrayList<>();
+        final RubyContext context = RubyLanguage.getCurrentContext();
+        final CallStackManager callStackManager = context.getCallStack();
+
+        int elementCount = 0;
+        int activationCount = 0;
+        for (TruffleStackTraceElement stackTraceElement : stackTrace) {
+            assert elementCount != 0 || stackTraceElement.getLocation() == location;
+            final Node callNode = stackTraceElement.getLocation();
+            ++elementCount;
+
+            if (callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
+                continue;
+            }
+
+            if (activationCount < omitted) {
+                ++activationCount;
+                continue;
+            }
+
+            final RootNode rootNode = stackTraceElement.getTarget().getRootNode();
+            final String methodName;
+            if (rootNode instanceof RubyRootNode) {
+                // Ruby backtraces do not include the class name for MRI compatibility.
+                methodName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
+            } else {
+                methodName = rootNode.getName();
+            }
+
+            // TODO (eregon, 4 Feb 2019): we should not ignore foreign frames without a
+            //  call node, but print info based on the methodName and CallTarget.
+            if (rootNode instanceof RubyRootNode || callNode != null) {
+                activations.add(new Activation(callNode, methodName));
+            }
+
+            ++activationCount;
+        }
+
+        // If there are activations with a InternalMethod but no caller information above in the
+        // stack, then all of these activations are internal as they are not called from user code.
+        while (!activations.isEmpty() && activations.get(activations.size() - 1).getCallNode() == null) {
+            activations.remove(activations.size() - 1);
+            --activationCount;
+        }
+
+        this.totalUnderlyingActivations = activationCount;
+        return this.activations = activations.toArray(new Activation[activations.size()]);
     }
 
     public Activation[] getActivations() {
         return getActivations(this.raiseException);
     }
 
-    @TruffleBoundary
-    public Activation[] getActivations(Throwable truffleException) {
-        if (this.activations == null) {
-            if (truffleException == null) {
-                truffleException = new GetBacktraceException(location, GetBacktraceException.UNLIMITED);
-            }
-
-            // The stacktrace is computed here if it was not already computed and stored in the
-            // TruffleException with TruffleStackTraceElement.fillIn().
-            final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStackTrace(truffleException);
-
-            final List<Activation> activations = new ArrayList<>();
-            final RubyContext context = RubyLanguage.getCurrentContext();
-            final CallStackManager callStackManager = context.getCallStack();
-
-            int i = 0;
-            for (TruffleStackTraceElement stackTraceElement : stackTrace) {
-                // TODO(norswap, 24 Dec. 2019)
-                //   Seems wrong to me, this causes frames that would otherwise be ignored to
-                //   count towards the omitted frames.
-                if (i >= omitted) {
-                    assert i != 0 || stackTraceElement.getLocation() == location;
-                    final Node callNode = stackTraceElement.getLocation();
-
-                    if (!callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
-                        final RootNode rootNode = stackTraceElement.getTarget().getRootNode();
-                        final String methodName;
-                        if (rootNode instanceof RubyRootNode) {
-                            // Ruby backtraces do not include the class name for MRI compatibility.
-                            methodName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
-                        } else {
-                            methodName = rootNode.getName();
-                        }
-
-                        // TODO (eregon, 4 Feb 2019): we should not ignore foreign frames without a
-                        // call node, but print info based on the methodName and CallTarget.
-                        if (rootNode instanceof RubyRootNode || callNode != null) {
-                            activations.add(new Activation(callNode, methodName));
-                        }
-                    }
-
-                }
-                i++;
-            }
-
-            // If there are activations with a InternalMethod but no caller information above in the
-            // stack, then all of these activations are internal as they are not called from user code.
-            while (!activations.isEmpty() && activations.get(activations.size() - 1).getCallNode() == null) {
-                activations.remove(activations.size() - 1);
-            }
-
-            this.activations = activations.toArray(new Activation[activations.size()]);
-        }
-
-        return this.activations;
-    }
-
     /**
      * Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code
-     * length}, and omitting locations as requested ({@link #getOmitted()}). If more locations
-     * are omitted than are available, return a Ruby {@code nil}.
+     * length}, and omitting locations as requested ({@link #getOmitted()}). If more locations are
+     * omitted than are available, return a Ruby {@code nil}.
      *
      * <p>The length can be negative, in which case it is treated as a range ending. Use -1 to
      * get the maximum length.
      *
-     * <p>If the stack trace hasn't been filled yet, this method will fill it.
+     * <p>This causes the activations to be computed if not yet the case.
+     *
+     * @param length the maximum number of locations to return (if positive), or -1 minus the
+     *               number of items to exclude at the end. You can use
+     *               {@link GetBacktraceException#UNLIMITED} to signal that you want all locations.
+     *
+     * @param node the node at which we're requiring the backtrace. Can be null if the backtrace
+     *             is associated with a ruby exception or if we are sure the activations have
+     *             already been computed.
+     *
      */
-    public DynamicObject getBacktraceLocations(int length) {
+    public DynamicObject getBacktraceLocations(int length, Node node) {
 
         final RubyContext context = RubyLanguage.getCurrentContext();
 
-        // NOTE(norswap, 24 Dec 2019)
-        //   Causes the stack trace to be filled if not done already.
-        //   We must call this rather than TruffleStackTrace#getStackTrace because
-        //   it does some additional filtering.
-        // TODO(norswap, 20 Dec 2019)
-        //   Currently, only the filtering at the end is taken into account (as length reduction).
-        //   Filtering in the middle will be ignored because of how we build backtrace locations.
-        final int activationsLength = getActivations().length;
-
-        // TODO(norswap, 24 Dec 2019)
-        //   This is an ugly stopgap solution - this doesn't seem solvable without refactoring #getActivations.
-        //   The issue is that omitting more locations than are available should return nil, while
-        //   omitting exactly the number of available locations should return an empty array.
-        //   This isn't even entirely correct: if we should ignore some frames from the stack trace,
-        //   then it's possible the method will return an empty array instead of nil.
-        if (activationsLength == 0 && omitted > 0) {
-            final int fullStackTraceLength = TruffleStackTrace.getStackTrace(
-                    new GetBacktraceException(location, GetBacktraceException.UNLIMITED)).size();
-            if (omitted > fullStackTraceLength) {
-                return context.getCoreLibrary().nil;
-            }
+        final int activationsLength;
+        if (this.raiseException != null) {
+            // When dealing with the backtrace of a Ruby exception, we use the wrapping
+            // exception and we don't set a limit on the retrieved activations.
+            activationsLength = getActivations().length;
+        } else {
+            // We can't set an effective limit when dealing with negative range endings.
+            final int stackTraceElementsLimit = length < 0
+                    ? GetBacktraceException.UNLIMITED
+                    : omitted + length;
+            final Throwable e = new GetBacktraceException(node, stackTraceElementsLimit);
+            activationsLength = getActivations(e).length;
         }
 
-        // NOTE (norswap, 18 Dec 2019)
-        //  TruffleStackTrace#getStackTrace (hence Backtrace#getActivations too) does not
-        //  always respect TruffleException#getStackTraceElementLimit(), so we need to use Math#min.
-        //  Haven't yet investigated why.
+        // Omitting more locations than available should return nil.
+        if (activationsLength == 0) {
+            return omitted > totalUnderlyingActivations
+                    ? context.getCoreLibrary().nil
+                    : ArrayHelpers.createEmptyArray(context);
+        }
+
         final int locationsLength = length < 0
                 ? activationsLength + 1 + length
+                // We use Math.min because length > activationsLength is possible and
+                // activationsLength > length is too whenever there is a #raiseException set.
                 : Math.min(activationsLength, length);
 
         final Object[] locations = new Object[locationsLength];
         final DynamicObjectFactory factory = context.getCoreLibrary().threadBacktraceLocationFactory;
         for (int i = 0; i < locationsLength; i++) {
-            locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(
-                    factory,
-                    this,
-                    i);
+            locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(factory, this, i);
         }
         return ArrayHelpers.createArray(context, locations, locations.length);
-    }
-
-    public int getOmitted() {
-        return omitted;
-    }
-
-    public Throwable getJavaThrowable() {
-        return javaThrowable;
     }
 }

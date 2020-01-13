@@ -228,16 +228,8 @@ public class CallStackManager {
             }
         }
 
-        if (rootNode instanceof InternalRootNode) {
-            return true;
-        }
+        return rootNode instanceof InternalRootNode || callNode.getEncapsulatingSourceSection() == null;
 
-
-        if (callNode.getEncapsulatingSourceSection() == null) {
-            return true;
-        }
-
-        return false;
     }
 
 }

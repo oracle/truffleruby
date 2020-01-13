@@ -187,7 +187,7 @@ public abstract class ExceptionNodes {
                 DynamicObject backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
                 if (hasLocationsProfile.profile(backtraceLocations == null)) {
                     Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
-                    backtraceLocations = backtrace.getBacktraceLocations(GetBacktraceException.UNLIMITED);
+                    backtraceLocations = backtrace.getBacktraceLocations(GetBacktraceException.UNLIMITED, null);
                     Layouts.EXCEPTION.setBacktraceLocations(exception, backtraceLocations);
                 }
                 return backtraceLocations;
