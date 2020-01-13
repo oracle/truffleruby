@@ -383,5 +383,3 @@ module Truffle::BigDecimalOperations
   end
 
 end
-
-require 'bigdecimal/math'
