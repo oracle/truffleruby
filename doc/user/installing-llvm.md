@@ -6,19 +6,19 @@ version, see [the documentation for that version](https://github.com/oracle/truf
 
 The `make` utility as well as the dependencies of the toolchain still need to be available to build C and C++ extensions.
 
-## RedHat-based: Fedora, Oracle Linux, etc
+### RedHat-based: Fedora, Oracle Linux, etc
 
 ```bash
 $ sudo dnf install make gcc
 ```
 
-## Debian-based: Ubuntu, etc
+### Debian-based: Ubuntu, etc
 
 ```bash
 $ sudo apt-get install make gcc
 ```
 
-## macOS
+### macOS
 
 On macOS, make sure you have installed the command line developer tools from Xcode:
 

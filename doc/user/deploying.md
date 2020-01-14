@@ -4,7 +4,7 @@ If you're attempting to experiment with deploying TruffleRuby to production we'd
 encourage you to contact us so we can help you understand what is possible at
 the moment and to help solve any issues for you.
 
-## TruffleRuby configurations
+## TruffleRuby Configurations
 
 There are two main configurations of TruffleRuby - *native* and *JVM*. It's
 important to understand the different configurations of TruffleRuby, as each has
@@ -35,12 +35,12 @@ If you are running a short-running program you probably want the default,
 highest possible performance you probably want the *JVM* configuration, by using
 `--jvm`.
 
-## Getting the best startup time performance
+### Getting the best startup time performance
 
 To get the best startup time performance in most cases you want to use the
 native configuration, which is the default.
 
-## Getting the lowest memory footprint
+### Getting the lowest memory footprint
 
 To get the lowest memory footprint you probably initially want to use the native
 configuration, but as you get a larger working set of objects you may find that
@@ -48,7 +48,7 @@ the simpler garbage collector and current lack of compressed ordinary object
 pointers (OOPS) actually increases your memory footprint and you'll be better
 off with the JVM configuration using `--jvm` to reduce memory use.
 
-## Getting the best peak performance from TruffleRuby
+### Getting the best peak performance from TruffleRuby
 
 To get the best peak performance from TruffleRuby for longer-running
 applications we would in most cases recommend the JVM configuration with

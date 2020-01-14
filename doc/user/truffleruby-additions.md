@@ -7,7 +7,7 @@ functionality beyond that of other implementations.
 Also see the [document describing our compatibility](compatibility.md) with
 other Ruby implementations.
 
-## Detecting if you are running on TruffleRuby
+## Detecting If You Run on TruffleRuby
 
 You can use the `--version` command-line option. TruffleRuby will report for
 example:
@@ -30,7 +30,7 @@ TruffleRuby outside of GraalVM, such as a standard JVM, the version will be
 `'0.0'`. You can find the version number of GraalVM and TruffleRuby using the
 standard `RUBY_ENGINE_VERSION` constant.
 
-## TruffleRuby methods and classes
+## TruffleRuby Methods and Classes
 
 TruffleRuby provides these non-standard methods and classes that provide
 additional functionality in the `TruffleRuby` module.
@@ -84,13 +84,13 @@ compatible with version 1.11.1 of the `ffi` gem. This should be transparent: you
 just install the `ffi` gem as normal, and it will use our built-in implementation,
 regardless of the version of the `ffi` gem.
 
-## Polyglot programming
+## Polyglot Programming
 
 The `Polyglot` and `Java` modules provides access to the polyglot programming
 functionality of GraalVM. They are
 [described in a separate document](polyglot.md).
 
-## Unsupported additional functionality
+## Unsupported Additional Functionality
 
 You may be able to find some other modules and methods not listed here that look
 interesting, such as `Truffle::POSIX` or `Truffle::FFI`. Additional modules and

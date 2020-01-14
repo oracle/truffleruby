@@ -23,7 +23,7 @@ access to other languages.
 * [Threading and interop](#threading-and-interop)
 * [Embedded configuration](#embedded-configuration)
 
-## Running Ruby code from another language
+## Running Ruby Code from Another Language
 
 When you `eval` Ruby code from the [Context API](https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/Context.html)
 in another language and mark the `Source` as interactive, the same interactive
@@ -34,7 +34,7 @@ The semantics are the same as the Ruby semantics of calling
 `INTERACTIVE_BINDING.eval(code)` for every `Context.eval()` call with an
 interactive `Source`. This is similar to most REPL semantics.
 
-## Loading code written in foreign languages
+## Loading Code Written in Foreign Languages
 
 `Polyglot.eval(id, string)` executes code in a foreign language identified by
 its ID.
@@ -45,21 +45,21 @@ identified by its language ID.
 `Polyglot.eval_file(path)` executes code in a foreign language from a file,
 automatically determining the language.
 
-## Exporting Ruby objects to foreign languages
+## Exporting Ruby Objects to Foreign Languages
 
 `Polyglot.export(name, value)` exports a value with a given name.
 
 `Polyglot.export_method(name)` exports a method, defined in the top-level
 object.
 
-## Importing foreign objects to Ruby
+## Importing Foreign Objects to Ruby
 
 `Polyglot.import(name)` imports and returns a value with a given name.
 
 `Polyglot.import_method(name)` imports a value, which should be `IS_EXECUTABLE`,
 with a given name, and defines it in the top-level object.
 
-## Using Ruby objects from a foreign language
+## Using Ruby Objects from a Foreign Language
 
 Using JavaScript as an example - the left example is JavaScript, the right one
 is the corresponding action it takes on the Ruby object expressed in Ruby code.
@@ -100,7 +100,7 @@ written, a good object to pass is usually a `Struct`, as this will have both the
 they will also respond to `object['foo']` and `object['foo'] = value` which
 means they will work from other languages sending read and write messages.
 
-## Using foreign objects from Ruby
+## Using Foreign Objects from Ruby
 
 `object[name/index]` will read a member from the foreign object.
 
@@ -144,7 +144,7 @@ foreign object, using its size or length and reading from it.
 Where boolean value is expected (e.g. in if conditions) the foreign value is
 converted to boolean if possible or considered to be true.
 
-## Accessing Java objects
+## Accessing Java Objects
 
 TruffleRuby's Java interop interface is similar to the interface from the
 Nashorn JavaScript implementation, as also implemented by Graal.js.
@@ -182,14 +182,14 @@ class Embedding {
 }
 ```
 
-## Using Ruby objects from embedding Java
+## Using Ruby Objects from Embedding Java
 
 Ruby objects are represented by the `Value` class when embedded in Java.
 
 ### Accessing arrays
 
 ```java
-boolean hasArrayElements() 
+boolean hasArrayElements()
 Value getArrayElement(long index)
 void setArrayElement(long index, Object value)
 boolean removeArrayElement(long index)
@@ -210,8 +210,8 @@ boolean removeMember(String identifier)
 ### Executing procs, lambdas, and methods
 
 ```java
-boolean canExecute() 
-Value execute(Object... arguments) 
+boolean canExecute()
+Value execute(Object... arguments)
 void executeVoid(Object... arguments)
 ```
 
@@ -221,7 +221,7 @@ void executeVoid(Object... arguments)
 boolean canInstantiate() {
 Value newInstance(Object... arguments)
 ```
-      
+
 ### Accessing primitives
 
 ```java
@@ -253,7 +253,7 @@ Ruby strings and symbols are converted to Java strings when they are passed to
 foreign languages, and Java strings are converted to Ruby strings when they
 are passed into Ruby.
 
-## Threading and interop
+## Threading and Interop
 
 Ruby is designed to be a multi-threaded language and much of the ecosystem
 expects threads to be available. This may be incompatible with other Truffle

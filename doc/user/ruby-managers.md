@@ -1,4 +1,4 @@
-# Ruby managers and installers
+# Ruby Managers and Installers
 
 If you [installed GraalVM](installing-graalvm.md), it is recommended to add
 TruffleRuby to a Ruby manager. See
@@ -76,7 +76,7 @@ There are also instructions on the
 [chruby wiki](https://github.com/postmodern/chruby/wiki/TruffleRuby)
 if you prefer to install TruffleRuby manually.
 
-## Configuring Ruby managers for the full GraalVM distribution
+## Configuring Ruby Managers for the Full GraalVM Distribution
 
 When [installing GraalVM](installing-graalvm.md), it is recommended to add
 TruffleRuby to a Ruby manager for ease of use.
@@ -128,7 +128,7 @@ $ rvm use ext-truffleruby
 $ ruby --version
 ```
 
-## Using TruffleRuby without a Ruby manager
+## Using TruffleRuby without a Ruby Manager
 
 If you are using a Ruby manager like `rvm`, `rbenv`, or `chruby` and wish not to
 add TruffleRuby to one of them make sure that the manager does not set

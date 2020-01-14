@@ -513,7 +513,7 @@ Java classes cannot be re-opened in TruffleRuby.
 Java classes cannot be subclassed in TruffleRuby. Use composition or interfaces
 instead.
 
-## Extending TruffleRuby using Java
+## Extending TruffleRuby Using Java
 
 JRuby supports extensions written in Java. These extensions are written against
 an informal interface that is simply the entire internals of JRuby, similar to
