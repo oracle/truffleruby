@@ -157,7 +157,7 @@ class String
   end
 
   def oct
-    TrufflePrimitive.string_to_inum(self, -8, false)
+    TrufflePrimitive.string_to_inum(self, -8, false, true)
   end
 
   # Treats leading characters from <i>self</i> as a string of hexadecimal digits
@@ -169,7 +169,7 @@ class String
   #    "0".hex        #=> 0
   #    "wombat".hex   #=> 0
   def hex
-    TrufflePrimitive.string_to_inum(self, 16, false)
+    TrufflePrimitive.string_to_inum(self, 16, false, true)
   end
 
   def reverse
@@ -307,7 +307,7 @@ class String
       raise ArgumentError, "illegal radix #{base}"
     end
 
-    TrufflePrimitive.string_to_inum(self, base, false)
+    TrufflePrimitive.string_to_inum(self, base, false, true)
   end
 
   def tr(source, replacement)
@@ -696,8 +696,8 @@ class String
 
         begin
           # If both the start and end values are strings representing integer values, the encoding must be US-ASCII.
-          TrufflePrimitive.string_to_inum(self, 10, true)
-          TrufflePrimitive.string_to_inum(stop, 10, true)
+          TrufflePrimitive.string_to_inum(self, 10, true, true)
+          TrufflePrimitive.string_to_inum(stop, 10, true, true)
           enc = Encoding::US_ASCII
         rescue ArgumentError
           enc = self.encoding

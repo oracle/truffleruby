@@ -781,7 +781,7 @@ module Truffle::CExt
   end
 
   def rb_cstr_to_inum(string, base, raise)
-    TrufflePrimitive.string_to_inum string, base, raise != 0
+    TrufflePrimitive.string_to_inum string, base, raise != 0, true
   end
 
   def rb_cstr_to_dbl(string, badcheck)
