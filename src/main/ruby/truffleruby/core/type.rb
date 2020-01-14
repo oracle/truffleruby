@@ -303,7 +303,7 @@ module Truffle
     def self.check_funcall_default(recv, meth, args, default)
       if Truffle::Interop.foreign?(recv)
         if recv.respond_to?(meth)
-          return recv.__send__(meth)
+          return recv.__send__(meth, *args)
         else
           return default
         end
@@ -313,7 +313,7 @@ module Truffle
       unless check_funcall_callable(recv, meth)
         return check_funcall_missing(recv, meth, args, respond, default, true);
       end
-      recv.__send__(meth)
+      recv.__send__(meth, *args)
     end
 
     def self.check_funcall_respond_to(obj, meth, priv)

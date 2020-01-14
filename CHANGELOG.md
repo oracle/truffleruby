@@ -70,6 +70,7 @@ Bug fixes:
 * Fixed `ENV.udpate` implementation.
 * Fixed argument handling in `Kernel.printf`.
 * Fixed character length after conversion to binary from a non-US-ASCII String.
+* Fixed type conversion for `Numeric#step` `step` parameter.
 
 Compatibility:
 
