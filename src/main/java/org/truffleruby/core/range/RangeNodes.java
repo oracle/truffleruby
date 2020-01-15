@@ -479,6 +479,8 @@ public abstract class RangeNodes {
             return Layouts.LONG_RANGE.createLongRange(coreLibrary().longRangeFactory, excludeEnd, begin, end);
         }
 
+        // TODO add specialization for nil end
+
         @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(begin) || !isIntOrLong(end))" })
         protected Object objectRange(
                 VirtualFrame frame,
@@ -502,9 +504,9 @@ public abstract class RangeNodes {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
-            if (cmpResult == nil()) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
-            }
+//            if (cmpResult == nil()) { // TODO this throws
+//                throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
+//            }
 
             return allocateNode.allocate(rubyClass, excludeEnd, begin, end);
         }

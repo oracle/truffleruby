@@ -1081,12 +1081,24 @@ arg             : lhs '=' arg {
                     boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
                     $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), false, isLiteral);
                 }
+                | arg tDOT2 {
+                    support.checkExpression($1);
+
+                    boolean isLiteral = $1 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, false, isLiteral);
+                }
                 | arg tDOT3 arg {
                     support.checkExpression($1);
                     support.checkExpression($3);
 
                     boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
                     $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), true, isLiteral);
+                }
+                | arg tDOT3 {
+                    support.checkExpression($1);
+
+                    boolean isLiteral = $1 instanceof FixnumParseNode;
+                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, true, isLiteral);
                 }
                 | arg tPLUS arg {
                     $$ = support.getOperatorCallNode($1, "+", $3, lexer.getPosition());
