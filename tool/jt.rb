@@ -144,9 +144,9 @@ module Utilities
         raise 'Could not parse JDK update and JVMCI version from $JVMCI_VERSION'
       end
     else
-      ci = File.read("#{TRUFFLERUBY_DIR}/ci.jsonnet")
-      unless /JAVA_HOME: \{\n\s*name: "openjdk",\n\s*version: "8u(\d+)-(jvmci-.+)",/ =~ ci
-        raise 'JVMCI version not found in ci.jsonnet'
+      ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
+      unless /{\s*"name"\s*:\s*"openjdk"\s*,\s*"version"\s*:\s*"8u(\d+)-(jvmci-[^"]+)"\s*,/ =~ ci
+        raise 'JVMCI version not found in jdks.json'
       end
     end
     update, jvmci = $1, $2
@@ -2146,6 +2146,8 @@ EOS
     #  - includes verifylibraryurls though
     #  - building with jdt in the ci definition could be dropped since fullbuild builds with JDT
     mx 'spotbugs'
+
+    mx 'verify-ci'
 
     check_parser
     check_documentation_urls

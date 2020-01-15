@@ -108,6 +108,10 @@ def ruby_testdownstream_sulong(args):
     jt('test', 'cexts')
     jt('test', 'bundle')
 
+def verify_ci(args):
+    """Verify CI configuration"""
+    mx.verify_ci(args, mx.suite('truffle'), _suite, 'common.json')
+
 mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     suite=_suite,
     name='TruffleRuby license files',
@@ -185,4 +189,5 @@ mx.update_commands(_suite, {
     'ruby_testdownstream_aot': [ruby_testdownstream_aot, 'aot_bin'],
     'ruby_testdownstream_hello': [ruby_testdownstream_hello, ''],
     'ruby_testdownstream_sulong': [ruby_testdownstream_sulong, ''],
+    'verify-ci' : [verify_ci, '[options]'],
 })

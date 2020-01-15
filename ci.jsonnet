@@ -20,6 +20,8 @@ local restrict_builds_to = [];
 # and it would still work.
 local utils = import "utils.libsonnet";
 
+local jdks = (import "common.json").jdks;
+
 # All builds are composed **directly** from **independent disjunct composable**
 # jsonnet objects defined in here. Use `+:` to make the objects or arrays
 # stored in fields composable, see http://jsonnet.org/docs/tutorial.html#oo.
@@ -211,33 +213,20 @@ local part_definitions = {
 
     v8: with_path {
       downloads+: {
-        JAVA_HOME: {
-          name: "oraclejdk",
-          # Update the openjdk8 version too below when updating this one
-          version: "8u231-jvmci-19.3-b05",
-          platformspecific: true,
-        },
+        JAVA_HOME: jdks.oraclejdk8,
       },
     },
 
     # For `jt install jvmci`, verify that `jt install jvmci` still works when changing the version
     openjdk8: with_path {
       downloads+: {
-        JAVA_HOME: {
-          name: "openjdk",
-          version: "8u232-jvmci-19.3-b05",
-          platformspecific: true,
-        },
+        JAVA_HOME: jdks.openjdk8,
       },
     },
 
     v11: with_path {
       downloads+: {
-        JAVA_HOME: {
-          name: "labsjdk",
-          version: "ce-11.0.5+10-jvmci-19.3-b05",
-          platformspecific: true,
-        },
+        JAVA_HOME: jdks["labsjdk-ce-11"],
       },
     },
   },
