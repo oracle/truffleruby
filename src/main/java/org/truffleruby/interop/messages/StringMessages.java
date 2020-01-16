@@ -22,7 +22,7 @@ public class StringMessages extends RubyObjectMessages {
 
     @Override
     public Class<?> dispatch() {
-        return StringMessages.class;
+        return null;
     }
 
     @ExportMessage

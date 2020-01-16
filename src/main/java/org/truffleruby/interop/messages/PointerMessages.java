@@ -20,7 +20,7 @@ public class PointerMessages extends RubyObjectMessages {
 
     @Override
     public Class<?> dispatch() {
-        return PointerMessages.class;
+        return null;
     }
 
     @ExportMessage

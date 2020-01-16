@@ -42,7 +42,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public class RubyObjectMessages {
 
     public Class<?> dispatch() {
-        return RubyObjectMessages.class;
+        return null;
     }
 
     // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly

@@ -24,7 +24,7 @@ public class SymbolMessages extends RubyObjectMessages {
 
     @Override
     public Class<?> dispatch() {
-        return SymbolMessages.class;
+        return null;
     }
 
     @ExportMessage
