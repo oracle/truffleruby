@@ -562,7 +562,8 @@ bool RB_TYPE_P(VALUE value, int type);
 #ifdef __GNUC__
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
-	volatile VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(&v);   \
+	polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", v); \
+	volatile VALUE *rb_gc_guarded_ptr = &v; \
 	rb_gc_guarded_ptr; \
     }))
 #elif defined _MSC_VER
