@@ -398,29 +398,41 @@ public abstract class RangeNodes {
 
     }
 
+    /**
+     * Returns a conversion of the range into an int range, with regard to the supplied array
+     * (the array is necessary to handle endless ranges).
+     */
     @Primitive(name = "range_to_int_range")
     public abstract static class ToIntRangeNode extends PrimitiveArrayArgumentsNode {
 
         @Child private ToIntNode toIntNode;
 
         @Specialization(guards = "isIntRange(range)")
-        protected DynamicObject intRange(DynamicObject range) {
+        protected DynamicObject intRange(DynamicObject range, DynamicObject array) {
             return range;
         }
 
         @Specialization(guards = "isLongRange(range)")
-        protected DynamicObject longRange(DynamicObject range) {
+        protected DynamicObject longRange(DynamicObject range, DynamicObject array) {
             int begin = toInt(Layouts.LONG_RANGE.getBegin(range));
             int end = toInt(Layouts.LONG_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.LONG_RANGE.getExcludedEnd(range);
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected DynamicObject objectRange(DynamicObject range) {
+        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(getContext(), range)" })
+        protected DynamicObject boundedObjectRange(DynamicObject range, DynamicObject array) {
             int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
             int end = toInt(Layouts.OBJECT_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
+            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
+        }
+
+        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(getContext(), range)" })
+        protected DynamicObject endlessObjectRange(DynamicObject range, DynamicObject array) {
+            int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
+            int end = Layouts.ARRAY.getSize(array);
+            boolean excludedEnd = true;
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }
 
@@ -479,8 +491,6 @@ public abstract class RangeNodes {
             return Layouts.LONG_RANGE.createLongRange(coreLibrary().longRangeFactory, excludeEnd, begin, end);
         }
 
-        // TODO add specialization for nil end
-
         @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(begin) || !isIntOrLong(end))" })
         protected Object objectRange(
                 VirtualFrame frame,
@@ -497,16 +507,9 @@ public abstract class RangeNodes {
                 allocateNode = insert(AllocateObjectNode.create());
             }
 
-            final Object cmpResult;
-            try {
-                cmpResult = cmpNode.call(begin, "<=>", end);
-            } catch (RaiseException e) {
+            if (cmpNode.call(begin, "<=>", end) == nil() && end != nil()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
-
-//            if (cmpResult == nil()) { // TODO this throws
-//                throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
-//            }
 
             return allocateNode.allocate(rubyClass, excludeEnd, begin, end);
         }

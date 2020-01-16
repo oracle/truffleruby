@@ -219,6 +219,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     @Specialization(guards = { "isIntRange(range)", "!isRubyArray(value)" })
     protected Object setRangeWithNonArray(DynamicObject array, DynamicObject range, Object value,
             NotProvided unused) {
+        // the fallback will recurse after converting the object to an array
         return fallback(array, range, value, unused);
     }
 
@@ -226,6 +227,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
 
     @Specialization(guards = { "!isIntRange(range)", "isRubyRange(range)" })
     protected Object setOtherRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused) {
+        // the fallback will recurse after converting the range to an int range
         return fallback(array, range, value, unused);
     }
 

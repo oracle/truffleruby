@@ -278,6 +278,9 @@ public abstract class ArrayNodes {
             argumentNames = { "index_start_or_range", "length_or_value", "value" })
     public abstract static class IndexSetPrimitiveNode extends ArrayIndexSetNode {
 
+        // This primitive inherits from the same base as IndexSetNode and is called in its fallback.
+        // Hence we need to avoid infinite recursion on fallback.
+
         protected abstract RubyNode[] getArguments();
 
         @Override

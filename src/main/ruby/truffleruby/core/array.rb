@@ -184,7 +184,7 @@ class Array
     if TrufflePrimitive.undefined?(value)
       value = length
       if Range === index
-        index = TrufflePrimitive.range_to_int_range(index)
+        index = TrufflePrimitive.range_to_int_range(index, self)
         converted = Array.try_convert(value)
         converted = [value] unless converted
         TrufflePrimitive.array_aset(self, index, converted, undefined)
