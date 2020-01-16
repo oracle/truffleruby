@@ -1,3 +1,1 @@
 fails:Process#last_status returns the status of the last executed child process in the current thread
-fails:Process#last_status returns nil if no child process has been ever executed in the current thread
-fails:Process#last_status raises an ArgumentError if any arguments are provided

@@ -567,6 +567,10 @@ module Process
     Process.groups
   end
 
+  def self.last_status
+    $?
+  end
+
   #
   # Wait for the given process to exit.
   #
