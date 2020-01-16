@@ -2653,6 +2653,22 @@ rb_nativethread_id_t rb_nativethread_self() {
   return RUBY_CEXT_INVOKE("rb_nativethread_self");
 }
 
+void rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
+  *lock = RUBY_CEXT_INVOKE("rb_nativethread_lock_initialize");
+}
+
+void rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
+  *lock = RUBY_CEXT_INVOKE("rb_nativethread_lock_destroy", *lock);
+}
+
+void rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
+  RUBY_INVOKE_NO_WRAP(*lock, "lock");
+}
+
+void rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
+  RUBY_INVOKE_NO_WRAP(*lock, "unlock");
+}
+
 // IO
 
 void rb_io_check_writable(rb_io_t *io) {
