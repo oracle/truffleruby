@@ -558,12 +558,15 @@ enum ruby_value_type {
 int rb_type(VALUE value);
 #define TYPE(x) rb_type((VALUE)(x))
 
-/* Truffle: Simplify the RB_FLOAT_TYPE_P check based on our representation of Floats.
+#ifdef TRUFFLERUBY
+/* TruffleRuby: Simplify the RB_FLOAT_TYPE_P check based on our representation of Floats. */
+#define RB_FLOAT_TYPE_P(obj) (\
+	polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_FLOAT_TYPE_P", rb_tr_unwrap(value))))
+#else
 #define RB_FLOAT_TYPE_P(obj) (\
 	RB_FLONUM_P(obj) || \
 	(!RB_SPECIAL_CONST_P(obj) && RB_BUILTIN_TYPE(obj) == RUBY_T_FLOAT))
-*/
-MUST_INLINE int RB_FLOAT_TYPE_P(VALUE obj);
+#endif
 
 bool RB_TYPE_P(VALUE value, int type);
 
