@@ -44,8 +44,6 @@ typedef VALUE ID;
 extern void* rb_tr_cext;
 #define RUBY_CEXT rb_tr_cext
 
-#define MUST_INLINE __attribute__((always_inline)) inline
-
 // Wrapping and unwrapping of values.
 
 extern void* (*rb_tr_unwrap)(VALUE obj);

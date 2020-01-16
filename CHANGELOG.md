@@ -71,6 +71,7 @@ Bug fixes:
 * Fixed argument handling in `Kernel.printf`.
 * Fixed character length after conversion to binary from a non-US-ASCII String.
 * Fixed issue with installing latest bundler (#1880).
+* Fixed linking of always-inline C API functions with `-std=gnu90` (#1837, #1879).
 
 Compatibility:
 
