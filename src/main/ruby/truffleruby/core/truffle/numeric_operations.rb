@@ -110,7 +110,12 @@ module Truffle
         raise ArgumentError, "step can't be 0" if step == 0
       end
 
-      step = Truffle::Type.coerce_to_int(step) unless Numeric === step
+      unless Numeric === step
+        coerced = Truffle::Type.check_funcall(step, :>, [0])
+        raise TypeError, "0 can't be coerced into #{Truffle::Type.object_class(step)}" if TrufflePrimitive.undefined?(coerced)
+        step = coerced
+      end
+
       desc = step < 0
       default_limit = desc ? -Float::INFINITY : Float::INFINITY
 
