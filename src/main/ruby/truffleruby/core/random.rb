@@ -144,6 +144,10 @@ class Random
     Thread.current.randomizer.random(limit)
   end
 
+  def self.random_number(limit=undefined)
+    rand(limit)
+  end
+
   def self.bytes(length)
     TrufflePrimitive.randomizer_bytes(Thread.current.randomizer, length)
   end
