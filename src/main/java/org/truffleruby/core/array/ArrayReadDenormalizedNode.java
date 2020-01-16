@@ -22,7 +22,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChild("index")
 public abstract class ArrayReadDenormalizedNode extends RubyNode {
 
-    @Child private ArrayReadNormalizedNode readNode = ArrayReadNormalizedNodeGen.create(null, null);
+    @Child private ArrayReadNormalizedNode readNode = ArrayReadNormalizedNode.create();
 
     public abstract Object executeRead(DynamicObject array, int index);
 

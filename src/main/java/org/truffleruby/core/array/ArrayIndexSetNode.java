@@ -256,7 +256,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     private Object read(DynamicObject array, int index) {
         if (readNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readNode = insert(ArrayReadNormalizedNodeGen.create(null, null));
+            readNode = insert(ArrayReadNormalizedNode.create());
         }
         return readNode.executeRead(array, index);
     }
