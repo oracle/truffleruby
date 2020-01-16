@@ -54,7 +54,8 @@ extern VALUE (*rb_tr_longwrap)(long obj);
 
 // Needed for GC guarding
 
-MUST_INLINE VALUE *rb_tr_gc_guard(VALUE *ptr) {
+ALWAYS_INLINE(static VALUE* rb_tr_gc_guard(VALUE *ptr));
+static inline VALUE* rb_tr_gc_guard(VALUE *ptr) {
   polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", *ptr);
   return ptr;
 }
