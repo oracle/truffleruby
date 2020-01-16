@@ -190,7 +190,8 @@ module Utilities
                     elsif File.executable?(@ruby_name)
                       @ruby_name
                     else
-                      "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}/#{language_dir}/ruby/bin/ruby"
+                      graalvm = "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}"
+                      "#{graalvm}/#{language_dir(graalvm)}/ruby/bin/ruby"
                     end
 
     raise "The Ruby executable #{ruby_launcher} does not exist" unless File.exist?(ruby_launcher)
@@ -200,7 +201,8 @@ module Utilities
     @ruby_launcher = ruby_launcher
 
     unless @silent
-      shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/ruby$], '').sub(%r[/#{language_dir}/ruby$], '')
+      shortened_path = @ruby_launcher.sub(%r[^#{Regexp.escape TRUFFLERUBY_DIR}/], '').sub(%r[/bin/(ruby|truffleruby)$], '')
+      shortened_path = shortened_path.sub(%r[/#{language_dir(graalvm_home)}/ruby$], '') if graalvm_home
       tags = [*('Native' if truffleruby_native?),
               *('Interpreted' if truffleruby? && !truffleruby_compiler?),
               truffleruby? ? 'TruffleRuby' : 'a Ruby',
@@ -217,6 +219,18 @@ module Utilities
 
   def ruby_home
     File.expand_path('../..', ruby_launcher)
+  end
+
+  def graalvm_home
+    up = if ruby_home.end_with?('jre/languages/ruby')
+           3
+         elsif ruby_home.end_with?('languages/ruby')
+           2
+         else
+           nil # standalone
+         end
+    return nil unless up
+    File.expand_path((['..'] * up).join('/'), ruby_home)
   end
 
   def truffleruby_native!
@@ -245,7 +259,6 @@ module Utilities
     return @truffleruby_compiler = true if truffleruby_native?
 
     # Detect if the compiler is present by reading the $graalvm_home/release file
-    graalvm_home = File.expand_path("..#{'/..' * (language_dir.count('/') + 1)}", ruby_home)
     @truffleruby_compiler = File.readlines("#{graalvm_home}/release").grep(/^COMMIT_INFO=/).any? do |line|
       line.include?('"compiler":') || line.include?("'compiler':")
     end
@@ -470,10 +483,9 @@ module Utilities
     @java_home ||= ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
   end
 
-  def language_dir
-    java_home = find_java_home || ENV.fetch('JAVA_HOME')
-    raise "Java home #{java_home} does not exist" unless Dir.exist?(java_home)
-    if Dir.exist?("#{java_home}/jmods")
+  def language_dir(graalvm_home)
+    raise "GraalVM #{graalvm_home} does not exist" unless Dir.exist?(graalvm_home)
+    if Dir.exist?("#{graalvm_home}/jmods")
       'languages'
     else
       'jre/languages'
@@ -1920,7 +1932,7 @@ EOS
     build_dir = mx(*mx_args, 'graalvm-home', capture: true).lines.last.chomp
 
     dest = "#{TRUFFLERUBY_DIR}/mxbuild/#{name}"
-    dest_ruby = "#{dest}/#{language_dir}/ruby"
+    dest_ruby = "#{dest}/#{language_dir(build_dir)}/ruby"
     dest_bin = "#{dest_ruby}/bin"
     FileUtils.rm_rf dest
     FileUtils.cp_r build_dir, dest
