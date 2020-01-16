@@ -4675,7 +4675,7 @@ public abstract class StringNodes {
     public static abstract class StringToInumPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object stringToInum(DynamicObject string, int fixBase, boolean strict,
+        protected Object stringToInum(DynamicObject string, int fixBase, boolean strict, boolean raiseOnError,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile exceptionProfile) {
@@ -4690,6 +4690,9 @@ public abstract class StringNodes {
                         strict);
             } catch (RaiseException e) {
                 exceptionProfile.enter();
+                if (!raiseOnError) {
+                    return nil();
+                }
                 throw e;
             }
         }

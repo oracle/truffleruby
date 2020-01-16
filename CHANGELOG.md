@@ -72,6 +72,7 @@ Bug fixes:
 * Fixed character length after conversion to binary from a non-US-ASCII String.
 * Fixed issue with installing latest bundler (#1880).
 * Fixed type conversion for `Numeric#step` `step` parameter.
+* Fixed `Kernel#Integer` conversion.
 
 Compatibility:
 
