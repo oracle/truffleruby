@@ -477,8 +477,16 @@ enum ruby_special_consts {
 #endif
 #define SYMBOL_FLAG RUBY_SYMBOL_FLAG
 
+#ifdef TRUFFLERUBY
+#define RB_NIL_P(value) ((int) polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_NIL_P", value)))
 int RTEST(VALUE value);
 #define NIL_P(v) RB_NIL_P(v)
+#else
+#define RB_TEST(v) !(((VALUE)(v) & (VALUE)~RUBY_Qnil) == 0)
+#define RB_NIL_P(v) !((VALUE)(v) != RUBY_Qnil)
+#define RTEST(v) RB_TEST(v)
+#define NIL_P(v) RB_NIL_P(v)
+#endif
 
 #define CLASS_OF(v) rb_class_of((VALUE)(v))
 

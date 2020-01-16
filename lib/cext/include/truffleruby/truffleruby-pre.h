@@ -53,8 +53,6 @@ extern VALUE (*rb_tr_wrap)(void *obj);
 extern VALUE (*rb_tr_longwrap)(long obj);
 
 
-#define RB_NIL_P(value) ((int)polyglot_as_boolean(polyglot_invoke(rb_tr_cext, "RB_NIL_P", value)))
-
 #include <ruby/thread_native.h>
 
 // Helpers
