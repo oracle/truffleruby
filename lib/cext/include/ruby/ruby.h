@@ -1147,7 +1147,11 @@ struct rb_data_type_struct {
 struct RTypedData {
     struct RBasic basic;
     const rb_data_type_t *type;
+#ifdef TRUFFLERUBY
+    int typed_flag; /* 1 or not */
+#else
     VALUE typed_flag; /* 1 or not */
+#endif
     void *data;
 };
 
