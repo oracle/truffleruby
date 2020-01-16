@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.locals;
 
+import com.oracle.truffle.api.frame.FrameUtil;
 import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
 
 public abstract class ReadFrameSlotNode extends RubyBaseWithoutContextNode {
 
@@ -26,38 +26,29 @@ public abstract class ReadFrameSlotNode extends RubyBaseWithoutContextNode {
 
     public abstract Object executeRead(Frame frame);
 
-    @Specialization(rewriteOn = FrameSlotTypeException.class)
-    protected boolean readBoolean(Frame frame) throws FrameSlotTypeException {
-        return frame.getBoolean(frameSlot);
+    @Specialization(guards = "frame.isBoolean(frameSlot)")
+    protected boolean readBoolean(Frame frame) {
+        return FrameUtil.getBooleanSafe(frame, frameSlot);
     }
 
-    @Specialization(rewriteOn = FrameSlotTypeException.class)
-    protected int readInt(Frame frame) throws FrameSlotTypeException {
-        return frame.getInt(frameSlot);
+    @Specialization(guards = "frame.isInt(frameSlot)")
+    protected int readInt(Frame frame) {
+        return FrameUtil.getIntSafe(frame, frameSlot);
     }
 
-    @Specialization(rewriteOn = FrameSlotTypeException.class)
-    protected long readLong(Frame frame) throws FrameSlotTypeException {
-        return frame.getLong(frameSlot);
+    @Specialization(guards = "frame.isLong(frameSlot)")
+    protected long readLong(Frame frame) {
+        return FrameUtil.getLongSafe(frame, frameSlot);
     }
 
-    @Specialization(rewriteOn = FrameSlotTypeException.class)
-    protected double readDouble(Frame frame) throws FrameSlotTypeException {
-        return frame.getDouble(frameSlot);
+    @Specialization(guards = "frame.isDouble(frameSlot)")
+    protected double readDouble(Frame frame) {
+        return FrameUtil.getDoubleSafe(frame, frameSlot);
     }
 
-    @Specialization(rewriteOn = FrameSlotTypeException.class)
-    protected Object readObject(Frame frame) throws FrameSlotTypeException {
-        return frame.getObject(frameSlot);
-    }
-
-    @Specialization(replaces = { "readBoolean", "readInt", "readLong", "readDouble", "readObject" })
-    protected Object readAny(Frame frame) {
-        return frame.getValue(frameSlot);
-    }
-
-    public final FrameSlot getFrameSlot() {
-        return frameSlot;
+    @Specialization(guards = "frame.isObject(frameSlot)")
+    protected Object readObject(Frame frame) {
+        return FrameUtil.getObjectSafe(frame, frameSlot);
     }
 
 }
