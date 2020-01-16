@@ -799,6 +799,26 @@ double rb_float_value(VALUE value) {
 
 // String
 
+VALUE rb_string_value(VALUE *value_pointer) {
+  VALUE value = *value_pointer;
+  if (!RB_TYPE_P(value, T_STRING)) {
+    value = rb_str_to_str(value);
+    *value_pointer = value;
+  }
+  return value;
+}
+
+char *rb_string_value_ptr(VALUE *value_pointer) {
+  VALUE string = rb_string_value(value_pointer);
+  return RSTRING_PTR(string);
+}
+
+char *rb_string_value_cstr(VALUE *value_pointer) {
+  VALUE string = rb_string_value(value_pointer);
+  RUBY_CEXT_INVOKE("rb_string_value_cstr_check", string);
+  return RSTRING_PTR(string);
+}
+
 char *RSTRING_PTR_IMPL(VALUE string) {
   return (char *)polyglot_as_i8_array(RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_PTR", string));
 }

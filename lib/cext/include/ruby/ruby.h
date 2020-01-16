@@ -598,9 +598,15 @@ void rb_check_type(VALUE,int);
 #define Check_Type(v,t) rb_check_type((VALUE)(v),(t))
 
 VALUE rb_str_to_str(VALUE);
-MUST_INLINE VALUE rb_string_value(VALUE *value_pointer);
-MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer);
-MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer);
+#ifdef TRUFFLERUBY
+VALUE rb_string_value(VALUE *value_pointer);
+char *rb_string_value_ptr(VALUE *value_pointer);
+char *rb_string_value_cstr(VALUE *value_pointer);
+#else
+VALUE rb_string_value(volatile VALUE*);
+char *rb_string_value_ptr(volatile VALUE*);
+char *rb_string_value_cstr(volatile VALUE*);
+#endif
 
 #define StringValue(v) rb_string_value(&(v))
 #define StringValuePtr(v) rb_string_value_ptr(&(v))

@@ -184,30 +184,6 @@ MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
   return 0;
 }
 
-MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
-  VALUE value = *value_pointer;
-
-  if (!RB_TYPE_P(value, T_STRING)) {
-    value = rb_str_to_str(value);
-    *value_pointer = value;
-  }
-
-  return value;
-}
-
-MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer) {
-  VALUE string = rb_string_value(value_pointer);
-  return RSTRING_PTR(string);
-}
-
-MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
-  VALUE string = rb_string_value(value_pointer);
-
-  RUBY_CEXT_INVOKE("rb_string_value_cstr_check", string);
-
-  return RSTRING_PTR(string);
-}
-
 MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
   // Parse the format string
 
