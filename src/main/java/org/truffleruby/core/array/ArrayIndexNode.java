@@ -77,26 +77,6 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
         }
     }
 
-    @Specialization(guards = "isIntEndlessRange(getContext(), range)")
-    protected DynamicObject endlessSlice(DynamicObject array, DynamicObject range, NotProvided len,
-            @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
-            @Cached("create()") ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
-        final int size = getSize(array);
-        final int normalizedBegin = ArrayOperations
-                .normalizeIndex(size, (int) Layouts.OBJECT_RANGE.getBegin(range), negativeBeginProfile);
-
-        if (normalizedBegin < 0 || normalizedBegin > size) {
-            return nil();
-        } else {
-            if (size == normalizedBegin) {
-                return allocateObjectNode
-                        .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStrategy.NULL_ARRAY_STORE, 0);
-            }
-
-            return readNormalizedSliceNode.executeReadSlice(array, normalizedBegin, size - normalizedBegin);
-        }
-    }
-
     @Specialization(guards = "isFallback(index, maybeLength)")
     protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength) {
         return fallback(array, index, maybeLength);

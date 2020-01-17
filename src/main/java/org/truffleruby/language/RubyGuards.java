@@ -132,12 +132,6 @@ public abstract class RubyGuards {
         return isNil(context, Layouts.OBJECT_RANGE.getEnd(object));
     }
 
-    public static boolean isIntEndlessRange(RubyContext context, DynamicObject object) {
-        return isObjectRange(object) && isInteger(Layouts.OBJECT_RANGE.getBegin(object)) && isEndlessRange(
-                context,
-                object);
-    }
-
     public static boolean isRubyRange(Object value) {
         return isIntRange(value) || isLongRange(value) || isObjectRange(value);
     }
