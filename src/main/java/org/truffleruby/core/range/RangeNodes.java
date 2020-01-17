@@ -386,14 +386,21 @@ public abstract class RangeNodes {
             }
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected Object toA(VirtualFrame frame, DynamicObject range) {
+        @Specialization(guards = { "isObjectRange(range)",  "!isEndlessRange(getContext(), range)" })
+        protected Object boundedToA(VirtualFrame frame, DynamicObject range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toAInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
             return toAInternalCall.call(range, "to_a_internal");
+        }
+
+        @Specialization(guards = { "isObjectRange(range)",  "isEndlessRange(getContext(), range)" })
+        protected Object endlessToA(VirtualFrame frame, DynamicObject range) {
+            throw new RaiseException(getContext(), coreExceptions().rangeError(
+                    "cannot convert endless range to an array",
+                    this));
         }
 
     }
