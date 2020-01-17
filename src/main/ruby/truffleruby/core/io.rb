@@ -650,7 +650,7 @@ class IO
   end
 
   def self.try_convert(obj)
-    Truffle::Type.try_convert obj, IO, :to_io
+    Truffle::Type.rb_check_convert_type obj, IO, :to_io
   end
 
   def self.normalize_options(mode, options)
