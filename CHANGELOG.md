@@ -101,6 +101,9 @@ Compatibility:
 * Support for the Darkfish theme for RDoc generation has been added back.
 * Implemented `Kernel#system` `exception: true` option.
 * Implemented `Random.bytes`.
+* Added the ability to parse endless ranges.
+* Made `Range#to_a` compatible with endless ranges.
+* Made `Array#[]= ` compatible with endless ranges.
 
 Performance:
 
