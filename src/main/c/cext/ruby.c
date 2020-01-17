@@ -800,23 +800,15 @@ double rb_float_value(VALUE value) {
 // String
 
 VALUE rb_string_value(VALUE *value_pointer) {
-  VALUE value = *value_pointer;
-  if (!RB_TYPE_P(value, T_STRING)) {
-    value = rb_str_to_str(value);
-    *value_pointer = value;
-  }
-  return value;
+  return rb_tr_string_value(value_pointer);
 }
 
 char *rb_string_value_ptr(VALUE *value_pointer) {
-  VALUE string = rb_string_value(value_pointer);
-  return RSTRING_PTR(string);
+  return rb_tr_string_value_ptr(value_pointer);
 }
 
 char *rb_string_value_cstr(VALUE *value_pointer) {
-  VALUE string = rb_string_value(value_pointer);
-  RUBY_CEXT_INVOKE("rb_string_value_cstr_check", string);
-  return RSTRING_PTR(string);
+  return rb_tr_string_value_cstr(value_pointer);
 }
 
 char *RSTRING_PTR_IMPL(VALUE string) {

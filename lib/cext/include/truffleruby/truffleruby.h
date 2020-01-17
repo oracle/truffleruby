@@ -162,6 +162,29 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 
 // Inline implementations
 
+ALWAYS_INLINE(static VALUE rb_tr_string_value(VALUE *value_pointer));
+static inline VALUE rb_tr_string_value(VALUE *value_pointer) {
+  VALUE value = *value_pointer;
+  if (!RB_TYPE_P(value, T_STRING)) {
+    value = rb_str_to_str(value);
+    *value_pointer = value;
+  }
+  return value;
+}
+
+ALWAYS_INLINE(static char *rb_tr_string_value_ptr(VALUE *value_pointer));
+static inline char *rb_tr_string_value_ptr(VALUE *value_pointer) {
+  VALUE string = rb_string_value(value_pointer);
+  return RSTRING_PTR(string);
+}
+
+ALWAYS_INLINE(static char *rb_tr_string_value_cstr(VALUE *value_pointer));
+static inline char *rb_tr_string_value_cstr(VALUE *value_pointer) {
+  VALUE string = rb_string_value(value_pointer);
+  RUBY_CEXT_INVOKE("rb_string_value_cstr_check", string);
+  return RSTRING_PTR(string);
+}
+
 ALWAYS_INLINE(static int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
 static inline int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
   // Parse the format string

@@ -608,9 +608,15 @@ char *rb_string_value_ptr(volatile VALUE*);
 char *rb_string_value_cstr(volatile VALUE*);
 #endif
 
+#ifdef TRUFFLERUBY
+#define StringValue(v) rb_tr_string_value(&(v))
+#define StringValuePtr(v) rb_tr_string_value_ptr(&(v))
+#define StringValueCStr(v) rb_tr_string_value_cstr(&(v))
+#else
 #define StringValue(v) rb_string_value(&(v))
 #define StringValuePtr(v) rb_string_value_ptr(&(v))
 #define StringValueCStr(v) rb_string_value_cstr(&(v))
+#endif
 
 void rb_check_safe_obj(VALUE);
 #define SafeStringValue(v) do {\
