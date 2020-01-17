@@ -75,6 +75,7 @@ Bug fixes:
 * Fixed `Kernel#Integer` conversion.
 * Fixed `IO.try_convert` parameter conversion.
 * Fixed linking of always-inline C API functions with `-std=gnu90` (#1837, #1879).
+* Avoid race conditions during `gem install` by using a single download thread.
 
 Compatibility:
 
