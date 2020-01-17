@@ -54,12 +54,13 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
     @Specialization(guards = "isIntRange(range)")
     protected DynamicObject slice(DynamicObject array, DynamicObject range, NotProvided len,
             @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
-            @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
+            @Cached("create()") ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
         final int size = getSize(array);
-        final int normalizedIndex = ArrayOperations
+        final int normalizedBegin = ArrayOperations
                 .normalizeIndex(size, Layouts.INT_RANGE.getBegin(range), negativeBeginProfile);
 
-        if (normalizedIndex < 0 || normalizedIndex > size) {
+        if (normalizedBegin < 0 || normalizedBegin > size) {
             return nil();
         } else {
             final int end = ArrayOperations
@@ -67,19 +68,32 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
             final int exclusiveEnd = ArrayOperations
                     .clampExclusiveIndex(size, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
 
-            if (exclusiveEnd <= normalizedIndex) {
+            if (exclusiveEnd <= normalizedBegin) {
                 return allocateObjectNode
                         .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStrategy.NULL_ARRAY_STORE, 0);
             }
 
-            final int length = exclusiveEnd - normalizedIndex;
+            return readNormalizedSliceNode.executeReadSlice(array, normalizedBegin, exclusiveEnd - normalizedBegin);
+        }
+    }
 
-            if (readNormalizedSliceNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readNormalizedSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());
+    @Specialization(guards = "isIntEndlessRange(getContext(), range)")
+    protected DynamicObject endlessSlice(DynamicObject array, DynamicObject range, NotProvided len,
+            @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
+            @Cached("create()") ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
+        final int size = getSize(array);
+        final int normalizedBegin = ArrayOperations
+                .normalizeIndex(size, (int) Layouts.OBJECT_RANGE.getBegin(range), negativeBeginProfile);
+
+        if (normalizedBegin < 0 || normalizedBegin > size) {
+            return nil();
+        } else {
+            if (size == normalizedBegin) {
+                return allocateObjectNode
+                        .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStrategy.NULL_ARRAY_STORE, 0);
             }
 
-            return readNormalizedSliceNode.executeReadSlice(array, normalizedIndex, length);
+            return readNormalizedSliceNode.executeReadSlice(array, normalizedBegin, size - normalizedBegin);
         }
     }
 
