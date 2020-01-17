@@ -25,7 +25,6 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
 
     @Child private ArrayReadDenormalizedNode readNode;
     @Child private ArrayReadSliceDenormalizedNode readSliceNode;
-    @Child private ArrayReadSliceNormalizedNode readNormalizedSliceNode;
     @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
     @Specialization
@@ -55,7 +54,7 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
     protected DynamicObject slice(DynamicObject array, DynamicObject range, NotProvided len,
             @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
             @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
-            @Cached("create()") ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
+            @Cached ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
         final int size = getSize(array);
         final int normalizedBegin = ArrayOperations
                 .normalizeIndex(size, Layouts.INT_RANGE.getBegin(range), negativeBeginProfile);
