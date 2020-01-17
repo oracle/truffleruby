@@ -106,6 +106,7 @@ Compatibility:
 * Support for the Darkfish theme for RDoc generation has been added back.
 * Implemented `Kernel#system` `exception: true` option.
 * Implemented `Random.bytes`.
+* Implemented `Random.random_number`.
 
 Performance:
 
