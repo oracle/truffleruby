@@ -22,6 +22,7 @@ Bug fixes:
 * Fixed `SignalException.new` error when bad parameter given.
 * Added deprecation warning to `Kernel#=~`.
 * Fixed `puts` for a foreign objects, e.g. `puts Polyglot.eval('js', '[]')` (#1881) 
+* Fixed `Exception#full_message` implementation.
 
 Compatibility:
 

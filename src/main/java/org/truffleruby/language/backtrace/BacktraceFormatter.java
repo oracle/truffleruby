@@ -98,7 +98,8 @@ public class BacktraceFormatter {
         final Object message = context.send(
                 context.getCoreLibrary().truffleExceptionOperationsModule,
                 "message_and_class",
-                rubyException);
+                rubyException,
+                false);
         final Object messageString;
         if (RubyGuards.isRubyString(message)) {
             messageString = StringOperations.getString((DynamicObject) message);
