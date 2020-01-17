@@ -21,7 +21,7 @@ public abstract class NilClassNodes {
 
     /** Needs to be in Java for {@link InlinedIsNilNode} */
     @CoreMethod(names = "nil?", needsSelf = false)
-    public abstract static class AndNode extends CoreMethodNode {
+    public abstract static class IsNilNode extends CoreMethodNode {
 
         @Specialization
         protected boolean isNil() {

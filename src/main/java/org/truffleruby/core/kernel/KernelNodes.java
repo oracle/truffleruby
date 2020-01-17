@@ -1270,7 +1270,7 @@ public abstract class KernelNodes {
     }
 
     @CoreMethod(names = "nil?", needsSelf = false)
-    public abstract static class NilNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class IsNilNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected boolean isNil() {
