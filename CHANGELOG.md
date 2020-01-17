@@ -73,6 +73,7 @@ Bug fixes:
 * Fixed issue with installing latest bundler (#1880).
 * Fixed type conversion for `Numeric#step` `step` parameter.
 * Fixed `Kernel#Integer` conversion.
+* Avoid race conditions during `gem install` by using a single download thread.
 
 Compatibility:
 
