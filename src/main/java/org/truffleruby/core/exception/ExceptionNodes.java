@@ -132,6 +132,8 @@ public abstract class ExceptionNodes {
             Layouts.EXCEPTION.setFormatter(self, Layouts.EXCEPTION.getFormatter(from));
             Layouts.EXCEPTION.setMessage(self, Layouts.EXCEPTION.getMessage(from));
             Layouts.EXCEPTION.setCause(self, Layouts.EXCEPTION.getCause(from));
+            Layouts.EXCEPTION.setBacktraceStringArray(self, Layouts.EXCEPTION.getBacktraceStringArray(from));
+            Layouts.EXCEPTION.setBacktraceLocations(self, Layouts.EXCEPTION.getBacktraceLocations(from));
         }
 
     }
