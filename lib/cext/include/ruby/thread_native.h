@@ -47,10 +47,10 @@ RUBY_SYMBOL_EXPORT_BEGIN
 
 rb_nativethread_id_t rb_nativethread_self();
 
-MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock);
-MUST_INLINE int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock);
-MUST_INLINE int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock);
-MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
+void rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock);
+void rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock);
+void rb_nativethread_lock_lock(rb_nativethread_lock_t *lock);
+void rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock);
 
 RUBY_SYMBOL_EXPORT_END
 

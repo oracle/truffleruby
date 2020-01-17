@@ -477,8 +477,16 @@ enum ruby_special_consts {
 #endif
 #define SYMBOL_FLAG RUBY_SYMBOL_FLAG
 
+#ifdef TRUFFLERUBY
+#define RB_NIL_P(value) ((int) polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_NIL_P", value)))
 int RTEST(VALUE value);
 #define NIL_P(v) RB_NIL_P(v)
+#else
+#define RB_TEST(v) !(((VALUE)(v) & (VALUE)~RUBY_Qnil) == 0)
+#define RB_NIL_P(v) !((VALUE)(v) != RUBY_Qnil)
+#define RTEST(v) RB_TEST(v)
+#define NIL_P(v) RB_NIL_P(v)
+#endif
 
 #define CLASS_OF(v) rb_class_of((VALUE)(v))
 
@@ -550,19 +558,23 @@ enum ruby_value_type {
 int rb_type(VALUE value);
 #define TYPE(x) rb_type((VALUE)(x))
 
-/* Truffle: Simplify the RB_FLOAT_TYPE_P check based on our representation of Floats.
+#ifdef TRUFFLERUBY
+/* TruffleRuby: Simplify the RB_FLOAT_TYPE_P check based on our representation of Floats. */
+#define RB_FLOAT_TYPE_P(obj) (\
+	polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_FLOAT_TYPE_P", rb_tr_unwrap(value))))
+#else
 #define RB_FLOAT_TYPE_P(obj) (\
 	RB_FLONUM_P(obj) || \
 	(!RB_SPECIAL_CONST_P(obj) && RB_BUILTIN_TYPE(obj) == RUBY_T_FLOAT))
-*/
-MUST_INLINE int RB_FLOAT_TYPE_P(VALUE obj);
+#endif
 
 bool RB_TYPE_P(VALUE value, int type);
 
 #ifdef __GNUC__
 #define RB_GC_GUARD(v) \
     (*__extension__ ({ \
-	volatile VALUE *rb_gc_guarded_ptr = rb_tr_gc_guard(&v);   \
+	polyglot_invoke(RUBY_CEXT, "rb_tr_gc_guard", v); \
+	volatile VALUE *rb_gc_guarded_ptr = &v; \
 	rb_gc_guarded_ptr; \
     }))
 #elif defined _MSC_VER
@@ -586,13 +598,25 @@ void rb_check_type(VALUE,int);
 #define Check_Type(v,t) rb_check_type((VALUE)(v),(t))
 
 VALUE rb_str_to_str(VALUE);
-MUST_INLINE VALUE rb_string_value(VALUE *value_pointer);
-MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer);
-MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer);
+#ifdef TRUFFLERUBY
+VALUE rb_string_value(VALUE *value_pointer);
+char *rb_string_value_ptr(VALUE *value_pointer);
+char *rb_string_value_cstr(VALUE *value_pointer);
+#else
+VALUE rb_string_value(volatile VALUE*);
+char *rb_string_value_ptr(volatile VALUE*);
+char *rb_string_value_cstr(volatile VALUE*);
+#endif
 
+#ifdef TRUFFLERUBY
+#define StringValue(v) rb_tr_string_value(&(v))
+#define StringValuePtr(v) rb_tr_string_value_ptr(&(v))
+#define StringValueCStr(v) rb_tr_string_value_cstr(&(v))
+#else
 #define StringValue(v) rb_string_value(&(v))
 #define StringValuePtr(v) rb_string_value_ptr(&(v))
 #define StringValueCStr(v) rb_string_value_cstr(&(v))
+#endif
 
 void rb_check_safe_obj(VALUE);
 #define SafeStringValue(v) do {\
@@ -1147,7 +1171,11 @@ struct rb_data_type_struct {
 struct RTypedData {
     struct RBasic basic;
     const rb_data_type_t *type;
+#ifdef TRUFFLERUBY
+    int typed_flag; /* 1 or not */
+#else
     VALUE typed_flag; /* 1 or not */
+#endif
     void *data;
 };
 

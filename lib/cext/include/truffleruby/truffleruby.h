@@ -90,8 +90,6 @@ if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
 } \
 } while (0);
 
-MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10);
-
 #define rb_tr_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_tr_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_tr_scan_args_3(ARGC, ARGV, FORMAT, V1, V2, V3) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, V3, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
@@ -164,51 +162,31 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 
 // Inline implementations
 
-MUST_INLINE int rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
-  *lock = RUBY_CEXT_INVOKE("rb_nativethread_lock_initialize");
-  return 0;
-}
-
-MUST_INLINE int rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
-  *lock = RUBY_CEXT_INVOKE("rb_nativethread_lock_destroy", *lock);
-  return 0;
-}
-
-MUST_INLINE int rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
-  RUBY_INVOKE_NO_WRAP(*lock, "lock");
-  return 0;
-}
-
-MUST_INLINE int rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
-  RUBY_INVOKE_NO_WRAP(*lock, "unlock");
-  return 0;
-}
-
-MUST_INLINE VALUE rb_string_value(VALUE *value_pointer) {
+ALWAYS_INLINE(static VALUE rb_tr_string_value(VALUE *value_pointer));
+static inline VALUE rb_tr_string_value(VALUE *value_pointer) {
   VALUE value = *value_pointer;
-
   if (!RB_TYPE_P(value, T_STRING)) {
     value = rb_str_to_str(value);
     *value_pointer = value;
   }
-
   return value;
 }
 
-MUST_INLINE char *rb_string_value_ptr(VALUE *value_pointer) {
+ALWAYS_INLINE(static char *rb_tr_string_value_ptr(VALUE *value_pointer));
+static inline char *rb_tr_string_value_ptr(VALUE *value_pointer) {
   VALUE string = rb_string_value(value_pointer);
   return RSTRING_PTR(string);
 }
 
-MUST_INLINE char *rb_string_value_cstr(VALUE *value_pointer) {
+ALWAYS_INLINE(static char *rb_tr_string_value_cstr(VALUE *value_pointer));
+static inline char *rb_tr_string_value_cstr(VALUE *value_pointer) {
   VALUE string = rb_string_value(value_pointer);
-
   RUBY_CEXT_INVOKE("rb_string_value_cstr_check", string);
-
   return RSTRING_PTR(string);
 }
 
-MUST_INLINE int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
+ALWAYS_INLINE(static int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10));
+static inline int rb_tr_scan_args(int argc, VALUE *argv, const char *format, VALUE *v1, VALUE *v2, VALUE *v3, VALUE *v4, VALUE *v5, VALUE *v6, VALUE *v7, VALUE *v8, VALUE *v9, VALUE *v10) {
   // Parse the format string
 
   // TODO CS 7-Feb-17 maybe we could inline cache this part?

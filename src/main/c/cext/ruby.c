@@ -419,10 +419,6 @@ int RB_FIXNUM_P(VALUE value) {
   return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_FIXNUM_P", value));
 }
 
-int RB_FLOAT_TYPE_P(VALUE value) {
-  return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RB_FLOAT_TYPE_P", value));
-}
-
 int RTEST(VALUE value) {
   return value != NULL && polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RTEST", value));
 }
@@ -802,6 +798,18 @@ double rb_float_value(VALUE value) {
 }
 
 // String
+
+VALUE rb_string_value(VALUE *value_pointer) {
+  return rb_tr_string_value(value_pointer);
+}
+
+char *rb_string_value_ptr(VALUE *value_pointer) {
+  return rb_tr_string_value_ptr(value_pointer);
+}
+
+char *rb_string_value_cstr(VALUE *value_pointer) {
+  return rb_tr_string_value_cstr(value_pointer);
+}
 
 char *RSTRING_PTR_IMPL(VALUE string) {
   return (char *)polyglot_as_i8_array(RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_PTR", string));
@@ -2637,6 +2645,22 @@ rb_nativethread_id_t rb_nativethread_self() {
   return RUBY_CEXT_INVOKE("rb_nativethread_self");
 }
 
+void rb_nativethread_lock_initialize(rb_nativethread_lock_t *lock) {
+  *lock = RUBY_CEXT_INVOKE("rb_nativethread_lock_initialize");
+}
+
+void rb_nativethread_lock_destroy(rb_nativethread_lock_t *lock) {
+  *lock = RUBY_CEXT_INVOKE("rb_nativethread_lock_destroy", *lock);
+}
+
+void rb_nativethread_lock_lock(rb_nativethread_lock_t *lock) {
+  RUBY_INVOKE_NO_WRAP(*lock, "lock");
+}
+
+void rb_nativethread_lock_unlock(rb_nativethread_lock_t *lock) {
+  RUBY_INVOKE_NO_WRAP(*lock, "unlock");
+}
+
 // IO
 
 void rb_io_check_writable(rb_io_t *io) {
@@ -2794,7 +2818,6 @@ int rb_tr_writable(int mode) {
   return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_tr_writable", mode));
 }
 
-MUST_INLINE
 int rb_io_extract_encoding_option(VALUE opt, rb_encoding **enc_p, rb_encoding **enc2_p, int *fmode_p) {
   // TODO (pitr-ch 12-Jun-2017): review, just approximate implementation
   VALUE encoding = rb_cEncoding;

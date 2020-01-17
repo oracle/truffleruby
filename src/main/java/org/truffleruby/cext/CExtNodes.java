@@ -1426,7 +1426,6 @@ public class CExtNodes {
 
         @Specialization
         protected DynamicObject addToMarkList(Object markedObject,
-                @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
@@ -1440,16 +1439,13 @@ public class CExtNodes {
             return nil();
         }
 
-        protected UnwrapNode createUnwrapNode() {
-            return UnwrapNodeGen.create();
-        }
     }
 
     @CoreMethod(names = "rb_tr_gc_guard", onSingleton = true, required = 1)
     public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject addToMarkList(VirtualFrame frame, Object guardedObject,
+        protected DynamicObject addToMarkList(Object guardedObject,
                 @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1461,9 +1457,6 @@ public class CExtNodes {
             return nil();
         }
 
-        protected UnwrapNode createUnwrapNode() {
-            return UnwrapNodeGen.create();
-        }
     }
 
     @CoreMethod(names = "set_mark_list_on_object", onSingleton = true, required = 1)
