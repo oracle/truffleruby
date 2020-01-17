@@ -20,6 +20,8 @@ local restrict_builds_to = [];
 # and it would still work.
 local utils = import "utils.libsonnet";
 
+local jdks = (import "common.json").jdks;
+
 # All builds are composed **directly** from **independent disjunct composable**
 # jsonnet objects defined in here. Use `+:` to make the objects or arrays
 # stored in fields composable, see http://jsonnet.org/docs/tutorial.html#oo.
@@ -211,33 +213,20 @@ local part_definitions = {
 
     v8: with_path {
       downloads+: {
-        JAVA_HOME: {
-          name: "oraclejdk",
-          # Update the openjdk8 version too below when updating this one
-          version: "8u231-jvmci-19.3-b05",
-          platformspecific: true,
-        },
+        JAVA_HOME: jdks.oraclejdk8,
       },
     },
 
     # For `jt install jvmci`, verify that `jt install jvmci` still works when changing the version
     openjdk8: with_path {
       downloads+: {
-        JAVA_HOME: {
-          name: "openjdk",
-          version: "8u232-jvmci-19.3-b05",
-          platformspecific: true,
-        },
+        JAVA_HOME: jdks.openjdk8,
       },
     },
 
     v11: with_path {
       downloads+: {
-        JAVA_HOME: {
-          name: "labsjdk",
-          version: "ce-11.0.5+10-jvmci-19.3-b05",
-          platformspecific: true,
-        },
+        JAVA_HOME: jdks["labsjdk-ce-11"],
       },
     },
   },
@@ -447,9 +436,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
       "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
-      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
+      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "50:00" },
       "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:20:00" },
+      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:40:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "30:00" },
       "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:20:00" },
