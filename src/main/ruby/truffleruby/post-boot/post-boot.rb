@@ -76,7 +76,10 @@ if Truffle::Boot.preinitializing?
     [$LOAD_PATH, $LOADED_FEATURES].each do |array|
       array.each do |path|
         if path.start_with?(old_home)
-          paths_starting_with_home << path[old_home.size..-1]
+          path.replace Truffle::Ropes.flatten_rope(path[old_home.size..-1])
+          paths_starting_with_home << path
+        else
+          raise "Path #{path.inspect} in $LOAD_PATH or $LOADED_FEATURES was expected to start with #{old_home}"
         end
       end
     end
