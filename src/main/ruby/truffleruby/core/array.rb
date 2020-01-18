@@ -153,15 +153,19 @@ class Array
         unless arg.begin.respond_to?(:to_int)
           raise TypeError, "no implicit conversion of #{arg.begin.class} into Integer"
         end
-        unless arg.end.respond_to?(:to_int)
+        unless arg.end == nil || arg.end.respond_to?(:to_int)
           raise TypeError, "no implicit conversion of #{arg.end.class} into Integer"
         end
         start_index = arg.begin.to_int
-        end_index = arg.end.to_int
         Truffle::Type.check_long(start_index)
-        Truffle::Type.check_long(end_index)
         start_index = Truffle::Type.clamp_to_int(start_index)
-        end_index = Truffle::Type.clamp_to_int(end_index)
+        if arg.end == nil
+          end_index = arg.exclude_end? ? size : size - 1
+        else
+          end_index = arg.end.to_int
+          Truffle::Type.check_long(end_index)
+          end_index = Truffle::Type.clamp_to_int(end_index)
+        end
         range = Range.new(start_index, end_index, arg.exclude_end?)
         TrufflePrimitive.array_aref(self, range, undefined)
       else
@@ -184,7 +188,7 @@ class Array
     if TrufflePrimitive.undefined?(value)
       value = length
       if Range === index
-        index = TrufflePrimitive.range_to_int_range(index)
+        index = TrufflePrimitive.range_to_int_range(index, self)
         converted = Array.try_convert(value)
         converted = [value] unless converted
         TrufflePrimitive.array_aset(self, index, converted, undefined)

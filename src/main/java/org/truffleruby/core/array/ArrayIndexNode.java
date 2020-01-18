@@ -25,7 +25,6 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
 
     @Child private ArrayReadDenormalizedNode readNode;
     @Child private ArrayReadSliceDenormalizedNode readSliceNode;
-    @Child private ArrayReadSliceNormalizedNode readNormalizedSliceNode;
     @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
     @Specialization
@@ -54,12 +53,13 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
     @Specialization(guards = "isIntRange(range)")
     protected DynamicObject slice(DynamicObject array, DynamicObject range, NotProvided len,
             @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
-            @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile) {
+            @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
+            @Cached ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
         final int size = getSize(array);
-        final int normalizedIndex = ArrayOperations
+        final int normalizedBegin = ArrayOperations
                 .normalizeIndex(size, Layouts.INT_RANGE.getBegin(range), negativeBeginProfile);
 
-        if (normalizedIndex < 0 || normalizedIndex > size) {
+        if (normalizedBegin < 0 || normalizedBegin > size) {
             return nil();
         } else {
             final int end = ArrayOperations
@@ -67,19 +67,12 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
             final int exclusiveEnd = ArrayOperations
                     .clampExclusiveIndex(size, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
 
-            if (exclusiveEnd <= normalizedIndex) {
+            if (exclusiveEnd <= normalizedBegin) {
                 return allocateObjectNode
                         .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStrategy.NULL_ARRAY_STORE, 0);
             }
 
-            final int length = exclusiveEnd - normalizedIndex;
-
-            if (readNormalizedSliceNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readNormalizedSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());
-            }
-
-            return readNormalizedSliceNode.executeReadSlice(array, normalizedIndex, length);
+            return readNormalizedSliceNode.executeReadSlice(array, normalizedBegin, exclusiveEnd - normalizedBegin);
         }
     }
 

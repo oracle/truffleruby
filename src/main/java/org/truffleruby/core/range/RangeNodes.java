@@ -386,8 +386,8 @@ public abstract class RangeNodes {
             }
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected Object toA(VirtualFrame frame, DynamicObject range) {
+        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(getContext(), range)" })
+        protected Object boundedToA(VirtualFrame frame, DynamicObject range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toAInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -396,31 +396,50 @@ public abstract class RangeNodes {
             return toAInternalCall.call(range, "to_a_internal");
         }
 
+        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(getContext(), range)" })
+        protected Object endlessToA(VirtualFrame frame, DynamicObject range) {
+            throw new RaiseException(getContext(), coreExceptions().rangeError(
+                    "cannot convert endless range to an array",
+                    this));
+        }
+
     }
 
+    /**
+     * Returns a conversion of the range into an int range, with regard to the supplied array
+     * (the array is necessary to handle endless ranges).
+     */
     @Primitive(name = "range_to_int_range")
     public abstract static class ToIntRangeNode extends PrimitiveArrayArgumentsNode {
 
         @Child private ToIntNode toIntNode;
 
         @Specialization(guards = "isIntRange(range)")
-        protected DynamicObject intRange(DynamicObject range) {
+        protected DynamicObject intRange(DynamicObject range, DynamicObject array) {
             return range;
         }
 
         @Specialization(guards = "isLongRange(range)")
-        protected DynamicObject longRange(DynamicObject range) {
+        protected DynamicObject longRange(DynamicObject range, DynamicObject array) {
             int begin = toInt(Layouts.LONG_RANGE.getBegin(range));
             int end = toInt(Layouts.LONG_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.LONG_RANGE.getExcludedEnd(range);
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected DynamicObject objectRange(DynamicObject range) {
+        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(getContext(), range)" })
+        protected DynamicObject boundedObjectRange(DynamicObject range, DynamicObject array) {
             int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
             int end = toInt(Layouts.OBJECT_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
+            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
+        }
+
+        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(getContext(), range)" })
+        protected DynamicObject endlessObjectRange(DynamicObject range, DynamicObject array) {
+            int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
+            int end = Layouts.ARRAY.getSize(array);
+            boolean excludedEnd = true;
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }
 
@@ -495,14 +514,7 @@ public abstract class RangeNodes {
                 allocateNode = insert(AllocateObjectNode.create());
             }
 
-            final Object cmpResult;
-            try {
-                cmpResult = cmpNode.call(begin, "<=>", end);
-            } catch (RaiseException e) {
-                throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
-            }
-
-            if (cmpResult == nil()) {
+            if (cmpNode.call(begin, "<=>", end) == nil() && end != nil()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 

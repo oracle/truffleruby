@@ -1,5 +1,0 @@
-fails:Range.new does not rescue exception raised in #<=> when compares the given start and end
-fails:Range.new endless range allows endless right boundary
-fails:Range.new endless range distinguishes ranges with included and excluded right boundary
-fails:Range.new beginless/endless range allows endless right boundary
-fails:Range.new beginless/endless range distinguishes ranges with included and excluded right boundary

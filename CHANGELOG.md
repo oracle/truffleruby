@@ -108,6 +108,9 @@ Compatibility:
 * Implemented `Kernel#system` `exception: true` option.
 * Implemented `Random.bytes`.
 * Implemented `Random.random_number`.
+* Added the ability to parse endless ranges.
+* Made `Range#to_a` compatible with endless ranges.
+* Made `Array#[]` and `Array#[]= ` compatible with endless ranges.
 
 Performance:
 

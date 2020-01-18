@@ -21,4 +21,8 @@ describe "Array#to_a" do
     array = ArraySpecs.recursive_array
     array.to_a.should == array
   end
+
+  it "throws an exception for endless ranges" do
+    -> { (1..).to_a }.should raise_error(RangeError)
+  end
 end
