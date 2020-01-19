@@ -136,16 +136,22 @@ module Digest
   class Class
     include Instance
 
-    def self.digest(message)
-      digest = new
+    def self.digest(message, *parameters)
+      digest = new(*parameters)
       digest.update message
       digest.digest
     end
 
-    def self.hexdigest(message)
-      digest = new
+    def self.hexdigest(*parameters, message)
+      digest = new(*parameters)
       digest.update message
       digest.hexdigest
+    end
+
+    def self.base64digest(*parameters, message)
+      digest = new(*parameters)
+      digest.update message
+      digest.base64digest
     end
   end
 

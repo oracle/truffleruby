@@ -13,5 +13,6 @@ module SHA1Constants
   Digest         = "X!\255b\323\035\352\314a|q\344+\376\317\361V9\324\343"
   BlankHexdigest = "da39a3ee5e6b4b0d3255bfef95601890afd80709"
   Hexdigest      = "5821ad62d31deacc617c71e42bfecff15639d4e3"
+  Base64digest   = "WCGtYtMd6sxhfHHkK/7P8VY51OM="
 
 end
