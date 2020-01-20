@@ -355,6 +355,7 @@ class SystemCallError < StandardError
         location = nil
       when 2
         message, errno = args
+        message = StringValue(message) unless message.nil?
         location = nil
       when 3
         message, errno, location = args
@@ -363,11 +364,12 @@ class SystemCallError < StandardError
       end
 
       # If it corresponds to a known Errno class, create and return it now
-      if errno && error = SystemCallError.errno_error(message, errno, location)
-        return error
-      else
-        return super(message, errno, location)
+      if errno
+        errno = Truffle::Type.rb_num2long(errno)
+        error = SystemCallError.errno_error(message, errno, location)
+        return error unless error.nil?
       end
+      super(message, errno, location)
     else
       case args.size
       when 0
