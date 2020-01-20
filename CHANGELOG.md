@@ -50,7 +50,7 @@ Compatibility:
 * Fixed uninitialized variable warnings in core and lib (#1897).
 * Make `Thread#backtrace` support omit, length and range arguments.
 * Implemented `Range#%`.
-
+* Implemented `num2short` (#1910, @kipply).
 Changes:
 
 * `TRUFFLERUBY_RESILIENT_GEM_HOME` has been removed. Unset `GEM_HOME` and `GEM_PATH` instead if you need to.
