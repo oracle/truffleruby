@@ -35,11 +35,9 @@ local part_definitions = {
     common: {
       environment+: {
         path+:: [],
-        java_opts+:: ["-Xmx2G"],
         TRUFFLERUBY_CI: "true",
         RUBY_BENCHMARKS: "true",
         MX_PYTHON_VERSION: "3",
-        JAVA_OPTS: std.join(" ", self.java_opts),
         PATH: std.join(":", self.path + ["$PATH"]),
       },
 
@@ -104,15 +102,6 @@ local part_definitions = {
       environment+: {
         # to differentiate running without (chunky_png) and with cexts (oily_png).
         GUEST_VM_CONFIG+: "-cexts",
-      },
-    },
-
-    without_om: {
-      is_after+:: ["$.env.jvm_ee", "$.use.common"],
-      environment+: {
-        HOST_VM_CONFIG+: "-no-om",
-        java_opts+::
-          ["-Dtruffle.object.LayoutFactory=com.oracle.truffle.object.basic.DefaultLayoutFactory"],
       },
     },
 
@@ -473,7 +462,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     "graal-core-la-inline": shared + $.env.jvm_ce + $.env.la_inline,
     "graal-enterprise": shared + $.env.jvm_ee,
     "graal-enterprise-la-inline": shared + $.env.jvm_ee + $.env.la_inline,
-    "graal-enterprise-no-om": shared + $.env.jvm_ee + $.use.without_om,
   },
   local svm_configurations = {
     local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build,
@@ -493,7 +481,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-metrics-compiler-graal-core-la-inline": shared + graal_configurations["graal-core-la-inline"],
       "ruby-metrics-compiler-graal-enterprise": shared + graal_configurations["graal-enterprise"],
       "ruby-metrics-compiler-graal-enterprise-la-inline": shared + graal_configurations["graal-enterprise-la-inline"],
-      "ruby-metrics-compiler-graal-enterprise-no-om": shared + graal_configurations["graal-enterprise-no-om"],
     } +
 
     {
@@ -524,7 +511,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-classic-graal-core-la-inline": shared + graal_configurations["graal-core-la-inline"] + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-graal-enterprise": shared + graal_configurations["graal-enterprise"] + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-graal-enterprise-la-inline": shared + graal_configurations["graal-enterprise-la-inline"] + { timelimit: "00:35:00" },
-      "ruby-benchmarks-classic-graal-enterprise-no-om": shared + graal_configurations["graal-enterprise-no-om"] + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-svm-graal-core": shared + svm_configurations["svm-graal-core"] + { timelimit: "01:10:00" },
       "ruby-benchmarks-classic-svm-graal-core-la-inline": shared + svm_configurations["svm-graal-core-la-inline"] + { timelimit: "01:10:00" },
       "ruby-benchmarks-classic-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + { timelimit: "01:10:00" },
@@ -541,7 +527,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-chunky-graal-core-la-inline": shared + chunky + graal_configurations["graal-core-la-inline"],
       "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-chunky-graal-enterprise-la-inline": shared + chunky + graal_configurations["graal-enterprise-la-inline"],
-      "ruby-benchmarks-chunky-graal-enterprise-no-om": shared + chunky + graal_configurations["graal-enterprise-no-om"],
       local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "02:00:00" },
       "ruby-benchmarks-psd-mri": shared + psd + other_rubies.mri,
       "ruby-benchmarks-psd-jruby": shared + psd + other_rubies.jruby,
@@ -549,7 +534,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-psd-graal-core-la-inline": shared + psd + graal_configurations["graal-core-la-inline"],
       "ruby-benchmarks-psd-graal-enterprise": shared + psd + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-psd-graal-enterprise-la-inline": shared + psd + graal_configurations["graal-enterprise-la-inline"],
-      "ruby-benchmarks-psd-graal-enterprise-no-om": shared + psd + graal_configurations["graal-enterprise-no-om"],
       "ruby-benchmarks-psd-svm-graal-core": shared + psd + svm_configurations["svm-graal-core"],
       "ruby-benchmarks-psd-svm-graal-core-la-inline": shared + psd + svm_configurations["svm-graal-core-la-inline"],
       "ruby-benchmarks-psd-svm-graal-enterprise": shared + psd + svm_configurations["svm-graal-enterprise"],
@@ -561,7 +545,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-asciidoctor-graal-core-la-inline": shared + asciidoctor + graal_configurations["graal-core-la-inline"],
       "ruby-benchmarks-asciidoctor-graal-enterprise": shared + asciidoctor + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-asciidoctor-graal-enterprise-la-inline": shared + asciidoctor + graal_configurations["graal-enterprise-la-inline"],
-      "ruby-benchmarks-asciidoctor-graal-enterprise-no-om": shared + asciidoctor + graal_configurations["graal-enterprise-no-om"],
       "ruby-benchmarks-asciidoctor-svm-graal-core": shared + asciidoctor + svm_configurations["svm-graal-core"],
       "ruby-benchmarks-asciidoctor-svm-graal-core-la-inline": shared + asciidoctor + svm_configurations["svm-graal-core-la-inline"],
       "ruby-benchmarks-asciidoctor-svm-graal-enterprise": shared + asciidoctor + svm_configurations["svm-graal-enterprise"],
@@ -574,7 +557,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-other-graal-core-la-inline": shared + other + graal_configurations["graal-core-la-inline"],
       "ruby-benchmarks-other-graal-enterprise": shared + other + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-other-graal-enterprise-la-inline": shared + other + graal_configurations["graal-enterprise-la-inline"],
-      "ruby-benchmarks-other-graal-enterprise-no-om": shared + other + graal_configurations["graal-enterprise-no-om"],
       "ruby-benchmarks-other-svm-graal-core": shared + svm_other + svm_configurations["svm-graal-core"],
       "ruby-benchmarks-other-svm-graal-core-la-inline": shared + svm_other + svm_configurations["svm-graal-core-la-inline"],
       "ruby-benchmarks-other-svm-graal-enterprise": shared + svm_other + svm_configurations["svm-graal-enterprise"],
@@ -592,7 +574,6 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-server-graal-core-la-inline": shared + graal_configurations["graal-core-la-inline"],
       "ruby-benchmarks-server-graal-enterprise": shared + graal_configurations["graal-enterprise"],
       "ruby-benchmarks-server-graal-enterprise-la-inline": shared + graal_configurations["graal-enterprise-la-inline"],
-      "ruby-benchmarks-server-graal-enterprise-no-om": shared + graal_configurations["graal-enterprise-no-om"],
     } +
 
     {
