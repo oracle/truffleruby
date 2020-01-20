@@ -83,7 +83,7 @@ if Truffle::Boot.preinitializing?
         end
       end
     end
-    old_home = nil
+    old_home = nil # Avoid capturing the old home in the blocks below
 
     Truffle::Boot.delay do
       new_home = Truffle::Boot.ruby_home
