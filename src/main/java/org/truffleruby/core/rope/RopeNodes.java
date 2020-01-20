@@ -1367,11 +1367,12 @@ public abstract class RopeNodes {
             return true;
         }
 
-        @Specialization(guards = { "a == cachedA", "b == cachedB", }, limit = "getIdentityCacheLimit()")
+        @Specialization(guards = { "a == cachedA", "b == cachedB", "canBeCached" }, limit = "getIdentityCacheLimit()")
         protected boolean cachedRopes(Rope a, Rope b,
                 @Cached("a") Rope cachedA,
                 @Cached("b") Rope cachedB,
-                @Cached("a.bytesEqual(b)") boolean equal) {
+                @Cached("canBeCached(cachedA, cachedB)") boolean canBeCached,
+                @Cached("cachedA.bytesEqual(cachedB)") boolean equal) {
             return equal;
         }
 
@@ -1426,6 +1427,19 @@ public abstract class RopeNodes {
                 throw new Error("unreachable");
             }
             return Arrays.equals(aBytes, bBytes);
+        }
+
+        protected boolean canBeCached(Rope a, Rope b) {
+            if (getContext().isPreInitializing()) {
+                final String home = getContext().getRubyHome();
+                if (a.byteLength() < home.length() && b.byteLength() < home.length()) {
+                    return true;
+                }
+                return !RopeOperations.decodeOrEscapeBinaryRope(a).contains(home) &&
+                        !RopeOperations.decodeOrEscapeBinaryRope(b).contains(home);
+            } else {
+                return true;
+            }
         }
 
     }
