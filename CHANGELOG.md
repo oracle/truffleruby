@@ -1,3 +1,16 @@
+# 20.1.0
+
+New features:
+
+
+Bug fixes:
+
+* Fixed `NameError.new` and `NoMethodError.new` `:receiver` argument.
+
+Compatibility:
+
+
+
 # 20.0.0
 
 New features:
