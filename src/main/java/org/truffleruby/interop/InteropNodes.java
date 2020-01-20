@@ -74,7 +74,7 @@ public abstract class InteropNodes {
     // TODO (pitr-ch 27-Mar-2019): rename methods to match new messages
     // TODO (pitr-ch 27-Mar-2019): break down to new messages
 
-    @CoreMethod(names = "import_file", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "import_file", onSingleton = true, required = 1)
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -107,7 +107,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "executable?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "executable?", onSingleton = true, required = 1)
     public abstract static class IsExecutableNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -164,7 +164,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "execute", isModuleFunction = true, required = 1, rest = true)
+    @CoreMethod(names = "execute", onSingleton = true, required = 1, rest = true)
     public abstract static class ExecuteNode extends InteropCoreMethodArrayArgumentsNode {
 
         abstract Object execute(TruffleObject receiver, Object[] args);
@@ -181,7 +181,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "execute_without_conversion", isModuleFunction = true, required = 1, rest = true)
+    @CoreMethod(names = "execute_without_conversion", onSingleton = true, required = 1, rest = true)
     public abstract static class ExecuteWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -244,7 +244,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "invoke", isModuleFunction = true, required = 2, rest = true)
+    @CoreMethod(names = "invoke", onSingleton = true, required = 2, rest = true)
     public abstract static class InvokeNode extends InteropCoreMethodArrayArgumentsNode {
 
         public static InvokeNode create() {
@@ -260,7 +260,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "instantiable?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "instantiable?", onSingleton = true, required = 1)
     public abstract static class InstantiableNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -313,7 +313,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "new", isModuleFunction = true, required = 1, rest = true)
+    @CoreMethod(names = "new", onSingleton = true, required = 1, rest = true)
     public abstract static class NewNode extends InteropCoreMethodArrayArgumentsNode {
 
         public static NewNode create() {
@@ -330,7 +330,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "size?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "size?", onSingleton = true, required = 1)
     public abstract static class HasSizeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -342,7 +342,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "size", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "size", onSingleton = true, required = 1)
     public abstract static class SizeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -365,7 +365,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "is_string?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "is_string?", onSingleton = true, required = 1)
     public abstract static class IsStringNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isString(
@@ -375,7 +375,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_string", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "as_string", onSingleton = true, required = 1)
     public abstract static class AsStringNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected DynamicObject asString(
@@ -391,7 +391,7 @@ public abstract class InteropNodes {
     }
 
     // TODO (pitr-ch 01-Apr-2019): turn conversion into argument
-    @CoreMethod(names = "as_string_without_conversion", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "as_string_without_conversion", onSingleton = true, required = 1)
     public abstract static class AsStringWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -406,7 +406,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_boolean?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "is_boolean?", onSingleton = true, required = 1)
     public abstract static class IsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isBoolean(
@@ -416,7 +416,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_boolean", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "as_boolean", onSingleton = true, required = 1)
     public abstract static class AsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean asBoolean(
@@ -430,7 +430,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_number?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "is_number?", onSingleton = true, required = 1)
     public abstract static class IsNumberNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isNumber(
@@ -440,7 +440,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_int?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "fits_in_int?", onSingleton = true, required = 1)
     public abstract static class FitsInIntNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean fitsInInt(
@@ -450,7 +450,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_long?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "fits_in_long?", onSingleton = true, required = 1)
     public abstract static class FitsInLongNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean fitsInLong(
@@ -460,7 +460,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "fits_in_double?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "fits_in_double?", onSingleton = true, required = 1)
     public abstract static class FitsInDoubleNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean fitsInDouble(
@@ -470,7 +470,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_int", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "as_int", onSingleton = true, required = 1)
     public abstract static class AsIntNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected int asInt(
@@ -484,7 +484,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_long", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "as_long", onSingleton = true, required = 1)
     public abstract static class AsLongNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected long asLong(
@@ -498,7 +498,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "as_double", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "as_double", onSingleton = true, required = 1)
     public abstract static class AsDoubleNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected double asDouble(
@@ -532,7 +532,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "null?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "null?", onSingleton = true, required = 1)
     public abstract static class NullNode extends InteropCoreMethodArrayArgumentsNode {
 
         public static NullNode create() {
@@ -549,7 +549,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "pointer?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "pointer?", onSingleton = true, required = 1)
     public abstract static class PointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -566,7 +566,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "as_pointer", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "as_pointer", onSingleton = true, required = 1)
     public abstract static class AsPointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -583,7 +583,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "to_native", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "to_native", onSingleton = true, required = 1)
     public abstract static class ToNativeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -664,7 +664,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "read", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "read", onSingleton = true, required = 2)
     public abstract static class ReadNode extends InteropCoreMethodArrayArgumentsNode {
 
         // TODO (pitr-ch 29-Jul-2019): remove the Uncacheable nodes, same to others in this file
@@ -684,7 +684,7 @@ public abstract class InteropNodes {
     }
 
     // TODO (pitr-ch 27-Mar-2019): break down
-    @CoreMethod(names = "read_without_conversion", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "read_without_conversion", onSingleton = true, required = 2)
     public abstract static class ReadWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
@@ -798,7 +798,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "write", isModuleFunction = true, required = 3)
+    @CoreMethod(names = "write", onSingleton = true, required = 3)
     public abstract static class WriteNode extends InteropCoreMethodArrayArgumentsNode {
 
         public static WriteNode create() {
@@ -816,7 +816,7 @@ public abstract class InteropNodes {
     }
 
     // TODO (pitr-ch 01-Apr-2019): break down
-    @CoreMethod(names = "remove", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "remove", onSingleton = true, required = 2)
     public abstract static class RemoveNode extends InteropCoreMethodArrayArgumentsNode {
 
         abstract Object execute(TruffleObject receiver, Object identifier);
@@ -870,7 +870,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "keys?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "keys?", onSingleton = true, required = 1)
     public abstract static class InteropHasKeysNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
@@ -888,7 +888,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "keys_without_conversion", isModuleFunction = true, required = 1, optional = 1)
+    @CoreMethod(names = "keys_without_conversion", onSingleton = true, required = 1, optional = 1)
     public abstract static class KeysNode extends InteropPrimitiveArrayArgumentsNode {
 
         protected abstract Object executeKeys(TruffleObject receiver, boolean internal);
@@ -914,7 +914,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "is_member_readable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_member_readable?", onSingleton = true, required = 2)
     public abstract static class IsMemberReadableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberReadable(
@@ -926,7 +926,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_modifiable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_member_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsMemberModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberModifiable(
@@ -938,7 +938,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_insertable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_member_insertable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberInsertable(
@@ -950,7 +950,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_removable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_member_removable?", onSingleton = true, required = 2)
     public abstract static class IsMemberRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberRemovable(
@@ -962,7 +962,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_invocable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_member_invocable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInvocableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberInvocable(
@@ -974,7 +974,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_internal?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_member_internal?", onSingleton = true, required = 2)
     public abstract static class IsMemberInternalNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberInternal(
@@ -986,7 +986,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_writable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_member_writable?", onSingleton = true, required = 2)
     public abstract static class IsMemberWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberWritable(
@@ -998,7 +998,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_member_existing?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_member_existing?", onSingleton = true, required = 2)
     public abstract static class IsMemberExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isMemberExisting(
@@ -1010,7 +1010,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_member_read_side_effects?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "has_member_read_side_effects?", onSingleton = true, required = 2)
     public abstract static class HasMemberReadSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean hasMemberReadSideEffects(
@@ -1022,7 +1022,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "has_member_write_side_effects?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "has_member_write_side_effects?", onSingleton = true, required = 2)
     public abstract static class HasMemberWriteSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean hasMemberWriteSideEffects(
@@ -1034,7 +1034,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_readable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_array_element_readable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(TruffleObject receiver, long index);
@@ -1060,7 +1060,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_modifiable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_array_element_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementModifiable(
@@ -1085,7 +1085,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_insertable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_array_element_insertable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementInsertable(
@@ -1110,7 +1110,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_removable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_array_element_removable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementRemovable(
@@ -1135,7 +1135,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_writable?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_array_element_writable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementWritable(
@@ -1160,7 +1160,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_existing?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "is_array_element_existing?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementExisting(
@@ -1186,7 +1186,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "export_without_conversion", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "export_without_conversion", onSingleton = true, required = 2)
     @NodeChild(value = "name", type = RubyNode.class)
     @NodeChild(value = "object", type = RubyNode.class)
     public abstract static class ExportWithoutConversionNode extends CoreMethodNode {
@@ -1205,7 +1205,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "import_without_conversion", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "import_without_conversion", onSingleton = true, required = 1)
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class ImportWithoutConversionNode extends CoreMethodNode {
 
@@ -1234,7 +1234,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "mime_type_supported?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "mime_type_supported?", onSingleton = true, required = 1)
     public abstract static class MimeTypeSupportedNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -1245,7 +1245,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "eval", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "eval", onSingleton = true, required = 2)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
@@ -1321,7 +1321,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "java_string?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "java_string?", onSingleton = true, required = 1)
     public abstract static class InteropIsJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1331,7 +1331,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "java_instanceof?", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "java_instanceof?", onSingleton = true, required = 2)
     public abstract static class InteropJavaInstanceOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isJavaObject(object)", "isJavaClassOrInterface(boxedJavaClass)" })
@@ -1362,7 +1362,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "to_java_string", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "to_java_string", onSingleton = true, required = 1)
     public abstract static class InteropToJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1374,7 +1374,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "from_java_string", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "from_java_string", onSingleton = true, required = 1)
     public abstract static class InteropFromJavaStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1426,7 +1426,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "deproxy", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "deproxy", onSingleton = true, required = 1)
     public abstract static class DeproxyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isJavaObject(object)")
@@ -1450,7 +1450,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "foreign?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "foreign?", onSingleton = true, required = 1)
     public abstract static class InteropIsForeignNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1460,7 +1460,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "java?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "java?", onSingleton = true, required = 1)
     public abstract static class InteropIsJavaNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1470,7 +1470,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "java_class?", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "java_class?", onSingleton = true, required = 1)
     public abstract static class InteropIsJavaClassNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
@@ -1481,7 +1481,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "meta_object", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
     public abstract static class InteropMetaObjectNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -1492,7 +1492,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "java_type", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "java_type", onSingleton = true, required = 1)
     public abstract static class JavaTypeNode extends CoreMethodArrayArgumentsNode {
 
         // TODO CS 17-Mar-18 we should cache this in the future
@@ -1547,7 +1547,7 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "identity_hash_code", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "identity_hash_code", onSingleton = true, required = 1)
     public abstract static class InteropIdentityHashCodeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

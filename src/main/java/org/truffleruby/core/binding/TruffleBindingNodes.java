@@ -25,7 +25,7 @@ import com.oracle.truffle.api.source.SourceSection;
 @CoreModule("Truffle::Binding")
 public abstract class TruffleBindingNodes {
 
-    @CoreMethod(names = "of_caller", isModuleFunction = true)
+    @CoreMethod(names = "of_caller", onSingleton = true)
     public abstract static class OfCallerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

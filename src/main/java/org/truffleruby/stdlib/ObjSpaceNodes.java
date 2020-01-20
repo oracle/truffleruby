@@ -28,7 +28,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreModule("Truffle::ObjSpace")
 public abstract class ObjSpaceNodes {
 
-    @CoreMethod(names = "memsize_of", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "memsize_of", onSingleton = true, required = 1)
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(object)")
@@ -74,7 +74,7 @@ public abstract class ObjSpaceNodes {
         }
     }
 
-    @CoreMethod(names = "adjacent_objects", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "adjacent_objects", onSingleton = true, required = 1)
     public abstract static class AdjacentObjectsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -91,7 +91,7 @@ public abstract class ObjSpaceNodes {
 
     }
 
-    @CoreMethod(names = "root_objects", isModuleFunction = true)
+    @CoreMethod(names = "root_objects", onSingleton = true)
     public abstract static class RootObjectsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -103,7 +103,7 @@ public abstract class ObjSpaceNodes {
 
     }
 
-    @CoreMethod(names = "trace_allocations_start", isModuleFunction = true)
+    @CoreMethod(names = "trace_allocations_start", onSingleton = true)
     public abstract static class TraceAllocationsStartNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -115,7 +115,7 @@ public abstract class ObjSpaceNodes {
 
     }
 
-    @CoreMethod(names = "trace_allocations_stop", isModuleFunction = true)
+    @CoreMethod(names = "trace_allocations_stop", onSingleton = true)
     public abstract static class TraceAllocationsStopNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary

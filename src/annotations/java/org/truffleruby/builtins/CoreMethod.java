@@ -39,6 +39,7 @@ public @interface CoreMethod {
     /**
      * Defines the method as public on the singleton class and as a private instance method.
      * {@link #needsSelf() needsSelf} is always false as it could be either a module or any receiver.
+     * Only use when it is required to be both a singleton method and instance method.
      */
     boolean isModuleFunction() default false;
 

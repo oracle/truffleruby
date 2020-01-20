@@ -137,9 +137,7 @@ public abstract class TruffleRopesNodes {
         protected DynamicObject flattenRope(DynamicObject string,
                 @Cached RopeNodes.FlattenNode flattenNode,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-
-            final Rope flattened = flattenNode.executeFlatten(StringOperations.rope(string));
-
+            final LeafRope flattened = flattenNode.executeFlatten(StringOperations.rope(string));
             return makeStringNode.fromRope(flattened);
         }
 

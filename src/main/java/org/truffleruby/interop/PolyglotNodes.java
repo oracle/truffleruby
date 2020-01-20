@@ -38,7 +38,7 @@ import com.oracle.truffle.api.source.Source;
 @CoreModule("Polyglot")
 public abstract class PolyglotNodes {
 
-    @CoreMethod(names = "eval", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "eval", onSingleton = true, required = 2)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism
     public abstract static class EvalNode extends CoreMethodArrayArgumentsNode {
@@ -87,7 +87,7 @@ public abstract class PolyglotNodes {
 
     @CoreMethod(
             names = "eval_file",
-            isModuleFunction = true,
+            onSingleton = true,
             required = 1,
             optional = 1,
             argumentNames = { "file_name_or_id", "file_name" })
