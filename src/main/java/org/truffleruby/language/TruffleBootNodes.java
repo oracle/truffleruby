@@ -260,7 +260,7 @@ public abstract class TruffleBootNodes {
 
     }
 
-    @CoreMethod(names = "source_of_caller", isModuleFunction = true)
+    @CoreMethod(names = "source_of_caller", onSingleton = true)
     public abstract static class SourceOfCallerNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();

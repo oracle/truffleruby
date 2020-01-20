@@ -352,7 +352,7 @@ public abstract class TruffleDebugNodes {
 
     }
 
-    @CoreMethod(names = "log_warning", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "log_warning", onSingleton = true, required = 1)
     public abstract static class LogWarningNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization

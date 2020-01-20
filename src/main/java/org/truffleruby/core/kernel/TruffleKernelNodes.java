@@ -47,7 +47,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @CoreModule("Truffle::KernelOperations")
 public abstract class TruffleKernelNodes {
 
-    @CoreMethod(names = "at_exit", isModuleFunction = true, needsBlock = true, required = 1)
+    @CoreMethod(names = "at_exit", onSingleton = true, needsBlock = true, required = 1)
     public abstract static class AtExitSystemNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -60,7 +60,7 @@ public abstract class TruffleKernelNodes {
 
     @NodeChild(value = "file", type = RubyNode.class)
     @NodeChild(value = "wrap", type = RubyNode.class)
-    @CoreMethod(names = "load", isModuleFunction = true, required = 1, optional = 1)
+    @CoreMethod(names = "load", onSingleton = true, required = 1, optional = 1)
     public abstract static class LoadNode extends CoreMethodNode {
 
         @CreateCast("wrap")
@@ -146,7 +146,7 @@ public abstract class TruffleKernelNodes {
         }
     }
 
-    @CoreMethod(names = "define_hooked_variable_with_is_defined", isModuleFunction = true, required = 4)
+    @CoreMethod(names = "define_hooked_variable_with_is_defined", onSingleton = true, required = 4)
     public abstract static class DefineHookedVariableInnerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -163,7 +163,7 @@ public abstract class TruffleKernelNodes {
 
     }
 
-    @CoreMethod(names = "frame_local_variable_get", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "frame_local_variable_get", onSingleton = true, required = 2)
     public abstract static class GetFrameAndThreadLocalVariable extends CoreMethodArrayArgumentsNode {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
@@ -176,7 +176,7 @@ public abstract class TruffleKernelNodes {
 
     }
 
-    @CoreMethod(names = "frame_local_variable_set", isModuleFunction = true, required = 3)
+    @CoreMethod(names = "frame_local_variable_set", onSingleton = true, required = 3)
     public abstract static class SetFrameAndThreadLocalVariable extends CoreMethodArrayArgumentsNode {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();

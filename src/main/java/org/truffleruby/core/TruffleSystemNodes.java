@@ -183,7 +183,7 @@ public abstract class TruffleSystemNodes {
 
     }
 
-    @CoreMethod(names = "synchronized", isModuleFunction = true, required = 1, needsBlock = true)
+    @CoreMethod(names = "synchronized", onSingleton = true, required = 1, needsBlock = true)
     public abstract static class SynchronizedPrimitiveNode extends YieldingCoreMethodNode {
 
         // We must not allow to synchronize on boxed primitives.
@@ -195,7 +195,7 @@ public abstract class TruffleSystemNodes {
         }
     }
 
-    @CoreMethod(names = "log", isModuleFunction = true, required = 2)
+    @CoreMethod(names = "log", onSingleton = true, required = 2)
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel" })
@@ -232,7 +232,7 @@ public abstract class TruffleSystemNodes {
 
     }
 
-    @CoreMethod(names = "native_set_process_title", isModuleFunction = true, required = 1)
+    @CoreMethod(names = "native_set_process_title", onSingleton = true, required = 1)
     public abstract static class SetProcessTitleNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary

@@ -79,7 +79,7 @@ public abstract class TruffleRubyNodes {
 
     }
 
-    @CoreMethod(names = "full_memory_barrier", isModuleFunction = true)
+    @CoreMethod(names = "full_memory_barrier", onSingleton = true)
     public abstract static class FullMemoryBarrierPrimitiveNode extends CoreMethodNode {
 
         @Specialization
