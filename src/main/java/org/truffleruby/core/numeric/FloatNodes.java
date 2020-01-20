@@ -487,32 +487,6 @@ public abstract class FloatNodes {
 
     }
 
-    @CoreMethod(names = "ceil")
-    public abstract static class CeilNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
-
-        @Specialization
-        protected Object ceil(double n) {
-            return fixnumOrBignum.fixnumOrBignum(Math.ceil(n));
-        }
-
-    }
-
-    @CoreMethod(names = "floor")
-    public abstract static class FloorNode extends CoreMethodArrayArgumentsNode {
-
-        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
-
-        public abstract Object executeFloor(double n);
-
-        @Specialization
-        protected Object floor(double n) {
-            return fixnumOrBignum.fixnumOrBignum(Math.floor(n));
-        }
-
-    }
-
     @CoreMethod(names = "infinite?")
     public abstract static class InfiniteNode extends CoreMethodArrayArgumentsNode {
 
@@ -571,6 +545,50 @@ public abstract class FloatNodes {
 
         public static boolean fitsInLong(double n) {
             return Long.MIN_VALUE < n && n < Long.MAX_VALUE;
+        }
+
+    }
+
+    @Primitive(name = "float_ceil")
+    public abstract static class FloatCeilPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
+
+        @Specialization
+        protected Object ceil(double n) {
+            return fixnumOrBignum.fixnumOrBignum(Math.ceil(n));
+        }
+    }
+
+    @Primitive(name = "float_ceil_ndigits", lowerFixnum = 1)
+    public abstract static class FloatCeilNDigitsPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected double ceilNDigits(double n, int ndigits) {
+            final double scale = Math.pow(10.0, ndigits);
+            return Math.ceil(n * scale) / scale;
+        }
+
+    }
+
+    @Primitive(name = "float_floor")
+    public abstract static class FloatFloorPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
+
+        @Specialization
+        protected Object floor(double n) {
+            return fixnumOrBignum.fixnumOrBignum(Math.floor(n));
+        }
+    }
+
+    @Primitive(name = "float_floor_ndigits", lowerFixnum = 1)
+    public abstract static class FloatFloorNDigitsPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected double floorNDigits(double n, int ndigits) {
+            final double scale = Math.pow(10.0, ndigits);
+            return Math.floor(n * scale) / scale;
         }
 
     }

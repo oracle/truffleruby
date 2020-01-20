@@ -449,7 +449,7 @@ public abstract class IntegerNodes {
     public abstract static class IDivNode extends BignumCoreMethodNode {
 
         @Child private DivNode divNode = DivNodeFactory.create(null);
-        @Child private FloatNodes.FloorNode floorNode = FloatNodesFactory.FloorNodeFactory.create(null);
+        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 
         @Specialization
         protected Object idiv(Object a, Object b,
@@ -459,7 +459,7 @@ public abstract class IntegerNodes {
                 if (zeroProfile.profile((double) b == 0.0)) {
                     throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
                 }
-                return floorNode.executeFloor((double) quotient);
+                return fixnumOrBignum.fixnumOrBignum(Math.floor((double) quotient));
             } else {
                 return quotient;
             }
