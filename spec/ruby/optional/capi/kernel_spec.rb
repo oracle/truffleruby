@@ -578,6 +578,20 @@ describe "C-API Kernel function" do
     end
   end
 
+  describe 'rb_funcall' do
+    before :each do
+      @obj = Object.new
+      class << @obj
+        def many_args(a, b, c, d, e, f, g, h, i, j)
+          j
+        end
+      end
+    end
+
+    it "can call a public method with 10 arguments" do
+      @s.rb_funcall_many_args(@obj, :many_args).should == 1
+    end
+  end
   describe 'rb_funcall_with_block' do
     before :each do
       @obj = Object.new

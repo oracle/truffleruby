@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Fixed `Exception#dup` to copy exception backtrace string array.
+* Correctly handle large numbers of arguments to `rb_funcall` (#1882).
 
 Compatibility:
 
