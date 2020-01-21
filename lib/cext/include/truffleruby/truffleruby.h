@@ -78,17 +78,17 @@ typedef void *(*gvl_call)(void *);
 
 // Utilities
 
-#define rb_warn(FORMAT, ...) do { \
+#define rb_warn(FORMAT, ...) __extension__ ({                   \
 if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warn?"))) { \
   RUBY_INVOKE(rb_mKernel, "warn", rb_sprintf(FORMAT, ##__VA_ARGS__));   \
 } \
-} while (0)
+})
 
-#define rb_warning(FORMAT, ...) do { \
+#define rb_warning(FORMAT, ...) __extension__({                    \
 if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
   RUBY_INVOKE(rb_mKernel, "warn", rb_sprintf(FORMAT, ##__VA_ARGS__)); \
 } \
-} while (0)
+    })
 
 #define rb_tr_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_tr_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
