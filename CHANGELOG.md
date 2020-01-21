@@ -7,8 +7,10 @@ Bug fixes:
 
 * Fixed `Exception#dup` to copy exception backtrace string array.
 * Fixed `rb_warn` and `rb_warning` when used as statements (#1886, @chrisseaton).
+* Fixed `NameError.new` and `NoMethodError.new` `:receiver` argument.
 
 Compatibility:
+
 
 
 # 20.0.0

@@ -78,5 +78,16 @@ public abstract class NameErrorNodes {
 
     }
 
+    @Primitive(name = "name_error_set_receiver")
+    public abstract static class ReceiverSetNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object setReceiver(DynamicObject error, Object receiver) {
+            Layouts.NAME_ERROR.setReceiver(error, receiver);
+            return receiver;
+        }
+
+    }
+
 
 }
