@@ -415,6 +415,9 @@ a letter) will send `IS_BOXED` on `object` and based on that will possibly
 reference equality, like `BasicObject#equal?`. For Java interop objects it
 looks at the underlying Java object.
 
+`object.object_id` or `object.__id__` returns identity hash code. Note: There
+might be collisions. Implementation may change.
+
 `object.inspect` produces a Ruby-style inspect string - see
 [notes on inspect strings](#notes-on-inspect-strings) below.
 
