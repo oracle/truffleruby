@@ -19,7 +19,7 @@ Truffle::Boot.delay do
         begin
           gem_original_require(path)
         rescue LoadError
-          require 'rubygems'
+          gem_original_require 'rubygems'
           require path
         end
       end
