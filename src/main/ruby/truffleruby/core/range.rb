@@ -132,13 +132,15 @@ class Range
     nil
   end
 
-  def each_internal
+  private def each_internal(&block)
     return to_enum { size } unless block_given?
     first, last = self.begin, self.end
 
     unless first.respond_to?(:succ) && !first.kind_of?(Time)
       raise TypeError, "can't iterate from #{first.class}"
     end
+
+    return each_endless(first, &block) if last.equal?(nil)
 
     case first
     when Integer
@@ -174,6 +176,22 @@ class Range
     end
 
     self
+  end
+
+  private def each_endless(first, &block)
+    if Integer === first
+      i = first
+      while true do
+        yield i
+        i += 1
+      end
+    else
+      current = first
+      while true do
+        yield current
+        current = current.succ
+      end
+    end
   end
 
   def first(n=undefined)

@@ -34,7 +34,6 @@ fails:Public methods on Range should include entries
 fails:Public methods on Range should not include clone
 fails:Public methods on Range should not include collect
 fails:Public methods on Range should not include dup
-fails:Public methods on Range should not include each_internal
 fails:Public methods on Range should not include map
 fails:Public methods on Range should not include step_internal
 fails:Public methods on Range should not include to_a_from_enumerable
