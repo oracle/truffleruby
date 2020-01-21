@@ -379,7 +379,7 @@ class Range
   end
   alias_method :map, :collect
 
-  def to_a_internal # MODIFIED called from java to_a
+  private def to_a_internal # MODIFIED called from java to_a
     return to_a_from_enumerable unless self.begin.kind_of? Integer and self.end.kind_of? Integer
 
     fin = self.end
@@ -399,7 +399,7 @@ class Range
     ary
   end
 
-  def to_a_from_enumerable(*arg)
+  private def to_a_from_enumerable(*arg)
     ary = []
     each(*arg) do
       o = TrufflePrimitive.single_block_arg
