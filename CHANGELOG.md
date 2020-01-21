@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Fixed `Exception#dup` to copy exception backtrace string array.
+* Fixed `rb_warn` and `rb_warning` when used as statements (#1886, @chrisseaton).
 
 Compatibility:
 
