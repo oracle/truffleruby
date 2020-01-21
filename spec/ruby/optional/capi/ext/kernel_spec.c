@@ -306,9 +306,10 @@ static VALUE kernel_spec_rb_funcall_with_block(VALUE self, VALUE obj, VALUE meth
 }
 
 static VALUE kernel_spec_rb_funcall_many_args(VALUE self, VALUE obj, VALUE method) {
-  return rb_funcall(obj, SYM2ID(method), 10,
-                     INT2FIX(10), INT2FIX(9), INT2FIX(8), INT2FIX(7), INT2FIX(6),
-                     INT2FIX(5), INT2FIX(4), INT2FIX(3), INT2FIX(2), INT2FIX(1));
+  return rb_funcall(obj, SYM2ID(method), 15,
+                    INT2FIX(15), INT2FIX(14), INT2FIX(13), INT2FIX(12), INT2FIX(11),
+                    INT2FIX(10), INT2FIX(9), INT2FIX(8), INT2FIX(7), INT2FIX(6),
+                    INT2FIX(5), INT2FIX(4), INT2FIX(3), INT2FIX(2), INT2FIX(1));
 }
 
 void Init_kernel_spec(void) {
