@@ -52,7 +52,7 @@ module Truffle
         begin
           step_size = Float(from = step_size)
           first     = Float(from = first)
-          last      = Float(from = last)
+          last      = Float(from = last) unless last.equal?(nil)
         rescue ArgumentError
           raise TypeError, "no implicit conversion to float from #{from.class}"
         end

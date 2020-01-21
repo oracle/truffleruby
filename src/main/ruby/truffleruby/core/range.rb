@@ -267,7 +267,7 @@ class Range
     self.begin
   end
 
-  def step_internal(step_size=1) # :yields: object
+  private def step_internal(step_size=1, &block) # :yields: object
     return to_enum(:step, step_size) do
       validated_step_args = Truffle::RangeOperations.validate_step_size(self.begin, self.end, step_size)
       Truffle::RangeOperations.step_iterations_size(self, *validated_step_args)
@@ -277,6 +277,8 @@ class Range
     first = values[0]
     last = values[1]
     step_size = values[2]
+
+    return step_endless(first, step_size, &block) if last.equal?(nil)
 
     case first
     when Float
@@ -306,6 +308,22 @@ class Range
     end
 
     self
+  end
+
+  private def step_endless(first, step_size, &block)
+    if Numeric === first
+      curr = first
+      while true do
+        yield curr
+        curr += step_size
+      end
+    else
+      i = 0
+      each_endless(first) do |item|
+        yield item if i % step_size == 0
+        i += 1
+      end
+    end
   end
 
   def to_s
