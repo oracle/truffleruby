@@ -33,7 +33,9 @@ public class OrLazyValueDefinedNode extends RubyNode {
     @Child private BooleanCastNode leftCast;
 
     private enum RightUsage {
-        NEVER, ONCE, MANY;
+        NEVER,
+        ONCE,
+        MANY;
 
         public RightUsage next() {
             if (this == NEVER) {
