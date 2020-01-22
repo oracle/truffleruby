@@ -9,6 +9,7 @@ Bug fixes:
 * Fixed `rb_warn` and `rb_warning` when used as statements (#1886, @chrisseaton).
 * Fixed `NameError.new` and `NoMethodError.new` `:receiver` argument.
 * Correctly handle large numbers of arguments to `rb_funcall` (#1882).
+* Added arity check to `Module#{include, prepend}`.
 
 Compatibility:
 
