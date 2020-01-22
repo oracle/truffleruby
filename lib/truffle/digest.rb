@@ -133,7 +133,7 @@ module Digest
     end
   end
 
-  class Class
+  class ::Digest::Class
     include Instance
 
     def self.digest(message, *parameters)
@@ -155,7 +155,7 @@ module Digest
     end
   end
 
-  class Base < Class
+  class Base < ::Digest::Class
   end
 
   class MD5 < Base
