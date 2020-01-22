@@ -10,6 +10,7 @@ Bug fixes:
 * Fixed `NameError.new` and `NoMethodError.new` `:receiver` argument.
 * Correctly handle large numbers of arguments to `rb_funcall` (#1882).
 * Added arity check to `Module#{include, prepend}`.
+* Fixed `File#{chmod, umask}` argument conversion check.
 
 Compatibility:
 
