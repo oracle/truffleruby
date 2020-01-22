@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Fixed `Exception#dup` to copy exception backtrace string array.
+* Fix `OpenSSL::Digest.{digest,hexdigest,base64digest}` to handle `algorithm, data` arguments (#1889, @bdewater).
 
 Compatibility:
 
