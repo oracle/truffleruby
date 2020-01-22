@@ -44,7 +44,7 @@ module Truffle
 
     define_read_only_global(:$-a, -> { nil })
     define_read_only_global(:$-l, -> { nil })
-    define_read_only_global(:$-p, -> { nil })
+    define_read_only_global(:$-p, -> { Truffle::Boot.get_option 'print-loop' })
 
     define_hooked_variable(
       :$/,

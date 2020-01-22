@@ -309,7 +309,9 @@ public class CommandLineParser {
                     break;
                 case 'p':
                     disallowedInRubyOpts(argument);
-                    throw notImplemented("-p");
+                    config.setOption(OptionsCatalog.PRINT_LOOP, true);
+                    config.setOption(OptionsCatalog.GETS_LOOP, true);
+                    break;
                 case 'r':
                     final String library = grabValue(getArgumentError("-r must be followed by a package to require"));
                     config.appendOptionValue(OptionsCatalog.REQUIRED_LIBRARIES, library);

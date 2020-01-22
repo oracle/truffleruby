@@ -13,7 +13,7 @@ Bug fixes:
 
 Compatibility:
 
-
+* Implemented `-p` CLI option.
 
 # 20.0.0
 
