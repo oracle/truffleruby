@@ -43,7 +43,8 @@ public abstract class MutexOperations {
     }
 
     @TruffleBoundary
-    protected static void lockEvenWithExceptions(ReentrantLock lock, DynamicObject thread, RubyNode currentNode) {
+    protected static <T extends RubyNode & RubyNode.WithContext> void lockEvenWithExceptions(
+            ReentrantLock lock, DynamicObject thread, T currentNode) {
         // We need to re-lock this lock after a Mutex#sleep, no matter what, even if another thread throw us an exception.
         // Yet, we also need to allow safepoints to happen otherwise the thread that could unlock could be blocked.
         try {

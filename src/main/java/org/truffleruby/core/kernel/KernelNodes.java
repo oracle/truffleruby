@@ -73,8 +73,9 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -702,8 +703,14 @@ public abstract class KernelNodes {
                     Visibility.PUBLIC,
                     callTarget);
 
-            return callNode
-                    .call(RubyArguments.pack(parentFrame, null, method, null, target, null, RubyNode.EMPTY_ARGUMENTS));
+            return callNode.call(RubyArguments.pack(
+                    parentFrame,
+                    null,
+                    method,
+                    null,
+                    target,
+                    null,
+                    EMPTY_ARGUMENTS));
         }
 
         @TruffleBoundary
@@ -1140,7 +1147,7 @@ public abstract class KernelNodes {
 
     }
 
-    public abstract static class GetMethodObjectNode extends RubyBaseNode {
+    public abstract static class GetMethodObjectNode extends ContextRubyNode {
 
         public static GetMethodObjectNode create(boolean ignoreVisibility) {
             return GetMethodObjectNodeGen.create(ignoreVisibility);
@@ -1215,7 +1222,7 @@ public abstract class KernelNodes {
                     newCallTarget);
         }
 
-        private static class CallMethodMissingWithStaticName extends RubyNode {
+        private static class CallMethodMissingWithStaticName extends ContextSourceRubyNode {
 
             private final DynamicObject methodName;
             @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.createPrivate();

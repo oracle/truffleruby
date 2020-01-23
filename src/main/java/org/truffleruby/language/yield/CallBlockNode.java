@@ -12,7 +12,7 @@ package org.truffleruby.language.yield;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 
@@ -29,7 +29,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class CallBlockNode extends RubyBaseWithoutContextNode {
+public abstract class CallBlockNode extends BaseRubyNode {
 
     public static CallBlockNode create() {
         return CallBlockNodeGen.create();

@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.control;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
-public class NextNode extends RubyNode {
+public class NextNode extends ContextSourceRubyNode {
 
     @Child private RubyNode child;
 

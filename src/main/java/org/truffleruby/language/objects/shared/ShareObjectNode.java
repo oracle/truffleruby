@@ -15,7 +15,7 @@ import java.util.List;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.interop.RubyObjectType;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
@@ -34,7 +34,7 @@ import com.oracle.truffle.api.object.Shape;
  * (see {@link ObjectGraph#getAdjacentObjects(DynamicObject)}.
  */
 @ImportStatic(ShapeCachingGuards.class)
-public abstract class ShareObjectNode extends RubyBaseNode {
+public abstract class ShareObjectNode extends ContextRubyNode {
 
     protected static final int CACHE_LIMIT = 8;
 

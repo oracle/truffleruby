@@ -32,8 +32,8 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
@@ -119,7 +119,7 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class ExecuteUncacheableNode extends RubyBaseWithoutContextNode {
+    public abstract static class ExecuteUncacheableNode extends BaseRubyNode {
 
         abstract Object execute(Object receiver, Object[] args);
 
@@ -200,7 +200,7 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class InvokeUncacheableNode extends RubyBaseWithoutContextNode {
+    public abstract static class InvokeUncacheableNode extends BaseRubyNode {
 
         public static InvokeUncacheableNode create() {
             return InteropNodesFactory.InvokeUncacheableNodeGen.create();
@@ -277,7 +277,7 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class NewUncacheableNode extends RubyBaseWithoutContextNode {
+    public abstract static class NewUncacheableNode extends BaseRubyNode {
 
         public static NewUncacheableNode create() {
             return InteropNodesFactory.NewUncacheableNodeGen.create();
@@ -513,7 +513,7 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class NullUncacheableNode extends RubyBaseWithoutContextNode {
+    public abstract static class NullUncacheableNode extends BaseRubyNode {
 
         public static NullUncacheableNode create() {
             return InteropNodesFactory.NullUncacheableNodeGen.create();
@@ -599,7 +599,7 @@ public abstract class InteropNodes {
 
     // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
-    public abstract static class ReadUncacheableNode extends RubyBaseWithoutContextNode {
+    public abstract static class ReadUncacheableNode extends BaseRubyNode {
 
         public static ReadUncacheableNode create() {
             return InteropNodesFactory.ReadUncacheableNodeGen.create();
@@ -732,7 +732,7 @@ public abstract class InteropNodes {
 
     // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
-    public abstract static class WriteUncacheableNode extends RubyBaseWithoutContextNode {
+    public abstract static class WriteUncacheableNode extends BaseRubyNode {
         public static WriteUncacheableNode create() {
             return InteropNodesFactory.WriteUncacheableNodeGen.create();
         }
@@ -1265,14 +1265,14 @@ public abstract class InteropNodes {
                 @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode mimeTypeEqualNode,
                 @Cached RopeNodes.EqualNode sourceEqualNode) {
-            return callNode.call(RubyNode.EMPTY_ARGUMENTS);
+            return callNode.call(EMPTY_ARGUMENTS);
         }
 
         @Specialization(guards = { "isRubyString(mimeType)", "isRubyString(source)" }, replaces = "evalCached")
         protected Object evalUncached(
                 DynamicObject mimeType, DynamicObject source,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(mimeType, source), RubyNode.EMPTY_ARGUMENTS);
+            return callNode.call(parse(mimeType, source), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
@@ -1304,7 +1304,7 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(code)")
         protected Object evalNFI(DynamicObject code,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(code), RubyNode.EMPTY_ARGUMENTS);
+            return callNode.call(parse(code), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary

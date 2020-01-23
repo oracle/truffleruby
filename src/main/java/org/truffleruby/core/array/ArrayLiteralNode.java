@@ -11,6 +11,7 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
@@ -19,7 +20,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class ArrayLiteralNode extends RubyNode {
+public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
 
     public static ArrayLiteralNode create(RubyNode[] values) {
         return new UninitialisedArrayLiteralNode(values);
@@ -47,11 +48,10 @@ public abstract class ArrayLiteralNode extends RubyNode {
             }
         }
 
-        return createArray(executedValues, executedValues.length);
+        return cachedCreateArray(executedValues, executedValues.length);
     }
 
-    @Override
-    protected DynamicObject createArray(Object store, int size) {
+    protected DynamicObject cachedCreateArray(Object store, int size) {
         if (allocateObjectNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             allocateObjectNode = insert(AllocateObjectNode.create());

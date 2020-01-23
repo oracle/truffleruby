@@ -16,7 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
@@ -35,7 +35,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
+public abstract class AllocateObjectNode extends BaseRubyNode {
 
     public static AllocateObjectNode create() {
         return AllocateObjectNodeGen.create();

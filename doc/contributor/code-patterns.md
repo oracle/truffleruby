@@ -28,7 +28,7 @@ If the helper node does not have a static `create()` method, add it.
   eagerly as a `@Child`.
 
 ```java
-public abstract class MyNode extends RubyNode {
+public abstract class MyNode extends ContextSourceRubyNode {
     @Child MetaClassNode metaClassNode = MetaClassNode.create();
 ...
 ```

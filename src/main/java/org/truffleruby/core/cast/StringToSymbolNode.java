@@ -10,17 +10,18 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.RubyNode;
 
 /**
  * Creates a symbol from a string.
  */
-@NodeChild("string")
-public abstract class StringToSymbolNode extends RubyNode {
+@NodeChild(value = "string", type = RubyNode.class)
+public abstract class StringToSymbolNode extends ContextSourceRubyNode {
 
     @Specialization(guards = "isRubyString(string)")
     protected DynamicObject doString(DynamicObject string) {

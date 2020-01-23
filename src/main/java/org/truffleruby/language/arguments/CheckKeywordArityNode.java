@@ -11,9 +11,9 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
 
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class CheckKeywordArityNode extends RubyNode {
+public class CheckKeywordArityNode extends ContextSourceRubyNode {
 
     private final Arity arity;
 
@@ -71,7 +71,7 @@ public class CheckKeywordArityNode extends RubyNode {
         return nil();
     }
 
-    private static class CheckKeywordArgumentsNode extends RubyBaseNode implements BiConsumerNode {
+    private static class CheckKeywordArgumentsNode extends ContextRubyNode implements BiConsumerNode {
 
         private final boolean checkAllowedKeywords;
         private final boolean doesNotAcceptExtraArguments;

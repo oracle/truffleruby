@@ -9,17 +9,18 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.RubyNode;
 
 /**
  * Return the given default value if the argument is not provided.
  */
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class DefaultValueNode extends RubyNode {
+public abstract class DefaultValueNode extends ContextSourceRubyNode {
 
     private final Object defaultValue;
 

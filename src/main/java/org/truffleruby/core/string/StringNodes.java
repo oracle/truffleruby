@@ -149,9 +149,9 @@ import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
+import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -189,7 +189,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class StringNodes {
 
     @GenerateUncached
-    public abstract static class MakeStringNode extends RubyBaseWithoutContextNode {
+    public abstract static class MakeStringNode extends BaseRubyNode {
 
         public abstract DynamicObject executeMake(Object payload, Object encoding, Object codeRange);
 
@@ -266,7 +266,7 @@ public abstract class StringNodes {
 
     }
 
-    public static abstract class SubstringNode extends RubyBaseNode {
+    public static abstract class SubstringNode extends ContextRubyNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -2103,7 +2103,7 @@ public abstract class StringNodes {
 
     }
 
-    public static abstract class CheckIndexNode extends RubyBaseNode {
+    public static abstract class CheckIndexNode extends ContextRubyNode {
 
         public abstract int executeCheck(int index, int length);
 
@@ -2133,7 +2133,7 @@ public abstract class StringNodes {
 
     }
 
-    public static abstract class NormalizeIndexNode extends RubyBaseNode {
+    public static abstract class NormalizeIndexNode extends ContextRubyNode {
 
         public abstract int executeNormalize(int index, int length);
 
@@ -2709,7 +2709,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseBytesNode extends RubyBaseNode {
+    public abstract static class InvertAsciiCaseBytesNode extends ContextRubyNode {
 
         private final boolean lowerToUpper;
         private final boolean upperToLower;
@@ -2770,7 +2770,7 @@ public abstract class StringNodes {
 
     }
 
-    public abstract static class InvertAsciiCaseNode extends RubyBaseNode {
+    public abstract static class InvertAsciiCaseNode extends ContextRubyNode {
 
         @Child private InvertAsciiCaseBytesNode invertNode;
 
@@ -3399,7 +3399,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic(StringGuards.class)
-    public static abstract class StringAreComparableNode extends RubyBaseNode {
+    public static abstract class StringAreComparableNode extends ContextRubyNode {
 
         @Child RopeNodes.AreComparableRopesNode areComparableRopesNode = RopeNodes.AreComparableRopesNode.create();
 
@@ -3412,7 +3412,7 @@ public abstract class StringNodes {
     }
 
     @ImportStatic({ StringGuards.class, StringOperations.class })
-    public static abstract class StringEqualNode extends RubyBaseNode {
+    public static abstract class StringEqualNode extends ContextRubyNode {
 
         @Child private StringAreComparableNode areComparableNode;
 
@@ -4178,7 +4178,7 @@ public abstract class StringNodes {
      * @characterIndex - The character index into the rope, starting from the provided byte offset.
      */
     @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
-    public static abstract class ByteIndexFromCharIndexNode extends RubyBaseNode {
+    public static abstract class ByteIndexFromCharIndexNode extends ContextRubyNode {
 
         public static ByteIndexFromCharIndexNode create() {
             return ByteIndexFromCharIndexNodeGen.create();
@@ -4963,7 +4963,7 @@ public abstract class StringNodes {
 
     }
 
-    public static abstract class StringAppendNode extends RubyBaseNode {
+    public static abstract class StringAppendNode extends ContextRubyNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
         @Child private RopeNodes.ConcatNode concatNode;

@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ReadPostArgumentNode extends RubyNode {
+public class ReadPostArgumentNode extends ContextSourceRubyNode {
 
     private final int indexFromCount;
     private final boolean keywordArguments;

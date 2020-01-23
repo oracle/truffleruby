@@ -15,7 +15,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -26,7 +26,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
-public abstract class FromJavaStringNode extends RubyBaseWithoutContextNode {
+public abstract class FromJavaStringNode extends BaseRubyNode {
 
     public static FromJavaStringNode create() {
         return FromJavaStringNodeGen.create();

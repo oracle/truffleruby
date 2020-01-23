@@ -9,18 +9,19 @@
  */
 package org.truffleruby.language.control;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import org.truffleruby.language.RubyNode;
 
 /**
  * This node has a pair of children. One has side effects and the other returns the
  * result. If the result isn't needed all we execute is the side effects.
  */
 @NodeInfo(cost = NodeCost.NONE)
-public class ElidableResultNode extends RubyNode {
+public class ElidableResultNode extends ContextSourceRubyNode {
 
     @Child private RubyNode required;
     @Child private RubyNode elidableResult;

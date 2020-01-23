@@ -18,7 +18,7 @@ import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 
-public abstract class FrameSendingNode extends RubyBaseNode {
+public abstract class FrameSendingNode extends ContextRubyNode {
 
     protected enum SendsFrame {
         NO_FRAME,

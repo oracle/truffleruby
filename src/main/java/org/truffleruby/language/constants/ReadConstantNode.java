@@ -11,6 +11,7 @@ package org.truffleruby.language.constants;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
@@ -22,7 +23,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 
 /** Read a literal constant on a given module: MOD::CONST */
-public class ReadConstantNode extends RubyNode {
+public class ReadConstantNode extends ContextSourceRubyNode {
 
     private final String name;
 

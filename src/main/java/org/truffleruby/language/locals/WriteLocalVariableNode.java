@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
-public class WriteLocalVariableNode extends RubyNode {
+public class WriteLocalVariableNode extends ContextSourceRubyNode {
 
     private final FrameSlot frameSlot;
 

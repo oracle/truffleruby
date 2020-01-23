@@ -9,11 +9,11 @@
  */
 package org.truffleruby.language.globals;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class AliasGlobalVarNode extends RubyNode {
+public class AliasGlobalVarNode extends ContextSourceRubyNode {
 
     private final String oldName;
     private final String newName;

@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class NotProvidedNode extends RubyNode {
+public class NotProvidedNode extends ContextSourceRubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

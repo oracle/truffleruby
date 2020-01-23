@@ -13,7 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.ToSymbolNode;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -31,7 +31,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @GenerateUncached
-public abstract class ForeignReadStringCachedHelperNode extends RubyBaseWithoutContextNode {
+public abstract class ForeignReadStringCachedHelperNode extends BaseRubyNode {
 
     public static ForeignReadStringCachedHelperNode create() {
         return ForeignReadStringCachedHelperNodeGen.create();

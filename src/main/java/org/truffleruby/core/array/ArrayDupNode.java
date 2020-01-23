@@ -13,7 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -28,7 +28,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class.
  */
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayDupNode extends RubyBaseNode {
+public abstract class ArrayDupNode extends ContextRubyNode {
 
     @Child private AllocateObjectNode allocateNode;
 

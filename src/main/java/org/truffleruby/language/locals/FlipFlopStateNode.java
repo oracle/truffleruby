@@ -9,11 +9,10 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.BaseRubyNode;
 
-public abstract class FlipFlopStateNode extends RubyBaseWithoutContextNode {
+public abstract class FlipFlopStateNode extends BaseRubyNode {
 
     public abstract boolean getState(VirtualFrame frame);
 

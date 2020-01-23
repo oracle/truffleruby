@@ -9,9 +9,10 @@
  */
 package org.truffleruby.parser;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 
-public abstract class ReadLocalNode extends RubyNode {
+public abstract class ReadLocalNode extends ContextSourceRubyNode {
 
     public abstract RubyNode makeWriteNode(RubyNode rhs);
 

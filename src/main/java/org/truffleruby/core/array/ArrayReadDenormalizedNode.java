@@ -10,17 +10,18 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.RubyNode;
 
-@NodeChild("array")
-@NodeChild("index")
-public abstract class ArrayReadDenormalizedNode extends RubyNode {
+@NodeChild(value = "array", type = RubyNode.class)
+@NodeChild(value = "index", type = RubyNode.class)
+public abstract class ArrayReadDenormalizedNode extends ContextSourceRubyNode {
 
     @Child private ArrayReadNormalizedNode readNode = ArrayReadNormalizedNode.create();
 

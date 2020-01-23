@@ -13,55 +13,55 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayBoxedCopyNodeGen;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCommonExtractRangeCopyOnWriteNodeGen;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCommonUnshareStorageNodeGen;
-import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.ContextRubyNode;
 
 public class ArrayOperationNodes {
 
-    public static abstract class ArrayCapacityNode extends RubyBaseNode {
+    public static abstract class ArrayCapacityNode extends ContextRubyNode {
 
         public abstract int execute(Object store);
     }
 
-    public static abstract class ArrayGetNode extends RubyBaseNode {
+    public static abstract class ArrayGetNode extends ContextRubyNode {
 
         public abstract Object execute(Object store, int index);
     }
 
-    public static abstract class ArraySetNode extends RubyBaseNode {
+    public static abstract class ArraySetNode extends ContextRubyNode {
 
         public abstract void execute(Object store, int index, Object value);
     }
 
-    public static abstract class ArrayNewStoreNode extends RubyBaseNode {
+    public static abstract class ArrayNewStoreNode extends ContextRubyNode {
 
         public abstract Object execute(int size);
     }
 
-    public static abstract class ArrayCopyStoreNode extends RubyBaseNode {
+    public static abstract class ArrayCopyStoreNode extends ContextRubyNode {
 
         public abstract Object execute(Object store, int size);
     }
 
-    public static abstract class ArrayCopyToNode extends RubyBaseNode {
+    public static abstract class ArrayCopyToNode extends ContextRubyNode {
 
         public abstract void execute(Object from, Object to, int sourceStart, int destinationStart, int length);
     }
 
-    public static abstract class ArrayExtractRangeNode extends RubyBaseNode {
+    public static abstract class ArrayExtractRangeNode extends ContextRubyNode {
 
         public abstract Object execute(Object store, int start, int end);
     }
 
-    public static abstract class ArraySortNode extends RubyBaseNode {
+    public static abstract class ArraySortNode extends ContextRubyNode {
 
         public abstract void execute(Object store, int size);
     }
 
-    public static abstract class ArrayBoxedCopyNode extends RubyBaseNode {
+    public static abstract class ArrayBoxedCopyNode extends ContextRubyNode {
 
         protected ArrayStrategy strategy;
 
@@ -85,7 +85,7 @@ public class ArrayOperationNodes {
         }
     }
 
-    public static abstract class ArrayUnshareStorageNode extends RubyBaseNode {
+    public static abstract class ArrayUnshareStorageNode extends ContextRubyNode {
 
         public abstract Object execute(DynamicObject array);
     }
@@ -102,7 +102,7 @@ public class ArrayOperationNodes {
         }
     }
 
-    public static abstract class ArrayExtractRangeCopyOnWriteNode extends RubyBaseNode {
+    public static abstract class ArrayExtractRangeCopyOnWriteNode extends ContextRubyNode {
 
         public abstract Object execute(DynamicObject array, int start, int end);
     }

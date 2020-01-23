@@ -34,13 +34,18 @@ public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected DynamicObject binding(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode,
-            @Cached("getEncapsulatingSourceSection()") SourceSection sourceSection) {
+            @Cached("getMyEncapsulatingSourceSection()") SourceSection sourceSection) {
         return BindingNodes.createBinding(getContext(), frame.materialize(), sourceSection);
     }
 
     @Specialization
     protected Object fallback(VirtualFrame frame, Object self) {
         return rewriteAndCall(frame, self);
+    }
+
+    protected SourceSection getMyEncapsulatingSourceSection() {
+        // Node#getEncapsulatingSourceSection is filtered out in DSL, calling indirectly
+        return this.getEncapsulatingSourceSection();
     }
 
 }

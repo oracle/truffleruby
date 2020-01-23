@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class LexicalScopeNode extends RubyNode {
+public class LexicalScopeNode extends ContextSourceRubyNode {
 
     private final LexicalScope lexicalScope;
 

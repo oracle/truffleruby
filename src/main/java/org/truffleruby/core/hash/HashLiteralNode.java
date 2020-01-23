@@ -9,10 +9,10 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -20,8 +20,9 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
-public abstract class HashLiteralNode extends RubyNode {
+public abstract class HashLiteralNode extends ContextSourceRubyNode {
 
     @Children protected final RubyNode[] keyValues;
 
@@ -51,7 +52,7 @@ public abstract class HashLiteralNode extends RubyNode {
     public static class EmptyHashLiteralNode extends HashLiteralNode {
 
         public EmptyHashLiteralNode() {
-            super(RubyNode.EMPTY_ARRAY);
+            super(EMPTY_CONTEXT_SOURCE_RUBY_NODES);
         }
 
         @Override

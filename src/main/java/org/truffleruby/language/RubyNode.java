@@ -1,18 +1,8 @@
-/*
- * Copyright (c) 2013, 2019 Oracle and/or its affiliates. All rights reserved. This
- * code is released under a tri EPL/GPL/LGPL license. You can use it,
- * redistribute it and/or modify it under the terms of the:
- *
- * Eclipse Public License version 2.0, or
- * GNU General Public License version 2, or
- * GNU Lesser General Public License version 2.1.
- */
 package org.truffleruby.language;
 
-import org.truffleruby.core.kernel.TraceManager;
-import org.truffleruby.stdlib.CoverageManager;
+import java.math.BigInteger;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.InstrumentableNode;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
@@ -20,29 +10,44 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+import org.jcodings.Encoding;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.exception.CoreExceptions;
+import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.stdlib.CoverageManager;
 
-public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
+/**RubyNode has source, execute, and is instrument-able.
+ * However, it does not have any fields which would prevent using @GenerateUncached.
+ * It should never be subclassed directly, either use {@link ContextSourceRubyNode}
+ * or {@link UncacheableSourceRubyNode}.
+ * SourceRubyNode is not defined since there was no use for it for now.
+ * Nodes having context are described by {@link WithContext}.
+ * There is also {@link ContextRubyNode} if context is needed but source is not. */
+public abstract class RubyNode extends BaseRubyNode implements InstrumentableNode {
 
-    private static final int NO_SOURCE = -1;
+    private static final byte FLAG_NEWLINE = 0;
+    private static final byte FLAG_COVERAGE_LINE = 1;
+    private static final byte FLAG_CALL = 2;
+    private static final byte FLAG_ROOT = 3;
 
-    private static final int FLAG_NEWLINE = 0;
-    private static final int FLAG_COVERAGE_LINE = 1;
-    private static final int FLAG_CALL = 2;
-    private static final int FLAG_ROOT = 3;
+    protected static final int NO_SOURCE = -1;
 
-    public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
-    public static final Object[] EMPTY_ARGUMENTS = new Object[]{};
+    {
+        setSourceCharIndex(NO_SOURCE);
+    }
 
-    private int sourceCharIndex = NO_SOURCE;
-    private int sourceLength;
-
-    protected byte flags;
+    abstract public Object isDefined(VirtualFrame frame);
 
     // Fundamental execute methods
 
-    public abstract Object execute(VirtualFrame frame);
+    abstract public Object execute(VirtualFrame frame);
 
     /**
      * This method does not start with "execute" on purpose, so the Truffle DSL does not generate
@@ -52,49 +57,67 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         execute(frame);
     }
 
-    public Object isDefined(VirtualFrame frame) {
-        assert !(this instanceof WrapperNode);
-        return coreStrings().EXPRESSION.createInstance();
+    // Source
+
+    abstract protected int getSourceCharIndex();
+
+    abstract protected void setSourceCharIndex(int sourceCharIndex);
+
+    abstract protected int getSourceLength();
+
+    abstract protected void setSourceLength(int sourceLength);
+
+    public boolean hasSource() {
+        return getSourceCharIndex() != NO_SOURCE;
     }
 
-    // Instrumentation
+    public void unsafeSetSourceSection(SourceIndexLength sourceIndexLength) {
+        assert !hasSource();
 
-    public WrapperNode createWrapper(ProbeNode probe) {
-        return new RubyNodeWrapperWithIsDefined(this, probe);
-    }
-
-    public boolean isInstrumentable() {
-        return hasSource();
-    }
-
-    // Source section
-
-    public void unsafeSetSourceSection(SourceIndexLength sourceSection) {
-        assert sourceCharIndex == NO_SOURCE;
-
-        if (sourceSection != null) {
-            sourceCharIndex = sourceSection.getCharIndex();
-            sourceLength = sourceSection.getLength();
+        if (sourceIndexLength != null) {
+            setSourceCharIndex(sourceIndexLength.getCharIndex());
+            setSourceLength(sourceIndexLength.getLength());
         }
     }
 
     public void unsafeSetSourceSection(SourceSection sourceSection) {
-        assert sourceCharIndex == NO_SOURCE;
+        assert !hasSource();
 
         if (sourceSection.isAvailable()) {
-            sourceCharIndex = sourceSection.getCharIndex();
-            sourceLength = sourceSection.getCharLength();
+            setSourceCharIndex(sourceSection.getCharIndex());
+            setSourceLength(sourceSection.getCharLength());
         } else {
-            sourceCharIndex = 0;
-            sourceLength = SourceIndexLength.UNAVAILABLE;
+            setSourceCharIndex(0);
+            setSourceLength(SourceIndexLength.UNAVAILABLE);
         }
     }
 
-    public boolean hasSource() {
-        return sourceCharIndex != NO_SOURCE;
+    public SourceIndexLength getSourceIndexLength() {
+        if (!hasSource()) {
+            return null;
+        } else {
+            return new SourceIndexLength(getSourceCharIndex(), getSourceLength());
+        }
     }
 
-    protected Source getSource() {
+    @Override
+    @CompilerDirectives.TruffleBoundary
+    public SourceSection getSourceSection() {
+        if (!hasSource()) {
+            return null;
+        } else {
+            final com.oracle.truffle.api.source.Source source = getSource();
+
+            if (source == null) {
+                return null;
+            }
+
+            return getSourceIndexLength().toSourceSection(source);
+        }
+
+    }
+
+    private com.oracle.truffle.api.source.Source getSource() {
         final RootNode rootNode = getRootNode();
 
         if (rootNode == null) {
@@ -110,19 +133,10 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         return sourceSection.getSource();
     }
 
-    public SourceIndexLength getSourceIndexLength() {
-        if (sourceCharIndex == NO_SOURCE) {
-            return null;
-        } else {
-            return new SourceIndexLength(sourceCharIndex, sourceLength);
-        }
-    }
-
     public SourceIndexLength getEncapsulatingSourceIndexLength() {
         Node node = this;
-
         while (node != null) {
-            if (node instanceof RubyNode && ((RubyNode) node).sourceCharIndex != NO_SOURCE) {
+            if (node instanceof RubyNode && ((RubyNode) node).hasSource()) {
                 return ((RubyNode) node).getSourceIndexLength();
             }
 
@@ -136,88 +150,125 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         return null;
     }
 
-    @TruffleBoundary
+    // Instrumentation
+
     @Override
-    public SourceSection getSourceSection() {
-        if (sourceCharIndex == NO_SOURCE) {
-            return null;
-        } else {
-            final Source source = getSource();
-
-            if (source == null) {
-                return null;
-            }
-
-            return getSourceIndexLength().toSourceSection(source);
-        }
+    public boolean isInstrumentable() {
+        return hasSource();
     }
 
-    // Tags
+    protected abstract byte getFlags();
+
+    protected abstract void setFlags(byte flags);
+
+    private void setFlag(byte flag) {
+        setFlags((byte) (getFlags() | 1 << flag));
+    }
 
     public void unsafeSetIsNewLine() {
-        flags |= 1 << FLAG_NEWLINE;
+        setFlag(FLAG_NEWLINE);
     }
 
     public void unsafeSetIsCoverageLine() {
-        flags |= 1 << FLAG_COVERAGE_LINE;
+        setFlag(FLAG_COVERAGE_LINE);
     }
 
     public void unsafeSetIsCall() {
-        flags |= 1 << FLAG_CALL;
+        setFlag(FLAG_CALL);
     }
 
     public void unsafeSetIsRoot() {
-        flags |= 1 << FLAG_ROOT;
+        setFlag(FLAG_ROOT);
     }
 
-    protected boolean isNewLine() {
-        return ((flags >> FLAG_NEWLINE) & 1) == 1;
-    }
-
-    protected boolean isCoverageLine() {
-        return ((flags >> FLAG_COVERAGE_LINE) & 1) == 1;
-    }
-
-    protected boolean isCall() {
-        return ((flags >> FLAG_CALL) & 1) == 1;
-    }
-
-    protected boolean isRoot() {
-        return ((flags >> FLAG_ROOT) & 1) == 1;
-    }
-
+    @Override
     public boolean hasTag(Class<? extends Tag> tag) {
+        byte flags = getFlags();
         if (tag == TraceManager.CallTag.class || tag == StandardTags.CallTag.class) {
-            return isCall();
+            return isTag(flags, FLAG_CALL);
         }
 
         if (tag == TraceManager.LineTag.class || tag == StandardTags.StatementTag.class) {
-            return isNewLine();
+            return isTag(flags, FLAG_NEWLINE);
         }
 
         if (tag == CoverageManager.LineTag.class) {
-            return isCoverageLine();
+            return isTag(flags, FLAG_COVERAGE_LINE);
         }
 
         if (tag == StandardTags.RootTag.class) {
-            return isRoot();
+            return isTag(flags, FLAG_ROOT);
         }
 
         return false;
     }
 
-    // Boundaries
+    private static boolean isTag(byte flags, byte flag) {
+        return ((flags >> flag) & 1) == 1;
+    }
 
-    @TruffleBoundary
     @Override
-    public SourceSection getEncapsulatingSourceSection() {
-        return super.getEncapsulatingSourceSection();
+    public WrapperNode createWrapper(ProbeNode probe) {
+        return new RubyNodeWrapperWithIsDefined(this, probe);
     }
 
-    // Helpers
+    public interface WithContext {
+        RubyContext getContext();
 
-    public static RubyNode[] createArray(int size) {
-        return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
+        // Guards which use the context and so can't be static
+
+        default boolean isNil(Object value) {
+            return value == nil();
+        }
+
+        // Helpers methods for terseness, keep in sync
+
+        default DynamicObject nil() {
+            return coreLibrary().nil;
+        }
+
+        default DynamicObject getSymbol(String name) {
+            return getContext().getSymbolTable().getSymbol(name);
+        }
+
+        default DynamicObject getSymbol(Rope name) {
+            return getContext().getSymbolTable().getSymbol(name);
+        }
+
+        default Encoding getLocaleEncoding() {
+            return getContext().getEncodingManager().getLocaleEncoding();
+        }
+
+        default DynamicObject createArray(Object store, int size) {
+            return ArrayHelpers.createArray(getContext(), store, size);
+        }
+
+        default DynamicObject createArray(Object[] store) {
+            return createArray(store, store.length);
+        }
+
+        default DynamicObject createBignum(BigInteger value) {
+            return BignumOperations.createBignum(getContext(), value);
+        }
+
+        default CoreStrings coreStrings() {
+            return getContext().getCoreStrings();
+        }
+
+        default CoreLibrary coreLibrary() {
+            return getContext().getCoreLibrary();
+        }
+
+        default CoreExceptions coreExceptions() {
+            return getContext().getCoreExceptions();
+        }
+
+        default int getIdentityCacheLimit() {
+            return getContext().getOptions().IDENTITY_CACHE;
+        }
+
+        default int getDefaultCacheLimit() {
+            return getContext().getOptions().DEFAULT_CACHE;
+        }
     }
-
 }

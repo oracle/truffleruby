@@ -13,16 +13,16 @@ import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.ContextRubyNode;
 
 /**
  * Take a Ruby object that has an encoding and extracts the Java-level encoding object.
  */
-public abstract class ToEncodingNode extends RubyBaseNode {
+public abstract class ToEncodingNode extends ContextRubyNode {
 
     public static ToEncodingNode create() {
         return ToEncodingNodeGen.create();

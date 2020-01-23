@@ -19,7 +19,6 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 
@@ -58,13 +57,13 @@ public abstract class PolyglotNodes {
                 @Cached("create(parse(id, source))") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode idEqualNode,
                 @Cached RopeNodes.EqualNode sourceEqualNode) {
-            return callNode.call(RubyNode.EMPTY_ARGUMENTS);
+            return callNode.call(EMPTY_ARGUMENTS);
         }
 
         @Specialization(guards = { "isRubyString(id)", "isRubyString(source)" }, replaces = "evalCached")
         protected Object evalUncached(DynamicObject id, DynamicObject source,
                 @Cached IndirectCallNode callNode) {
-            return callNode.call(parse(id, source), RubyNode.EMPTY_ARGUMENTS);
+            return callNode.call(parse(id, source), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary

@@ -10,7 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayToObjectArrayNode extends RubyBaseNode {
+public abstract class ArrayToObjectArrayNode extends ContextRubyNode {
 
     public static ArrayToObjectArrayNode create() {
         return ArrayToObjectArrayNodeGen.create();

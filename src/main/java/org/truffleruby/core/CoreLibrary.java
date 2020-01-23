@@ -39,8 +39,8 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
+import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.JavaException;
@@ -268,7 +268,7 @@ public class CoreLibrary {
 
     private State state = State.INITIALIZING;
 
-    private static class CoreLibraryNode extends RubyBaseNode {
+    private static class CoreLibraryNode extends ContextRubyNode {
 
         @Child SingletonClassNode singletonClassNode;
 

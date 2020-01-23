@@ -18,8 +18,6 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -27,6 +25,8 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.ContextRubyNode;
 
 /*
  * TODO(CS): how does this work when when multithreaded? Could a node get replaced by someone else and
@@ -44,7 +44,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * by another thread or by another usage (e.g. recursive) of this ArrayBuilderNode.</li>
  * </ul>
  */
-public abstract class ArrayBuilderNode extends RubyBaseNode {
+public abstract class ArrayBuilderNode extends ContextRubyNode {
 
     public static ArrayBuilderNode create() {
         return new ArrayBuilderProxyNode();
@@ -128,7 +128,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
     }
 
-    public abstract static class ArrayBuilderBaseNode extends RubyBaseWithoutContextNode {
+    public abstract static class ArrayBuilderBaseNode extends BaseRubyNode {
 
         protected void replaceNodes(ArrayStrategy strategy, int size) {
             final ArrayBuilderProxyNode parent = (ArrayBuilderProxyNode) getParent();

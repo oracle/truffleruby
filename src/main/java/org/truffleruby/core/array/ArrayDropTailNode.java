@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -17,10 +17,11 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.RubyNode;
 
-@NodeChild("array")
+@NodeChild(value = "array", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayDropTailNode extends RubyNode {
+public abstract class ArrayDropTailNode extends ContextSourceRubyNode {
 
     final int index;
 

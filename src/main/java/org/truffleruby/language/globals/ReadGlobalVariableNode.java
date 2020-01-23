@@ -11,7 +11,7 @@ package org.truffleruby.language.globals;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public abstract class ReadGlobalVariableNode extends RubyNode {
+public abstract class ReadGlobalVariableNode extends ContextSourceRubyNode {
 
     protected final String name;
     @Child private IsDefinedGlobalVariableNode definedNode;

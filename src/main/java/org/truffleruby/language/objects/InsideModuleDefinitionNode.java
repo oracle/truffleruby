@@ -10,12 +10,13 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.core.kernel.TraceManager;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.Tag;
+import org.truffleruby.language.RubyNode;
 
-public class InsideModuleDefinitionNode extends RubyNode {
+public class InsideModuleDefinitionNode extends ContextSourceRubyNode {
 
     @Child private RubyNode body;
 

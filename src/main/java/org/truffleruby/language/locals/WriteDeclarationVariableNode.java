@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -17,7 +18,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class WriteDeclarationVariableNode extends RubyNode {
+public class WriteDeclarationVariableNode extends ContextSourceRubyNode {
 
     private final int frameDepth;
     private final FrameSlot frameSlot;

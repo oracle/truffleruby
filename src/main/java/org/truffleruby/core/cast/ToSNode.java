@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -22,7 +23,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class ToSNode extends RubyNode {
+public abstract class ToSNode extends ContextSourceRubyNode {
 
     @Child private KernelNodes.ToSNode kernelToSNode;
 

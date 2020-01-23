@@ -10,12 +10,12 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.instrumentation.InstrumentableNode.WrapperNode;
+import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.nodes.NodeCost;
 
 // Defined manually rather than generated because we need to delegate isDefined()
-final class RubyNodeWrapperWithIsDefined extends RubyNode implements WrapperNode {
+final class RubyNodeWrapperWithIsDefined extends ContextSourceRubyNode implements WrapperNode {
 
     @Child private RubyNode delegateNode;
     @Child private ProbeNode probeNode;

@@ -15,7 +15,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -41,7 +41,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
  */
 @ReportPolymorphism
 @GenerateUncached
-public abstract class LookupMethodNode extends RubyBaseWithoutContextNode {
+public abstract class LookupMethodNode extends BaseRubyNode {
 
     public static LookupMethodNode create() {
         return LookupMethodNodeGen.create();

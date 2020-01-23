@@ -10,6 +10,7 @@
 package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.cast.ProcOrNullNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -18,7 +19,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class SuperCallNode extends RubyNode {
+public class SuperCallNode extends ContextSourceRubyNode {
 
     @Child private RubyNode arguments;
     @Child private RubyNode block;

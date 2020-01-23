@@ -9,17 +9,18 @@
  */
 package org.truffleruby.language.control;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
 /**
  * Executes a child node just once, and uses the same value each subsequent time the node is
  * executed.
  */
-public class OnceNode extends RubyNode {
+public class OnceNode extends ContextSourceRubyNode {
 
     @Child private RubyNode child;
 

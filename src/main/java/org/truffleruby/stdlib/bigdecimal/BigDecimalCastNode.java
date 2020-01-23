@@ -41,7 +41,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
@@ -53,7 +53,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(BigDecimalCoreMethodNode.class)
-public abstract class BigDecimalCastNode extends RubyBaseNode {
+public abstract class BigDecimalCastNode extends ContextRubyNode {
 
     private static final int RMPD_COMPONENT_FIGURES = 19;
 

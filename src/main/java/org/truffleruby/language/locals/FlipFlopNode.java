@@ -11,11 +11,12 @@ package org.truffleruby.language.locals;
 
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.RubyNode;
 
-public class FlipFlopNode extends RubyNode {
+public class FlipFlopNode extends ContextSourceRubyNode {
 
     private final boolean exclusive;
 

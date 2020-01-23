@@ -9,8 +9,8 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadUserKeywordsHashNode extends RubyNode {
+public class ReadUserKeywordsHashNode extends ContextSourceRubyNode {
 
     private final int minArgumentCount;
 

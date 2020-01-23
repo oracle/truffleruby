@@ -369,7 +369,9 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        public static void doJoin(RubyNode currentNode, final DynamicObject thread) {
+        public static <T extends RubyNode & RubyNode.WithContext> void doJoin(
+                T currentNode, final DynamicObject thread) {
+
             final RubyContext context = currentNode.getContext();
             context.getThreadManager().runUntilResult(currentNode, () -> {
                 Layouts.THREAD.getFinishedLatch(thread).await();

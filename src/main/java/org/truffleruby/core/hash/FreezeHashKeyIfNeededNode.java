@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsFrozenNode;
 
@@ -17,7 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class FreezeHashKeyIfNeededNode extends RubyBaseNode {
+public abstract class FreezeHashKeyIfNeededNode extends ContextRubyNode {
 
     @Child private IsFrozenNode isFrozenNode;
     @Child private CallDispatchHeadNode dupNode;

@@ -9,14 +9,14 @@
  */
 package org.truffleruby.language.literal;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(cost = NodeCost.NONE)
-public class NilLiteralNode extends RubyNode {
+public class NilLiteralNode extends ContextSourceRubyNode {
 
     private final boolean isImplicit;
 

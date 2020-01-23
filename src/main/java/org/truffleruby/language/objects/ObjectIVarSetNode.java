@@ -11,7 +11,7 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class ObjectIVarSetNode extends RubyBaseWithoutContextNode {
+public abstract class ObjectIVarSetNode extends BaseRubyNode {
 
     public static ObjectIVarSetNode create() {
         return ObjectIVarSetNodeGen.create();

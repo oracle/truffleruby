@@ -9,11 +9,11 @@
  */
 package org.truffleruby.language.control;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class RetryNode extends RubyNode {
+public class RetryNode extends ContextSourceRubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

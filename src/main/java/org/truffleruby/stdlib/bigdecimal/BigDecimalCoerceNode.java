@@ -9,6 +9,7 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
@@ -25,7 +26,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * normal coercion logic. Also see calls to <code>#redo_coerced</code> in nodes in {@link BigDecimalNodes}.
  */
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class BigDecimalCoerceNode extends RubyNode {
+public abstract class BigDecimalCoerceNode extends ContextSourceRubyNode {
 
     @Specialization
     protected Object coerce(int value,

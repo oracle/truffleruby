@@ -16,7 +16,8 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ProcOrNullNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.BlockDefinitionNode;
@@ -31,7 +32,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class RubyCallNode extends RubyNode {
+public class RubyCallNode extends ContextSourceRubyNode {
 
     private final String methodName;
 
@@ -170,7 +171,7 @@ public class RubyCallNode extends RubyNode {
         return hasLiteralBlock;
     }
 
-    private class DefinedNode extends RubyBaseWithoutContextNode {
+    private class DefinedNode extends BaseRubyNode {
 
         private final DynamicObject methodNameSymbol = getContext().getSymbolTable().getSymbol(methodName);
 

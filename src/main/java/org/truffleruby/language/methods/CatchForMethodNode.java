@@ -9,18 +9,19 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.LocalReturnException;
 import org.truffleruby.language.control.DynamicReturnException;
-import org.truffleruby.language.control.ReturnID;
+import org.truffleruby.language.control.LocalReturnException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
+import org.truffleruby.language.control.ReturnID;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class CatchForMethodNode extends RubyNode {
+public class CatchForMethodNode extends ContextSourceRubyNode {
 
     private final ReturnID returnID;
 

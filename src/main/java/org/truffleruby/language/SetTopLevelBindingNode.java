@@ -18,7 +18,7 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class SetTopLevelBindingNode extends RubyNode {
+public class SetTopLevelBindingNode extends ContextSourceRubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

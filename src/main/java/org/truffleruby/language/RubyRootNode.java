@@ -46,8 +46,8 @@ public class RubyRootNode extends RubyBaseRootNode {
         this.body = body;
         this.allowCloning = allowCloning;
 
-        // Ensure the body node is instrumentable, which requires a non-null SourceSection
-        if (!body.hasSource()) {
+        // Ensure the body node is instrument-able, which requires a non-null SourceSection
+        if (!body.isInstrumentable()) {
             body.unsafeSetSourceSection(getSourceSection());
         }
 

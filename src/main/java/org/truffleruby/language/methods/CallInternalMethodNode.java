@@ -10,7 +10,6 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
@@ -19,10 +18,11 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import org.truffleruby.language.BaseRubyNode;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class CallInternalMethodNode extends RubyBaseWithoutContextNode {
+public abstract class CallInternalMethodNode extends BaseRubyNode {
 
     public static CallInternalMethodNode create() {
         return CallInternalMethodNodeGen.create();

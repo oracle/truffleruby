@@ -61,6 +61,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -74,20 +75,20 @@ import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.BreakNode;
+import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.ElidableResultNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.IfNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
-import org.truffleruby.language.control.ReturnID;
-import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.OnceNode;
 import org.truffleruby.language.control.OrNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
 import org.truffleruby.language.control.RetryNode;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.control.UnlessNode;
 import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.defined.DefinedNode;
@@ -348,7 +349,7 @@ public class BodyTranslator extends Translator {
             translatedNodes.add(catNode.accept(this));
         }
 
-        final RubyNode ret = new ArrayConcatNode(translatedNodes.toArray(RubyNode.EMPTY_ARRAY));
+        final RubyNode ret = new ArrayConcatNode(translatedNodes.toArray(RubyNode.EMPTY_RUBY_NODES));
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
@@ -387,7 +388,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitArrayNode(ArrayParseNode node) {
         final ParseNode[] values = node.children();
 
-        final RubyNode[] translatedValues = RubyNode.createArray(values.length);
+        final RubyNode[] translatedValues = ContextSourceRubyNode.createArray(values.length);
 
         for (int n = 0; n < values.length; n++) {
             translatedValues[n] = values[n].accept(this);
@@ -512,8 +513,8 @@ public class BodyTranslator extends Translator {
 
         final RubyNode translated = translateCallNode(node, false, false, false);
 
-        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice but can't figure it out here
-
+        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice
+        //  but can't figure it out here
         if (!translated.hasSource()) {
             translated.unsafeSetSourceSection(sourceSection);
         }
@@ -577,7 +578,7 @@ public class BodyTranslator extends Translator {
 
         final SourceIndexLength enclosingSourceSection = enclosing(
                 sourceSection,
-                children.toArray(RubyNode.EMPTY_ARRAY));
+                children.toArray(RubyNode.EMPTY_RUBY_NODES));
 
         RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
                 receiver,
@@ -670,7 +671,7 @@ public class BodyTranslator extends Translator {
             throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
-        final RubyNode[] argumentsTranslated = RubyNode.createArray(arguments.length);
+        final RubyNode[] argumentsTranslated = ContextSourceRubyNode.createArray(arguments.length);
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
         }
@@ -1514,8 +1515,8 @@ public class BodyTranslator extends Translator {
             this.translatingForStatement = translatingForStatement;
         }
 
-        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice but can't figure it out here
-
+        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice
+        //  but can't figure it out here
         if (!translated.hasSource()) {
             translated.unsafeSetSourceSection(node.getPosition());
         }
@@ -1617,7 +1618,7 @@ public class BodyTranslator extends Translator {
             if (pair.getKey() == null) {
                 // This null case is for splats {a: 1, **{b: 2}, c: 3}
                 final RubyNode hashLiteralSoFar = HashLiteralNode
-                        .create(context, keyValues.toArray(RubyNode.EMPTY_ARRAY));
+                        .create(context, keyValues.toArray(RubyNode.EMPTY_RUBY_NODES));
                 hashConcats.add(hashLiteralSoFar);
                 hashConcats.add(new EnsureSymbolKeysNode(
                         HashCastNodeGen.create(pair.getValue().accept(this))));
@@ -1633,7 +1634,7 @@ public class BodyTranslator extends Translator {
             }
         }
 
-        final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(RubyNode.EMPTY_ARRAY));
+        final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(RubyNode.EMPTY_RUBY_NODES));
         hashConcats.add(hashLiteralSoFar);
 
         if (hashConcats.size() == 1) {
@@ -1641,7 +1642,7 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        final RubyNode ret = new ConcatHashLiteralNode(hashConcats.toArray(RubyNode.EMPTY_ARRAY));
+        final RubyNode ret = new ConcatHashLiteralNode(hashConcats.toArray(RubyNode.EMPTY_RUBY_NODES));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2915,7 +2916,7 @@ public class BodyTranslator extends Translator {
             SourceIndexLength sourceSection) {
         final ParseNode[] exceptionNodes = arrayParse.children();
 
-        final RubyNode[] handlingClasses = RubyNode.createArray(exceptionNodes.length);
+        final RubyNode[] handlingClasses = ContextSourceRubyNode.createArray(exceptionNodes.length);
 
         for (int n = 0; n < handlingClasses.length; n++) {
             handlingClasses[n] = exceptionNodes[n].accept(this);
@@ -3175,7 +3176,7 @@ public class BodyTranslator extends Translator {
             arguments = new ParseNode[]{ node.getArgsNode() };
         }
 
-        final RubyNode[] argumentsTranslated = RubyNode.createArray(arguments.length);
+        final RubyNode[] argumentsTranslated = ContextSourceRubyNode.createArray(arguments.length);
 
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
@@ -3190,7 +3191,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitZArrayNode(ZArrayParseNode node) {
-        final RubyNode ret = ArrayLiteralNode.create(RubyNode.EMPTY_ARRAY);
+        final RubyNode ret = ArrayLiteralNode.create(RubyNode.EMPTY_RUBY_NODES);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
@@ -3211,7 +3212,7 @@ public class BodyTranslator extends Translator {
     }
 
     protected RubyNode initFlipFlopStates(SourceIndexLength sourceSection) {
-        final RubyNode[] initNodes = RubyNode.createArray(environment.getFlipFlopStates().size());
+        final RubyNode[] initNodes = ContextSourceRubyNode.createArray(environment.getFlipFlopStates().size());
 
         for (int n = 0; n < initNodes.length; n++) {
             initNodes[n] = new InitFlipFlopSlotNode(environment.getFlipFlopStates().get(n));

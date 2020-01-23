@@ -14,7 +14,7 @@ import java.util.Arrays;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -34,7 +34,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @GenerateUncached
 /* This node is called either with cached name from CachedForeignDispatchNode
  * or from DSLUncachedDispatchNode where it uses uncached version of this node. */
-public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode {
+public abstract class OutgoingForeignCallNode extends BaseRubyNode {
 
     // TODO (pitr-ch 01-Apr-2019): support to_int special form with new interop, consider others
     // TODO (pitr-ch 16-Sep-2019): merge into a dispatch node when it is migrated to DSL
@@ -288,7 +288,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseWithoutContextNode
     @GenerateUncached
     protected abstract static class PrimitiveConversionForOperatorAndReDispatchOutgoingNode
             extends
-            RubyBaseWithoutContextNode {
+            BaseRubyNode {
 
         protected int getCacheLimit() {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;

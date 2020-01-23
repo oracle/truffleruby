@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -24,7 +25,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToAryNode extends RubyNode {
+public abstract class ToAryNode extends ContextSourceRubyNode {
 
     @Child private CallDispatchHeadNode toAryNode;
 

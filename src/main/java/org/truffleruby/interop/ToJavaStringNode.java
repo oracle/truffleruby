@@ -16,8 +16,8 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -26,14 +26,15 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.RubyNode;
 
 @GenerateUncached
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
-public abstract class ToJavaStringNode extends RubyBaseWithoutContextNode {
+public abstract class ToJavaStringNode extends BaseRubyNode {
 
     // FIXME (pitr 12-Jun-2019): find a different way
     @NodeChild(value = "value", type = RubyNode.class)
-    public static abstract class RubyNodeWrapperNode extends RubyNode {
+    public static abstract class RubyNodeWrapperNode extends ContextSourceRubyNode {
         @Specialization
         protected Object call(Object value,
                 @Cached ToJavaStringNode toJavaString) {

@@ -10,14 +10,14 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadBlockFromCurrentFrameArgumentsNode extends RubyNode {
+public class ReadBlockFromCurrentFrameArgumentsNode extends ContextSourceRubyNode {
 
     private final Object valueIfAbsent;
 

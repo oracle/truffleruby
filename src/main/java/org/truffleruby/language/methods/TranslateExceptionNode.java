@@ -15,7 +15,7 @@ import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -38,7 +38,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
-public abstract class TranslateExceptionNode extends RubyBaseWithoutContextNode {
+public abstract class TranslateExceptionNode extends BaseRubyNode {
 
     public static TranslateExceptionNode create() {
         return TranslateExceptionNodeGen.create();

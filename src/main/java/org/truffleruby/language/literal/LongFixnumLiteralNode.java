@@ -9,14 +9,14 @@
  */
 package org.truffleruby.language.literal;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(cost = NodeCost.NONE)
-public class LongFixnumLiteralNode extends RubyNode {
+public class LongFixnumLiteralNode extends ContextSourceRubyNode {
 
     private final long value;
 
