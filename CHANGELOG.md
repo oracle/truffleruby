@@ -11,6 +11,7 @@ Bug fixes:
 * Correctly handle large numbers of arguments to `rb_funcall` (#1882).
 * Added arity check to `Module#{include, prepend}`.
 * Fix `OpenSSL::Digest.{digest,hexdigest,base64digest}` to handle `algorithm, data` arguments (#1889, @bdewater).
+* Fixed `SystemCallError.new` parameter conversion.
 
 Compatibility:
 
