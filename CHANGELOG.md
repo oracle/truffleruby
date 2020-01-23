@@ -10,6 +10,7 @@ Bug fixes:
 * Fixed `NameError.new` and `NoMethodError.new` `:receiver` argument.
 * Correctly handle large numbers of arguments to `rb_funcall` (#1882).
 * Added arity check to `Module#{include, prepend}`.
+* Fix `OpenSSL::Digest.{digest,hexdigest,base64digest}` to handle `algorithm, data` arguments (#1889, @bdewater).
 
 Compatibility:
 
