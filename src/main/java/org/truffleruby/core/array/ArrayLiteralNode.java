@@ -102,7 +102,7 @@ public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return cachedCreateArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
     }
@@ -128,7 +128,7 @@ public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
                 }
             }
 
-            return createArray(executedValues, values.length);
+            return cachedCreateArray(executedValues, values.length);
         }
 
         private DynamicObject makeGeneric(VirtualFrame frame, final double[] executedValues, int n, Object value) {
@@ -165,7 +165,7 @@ public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
                 }
             }
 
-            return createArray(executedValues, values.length);
+            return cachedCreateArray(executedValues, values.length);
         }
 
         private DynamicObject makeGeneric(VirtualFrame frame, final int[] executedValues, int n, Object value) {
@@ -202,7 +202,7 @@ public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
                 }
             }
 
-            return createArray(executedValues, values.length);
+            return cachedCreateArray(executedValues, values.length);
         }
 
         private DynamicObject makeGeneric(VirtualFrame frame, final long[] executedValues, int n, Object value) {
@@ -233,7 +233,7 @@ public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
                 executedValues[n] = values[n].execute(frame);
             }
 
-            return createArray(executedValues, values.length);
+            return cachedCreateArray(executedValues, values.length);
         }
 
     }
@@ -254,7 +254,7 @@ public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
                 executedValues[n] = values[n].execute(frame);
             }
 
-            final DynamicObject array = createArray(storeSpecialisedFromObjects(executedValues), executedValues.length);
+            final DynamicObject array = cachedCreateArray(storeSpecialisedFromObjects(executedValues), executedValues.length);
             final Object store = Layouts.ARRAY.getStore(array);
 
             final RubyNode newNode;
