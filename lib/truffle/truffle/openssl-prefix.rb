@@ -13,9 +13,15 @@ require 'rbconfig'
 macOS = RbConfig::CONFIG['host_os'].include?('darwin')
 
 if macOS && !ENV['OPENSSL_PREFIX']
-  homebrew_prefix = `brew --prefix openssl 2>/dev/null`.chomp
-  if $?.success? and Dir.exist?(homebrew_prefix) # Homebrew
-    ENV['OPENSSL_PREFIX'] = homebrew_prefix
+  homebrew = `brew --prefix 2>/dev/null`.strip
+  unless $?.success? and !homebrew.empty? and Dir.exist?(homebrew)
+    homebrew = nil
+  end
+
+  if homebrew and prefix = "#{homebrew}/opt/openssl@1.1" and Dir.exist?(prefix)
+    ENV['OPENSSL_PREFIX'] = prefix
+  elsif homebrew and prefix = "#{homebrew}/opt/openssl" and Dir.exist?(prefix)
+    ENV['OPENSSL_PREFIX'] = prefix
   elsif Dir.exist?('/opt/local/include/openssl') # MacPorts
     ENV['OPENSSL_PREFIX'] = '/opt/local'
   else
