@@ -91,21 +91,11 @@ class Range
   private def midpoint(low, high)
     mid1 = (low + high) / 2
     mid2 = low/2 + high/2
-    return mid2 if mid1.abs.infinite? # potential overflow
-    return mid1 if mid2 == 0.0 # potential underflow
+    mid1.abs.infinite? ? mid2 : mid1 # mitigate potential overflow
 
-    # NOTE(norswap, 22 Jan. 2020)
-    #   It's at least necessary to fallback on mid2 to avoid overflows to infinity.
-    #   The additional logic minimizes the rounding error when averaging by comparing the two methods, by
-    #   picking the one that gives the most "centered" midpoint (minizes difference of distance to high and low).
-
-    d11 = high - mid1
-    d12 = mid1 - low
-    d21 = high - mid2
-    d22 = mid2 - low
-    diff1 = d11 > d12 ? d11-d12 : d12-d11
-    diff2 = d21 > d22 ? d21-d22 : d22-d21
-    diff1 < diff2 ? mid1 : mid2
+    # NOTE(norswap, 23 Jan. 2020)
+    #   This might not be a very "centered" midpoint, but it's sufficient to cut the range so that we still get
+    #   ~ O(log n) binary search runtime.
   end
 
   private def bsearch_float(&block)
