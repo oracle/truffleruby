@@ -43,13 +43,13 @@ describe "Java strings" do
   it "can be printed with #puts" do
     -> {
       puts Truffle::Interop.to_java_string('a')
-    }.should output("a\n")
+    }.should output_to_fd("a\n")
   end
 
   it "can be printed as if a Ruby string with #p" do
     -> {
       p Truffle::Interop.to_java_string('a')
-    }.should output("\"a\"\n")
+    }.should output_to_fd("\"a\"\n")
   end
 
   it "respond to Java methods" do

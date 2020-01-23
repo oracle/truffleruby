@@ -18,13 +18,13 @@ describe "Foreign arrays" do
   it "can be printed with #puts" do
     -> {
       puts Truffle::Interop.to_java_array([1, 2, 3])
-    }.should output("1\n2\n3\n")
+    }.should output_to_fd("1\n2\n3\n")
   end
 
   it "can be printed with #p" do
     -> {
       p Truffle::Interop.to_java_array([1, 2, 3])
-    }.should output(/#<Java:0x\h+ \[1, 2, 3\]>/)
+    }.should output_to_fd(/#<Java:0x\h+ \[1, 2, 3\]>/)
   end
 
 end
