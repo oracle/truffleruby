@@ -254,7 +254,9 @@ public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
                 executedValues[n] = values[n].execute(frame);
             }
 
-            final DynamicObject array = cachedCreateArray(storeSpecialisedFromObjects(executedValues), executedValues.length);
+            final DynamicObject array = cachedCreateArray(
+                    storeSpecialisedFromObjects(executedValues),
+                    executedValues.length);
             final Object store = Layouts.ARRAY.getStore(array);
 
             final RubyNode newNode;

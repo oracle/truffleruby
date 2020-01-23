@@ -8,8 +8,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 /** Has both context but nothing else. */
 public abstract class ContextRubyNode extends BaseRubyNode implements RubyNode.WithContext {
 
-    @CompilerDirectives.CompilationFinal
-    private RubyContext context;
+    @CompilerDirectives.CompilationFinal private RubyContext context;
 
     // Accessors
 
