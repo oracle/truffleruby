@@ -31,7 +31,7 @@ public abstract class UnaryInlinedOperationNode extends InlinedOperationNode {
 
     @Override
     protected RubyNode[] getArgumentNodes() {
-        return EMPTY_CONTEXT_SOURCE_RUBY_NODES;
+        return RubyNode.EMPTY_ARRAY;
     }
 
 }

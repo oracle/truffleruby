@@ -132,7 +132,7 @@ public class ReloadArgumentsTranslator extends Translator {
             sequence.add(kwArgsNode);
         }
 
-        return new SequenceNode(sequence.toArray(RubyNode.EMPTY_RUBY_NODES));
+        return new SequenceNode(sequence.toArray(RubyNode.EMPTY_ARRAY));
     }
 
     @Override

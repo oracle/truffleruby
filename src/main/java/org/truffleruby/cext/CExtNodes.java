@@ -166,8 +166,7 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
 
-        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(
-                EMPTY_CONTEXT_SOURCE_RUBY_NODES);
+        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
         protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray,

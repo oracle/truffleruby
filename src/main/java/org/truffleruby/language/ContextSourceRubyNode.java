@@ -60,6 +60,8 @@ public abstract class ContextSourceRubyNode extends RubyNode implements RubyNode
 
     // Helpers
 
+    private static final ContextSourceRubyNode[] EMPTY_CONTEXT_SOURCE_RUBY_NODES = new ContextSourceRubyNode[]{};
+
     public static ContextSourceRubyNode[] createArray(int size) {
         return size == 0 ? EMPTY_CONTEXT_SOURCE_RUBY_NODES : new ContextSourceRubyNode[size];
     }

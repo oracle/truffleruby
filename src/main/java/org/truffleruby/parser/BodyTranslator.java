@@ -349,7 +349,7 @@ public class BodyTranslator extends Translator {
             translatedNodes.add(catNode.accept(this));
         }
 
-        final RubyNode ret = new ArrayConcatNode(translatedNodes.toArray(RubyNode.EMPTY_RUBY_NODES));
+        final RubyNode ret = new ArrayConcatNode(translatedNodes.toArray(RubyNode.EMPTY_ARRAY));
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }
@@ -578,7 +578,7 @@ public class BodyTranslator extends Translator {
 
         final SourceIndexLength enclosingSourceSection = enclosing(
                 sourceSection,
-                children.toArray(RubyNode.EMPTY_RUBY_NODES));
+                children.toArray(RubyNode.EMPTY_ARRAY));
 
         RubyCallNodeParameters callParameters = new RubyCallNodeParameters(
                 receiver,
@@ -1618,7 +1618,7 @@ public class BodyTranslator extends Translator {
             if (pair.getKey() == null) {
                 // This null case is for splats {a: 1, **{b: 2}, c: 3}
                 final RubyNode hashLiteralSoFar = HashLiteralNode
-                        .create(context, keyValues.toArray(RubyNode.EMPTY_RUBY_NODES));
+                        .create(context, keyValues.toArray(RubyNode.EMPTY_ARRAY));
                 hashConcats.add(hashLiteralSoFar);
                 hashConcats.add(new EnsureSymbolKeysNode(
                         HashCastNodeGen.create(pair.getValue().accept(this))));
@@ -1634,7 +1634,7 @@ public class BodyTranslator extends Translator {
             }
         }
 
-        final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(RubyNode.EMPTY_RUBY_NODES));
+        final RubyNode hashLiteralSoFar = HashLiteralNode.create(context, keyValues.toArray(RubyNode.EMPTY_ARRAY));
         hashConcats.add(hashLiteralSoFar);
 
         if (hashConcats.size() == 1) {
@@ -1642,7 +1642,7 @@ public class BodyTranslator extends Translator {
             return addNewlineIfNeeded(node, ret);
         }
 
-        final RubyNode ret = new ConcatHashLiteralNode(hashConcats.toArray(RubyNode.EMPTY_RUBY_NODES));
+        final RubyNode ret = new ConcatHashLiteralNode(hashConcats.toArray(RubyNode.EMPTY_ARRAY));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -3191,7 +3191,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitZArrayNode(ZArrayParseNode node) {
-        final RubyNode ret = ArrayLiteralNode.create(RubyNode.EMPTY_RUBY_NODES);
+        final RubyNode ret = ArrayLiteralNode.create(RubyNode.EMPTY_ARRAY);
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }

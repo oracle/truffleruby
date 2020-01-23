@@ -52,7 +52,7 @@ public abstract class HashLiteralNode extends ContextSourceRubyNode {
     public static class EmptyHashLiteralNode extends HashLiteralNode {
 
         public EmptyHashLiteralNode() {
-            super(EMPTY_CONTEXT_SOURCE_RUBY_NODES);
+            super(RubyNode.EMPTY_ARRAY);
         }
 
         @Override

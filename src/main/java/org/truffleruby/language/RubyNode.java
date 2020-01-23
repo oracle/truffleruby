@@ -42,6 +42,8 @@ import com.oracle.truffle.api.source.SourceSection;
  * There is also {@link ContextRubyNode} if context is needed but source is not. */
 public abstract class RubyNode extends BaseRubyNode implements InstrumentableNode {
 
+    public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
+
     private static final byte FLAG_NEWLINE = 0;
     private static final byte FLAG_COVERAGE_LINE = 1;
     private static final byte FLAG_CALL = 2;
