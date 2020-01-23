@@ -20,6 +20,7 @@ Compatibility:
 * Implemented `Float#{floor, ceil}` with `ndigits` argument.
 
 * Implemented `-p` CLI option.
+* Implemented "instance variable not initialized" warning.
 
 # 20.0.0
 

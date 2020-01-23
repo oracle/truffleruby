@@ -1063,8 +1063,10 @@ class IO
     if block_given?
       warn 'IO::new() does not take block; use IO::open() instead', uplevel: 1
     end
-
+    @binmode = nil
+    @external = nil
     @eof = false
+    @pid = nil
 
     mode, binary, external, internal, autoclose_tmp = IO.normalize_options(mode, options)
 

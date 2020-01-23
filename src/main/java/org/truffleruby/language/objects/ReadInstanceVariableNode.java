@@ -13,10 +13,12 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.WarningNode;
 
 public class ReadInstanceVariableNode extends RubyContextSourceNode {
 
@@ -25,12 +27,21 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
     @Child private RubyNode receiver;
     @Child private ReadObjectFieldNode readNode;
     @Child private ReadObjectFieldNode readOrNullNode;
+    @Child private WarningNode warningNode;
+    @Child private HasFieldNode hasFieldNode;
 
     private final ConditionProfile objectProfile = ConditionProfile.createBinaryProfile();
 
-    public ReadInstanceVariableNode(String name, RubyNode receiver) {
+    private final boolean warnIfUndefined;
+
+    public ReadInstanceVariableNode(String name, RubyNode receiver, boolean warnIfUndefined) {
+        this.warnIfUndefined = warnIfUndefined;
         this.name = name;
         this.receiver = receiver;
+    }
+
+    public ReadInstanceVariableNode(String name, RubyNode receiver) {
+        this(name, receiver, false);
     }
 
     @Override
@@ -38,10 +49,34 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
         final Object receiverObject = receiver.execute(frame);
 
         if (objectProfile.profile(receiverObject instanceof DynamicObject)) {
+            if (warnIfUndefined && !hasFieldNode((DynamicObject) receiverObject)) {
+                warnNotInitialized();
+            }
             return getReadNode().execute((DynamicObject) receiverObject, name, nil());
         } else {
             return nil();
         }
+    }
+
+    private boolean hasFieldNode(DynamicObject receiverObject) {
+        if (hasFieldNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            hasFieldNode = insert(HasFieldNode.create());
+        }
+        return hasFieldNode.execute(receiverObject, name);
+    }
+
+    private void warnNotInitialized() {
+        if (warningNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            warningNode = insert(new WarningNode());
+        }
+        warningNode.warningMessage(getSourceSection(), getWarningMessage());
+    }
+
+    @TruffleBoundary
+    private String getWarningMessage() {
+        return String.format("instance variable %s not initialized", name);
     }
 
     @Override
