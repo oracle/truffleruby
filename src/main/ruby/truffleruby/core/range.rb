@@ -27,6 +27,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Range
+
   include Enumerable
 
   # Only used if called directly with allocate + #initialize.
@@ -64,72 +65,188 @@ class Range
         self.exclude_end? == other.exclude_end?
   end
 
-  def bsearch
+  def bsearch(&block)
     return to_enum :bsearch unless block_given?
 
-    unless self.begin.kind_of? Numeric and self.end.kind_of? Numeric
-      raise TypeError, "bsearch is not available for #{self.begin.class}"
+    start = self.begin
+    stop  = self.end
+
+    if Float === start || Float === stop
+      return bsearch_float &block
+    elsif Integer === start
+      if stop.equal?(nil)
+        return bsearch_endless &block
+      elsif Integer === stop
+        return bsearch_integer &block
+      else
+        raise TypeError, "bsearch is not available for #{stop.class}"
+        end
+    else
+      raise TypeError, "bsearch is not available for #{start.class}"
+    end
+  end
+
+  private def midpoint(low, high)
+    mid1 = (low + high) / 2
+    mid2 = low/2 + high/2
+    return mid2 if mid1.abs.infinite? # potential overflow
+    return mid1 if mid2 == 0.0 # potential underflow
+
+    # NOTE(norswap, 22 Jan. 2020)
+    #   It's at least necessary to fallback on mid2 to avoid overflows to infinity.
+    #   The additional logic minimizes the rounding error when averaging by comparing the two methods, by
+    #   picking the one that gives the most "centered" midpoint (minizes difference of distance to high and low).
+
+    d11 = high - mid1
+    d12 = mid1 - low
+    d21 = high - mid2
+    d22 = mid2 - low
+    diff1 = d11 > d12 ? d11-d12 : d12-d11
+    diff2 = d21 > d22 ? d21-d22 : d22-d21
+    diff1 < diff2 ? mid1 : mid2
+  end
+
+  private def bsearch_float(&block)
+    normalized_begin = self.begin.to_f
+    normalized_end = self.end.equal?(nil) ? Float::INFINITY : self.end.to_f
+    normalized_end = normalized_end.prev_float if self.exclude_end?
+    min = normalized_begin
+    max = normalized_end
+    last_admissible = nil
+    stop = false
+
+    # The next max-min comparisons simplify infinity handling.
+    # Infinity-handling is necessary to be able to cut ranges in two.
+    return nil if max < min || max == min && self.exclude_end? #-inf.prev_float == -inf!
+    if max == min
+      result = yield max
+      return result == true || result == 0 ? max : nil
     end
 
-    min = self.begin
-    max = self.end
-
-    max -= 1 if max.kind_of? Integer and exclude_end?
-
-    start = min = Truffle::Type.coerce_to min, Integer, :to_int
-    max = Truffle::Type.coerce_to max, Integer, :to_int
-
-    last_true = nil
-
-    seeker = Proc.new do |current|
-      x = yield current
-
-      return current if x == 0
-
-      case x
+    # max == -Float::INFINITY will already be covered by the comparisons above.
+    if max == Float::INFINITY
+      result = yield max
+      case result
       when Numeric
-        if x > 0
-          min = current + 1
-        else
-          max = current
+        if result == 0
+          return max
+        elsif result > 0
+          # There is nothing above infinity.
+          return nil
         end
       when true
-        last_true = current
-        max = current
+        last_admissible = max
+      end
+      max = normalized_end = Float::MAX # guaranteed to be >= min
+    end
+
+    # min == Float::INFINITY is already covered by the comparisons above.
+    if min == -Float::INFINITY
+      result = yield min
+      # Find-minimum mode: It's not going to get any smaller than negative infinity.
+      return min if result == true || result == 0
+      return nil if result.kind_of?(Numeric) && result < 0
+      min = normalized_begin = -Float::MAX # guaranteed to be <= max
+    end
+
+    mid = 0
+    until stop do
+      mid = midpoint(min, max)
+      result = yield mid
+
+      # Must check this before modifying min or max.
+      stop = true if min == mid || mid == max
+
+      case result
+      when Numeric
+        if result > 0
+          min = mid
+        elsif result < 0
+          max = mid
+        else
+          last_admissible = mid
+          break
+        end
+      when true
+        last_admissible = mid
+        max = mid
       when false, nil
-        min = current + 1
+        min = mid
       else
         raise TypeError, 'Range#bsearch block must return Numeric or boolean'
       end
     end
 
-    while min < max
-      if max < 0 and min < 0
-        mid = min + (max - min) / 2
-      elsif min < -max
-        mid = -((-1 - min - max) / 2 + 1)
-      else
-        mid = (min + max) / 2
+    # At the end of the loop, mid could be equal to min or max due to precision limits and the other bound
+    # might not have been tested in some cases.
+    if mid == min && max == normalized_end && (last_admissible.equal?(nil) || last_admissible == Float::INFINITY)
+      # max is untested only if it's the end of the range.
+      # It can only change the result of the search if we haven't found an admissible value yet (+ infinity edge case).
+      result = yield max
+      return max if result == true || result == 0
+    elsif mid == max && min == normalized_begin
+      # min is untested only if it's the begin of the range.
+      result = yield min
+      # Favor smallest value in case we're in find-minimum mode.
+      return min if result == true || result == 0
+    end
+
+    last_admissible
+  end
+
+  private def bsearch_endless(&block)
+    min = self.begin
+    cur = min
+    diff = 1
+
+    while true do
+      result = yield cur
+      case result
+      when 0
+        return cur
+      when Numeric
+        return (min..cur).bsearch(&block) if result < 0
+      when true
+        return (min..cur).bsearch(&block)
       end
+      cur += diff
+      diff *= 2
+    end
+  end
 
-      seeker.call mid
+  private def bsearch_integer(&block)
+    min = self.begin
+    max = self.end
+    max -= 1 if max.kind_of? Integer and exclude_end?
+    last_admissible = nil
+    stop = false
+
+    until stop do
+      # Do one last iteration on the bounds when they converge.
+      stop = true if min == max
+      mid = (min + max) / 2 # integers don't overflow \o/
+      result = yield mid
+      
+      case result
+      when Numeric
+        if result > 0
+          min = mid + 1
+        elsif result < 0
+          max = mid
+        else
+          return mid
+        end
+      when true
+        last_admissible = mid
+        max = mid
+      when false, nil
+        min = mid + 1
+      else
+        raise TypeError, 'Range#bsearch block must return Numeric or boolean'
+      end
     end
 
-    if min == max
-      seeker.call min
-    end
-
-    if min < max
-      return self.begin if mid == start
-      return self.begin.kind_of?(Float) ? mid.to_f : mid
-    end
-
-    if last_true
-      return self.begin if last_true == start
-      return self.begin.kind_of?(Float) ? last_true.to_f : last_true
-    end
-
-    nil
+    last_admissible
   end
 
   private def each_internal(&block)
