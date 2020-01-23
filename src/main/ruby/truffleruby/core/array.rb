@@ -433,40 +433,40 @@ class Array
       unless TrufflePrimitive.undefined?(c)
         raise ArgumentError, 'wrong number of arguments'
       end
-      one = a
-      two = b
+      location = a
+      length = b
     else
       if TrufflePrimitive.undefined?(a)
         raise ArgumentError, 'wrong number of arguments'
       end
       obj = a
-      one = b
-      two = c
+      location = b
+      length = c
     end
 
-    if TrufflePrimitive.undefined?(one) || !one
+    if TrufflePrimitive.undefined?(location) || !location
       left = 0
       right = size
-    elsif one.kind_of? Range
-      raise TypeError, 'length invalid with range' unless TrufflePrimitive.undefined?(two)
+    elsif location.kind_of? Range
+      raise TypeError, 'length invalid with range' unless TrufflePrimitive.undefined?(length)
 
-      left = Truffle::Type.coerce_to_collection_length one.begin
+      left = Truffle::Type.coerce_to_collection_length location.begin
       left += size if left < 0
-      raise RangeError, "#{one.inspect} out of range" if left < 0
+      raise RangeError, "#{location.inspect} out of range" if left < 0
 
-      right = Truffle::Type.coerce_to_collection_length one.end
+      right = Truffle::Type.coerce_to_collection_length location.end
       right += size if right < 0
-      right += 1 unless one.exclude_end?
+      right += 1 unless location.exclude_end?
       return self if right <= left           # Nothing to modify
 
-    elsif one
-      left = Truffle::Type.coerce_to_collection_length one
+    elsif location
+      left = Truffle::Type.coerce_to_collection_length location
       left += size if left < 0
       left = 0 if left < 0
 
-      if !TrufflePrimitive.undefined?(two) and two
+      if !TrufflePrimitive.undefined?(length) and length
         begin
-          right = Truffle::Type.coerce_to_collection_length two
+          right = Truffle::Type.coerce_to_collection_length length
         rescue ArgumentError
           raise RangeError, 'bignum too big to convert into `long'
         rescue TypeError
