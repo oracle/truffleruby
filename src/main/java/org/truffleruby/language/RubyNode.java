@@ -40,7 +40,10 @@ public abstract class RubyNode extends BaseRubyNode implements InstrumentableNod
     protected static final int NO_SOURCE = -1;
 
     {
-        setSourceCharIndex(NO_SOURCE);
+        if (isAdoptable()) {
+            // initialize only id the node is not Uncached instance
+            setSourceCharIndex(NO_SOURCE);
+        }
     }
 
     abstract public Object isDefined(VirtualFrame frame);
