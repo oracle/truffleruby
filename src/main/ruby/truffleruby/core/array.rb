@@ -450,13 +450,10 @@ class Array
     elsif location.kind_of? Range
       raise TypeError, 'length invalid with range' unless TrufflePrimitive.undefined?(length)
 
-      left = Truffle::Type.coerce_to_collection_length location.begin
-      left += size if left < 0
+      left = range_begin location
       raise RangeError, "#{location.inspect} out of range" if left < 0
 
-      right = Truffle::Type.coerce_to_collection_length location.end
-      right += size if right < 0
-      right += 1 unless location.exclude_end?
+      right = range_end(location) + 1
       return self if right <= left           # Nothing to modify
 
     elsif location
@@ -1230,25 +1227,32 @@ class Array
 
   alias_method :prepend, :unshift
 
+  private def range_begin(range)
+    first = Truffle::Type.coerce_to_collection_index range.begin
+    first += size if first < 0
+    first
+  end
+
+  private def range_end(range)
+    last = range.end
+    return size - 1 if last.equal? nil
+    last = Truffle::Type.coerce_to_collection_index last
+    last += size if last < 0
+    last -=1 if range.exclude_end?
+    last
+  end
+
   def values_at(*args)
     out = []
 
     args.each do |elem|
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
-        finish = Truffle::Type.coerce_to_collection_index elem.last
-        start = Truffle::Type.coerce_to_collection_index elem.first
-
-        start += size if start < 0
+        start = range_begin elem
+        finish = range_end elem
         next if start < 0
-
-        finish += size if finish < 0
-        finish -= 1 if elem.exclude_end?
-
         next if finish < start
-
         start.upto(finish) { |i| out << at(i) }
-
       else
         i = Truffle::Type.coerce_to_collection_index elem
         out << at(i)
