@@ -53,8 +53,8 @@ class Range
     return true if equal? other
 
     other.kind_of?(Range) and
-      self.first == other.first and
-      self.last == other.last and
+      self.begin == other.begin and
+      self.end == other.end and
       self.exclude_end? == other.exclude_end?
   end
 
@@ -62,8 +62,8 @@ class Range
     return true if equal? other
 
     other.kind_of?(Range) and
-        self.first.eql?(other.first) and
-        self.last.eql?(other.last) and
+        self.begin.eql?(other.begin) and
+        self.end.eql?(other.end) and
         self.exclude_end? == other.exclude_end?
   end
 
@@ -353,17 +353,19 @@ class Range
   end
 
   def inspect
-    result = "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{self.end.inspect}"
+    result = "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{self.end.equal?(nil) ? "" : self.end.inspect}"
     Truffle::Type.infect(result, self)
   end
 
   def last(n=undefined)
+    raise RangeError, "cannot get the last element of endless range" if self.end.equal?(nil)
     return self.end if TrufflePrimitive.undefined? n
 
     to_a.last(n)
   end
 
   def max
+    raise RangeError, "cannot get the maximum of endless range" if self.end.equal?(nil)
     return super if block_given? || (exclude_end? && !self.end.kind_of?(Numeric))
     return nil if self.end < self.begin || (exclude_end? && self.end == self.begin)
     return self.end unless exclude_end?
@@ -381,7 +383,7 @@ class Range
 
   def min
     return super if block_given?
-    return nil if self.end < self.begin || (exclude_end? && self.end == self.begin)
+    return nil if (!self.end.equal?(nil) && self.end < self.begin) || (exclude_end? && self.end == self.begin)
 
     self.begin
   end
@@ -446,7 +448,7 @@ class Range
   end
 
   def to_s
-    result = "#{self.begin}#{exclude_end? ? "..." : ".."}#{self.end}"
+    result = "#{self.begin}#{exclude_end? ? "..." : ".."}#{self.end.equal?(nil) ? "" : self.end}"
     Truffle::Type.infect(result, self)
   end
 
@@ -457,6 +459,7 @@ class Range
     return false unless beg_compare
 
     if Comparable.compare_int(beg_compare) <= 0
+      return true if self.end.equal?(nil)
       end_compare = (value <=> self.end)
 
       if exclude_end?
@@ -471,6 +474,7 @@ class Range
 
   def size
     return nil unless self.begin.kind_of?(Numeric)
+    return Float::INFINITY if self.end.equal?(nil)
 
     delta = self.end - self.begin
     return 0 if delta < 0

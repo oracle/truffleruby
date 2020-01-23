@@ -22,6 +22,8 @@ describe "Range#size" do
     (0..Float::INFINITY).size.should == Float::INFINITY
     (-Float::INFINITY..0).size.should == Float::INFINITY
     (-Float::INFINITY..Float::INFINITY).size.should == Float::INFINITY
+    (1..).size.should == Float::INFINITY
+    (0.5...).size.should == Float::INFINITY
   end
 
   it "returns nil if first and last are not Numeric" do

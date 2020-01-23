@@ -17,6 +17,8 @@ describe :range_cover_and_include, shared: true do
     (0.5..2.4).send(@method, 2.5).should == false
     (0.5..2.4).send(@method, 2.4).should == true
     (0.5...2.4).send(@method, 2.4).should == false
+    (1..).send(@method, 2.4).should == true
+    (0.5...).send(@method, 2.4).should == true
   end
 
   it "compares values using <=>" do

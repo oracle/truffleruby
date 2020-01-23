@@ -10,6 +10,8 @@ describe "Range#inspect" do
     (-411..959).inspect.should == "-411..959"
     (0xfff..0xfffff).inspect.should == "4095..1048575"
     (0.5..2.4).inspect.should == "0.5..2.4"
+    (1..).inspect.should ==  "1.."
+    (0.1...).inspect.should ==  "0.1..."
   end
 
   ruby_version_is ''...'2.7' do
