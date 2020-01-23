@@ -28,6 +28,7 @@ New features:
 * Enable and document `--coverage` option (#1840, @chrisseaton).
 * Update the internal LLVM toolchain to LLVM 9 and reduce its download size.
 * Updated to Ruby 2.6.5 (#1749).
+* Automatically set `PKG_CONFIG_PATH` as needed for compiling OpenSSL on macOS (#1830).
 
 Bug fixes:
 

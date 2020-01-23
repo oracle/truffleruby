@@ -22,3 +22,9 @@ if macOS && !ENV['OPENSSL_PREFIX']
     abort 'Could not find OpenSSL headers, install via Homebrew or MacPorts or set OPENSSL_PREFIX'
   end
 end
+
+if openssl_prefix = ENV['OPENSSL_PREFIX']
+  # We need to set PKG_CONFIG_PATH too, see https://github.com/oracle/truffleruby/issues/1830
+  # OpenSSL's extconf.rb calls the pkg_config() helper.
+  ENV['PKG_CONFIG_PATH'] = ["#{openssl_prefix}/lib/pkgconfig", *ENV['PKG_CONFIG_PATH']].join(':')
+end
