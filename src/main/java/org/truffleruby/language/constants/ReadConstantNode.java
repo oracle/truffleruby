@@ -10,6 +10,7 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.LexicalScope;
@@ -63,10 +64,10 @@ public class ReadConstantNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         // TODO (eregon, 17 May 2016): We execute moduleNode twice here but we both want to make sure the LHS is defined and get the result value.
         // Possible solution: have a isDefinedAndReturnValue()?
-        final Object isModuleDefined = moduleNode.isDefined(frame);
+        final Object isModuleDefined = moduleNode.isDefined(frame, context);
         if (isModuleDefined == nil()) {
             return nil();
         }

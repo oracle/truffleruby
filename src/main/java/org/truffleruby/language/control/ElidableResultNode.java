@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.control;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 
@@ -43,8 +44,8 @@ public class ElidableResultNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
-        return elidableResult.isDefined(frame);
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
+        return elidableResult.isDefined(frame, context);
     }
 
 }

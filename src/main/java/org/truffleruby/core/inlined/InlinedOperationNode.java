@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
@@ -80,8 +81,8 @@ public abstract class InlinedOperationNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
-        return rewriteToCallNode().isDefined(frame);
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
+        return rewriteToCallNode().isDefined(frame, context);
     }
 
 }

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.supercall;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -42,7 +43,7 @@ public class ZSuperOutsideMethodNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         final Object self = RubyArguments.getSelf(frame);
         final InternalMethod superMethod = lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
 

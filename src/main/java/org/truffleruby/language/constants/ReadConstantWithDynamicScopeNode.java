@@ -10,6 +10,7 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.LexicalScope;
@@ -42,7 +43,7 @@ public class ReadConstantWithDynamicScopeNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         final RubyConstant constant;
         final LexicalScope lexicalScope = RubyArguments.getMethod(frame).getLexicalScope();
         try {

@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
@@ -72,14 +73,14 @@ public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
 
     @ExplodeLoop
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         for (RubyNode value : values) {
-            if (value.isDefined(frame) == nil()) {
+            if (value.isDefined(frame, context) == nil()) {
                 return nil();
             }
         }
 
-        return super.isDefined(frame);
+        return super.isDefined(frame, context);
     }
 
     public int getSize() {

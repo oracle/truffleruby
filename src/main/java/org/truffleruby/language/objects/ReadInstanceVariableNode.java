@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 
@@ -44,7 +45,7 @@ public class ReadInstanceVariableNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         final Object receiverObject = receiver.execute(frame);
 
         if (objectProfile.profile(receiverObject instanceof DynamicObject)) {

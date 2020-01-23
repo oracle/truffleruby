@@ -1,6 +1,6 @@
 package org.truffleruby.language;
 
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -12,10 +12,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 public abstract class UncacheableSourceRubyNode extends RubyNode {
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         assert !(this instanceof WrapperNode);
-        // TODO (pitr-ch 18-Jan-2020): the context should be cached
-        return RubyLanguage.getCurrentContext().getCoreStrings().EXPRESSION.createInstance();
+        return context.getCoreStrings().EXPRESSION.createInstance();
     }
 
 }

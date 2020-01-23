@@ -24,7 +24,7 @@ public class DefinedNode extends ContextSourceRubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return child.isDefined(frame);
+        return child.isDefined(frame, getContext());
     }
 
 }

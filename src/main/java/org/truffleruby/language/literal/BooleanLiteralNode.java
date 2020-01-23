@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.literal;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.ContextSourceRubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -30,7 +31,7 @@ public class BooleanLiteralNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         if (value) {
             return coreStrings().TRUE.createInstance();
         } else {

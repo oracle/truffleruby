@@ -47,7 +47,7 @@ public abstract class RubyNode extends BaseRubyNode implements InstrumentableNod
         }
     }
 
-    abstract public Object isDefined(VirtualFrame frame);
+    abstract public Object isDefined(VirtualFrame frame, RubyContext context);
 
     // Fundamental execute methods
 

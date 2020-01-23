@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -45,7 +46,7 @@ public class WriteDeclarationVariableNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         return coreStrings().ASSIGNMENT.createInstance();
     }
 

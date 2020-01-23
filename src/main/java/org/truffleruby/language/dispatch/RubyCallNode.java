@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -150,13 +151,13 @@ public class RubyCallNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         if (definedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             definedNode = insert(new DefinedNode());
         }
 
-        return definedNode.isDefined(frame);
+        return definedNode.isDefined(frame, context);
     }
 
     public String getName() {
@@ -190,13 +191,13 @@ public class RubyCallNode extends ContextSourceRubyNode {
         private final ConditionProfile methodNotVisibleProfile = ConditionProfile.createBinaryProfile();
 
         @ExplodeLoop
-        public Object isDefined(VirtualFrame frame) {
-            if (receiverDefinedProfile.profile(receiver.isDefined(frame) == nil())) {
+        public Object isDefined(VirtualFrame frame, RubyContext context) {
+            if (receiverDefinedProfile.profile(receiver.isDefined(frame, context) == nil())) {
                 return nil();
             }
 
             for (RubyNode argument : arguments) {
-                if (argument.isDefined(frame) == nil()) {
+                if (argument.isDefined(frame, context) == nil()) {
                     argumentNotDefinedProfile.enter();
                     return nil();
                 }

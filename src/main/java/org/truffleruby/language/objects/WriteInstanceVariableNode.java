@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -54,7 +55,7 @@ public class WriteInstanceVariableNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         return coreStrings().ASSIGNMENT.createInstance();
     }
 

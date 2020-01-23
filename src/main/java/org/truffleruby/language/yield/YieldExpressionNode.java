@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.yield;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.language.ContextSourceRubyNode;
@@ -78,7 +79,7 @@ public class YieldExpressionNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         if (RubyArguments.getBlock(frame) == null) {
             return nil();
         } else {

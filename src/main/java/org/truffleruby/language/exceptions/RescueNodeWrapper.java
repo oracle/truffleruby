@@ -14,6 +14,7 @@ import com.oracle.truffle.api.instrumentation.InstrumentableNode.WrapperNode;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
 
 // Defined manually rather than generated because we need to delegate canHandle() and isDefined()
 public class RescueNodeWrapper extends RescueNode implements WrapperNode {
@@ -73,7 +74,7 @@ public class RescueNodeWrapper extends RescueNode implements WrapperNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
-        return delegateNode.isDefined(frame);
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
+        return delegateNode.isDefined(frame, context);
     }
 }

@@ -14,7 +14,7 @@ public abstract class ContextSourceRubyNode extends RubyNode implements RubyNode
     private byte flags;
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         assert !(this instanceof WrapperNode);
         return coreStrings().EXPRESSION.createInstance();
     }

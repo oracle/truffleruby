@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.defined;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.CoreString;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
@@ -32,7 +33,7 @@ public class DefinedWrapperNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         return definition.createInstance();
     }
 

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.supercall;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.language.ContextSourceRubyNode;
 import org.truffleruby.language.RubyNode;
@@ -49,7 +50,7 @@ public class SuperCallNode extends ContextSourceRubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         final Object self = RubyArguments.getSelf(frame);
         final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
