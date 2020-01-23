@@ -10,6 +10,7 @@
 package org.truffleruby.interop.messages;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -17,7 +18,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.RubyLanguage;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class SymbolMessages extends RubyObjectMessages {

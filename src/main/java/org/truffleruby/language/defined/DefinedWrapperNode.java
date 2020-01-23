@@ -11,9 +11,9 @@ package org.truffleruby.language.defined;
 
 import org.truffleruby.core.string.CoreString;
 import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
 
 public class DefinedWrapperNode extends ContextSourceRubyNode {
 

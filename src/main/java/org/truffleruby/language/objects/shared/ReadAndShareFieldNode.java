@@ -9,10 +9,11 @@
  */
 package org.truffleruby.language.objects.shared;
 
+import org.truffleruby.language.BaseRubyNode;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
-import org.truffleruby.language.BaseRubyNode;
 
 public abstract class ReadAndShareFieldNode extends BaseRubyNode {
 

@@ -9,11 +9,12 @@
  */
 package org.truffleruby.interop.messages;
 
+import org.truffleruby.Layouts;
+
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class PointerMessages extends RubyObjectMessages {

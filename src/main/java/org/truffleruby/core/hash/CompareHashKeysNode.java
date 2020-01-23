@@ -13,9 +13,9 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
+import org.truffleruby.language.ContextRubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.language.ContextRubyNode;
 
 public class CompareHashKeysNode extends ContextRubyNode {
 

@@ -1,8 +1,9 @@
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+
+import com.oracle.truffle.api.CompilerDirectives;
 
 /** Has both context but nothing else. */
 public abstract class ContextRubyNode extends BaseRubyNode implements RubyNode.WithContext {

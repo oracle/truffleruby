@@ -18,6 +18,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -26,7 +27,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.RubyNode;
 
 @GenerateUncached
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })

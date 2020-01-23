@@ -10,9 +10,9 @@
 package org.truffleruby.language.control;
 
 import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
 
 public class NextNode extends ContextSourceRubyNode {
 

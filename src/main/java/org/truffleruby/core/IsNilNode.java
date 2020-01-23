@@ -10,9 +10,9 @@
 package org.truffleruby.core;
 
 import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
 
 public class IsNilNode extends ContextSourceRubyNode {
 

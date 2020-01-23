@@ -12,12 +12,12 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.ContextRubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.ContextRubyNode;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayPopOneNode extends ContextRubyNode {

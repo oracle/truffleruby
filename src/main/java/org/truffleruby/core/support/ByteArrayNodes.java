@@ -10,9 +10,9 @@
 package org.truffleruby.core.support;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.Rope;

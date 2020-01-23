@@ -14,8 +14,6 @@ import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
@@ -26,6 +24,7 @@ import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Fallback;

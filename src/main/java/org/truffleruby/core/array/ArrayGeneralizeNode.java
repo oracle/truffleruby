@@ -10,13 +10,13 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.ContextRubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.ContextRubyNode;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayGeneralizeNode extends ContextRubyNode {

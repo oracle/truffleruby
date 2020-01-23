@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.ContextRubyNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -19,6 +18,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 

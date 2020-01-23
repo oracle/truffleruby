@@ -12,12 +12,12 @@ package org.truffleruby.core.cast;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.BaseRubyNode;
 
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.BaseRubyNode;
 
 @GenerateUncached
 public abstract class ToSymbolNode extends BaseRubyNode {

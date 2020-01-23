@@ -13,12 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
 
 public class ConcatHashLiteralNode extends ContextSourceRubyNode {
 

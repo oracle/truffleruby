@@ -9,17 +9,17 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.RubyContext;
 import org.truffleruby.interop.OutgoingForeignCallNode;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.methods.TranslateExceptionNode;
+import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.methods.UnsupportedOperationBehavior;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public final class CachedForeignDispatchNode extends CachedDispatchNode {
 

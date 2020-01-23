@@ -12,7 +12,6 @@ package org.truffleruby.language.backtrace;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -29,6 +28,7 @@ import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**

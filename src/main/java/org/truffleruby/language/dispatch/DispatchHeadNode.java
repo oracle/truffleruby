@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.language.ContextRubyNode;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.ContextRubyNode;
 
 public abstract class DispatchHeadNode extends ContextRubyNode {
 

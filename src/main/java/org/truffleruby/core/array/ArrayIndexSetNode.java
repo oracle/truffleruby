@@ -9,6 +9,13 @@
  */
 package org.truffleruby.core.array;
 
+import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import static org.truffleruby.core.array.ArrayHelpers.setSize;
+
+import org.truffleruby.Layouts;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.control.RaiseException;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -16,12 +23,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.Layouts;
-import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.control.RaiseException;
-
-import static org.truffleruby.core.array.ArrayHelpers.getSize;
-import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 @ReportPolymorphism
 public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {

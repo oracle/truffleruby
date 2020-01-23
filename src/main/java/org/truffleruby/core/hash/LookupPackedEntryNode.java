@@ -9,19 +9,19 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.language.ContextRubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.ContextRubyNode;
 
 @ImportStatic(HashGuards.class)
 public abstract class LookupPackedEntryNode extends ContextRubyNode {

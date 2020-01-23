@@ -10,10 +10,10 @@
 package org.truffleruby.core.format.write;
 
 import org.truffleruby.core.format.FormatFrameDescriptor;
+import org.truffleruby.language.BaseRubyNode;
 
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.BaseRubyNode;
 
 public class OutputNode extends BaseRubyNode {
 

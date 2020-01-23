@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.BaseRubyNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -20,7 +21,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.RubyNode;
 
 @GenerateUncached
 @NodeChild(value = "child", type = RubyNode.class)

@@ -15,8 +15,9 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Set;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class FinalizerReference
         extends

@@ -40,6 +40,17 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.parser;
 
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FITEM;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
+
+import java.nio.charset.Charset;
+
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
@@ -132,17 +143,6 @@ import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.StrTerm;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
-
-import java.nio.charset.Charset;
-
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FITEM;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
-import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 
 // CheckStyle: start generated
 @SuppressFBWarnings("IP")
@@ -961,10 +961,10 @@ public class RubyParser {
             yyN = yyTable[yyN];			// reduce (yyN)
           else
             switch (yyErrorFlag) {
-  
+
             case 0:
               support.yyerror("syntax error", yyExpecting(yyState), yyNames[yyToken]);
-  
+
             case 1: case 2:
               yyErrorFlag = 3;
               do {
@@ -977,7 +977,7 @@ public class RubyParser {
                 }
               } while (-- yyTop >= 0);
               support.yyerror("irrecoverable syntax error");
-  
+
             case 3:
               if (yyToken == 0) {
                 support.yyerror("irrecoverable syntax error at end-of-file");
@@ -1301,7 +1301,7 @@ states[62] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[63] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_call(((ParseNode)yyVals[-4+yyTop]), ((String)yyVals[-3+yyTop]), ((String)yyVals[-2+yyTop]), ((ParseNode)yyVals[-1+yyTop]), ((IterParseNode)yyVals[0+yyTop])); 
+    yyVal = support.new_call(((ParseNode)yyVals[-4+yyTop]), ((String)yyVals[-3+yyTop]), ((String)yyVals[-2+yyTop]), ((ParseNode)yyVals[-1+yyTop]), ((IterParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[64] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -1901,7 +1901,7 @@ states[228] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[229] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.checkExpression(((ParseNode)yyVals[-2+yyTop]));
     support.checkExpression(((ParseNode)yyVals[0+yyTop]));
-    
+
     boolean isLiteral = ((ParseNode)yyVals[-2+yyTop]) instanceof FixnumParseNode && ((ParseNode)yyVals[0+yyTop]) instanceof FixnumParseNode;
     yyVal = new DotParseNode(support.getPosition(((ParseNode)yyVals[-2+yyTop])), support.makeNullNil(((ParseNode)yyVals[-2+yyTop])), support.makeNullNil(((ParseNode)yyVals[0+yyTop])), false, isLiteral);
     return yyVal;
@@ -2229,7 +2229,7 @@ states[311] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[312] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    lexer.setState(EXPR_ENDARG); 
+    lexer.setState(EXPR_ENDARG);
     return yyVal;
 };
 states[313] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -2298,11 +2298,11 @@ states[325] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[326] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.frobnicate_fcall_args(((FCallParseNode)yyVals[-1+yyTop]), null, ((IterParseNode)yyVals[0+yyTop]));
-    yyVal = ((FCallParseNode)yyVals[-1+yyTop]);                    
+    yyVal = ((FCallParseNode)yyVals[-1+yyTop]);
     return yyVal;
 };
 states[328] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    if (((ParseNode)yyVals[-1+yyTop]) != null && 
+    if (((ParseNode)yyVals[-1+yyTop]) != null &&
           ((BlockAcceptingParseNode)yyVals[-1+yyTop]).getIterNode() instanceof BlockPassParseNode) {
           lexer.compile_error(PID.BLOCK_ARG_AND_BLOCK_GIVEN, "Both block arg and actual block given.");
     }
@@ -2404,7 +2404,7 @@ states[347] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[348] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    if (support.isInDef() || support.isInSingle()) { 
+    if (support.isInDef() || support.isInSingle()) {
         support.yyerror("module definition in method body");
     }
     support.pushLocalScope();
@@ -2822,7 +2822,7 @@ states[445] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[446] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = null; 
+    yyVal = null;
     return yyVal;
 };
 states[447] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3091,7 +3091,7 @@ states[506] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[507] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = ((NumericParseNode)yyVals[0+yyTop]);  
+    yyVal = ((NumericParseNode)yyVals[0+yyTop]);
     return yyVal;
 };
 states[508] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3485,7 +3485,7 @@ states[598] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (!support.is_local_id(((String)yyVals[0+yyTop]))) {
         support.yyerror("rest argument must be local variable");
     }
-                    
+
     yyVal = new RestArgParseNode(support.arg_var(support.shadowing_lvar(((String)yyVals[0+yyTop]))));
     return yyVal;
 };
@@ -3497,7 +3497,7 @@ states[602] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (!support.is_local_id(((String)yyVals[0+yyTop]))) {
         support.yyerror("block argument must be local variable");
     }
-                    
+
     yyVal = new BlockArgParseNode(support.arg_var(support.shadowing_lvar(((String)yyVals[0+yyTop]))));
     return yyVal;
 };
@@ -3603,16 +3603,16 @@ states[646] = (support, lexer, yyVal, yyVals, yyTop) -> {
 }
 // line 2584 "RubyParser.y"
 
-    /** The parse method use an lexer stream and parse it to an AST node 
+    /** The parse method use an lexer stream and parse it to an AST node
      * structure
      */
     public RubyParserResult parse(ParserConfiguration configuration) {
         support.reset();
         support.setConfiguration(configuration);
         support.setResult(new RubyParserResult());
-        
+
         yyparse(lexer, null);
-        
+
         return support.getResult();
     }
 }

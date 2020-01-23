@@ -13,10 +13,10 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.language.ContextRubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.ContextRubyNode;
 
 public class FixnumOrBignumNode extends ContextRubyNode {
 

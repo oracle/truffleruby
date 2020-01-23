@@ -10,6 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -17,7 +18,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import org.truffleruby.language.RubyNode;
 
 @NodeInfo(cost = NodeCost.NONE)
 @NodeChild(value = "child", type = RubyNode.class)

@@ -9,8 +9,8 @@
  */
 package org.truffleruby.core.bool;
 
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 

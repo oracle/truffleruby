@@ -11,15 +11,8 @@ package org.truffleruby.core.array;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.library.CachedLibrary;
-
-import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.cext.WrapNode;
 import org.truffleruby.cext.UnwrapNode.UnwrapNativeNode;
+import org.truffleruby.cext.WrapNode;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArrayCapacityNodeGen;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArrayCopyStoreNodeGen;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArrayCopyToNodeGen;
@@ -30,6 +23,13 @@ import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArraySetNodeGen;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArraySortNodeGen;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.RaiseException;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class NativeArrayNodes {
     public static abstract class NativeArrayCapacityNode extends ArrayOperationNodes.ArrayCapacityNode {

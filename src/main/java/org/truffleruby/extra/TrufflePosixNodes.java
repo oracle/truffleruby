@@ -9,8 +9,8 @@
  */
 package org.truffleruby.extra;
 
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.time.GetTimeZoneNode;

@@ -11,12 +11,12 @@ package org.truffleruby.language.yield;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.language.BaseRubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.BaseRubyNode;
 
 @GenerateUncached
 public abstract class YieldNode extends BaseRubyNode {

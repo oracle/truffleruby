@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.language.ContextRubyNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import org.truffleruby.language.ContextRubyNode;
 
 public abstract class WithoutVisibilityNode extends ContextRubyNode {
 

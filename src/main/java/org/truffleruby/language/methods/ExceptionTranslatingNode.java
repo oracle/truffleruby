@@ -10,10 +10,10 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
 
 public class ExceptionTranslatingNode extends ContextSourceRubyNode {
 

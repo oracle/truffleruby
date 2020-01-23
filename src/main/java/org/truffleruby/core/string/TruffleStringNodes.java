@@ -11,9 +11,9 @@ package org.truffleruby.core.string;
 
 import static org.truffleruby.core.string.StringOperations.rope;
 
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.RubyGuards;

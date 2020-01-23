@@ -18,6 +18,8 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
+import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.ContextRubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -25,8 +27,6 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.BaseRubyNode;
-import org.truffleruby.language.ContextRubyNode;
 
 /*
  * TODO(CS): how does this work when when multithreaded? Could a node get replaced by someone else and

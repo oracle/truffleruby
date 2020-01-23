@@ -40,10 +40,10 @@
  */
 package org.truffleruby.stdlib.readline;
 
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.cast.ToIntNodeGen;
