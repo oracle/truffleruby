@@ -26,6 +26,8 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# rubocop:disable Lint/LiteralAsCondition
+
 class Range
 
   include Enumerable
@@ -72,15 +74,15 @@ class Range
     stop  = self.end
 
     if Float === start || Float === stop
-      return bsearch_float &block
+      bsearch_float(&block)
     elsif Integer === start
       if stop.equal?(nil)
-        return bsearch_endless &block
+        bsearch_endless(&block)
       elsif Integer === stop
-        return bsearch_integer &block
+        bsearch_integer(&block)
       else
         raise TypeError, "bsearch is not available for #{stop.class}"
-        end
+      end
     else
       raise TypeError, "bsearch is not available for #{start.class}"
     end
@@ -150,7 +152,7 @@ class Range
     end
 
     mid = 0
-    until stop do
+    until stop
       mid = midpoint(min, max)
       result = yield mid
 
@@ -199,7 +201,7 @@ class Range
     cur = min
     diff = 1
 
-    while true do
+    while true
       result = yield cur
       case result
       when 0
@@ -221,12 +223,12 @@ class Range
     last_admissible = nil
     stop = false
 
-    until stop do
+    until stop
       # Do one last iteration on the bounds when they converge.
       stop = true if min == max
       mid = (min + max) / 2 # integers don't overflow \o/
       result = yield mid
-      
+
       case result
       when Numeric
         if result > 0
@@ -298,13 +300,13 @@ class Range
   private def each_endless(first, &block)
     if Integer === first
       i = first
-      while true do
+      while true
         yield i
         i += 1
       end
     else
       current = first
-      while true do
+      while true
         yield current
         current = current.succ
       end
@@ -430,7 +432,7 @@ class Range
   private def step_endless(first, step_size, &block)
     if Numeric === first
       curr = first
-      while true do
+      while true
         yield curr
         curr += step_size
       end
