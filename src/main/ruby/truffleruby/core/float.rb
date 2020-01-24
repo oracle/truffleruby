@@ -232,6 +232,14 @@ class Float < Numeric
     end
   end
 
+  def truncate(ndigits = 0)
+    if positive?
+      floor(ndigits)
+    else
+      ceil(ndigits)
+    end
+  end
+
   def coerce(other)
     other = Float(other) unless other.kind_of? Float
     [other, self]
