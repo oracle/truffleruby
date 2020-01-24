@@ -16,6 +16,7 @@ Bug fixes:
 
 Compatibility:
 
+* Implemented `Float#{floor, ceil}` with `ndigits` argument.
 
 
 # 20.0.0
