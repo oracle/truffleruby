@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Has both context and source methods. */
@@ -68,7 +69,7 @@ public abstract class ContextSourceRubyNode extends RubyNode implements RubyNode
 
     // Context
 
-    @CompilerDirectives.CompilationFinal private RubyContext context;
+    @CompilationFinal private RubyContext context;
 
     @Override
     public RubyContext getContext() {

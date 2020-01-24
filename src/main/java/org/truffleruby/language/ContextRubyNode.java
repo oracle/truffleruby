@@ -13,11 +13,12 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
-/** Has both context but nothing else. */
+/** Has context but nothing else. */
 public abstract class ContextRubyNode extends BaseRubyNode implements RubyNode.WithContext {
 
-    @CompilerDirectives.CompilationFinal private RubyContext context;
+    @CompilationFinal private RubyContext context;
 
     // Accessors
 
