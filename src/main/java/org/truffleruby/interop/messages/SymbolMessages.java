@@ -22,11 +22,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class SymbolMessages extends RubyObjectMessages {
 
-    @Override
-    public Class<?> dispatch() {
-        return null;
-    }
-
     @ExportMessage
     public static boolean isString(DynamicObject symbol) {
         return true;

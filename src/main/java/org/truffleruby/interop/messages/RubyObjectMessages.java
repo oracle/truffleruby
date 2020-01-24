@@ -41,7 +41,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectMessages {
 
-    public Class<?> dispatch() {
+    public final Class<?> dispatch() {
         return null;
     }
 
