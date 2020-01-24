@@ -1569,22 +1569,10 @@ class Array
         range = start
         out = self[range]
 
-        range_start = Truffle::Type.coerce_to_collection_index range.begin
-        if range_start < 0
-          range_start = range_start + size
-        end
-
-        range_end = Truffle::Type.coerce_to_collection_index range.end
-        if range_end < 0
-          range_end = range_end + size
-        elsif range_end >= size
-          range_end = size - 1
-          range_end += 1 if range.exclude_end?
-        end
-
-        range_length = range_end - range_start
-        range_length += 1 unless range.exclude_end?
-        range_end    -= 1 if     range.exclude_end?
+        range_start = range_begin(range)
+        range_end = range_end(range)
+        range_end = size - 1 if range_end >= size
+        range_length = range_end + 1 - range_start
 
         if range_start < size && range_start >= 0 && range_end < size && range_end >= 0 && range_length > 0
           delete_range(range_start, range_length)
