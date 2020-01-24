@@ -14,6 +14,7 @@ Bug fixes:
 * Fixed `SystemCallError.new` parameter conversion.
 * Fixed `File#{chmod, umask}` argument conversion check.
 * Added warning in `Hash.[]` for non-array elements.
+* Fixed issue with duping during splat (#1883).
 
 Compatibility:
 
