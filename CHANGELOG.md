@@ -109,8 +109,8 @@ Compatibility:
 * Implemented `Random.bytes`.
 * Implemented `Random.random_number`.
 * Added the ability to parse endless ranges.
-* Made `Range#to_a` compatible with endless ranges.
-* Made `Array#[]` and `Array#[]= ` compatible with endless ranges.
+* Made `Range#{to_a, step, each, bsearch, step, last, max, min, to_s, ==}` compatible with endless ranges.
+* Made `Array#{[], []=, values_at, fill, slice!}` compatible with endless ranges.
 
 Performance:
 
