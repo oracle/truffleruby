@@ -12,7 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.object.Shape;
 
 @GenerateUncached
 @ImportStatic(ShapeCachingGuards.class)
-public abstract class MetaClassNode extends BaseRubyNode {
+public abstract class MetaClassNode extends RubyBaseNode {
 
     public static MetaClassNode create() {
         return MetaClassNodeGen.create();

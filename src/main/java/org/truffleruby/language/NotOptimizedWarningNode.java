@@ -34,7 +34,7 @@ import com.oracle.truffle.api.source.SourceSection;
  * Ideally you should not use this node, and instead you should optimise the code which would use it.
  */
 @GenerateUncached
-public abstract class NotOptimizedWarningNode extends BaseRubyNode {
+public abstract class NotOptimizedWarningNode extends RubyBaseNode {
 
     public static NotOptimizedWarningNode create() {
         return NotOptimizedWarningNodeGen.create();

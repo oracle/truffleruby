@@ -11,7 +11,7 @@ package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class InlinedOperationNode extends ContextSourceRubyNode {
+public abstract class InlinedOperationNode extends RubyContextSourceNode {
 
     private final RubyCallNodeParameters callNodeParameters;
 

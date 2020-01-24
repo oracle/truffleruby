@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.dispatch;
 
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class DispatchHeadNode extends ContextRubyNode {
+public abstract class DispatchHeadNode extends RubyContextNode {
 
     protected final boolean ignoreVisibility;
     protected final boolean onlyCallPublic;

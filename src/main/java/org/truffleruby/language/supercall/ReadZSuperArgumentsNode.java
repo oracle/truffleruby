@@ -12,7 +12,7 @@ package org.truffleruby.language.supercall;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 /**
  * Get the arguments of a super call with implicit arguments (using the ones of the surrounding method).
  */
-public class ReadZSuperArgumentsNode extends ContextSourceRubyNode {
+public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] reloadNodes;
     @Child private ArrayToObjectArrayNode unsplatNode;

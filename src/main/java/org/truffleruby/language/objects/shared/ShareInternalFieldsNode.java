@@ -15,7 +15,7 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.DelegatedArrayStorage;
 import org.truffleruby.core.queue.UnsizedQueue;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -29,7 +29,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
  * Share the internal fields of an object, accessible by its Layout
  */
 @ImportStatic({ ShapeCachingGuards.class, ArrayGuards.class })
-public abstract class ShareInternalFieldsNode extends ContextRubyNode {
+public abstract class ShareInternalFieldsNode extends RubyContextNode {
 
     protected static final int CACHE_LIMIT = 8;
 

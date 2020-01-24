@@ -9,14 +9,14 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameUtil;
 
-public abstract class ReadFrameSlotNode extends BaseRubyNode {
+public abstract class ReadFrameSlotNode extends RubyBaseNode {
 
     protected final FrameSlot frameSlot;
 

@@ -20,7 +20,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 
-public class LazyRubyNode extends ContextSourceRubyNode {
+public class LazyRubyNode extends RubyContextSourceNode {
 
     private Supplier<RubyNode> resolver;
     private final ReentrantLock lock;

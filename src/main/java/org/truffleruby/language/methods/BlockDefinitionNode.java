@@ -11,7 +11,7 @@ package org.truffleruby.language.methods;
 
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.FrameOnStackMarker;
@@ -27,7 +27,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
  * Create a Ruby Proc to pass as a block to the called method. The literal block is represented as
  * call targets and a SharedMethodInfo. This is executed at the call site just before dispatch.
  */
-public class BlockDefinitionNode extends ContextSourceRubyNode {
+public class BlockDefinitionNode extends RubyContextSourceNode {
 
     private final ProcType type;
     private final SharedMethodInfo sharedMethodInfo;

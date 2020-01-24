@@ -35,12 +35,12 @@ import com.oracle.truffle.api.source.SourceSection;
 
 /**RubyNode has source, execute, and is instrument-able.
  * However, it does not have any fields which would prevent using @GenerateUncached.
- * It should never be subclassed directly, either use {@link ContextSourceRubyNode}
- * or {@link UncacheableSourceRubyNode}.
+ * It should never be subclassed directly, either use {@link RubyContextSourceNode}
+ * or {@link RubySourceNode}.
  * SourceRubyNode is not defined since there was no use for it for now.
  * Nodes having context are described by {@link WithContext}.
- * There is also {@link ContextRubyNode} if context is needed but source is not. */
-public abstract class RubyNode extends BaseRubyNode implements InstrumentableNode {
+ * There is also {@link RubyContextNode} if context is needed but source is not. */
+public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
 

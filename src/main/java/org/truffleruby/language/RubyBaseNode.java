@@ -16,6 +16,6 @@ import com.oracle.truffle.api.nodes.Node;
 /** Base of all Ruby nodes */
 @TypeSystemReference(RubyTypes.class)
 @ImportStatic(RubyGuards.class)
-public abstract class BaseRubyNode extends Node {
+public abstract class RubyBaseNode extends Node {
     public static final Object[] EMPTY_ARGUMENTS = new Object[]{};
 }

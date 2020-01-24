@@ -10,7 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
@@ -23,7 +23,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 /**
  * Concatenate argument arrays (translating a org.jruby.ast.ArgsCatParseNode).
  */
-public final class ArrayConcatNode extends ContextSourceRubyNode {
+public final class ArrayConcatNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] children;
     // Use an arrayBuilderNode to stabilize the array type for a given location.

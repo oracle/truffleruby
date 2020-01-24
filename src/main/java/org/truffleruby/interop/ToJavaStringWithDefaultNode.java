@@ -9,7 +9,7 @@
  */
 package org.truffleruby.interop;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.dsl.Specialization;
  * Convert a Ruby String or Symbol to a Java string, or return a default string if a value was not provided.
  */
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class ToJavaStringWithDefaultNode extends ContextSourceRubyNode {
+public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode {
 
     private final String defaultValue;
     @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();

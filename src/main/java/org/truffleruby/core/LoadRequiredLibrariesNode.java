@@ -12,14 +12,14 @@ package org.truffleruby.core;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Load libraries required from the command line (-r LIBRARY) */
-public class LoadRequiredLibrariesNode extends ContextSourceRubyNode {
+public class LoadRequiredLibrariesNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode requireNode = CallDispatchHeadNode.createPrivate();
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();

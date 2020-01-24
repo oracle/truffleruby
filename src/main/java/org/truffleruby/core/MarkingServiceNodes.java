@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.MarkingService.MarkerThreadLocalData;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 public class MarkingServiceNodes {
 
     @GenerateUncached
-    public static abstract class KeepAliveNode extends BaseRubyNode {
+    public static abstract class KeepAliveNode extends RubyBaseNode {
 
         public abstract void execute(Object object);
 
@@ -47,7 +47,7 @@ public class MarkingServiceNodes {
     }
 
     @GenerateUncached
-    public static abstract class GetMarkerThreadLocalDataNode extends BaseRubyNode {
+    public static abstract class GetMarkerThreadLocalDataNode extends RubyBaseNode {
 
         public final MarkerThreadLocalData execute() {
             return execute(Boolean.TRUE);

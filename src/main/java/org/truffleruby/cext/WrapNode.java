@@ -18,7 +18,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -33,7 +33,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
-public abstract class WrapNode extends BaseRubyNode {
+public abstract class WrapNode extends RubyBaseNode {
 
     public static WrapNode create() {
         return WrapNodeGen.create();

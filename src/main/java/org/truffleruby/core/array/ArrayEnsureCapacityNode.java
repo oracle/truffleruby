@@ -10,7 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayEnsureCapacityNode extends ContextRubyNode {
+public abstract class ArrayEnsureCapacityNode extends RubyContextNode {
 
     public static ArrayEnsureCapacityNode create() {
         return ArrayEnsureCapacityNodeGen.create();

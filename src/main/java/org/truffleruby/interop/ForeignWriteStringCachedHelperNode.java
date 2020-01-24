@@ -9,7 +9,7 @@
  */
 package org.truffleruby.interop;
 
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
-abstract class ForeignWriteStringCachedHelperNode extends BaseRubyNode {
+abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
 
     protected final static String INDEX_SET_METHOD_NAME = "[]=";
 

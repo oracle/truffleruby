@@ -20,7 +20,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class DataNode extends ContextSourceRubyNode {
+public class DataNode extends RubyContextSourceNode {
 
     @Child private StringNodes.MakeStringNode makeStringNode;
     @Child private CallDispatchHeadNode callHelperNode;

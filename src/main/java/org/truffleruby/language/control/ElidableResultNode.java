@@ -10,7 +10,7 @@
 package org.truffleruby.language.control;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * result. If the result isn't needed all we execute is the side effects.
  */
 @NodeInfo(cost = NodeCost.NONE)
-public class ElidableResultNode extends ContextSourceRubyNode {
+public class ElidableResultNode extends RubyContextSourceNode {
 
     @Child private RubyNode required;
     @Child private RubyNode elidableResult;

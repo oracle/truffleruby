@@ -11,7 +11,7 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.collections.BiFunctionNode;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(HashGuards.class)
-public abstract class LookupPackedEntryNode extends ContextRubyNode {
+public abstract class LookupPackedEntryNode extends RubyContextNode {
 
     @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
 

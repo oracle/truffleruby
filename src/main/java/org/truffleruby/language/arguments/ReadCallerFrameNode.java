@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
 
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadCallerFrameNode extends ContextRubyNode {
+public class ReadCallerFrameNode extends RubyContextNode {
 
     private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
     @CompilationFinal private volatile boolean deoptWhenNotPassedCallerFrame = true;
@@ -70,7 +70,7 @@ public class ReadCallerFrameNode extends ContextRubyNode {
                     ((FrameSendingNode) parent).startSendingOwnFrame();
                     return true;
                 }
-                if (parent instanceof ContextRubyNode) {
+                if (parent instanceof RubyContextNode) {
                     return false;
                 }
                 parent = parent.getParent();

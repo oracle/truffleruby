@@ -57,7 +57,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.interop.ToJavaStringNodeGen;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -975,7 +975,7 @@ public class CExtNodes {
 
     }
 
-    public abstract static class StringToNativeNode extends ContextRubyNode {
+    public abstract static class StringToNativeNode extends RubyContextNode {
 
         public static StringToNativeNode create() {
             return StringToNativeNodeGen.create();

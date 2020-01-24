@@ -10,7 +10,7 @@
 package org.truffleruby.interop;
 
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 @ImportStatic(StringCachingGuards.class)
-public abstract class ForeignWriteStringCachingHelperNode extends BaseRubyNode {
+public abstract class ForeignWriteStringCachingHelperNode extends RubyBaseNode {
 
     public abstract Object executeStringCachingHelper(
             DynamicObject receiver,

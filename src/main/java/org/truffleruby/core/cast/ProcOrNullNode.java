@@ -11,7 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ProcOrNullNode extends BaseRubyNode {
+public abstract class ProcOrNullNode extends RubyBaseNode {
 
     public static ProcOrNullNode create() {
         return ProcOrNullNodeGen.create(null);

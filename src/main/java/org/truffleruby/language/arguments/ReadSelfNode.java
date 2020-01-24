@@ -9,11 +9,11 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class ReadSelfNode extends ContextSourceRubyNode {
+public class ReadSelfNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

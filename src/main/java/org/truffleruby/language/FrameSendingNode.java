@@ -18,7 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.utilities.AlwaysValidAssumption;
 
-public abstract class FrameSendingNode extends ContextRubyNode {
+public abstract class FrameSendingNode extends RubyContextNode {
 
     protected enum SendsFrame {
         NO_FRAME,

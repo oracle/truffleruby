@@ -10,7 +10,7 @@
 
 package org.truffleruby.core.cast;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.IsTaintedNode;
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class TaintResultNode extends ContextSourceRubyNode {
+public class TaintResultNode extends RubyContextSourceNode {
 
     private final boolean taintFromSelf;
     private final int taintFromParameter;

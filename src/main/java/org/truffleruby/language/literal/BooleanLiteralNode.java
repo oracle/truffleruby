@@ -10,14 +10,14 @@
 package org.truffleruby.language.literal;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(cost = NodeCost.NONE)
-public class BooleanLiteralNode extends ContextSourceRubyNode {
+public class BooleanLiteralNode extends RubyContextSourceNode {
 
     private final boolean value;
 

@@ -19,8 +19,8 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.ContextRubyNode;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.parser.BodyTranslator;
@@ -32,7 +32,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class InterpolatedRegexpNode extends ContextSourceRubyNode {
+public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;
     @Child private RegexpBuilderNode builderNode;
@@ -57,7 +57,7 @@ public class InterpolatedRegexpNode extends ContextSourceRubyNode {
         return values;
     }
 
-    public static abstract class RegexpBuilderNode extends ContextRubyNode {
+    public static abstract class RegexpBuilderNode extends RubyContextNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
         @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();

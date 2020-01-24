@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class TryNode extends ContextSourceRubyNode {
+public class TryNode extends RubyContextSourceNode {
 
     @Child private ExceptionTranslatingNode tryPart;
     @Children private final RescueNode[] rescueParts;

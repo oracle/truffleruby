@@ -11,7 +11,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToStrNode extends ContextSourceRubyNode {
+public abstract class ToStrNode extends RubyContextSourceNode {
 
     public abstract DynamicObject executeToStr(VirtualFrame frame, Object object);
 

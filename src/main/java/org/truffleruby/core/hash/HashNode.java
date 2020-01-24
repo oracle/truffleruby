@@ -12,14 +12,14 @@ package org.truffleruby.core.hash;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class HashNode extends ContextRubyNode {
+public class HashNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode hashNode;
     @Child private ObjectIDNode objectIDNode;

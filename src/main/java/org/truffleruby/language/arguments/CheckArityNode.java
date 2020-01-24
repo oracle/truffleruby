@@ -9,14 +9,14 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class CheckArityNode extends ContextSourceRubyNode {
+public class CheckArityNode extends RubyContextSourceNode {
 
     private final Arity arity;
 

@@ -11,12 +11,12 @@ package org.truffleruby.language.defined;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.string.CoreString;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class DefinedWrapperNode extends ContextSourceRubyNode {
+public class DefinedWrapperNode extends RubyContextSourceNode {
 
     private final CoreString definition;
 

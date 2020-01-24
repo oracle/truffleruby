@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.LocalReturnException;
@@ -18,7 +18,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class CatchReturnAsErrorNode extends ContextSourceRubyNode {
+public class CatchReturnAsErrorNode extends RubyContextSourceNode {
 
     @Child private RubyNode body;
 

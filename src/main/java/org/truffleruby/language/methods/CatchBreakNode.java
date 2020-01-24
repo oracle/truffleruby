@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
@@ -17,7 +17,7 @@ import org.truffleruby.language.control.BreakID;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class CatchBreakNode extends ContextSourceRubyNode {
+public class CatchBreakNode extends RubyContextSourceNode {
 
     private final boolean isWhile;
     private final BreakID breakID;

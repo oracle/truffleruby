@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.control;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.locals.WriteFrameSlotNode;
 import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
@@ -17,7 +17,7 @@ import org.truffleruby.language.locals.WriteFrameSlotNodeGen;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class FrameOnStackNode extends ContextSourceRubyNode {
+public class FrameOnStackNode extends RubyContextSourceNode {
 
     @Child private RubyNode child;
     @Child private WriteFrameSlotNode writeMarker;

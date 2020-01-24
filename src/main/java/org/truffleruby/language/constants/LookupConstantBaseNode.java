@@ -10,7 +10,7 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.WarnNode;
 
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-public abstract class LookupConstantBaseNode extends ContextRubyNode {
+public abstract class LookupConstantBaseNode extends RubyContextNode {
 
     @Child private WarnNode warnNode;
 

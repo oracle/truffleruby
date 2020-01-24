@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 
@@ -17,7 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class ShouldDestructureNode extends ContextSourceRubyNode {
+public class ShouldDestructureNode extends RubyContextSourceNode {
 
     @Child private DoesRespondDispatchHeadNode respondToToAry;
 

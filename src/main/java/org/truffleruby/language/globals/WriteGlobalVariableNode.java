@@ -12,7 +12,7 @@ package org.truffleruby.language.globals;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class WriteGlobalVariableNode extends ContextSourceRubyNode {
+public abstract class WriteGlobalVariableNode extends RubyContextSourceNode {
 
     protected final String name;
 

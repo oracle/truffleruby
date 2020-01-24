@@ -32,7 +32,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -119,7 +119,7 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class ExecuteUncacheableNode extends BaseRubyNode {
+    public abstract static class ExecuteUncacheableNode extends RubyBaseNode {
 
         abstract Object execute(Object receiver, Object[] args);
 
@@ -200,7 +200,7 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class InvokeUncacheableNode extends BaseRubyNode {
+    public abstract static class InvokeUncacheableNode extends RubyBaseNode {
 
         public static InvokeUncacheableNode create() {
             return InteropNodesFactory.InvokeUncacheableNodeGen.create();
@@ -277,7 +277,7 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class NewUncacheableNode extends BaseRubyNode {
+    public abstract static class NewUncacheableNode extends RubyBaseNode {
 
         public static NewUncacheableNode create() {
             return InteropNodesFactory.NewUncacheableNodeGen.create();
@@ -513,7 +513,7 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class NullUncacheableNode extends BaseRubyNode {
+    public abstract static class NullUncacheableNode extends RubyBaseNode {
 
         public static NullUncacheableNode create() {
             return InteropNodesFactory.NullUncacheableNodeGen.create();
@@ -599,7 +599,7 @@ public abstract class InteropNodes {
 
     // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
-    public abstract static class ReadUncacheableNode extends BaseRubyNode {
+    public abstract static class ReadUncacheableNode extends RubyBaseNode {
 
         public static ReadUncacheableNode create() {
             return InteropNodesFactory.ReadUncacheableNodeGen.create();
@@ -732,7 +732,7 @@ public abstract class InteropNodes {
 
     // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
-    public abstract static class WriteUncacheableNode extends BaseRubyNode {
+    public abstract static class WriteUncacheableNode extends RubyBaseNode {
         public static WriteUncacheableNode create() {
             return InteropNodesFactory.WriteUncacheableNodeGen.create();
         }

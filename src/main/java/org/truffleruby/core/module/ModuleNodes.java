@@ -54,8 +54,8 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.language.ContextRubyNode;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
@@ -380,7 +380,7 @@ public abstract class ModuleNodes {
         }
     }
 
-    public abstract static class GenerateAccessorNode extends ContextRubyNode {
+    public abstract static class GenerateAccessorNode extends RubyContextNode {
 
         final boolean isGetter;
 
@@ -1194,7 +1194,7 @@ public abstract class ModuleNodes {
             return addMethod(module, name, method, callerFrame);
         }
 
-        private static class CallMethodWithProcBody extends ContextSourceRubyNode {
+        private static class CallMethodWithProcBody extends RubyContextSourceNode {
 
             private final MaterializedFrame declarationFrame;
             @Child private RubyNode procBody;
@@ -1975,7 +1975,7 @@ public abstract class ModuleNodes {
 
     }
 
-    public abstract static class SetVisibilityNode extends ContextRubyNode {
+    public abstract static class SetVisibilityNode extends RubyContextNode {
 
         private final Visibility visibility;
 
@@ -2004,7 +2004,7 @@ public abstract class ModuleNodes {
 
     }
 
-    public abstract static class SetMethodVisibilityNode extends ContextRubyNode {
+    public abstract static class SetMethodVisibilityNode extends RubyContextNode {
 
         private final Visibility visibility;
 

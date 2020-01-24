@@ -16,7 +16,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
 /** Has context but nothing else. */
-public abstract class ContextRubyNode extends BaseRubyNode implements RubyNode.WithContext {
+public abstract class RubyContextNode extends RubyBaseNode implements RubyNode.WithContext {
 
     @CompilationFinal private RubyContext context;
 

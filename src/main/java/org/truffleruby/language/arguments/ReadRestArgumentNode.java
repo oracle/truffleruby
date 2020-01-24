@@ -13,7 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayAppendOneNode;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadRestArgumentNode extends ContextSourceRubyNode {
+public class ReadRestArgumentNode extends RubyContextSourceNode {
 
     private final int startIndex;
     private final int indexFromCount;

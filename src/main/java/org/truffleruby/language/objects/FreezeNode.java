@@ -11,13 +11,13 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class FreezeNode extends ContextRubyNode {
+public abstract class FreezeNode extends RubyContextNode {
 
     public static FreezeNode create() {
         return FreezeNodeGen.create();

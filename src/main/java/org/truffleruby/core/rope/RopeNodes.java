@@ -35,8 +35,8 @@ import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.BaseRubyNode;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 
@@ -57,7 +57,7 @@ public abstract class RopeNodes {
 
     // Preserves encoding of the top-level Rope
     @GenerateUncached
-    public abstract static class SubstringNode extends BaseRubyNode {
+    public abstract static class SubstringNode extends RubyBaseNode {
 
         public static SubstringNode create() {
             return RopeNodesFactory.SubstringNodeGen.create();
@@ -232,7 +232,7 @@ public abstract class RopeNodes {
     }
 
     @GenerateUncached
-    public abstract static class MakeSubstringRopeNode extends BaseRubyNode {
+    public abstract static class MakeSubstringRopeNode extends RubyBaseNode {
 
         public static MakeSubstringRopeNode create() {
             return RopeNodesFactory.MakeSubstringRopeNodeGen.create();
@@ -284,7 +284,7 @@ public abstract class RopeNodes {
 
     @ImportStatic(RopeGuards.class)
     @GenerateUncached
-    public abstract static class CalculateAttributesNode extends BaseRubyNode {
+    public abstract static class CalculateAttributesNode extends RubyBaseNode {
 
         public static CalculateAttributesNode create() {
             return RopeNodesFactory.CalculateAttributesNodeGen.create();
@@ -419,7 +419,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class ConcatNode extends ContextRubyNode {
+    public abstract static class ConcatNode extends RubyContextNode {
 
         public static ConcatNode create() {
             return RopeNodesFactory.ConcatNodeGen.create();
@@ -669,7 +669,7 @@ public abstract class RopeNodes {
 
     @ImportStatic(RopeGuards.class)
     @GenerateUncached
-    public abstract static class MakeLeafRopeNode extends BaseRubyNode {
+    public abstract static class MakeLeafRopeNode extends RubyBaseNode {
 
         public static MakeLeafRopeNode create() {
             return RopeNodesFactory.MakeLeafRopeNodeGen.create();
@@ -846,7 +846,7 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(RopeGuards.class)
-    public abstract static class RepeatNode extends ContextRubyNode {
+    public abstract static class RepeatNode extends RubyContextNode {
 
         public static RepeatNode create() {
             return RopeNodesFactory.RepeatNodeGen.create();
@@ -900,7 +900,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class DebugPrintRopeNode extends ContextRubyNode {
+    public abstract static class DebugPrintRopeNode extends RubyContextNode {
 
         public abstract DynamicObject executeDebugPrint(Rope rope, int currentLevel, boolean printString);
 
@@ -1038,7 +1038,7 @@ public abstract class RopeNodes {
     }
 
     @GenerateUncached
-    public abstract static class WithEncodingNode extends BaseRubyNode {
+    public abstract static class WithEncodingNode extends RubyBaseNode {
 
         public static WithEncodingNode create() {
             return RopeNodesFactory.WithEncodingNodeGen.create();
@@ -1104,7 +1104,7 @@ public abstract class RopeNodes {
     }
 
     @GenerateUncached
-    public abstract static class GetByteNode extends BaseRubyNode {
+    public abstract static class GetByteNode extends RubyBaseNode {
 
         public static GetByteNode create() {
             return RopeNodesFactory.GetByteNodeGen.create();
@@ -1172,7 +1172,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class SetByteNode extends ContextRubyNode {
+    public abstract static class SetByteNode extends RubyContextNode {
 
         @Child private ConcatNode composedConcatNode = ConcatNode.create();
         @Child private ConcatNode middleConcatNode = ConcatNode.create();
@@ -1213,7 +1213,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class GetCodePointNode extends ContextRubyNode {
+    public abstract static class GetCodePointNode extends RubyContextNode {
 
         @Child private CalculateCharacterLengthNode calculateCharacterLengthNode;
         @Child SingleByteOptimizableNode singleByteOptimizableNode = SingleByteOptimizableNode.create();
@@ -1285,7 +1285,7 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(RopeGuards.class)
-    public abstract static class FlattenNode extends ContextRubyNode {
+    public abstract static class FlattenNode extends RubyContextNode {
 
         @Child private MakeLeafRopeNode makeLeafRopeNode = MakeLeafRopeNode.create();
 
@@ -1324,7 +1324,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class EqualNode extends ContextRubyNode {
+    public abstract static class EqualNode extends RubyContextNode {
 
         public static EqualNode create() {
             return RopeNodesFactory.EqualNodeGen.create();
@@ -1354,7 +1354,7 @@ public abstract class RopeNodes {
     // This node type checks for the equality of the bytes owned by a rope but does not pay
     // attention to the encoding.
     @ReportPolymorphism
-    public abstract static class BytesEqualNode extends ContextRubyNode {
+    public abstract static class BytesEqualNode extends RubyContextNode {
 
         public static BytesEqualNode create() {
             return RopeNodesFactory.BytesEqualNodeGen.create();
@@ -1445,7 +1445,7 @@ public abstract class RopeNodes {
     }
 
     @GenerateUncached
-    public abstract static class BytesNode extends BaseRubyNode {
+    public abstract static class BytesNode extends RubyBaseNode {
 
         public static BytesNode create() {
             return RopeNodesFactory.BytesNodeGen.create();
@@ -1471,7 +1471,7 @@ public abstract class RopeNodes {
     }
 
     @GenerateUncached
-    public abstract static class ByteSlowNode extends BaseRubyNode {
+    public abstract static class ByteSlowNode extends RubyBaseNode {
 
         public static ByteSlowNode create() {
             return RopeNodesFactory.ByteSlowNodeGen.create();
@@ -1503,7 +1503,7 @@ public abstract class RopeNodes {
     }
 
     @GenerateUncached
-    public abstract static class AsciiOnlyNode extends BaseRubyNode {
+    public abstract static class AsciiOnlyNode extends RubyBaseNode {
 
         public static AsciiOnlyNode create() {
             return RopeNodesFactory.AsciiOnlyNodeGen.create();
@@ -1520,7 +1520,7 @@ public abstract class RopeNodes {
     }
 
     @GenerateUncached
-    public abstract static class CodeRangeNode extends BaseRubyNode {
+    public abstract static class CodeRangeNode extends RubyBaseNode {
 
         public static CodeRangeNode create() {
             return RopeNodesFactory.CodeRangeNodeGen.create();
@@ -1549,7 +1549,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class HashNode extends ContextRubyNode {
+    public abstract static class HashNode extends RubyContextNode {
 
         public static HashNode create() {
             return RopeNodesFactory.HashNodeGen.create();
@@ -1569,7 +1569,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class CharacterLengthNode extends ContextRubyNode {
+    public abstract static class CharacterLengthNode extends RubyContextNode {
 
         public static CharacterLengthNode create() {
             return RopeNodesFactory.CharacterLengthNodeGen.create();
@@ -1599,7 +1599,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class SingleByteOptimizableNode extends ContextRubyNode {
+    public abstract static class SingleByteOptimizableNode extends RubyContextNode {
 
         public static SingleByteOptimizableNode create() {
             return RopeNodesFactory.SingleByteOptimizableNodeGen.create();
@@ -1624,7 +1624,7 @@ public abstract class RopeNodes {
 
     @ImportStatic(CodeRange.class)
     @GenerateUncached
-    public abstract static class CalculateCharacterLengthNode extends BaseRubyNode {
+    public abstract static class CalculateCharacterLengthNode extends RubyBaseNode {
 
         public static CalculateCharacterLengthNode create() {
             return RopeNodesFactory.CalculateCharacterLengthNodeGen.create();
@@ -1777,7 +1777,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class NativeToManagedNode extends ContextRubyNode {
+    public abstract static class NativeToManagedNode extends RubyContextNode {
 
         public static NativeToManagedNode create() {
             return RopeNodesFactory.NativeToManagedNodeGen.create();
@@ -1800,7 +1800,7 @@ public abstract class RopeNodes {
     }
 
     @ImportStatic(RopeGuards.class)
-    public abstract static class AreComparableRopesNode extends ContextRubyNode {
+    public abstract static class AreComparableRopesNode extends RubyContextNode {
 
         public static AreComparableRopesNode create() {
             return AreComparableRopesNodeGen.create();
@@ -1847,7 +1847,7 @@ public abstract class RopeNodes {
 
     }
 
-    public abstract static class CompareRopesNode extends ContextRubyNode {
+    public abstract static class CompareRopesNode extends RubyContextNode {
 
         public static CompareRopesNode create() {
             return CompareRopesNodeGen.create();

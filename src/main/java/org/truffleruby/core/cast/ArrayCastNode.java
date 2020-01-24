@@ -10,7 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.array.ArrayStrategy;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -29,7 +29,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  * TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
  */
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ArrayCastNode extends ContextSourceRubyNode {
+public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     private final SplatCastNode.NilBehavior nilBehavior;
 

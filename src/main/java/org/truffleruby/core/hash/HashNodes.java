@@ -26,7 +26,7 @@ import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
@@ -148,7 +148,7 @@ public abstract class HashNodes {
     }
 
     @ImportStatic(HashGuards.class)
-    public abstract static class HashLookupOrExecuteDefaultNode extends ContextRubyNode {
+    public abstract static class HashLookupOrExecuteDefaultNode extends RubyContextNode {
 
         public static HashLookupOrExecuteDefaultNode create() {
             return HashLookupOrExecuteDefaultNodeGen.create();
@@ -842,7 +842,7 @@ public abstract class HashNodes {
     }
 
     @ImportStatic(HashGuards.class)
-    public abstract static class InternalRehashNode extends ContextRubyNode {
+    public abstract static class InternalRehashNode extends RubyContextNode {
 
         @Child private HashNode hashNode = new HashNode();
 
@@ -918,7 +918,7 @@ public abstract class HashNodes {
     }
 
     @ImportStatic(HashGuards.class)
-    public abstract static class EachKeyValueNode extends ContextRubyNode {
+    public abstract static class EachKeyValueNode extends RubyContextNode {
 
         public static EachKeyValueNode create() {
             return EachKeyValueNodeGen.create();

@@ -13,7 +13,7 @@ import static org.truffleruby.core.array.ArrayHelpers.getSize;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
-public abstract class ArrayWriteNormalizedNode extends ContextRubyNode {
+public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
 
     @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 

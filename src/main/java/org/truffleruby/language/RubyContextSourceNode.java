@@ -17,7 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /** Has both context and source methods. */
-public abstract class ContextSourceRubyNode extends RubyNode implements RubyNode.WithContext {
+public abstract class RubyContextSourceNode extends RubyNode implements RubyNode.WithContext {
 
     private int sourceCharIndex = NO_SOURCE;
     private int sourceLength;
@@ -61,10 +61,10 @@ public abstract class ContextSourceRubyNode extends RubyNode implements RubyNode
 
     // Helpers
 
-    private static final ContextSourceRubyNode[] EMPTY_CONTEXT_SOURCE_RUBY_NODES = new ContextSourceRubyNode[]{};
+    private static final RubyContextSourceNode[] EMPTY_CONTEXT_SOURCE_RUBY_NODES = new RubyContextSourceNode[]{};
 
-    public static ContextSourceRubyNode[] createArray(int size) {
-        return size == 0 ? EMPTY_CONTEXT_SOURCE_RUBY_NODES : new ContextSourceRubyNode[size];
+    public static RubyContextSourceNode[] createArray(int size) {
+        return size == 0 ? EMPTY_CONTEXT_SOURCE_RUBY_NODES : new RubyContextSourceNode[size];
     }
 
     // Context

@@ -12,7 +12,7 @@ package org.truffleruby.language.exceptions;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.kernel.AtExitManager;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -23,7 +23,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class TopLevelRaiseHandler extends ContextSourceRubyNode {
+public class TopLevelRaiseHandler extends RubyContextSourceNode {
 
     @Child private RubyNode body;
     @Child private IntegerCastNode integerCastNode;

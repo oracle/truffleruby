@@ -10,7 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.language.locals.ReadFrameSlotNodeGen;
 
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.HiddenKey;
 
-public class SelfNode extends ContextSourceRubyNode {
+public class SelfNode extends RubyContextSourceNode {
 
     public static final HiddenKey SELF_IDENTIFIER = new HiddenKey("(self)");
 

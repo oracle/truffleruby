@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class GetDynamicLexicalScopeNode extends ContextSourceRubyNode {
+public class GetDynamicLexicalScopeNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {

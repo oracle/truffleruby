@@ -12,7 +12,7 @@ package org.truffleruby.core.array;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class ArrayLiteralNode extends ContextSourceRubyNode {
+public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     public static ArrayLiteralNode create(RubyNode[] values) {
         return new UninitialisedArrayLiteralNode(values);

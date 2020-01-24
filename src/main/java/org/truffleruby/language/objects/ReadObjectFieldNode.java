@@ -10,7 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -26,7 +26,7 @@ import com.oracle.truffle.api.object.Shape;
 @ReportPolymorphism
 @GenerateUncached
 @ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
-public abstract class ReadObjectFieldNode extends BaseRubyNode {
+public abstract class ReadObjectFieldNode extends RubyBaseNode {
 
     public static ReadObjectFieldNode create() {
         return ReadObjectFieldNodeGen.create();

@@ -25,7 +25,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
@@ -331,7 +331,7 @@ public abstract class MethodNodes {
 
     }
 
-    private static class SetReceiverNode extends ContextSourceRubyNode {
+    private static class SetReceiverNode extends RubyContextSourceNode {
 
         @Child private DirectCallNode methodCallNode;
 

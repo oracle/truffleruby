@@ -9,11 +9,11 @@
  */
 package org.truffleruby.builtins;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 
 @GenerateNodeFactory
-public abstract class CoreMethodNode extends ContextSourceRubyNode {
+public abstract class CoreMethodNode extends RubyContextSourceNode {
 
 }

@@ -12,7 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.shared.SharedObjects;
@@ -26,7 +26,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class SingletonClassNode extends ContextSourceRubyNode {
+public abstract class SingletonClassNode extends RubyContextSourceNode {
 
     @Child private IsFrozenNode isFrozenNode;
     @Child private FreezeNode freezeNode;

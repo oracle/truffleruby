@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -18,7 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class EnsureSymbolKeysNode extends ContextSourceRubyNode {
+public class EnsureSymbolKeysNode extends RubyContextSourceNode {
 
     @Child private RubyNode child;
 

@@ -11,7 +11,7 @@ package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -28,7 +28,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * Caches {@link ModuleOperations#lookupSuperMethod}
  * on an actual instance.
  */
-public abstract class LookupSuperMethodNode extends ContextRubyNode {
+public abstract class LookupSuperMethodNode extends RubyContextNode {
 
     @Child private MetaClassNode metaClassNode;
 

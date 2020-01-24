@@ -11,7 +11,7 @@ package org.truffleruby.language.literal;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeInfo(cost = NodeCost.NONE)
-public class ObjectLiteralNode extends ContextSourceRubyNode {
+public class ObjectLiteralNode extends RubyContextSourceNode {
 
     private final Object object;
 

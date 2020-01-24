@@ -11,7 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
@@ -27,7 +27,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  */
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
-public abstract class LongCastNode extends BaseRubyNode {
+public abstract class LongCastNode extends RubyBaseNode {
 
     public static LongCastNode create() {
         return LongCastNodeGen.create();

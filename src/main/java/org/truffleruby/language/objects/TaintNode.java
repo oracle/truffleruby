@@ -10,7 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public abstract class TaintNode extends ContextRubyNode {
+public abstract class TaintNode extends RubyContextNode {
 
     @Child private IsFrozenNode isFrozenNode;
     @Child private IsTaintedNode isTaintedNode;

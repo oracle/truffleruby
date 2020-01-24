@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class CatchForLambdaNode extends ContextSourceRubyNode {
+public class CatchForLambdaNode extends RubyContextSourceNode {
 
     private final ReturnID returnID;
     private final BreakID breakID;

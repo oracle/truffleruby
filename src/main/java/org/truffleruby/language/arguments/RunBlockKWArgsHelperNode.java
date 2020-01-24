@@ -10,7 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.locals.ReadFrameSlotNode;
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class RunBlockKWArgsHelperNode extends ContextSourceRubyNode {
+public class RunBlockKWArgsHelperNode extends RubyContextSourceNode {
 
     @Child private ReadFrameSlotNode readArrayNode;
     @Child private WriteFrameSlotNode writeArrayNode;

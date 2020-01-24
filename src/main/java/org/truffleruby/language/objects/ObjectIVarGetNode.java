@@ -12,7 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.symbol.SymbolTable;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class ObjectIVarGetNode extends BaseRubyNode {
+public abstract class ObjectIVarGetNode extends RubyBaseNode {
 
     public static ObjectIVarGetNode create() {
         return ObjectIVarGetNodeGen.create();

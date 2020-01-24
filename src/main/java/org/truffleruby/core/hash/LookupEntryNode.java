@@ -10,12 +10,12 @@
 package org.truffleruby.core.hash;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class LookupEntryNode extends ContextRubyNode {
+public class LookupEntryNode extends RubyContextNode {
 
     @Child HashNode hashNode = new HashNode();
     @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();

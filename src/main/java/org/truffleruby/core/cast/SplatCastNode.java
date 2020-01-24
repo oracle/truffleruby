@@ -13,7 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayDupNode;
 import org.truffleruby.core.array.ArrayDupNodeGen;
 import org.truffleruby.core.array.ArrayStrategy;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -32,7 +32,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  * Splat as used to cast a value to an array if it isn't already, as in {@code *value}.
  */
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class SplatCastNode extends ContextSourceRubyNode {
+public abstract class SplatCastNode extends RubyContextSourceNode {
 
     public enum NilBehavior {
         EMPTY_ARRAY,

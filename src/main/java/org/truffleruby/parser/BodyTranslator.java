@@ -61,7 +61,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -388,7 +388,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitArrayNode(ArrayParseNode node) {
         final ParseNode[] values = node.children();
 
-        final RubyNode[] translatedValues = ContextSourceRubyNode.createArray(values.length);
+        final RubyNode[] translatedValues = RubyContextSourceNode.createArray(values.length);
 
         for (int n = 0; n < values.length; n++) {
             translatedValues[n] = values[n].accept(this);
@@ -671,7 +671,7 @@ public class BodyTranslator extends Translator {
             throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
-        final RubyNode[] argumentsTranslated = ContextSourceRubyNode.createArray(arguments.length);
+        final RubyNode[] argumentsTranslated = RubyContextSourceNode.createArray(arguments.length);
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
         }
@@ -2916,7 +2916,7 @@ public class BodyTranslator extends Translator {
             SourceIndexLength sourceSection) {
         final ParseNode[] exceptionNodes = arrayParse.children();
 
-        final RubyNode[] handlingClasses = ContextSourceRubyNode.createArray(exceptionNodes.length);
+        final RubyNode[] handlingClasses = RubyContextSourceNode.createArray(exceptionNodes.length);
 
         for (int n = 0; n < handlingClasses.length; n++) {
             handlingClasses[n] = exceptionNodes[n].accept(this);
@@ -3176,7 +3176,7 @@ public class BodyTranslator extends Translator {
             arguments = new ParseNode[]{ node.getArgsNode() };
         }
 
-        final RubyNode[] argumentsTranslated = ContextSourceRubyNode.createArray(arguments.length);
+        final RubyNode[] argumentsTranslated = RubyContextSourceNode.createArray(arguments.length);
 
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
@@ -3212,7 +3212,7 @@ public class BodyTranslator extends Translator {
     }
 
     protected RubyNode initFlipFlopStates(SourceIndexLength sourceSection) {
-        final RubyNode[] initNodes = ContextSourceRubyNode.createArray(environment.getFlipFlopStates().size());
+        final RubyNode[] initNodes = RubyContextSourceNode.createArray(environment.getFlipFlopStates().size());
 
         for (int n = 0; n < initNodes.length; n++) {
             initNodes[n] = new InitFlipFlopSlotNode(environment.getFlipFlopStates().get(n));

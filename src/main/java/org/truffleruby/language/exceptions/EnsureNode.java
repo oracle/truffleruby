@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -17,7 +17,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class EnsureNode extends ContextSourceRubyNode {
+public class EnsureNode extends RubyContextSourceNode {
 
     @Child private RubyNode tryPart;
     @Child private RubyNode ensurePart;

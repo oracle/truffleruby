@@ -18,7 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeField(name = "sourceCharIndex", type = int.class)
 @NodeField(name = "sourceLength", type = int.class)
 @NodeField(name = "flags", type = byte.class)
-public abstract class UncacheableSourceRubyNode extends RubyNode {
+public abstract class RubySourceNode extends RubyNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {

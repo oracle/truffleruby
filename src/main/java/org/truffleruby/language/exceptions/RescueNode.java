@@ -11,7 +11,7 @@ package org.truffleruby.language.exceptions;
 
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -23,7 +23,7 @@ import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public abstract class RescueNode extends ContextSourceRubyNode {
+public abstract class RescueNode extends RubyContextSourceNode {
 
     @Child private RubyNode rescueBody;
 

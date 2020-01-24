@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 /**
  * Casts a value into a Ruby Float (double).
  */
-public abstract class NumericToFloatNode extends ContextRubyNode {
+public abstract class NumericToFloatNode extends RubyContextNode {
 
     @Child private IsANode isANode = IsANode.create();
     @Child private CallDispatchHeadNode toFloatCallNode;

@@ -11,7 +11,7 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class GetIntegerConstantNode extends ContextRubyNode {
+public abstract class GetIntegerConstantNode extends RubyContextNode {
 
     public static GetIntegerConstantNode create() {
         return GetIntegerConstantNodeGen.create();

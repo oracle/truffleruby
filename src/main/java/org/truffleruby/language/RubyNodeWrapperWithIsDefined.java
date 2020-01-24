@@ -16,7 +16,7 @@ import com.oracle.truffle.api.nodes.NodeCost;
 import org.truffleruby.RubyContext;
 
 // Defined manually rather than generated because we need to delegate isDefined()
-final class RubyNodeWrapperWithIsDefined extends ContextSourceRubyNode implements WrapperNode {
+final class RubyNodeWrapperWithIsDefined extends RubyContextSourceNode implements WrapperNode {
 
     @Child private RubyNode delegateNode;
     @Child private ProbeNode probeNode;

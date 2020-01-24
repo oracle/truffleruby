@@ -10,7 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -28,7 +28,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  * Convert objects to a String by calling #to_str, but leave existing Strings or Symbols as they are.
  */
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToStringOrSymbolNode extends ContextSourceRubyNode {
+public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode toStr;
 

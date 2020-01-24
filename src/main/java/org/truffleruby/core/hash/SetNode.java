@@ -10,7 +10,7 @@
 package org.truffleruby.core.hash;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -23,7 +23,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(HashGuards.class)
-public abstract class SetNode extends ContextRubyNode {
+public abstract class SetNode extends RubyContextNode {
 
     @Child private HashNode hashNode = new HashNode();
     @Child private LookupEntryNode lookupEntryNode;

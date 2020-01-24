@@ -19,8 +19,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
-import org.truffleruby.language.BaseRubyNode;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 
@@ -39,7 +39,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
 @ImportStatic({ ValueWrapperManager.class })
-public abstract class UnwrapNode extends BaseRubyNode {
+public abstract class UnwrapNode extends RubyBaseNode {
 
     public static UnwrapNode create() {
         return UnwrapNodeGen.create();
@@ -47,7 +47,7 @@ public abstract class UnwrapNode extends BaseRubyNode {
 
     @GenerateUncached
     @ImportStatic(ValueWrapperManager.class)
-    public static abstract class UnwrapNativeNode extends BaseRubyNode {
+    public static abstract class UnwrapNativeNode extends RubyBaseNode {
 
         public abstract Object execute(long handle);
 
@@ -109,7 +109,7 @@ public abstract class UnwrapNode extends BaseRubyNode {
 
     @GenerateUncached
     @ImportStatic(ValueWrapperManager.class)
-    public static abstract class NativeToWrapperNode extends BaseRubyNode {
+    public static abstract class NativeToWrapperNode extends RubyBaseNode {
 
         public abstract ValueWrapper execute(long handle);
 
@@ -158,7 +158,7 @@ public abstract class UnwrapNode extends BaseRubyNode {
     }
 
     @ImportStatic({ ValueWrapperManager.class })
-    public static abstract class ToWrapperNode extends ContextRubyNode {
+    public static abstract class ToWrapperNode extends RubyContextNode {
 
         public abstract ValueWrapper execute(Object value);
 

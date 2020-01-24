@@ -13,7 +13,7 @@ import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.SetNode;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.methods.Arity;
 
@@ -23,7 +23,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadKeywordRestArgumentNode extends ContextSourceRubyNode implements BiConsumerNode {
+public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements BiConsumerNode {
 
     @CompilationFinal(dimensions = 1) private final DynamicObject[] excludedKeywords;
 

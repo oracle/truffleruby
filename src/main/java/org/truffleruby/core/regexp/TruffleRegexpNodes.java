@@ -43,7 +43,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.ContextRubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -165,7 +165,7 @@ public class TruffleRegexpNodes {
         }
     }
 
-    public static abstract class MatchNode extends ContextRubyNode {
+    public static abstract class MatchNode extends RubyContextNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

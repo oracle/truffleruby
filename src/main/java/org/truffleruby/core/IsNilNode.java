@@ -9,12 +9,12 @@
  */
 package org.truffleruby.core;
 
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class IsNilNode extends ContextSourceRubyNode {
+public class IsNilNode extends RubyContextSourceNode {
 
     @Child private RubyNode child;
 

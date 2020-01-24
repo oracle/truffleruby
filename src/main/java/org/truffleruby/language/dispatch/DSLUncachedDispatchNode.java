@@ -16,7 +16,7 @@ import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
-import org.truffleruby.language.BaseRubyNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -40,7 +40,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
-public abstract class DSLUncachedDispatchNode extends BaseRubyNode {
+public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
 
     public static DSLUncachedDispatchNode create() {
         return DSLUncachedDispatchNodeGen.create();

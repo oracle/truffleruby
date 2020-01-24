@@ -11,14 +11,14 @@ package org.truffleruby.language.control;
 
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
-import org.truffleruby.language.ContextSourceRubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class AndNode extends ContextSourceRubyNode {
+public class AndNode extends RubyContextSourceNode {
 
     @Child private RubyNode left;
     @Child private RubyNode right;
