@@ -12,12 +12,12 @@ package org.truffleruby.language.loader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -41,7 +41,7 @@ public class MainLoader {
         return new RubySource(source);
     }
 
-    public RubySource loadFromStandardIn(RubyNode currentNode, String path) throws IOException {
+    public RubySource loadFromStandardIn(Node currentNode, String path) throws IOException {
         byte[] sourceBytes = readAllOfStandardIn();
         final Rope sourceRope = transformScript(currentNode, path, sourceBytes);
 
@@ -52,7 +52,7 @@ public class MainLoader {
         return new RubySource(source, sourceRope);
     }
 
-    private Rope transformScript(RubyNode currentNode, String path, byte[] sourceBytes) {
+    private Rope transformScript(Node currentNode, String path, byte[] sourceBytes) {
         final EmbeddedScript embeddedScript = new EmbeddedScript(context);
 
         if (embeddedScript.shouldTransform(sourceBytes)) {
@@ -80,7 +80,7 @@ public class MainLoader {
         return byteStream.toByteArray();
     }
 
-    public RubySource loadFromFile(Env env, RubyNode currentNode, String path) throws IOException {
+    public RubySource loadFromFile(Env env, Node currentNode, String path) throws IOException {
         final FileLoader fileLoader = new FileLoader(context);
 
         final TruffleFile file = env.getPublicTruffleFile(path);

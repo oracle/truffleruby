@@ -11,11 +11,11 @@ package org.truffleruby.core.format.printf;
 
 import java.util.List;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.FormatEncoding;
 import org.truffleruby.core.format.FormatRootNode;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -23,9 +23,9 @@ import com.oracle.truffle.api.Truffle;
 public class PrintfCompiler {
 
     private final RubyContext context;
-    private final RubyNode currentNode;
+    private final Node currentNode;
 
-    public PrintfCompiler(RubyContext context, RubyNode currentNode) {
+    public PrintfCompiler(RubyContext context, Node currentNode) {
         this.context = context;
         this.currentNode = currentNode;
     }
