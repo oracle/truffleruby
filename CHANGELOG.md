@@ -19,6 +19,7 @@ Compatibility:
 
 * Implemented `Float#{floor, ceil}` with `ndigits` argument.
 
+* Implemented `-p` CLI option.
 
 # 20.0.0
 
