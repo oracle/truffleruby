@@ -56,8 +56,6 @@ DLEXT = ON_MAC ? 'bundle' : 'so'
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
 
-require "#{TRUFFLERUBY_DIR}/lib/truffle/truffle/openssl-prefix.rb"
-
 MRI_TEST_RELATIVE_PREFIX = 'test/mri/tests'
 MRI_TEST_PREFIX = "#{TRUFFLERUBY_DIR}/#{MRI_TEST_RELATIVE_PREFIX}"
 MRI_TEST_CEXT_DIR = "#{MRI_TEST_PREFIX}/cext-c"

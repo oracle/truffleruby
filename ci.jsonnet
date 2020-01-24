@@ -75,7 +75,7 @@ local part_definitions = {
       environment+: { path+:: ["$MAVEN_HOME/bin"] },
     },
 
-    build: {
+    build_no_clean: {
       setup+: [["mx", "sversions"]] +
               # aot-build.log is used for the build-stats metrics, in other cases it does no harm
               jt(["build", "--env", self.mx_env] + self.jt_build_options + ["--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
@@ -83,6 +83,11 @@ local part_definitions = {
                 # make sure jt always uses what was just built
                 ["set-export", "RUBY_BIN", jt(["--use", self.mx_env, "--silent", "launcher"])[0]],
               ],
+    },
+
+    build: $.use.build_no_clean + {
+      # Clean build results to make sure nothing refers to them while testing
+      setup+: jt(["mx", "--env", self.mx_env, "clean"]),
     },
 
     clone_enterprise: {
@@ -263,10 +268,11 @@ local part_definitions = {
 
   run: {
     test_unit_tck_specs: {
-      run+: jt(["test", "unit"]) +
-            jt(["test", "tck"]) +
-            jt(["test", "specs"]) +
-            jt(["test", "specs", ":next"]),
+      run+: jt(["test", "specs"]) +
+            jt(["test", "specs", ":next"]) +
+            jt(["build"]) + # We need mx distributions to run unit tests
+            jt(["test", "unit"]) +
+            jt(["test", "tck"]),
     },
 
     test_fast: {
@@ -274,7 +280,7 @@ local part_definitions = {
     },
 
     lint: {
-      is_after:: ["$.use.build"],
+      is_after:: ["$.use.build_no_clean"],
       downloads+: {
         JDT: { name: "ecj", version: "4.5.1", platformspecific: false },
         ECLIPSE: { version: "4.5.2", name: "eclipse", platformspecific: true },
@@ -417,7 +423,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   test_builds:
     {
-      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.v8 + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "30:00" },
+      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.v8 + $.use.common + $.env.jvm + $.use.build_no_clean + $.run.lint + { timelimit: "30:00" },
     } +
 
     {
