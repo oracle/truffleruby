@@ -51,7 +51,7 @@ public abstract class RubyNode extends BaseRubyNode implements InstrumentableNod
 
     protected static final int NO_SOURCE = -1;
 
-    {
+    protected RubyNode() {
         if (isAdoptable()) {
             // initialize only if the node is not the Uncached instance
             setSourceCharIndex(NO_SOURCE);
