@@ -433,31 +433,31 @@ class Array
       unless TrufflePrimitive.undefined?(c)
         raise ArgumentError, 'wrong number of arguments'
       end
-      location = a
+      index = a
       length = b
     else
       if TrufflePrimitive.undefined?(a)
         raise ArgumentError, 'wrong number of arguments'
       end
       obj = a
-      location = b
+      index = b
       length = c
     end
 
-    if TrufflePrimitive.undefined?(location) || !location
+    if TrufflePrimitive.undefined?(index) || !index
       left = 0
       right = size
-    elsif location.kind_of? Range
+    elsif index.kind_of? Range
       raise TypeError, 'length invalid with range' unless TrufflePrimitive.undefined?(length)
 
-      left = range_begin location
-      raise RangeError, "#{location.inspect} out of range" if left < 0
+      left = range_begin index
+      raise RangeError, "#{index.inspect} out of range" if left < 0
 
-      right = range_end(location) + 1
+      right = range_end(index) + 1
       return self if right <= left           # Nothing to modify
 
-    elsif location
-      left = Truffle::Type.coerce_to_collection_length location
+    elsif index
+      left = Truffle::Type.coerce_to_collection_length index
       left += size if left < 0
       left = 0 if left < 0
 
