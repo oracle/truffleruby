@@ -10,7 +10,6 @@
 package org.truffleruby.core.module;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +61,6 @@ import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
@@ -405,13 +403,10 @@ public abstract class ModuleNodes {
                     .getCallStack()
                     .getCallerNodeIgnoringSend()
                     .getEncapsulatingSourceSection();
-            final SourceIndexLength sourceIndexLength = new SourceIndexLength(sourceSection);
             final Visibility visibility = DeclarationContext.findVisibility(callerFrame);
             final Arity arity = isGetter ? Arity.NO_ARGUMENTS : Arity.ONE_REQUIRED;
             final String ivar = "@" + name;
             final String accessorName = isGetter ? name : name + "=";
-
-            final RubyNode checkArity = Translator.createCheckArityNode(arity);
 
             final LexicalScope lexicalScope = new LexicalScope(getContext().getRootLexicalScope(), module);
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
@@ -434,14 +429,14 @@ public abstract class ModuleNodes {
                         .create(new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
                 accessInstanceVariable = new WriteInstanceVariableNode(ivar, self, readArgument);
             }
-            final RubyNode sequence = Translator
-                    .sequence(sourceIndexLength, Arrays.asList(checkArity, accessInstanceVariable));
+
+            final RubyNode body = Translator.createCheckArityNode(arity, accessInstanceVariable);
             final RubyRootNode rootNode = new RubyRootNode(
                     getContext(),
                     sourceSection,
                     null,
                     sharedMethodInfo,
-                    sequence,
+                    body,
                     true);
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
             final InternalMethod method = new InternalMethod(

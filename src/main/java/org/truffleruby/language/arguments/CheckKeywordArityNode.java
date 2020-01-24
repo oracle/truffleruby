@@ -14,6 +14,7 @@ import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
 
@@ -27,6 +28,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public class CheckKeywordArityNode extends RubyContextSourceNode {
 
     private final Arity arity;
+    @Child private RubyNode body;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private CheckKeywordArgumentsNode checkKeywordArgumentsNode;
@@ -35,8 +37,9 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
     private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
     private final BranchProfile basicArityCheckFailedProfile = BranchProfile.create();
 
-    public CheckKeywordArityNode(Arity arity) {
+    public CheckKeywordArityNode(Arity arity, RubyNode body) {
         this.arity = arity;
+        this.body = body;
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
         this.checkKeywordArgumentsNode = new CheckKeywordArgumentsNode(arity);
         this.eachKeyNode = EachKeyValueNode.create();
@@ -45,6 +48,17 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
 
     @Override
     public void doExecuteVoid(VirtualFrame frame) {
+        checkArity(frame);
+        body.doExecuteVoid(frame);
+    }
+
+    @Override
+    public Object execute(VirtualFrame frame) {
+        checkArity(frame);
+        return body.execute(frame);
+    }
+
+    private void checkArity(VirtualFrame frame) {
         final DynamicObject keywordArguments = readUserKeywordsHashNode.execute(frame);
 
         int given = RubyArguments.getArgumentsCount(frame);
@@ -63,12 +77,6 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             receivedKeywordsProfile.enter();
             eachKeyNode.executeEachKeyValue(frame, keywordArguments, checkKeywordArgumentsNode, null);
         }
-    }
-
-    @Override
-    public Object execute(VirtualFrame frame) {
-        doExecuteVoid(frame);
-        return nil();
     }
 
     private static class CheckKeywordArgumentsNode extends RubyContextNode implements BiConsumerNode {
