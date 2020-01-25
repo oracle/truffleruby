@@ -10,6 +10,7 @@
 package org.truffleruby.core.method;
 
 import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.interop.messages.MethodMessages;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -17,7 +18,7 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
 
-@Layout
+@Layout(dispatch = MethodMessages.class)
 public interface MethodLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createMethodShape(DynamicObject logicalClass,
