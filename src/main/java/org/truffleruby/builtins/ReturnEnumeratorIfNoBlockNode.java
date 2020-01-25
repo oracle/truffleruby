@@ -10,6 +10,7 @@
 package org.truffleruby.builtins;
 
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -20,7 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReturnEnumeratorIfNoBlockNode extends RubyNode {
+public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
 
     private final String methodName;
     @Child private RubyNode method;

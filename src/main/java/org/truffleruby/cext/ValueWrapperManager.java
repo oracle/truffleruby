@@ -15,8 +15,8 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -255,7 +255,7 @@ public class ValueWrapperManager {
     }
 
     @GenerateUncached
-    public static abstract class GetHandleBlockHolderNode extends RubyBaseWithoutContextNode {
+    public static abstract class GetHandleBlockHolderNode extends RubyBaseNode {
 
         public abstract HandleThreadData execute(ValueWrapper wrapper);
 
@@ -287,7 +287,7 @@ public class ValueWrapperManager {
     }
 
     @GenerateUncached
-    public static abstract class AllocateHandleNode extends RubyBaseWithoutContextNode {
+    public static abstract class AllocateHandleNode extends RubyBaseNode {
 
         public abstract long execute(ValueWrapper wrapper);
 

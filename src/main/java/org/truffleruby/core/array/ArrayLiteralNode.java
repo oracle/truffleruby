@@ -10,7 +10,9 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
@@ -19,7 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class ArrayLiteralNode extends RubyNode {
+public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
     public static ArrayLiteralNode create(RubyNode[] values) {
         return new UninitialisedArrayLiteralNode(values);
@@ -47,11 +49,10 @@ public abstract class ArrayLiteralNode extends RubyNode {
             }
         }
 
-        return createArray(executedValues, executedValues.length);
+        return cachedCreateArray(executedValues, executedValues.length);
     }
 
-    @Override
-    protected DynamicObject createArray(Object store, int size) {
+    protected DynamicObject cachedCreateArray(Object store, int size) {
         if (allocateObjectNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             allocateObjectNode = insert(AllocateObjectNode.create());
@@ -72,14 +73,14 @@ public abstract class ArrayLiteralNode extends RubyNode {
 
     @ExplodeLoop
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         for (RubyNode value : values) {
-            if (value.isDefined(frame) == nil()) {
+            if (value.isDefined(frame, context) == nil()) {
                 return nil();
             }
         }
 
-        return super.isDefined(frame);
+        return super.isDefined(frame, context);
     }
 
     public int getSize() {
@@ -101,7 +102,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return cachedCreateArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
     }
@@ -127,7 +128,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
                 }
             }
 
-            return createArray(executedValues, values.length);
+            return cachedCreateArray(executedValues, values.length);
         }
 
         private DynamicObject makeGeneric(VirtualFrame frame, final double[] executedValues, int n, Object value) {
@@ -164,7 +165,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
                 }
             }
 
-            return createArray(executedValues, values.length);
+            return cachedCreateArray(executedValues, values.length);
         }
 
         private DynamicObject makeGeneric(VirtualFrame frame, final int[] executedValues, int n, Object value) {
@@ -201,7 +202,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
                 }
             }
 
-            return createArray(executedValues, values.length);
+            return cachedCreateArray(executedValues, values.length);
         }
 
         private DynamicObject makeGeneric(VirtualFrame frame, final long[] executedValues, int n, Object value) {
@@ -232,7 +233,7 @@ public abstract class ArrayLiteralNode extends RubyNode {
                 executedValues[n] = values[n].execute(frame);
             }
 
-            return createArray(executedValues, values.length);
+            return cachedCreateArray(executedValues, values.length);
         }
 
     }
@@ -253,7 +254,9 @@ public abstract class ArrayLiteralNode extends RubyNode {
                 executedValues[n] = values[n].execute(frame);
             }
 
-            final DynamicObject array = createArray(storeSpecialisedFromObjects(executedValues), executedValues.length);
+            final DynamicObject array = cachedCreateArray(
+                    storeSpecialisedFromObjects(executedValues),
+                    executedValues.length);
             final Object store = Layouts.ARRAY.getStore(array);
 
             final RubyNode newNode;

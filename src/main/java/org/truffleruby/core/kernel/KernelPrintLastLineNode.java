@@ -9,14 +9,15 @@
  */
 package org.truffleruby.core.kernel;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 
-public class KernelPrintLastLineNode extends RubyNode {
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.VirtualFrame;
+
+public class KernelPrintLastLineNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode callPrintNode;
     @Child private ReadGlobalVariableNode readGlobalVariableNode;

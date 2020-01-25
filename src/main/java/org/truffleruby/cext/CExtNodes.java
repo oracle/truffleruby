@@ -57,9 +57,9 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.interop.ToJavaStringNodeGen;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -166,7 +166,7 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
 
-        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(EMPTY_ARRAY);
+        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
         protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray,
@@ -975,7 +975,7 @@ public class CExtNodes {
 
     }
 
-    public abstract static class StringToNativeNode extends RubyBaseNode {
+    public abstract static class StringToNativeNode extends RubyContextNode {
 
         public static StringToNativeNode create() {
             return StringToNativeNodeGen.create();

@@ -9,13 +9,13 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class ReadPreArgumentNode extends RubyNode {
+public class ReadPreArgumentNode extends RubyContextSourceNode {
 
     private final int index;
 

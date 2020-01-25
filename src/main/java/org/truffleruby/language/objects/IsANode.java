@@ -13,7 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.Assumption;
@@ -27,7 +27,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class IsANode extends RubyBaseWithoutContextNode {
+public abstract class IsANode extends RubyBaseNode {
 
     public static IsANode create() {
         return IsANodeGen.create();

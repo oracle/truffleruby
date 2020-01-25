@@ -11,11 +11,10 @@ package org.truffleruby.core.hash;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
@@ -27,8 +26,8 @@ import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -44,6 +43,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -148,7 +148,7 @@ public abstract class HashNodes {
     }
 
     @ImportStatic(HashGuards.class)
-    public abstract static class HashLookupOrExecuteDefaultNode extends RubyBaseNode {
+    public abstract static class HashLookupOrExecuteDefaultNode extends RubyContextNode {
 
         public static HashLookupOrExecuteDefaultNode create() {
             return HashLookupOrExecuteDefaultNodeGen.create();
@@ -842,7 +842,7 @@ public abstract class HashNodes {
     }
 
     @ImportStatic(HashGuards.class)
-    public abstract static class InternalRehashNode extends RubyBaseNode {
+    public abstract static class InternalRehashNode extends RubyContextNode {
 
         @Child private HashNode hashNode = new HashNode();
 
@@ -918,7 +918,7 @@ public abstract class HashNodes {
     }
 
     @ImportStatic(HashGuards.class)
-    public abstract static class EachKeyValueNode extends RubyBaseNode {
+    public abstract static class EachKeyValueNode extends RubyContextNode {
 
         public static EachKeyValueNode create() {
             return EachKeyValueNodeGen.create();

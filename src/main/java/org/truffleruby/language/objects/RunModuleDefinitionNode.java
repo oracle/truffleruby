@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -20,7 +21,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class RunModuleDefinitionNode extends RubyNode {
+public class RunModuleDefinitionNode extends RubyContextSourceNode {
 
     final protected LexicalScope lexicalScope;
 
@@ -49,7 +50,7 @@ public class RunModuleDefinitionNode extends RubyNode {
                 null,
                 module,
                 null,
-                RubyNode.EMPTY_ARGUMENTS));
+                EMPTY_ARGUMENTS));
     }
 
 }

@@ -9,8 +9,10 @@
  */
 package org.truffleruby.language.yield;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -21,7 +23,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class YieldExpressionNode extends RubyNode {
+public class YieldExpressionNode extends RubyContextSourceNode {
 
     private final boolean unsplat;
 
@@ -77,7 +79,7 @@ public class YieldExpressionNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         if (RubyArguments.getBlock(frame) == null) {
             return nil();
         } else {

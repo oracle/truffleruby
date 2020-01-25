@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -20,7 +21,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(cost = NodeCost.NONE)
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ProfileArgumentNode extends RubyNode {
+public abstract class ProfileArgumentNode extends RubyContextSourceNode {
 
     protected abstract RubyNode getChild();
 

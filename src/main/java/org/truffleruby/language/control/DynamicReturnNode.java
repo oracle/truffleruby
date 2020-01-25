@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.control;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class DynamicReturnNode extends RubyNode {
+public class DynamicReturnNode extends RubyContextSourceNode {
 
     private final ReturnID returnID;
 

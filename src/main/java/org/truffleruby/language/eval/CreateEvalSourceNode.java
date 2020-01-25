@@ -17,7 +17,7 @@ import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CannotConvertBinaryRubyStringToJavaString;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.lexer.RubyLexer;
@@ -26,7 +26,7 @@ import org.truffleruby.shared.TruffleRuby;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.Source;
 
-public class CreateEvalSourceNode extends RubyBaseNode {
+public class CreateEvalSourceNode extends RubyContextNode {
 
     @TruffleBoundary
     public RubySource createEvalSource(Rope code, String method, String file, int line) {

@@ -10,7 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -24,7 +24,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
-public abstract class ArrayEachIteratorNode extends RubyBaseNode {
+public abstract class ArrayEachIteratorNode extends RubyContextNode {
 
     public static interface ArrayElementConsumerNode extends NodeInterface {
         public abstract void accept(DynamicObject array, DynamicObject block, Object element, int index);

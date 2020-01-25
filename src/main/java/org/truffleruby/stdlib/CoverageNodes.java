@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;

@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadRemainingArgumentsNode extends RubyNode {
+public class ReadRemainingArgumentsNode extends RubyContextSourceNode {
 
     private final int start;
     private final ConditionProfile remainingArguments = ConditionProfile.createBinaryProfile();
@@ -30,7 +30,7 @@ public class ReadRemainingArgumentsNode extends RubyNode {
         if (remainingArguments.profile(start < count)) {
             return RubyArguments.getArguments(frame, start);
         } else {
-            return RubyNode.EMPTY_ARGUMENTS;
+            return EMPTY_ARGUMENTS;
         }
     }
 

@@ -11,7 +11,7 @@ package org.truffleruby.interop;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -22,7 +22,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
-public abstract class ForeignExecuteHelperNode extends RubyBaseWithoutContextNode {
+public abstract class ForeignExecuteHelperNode extends RubyBaseNode {
 
     public abstract Object executeCall(Object receiver, Object[] arguments);
 

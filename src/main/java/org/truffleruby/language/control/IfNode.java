@@ -11,12 +11,13 @@ package org.truffleruby.language.control;
 
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class IfNode extends RubyNode {
+public class IfNode extends RubyContextSourceNode {
 
     @Child private BooleanCastNode condition;
     @Child private RubyNode thenBody;

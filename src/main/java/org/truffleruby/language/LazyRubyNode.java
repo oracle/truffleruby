@@ -13,13 +13,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
 
-public class LazyRubyNode extends RubyNode {
+public class LazyRubyNode extends RubyContextSourceNode {
 
     private Supplier<RubyNode> resolver;
     private final ReentrantLock lock;
@@ -44,8 +45,8 @@ public class LazyRubyNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
-        return resolve().isDefined(frame);
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
+        return resolve().isDefined(frame, context);
     }
 
     public RubyNode resolve() {

@@ -10,7 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayGeneralizeNode extends RubyBaseNode {
+public abstract class ArrayGeneralizeNode extends RubyContextNode {
 
     public static ArrayGeneralizeNode create() {
         return ArrayGeneralizeNodeGen.create();

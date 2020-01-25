@@ -41,8 +41,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectMessages {
 
-    public Class<?> dispatch() {
-        return RubyObjectMessages.class;
+    public final Class<?> dispatch() {
+        return null;
     }
 
     // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly

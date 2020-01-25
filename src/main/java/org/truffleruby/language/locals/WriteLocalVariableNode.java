@@ -9,13 +9,15 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class WriteLocalVariableNode extends RubyNode {
+public class WriteLocalVariableNode extends RubyContextSourceNode {
 
     private final FrameSlot frameSlot;
 
@@ -39,7 +41,7 @@ public class WriteLocalVariableNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         return coreStrings().ASSIGNMENT.createInstance();
     }
 

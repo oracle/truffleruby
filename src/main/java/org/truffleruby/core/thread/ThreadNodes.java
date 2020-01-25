@@ -47,9 +47,9 @@ import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -369,7 +369,9 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        public static void doJoin(RubyNode currentNode, final DynamicObject thread) {
+        public static <T extends RubyNode & RubyNode.WithContext> void doJoin(
+                T currentNode, final DynamicObject thread) {
+
             final RubyContext context = currentNode.getContext();
             context.getThreadManager().runUntilResult(currentNode, () -> {
                 Layouts.THREAD.getFinishedLatch(thread).await();

@@ -12,7 +12,7 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayPopOneNode extends RubyBaseNode {
+public abstract class ArrayPopOneNode extends RubyContextNode {
 
     public abstract Object executePopOne(DynamicObject array);
 

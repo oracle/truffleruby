@@ -9,20 +9,20 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.dsl.CachedLanguage;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -35,7 +35,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 @ReportPolymorphism
 @GenerateUncached
-public abstract class AllocateObjectNode extends RubyBaseWithoutContextNode {
+public abstract class AllocateObjectNode extends RubyBaseNode {
 
     public static AllocateObjectNode create() {
         return AllocateObjectNodeGen.create();

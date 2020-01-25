@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.numeric.FloatNodes;
 import org.truffleruby.core.numeric.FloatNodesFactory;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -27,7 +28,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToIntNode extends RubyNode {
+public abstract class ToIntNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode toIntNode;
     @Child private FloatNodes.ToINode floatToIntNode;

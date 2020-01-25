@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -18,9 +19,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@NodeChild("array")
+@NodeChild(value = "array", type = RubyNode.class)
 @ImportStatic(ArrayGuards.class)
-public abstract class ArraySliceNode extends RubyNode {
+public abstract class ArraySliceNode extends RubyContextSourceNode {
 
     final int from; // positive
     final int to; // negative, exclusive

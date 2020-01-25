@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -25,8 +26,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 /**
  * Casts an object to a Ruby Proc object.
  */
-@NodeChild("child")
-public abstract class ToProcNode extends RubyNode {
+@NodeChild(value = "child", type = RubyNode.class)
+public abstract class ToProcNode extends RubyContextSourceNode {
 
     @Specialization(guards = "isNil(nil)")
     protected DynamicObject doNil(Object nil) {

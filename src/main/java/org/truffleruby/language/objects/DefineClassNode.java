@@ -11,6 +11,7 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -22,7 +23,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class DefineClassNode extends RubyNode {
+public class DefineClassNode extends RubyContextSourceNode {
 
     protected final String name;
 

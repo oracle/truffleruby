@@ -16,7 +16,8 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -38,11 +39,11 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  */
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @GenerateUncached
-public abstract class NameToJavaStringNode extends RubyBaseWithoutContextNode {
+public abstract class NameToJavaStringNode extends RubyBaseNode {
 
     // FIXME (pitr 12-Jun-2019): find a different way
     @NodeChild(value = "value", type = RubyNode.class)
-    public static abstract class RubyNodeWrapperNode extends RubyNode {
+    public static abstract class RubyNodeWrapperNode extends RubyContextSourceNode {
         @Specialization
         protected Object call(Object value,
                 @Cached NameToJavaStringNode toJavaString) {

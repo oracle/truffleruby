@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -21,7 +22,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * Define a method from a method literal (def mymethod ... end).
  * That is, create an InternalMethod and add it to the current module (default definee).
  */
-public class LiteralMethodDefinitionNode extends RubyNode {
+public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
 
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;

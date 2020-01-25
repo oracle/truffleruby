@@ -13,12 +13,12 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class FixnumOrBignumNode extends RubyBaseNode {
+public class FixnumOrBignumNode extends RubyContextNode {
 
     private static final BigInteger LONG_MIN_BIGINT = BigInteger.valueOf(Long.MIN_VALUE);
     private static final BigInteger LONG_MAX_BIGINT = BigInteger.valueOf(Long.MAX_VALUE);

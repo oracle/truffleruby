@@ -10,17 +10,18 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
 /** Read a constant using the current lexical scope: CONST */
-public class ReadConstantWithLexicalScopeNode extends RubyNode {
+public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
 
     private final LexicalScope lexicalScope;
     private final String name;
@@ -42,7 +43,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         final RubyConstant constant;
         try {
             constant = lookupConstantNode.executeLookupConstant();

@@ -10,7 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
-public abstract class IsFrozenNode extends RubyBaseWithoutContextNode {
+public abstract class IsFrozenNode extends RubyBaseNode {
 
     public static IsFrozenNode create() {
         return IsFrozenNodeGen.create();

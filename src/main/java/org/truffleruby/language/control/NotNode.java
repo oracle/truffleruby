@@ -11,11 +11,12 @@ package org.truffleruby.language.control;
 
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class NotNode extends RubyNode {
+public class NotNode extends RubyContextSourceNode {
 
     @Child private BooleanCastNode child;
 

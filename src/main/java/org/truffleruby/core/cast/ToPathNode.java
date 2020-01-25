@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -18,7 +19,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToPathNode extends RubyNode {
+public abstract class ToPathNode extends RubyContextSourceNode {
 
     @Specialization(guards = "isRubyString(path)")
     protected DynamicObject coerceRubyString(DynamicObject path) {

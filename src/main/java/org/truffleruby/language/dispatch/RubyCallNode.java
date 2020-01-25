@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -16,7 +17,8 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ProcOrNullNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.BlockDefinitionNode;
@@ -31,7 +33,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class RubyCallNode extends RubyNode {
+public class RubyCallNode extends RubyContextSourceNode {
 
     private final String methodName;
 
@@ -149,13 +151,13 @@ public class RubyCallNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         if (definedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             definedNode = insert(new DefinedNode());
         }
 
-        return definedNode.isDefined(frame);
+        return definedNode.isDefined(frame, context);
     }
 
     public String getName() {
@@ -170,7 +172,7 @@ public class RubyCallNode extends RubyNode {
         return hasLiteralBlock;
     }
 
-    private class DefinedNode extends RubyBaseWithoutContextNode {
+    private class DefinedNode extends RubyBaseNode {
 
         private final DynamicObject methodNameSymbol = getContext().getSymbolTable().getSymbol(methodName);
 
@@ -189,13 +191,13 @@ public class RubyCallNode extends RubyNode {
         private final ConditionProfile methodNotVisibleProfile = ConditionProfile.createBinaryProfile();
 
         @ExplodeLoop
-        public Object isDefined(VirtualFrame frame) {
-            if (receiverDefinedProfile.profile(receiver.isDefined(frame) == nil())) {
+        public Object isDefined(VirtualFrame frame, RubyContext context) {
+            if (receiverDefinedProfile.profile(receiver.isDefined(frame, context) == nil())) {
                 return nil();
             }
 
             for (RubyNode argument : arguments) {
-                if (argument.isDefined(frame) == nil()) {
+                if (argument.isDefined(frame, context) == nil()) {
                     argumentNotDefinedProfile.enter();
                     return nil();
                 }

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -20,8 +21,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-@NodeChild("duration")
-public abstract class DurationToMillisecondsNode extends RubyNode {
+@NodeChild(value = "duration", type = RubyNode.class)
+public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
 
     @Child NumericToFloatNode floatCastNode;
 

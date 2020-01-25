@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.locals;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.parser.ReadLocalNode;
@@ -49,7 +50,7 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         switch (type) {
             case FRAME_LOCAL:
                 return coreStrings().LOCAL_VARIABLE.createInstance();

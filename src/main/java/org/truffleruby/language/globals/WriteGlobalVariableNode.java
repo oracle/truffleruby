@@ -10,7 +10,9 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -19,8 +21,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-@NodeChild(value = "value")
-public abstract class WriteGlobalVariableNode extends RubyNode {
+@NodeChild(value = "value", type = RubyNode.class)
+public abstract class WriteGlobalVariableNode extends RubyContextSourceNode {
 
     protected final String name;
 
@@ -66,7 +68,7 @@ public abstract class WriteGlobalVariableNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         return coreStrings().ASSIGNMENT.createInstance();
     }
 

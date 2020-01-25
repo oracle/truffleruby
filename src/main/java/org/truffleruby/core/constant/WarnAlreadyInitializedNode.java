@@ -10,14 +10,14 @@
 package org.truffleruby.core.constant;
 
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class WarnAlreadyInitializedNode extends RubyBaseNode {
+public class WarnAlreadyInitializedNode extends RubyContextNode {
 
     @Child private WarnNode warnNode = new WarnNode();
 

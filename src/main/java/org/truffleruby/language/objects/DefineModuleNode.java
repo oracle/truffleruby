@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -23,7 +24,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "lexicalParentModule", type = RubyNode.class)
-public abstract class DefineModuleNode extends RubyNode {
+public abstract class DefineModuleNode extends RubyContextSourceNode {
 
     private final String name;
 

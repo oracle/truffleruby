@@ -9,12 +9,13 @@
  */
 package org.truffleruby.core.kernel;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-public class KernelGetsNode extends RubyNode {
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.frame.VirtualFrame;
+
+public class KernelGetsNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode callGetsNode;
 

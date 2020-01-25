@@ -13,8 +13,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -26,7 +26,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 /**
  * Define a method from a module body (module/class/class << self ... end).
  */
-public class ModuleBodyDefinitionNode extends RubyBaseNode {
+public class ModuleBodyDefinitionNode extends RubyContextNode {
 
     private final String name;
     private final SharedMethodInfo sharedMethodInfo;

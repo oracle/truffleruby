@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-public abstract class WithoutVisibilityNode extends RubyBaseNode {
+public abstract class WithoutVisibilityNode extends RubyContextNode {
 
     public abstract DeclarationContext executeWithoutVisibility(DeclarationContext declarationContext);
 

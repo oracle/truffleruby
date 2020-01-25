@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.defined;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class DefinedNode extends RubyNode {
+public class DefinedNode extends RubyContextSourceNode {
 
     @Child private RubyNode child;
 
@@ -23,7 +24,7 @@ public class DefinedNode extends RubyNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        return child.isDefined(frame);
+        return child.isDefined(frame, getContext());
     }
 
 }

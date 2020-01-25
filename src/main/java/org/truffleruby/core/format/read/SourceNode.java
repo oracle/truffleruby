@@ -10,12 +10,12 @@
 package org.truffleruby.core.format.read;
 
 import org.truffleruby.core.format.FormatFrameDescriptor;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class SourceNode extends RubyBaseWithoutContextNode {
+public class SourceNode extends RubyBaseNode {
 
     public Object execute(VirtualFrame frame) {
         try {

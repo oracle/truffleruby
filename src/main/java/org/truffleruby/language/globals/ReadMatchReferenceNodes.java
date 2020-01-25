@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.globals;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -18,9 +20,9 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public abstract class ReadMatchReferenceNodes extends RubyNode {
+public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
 
-    public static class ReadNthMatchNode extends RubyNode {
+    public static class ReadNthMatchNode extends RubyContextSourceNode {
         @Child private RubyNode readMatchNode;
         @Child private CallDispatchHeadNode getIndexNode;
         private final int index;
@@ -52,7 +54,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
         }
 
         @Override
-        public Object isDefined(VirtualFrame frame) {
+        public Object isDefined(VirtualFrame frame, RubyContext context) {
             if (isNil(execute(frame))) {
                 return nil();
             } else {
@@ -61,7 +63,7 @@ public abstract class ReadMatchReferenceNodes extends RubyNode {
         }
     }
 
-    public static class SetNamedVariablesMatchNode extends RubyNode {
+    public static class SetNamedVariablesMatchNode extends RubyContextSourceNode {
         @Child private RubyNode matchDataNode;
         @Child private RubyNode readMatchNode;
         @Children private final RubyNode[] setters;

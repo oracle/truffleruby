@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
@@ -20,7 +21,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * Casts a value into a boolean and defaults to the given value if not provided.
  */
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class BooleanCastWithDefaultNode extends RubyNode {
+public abstract class BooleanCastWithDefaultNode extends RubyContextSourceNode {
 
     private final boolean defaultValue;
 

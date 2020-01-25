@@ -9,14 +9,15 @@
  */
 package org.truffleruby.language.literal;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(cost = NodeCost.NONE)
-public class NilLiteralNode extends RubyNode {
+public class NilLiteralNode extends RubyContextSourceNode {
 
     private final boolean isImplicit;
 
@@ -30,7 +31,7 @@ public class NilLiteralNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         return coreStrings().NIL.createInstance();
     }
 
