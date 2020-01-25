@@ -838,9 +838,9 @@ class File < IO
         value = Truffle::Type.coerce_to_path(el)
       end
 
-      if value.start_with? sep
-        ret.gsub!(/#{SEPARATOR}+$/o, '')
-      elsif not ret.end_with? sep
+      if value.start_with?(sep)
+        ret.gsub!(/#{SEPARATOR}+\z/o, '') if ret.end_with?(sep)
+      elsif !ret.end_with?(sep)
         ret << sep
       end
 

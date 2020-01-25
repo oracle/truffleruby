@@ -533,6 +533,11 @@ class String
   end
 
   def end_with?(*suffixes)
+    if suffixes.size == 1 and suffix = suffixes[0] and String === suffix
+      Truffle::Type.compatible_encoding self, suffix
+      return self[-suffix.length, suffix.length] == suffix
+    end
+
     suffixes.each do |original_suffix|
       suffix = Truffle::Type.rb_convert_type original_suffix, String, :to_str
       Truffle::Type.compatible_encoding self, suffix
@@ -1490,6 +1495,10 @@ class String
   end
 
   def start_with?(*prefixes)
+    if prefixes.size == 1 and prefix = prefixes[0] and String === prefix
+      return self[0, prefix.length] == prefix
+    end
+
     # This is the workaround because `TrufflePrimitive.caller_binding` doesn't work inside blocks yet.
     binding = TrufflePrimitive.caller_binding if prefixes.any?(Regexp)
 
