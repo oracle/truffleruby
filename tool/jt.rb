@@ -1782,8 +1782,9 @@ EOS
     if stdin
       File.write(profile_data_file, STDIN.read)
     else
-      run_args = *DEFAULT_PROFILE_OPTIONS + args
-      run_ruby(env, *run_args, out: profile_data_file)
+      FileUtils.rm_f(profile_data_file)
+      run_args = DEFAULT_PROFILE_OPTIONS + ["--cpusampler.OutputFile=#{profile_data_file}"] + args
+      run_ruby(env, *run_args)
     end
     raw_sh "#{repo}/stackcollapse-graalvm.rb", profile_data_file, out: flamegraph_data_file
     raw_sh "#{repo}/flamegraph.pl", flamegraph_data_file, out: svg_filename
