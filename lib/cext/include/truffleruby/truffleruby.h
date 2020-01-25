@@ -166,7 +166,7 @@ int rb_encdb_alias(const char *alias, const char *orig);
 VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 
 // Additional macro to make sure the RSTRING_PTR and the bytes are in native memory, for testing.
-#define NATIVE_RSTRING_PTR(str) ((char*) polyglot_as_i64(polyglot_invoke(RSTRING_PTR(str), "polyglot_address")))
+#define NATIVE_RSTRING_PTR(str) ((char*) polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("NATIVE_RSTRING_PTR", str)))
 
 // Inline implementations
 
