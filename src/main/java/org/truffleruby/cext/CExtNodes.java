@@ -957,8 +957,8 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "string_pointer_size", onSingleton = true, required = 1)
-    public abstract static class StringPointerSizeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_size")
+    public abstract static class StringPointerSizeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected int size(DynamicObject string) {
@@ -1010,8 +1010,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_to_native", onSingleton = true, required = 1)
-    public abstract static class StringPointerToNativeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_to_native")
+    public abstract static class StringPointerToNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected long toNative(DynamicObject string,
@@ -1038,8 +1038,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_is_native?", onSingleton = true, required = 1)
-    public abstract static class StringPointerIsNativeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_is_native?")
+    public abstract static class StringPointerIsNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected boolean isNative(DynamicObject string) {
@@ -1048,8 +1048,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_read", onSingleton = true, required = 2, lowerFixnum = 2)
-    public abstract static class StringPointerReadNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_read", lowerFixnum = 1)
+    public abstract static class StringPointerReadNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected Object read(DynamicObject string, int index,
@@ -1068,8 +1068,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_write", onSingleton = true, required = 3, lowerFixnum = { 2, 3 })
-    public abstract static class StringPointerWriteNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_write", lowerFixnum = { 1, 2 })
+    public abstract static class StringPointerWriteNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected int write(DynamicObject string, int index, int value,
