@@ -1775,9 +1775,10 @@ EOS
     repo = find_or_clone_repo('https://github.com/eregon/FlameGraph.git', 'graalvm')
     Dir.mkdir(PROFILES_DIR) unless Dir.exist?(PROFILES_DIR)
 
-    profile_data_file = "#{PROFILES_DIR}/truffleruby-profile.json"
+    time = Time.now.strftime('%Y%m%d-%H%M%S')
+    profile_data_file = "#{PROFILES_DIR}/truffleruby-profile-#{time}.json"
     flamegraph_data_file = "#{PROFILES_DIR}/truffleruby-flamegraph-data.stacks"
-    svg_filename = "#{PROFILES_DIR}/flamegraph_#{Time.now.strftime("%Y%m%d-%H%M%S")}.svg"
+    svg_filename = "#{PROFILES_DIR}/flamegraph_#{time}.svg"
 
     if stdin
       File.write(profile_data_file, STDIN.read)
