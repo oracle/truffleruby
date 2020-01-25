@@ -32,10 +32,10 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.shared.TruffleRuby;
@@ -48,6 +48,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -119,12 +120,15 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class ExecuteUncacheableNode extends RubyBaseNode {
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "execute", onSingleton = true, required = 1, rest = true)
+    public abstract static class ExecuteNode extends RubySourceNode {
 
         abstract Object execute(Object receiver, Object[] args);
 
-        public static ExecuteUncacheableNode create() {
-            return InteropNodesFactory.ExecuteUncacheableNodeGen.create();
+        public static ExecuteNode create() {
+            return InteropNodesFactory.ExecuteNodeFactory.create(null);
         }
 
         @Specialization(limit = "getCacheLimit()")
@@ -161,24 +165,6 @@ public abstract class InteropNodes {
         protected static int getCacheLimit() {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
-
-    }
-
-    @CoreMethod(names = "execute", onSingleton = true, required = 1, rest = true)
-    public abstract static class ExecuteNode extends InteropCoreMethodArrayArgumentsNode {
-
-        abstract Object execute(TruffleObject receiver, Object[] args);
-
-        public static ExecuteNode create() {
-            return InteropNodesFactory.ExecuteNodeFactory.create(null);
-        }
-
-        @Specialization
-        protected Object executeForeignCached(TruffleObject receiver, Object[] args,
-                @Cached ExecuteUncacheableNode executeUncacheableNode) {
-            return executeUncacheableNode.execute(receiver, args);
-        }
-
     }
 
     @CoreMethod(names = "execute_without_conversion", onSingleton = true, required = 1, rest = true)
@@ -200,10 +186,13 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class InvokeUncacheableNode extends RubyBaseNode {
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "invoke", onSingleton = true, required = 2, rest = true)
+    public abstract static class InvokeNode extends RubySourceNode {
 
-        public static InvokeUncacheableNode create() {
-            return InteropNodesFactory.InvokeUncacheableNodeGen.create();
+        public static InvokeNode create() {
+            return InteropNodesFactory.InvokeNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object identifier, Object[] args);
@@ -244,22 +233,6 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "invoke", onSingleton = true, required = 2, rest = true)
-    public abstract static class InvokeNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public static InvokeNode create() {
-            return InteropNodesFactory.InvokeNodeFactory.create(null);
-        }
-
-        abstract Object execute(TruffleObject receiver, Object identifier, Object[] args);
-
-        @Specialization
-        protected Object invokeCached(TruffleObject receiver, Object identifier, Object[] args,
-                @Cached InvokeUncacheableNode invokeUncacheableNode) {
-            return invokeUncacheableNode.execute(receiver, identifier, args);
-        }
-    }
-
     @CoreMethod(names = "instantiable?", onSingleton = true, required = 1)
     public abstract static class InstantiableNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -277,10 +250,13 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class NewUncacheableNode extends RubyBaseNode {
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "new", onSingleton = true, required = 1, rest = true)
+    public abstract static class NewNode extends RubySourceNode {
 
-        public static NewUncacheableNode create() {
-            return InteropNodesFactory.NewUncacheableNodeGen.create();
+        public static NewNode create() {
+            return InteropNodesFactory.NewNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object[] args);
@@ -310,24 +286,6 @@ public abstract class InteropNodes {
         protected static int getCacheLimit() {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
-
-    }
-
-    @CoreMethod(names = "new", onSingleton = true, required = 1, rest = true)
-    public abstract static class NewNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public static NewNode create() {
-            return InteropNodesFactory.NewNodeFactory.create(null);
-        }
-
-        abstract Object execute(TruffleObject receiver, Object[] args);
-
-        @Specialization
-        protected Object newCached(TruffleObject receiver, Object[] args,
-                @Cached NewUncacheableNode newUncacheableNode) {
-            return newUncacheableNode.execute(receiver, args);
-        }
-
     }
 
     @CoreMethod(names = "size?", onSingleton = true, required = 1)
@@ -513,13 +471,16 @@ public abstract class InteropNodes {
     }
 
     @GenerateUncached
-    public abstract static class NullUncacheableNode extends RubyBaseNode {
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "null?", onSingleton = true, required = 1)
+    public abstract static class NullNode extends RubySourceNode {
 
-        public static NullUncacheableNode create() {
-            return InteropNodesFactory.NullUncacheableNodeGen.create();
+        public static NullNode create() {
+            return InteropNodesFactory.NullNodeFactory.create(null);
         }
 
-        abstract boolean execute(Object receiver);
+        abstract Object execute(Object receiver);
 
         @Specialization(limit = "getCacheLimit()")
         protected boolean isNull(Object receiver,
@@ -529,22 +490,6 @@ public abstract class InteropNodes {
 
         protected static int getCacheLimit() {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
-        }
-    }
-
-    @CoreMethod(names = "null?", onSingleton = true, required = 1)
-    public abstract static class NullNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public static NullNode create() {
-            return InteropNodesFactory.NullNodeFactory.create(null);
-        }
-
-        abstract Object execute(Object receiver);
-
-        @Specialization
-        protected boolean isNull(Object receiver,
-                @Cached NullUncacheableNode nullUncacheableNode) {
-            return nullUncacheableNode.execute(receiver);
         }
 
     }
@@ -599,10 +544,13 @@ public abstract class InteropNodes {
 
     // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
-    public abstract static class ReadUncacheableNode extends RubyBaseNode {
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "read", onSingleton = true, required = 2)
+    public abstract static class ReadNode extends RubySourceNode {
 
-        public static ReadUncacheableNode create() {
-            return InteropNodesFactory.ReadUncacheableNodeGen.create();
+        public static ReadNode create() {
+            return InteropNodesFactory.ReadNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object identifier);
@@ -662,24 +610,6 @@ public abstract class InteropNodes {
         protected static int getCacheLimit() {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
-    }
-
-    @CoreMethod(names = "read", onSingleton = true, required = 2)
-    public abstract static class ReadNode extends InteropCoreMethodArrayArgumentsNode {
-
-        // TODO (pitr-ch 29-Jul-2019): remove the Uncacheable nodes, same to others in this file
-
-        public static ReadNode create() {
-            return InteropNodesFactory.ReadNodeFactory.create(null);
-        }
-
-        abstract Object execute(TruffleObject receiver, Object identifier);
-
-        @Specialization
-        protected Object read(TruffleObject receiver, Object identifier,
-                @Cached ReadUncacheableNode readUncacheableNode) {
-            return readUncacheableNode.execute(receiver, identifier);
-        }
 
     }
 
@@ -732,9 +662,13 @@ public abstract class InteropNodes {
 
     // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
-    public abstract static class WriteUncacheableNode extends RubyBaseNode {
-        public static WriteUncacheableNode create() {
-            return InteropNodesFactory.WriteUncacheableNodeGen.create();
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "write", onSingleton = true, required = 3)
+    public abstract static class WriteNode extends RubySourceNode {
+
+        public static WriteNode create() {
+            return InteropNodesFactory.WriteNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object identifier, Object value);
@@ -762,8 +696,7 @@ public abstract class InteropNodes {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
-            // TODO (pitr-ch 29-Mar-2019): is it ok to always return the value,
-            //  the write no longer returns its own value
+
             return value;
         }
 
@@ -788,31 +721,13 @@ public abstract class InteropNodes {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
-            // TODO (pitr-ch 29-Mar-2019): is it ok to always return the value,
-            //  the write no longer returns its own value
+
             return value;
         }
 
         protected static int getCacheLimit() {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
-    }
-
-    @CoreMethod(names = "write", onSingleton = true, required = 3)
-    public abstract static class WriteNode extends InteropCoreMethodArrayArgumentsNode {
-
-        public static WriteNode create() {
-            return InteropNodesFactory.WriteNodeFactory.create(null);
-        }
-
-        abstract Object execute(TruffleObject receiver, Object identifier, Object value);
-
-        @Specialization
-        protected Object write(TruffleObject receiver, Object identifier, Object value,
-                @Cached WriteUncacheableNode writeUncacheableNode) {
-            return writeUncacheableNode.execute(receiver, identifier, value);
-        }
-
     }
 
     // TODO (pitr-ch 01-Apr-2019): break down
