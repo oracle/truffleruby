@@ -1854,6 +1854,10 @@ module Truffle::CExt
     RStringPtr.new(string)
   end
 
+  def NATIVE_RSTRING_PTR(string)
+    TrufflePrimitive.string_pointer_to_native(string)
+  end
+
   def RSTRING_END(string)
     RStringEndPtr.new(string)
   end
