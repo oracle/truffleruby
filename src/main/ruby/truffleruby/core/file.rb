@@ -481,7 +481,7 @@ class File < IO
         raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
       end
 
-      case path[1]
+      case first_char
       when ?/
         path = home + path.byteslice(1, path.bytesize - 1)
       when nil
@@ -491,10 +491,7 @@ class File < IO
 
         return home.dup
       else
-        unless length = TrufflePrimitive.find_string(path, '/', 1)
-          length = path.bytesize
-        end
-
+        length = TrufflePrimitive.find_string(path, '/', 1) || path.bytesize
         name = path.byteslice 1, length - 1
 
         if ptr = Truffle::POSIX.truffleposix_get_user_home(name)
