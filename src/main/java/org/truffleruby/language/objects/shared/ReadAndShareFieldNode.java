@@ -18,7 +18,6 @@ import com.oracle.truffle.api.object.Property;
 public abstract class ReadAndShareFieldNode extends RubyBaseNode {
 
     private final Property property;
-    private final int depth;
 
     @Child private WriteBarrierNode writeBarrierNode;
 
@@ -26,8 +25,7 @@ public abstract class ReadAndShareFieldNode extends RubyBaseNode {
 
     public ReadAndShareFieldNode(Property property, int depth) {
         this.property = property;
-        this.writeBarrierNode = WriteBarrierNodeGen.create();
-        this.depth = depth;
+        this.writeBarrierNode = WriteBarrierNodeGen.create(depth);
     }
 
     public abstract void executeReadFieldAndShare(DynamicObject object);
@@ -35,7 +33,7 @@ public abstract class ReadAndShareFieldNode extends RubyBaseNode {
     @Specialization
     protected void readFieldAndShare(DynamicObject object) {
         final Object value = property.get(object, true);
-        writeBarrierNode.executeWriteBarrier(value, depth);
+        writeBarrierNode.executeWriteBarrier(value);
     }
 
 }

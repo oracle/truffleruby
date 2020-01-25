@@ -49,7 +49,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
         final int size = Layouts.ARRAY.getSize(array);
         final Object[] store = (Object[]) Layouts.ARRAY.getStore(array);
         for (int i = 0; i < size; i++) {
-            writeBarrierNode.executeWriteBarrier(store[i], depth);
+            writeBarrierNode.executeWriteBarrier(store[i]);
         }
     }
 
@@ -66,7 +66,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
         final DelegatedArrayStorage delegated = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
         final Object[] store = (Object[]) delegated.storage;
         for (int i = delegated.offset; i < delegated.offset + delegated.length; i++) {
-            writeBarrierNode.executeWriteBarrier(store[i], depth);
+            writeBarrierNode.executeWriteBarrier(store[i]);
         }
     }
 
@@ -95,7 +95,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
         final UnsizedQueue queue = Layouts.QUEUE.getQueue(object);
         if (!profileEmpty.profile(queue.isEmpty())) {
             for (Object e : BoundaryIterable.wrap(queue.getContents())) {
-                writeBarrierNode.executeWriteBarrier(e, depth);
+                writeBarrierNode.executeWriteBarrier(e);
             }
         }
     }
@@ -131,7 +131,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
     }
 
     protected WriteBarrierNode createWriteBarrierNode() {
-        return WriteBarrierNodeGen.create();
+        return WriteBarrierNodeGen.create(depth);
     }
 
 }
