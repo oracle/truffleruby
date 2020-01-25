@@ -947,7 +947,7 @@ class File < IO
   end
 
   def self.basic_realpath(path, basedir = nil)
-    path = expand_path(path, basedir || Dir.pwd)
+    path = expand_path(path, basedir)
     real = ''
     symlinks = {}
 
