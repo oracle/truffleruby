@@ -898,7 +898,7 @@ VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
     return string;
   }
   if (length < 0) {
-	rb_raise(rb_eArgError, "negative string size (or size too big)");
+    rb_raise(rb_eArgError, "negative string size (or size too big)");
   }
   int old_length = RSTRING_LEN(string);
   rb_str_resize(string, old_length + length);
@@ -4840,8 +4840,8 @@ int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optiona
   VALUE missing = Qnil;
 
   if (optional < 0) {
-	rest = 1;
-	optional = -1-optional;
+    rest = 1;
+    optional = -1-optional;
   }
 
   for (int n = 0; n < required; n++) {
@@ -4872,9 +4872,9 @@ int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optiona
   }
 
   if (!rest && !NIL_P(keyword_hash)) {
-	if (RHASH_SIZE(keyword_hash) > (unsigned int)(values ? 0 : extracted)) {
-	    unknown_keyword_error(keyword_hash, table, required + optional);
-	}
+    if (RHASH_SIZE(keyword_hash) > (unsigned int)(values ? 0 : extracted)) {
+      unknown_keyword_error(keyword_hash, table, required + optional);
+    }
   }
 
   for (int i = extracted; i < required + optional; i++) {
