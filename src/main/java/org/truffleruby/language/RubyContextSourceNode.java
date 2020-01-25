@@ -59,14 +59,6 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
         this.sourceLength = sourceLength;
     }
 
-    // Helpers
-
-    private static final RubyContextSourceNode[] EMPTY_CONTEXT_SOURCE_RUBY_NODES = new RubyContextSourceNode[]{};
-
-    public static RubyContextSourceNode[] createArray(int size) {
-        return size == 0 ? EMPTY_CONTEXT_SOURCE_RUBY_NODES : new RubyContextSourceNode[size];
-    }
-
     // Context
 
     @CompilationFinal private RubyContext context;
