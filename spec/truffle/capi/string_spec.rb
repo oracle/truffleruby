@@ -15,10 +15,10 @@ describe "TruffleRuby RSTRING_PTR" do
     @s = CApiTruffleStringSpecs.new
   end
 
-  it "does not store the String to native memory if not needed" do
+  it "stores the String to native memory even if not needed for efficiency" do
     str = "foobar"
     @s.string_ptr(str).should == "f"
-    Truffle::CExt.native_string?(str).should == false
+    Truffle::CExt.native_string?(str).should == true
   end
 
   it "stores the String to native memory if the address is returned" do
