@@ -519,9 +519,9 @@ class File < IO
 
     items = []
     start = 0
-    size = path.bytesize
+    bytesize = path.bytesize
 
-    while index = TrufflePrimitive.find_string(path, '/', start) or (start < size and index = size)
+    while index = TrufflePrimitive.find_string(path, '/', start) or (start < bytesize and index = bytesize)
       length = index - start
 
       if length > 0
