@@ -724,7 +724,7 @@ module Marshal
 
       store_unique_object obj
 
-      unless Truffle::Type.object_respond_to? obj, :_load_data
+      unless TrufflePrimitive.vm_object_respond_to? obj, :_load_data, false
         raise TypeError,
               "class #{name} needs to have instance method `_load_data'"
       end
@@ -891,7 +891,7 @@ module Marshal
 
       data = get_byte_sequence
 
-      if Truffle::Type.object_respond_to? klass, :__construct__
+      if TrufflePrimitive.vm_object_respond_to? klass, :__construct__, false
         return klass.__construct__(self, data, ivar_index, @has_ivar)
       end
 
@@ -1121,7 +1121,7 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
-      if Truffle::Type.object_respond_to? obj, :__custom_marshal__
+      if TrufflePrimitive.vm_object_respond_to? obj, :__custom_marshal__, false
         return obj.__custom_marshal__(self)
       end
 
@@ -1286,10 +1286,10 @@ module Marshal
     ms = State.new nil, depth, nil
 
     if an_io
-      if !Truffle::Type.object_respond_to? an_io, :write
+      unless TrufflePrimitive.vm_object_respond_to? an_io, :write, false
         raise TypeError, 'output must respond to write'
       end
-      if Truffle::Type.object_respond_to? an_io, :binmode
+      if TrufflePrimitive.vm_object_respond_to? an_io, :binmode, false
         an_io.binmode
       end
     end
@@ -1305,7 +1305,7 @@ module Marshal
   end
 
   def self.load(obj, prc = nil)
-    if Truffle::Type.object_respond_to? obj, :to_str
+    if TrufflePrimitive.vm_object_respond_to? obj, :to_str, false
       data = obj.to_s
 
       major = data.getbyte 0
@@ -1313,8 +1313,8 @@ module Marshal
 
       ms = StringState.new data, nil, prc
 
-    elsif Truffle::Type.object_respond_to? obj, :read and
-          Truffle::Type.object_respond_to? obj, :getc
+    elsif TrufflePrimitive.vm_object_respond_to? obj, :read, false and
+          TrufflePrimitive.vm_object_respond_to? obj, :getc, false
       ms = IOState.new obj, nil, prc
 
       major = ms.consume_byte

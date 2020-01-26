@@ -586,7 +586,7 @@ module Truffle::CExt
   end
 
   def rb_obj_respond_to(object, id, priv)
-    Truffle::Type.object_respond_to?(object, id, priv != 0)
+    TrufflePrimitive.vm_object_respond_to?(object, id, priv != 0)
   end
 
   def rb_check_convert_type(obj, type_name, method)

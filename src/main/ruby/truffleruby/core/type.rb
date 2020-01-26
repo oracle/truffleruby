@@ -62,11 +62,6 @@
 
 module Truffle
   module Type
-
-    def self.object_respond_to?(obj, name, include_private = false)
-      TrufflePrimitive.vm_object_respond_to? obj, name, include_private
-    end
-
     def self.object_respond_to_no_built_in?(obj, name, include_private = false)
       meth = TrufflePrimitive.vm_method_lookup obj, name
       !meth.nil? && !TrufflePrimitive.vm_method_is_basic(meth)
@@ -105,7 +100,7 @@ module Truffle
     end
 
     def self.coerce_to_failed(object, klass, method, exc=nil)
-      if object_respond_to? object, :inspect
+      if TrufflePrimitive.vm_object_respond_to? object, :inspect, false
         raise TypeError,
             "Coercion error: #{object.inspect}.#{method} => #{klass} failed",
             exc
@@ -459,7 +454,7 @@ module Truffle
       if TrufflePrimitive.object_kind_of?(obj, String)
         path = obj
       else
-        if object_respond_to? obj, :to_path
+        if TrufflePrimitive.vm_object_respond_to? obj, :to_path, false
           obj = obj.to_path
         end
 
