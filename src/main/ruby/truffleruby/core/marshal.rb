@@ -541,7 +541,7 @@ module Marshal
     end
 
     def add_non_immediate_object(obj)
-      return if Truffle::Type.object_kind_of? obj, ImmediateValue
+      return if TrufflePrimitive.object_kind_of? obj, ImmediateValue
       add_object(obj)
     end
 
@@ -1127,7 +1127,7 @@ module Marshal
 
       str = obj.__send__ :_dump, @depth
 
-      unless Truffle::Type.object_kind_of? str, String
+      unless TrufflePrimitive.object_kind_of? str, String
         raise TypeError, '_dump() must return string'
       end
 
@@ -1189,7 +1189,7 @@ module Marshal
         raise TypeError, 'dump format error' unless Object === obj
 
         store_unique_object obj
-        if Truffle::Type.object_kind_of? obj, Exception
+        if TrufflePrimitive.object_kind_of? obj, Exception
           set_exception_variables obj
         else
           set_instance_variables obj
@@ -1274,7 +1274,7 @@ module Marshal
 
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit
-      if Truffle::Type.object_kind_of? an_io, Integer
+      if TrufflePrimitive.object_kind_of? an_io, Integer
         limit = an_io
         an_io = nil
       else

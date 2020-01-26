@@ -602,12 +602,12 @@ class IO
 
     if TrufflePrimitive.undefined? length_or_options
       length = undefined
-    elsif Truffle::Type.object_kind_of? length_or_options, Hash
+    elsif TrufflePrimitive.object_kind_of? length_or_options, Hash
       length = undefined
       offset = 0
       options = length_or_options
     elsif length_or_options
-      if Truffle::Type.object_kind_of? offset, Hash
+      if TrufflePrimitive.object_kind_of? offset, Hash
         options = offset
         offset = 0
       else
@@ -744,7 +744,7 @@ class IO
   end
 
   def self.parse_mode(mode)
-    return mode if Truffle::Type.object_kind_of? mode, Integer
+    return mode if TrufflePrimitive.object_kind_of? mode, Integer
 
     mode = StringValue(mode)
 
@@ -942,7 +942,7 @@ class IO
   #
   def self.select(readables = nil, writables = nil, errorables = nil, timeout = nil)
     if timeout
-      unless Truffle::Type.object_kind_of? timeout, Numeric
+      unless TrufflePrimitive.object_kind_of? timeout, Numeric
         raise TypeError, 'Timeout must be numeric'
       end
 
@@ -1808,7 +1808,7 @@ class IO
   #
   #  AA
   def putc(obj)
-    if Truffle::Type.object_kind_of? obj, String
+    if TrufflePrimitive.object_kind_of? obj, String
       write obj.substring(0, 1)
     else
       byte = Truffle::Type.coerce_to(obj, Integer, :to_int) & 0xff

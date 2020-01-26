@@ -592,7 +592,7 @@ module Kernel
 
   def printf(*args)
     return nil if args.empty?
-    if Truffle::Type.object_kind_of?(args[0], String)
+    if TrufflePrimitive.object_kind_of?(args[0], String)
       print sprintf(*args)
     else
       io = args.shift

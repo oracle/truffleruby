@@ -83,12 +83,12 @@ module Truffle
     # right kind. TypeErrors are raised if the conversion method fails or the
     # conversion result is wrong.
     #
-    # Uses Truffle::Type.object_kind_of to bypass type check overrides.
+    # Uses TrufflePrimitive.object_kind_of? to bypass type check overrides.
     #
     # Equivalent to MRI's rb_convert_type().
 
     def self.coerce_to(obj, cls, meth)
-      return obj if object_kind_of?(obj, cls)
+      return obj if TrufflePrimitive.object_kind_of?(obj, cls)
       execute_coerce_to(obj, cls, meth)
     end
 
@@ -99,7 +99,7 @@ module Truffle
         coerce_to_failed obj, cls, meth, orig
       end
 
-      return ret if object_kind_of?(ret, cls)
+      return ret if TrufflePrimitive.object_kind_of?(ret, cls)
 
       coerce_to_type_error obj, ret, meth, cls
     end
@@ -140,10 +140,10 @@ module Truffle
     def self.rb_num2long(val)
       raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
 
-      if object_kind_of?(val, Integer)
+      if TrufflePrimitive.object_kind_of?(val, Integer)
         check_long(val)
         return val
-      elsif object_kind_of?(val, Float)
+      elsif TrufflePrimitive.object_kind_of?(val, Float)
         fval = val.to_int
         check_long(fval)
         return fval
@@ -155,13 +155,13 @@ module Truffle
     def self.rb_num2ulong(val)
       raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
 
-      if object_kind_of?(val, Integer)
+      if TrufflePrimitive.object_kind_of?(val, Integer)
         if TrufflePrimitive.integer_fits_into_long(val)
           return val
         else
           return rb_big2ulong(val)
         end
-      elsif object_kind_of?(val, Float)
+      elsif TrufflePrimitive.object_kind_of?(val, Float)
         fval = val.to_int
         return rb_num2ulong(fval)
       else
@@ -172,13 +172,13 @@ module Truffle
     def self.rb_num2dbl(val)
       raise TypeError, 'no implicit conversion from nil to float' if val.nil?
 
-      if object_kind_of?(val, Float)
+      if TrufflePrimitive.object_kind_of?(val, Float)
         return val
-      elsif object_kind_of?(val, Integer)
+      elsif TrufflePrimitive.object_kind_of?(val, Integer)
         return val.to_f
-      elsif object_kind_of?(val, Rational)
+      elsif TrufflePrimitive.object_kind_of?(val, Rational)
         return val.to_f
-      elsif object_kind_of?(val, String)
+      elsif TrufflePrimitive.object_kind_of?(val, String)
         raise TypeError, 'no implicit conversion from to float from string'
       else
         rb_num2dbl(rb_to_f(val))
@@ -195,18 +195,18 @@ module Truffle
     end
 
     def self.rb_to_f(val)
-      return val if object_kind_of?(val, Float)
+      return val if TrufflePrimitive.object_kind_of?(val, Float)
       res = convert_type(val, Float, :to_f, true)
-      unless object_kind_of?(res, Float)
+      unless TrufflePrimitive.object_kind_of?(res, Float)
         conversion_mismatch(val, Float, :to_f, res)
       end
       res
     end
 
     def self.rb_to_int(val)
-      return val if object_kind_of?(val, Integer)
+      return val if TrufflePrimitive.object_kind_of?(val, Integer)
       res = convert_type(val, Integer, :to_int, true)
-      unless object_kind_of?(res, Integer)
+      unless TrufflePrimitive.object_kind_of?(res, Integer)
         conversion_mismatch(val, Integer, :to_int, res)
       end
       res
@@ -249,9 +249,9 @@ module Truffle
     end
 
     def self.rb_check_to_integer(val, meth)
-      return val if object_kind_of?(val, Integer)
+      return val if TrufflePrimitive.object_kind_of?(val, Integer)
       v = convert_type(val, Integer, meth, false)
-      unless object_kind_of?(v, Integer)
+      unless TrufflePrimitive.object_kind_of?(v, Integer)
         return nil
       end
       v
@@ -260,26 +260,26 @@ module Truffle
     # Try to coerce obj to cls using meth.
     # Similar to coerce_to but returns nil if conversion fails.
     def self.rb_check_convert_type(obj, cls, meth)
-      return obj if object_kind_of?(obj, cls)
+      return obj if TrufflePrimitive.object_kind_of?(obj, cls)
       v = convert_type(obj, cls, meth, false)
       return nil if v.nil?
-      unless object_kind_of?(v, cls)
+      unless TrufflePrimitive.object_kind_of?(v, cls)
         raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
       end
       v
     end
 
     def self.rb_convert_type(obj, cls, meth)
-      return obj if object_kind_of?(obj, cls)
+      return obj if TrufflePrimitive.object_kind_of?(obj, cls)
       v = convert_type(obj, cls, meth, true)
-      unless object_kind_of?(v, cls)
+      unless TrufflePrimitive.object_kind_of?(v, cls)
         raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
       end
       v
     end
 
     def self.rb_check_type(obj, cls)
-      unless object_kind_of?(obj, cls)
+      unless TrufflePrimitive.object_kind_of?(obj, cls)
         raise TypeError, "wrong argument type #{object_class(obj)} (expected #{cls})"
       end
       obj
@@ -359,7 +359,7 @@ module Truffle
     # Uses the logic of [Array, Hash, String].try_convert.
     #
     def self.try_convert(obj, cls, meth)
-      return obj if object_kind_of?(obj, cls)
+      return obj if TrufflePrimitive.object_kind_of?(obj, cls)
       return nil unless obj.respond_to?(meth)
       execute_try_convert(obj, cls, meth)
     end
@@ -367,7 +367,7 @@ module Truffle
     def self.execute_try_convert(obj, cls, meth)
       ret = obj.__send__(meth)
 
-      return ret if ret.nil? || object_kind_of?(ret, cls)
+      return ret if ret.nil? || TrufflePrimitive.object_kind_of?(ret, cls)
 
       msg = "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
       raise TypeError, msg
@@ -456,7 +456,7 @@ module Truffle
     end
 
     def self.coerce_to_path(obj, check_null = true)
-      if object_kind_of?(obj, String)
+      if TrufflePrimitive.object_kind_of?(obj, String)
         path = obj
       else
         if object_respond_to? obj, :to_path
@@ -474,7 +474,7 @@ module Truffle
     end
 
     def self.coerce_to_symbol(obj)
-      return obj if object_kind_of? obj, Symbol
+      return obj if TrufflePrimitive.object_kind_of? obj, Symbol
 
       obj = obj.to_str if obj.respond_to?(:to_str)
       coerce_to(obj, Symbol, :to_sym)
@@ -519,7 +519,7 @@ module Truffle
     end
 
     def self.coerce_to_bitwise_operand(obj)
-      if object_kind_of? obj, Float
+      if TrufflePrimitive.object_kind_of? obj, Float
         raise TypeError, "can't convert Float into Integer for bitwise arithmetic"
       end
       coerce_to obj, Integer, :to_int
@@ -574,9 +574,9 @@ module Truffle
     end
 
     def self.rb_obj_as_string(obj)
-      return obj if object_kind_of?(obj, String)
+      return obj if TrufflePrimitive.object_kind_of?(obj, String)
       str = obj.to_s
-      return Truffle::Type.rb_any_to_s(obj) unless object_kind_of?(str, String)
+      return Truffle::Type.rb_any_to_s(obj) unless TrufflePrimitive.object_kind_of?(str, String)
       Truffle::Type.infect(str, obj)
       str
     end

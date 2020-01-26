@@ -55,8 +55,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @CoreModule("Truffle::Type")
 public abstract class TypeNodes {
 
-    @CoreMethod(names = "object_kind_of?", onSingleton = true, required = 2)
-    public static abstract class ObjectKindOfNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "object_kind_of?")
+    public static abstract class ObjectKindOfNode extends PrimitiveArrayArgumentsNode {
 
         @Child private IsANode isANode = IsANode.create();
 

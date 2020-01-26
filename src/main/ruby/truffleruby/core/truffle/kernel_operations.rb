@@ -50,7 +50,7 @@ module Truffle
       :$/,
       -> { TrufflePrimitive.global_variable_get :$/ },
       -> v {
-        if v && !Truffle::Type.object_kind_of?(v, String)
+        if v && !TrufflePrimitive.object_kind_of?(v, String)
           raise TypeError, '$/ must be a String'
         end
         TrufflePrimitive.global_variable_set :$/, v
@@ -64,7 +64,7 @@ module Truffle
       :'$,',
       -> { TrufflePrimitive.global_variable_get :$, },
       -> v {
-        if v && !Truffle::Type.object_kind_of?(v, String)
+        if v && !TrufflePrimitive.object_kind_of?(v, String)
           raise TypeError, '$, must be a String'
         end
         TrufflePrimitive.global_variable_set :$,, v
