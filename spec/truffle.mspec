@@ -94,6 +94,7 @@ class MSpecScript
   ]
 
   set :next, [
+    "spec/ruby/core/file/absolute_path_spec.rb",
     "spec/ruby/core/matchdata/allocate_spec.rb",
   ]
 

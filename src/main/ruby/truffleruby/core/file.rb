@@ -130,6 +130,11 @@ class File < IO
     end
   end
 
+  def self.absolute_path?(path)
+    path = Truffle::Type.coerce_to_path(path)
+    path.start_with?('/')
+  end
+
   ##
   # Returns the last access time for the named file as a Time object).
   #
