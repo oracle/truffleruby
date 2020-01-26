@@ -928,7 +928,9 @@ class File < IO
   end
 
   def self.realpath(path, basedir = nil)
-    path = expand_path(path, basedir)
+    unless absolute_path?(path)
+      path = expand_path(path, basedir)
+    end
 
     buffer = TrufflePrimitive.io_get_thread_buffer(Truffle::Platform::PATH_MAX)
     if ptr = Truffle::POSIX.realpath(path, buffer) and !ptr.null?
