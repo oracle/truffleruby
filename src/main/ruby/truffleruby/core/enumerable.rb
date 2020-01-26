@@ -168,7 +168,7 @@ module Enumerable
   end
 
   def enumerator_size
-    TrufflePrimitive.vm_object_respond_to?(self, :size, false) ? size : nil
+    TrufflePrimitive.object_respond_to?(self, :size, false) ? size : nil
   end
   private :enumerator_size
 

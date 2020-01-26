@@ -435,8 +435,8 @@ class Enumerator
       Lazy.new(self, nil) do |yielder, *args|
         yield_ret = yield(*args)
 
-        if TrufflePrimitive.vm_object_respond_to?(yield_ret, :force, false) &&
-           TrufflePrimitive.vm_object_respond_to?(yield_ret, :each, false)
+        if TrufflePrimitive.object_respond_to?(yield_ret, :force, false) &&
+           TrufflePrimitive.object_respond_to?(yield_ret, :each, false)
           yield_ret.each do |v|
             yielder.yield v
           end
@@ -463,7 +463,7 @@ class Enumerator
         case
         when array
           array
-        when TrufflePrimitive.vm_object_respond_to?(list, :each, false)
+        when TrufflePrimitive.object_respond_to?(list, :each, false)
           list.to_enum :each
         else
           raise TypeError, "wrong argument type #{list.class} (must respond to :each)"

@@ -176,20 +176,6 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_object_respond_to?")
-    public static abstract class VMObjectRespondToNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
-                .create(null, null, null);
-
-        @Specialization
-        protected boolean vmObjectRespondTo(VirtualFrame frame, Object object, Object name, boolean includePrivate) {
-            return respondToNode.executeDoesRespondTo(frame, object, name, includePrivate);
-        }
-
-    }
-
-
     @Primitive(name = "vm_object_singleton_class")
     public static abstract class VMObjectSingletonClassNode extends PrimitiveArrayArgumentsNode {
 

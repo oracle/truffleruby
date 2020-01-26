@@ -100,7 +100,7 @@ module Truffle
     end
 
     def self.coerce_to_failed(object, klass, method, exc=nil)
-      if TrufflePrimitive.vm_object_respond_to? object, :inspect, false
+      if TrufflePrimitive.object_respond_to? object, :inspect, false
         raise TypeError,
             "Coercion error: #{object.inspect}.#{method} => #{klass} failed",
             exc
@@ -454,7 +454,7 @@ module Truffle
       if TrufflePrimitive.object_kind_of?(obj, String)
         path = obj
       else
-        if TrufflePrimitive.vm_object_respond_to? obj, :to_path, false
+        if TrufflePrimitive.object_respond_to? obj, :to_path, false
           obj = obj.to_path
         end
 

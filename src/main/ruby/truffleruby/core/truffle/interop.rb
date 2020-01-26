@@ -51,7 +51,7 @@ module Truffle
         # TODO (pitr-ch 28-Nov-2019): make sure protected methods are not listed unless internal
         keys = []
         object.methods.each do |method|
-          keys << method.to_s if TrufflePrimitive.vm_object_respond_to? object, method, true
+          keys << method.to_s if TrufflePrimitive.object_respond_to? object, method, true
         end
         if internal
           object.instance_variables.each do |ivar|
@@ -60,7 +60,7 @@ module Truffle
           end
           object.private_methods.each do |method|
             # do not list methods which cannot be read using interop
-            keys << method.to_s if TrufflePrimitive.vm_object_respond_to? object, method, true
+            keys << method.to_s if TrufflePrimitive.object_respond_to? object, method, true
           end
         end
       end

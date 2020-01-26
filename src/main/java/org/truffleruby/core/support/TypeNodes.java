@@ -24,7 +24,9 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
+import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
@@ -67,8 +69,21 @@ public abstract class TypeNodes {
 
     }
 
+    @Primitive(name = "object_respond_to?")
+    public static abstract class ObjectRespondToNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
+                .create(null, null, null);
+
+        @Specialization
+        protected boolean objectRespondTo(VirtualFrame frame, Object object, Object name, boolean includePrivate) {
+            return respondToNode.executeDoesRespondTo(frame, object, name, includePrivate);
+        }
+
+    }
+
     @CoreMethod(names = "object_class", onSingleton = true, required = 1)
-    public static abstract class VMObjectClassNode extends CoreMethodArrayArgumentsNode {
+    public static abstract class ObjectClassNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
