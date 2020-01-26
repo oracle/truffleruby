@@ -303,7 +303,7 @@ module Fiddle
       else
         ptr = Pointer.new(Integer(val))
       end
-      Truffle::Type.infect ptr, val
+      TrufflePrimitive.infect ptr, val
       ptr
     end
 

@@ -442,7 +442,7 @@ module Truffle::CExt
   end
 
   def rb_tr_obj_infect(dest, source)
-    Truffle::Type.infect(dest, source)
+    TrufflePrimitive.infect(dest, source)
   end
 
   FREEZE_METHOD = Kernel.instance_method :freeze

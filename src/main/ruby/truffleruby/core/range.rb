@@ -349,7 +349,7 @@ class Range
 
   def inspect
     result = "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{endless? ? "" : self.end.inspect}"
-    Truffle::Type.infect(result, self)
+    TrufflePrimitive.infect(result, self)
   end
 
   def last(n=undefined)
@@ -444,7 +444,7 @@ class Range
 
   def to_s
     result = "#{self.begin}#{exclude_end? ? "..." : ".."}#{endless? ? "" : self.end}"
-    Truffle::Type.infect(result, self)
+    TrufflePrimitive.infect(result, self)
   end
 
   def cover?(value)
@@ -524,7 +524,7 @@ class Range
       ary << o
       nil
     end
-    Truffle::Type.infect ary, self
+    TrufflePrimitive.infect ary, self
     ary
   end
 end

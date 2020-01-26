@@ -994,7 +994,7 @@ module Marshal
 
       @depth += 1
 
-      Truffle::Type.infect(str, obj)
+      TrufflePrimitive.infect(str, obj)
     end
 
     def serialize_extended_object(obj)

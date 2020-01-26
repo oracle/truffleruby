@@ -251,8 +251,8 @@ public abstract class TypeNodes {
 
     }
 
-    @CoreMethod(names = "infect", onSingleton = true, required = 2)
-    public static abstract class InfectNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "infect")
+    public static abstract class InfectNode extends PrimitiveArrayArgumentsNode {
 
         @Child private IsTaintedNode isTaintedNode;
         @Child private TaintNode taintNode;

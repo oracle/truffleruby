@@ -185,7 +185,7 @@ module Enumerable
         h[key] = [o]
       end
     end
-    Truffle::Type.infect h, self
+    TrufflePrimitive.infect h, self
     h
   end
 
@@ -275,7 +275,7 @@ module Enumerable
       ary << o
       nil
     end
-    Truffle::Type.infect ary, self
+    TrufflePrimitive.infect ary, self
     ary
   end
   alias_method :entries, :to_a

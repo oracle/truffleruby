@@ -416,7 +416,7 @@ class Hash
     end
 
     ret = "{#{out.join ', '}}"
-    Truffle::Type.infect(ret, self) unless empty?
+    TrufflePrimitive.infect(ret, self) unless empty?
     ret
   end
   alias_method :to_s, :inspect
@@ -469,7 +469,7 @@ class Hash
       ary << [key, value]
     end
 
-    Truffle::Type.infect ary, self
+    TrufflePrimitive.infect ary, self
     ary
   end
 

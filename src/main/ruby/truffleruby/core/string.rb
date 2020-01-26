@@ -122,7 +122,7 @@ class String
     TrufflePrimitive.check_frozen self
     prefix = Truffle::Type.coerce_to(prefix, String, :to_str)
     if !prefix.empty? && start_with?(prefix)
-      Truffle::Type.infect self, prefix
+      TrufflePrimitive.infect self, prefix
       self[0, prefix.size] = ''
       self
     else
@@ -139,7 +139,7 @@ class String
     TrufflePrimitive.check_frozen self
     suffix = Truffle::Type.coerce_to(suffix, String, :to_str)
     if !suffix.empty? && end_with?(suffix)
-      Truffle::Type.infect self, suffix
+      TrufflePrimitive.infect self, suffix
       self[size - suffix.size, suffix.size] = ''
       self
     else
@@ -392,7 +392,7 @@ class String
     end
 
     str = match[capture]
-    Truffle::Type.infect str, pattern
+    TrufflePrimitive.infect str, pattern
     [match, str]
   end
   private :subpattern
@@ -590,7 +590,7 @@ class String
       index += chr.bytesize
     end
 
-    Truffle::Type.infect result, self
+    TrufflePrimitive.infect result, self
     result.force_encoding(result_encoding)
   end
 
@@ -935,7 +935,7 @@ class String
       end
     end
 
-    Truffle::Type.infect(self, other)
+    TrufflePrimitive.infect(self, other)
     append(other)
   end
 
@@ -1159,7 +1159,7 @@ class String
       end
     end
 
-    Truffle::Type.infect self, replacement
+    TrufflePrimitive.infect self, replacement
 
     replacement
   end
@@ -1542,7 +1542,7 @@ class String
       replace(left + other + right)
     end
 
-    Truffle::Type.infect self, other
+    TrufflePrimitive.infect self, other
     self
   end
 
