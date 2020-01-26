@@ -21,6 +21,10 @@ Compatibility:
 
 * Implemented `-p` CLI option.
 
+Performance:
+
+* Optimized `RSTRING_PTR()` accesses by going to native directly, optimized various core methods, use Mode=latency and tune GC heap size for Bundler. This speeds up `bundle install` from 84s to 19s for a small Gemfile with 6 gems (#1398).
+
 # 20.0.0
 
 New features:
