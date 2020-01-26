@@ -33,6 +33,7 @@ import org.truffleruby.shared.options.OptionsCatalog;
 public class RubyLauncher extends AbstractLanguageLauncher {
 
     private CommandLineOptions config;
+    private String implementationName = null;
 
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
@@ -292,7 +293,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         return Collections.emptyList();
     }
 
-    private static void printPreRunInformation(CommandLineOptions config) {
+    private void printPreRunInformation(CommandLineOptions config) {
         if (config.showVersion) {
             System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
         }
@@ -313,10 +314,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
     }
 
-    private static String getImplementationNameFromEngine() {
-        try (Engine engine = Engine.create()) {
-            return engine.getImplementationName();
+    private String getImplementationNameFromEngine() {
+        if (implementationName == null) {
+            try (Engine engine = Engine.create()) {
+                implementationName = engine.getImplementationName();
+            }
         }
+
+        return implementationName;
     }
 
     // To update this, use:
