@@ -581,18 +581,6 @@ module Truffle
       str
     end
 
-    def self.object_respond_to__dump?(obj)
-      object_respond_to? obj, :_dump, true
-    end
-
-    def self.object_respond_to_marshal_dump?(obj)
-      object_respond_to? obj, :marshal_dump, true
-    end
-
-    def self.object_respond_to_marshal_load?(obj)
-      object_respond_to? obj, :marshal_load, true
-    end
-
     def self.check_arity(arg_count, min, max)
       if arg_count < min || (max != -1 && arg_count > max)
         raise ArgumentError, arity_error_string(arg_count, min, max)

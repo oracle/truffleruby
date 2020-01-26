@@ -916,7 +916,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless Truffle::Type.object_respond_to_marshal_load? obj
+      unless TrufflePrimitive.vm_object_respond_to? obj, :marshal_load, true
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -983,9 +983,9 @@ module Marshal
         add_non_immediate_object obj
 
         # ORDER MATTERS.
-        if Truffle::Type.object_respond_to_marshal_dump? obj
+        if TrufflePrimitive.vm_object_respond_to? obj, :marshal_dump, true
           str = serialize_user_marshal obj
-        elsif Truffle::Type.object_respond_to__dump? obj
+        elsif TrufflePrimitive.vm_object_respond_to? obj, :_dump, true
           str = serialize_user_defined obj
         else
           str = obj.__send__ :__marshal__, self
