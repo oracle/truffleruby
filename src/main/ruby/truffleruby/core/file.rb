@@ -494,7 +494,7 @@ class File < IO
         length = TrufflePrimitive.find_string(path, '/', 1) || path.bytesize
         name = path.byteslice 1, length - 1
 
-        if ptr = Truffle::POSIX.truffleposix_get_user_home(name)
+        if ptr = Truffle::POSIX.truffleposix_get_user_home(name) and !ptr.null?
           dir = ptr.read_string
           ptr.free
           raise ArgumentError, "user #{name} does not exist" if dir.empty?
