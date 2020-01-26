@@ -189,7 +189,7 @@ public abstract class TypeNodes {
     // different namespace than normal ivars which use java.lang.String.
 
     @Primitive(name = "object_hidden_var_get")
-    public abstract static class ObjectHiddenVarGetNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ObjectHiddenVarGetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object objectHiddenVarGet(DynamicObject object, Object identifier,
@@ -204,7 +204,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "object_hidden_var_set")
-    public abstract static class ObjectHiddenVarSetNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ObjectHiddenVarSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object objectHiddenVarSet(DynamicObject object, Object identifier, Object value,
