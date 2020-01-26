@@ -79,8 +79,8 @@ public abstract class TypeNodes {
 
     }
 
-    @CoreMethod(names = "object_equal", onSingleton = true, required = 2)
-    public static abstract class ObjectEqualNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "object_equal")
+    public static abstract class ObjectEqualNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean objectEqual(Object a, Object b,

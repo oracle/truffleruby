@@ -146,7 +146,7 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless Truffle::Type.object_equal(value, other_value) or value.send(op, other_value)
+        unless TrufflePrimitive.object_equal(value, other_value) or value.send(op, other_value)
           return false
         end
       end

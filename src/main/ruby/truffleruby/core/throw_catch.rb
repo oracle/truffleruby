@@ -44,7 +44,7 @@ module Kernel
     tags = TrufflePrimitive.fiber_get_catch_tags
 
     tags.each do |c|
-      if Truffle::Type.object_equal(c, tag)
+      if TrufflePrimitive.object_equal(c, tag)
         TrufflePrimitive.vm_throw tag, value
       end
     end
