@@ -103,6 +103,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 config.appendOptionValue(OptionsCatalog.LOAD_PATHS, path);
             }
 
+            if (config.detectBundler()) {
+                // Apply options to run Bundler more efficiently
+                if (isAOT()) {
+                    args.add(0, "--vm.Xmn1g");
+                }
+            }
+
         } catch (CommandLineException commandLineException) {
             System.err.println("truffleruby: " + commandLineException.getMessage());
             if (commandLineException.isUsageError()) {
@@ -265,6 +272,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
         if (!config.isSetInPolyglotOptions(OptionsCatalog.EMBEDDED.getName())) {
             builder.option(OptionsCatalog.EMBEDDED.getName(), "false");
+        }
+
+        if (config.detectBundler() && getImplementationNameFromEngine().contains("Graal")) {
+            // Apply options to run Bundler more efficiently
+            builder.option("engine.Mode", "latency");
         }
 
         builder.options(config.getOptions());
