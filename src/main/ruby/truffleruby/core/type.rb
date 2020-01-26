@@ -83,8 +83,11 @@ module Truffle
     # Equivalent to MRI's rb_convert_type().
 
     def self.coerce_to(obj, cls, meth)
-      return obj if TrufflePrimitive.object_kind_of?(obj, cls)
-      execute_coerce_to(obj, cls, meth)
+      if TrufflePrimitive.object_kind_of?(obj, cls)
+        obj
+      else
+        execute_coerce_to(obj, cls, meth)
+      end
     end
 
     def self.execute_coerce_to(obj, cls, meth)
@@ -94,9 +97,11 @@ module Truffle
         coerce_to_failed obj, cls, meth, orig
       end
 
-      return ret if TrufflePrimitive.object_kind_of?(ret, cls)
-
-      coerce_to_type_error obj, ret, meth, cls
+      if TrufflePrimitive.object_kind_of?(ret, cls)
+        ret
+      else
+        coerce_to_type_error obj, ret, meth, cls
+      end
     end
 
     def self.coerce_to_failed(object, klass, method, exc=nil)
@@ -137,13 +142,13 @@ module Truffle
 
       if TrufflePrimitive.object_kind_of?(val, Integer)
         check_long(val)
-        return val
+        val
       elsif TrufflePrimitive.object_kind_of?(val, Float)
         fval = val.to_int
         check_long(fval)
-        return fval
+        fval
       else
-        return rb_num2long(rb_to_int(val))
+        rb_num2long(rb_to_int(val))
       end
     end
 
@@ -152,15 +157,15 @@ module Truffle
 
       if TrufflePrimitive.object_kind_of?(val, Integer)
         if TrufflePrimitive.integer_fits_into_long(val)
-          return val
+          val
         else
-          return rb_big2ulong(val)
+          rb_big2ulong(val)
         end
       elsif TrufflePrimitive.object_kind_of?(val, Float)
         fval = val.to_int
-        return rb_num2ulong(fval)
+        rb_num2ulong(fval)
       else
-        return rb_num2ulong(rb_to_int(val))
+        rb_num2ulong(rb_to_int(val))
       end
     end
 
@@ -168,11 +173,11 @@ module Truffle
       raise TypeError, 'no implicit conversion from nil to float' if val.nil?
 
       if TrufflePrimitive.object_kind_of?(val, Float)
-        return val
+        val
       elsif TrufflePrimitive.object_kind_of?(val, Integer)
-        return val.to_f
+        val.to_f
       elsif TrufflePrimitive.object_kind_of?(val, Rational)
-        return val.to_f
+        val.to_f
       elsif TrufflePrimitive.object_kind_of?(val, String)
         raise TypeError, 'no implicit conversion from to float from string'
       else
@@ -190,21 +195,27 @@ module Truffle
     end
 
     def self.rb_to_f(val)
-      return val if TrufflePrimitive.object_kind_of?(val, Float)
-      res = convert_type(val, Float, :to_f, true)
-      unless TrufflePrimitive.object_kind_of?(res, Float)
-        conversion_mismatch(val, Float, :to_f, res)
+      if TrufflePrimitive.object_kind_of?(val, Float)
+        val
+      else
+        res = convert_type(val, Float, :to_f, true)
+        unless TrufflePrimitive.object_kind_of?(res, Float)
+          conversion_mismatch(val, Float, :to_f, res)
+        end
+        res
       end
-      res
     end
 
     def self.rb_to_int(val)
-      return val if TrufflePrimitive.object_kind_of?(val, Integer)
-      res = convert_type(val, Integer, :to_int, true)
-      unless TrufflePrimitive.object_kind_of?(res, Integer)
-        conversion_mismatch(val, Integer, :to_int, res)
+      if TrufflePrimitive.object_kind_of?(val, Integer)
+        val
+      else
+        res = convert_type(val, Integer, :to_int, true)
+        unless TrufflePrimitive.object_kind_of?(res, Integer)
+          conversion_mismatch(val, Integer, :to_int, res)
+        end
+        res
       end
-      res
     end
 
     def self.conversion_mismatch(val, cls, meth, res)
@@ -244,33 +255,45 @@ module Truffle
     end
 
     def self.rb_check_to_integer(val, meth)
-      return val if TrufflePrimitive.object_kind_of?(val, Integer)
-      v = convert_type(val, Integer, meth, false)
-      unless TrufflePrimitive.object_kind_of?(v, Integer)
-        return nil
+      if TrufflePrimitive.object_kind_of?(val, Integer)
+        val
+      else
+        v = convert_type(val, Integer, meth, false)
+        if TrufflePrimitive.object_kind_of?(v, Integer)
+          v
+        else
+          nil
+        end
       end
-      v
     end
 
     # Try to coerce obj to cls using meth.
     # Similar to coerce_to but returns nil if conversion fails.
     def self.rb_check_convert_type(obj, cls, meth)
-      return obj if TrufflePrimitive.object_kind_of?(obj, cls)
-      v = convert_type(obj, cls, meth, false)
-      return nil if v.nil?
-      unless TrufflePrimitive.object_kind_of?(v, cls)
-        raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
+      if TrufflePrimitive.object_kind_of?(obj, cls)
+        obj
+      else
+        v = convert_type(obj, cls, meth, false)
+        if v.nil?
+          nil
+        elsif !TrufflePrimitive.object_kind_of?(v, cls)
+          raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
+        else
+          v
+        end
       end
-      v
     end
 
     def self.rb_convert_type(obj, cls, meth)
-      return obj if TrufflePrimitive.object_kind_of?(obj, cls)
-      v = convert_type(obj, cls, meth, true)
-      unless TrufflePrimitive.object_kind_of?(v, cls)
-        raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
+      if TrufflePrimitive.object_kind_of?(obj, cls)
+        obj
+      else
+        v = convert_type(obj, cls, meth, true)
+        unless TrufflePrimitive.object_kind_of?(v, cls)
+          raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
+        end
+        v
       end
-      v
     end
 
     def self.rb_check_type(obj, cls)
@@ -285,10 +308,12 @@ module Truffle
       if TrufflePrimitive.undefined?(r)
         if raise_on_error
           raise TypeError, Truffle::ExceptionOperations.conversion_error_message(r, meth, obj, cls)
+        else
+          nil
         end
-        return nil
+      else
+        r
       end
-      r
     end
 
     def self.check_funcall(recv, meth, args = [])
@@ -298,83 +323,100 @@ module Truffle
     def self.check_funcall_default(recv, meth, args, default)
       if Truffle::Interop.foreign?(recv)
         if recv.respond_to?(meth)
-          return recv.__send__(meth, *args)
+          recv.__send__(meth, *args)
         else
-          return default
+          default
+        end
+      else
+        respond = check_funcall_respond_to(recv, meth, true)
+        if respond == 0
+          default
+        elsif check_funcall_callable(recv, meth)
+          recv.__send__(meth, *args)
+        else
+          check_funcall_missing(recv, meth, args, respond, default, true)
         end
       end
-      respond = check_funcall_respond_to(recv, meth, true)
-      return default if respond == 0
-      unless check_funcall_callable(recv, meth)
-        return check_funcall_missing(recv, meth, args, respond, default, true);
-      end
-      recv.__send__(meth, *args)
     end
 
     def self.check_funcall_respond_to(obj, meth, priv)
       # TODO Review BJF vm_respond_to
-      return -1 unless object_respond_to_no_built_in?(obj, :respond_to?, true)
-      if !!obj.__send__(:respond_to?, meth, true)
-        1
+      if object_respond_to_no_built_in?(obj, :respond_to?, true)
+        if !!obj.__send__(:respond_to?, meth, true)
+          1
+        else
+          0
+        end
       else
-        0
+        -1
       end
     end
 
     def self.check_funcall_missing(recv, meth, args, respond, default, priv = false)
       ret = basic_obj_respond_to_missing(recv, meth, priv)
       respond_to_missing = !TrufflePrimitive.undefined?(ret)
-      return default if respond_to_missing and !ret
-      ret = default
-      if object_respond_to_no_built_in?(recv, :method_missing, true)
+      if respond_to_missing and !ret
+        default
+      elsif object_respond_to_no_built_in?(recv, :method_missing, true)
         begin
-          return recv.__send__(:method_missing, meth, *args)
+          recv.__send__(:method_missing, meth, *args)
         rescue NoMethodError
           # TODO BJF usually more is done here
-          meth = TrufflePrimitive.vm_method_lookup recv, meth
-          if meth
+          if TrufflePrimitive.vm_method_lookup recv, meth
             ret = false
           else
             ret = respond_to_missing
           end
           if ret
             raise
+          else
+            undefined
           end
         end
+      else
+        undefined
       end
-      undefined
     end
 
     def self.basic_obj_respond_to_missing(obj, mid, priv)
-      return undefined unless object_respond_to_no_built_in?(obj, :respond_to_missing?, true)
-      obj.__send__(:respond_to_missing?, mid, priv);
+      if object_respond_to_no_built_in?(obj, :respond_to_missing?, true)
+        obj.__send__(:respond_to_missing?, mid, priv)
+      else
+        undefined
+      end
     end
 
     ##
     # Uses the logic of [Array, Hash, String].try_convert.
     #
     def self.try_convert(obj, cls, meth)
-      return obj if TrufflePrimitive.object_kind_of?(obj, cls)
-      return nil unless obj.respond_to?(meth)
-      execute_try_convert(obj, cls, meth)
+      if TrufflePrimitive.object_kind_of?(obj, cls)
+        obj
+      elsif !obj.respond_to?(meth)
+        nil
+      else
+        execute_try_convert(obj, cls, meth)
+      end
     end
 
     def self.execute_try_convert(obj, cls, meth)
       ret = obj.__send__(meth)
 
-      return ret if ret.nil? || TrufflePrimitive.object_kind_of?(ret, cls)
-
-      msg = "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
-      raise TypeError, msg
+      if ret.nil? || TrufflePrimitive.object_kind_of?(ret, cls)
+        ret
+      else
+        raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
+      end
     end
 
     # Specific coercion methods
 
     def self.coerce_to_comparison(a, b)
-      unless cmp = (a <=> b)
+      if cmp = (a <=> b)
+        cmp
+      else
         raise ArgumentError, "comparison of #{a.inspect} with #{b.inspect} failed"
       end
-      cmp
     end
 
     INT_MIN = -2147483648
@@ -389,19 +431,23 @@ module Truffle
     end
 
     def self.coerce_to_collection_index(index)
-      return index if fits_into_long?(index)
-
-      index = coerce_to_int(index)
-      check_long(index)
-      index
+      if fits_into_long?(index)
+        index
+      else
+        index = coerce_to_int(index)
+        check_long(index)
+        index
+      end
     end
 
     def self.coerce_to_collection_length(length)
-      return length if fits_into_long?(length)
-
-      length = coerce_to_int(length)
-      check_long(length)
-      length
+      if fits_into_long?(length)
+        length
+      else
+        length = coerce_to_int(length)
+        check_long(length)
+        length
+      end
     end
 
     def self.coerce_to_int(obj)
@@ -426,17 +472,13 @@ module Truffle
     end
 
     def self.coerce_to_regexp(pattern, quote=false)
-      case pattern
-      when Regexp
-        return pattern
-      when String
-        # nothing
+      if Regexp === pattern
+        pattern
       else
         pattern = StringValue(pattern)
+        pattern = Regexp.quote(pattern) if quote
+        Regexp.new(pattern)
       end
-
-      pattern = Regexp.quote(pattern) if quote
-      Regexp.new(pattern)
     end
 
     def self.coerce_to_encoding(obj)
@@ -469,13 +511,15 @@ module Truffle
     end
 
     def self.coerce_to_symbol(obj)
-      return obj if TrufflePrimitive.object_kind_of? obj, Symbol
-
-      obj = obj.to_str if obj.respond_to?(:to_str)
-      coerce_to(obj, Symbol, :to_sym)
+      if TrufflePrimitive.object_kind_of? obj, Symbol
+        obj
+      else
+        obj = obj.to_str if obj.respond_to?(:to_str)
+        coerce_to(obj, Symbol, :to_sym)
+      end
     end
 
-    # Equivalent of num_exact in MRI's time.c; used by Time methods.
+    # Equivalent of num_exact in MRI's time.c, used by Time methods.
     def self.coerce_to_exact_num(obj)
       if obj.kind_of?(Integer)
         obj
@@ -569,11 +613,16 @@ module Truffle
     end
 
     def self.rb_obj_as_string(obj)
-      return obj if TrufflePrimitive.object_kind_of?(obj, String)
-      str = obj.to_s
-      return Truffle::Type.rb_any_to_s(obj) unless TrufflePrimitive.object_kind_of?(str, String)
-      TrufflePrimitive.infect(str, obj)
-      str
+      if TrufflePrimitive.object_kind_of?(obj, String)
+        obj
+      else
+        str = obj.to_s
+        if TrufflePrimitive.object_kind_of?(str, String)
+          TrufflePrimitive.infect(str, obj)
+        else
+          Truffle::Type.rb_any_to_s(obj)
+        end
+      end
     end
 
     def self.check_arity(arg_count, min, max)
