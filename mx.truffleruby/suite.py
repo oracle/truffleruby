@@ -98,6 +98,7 @@ suite = {
                 "dumps",
                 "logo",
                 "mxbuild",
+                "profiles",
                 ".ext",
                 "truffleruby-gem-test-pack",
                 "lib/json/java",
