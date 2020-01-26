@@ -51,8 +51,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -172,19 +170,6 @@ public abstract class VMPrimitiveNodes {
                 return nil();
             }
             return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, method);
-        }
-
-    }
-
-    @Primitive(name = "vm_object_singleton_class")
-    public static abstract class VMObjectSingletonClassNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private KernelNodes.SingletonClassMethodNode singletonClassNode = KernelNodesFactory.SingletonClassMethodNodeFactory
-                .create(null);
-
-        @Specialization
-        protected Object vmObjectClass(Object object) {
-            return singletonClassNode.executeSingletonClass(object);
         }
 
     }
