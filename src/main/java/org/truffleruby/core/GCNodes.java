@@ -12,15 +12,31 @@ package org.truffleruby.core;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 
 @CoreModule("GC")
 public abstract class GCNodes {
+
+    @Primitive(name = "gc_start")
+    public static abstract class GCStartPrimitiveNode extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected DynamicObject vmGCStart() {
+            getContext().getMarkingService().queueMarking();
+            System.gc();
+            return nil();
+        }
+
+    }
 
     @CoreMethod(names = "count", onSingleton = true)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {
