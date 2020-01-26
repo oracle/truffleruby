@@ -80,13 +80,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 if (isAOT()) {
                     /*
                      * Append options from ENV variables to args after the last interpreter option,
-                     * which makes sure that maybeExec() processes the --(native|jvm)* options.
+                     * which makes sure that maybeExec() processes the --vm.* options.
                      * These options are removed and are not passed to the new process if exec() is
                      * being called as these options need to be passed when starting the new VM
                      * process. The new process gets all arguments and options including those from
                      * ENV variables. To avoid processing options from ENV variables twice,
                      * --disable-rubyopt is passed. Only the native launcher can apply native and
-                     * jvm options (it is too late for the running JVM to apply --jvm options),
+                     * jvm options (it is too late for the running JVM to apply --vm options),
                      * therefore this is not done on JVM.
                      */
                     final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
