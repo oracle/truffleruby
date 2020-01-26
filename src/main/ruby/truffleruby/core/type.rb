@@ -64,7 +64,7 @@ module Truffle
   module Type
 
     def self.object_respond_to?(obj, name, include_private = false)
-      TrufflePrimitive.vm_object_respond_to obj, name, include_private
+      TrufflePrimitive.vm_object_respond_to? obj, name, include_private
     end
 
     def self.object_respond_to_no_built_in?(obj, name, include_private = false)

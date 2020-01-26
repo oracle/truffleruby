@@ -176,7 +176,7 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_object_respond_to")
+    @Primitive(name = "vm_object_respond_to?")
     public static abstract class VMObjectRespondToNode extends PrimitiveArrayArgumentsNode {
 
         @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
