@@ -214,6 +214,7 @@ class Range
     min = self.begin
     max = self.end
     max -= 1 if max.kind_of? Integer and exclude_end?
+    return nil if max < min
     last_admissible = nil
     stop = false
 

@@ -81,6 +81,19 @@ describe "Range#bsearch" do
         [1, 2].should include(result)
       end
     end
+
+    it "returns nil for empty ranges" do
+      (0...0).bsearch { true }.should == nil
+      (0...0).bsearch { false }.should == nil
+      (0...0).bsearch { 1 }.should == nil
+      (0...0).bsearch { 0 }.should == nil
+      (0...0).bsearch { -1 }.should == nil
+
+      (4..2).bsearch { true }.should == nil
+      (4..2).bsearch { 1 }.should == nil
+      (4..2).bsearch { 0 }.should == nil
+      (4..2).bsearch { -1 }.should == nil
+    end
   end
 
   context "with Float values" do
