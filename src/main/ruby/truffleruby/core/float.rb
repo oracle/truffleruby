@@ -215,7 +215,7 @@ class Float < Numeric
       if ndigits == 0
         round(half: half)
       elsif ndigits < 0
-        truncate.round(ndigits)
+        to_i.round(ndigits, :half => half)
       elsif infinite? or nan?
         self
       else
