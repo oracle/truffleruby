@@ -42,7 +42,7 @@ module Truffle
 
     define_read_only_global(:$*, -> { ARGV })
 
-    define_read_only_global(:$-a, -> { nil })
+    define_read_only_global(:$-a, -> { Truffle::Boot.get_option 'split-loop' })
     define_read_only_global(:$-l, -> { nil })
     define_read_only_global(:$-p, -> { Truffle::Boot.get_option 'print-loop' })
 

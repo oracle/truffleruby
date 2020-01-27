@@ -82,6 +82,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     ARGV_GLOBALS: [[argv-globals, -s], boolean, false, Parse options in script argv into global variables]
     GETS_LOOP: [[gets-loop, -n], boolean, false, 'assume while gets(); ... end loop around your script']
     PRINT_LOOP: [[print-loop, -p], boolean, false, 'assume loop like -n but print line also like sed']
+    SPLIT_LOOP: [[split-loop, -a], boolean, false, 'autosplit mode with -n or -p (splits $_ into $F)']
     IGNORE_LINES_BEFORE_RUBY_SHEBANG: [[ignore-lines-before-ruby-shebang, -x], boolean, false, "strip off text before #!ruby line"]
     SYNTAX_CHECK: [[syntax-check, -c], boolean, false, Do not execute just check syntax]
 

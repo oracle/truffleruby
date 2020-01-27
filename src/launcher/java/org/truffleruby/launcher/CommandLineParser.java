@@ -199,7 +199,8 @@ public class CommandLineParser {
                 }
                 case 'a':
                     disallowedInRubyOpts(argument);
-                    throw notImplemented("-a");
+                    config.setOption(OptionsCatalog.SPLIT_LOOP, true);
+                    break;
                 case 'c':
                     disallowedInRubyOpts(argument);
                     config.setOption(OptionsCatalog.SYNTAX_CHECK, true);

@@ -44,6 +44,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.LoadRequiredLibrariesNode;
+import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.core.kernel.KernelPrintLastLineNode;
 import org.truffleruby.language.DataNode;
@@ -284,6 +285,12 @@ public class TranslatorDriver {
                         sourceIndexLength,
                         Arrays.asList(truffleNode, new KernelPrintLastLineNode()));
             }
+            if (context.getOptions().SPLIT_LOOP) {
+                truffleNode = Translator.sequence(
+                        sourceIndexLength,
+                        Arrays.asList(new AutoSplitNode(), truffleNode));
+            }
+
             truffleNode = new WhileNode(new WhileNode.WhileRepeatingNode(context, new KernelGetsNode(), truffleNode));
         }
 

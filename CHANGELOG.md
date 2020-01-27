@@ -23,8 +23,7 @@ Compatibility:
 * Implemented `Float#{floor, ceil}` with `ndigits` argument.
 * Implemented `Thread#fetch`.
 * Implemented `Float#truncate` with `ndigits` argument.
-
-* Implemented `-p` CLI option.
+* Implemented `-p` and `-a` CLI options.
 
 Performance:
 
