@@ -239,22 +239,28 @@ class File < IO
     paths.size
   end
 
-  ##
-  # Equivalent to File.chmod, but does not follow symbolic
-  # links (so it will change the permissions associated with
-  # the link, not the file referenced by the link).
-  # Often not available.
-  def self.lchmod(mode, *paths)
-    mode = Truffle::Type.coerce_to(mode, Integer, :to_int)
+  if Truffle::Platform.has_lchmod?
+    ##
+    # Equivalent to File.chmod, but does not follow symbolic
+    # links (so it will change the permissions associated with
+    # the link, not the file referenced by the link).
+    # Often not available.
+    def self.lchmod(mode, *paths)
+      mode = Truffle::Type.coerce_to(mode, Integer, :to_int)
 
-    paths.each do |path|
-      n = POSIX.lchmod Truffle::Type.coerce_to_path(path), mode
-      Errno.handle if n == -1
+      paths.each do |path|
+        n = POSIX.lchmod Truffle::Type.coerce_to_path(path), mode
+        Errno.handle if n == -1
+      end
+
+      paths.size
     end
-
-    paths.size
+  else
+    def self.lchmod(mode, *paths)
+      raise NotImplementedError, 'lchmod function is unimplemented on this machine'
+    end
+    TrufflePrimitive.method_unimplement(method(:lchmod))
   end
-  TrufflePrimitive.method_unimplement(method(:lchmod)) unless Truffle::Platform.has_lchmod?
 
   ##
   # Changes the owner and group of the
