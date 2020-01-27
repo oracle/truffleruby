@@ -293,6 +293,13 @@ describe :string_slice_range, shared: true do
     "hello world".send(@method, 6..5).send(@method, -1..-1).should == nil
     "hello world".send(@method, 6..5).send(@method, 1..1).should == nil
   end
+
+  it "works with endless ranges" do
+    "hello there".send(@method, 2..).should == "llo there"
+    "hello there".send(@method, 2...).should == "llo there"
+    "hello there".send(@method, -4..).should == "here"
+    "hello there".send(@method, -4...).should == "here"
+  end
 end
 
 describe :string_slice_regexp, shared: true do
