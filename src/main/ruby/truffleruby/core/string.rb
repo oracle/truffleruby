@@ -59,10 +59,12 @@ class String
   end
 
   def byteslice(index_or_range, length=undefined)
+    # Handles the (int index) and (int index, int length) forms.
     str = TrufflePrimitive.string_byte_substring self, index_or_range, length
     return str unless TrufflePrimitive.undefined?(str)
 
-    if index_or_range.kind_of? Range
+    # Convert to (int index, int length) form.
+    if Range === index_or_range && TrufflePrimitive.undefined?(length)
       index = range_begin(index_or_range, bytesize)
       return if index < 0 or index > bytesize
       finish = range_end(index_or_range, bytesize)
