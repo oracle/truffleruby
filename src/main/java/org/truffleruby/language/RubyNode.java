@@ -83,7 +83,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     abstract protected void setSourceLength(int sourceLength);
 
     public boolean hasSource() {
-        return getSourceCharIndex() != NO_SOURCE;
+        return isAdoptable() && getSourceCharIndex() != NO_SOURCE;
     }
 
     public void unsafeSetSourceSection(SourceIndexLength sourceIndexLength) {

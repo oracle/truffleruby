@@ -66,7 +66,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object indexRead(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.ReadUncacheableNode readNode) {
+            @Cached InteropNodes.ReadNode readNode) {
         return readNode.execute(receiver, args[0]);
     }
 
@@ -76,23 +76,23 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object indexWrite(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.WriteUncacheableNode writeUncacheableNode) {
-        return writeUncacheableNode.execute(receiver, args[0], args[1]);
+            @Cached InteropNodes.WriteNode writeNode) {
+        return writeNode.execute(receiver, args[0], args[1]);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(CALL)" }, limit = "1")
     protected Object call(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.ExecuteUncacheableNode executeUncacheableNode) {
-        return executeUncacheableNode.execute(receiver, args);
+            @Cached InteropNodes.ExecuteNode executeNode) {
+        return executeNode.execute(receiver, args);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(NEW)" }, limit = "1")
     protected Object newOutgoing(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.NewUncacheableNode newNode) {
+            @Cached InteropNodes.NewNode newNode) {
         return newNode.execute(receiver, args);
     }
 
@@ -112,8 +112,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object nil(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.NullUncacheableNode nullUncacheableNode) {
-        return nullUncacheableNode.execute(receiver);
+            @Cached InteropNodes.NullNode nullNode) {
+        return nullNode.execute(receiver);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(EQUAL)", "args.length == 1" }, limit = "1")
@@ -276,8 +276,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object notOperator(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.InvokeUncacheableNode invokeUncacheableNode) {
-        return invokeUncacheableNode.execute(receiver, name, args);
+            @Cached InteropNodes.InvokeNode invokeNode) {
+        return invokeNode.execute(receiver, name, args);
     }
 
     @TruffleBoundary
@@ -379,8 +379,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object call(
                 Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached InteropNodes.InvokeUncacheableNode invokeUncacheableNode) {
-            return invokeUncacheableNode.execute(receiver, name, args);
+                @Cached InteropNodes.InvokeNode invokeNode) {
+            return invokeNode.execute(receiver, name, args);
         }
 
     }
