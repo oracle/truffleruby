@@ -71,17 +71,18 @@ class String
       length = finish + 1 - index
       return byteslice 0, 0 if length < 0
     else
-      index = Truffle::Type.rb_num2int(index_or_range)
+      index = Truffle::Type.rb_num2long(index_or_range)
       index += bytesize if index < 0
 
       if TrufflePrimitive.undefined?(length)
         return if index == bytesize
         length = 1
       else
-        length = Truffle::Type.rb_num2int(length)
+        length = Truffle::Type.rb_num2long(length)
         return if length < 0
       end
 
+      length = bytesize unless TrufflePrimitive.integer_fits_into_int(index)
       return if index < 0 or index > bytesize
     end
 
