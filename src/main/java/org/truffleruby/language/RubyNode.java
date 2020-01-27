@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
@@ -40,6 +41,7 @@ import com.oracle.truffle.api.source.SourceSection;
  * SourceRubyNode is not defined since there was no use for it for now.
  * Nodes having context are described by {@link WithContext}.
  * There is also {@link RubyContextNode} if context is needed but source is not. */
+@GenerateWrapper
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
@@ -52,7 +54,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     protected static final int NO_SOURCE = -1;
 
     protected RubyNode() {
-        if (isAdoptable()) {
+        if (isAdoptable() && !(this instanceof WrapperNode)) {
             // initialize only if the node is not the Uncached instance
             setSourceCharIndex(NO_SOURCE);
         }
@@ -224,7 +226,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     @Override
     public WrapperNode createWrapper(ProbeNode probe) {
-        return new RubyNodeWrapperWithIsDefined(this, probe);
+        return new RubyNodeWrapper(this, probe);
     }
 
     public interface WithContext {

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -23,6 +24,12 @@ public class RescueAnyNode extends RescueNode {
     @Override
     public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
         return matches(frame, exception, coreLibrary().standardErrorClass);
+    }
+
+    @Override
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
+        assert !(this instanceof WrapperNode);
+        return coreStrings().EXPRESSION.createInstance();
     }
 
 }

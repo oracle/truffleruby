@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.instrumentation.GenerateWrapper;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -23,6 +25,7 @@ import com.oracle.truffle.api.instrumentation.ProbeNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+@GenerateWrapper
 public abstract class RescueNode extends RubyContextSourceNode {
 
     @Child private RubyNode rescueBody;
@@ -34,6 +37,11 @@ public abstract class RescueNode extends RubyContextSourceNode {
 
     public RescueNode(RubyNode rescueBody) {
         this.rescueBody = rescueBody;
+    }
+
+    // Constructor for instrumentation
+    protected RescueNode() {
+        this.rescueBody = null;
     }
 
     public abstract boolean canHandle(VirtualFrame frame, DynamicObject exception);
@@ -66,5 +74,9 @@ public abstract class RescueNode extends RubyContextSourceNode {
     public WrapperNode createWrapper(ProbeNode probe) {
         return new RescueNodeWrapper(this, probe);
     }
+
+    // Declared abstract here so the instrumentation wrapper delegates it
+    @Override
+    public abstract Object isDefined(VirtualFrame frame, RubyContext context);
 
 }

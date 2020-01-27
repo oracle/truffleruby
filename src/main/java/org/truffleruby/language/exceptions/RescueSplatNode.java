@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
@@ -40,6 +41,12 @@ public class RescueSplatNode extends RescueNode {
         }
 
         return false;
+    }
+
+    @Override
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
+        assert !(this instanceof WrapperNode);
+        return coreStrings().EXPRESSION.createInstance();
     }
 
 }
