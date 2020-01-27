@@ -314,4 +314,11 @@ describe "Array#fill with (filler, range)" do
     def obj.<=>(rhs); rhs == self ? 0 : nil end
     -> { [].fill('a', obj..obj) }.should raise_error(TypeError)
   end
+
+  it "works with endless ranges" do
+    [1, 2, 3, 4].fill('x', 1..).should == [1, 'x', 'x', 'x']
+    [1, 2, 3, 4].fill('x', 3...).should == [1, 2, 3, 'x']
+    [1, 2, 3, 4].fill(1..) { |x| x + 2 }.should == [1, 3, 4, 5]
+    [1, 2, 3, 4].fill(3...) { |x| x + 2 }.should == [1, 2, 3, 5]
+  end
 end

@@ -6,5 +6,6 @@ describe "Range#==" do
 
   it "returns true if the endpoints are ==" do
     (0..1).should == (0..1.0)
+    (1.0..).should == (1.0..)
   end
 end

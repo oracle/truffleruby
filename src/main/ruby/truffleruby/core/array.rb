@@ -433,40 +433,37 @@ class Array
       unless TrufflePrimitive.undefined?(c)
         raise ArgumentError, 'wrong number of arguments'
       end
-      one = a
-      two = b
+      index = a
+      length = b
     else
       if TrufflePrimitive.undefined?(a)
         raise ArgumentError, 'wrong number of arguments'
       end
       obj = a
-      one = b
-      two = c
+      index = b
+      length = c
     end
 
-    if TrufflePrimitive.undefined?(one) || !one
+    if TrufflePrimitive.undefined?(index) || !index
       left = 0
       right = size
-    elsif one.kind_of? Range
-      raise TypeError, 'length invalid with range' unless TrufflePrimitive.undefined?(two)
+    elsif index.kind_of? Range
+      raise TypeError, 'length invalid with range' unless TrufflePrimitive.undefined?(length)
 
-      left = Truffle::Type.coerce_to_collection_length one.begin
-      left += size if left < 0
-      raise RangeError, "#{one.inspect} out of range" if left < 0
+      left = range_begin index
+      raise RangeError, "#{index.inspect} out of range" if left < 0
 
-      right = Truffle::Type.coerce_to_collection_length one.end
-      right += size if right < 0
-      right += 1 unless one.exclude_end?
+      right = range_end(index) + 1
       return self if right <= left           # Nothing to modify
 
-    elsif one
-      left = Truffle::Type.coerce_to_collection_length one
+    elsif index
+      left = Truffle::Type.coerce_to_collection_length index
       left += size if left < 0
       left = 0 if left < 0
 
-      if !TrufflePrimitive.undefined?(two) and two
+      if !TrufflePrimitive.undefined?(length) and length
         begin
-          right = Truffle::Type.coerce_to_collection_length two
+          right = Truffle::Type.coerce_to_collection_length length
         rescue ArgumentError
           raise RangeError, 'bignum too big to convert into `long'
         rescue TypeError
@@ -1230,25 +1227,32 @@ class Array
 
   alias_method :prepend, :unshift
 
+  private def range_begin(range)
+    first = Truffle::Type.coerce_to_collection_index range.begin
+    first += size if first < 0
+    first
+  end
+
+  private def range_end(range)
+    last = range.end
+    return size - 1 if last.equal? nil
+    last = Truffle::Type.coerce_to_collection_index last
+    last += size if last < 0
+    last -=1 if range.exclude_end?
+    last
+  end
+
   def values_at(*args)
     out = []
 
     args.each do |elem|
       # Cannot use #[] because of subtly different errors
       if elem.kind_of? Range
-        finish = Truffle::Type.coerce_to_collection_index elem.last
-        start = Truffle::Type.coerce_to_collection_index elem.first
-
-        start += size if start < 0
+        start = range_begin elem
+        finish = range_end elem
         next if start < 0
-
-        finish += size if finish < 0
-        finish -= 1 if elem.exclude_end?
-
         next if finish < start
-
         start.upto(finish) { |i| out << at(i) }
-
       else
         i = Truffle::Type.coerce_to_collection_index elem
         out << at(i)
@@ -1565,22 +1569,10 @@ class Array
         range = start
         out = self[range]
 
-        range_start = Truffle::Type.coerce_to_collection_index range.begin
-        if range_start < 0
-          range_start = range_start + size
-        end
-
-        range_end = Truffle::Type.coerce_to_collection_index range.end
-        if range_end < 0
-          range_end = range_end + size
-        elsif range_end >= size
-          range_end = size - 1
-          range_end += 1 if range.exclude_end?
-        end
-
-        range_length = range_end - range_start
-        range_length += 1 unless range.exclude_end?
-        range_end    -= 1 if     range.exclude_end?
+        range_start = range_begin(range)
+        range_end = range_end(range)
+        range_end = size - 1 if range_end >= size
+        range_length = range_end + 1 - range_start
 
         if range_start < size && range_start >= 0 && range_end < size && range_end >= 0 && range_length > 0
           delete_range(range_start, range_length)

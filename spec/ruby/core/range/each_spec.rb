@@ -32,6 +32,26 @@ describe "Range#each" do
     a.should == [x, y]
   end
 
+  it "works with endless ranges" do
+    a = []
+    (-2..).each { |x| break if x > 2; a << x }
+    a.should == [-2, -1, 0, 1, 2]
+
+    a = []
+    (-2...).each { |x| break if x > 2; a << x }
+    a.should == [-2, -1, 0, 1, 2]
+  end
+
+  it "works with String endless ranges" do
+    a = []
+    ("A"..).each { |x| break if x > "D"; a << x }
+    a.should == ["A", "B", "C", "D"]
+
+    a = []
+    ("A"...).each { |x| break if x > "D"; a << x }
+    a.should == ["A", "B", "C", "D"]
+  end
+
   it "raises a TypeError if the first element does not respond to #succ" do
     -> { (0.5..2.4).each { |i| i } }.should raise_error(TypeError)
 
