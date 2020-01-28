@@ -53,10 +53,8 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     protected static final int NO_SOURCE = -1;
 
-    abstract public Object isDefined(VirtualFrame frame, RubyContext context);
 
     // Fundamental execute methods
-
     abstract public Object execute(VirtualFrame frame);
 
     /**
@@ -65,6 +63,14 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
      */
     public void doExecuteVoid(VirtualFrame frame) {
         execute(frame);
+    }
+
+    // Declared abstract here so the instrumentation wrapper delegates it
+    abstract public Object isDefined(VirtualFrame frame, RubyContext context);
+
+    protected static Object defaultIsDefined(RubyContext context, Node currentNode) {
+        assert !(currentNode instanceof WrapperNode);
+        return context.getCoreStrings().EXPRESSION.createInstance();
     }
 
     // Source

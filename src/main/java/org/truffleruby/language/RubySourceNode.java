@@ -29,8 +29,7 @@ public abstract class RubySourceNode extends RubyNode {
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        assert !(this instanceof WrapperNode);
-        return context.getCoreStrings().EXPRESSION.createInstance();
+        return RubyNode.defaultIsDefined(context, this);
     }
 
 }

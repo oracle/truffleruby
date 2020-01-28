@@ -25,8 +25,7 @@ public abstract class RubyContextSourceNode extends RubyNode implements RubyNode
 
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        assert !(this instanceof WrapperNode);
-        return coreStrings().EXPRESSION.createInstance();
+        return RubyNode.defaultIsDefined(context, this);
     }
 
     @Override
