@@ -45,6 +45,8 @@ import org.truffleruby.core.mutex.ConditionVariableLayout;
 import org.truffleruby.core.mutex.ConditionVariableLayoutImpl;
 import org.truffleruby.core.mutex.MutexLayout;
 import org.truffleruby.core.mutex.MutexLayoutImpl;
+import org.truffleruby.core.nil.NilLayout;
+import org.truffleruby.core.nil.NilLayoutImpl;
 import org.truffleruby.core.numeric.BignumLayout;
 import org.truffleruby.core.numeric.BignumLayoutImpl;
 import org.truffleruby.core.proc.ProcLayout;
@@ -129,6 +131,7 @@ public abstract class Layouts {
     public static final ModuleLayout MODULE = ModuleLayoutImpl.INSTANCE;
     public static final MutexLayout MUTEX = MutexLayoutImpl.INSTANCE;
     public static final NameErrorLayout NAME_ERROR = NameErrorLayoutImpl.INSTANCE;
+    public static final NilLayout NIL = NilLayoutImpl.INSTANCE;
     public static final NoMethodErrorLayout NO_METHOD_ERROR = NoMethodErrorLayoutImpl.INSTANCE;
     public static final ObjectRangeLayout OBJECT_RANGE = ObjectRangeLayoutImpl.INSTANCE;
     public static final PointerLayout POINTER = PointerLayoutImpl.INSTANCE;

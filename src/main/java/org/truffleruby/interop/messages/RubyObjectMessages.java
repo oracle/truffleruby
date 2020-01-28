@@ -46,13 +46,6 @@ public class RubyObjectMessages {
     // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly
 
     @ExportMessage
-    public static boolean isNull(
-            DynamicObject object,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return object == context.getCoreLibrary().nil;
-    }
-
-    @ExportMessage
     public static boolean hasArrayElements(
             DynamicObject receiver,
             @CachedContext(RubyLanguage.class) RubyContext context,
