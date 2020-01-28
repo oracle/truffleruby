@@ -15,6 +15,7 @@ Bug fixes:
 * Fixed `File#{chmod, umask}` argument conversion check.
 * Added warning in `Hash.[]` for non-array elements.
 * Fixed `File.lchmod` raises `NotImplementedError` when not available.
+* Fixed `SignalException.new` error when bad parameter given.
 
 Compatibility:
 
