@@ -19,6 +19,7 @@ Bug fixes:
 Compatibility:
 
 * Implemented `Float#{floor, ceil}` with `ndigits` argument.
+* Implemented `Thread#fetch`.
 
 * Implemented `-p` CLI option.
 

@@ -339,6 +339,25 @@ class Thread
     end
   end
 
+  def fetch(name, default = undefined)
+    warn 'block supersedes default value argument' if !TrufflePrimitive.undefined?(default) && block_given?
+
+    key = convert_to_local_name(name)
+    Truffle::System.synchronized(self) do
+      locals = TrufflePrimitive.thread_get_fiber_locals self
+      if TrufflePrimitive.object_ivar_defined? locals, key
+        return TrufflePrimitive.object_ivar_get locals, key
+      end
+    end
+    if block_given?
+      yield key
+    elsif TrufflePrimitive.undefined?(default)
+      Kernel.raise KeyError.new("key not found: #{key.inspect}", :receiver => self, :key => key)
+    else
+      default
+    end
+  end
+
   def [](name)
     var = convert_to_local_name(name)
     Truffle::System.synchronized(self) do
