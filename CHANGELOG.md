@@ -77,6 +77,7 @@ Bug fixes:
 * Fixed `IO.try_convert` parameter conversion.
 * Fixed linking of always-inline C API functions with `-std=gnu90` (#1837, #1879).
 * Avoid race conditions during `gem install` by using a single download thread.
+* `RSTRING_PTR()` now always returns a native pointer, resolving two bugs `memcpy`ing to (#1822) and from (#1772) Ruby Strings.
 
 Compatibility:
 
