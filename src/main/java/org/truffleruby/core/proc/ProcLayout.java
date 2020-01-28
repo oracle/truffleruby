@@ -10,6 +10,7 @@
 package org.truffleruby.core.proc;
 
 import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.interop.messages.ProcMessages;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -30,7 +31,7 @@ import com.oracle.truffle.api.object.dsl.Nullable;
 // callTargetForType caches the current CallTarget according to the type for faster access.
 // See the documentation of Proc#lambda?, it is a good reference.
 
-@Layout
+@Layout(dispatch = ProcMessages.class)
 public interface ProcLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createProcShape(DynamicObject logicalClass,

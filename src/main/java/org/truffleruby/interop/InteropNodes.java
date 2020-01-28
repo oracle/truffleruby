@@ -147,7 +147,11 @@ public abstract class InteropNodes {
             } catch (UnsupportedTypeException e) {
                 exceptionProfile.enter();
                 throw new RaiseException(context, translate(context, e));
-            } catch (ArityException | UnsupportedMessageException e) {
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                // TODO (pitr-ch 25-Jan-2020): translate uniformly for all methods on Truffle:Interop
+                throw new RaiseException(context, translate(context, e));
+            } catch (ArityException e) {
                 exceptionProfile.enter();
                 throw new JavaException(e);
             }
@@ -160,6 +164,11 @@ public abstract class InteropNodes {
             String message = "Wrong arguments: " +
                     Arrays.stream(e.getSuppliedValues()).map(Object::toString).collect(Collectors.joining(", "));
             return context.getCoreExceptions().typeError(message, this);
+        }
+
+        @TruffleBoundary
+        private DynamicObject translate(RubyContext context, UnsupportedMessageException e) {
+            return context.getCoreExceptions().typeError(e.getMessage(), this);
         }
 
         protected static int getCacheLimit() {
