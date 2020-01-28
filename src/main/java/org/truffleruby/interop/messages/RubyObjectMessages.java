@@ -20,6 +20,7 @@ import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.interop.ForeignWriteStringCachingHelperNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
 
@@ -422,11 +423,21 @@ public class RubyObjectMessages {
 
     @ExportMessage
     public static Object instantiate(
-            DynamicObject receiver,
-            Object[] arguments,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        return dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
+            DynamicObject receiver, Object[] arguments,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode)
+            throws UnsupportedMessageException {
+
+        Object instance = dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
+
+        // TODO (pitr-ch 28-Jan-2020): we should translate argument-error caused by bad arity to ArityException
+        // TODO (pitr-ch 28-Jan-2020): should we throw UnsupportedTypeException? Defined – if one of the arguments is not compatible to the executable signature
+        if (instance == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return instance;
     }
 
 }
