@@ -352,19 +352,35 @@ public abstract class TruffleDebugNodes {
 
     }
 
+    @CoreMethod(names = "log_config", onSingleton = true, required = 1)
+    public abstract static class LogConfigNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject logConfig(Object value,
+                @Cached ToJavaStringNode toJavaStringNode) {
+            config(toJavaStringNode.executeToJavaString(value));
+            return nil();
+        }
+
+        @TruffleBoundary
+        static void config(String message) {
+            RubyLanguage.LOGGER.config(message);
+        }
+
+    }
+
     @CoreMethod(names = "log_warning", onSingleton = true, required = 1)
     public abstract static class LogWarningNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject logWarning(
-                VirtualFrame frame, Object value,
+        protected DynamicObject logWarning(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             warning(toJavaStringNode.executeToJavaString(value));
             return nil();
         }
 
         @TruffleBoundary
-        public static void warning(String message) {
+        static void warning(String message) {
             RubyLanguage.LOGGER.warning(message);
         }
 
