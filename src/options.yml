@@ -80,6 +80,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
   EXPERIMENTAL:
     # Options corresponding to MRI options, which are only meaningful when using the TruffleRuby launcher
     ARGV_GLOBALS: [[argv-globals, -s], boolean, false, Parse options in script argv into global variables]
+    CHOMP_LOOP: [[chomp-loop, -l], boolean, false, 'enable line ending processing']
     GETS_LOOP: [[gets-loop, -n], boolean, false, 'assume while gets(); ... end loop around your script']
     PRINT_LOOP: [[print-loop, -p], boolean, false, 'assume loop like -n but print line also like sed']
     SPLIT_LOOP: [[split-loop, -a], boolean, false, 'autosplit mode with -n or -p (splits $_ into $F)']

@@ -32,7 +32,7 @@ Compatibility:
 
 * Implemented `-p` CLI option.
 * Implemented "instance variable not initialized" warning.
-* Implemented `-p` and `-a` CLI options.
+* Implemented `-p` and `-a`, and `-l` CLI options.
 
 Performance:
 

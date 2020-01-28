@@ -75,6 +75,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> CEXTS_LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> CHOMP_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PRINT_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SPLIT_LOOP_KEY = new OptionKey<>(false);
@@ -526,6 +527,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor ARGV_GLOBALS = OptionDescriptor
             .newBuilder(ARGV_GLOBALS_KEY, "ruby.argv-globals")
             .help("Parse options in script argv into global variables (configured by the -s Ruby option)")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor CHOMP_LOOP = OptionDescriptor
+            .newBuilder(CHOMP_LOOP_KEY, "ruby.chomp-loop")
+            .help("enable line ending processing (configured by the -l Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1125,6 +1133,8 @@ public class OptionsCatalog {
                 return CEXTS_LOG_WARNINGS;
             case "ruby.argv-globals":
                 return ARGV_GLOBALS;
+            case "ruby.chomp-loop":
+                return CHOMP_LOOP;
             case "ruby.gets-loop":
                 return GETS_LOOP;
             case "ruby.print-loop":
@@ -1325,6 +1335,7 @@ public class OptionsCatalog {
             CEXTS_LOG_LOAD,
             CEXTS_LOG_WARNINGS,
             ARGV_GLOBALS,
+            CHOMP_LOOP,
             GETS_LOOP,
             PRINT_LOOP,
             SPLIT_LOOP,
