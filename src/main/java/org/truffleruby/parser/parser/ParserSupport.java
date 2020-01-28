@@ -85,6 +85,7 @@ import org.truffleruby.parser.ast.Colon3ParseNode;
 import org.truffleruby.parser.ast.ComplexParseNode;
 import org.truffleruby.parser.ast.ConstParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
+import org.truffleruby.parser.ast.DParseNode;
 import org.truffleruby.parser.ast.DRegexpParseNode;
 import org.truffleruby.parser.ast.DStrParseNode;
 import org.truffleruby.parser.ast.DSymbolParseNode;
@@ -702,9 +703,10 @@ public class ParserSupport {
                 }
             }
             return true;
-        } else if (node instanceof ILiteralNode || node instanceof NilParseNode || node instanceof TrueParseNode ||
-                node instanceof FalseParseNode) {
+        } else if (node instanceof FalseParseNode || node instanceof NilParseNode || node instanceof TrueParseNode) {
             return true;
+        } else if (node instanceof ILiteralNode) {
+            return !(node instanceof DParseNode);
         }
 
         return false;
