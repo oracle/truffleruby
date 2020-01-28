@@ -1,1 +1,0 @@
-fails:Struct.new overwrites previously defined constants with string as first argument
