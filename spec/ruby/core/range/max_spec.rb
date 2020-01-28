@@ -46,8 +46,10 @@ describe "Range#max" do
     -> { (time_start...time_end).max  }.should raise_error(TypeError)
   end
 
-  it "raises RangeError when called on an endless range" do
-    -> { (1..).max }.should raise_error(RangeError)
+  ruby_version_is "2.6" do
+    it "raises RangeError when called on an endless range" do
+      -> { eval("(1..)").max }.should raise_error(RangeError)
+    end
   end
 end
 

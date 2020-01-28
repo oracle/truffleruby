@@ -10,8 +10,6 @@ describe :range_eql, shared: true do
     (0.5..2.4).send(@method, Range.new(0.5, 2.4)).should == true
     (0xffff..0xfffff).send(@method, 0xffff..0xfffff).should == true
     (0xffff..0xfffff).send(@method, Range.new(0xffff,0xfffff)).should == true
-    (1..).send(@method, 1..).should == true
-    (0.5...).send(@method, 0.5...).should == true
 
     a = RangeSpecs::Xs.new(3)..RangeSpecs::Xs.new(5)
     b = Range.new(RangeSpecs::Xs.new(3), RangeSpecs::Xs.new(5))
@@ -25,7 +23,6 @@ describe :range_eql, shared: true do
     (0.5..2.4).send(@method, 0.5...2.4).should == false
     (1482..1911).send(@method, 1482...1911).should == false
     (0xffff..0xfffff).send(@method, 0xffff...0xfffff).should == false
-    (1..).send(@method, 1...).should == false
 
     a = RangeSpecs::Xs.new(3)..RangeSpecs::Xs.new(5)
     b = Range.new(RangeSpecs::Ys.new(3), RangeSpecs::Ys.new(5))
@@ -44,5 +41,13 @@ describe :range_eql, shared: true do
     a = Range.new(RangeSpecs::Xs.new(3), RangeSpecs::Xs.new(5))
     b = RangeSpecs::MyRange.new(RangeSpecs::Xs.new(3), RangeSpecs::Xs.new(5))
     a.send(@method, b).should == true
+  end
+
+  ruby_version_is "2.6" do
+    it "works for endless Ranges" do
+      eval("(1..)").send(@method, eval("(1..)")).should == true
+      eval("(0.5...)").send(@method, eval("(0.5...)")).should == true
+      eval("(1..)").send(@method, eval("(1...)")).should == false
+    end
   end
 end

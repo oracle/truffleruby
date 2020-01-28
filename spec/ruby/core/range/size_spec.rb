@@ -22,8 +22,13 @@ describe "Range#size" do
     (0..Float::INFINITY).size.should == Float::INFINITY
     (-Float::INFINITY..0).size.should == Float::INFINITY
     (-Float::INFINITY..Float::INFINITY).size.should == Float::INFINITY
-    (1..).size.should == Float::INFINITY
-    (0.5...).size.should == Float::INFINITY
+  end
+
+  ruby_version_is "2.6" do
+    it 'returns Float::INFINITY for endless ranges' do
+      eval("(1..)").size.should == Float::INFINITY
+      eval("(0.5...)").size.should == Float::INFINITY
+    end
   end
 
   it "returns nil if first and last are not Numeric" do
