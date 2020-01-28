@@ -780,7 +780,7 @@ public abstract class FloatNodes {
 
     }
 
-    @CoreMethod(names = { "to_i", "to_int", "truncate" })
+    @CoreMethod(names = { "to_i", "to_int" })
     public abstract static class ToINode extends CoreMethodArrayArgumentsNode {
 
         @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
