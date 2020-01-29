@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
@@ -40,6 +41,7 @@ import com.oracle.truffle.api.source.SourceSection;
  * SourceRubyNode is not defined since there was no use for it for now.
  * Nodes having context are described by {@link WithContext}.
  * There is also {@link RubyContextNode} if context is needed but source is not. */
+@GenerateWrapper
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
     public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
@@ -51,17 +53,8 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     protected static final int NO_SOURCE = -1;
 
-    protected RubyNode() {
-        if (isAdoptable()) {
-            // initialize only if the node is not the Uncached instance
-            setSourceCharIndex(NO_SOURCE);
-        }
-    }
-
-    abstract public Object isDefined(VirtualFrame frame, RubyContext context);
 
     // Fundamental execute methods
-
     abstract public Object execute(VirtualFrame frame);
 
     /**
@@ -70,6 +63,14 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
      */
     public void doExecuteVoid(VirtualFrame frame) {
         execute(frame);
+    }
+
+    // Declared abstract here so the instrumentation wrapper delegates it
+    abstract public Object isDefined(VirtualFrame frame, RubyContext context);
+
+    protected static Object defaultIsDefined(RubyContext context, Node currentNode) {
+        assert !(currentNode instanceof WrapperNode);
+        return context.getCoreStrings().EXPRESSION.createInstance();
     }
 
     // Source
@@ -224,7 +225,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
     @Override
     public WrapperNode createWrapper(ProbeNode probe) {
-        return new RubyNodeWrapperWithIsDefined(this, probe);
+        return new RubyNodeWrapper(this, probe);
     }
 
     public interface WithContext {

@@ -20,10 +20,16 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeField(name = "flags", type = byte.class)
 public abstract class RubySourceNode extends RubyNode {
 
+    protected RubySourceNode() {
+        if (isAdoptable() && !(this instanceof WrapperNode)) {
+            // initialize only if the node is not the Uncached instance
+            setSourceCharIndex(NO_SOURCE);
+        }
+    }
+
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
-        assert !(this instanceof WrapperNode);
-        return context.getCoreStrings().EXPRESSION.createInstance();
+        return RubyNode.defaultIsDefined(context, this);
     }
 
 }
