@@ -11,6 +11,7 @@ package org.truffleruby.language.control;
 
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -25,7 +26,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
  * that it's unlikely to be used again, so only compile it in when it's been used more than once, by using a small
  * saturating counter.
  */
-public class OrLazyValueDefinedNode extends RubyNode {
+public class OrLazyValueDefinedNode extends RubyContextSourceNode {
 
     @Child private RubyNode left;
     @Child private RubyNode right;
