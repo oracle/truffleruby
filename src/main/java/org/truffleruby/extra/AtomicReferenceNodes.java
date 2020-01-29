@@ -15,11 +15,13 @@ import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -91,11 +93,13 @@ public abstract class AtomicReferenceNodes {
     public abstract static class CompareAndSetReferenceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isPrimitive(expectedValue)")
-        protected boolean compareAndSetPrimitive(DynamicObject self, Object expectedValue, Object newValue) {
+        protected boolean compareAndSetPrimitive(DynamicObject self, Object expectedValue, Object newValue,
+                @Cached ReferenceEqualNode equalNode) {
             while (true) {
                 final Object currentValue = Layouts.ATOMIC_REFERENCE.getValue(self);
 
-                if (RubyGuards.isPrimitive(currentValue) && currentValue.equals(expectedValue)) {
+                if (RubyGuards.isPrimitive(currentValue) &&
+                        equalNode.executeReferenceEqual(expectedValue, currentValue)) {
                     if (Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, currentValue, newValue)) {
                         return true;
                     }
