@@ -21,11 +21,9 @@ rescue Exception => e
   if e.message.include? 'assert_not_compiled'
     puts "correctly does not compile in the RHS of an init once expression"
   elsif e.message.include? 'init compiled'
-    puts "incorrectly compiles in the RHS of an init once expression"
-    exit 1
+    abort "incorrectly compiles in the RHS of an init once expression"
   else
-    puts e.message, 'some other error'
-    exit 1
+    raise e
   end
 end
 
@@ -41,13 +39,11 @@ begin
   end
 rescue Exception => e
   if e.message.include? 'assert_not_compiled'
-    puts "incorrectly does not compile in the RHS of an init many expression"
-    exit 1
+    abort "incorrectly does not compile in the RHS of an init many expression"
   elsif e.message.include? 'init compiled'
     puts "correctly compiles in the RHS of an init many expression"
   else
-    puts e.message, 'some other error'
-    exit 1
+    raise e
   end
 end
 
@@ -65,12 +61,8 @@ rescue Exception => e
   if e.message.include? 'assert_not_compiled'
     puts "correctly does not compile in the RHS of an init never expression"
   elsif e.message.include? 'init compiled'
-    puts "incorrectly compiles in the RHS of an init never expression"
-    exit 1
+    abort "incorrectly compiles in the RHS of an init never expression"
   else
-    puts e.message, 'some other error'
-    exit 1
+    raise e
   end
 end
-
-exit 0
