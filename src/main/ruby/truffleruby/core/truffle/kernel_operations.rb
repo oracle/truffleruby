@@ -151,5 +151,11 @@ module Truffle
       TrufflePrimitive.vm_raise_exception exc, internal
     end
 
+    def self.check_last_line(line)
+      unless TrufflePrimitive.object_kind_of? line, String
+        raise TypeError, "$_ value need to be String (#{Truffle::ExceptionOperations.to_class_name(line)} given)"
+      end
+      line
+    end
   end
 end

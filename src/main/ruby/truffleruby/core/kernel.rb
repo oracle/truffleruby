@@ -656,4 +656,23 @@ module Kernel
   TrufflePrimitive.method_unimplement method(:fork)
   TrufflePrimitive.method_unimplement nil.method(:fork)
 
+  Truffle::Boot.delay do
+    if Truffle::Boot.get_option('gets-loop')
+      def chomp(separator=$/)
+        last_line = Truffle::IOOperations.last_line(TrufflePrimitive.caller_binding)
+        result = Truffle::KernelOperations.check_last_line(last_line).chomp(separator)
+        Truffle::IOOperations.set_last_line(result, TrufflePrimitive.caller_binding)
+        result
+      end
+      module_function :chomp
+
+      def chop
+        last_line = Truffle::IOOperations.last_line(TrufflePrimitive.caller_binding)
+        result = Truffle::KernelOperations.check_last_line(last_line).chop
+        Truffle::IOOperations.set_last_line(result, TrufflePrimitive.caller_binding)
+        result
+      end
+      module_function :chop
+    end
+  end
 end

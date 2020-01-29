@@ -25,6 +25,7 @@ Compatibility:
 * Implemented `Float#truncate` with `ndigits` argument.
 
 * Implemented `-p` CLI option.
+* Implemented `Kernel.{chomp, chop}` and `Kernel#{chomp, chop}`.
 
 Performance:
 
