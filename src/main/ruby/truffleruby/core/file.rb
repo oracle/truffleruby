@@ -130,6 +130,11 @@ class File < IO
     end
   end
 
+  def self.absolute_path?(path)
+    path = Truffle::Type.coerce_to_path(path)
+    path.start_with?('/')
+  end
+
   ##
   # Returns the last access time for the named file as a Time object).
   #
@@ -487,7 +492,7 @@ class File < IO
         raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
       end
 
-      case path[1]
+      case first_char
       when ?/
         path = home + path.byteslice(1, path.bytesize - 1)
       when nil
@@ -497,13 +502,10 @@ class File < IO
 
         return home.dup
       else
-        unless length = TrufflePrimitive.find_string(path, '/', 1)
-          length = path.bytesize
-        end
-
+        length = TrufflePrimitive.find_string(path, '/', 1) || path.bytesize
         name = path.byteslice 1, length - 1
 
-        if ptr = Truffle::POSIX.truffleposix_get_user_home(name)
+        if ptr = Truffle::POSIX.truffleposix_get_user_home(name) and !ptr.null?
           dir = ptr.read_string
           ptr.free
           raise ArgumentError, "user #{name} does not exist" if dir.empty?
@@ -525,9 +527,9 @@ class File < IO
 
     items = []
     start = 0
-    size = path.bytesize
+    bytesize = path.bytesize
 
-    while index = TrufflePrimitive.find_string(path, '/', start) or (start < size and index = size)
+    while index = TrufflePrimitive.find_string(path, '/', start) or (start < bytesize and index = bytesize)
       length = index - start
 
       if length > 0
@@ -844,9 +846,9 @@ class File < IO
         value = Truffle::Type.coerce_to_path(el)
       end
 
-      if value.start_with? sep
-        ret.gsub!(/#{SEPARATOR}+$/o, '')
-      elsif not ret.end_with? sep
+      if value.start_with?(sep)
+        ret.gsub!(/#{SEPARATOR}+\z/o, '') if ret.end_with?(sep)
+      elsif !ret.end_with?(sep)
         ret << sep
       end
 
@@ -932,7 +934,16 @@ class File < IO
   end
 
   def self.realpath(path, basedir = nil)
-    real = basic_realpath path, basedir
+    unless absolute_path?(path)
+      path = expand_path(path, basedir)
+    end
+
+    buffer = TrufflePrimitive.io_get_thread_buffer(Truffle::Platform::PATH_MAX)
+    if ptr = Truffle::POSIX.realpath(path, buffer) and !ptr.null?
+      real = ptr.read_string
+    else
+      Errno.handle(path)
+    end
 
     unless exist? real
       raise Errno::ENOENT, real
@@ -953,7 +964,7 @@ class File < IO
   end
 
   def self.basic_realpath(path, basedir = nil)
-    path = expand_path(path, basedir || Dir.pwd)
+    path = expand_path(path, basedir)
     real = ''
     symlinks = {}
 

@@ -1119,7 +1119,7 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getRawBytes() == null")
         protected int getByte(NativeRope rope, int index) {
-            return rope.getByteSlow(index) & 0xff;
+            return rope.get(index) & 0xff;
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")

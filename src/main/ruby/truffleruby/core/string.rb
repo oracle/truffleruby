@@ -122,7 +122,7 @@ class String
     TrufflePrimitive.check_frozen self
     prefix = Truffle::Type.coerce_to(prefix, String, :to_str)
     if !prefix.empty? && start_with?(prefix)
-      Truffle::Type.infect self, prefix
+      TrufflePrimitive.infect self, prefix
       self[0, prefix.size] = ''
       self
     else
@@ -139,7 +139,7 @@ class String
     TrufflePrimitive.check_frozen self
     suffix = Truffle::Type.coerce_to(suffix, String, :to_str)
     if !suffix.empty? && end_with?(suffix)
-      Truffle::Type.infect self, suffix
+      TrufflePrimitive.infect self, suffix
       self[size - suffix.size, suffix.size] = ''
       self
     else
@@ -392,7 +392,7 @@ class String
     end
 
     str = match[capture]
-    Truffle::Type.infect str, pattern
+    TrufflePrimitive.infect str, pattern
     [match, str]
   end
   private :subpattern
@@ -533,6 +533,11 @@ class String
   end
 
   def end_with?(*suffixes)
+    if suffixes.size == 1 and suffix = suffixes[0] and String === suffix
+      Truffle::Type.compatible_encoding self, suffix
+      return self[-suffix.length, suffix.length] == suffix
+    end
+
     suffixes.each do |original_suffix|
       suffix = Truffle::Type.rb_convert_type original_suffix, String, :to_str
       Truffle::Type.compatible_encoding self, suffix
@@ -585,7 +590,7 @@ class String
       index += chr.bytesize
     end
 
-    Truffle::Type.infect result, self
+    TrufflePrimitive.infect result, self
     result.force_encoding(result_encoding)
   end
 
@@ -930,7 +935,7 @@ class String
       end
     end
 
-    Truffle::Type.infect(self, other)
+    TrufflePrimitive.infect(self, other)
     append(other)
   end
 
@@ -1154,7 +1159,7 @@ class String
       end
     end
 
-    Truffle::Type.infect self, replacement
+    TrufflePrimitive.infect self, replacement
 
     replacement
   end
@@ -1490,6 +1495,10 @@ class String
   end
 
   def start_with?(*prefixes)
+    if prefixes.size == 1 and prefix = prefixes[0] and String === prefix
+      return self[0, prefix.length] == prefix
+    end
+
     # This is the workaround because `TrufflePrimitive.caller_binding` doesn't work inside blocks yet.
     binding = TrufflePrimitive.caller_binding if prefixes.any?(Regexp)
 
@@ -1533,7 +1542,7 @@ class String
       replace(left + other + right)
     end
 
-    Truffle::Type.infect self, other
+    TrufflePrimitive.infect self, other
     self
   end
 

@@ -3778,7 +3778,7 @@ public abstract class StringNodes {
         @Child RopeNodes.SingleByteOptimizableNode singleByteNode = RopeNodes.SingleByteOptimizableNode.create();
 
         @Specialization(guards = "isEmpty(pattern)")
-        protected Object stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
+        protected int stringIndexEmptyPattern(DynamicObject string, DynamicObject pattern, int byteOffset) {
             assert byteOffset >= 0;
 
             return byteOffset;

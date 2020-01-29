@@ -24,7 +24,9 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
+import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.NotProvided;
@@ -55,8 +57,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @CoreModule("Truffle::Type")
 public abstract class TypeNodes {
 
-    @CoreMethod(names = "object_kind_of?", onSingleton = true, required = 2)
-    public static abstract class ObjectKindOfNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "object_kind_of?")
+    public static abstract class ObjectKindOfNode extends PrimitiveArrayArgumentsNode {
 
         @Child private IsANode isANode = IsANode.create();
 
@@ -67,8 +69,21 @@ public abstract class TypeNodes {
 
     }
 
+    @Primitive(name = "object_respond_to?")
+    public static abstract class ObjectRespondToNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
+                .create(null, null, null);
+
+        @Specialization
+        protected boolean objectRespondTo(VirtualFrame frame, Object object, Object name, boolean includePrivate) {
+            return respondToNode.executeDoesRespondTo(frame, object, name, includePrivate);
+        }
+
+    }
+
     @CoreMethod(names = "object_class", onSingleton = true, required = 1)
-    public static abstract class VMObjectClassNode extends CoreMethodArrayArgumentsNode {
+    public static abstract class ObjectClassNode extends CoreMethodArrayArgumentsNode {
 
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
@@ -79,8 +94,8 @@ public abstract class TypeNodes {
 
     }
 
-    @CoreMethod(names = "object_equal", onSingleton = true, required = 2)
-    public static abstract class ObjectEqualNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "object_equal")
+    public static abstract class ObjectEqualNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected boolean objectEqual(Object a, Object b,
@@ -189,7 +204,7 @@ public abstract class TypeNodes {
     // different namespace than normal ivars which use java.lang.String.
 
     @Primitive(name = "object_hidden_var_get")
-    public abstract static class ObjectHiddenVarGetNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ObjectHiddenVarGetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object objectHiddenVarGet(DynamicObject object, Object identifier,
@@ -204,7 +219,7 @@ public abstract class TypeNodes {
     }
 
     @Primitive(name = "object_hidden_var_set")
-    public abstract static class ObjectHiddenVarSetNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ObjectHiddenVarSetNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object objectHiddenVarSet(DynamicObject object, Object identifier, Object value,
@@ -251,8 +266,8 @@ public abstract class TypeNodes {
 
     }
 
-    @CoreMethod(names = "infect", onSingleton = true, required = 2)
-    public static abstract class InfectNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "infect")
+    public static abstract class InfectNode extends PrimitiveArrayArgumentsNode {
 
         @Child private IsTaintedNode isTaintedNode;
         @Child private TaintNode taintNode;
@@ -293,8 +308,8 @@ public abstract class TypeNodes {
 
     }
 
-    @CoreMethod(names = "double_to_float", onSingleton = true, required = 1)
-    public static abstract class DoubleToFloatNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "double_to_float")
+    public static abstract class DoubleToFloatNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected float doubleToFloat(double value) {

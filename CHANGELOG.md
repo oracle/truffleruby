@@ -15,6 +15,7 @@ Bug fixes:
 * Fixed `File#{chmod, umask}` argument conversion check.
 * Added warning in `Hash.[]` for non-array elements.
 * Fixed `File.lchmod` raises `NotImplementedError` when not available.
+* `RSTRING_PTR()` now always returns a native pointer, resolving two bugs `memcpy`ing to (#1822) and from (#1772) Ruby Strings.
 
 Compatibility:
 
@@ -23,6 +24,10 @@ Compatibility:
 * Implemented `Float#truncate` with `ndigits` argument.
 
 * Implemented `-p` CLI option.
+
+Performance:
+
+* Optimized `RSTRING_PTR()` accesses by going to native directly, optimized various core methods, use Mode=latency and tune GC heap size for Bundler. This speeds up `bundle install` from 84s to 19s for a small Gemfile with 6 gems (#1398).
 
 # 20.0.0
 

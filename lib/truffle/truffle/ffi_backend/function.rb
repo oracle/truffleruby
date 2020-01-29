@@ -146,7 +146,7 @@ module FFI
       elsif FFI::Type::UINT64 == type or FFI::Type::ULONG == type
         Truffle::Type.rb_num2ulong(value)
       elsif FFI::Type::FLOAT32 == type
-        Truffle::Type.double_to_float(Truffle::Type.rb_num2dbl(value))
+        TrufflePrimitive.double_to_float(Truffle::Type.rb_num2dbl(value))
       elsif FFI::Type::POINTER == type
         get_pointer_value(value)
       elsif FFI::Type::STRING == type

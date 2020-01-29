@@ -61,6 +61,8 @@ public class CommandLineOptions {
     private final Map<String, String> options;
     private String[] arguments;
     private final List<String> unknownArguments;
+    /** Whether we are executing Bundler */
+    private Boolean bundler = null;
 
     public CommandLineOptions(Map<String, String> polyglotOptions) {
         this.polyglotOptions = Collections.unmodifiableMap(polyglotOptions);
@@ -121,5 +123,18 @@ public class CommandLineOptions {
 
     public List<String> getUnknownArguments() {
         return unknownArguments;
+    }
+
+    boolean detectBundler() {
+        if (bundler == null) {
+            if (executionAction == ExecutionAction.FILE) {
+                bundler = toExecute.endsWith("/bin/bundle") || toExecute.endsWith("/bin/bundler");
+            } else if (executionAction == ExecutionAction.PATH) {
+                bundler = toExecute.equals("bundle") || toExecute.equals("bundler");
+            } else {
+                bundler = false;
+            }
+        }
+        return bundler;
     }
 }

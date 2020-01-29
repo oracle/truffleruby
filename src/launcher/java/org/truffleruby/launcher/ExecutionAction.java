@@ -12,8 +12,8 @@ package org.truffleruby.launcher;
 public enum ExecutionAction {
     UNSET,
     NONE,
-    INLINE,
-    FILE,
-    PATH,
+    INLINE, // ruby -e 'code'
+    FILE, // ruby file.rb
+    PATH, // ruby -S
     STDIN
 }

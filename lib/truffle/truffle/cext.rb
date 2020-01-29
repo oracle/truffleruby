@@ -149,7 +149,7 @@ module Truffle::CExt
     end
 
     def size
-      Truffle::CExt.string_pointer_size(@string)
+      TrufflePrimitive.string_pointer_size(@string)
     end
 
     def polyglot_pointer?
@@ -157,7 +157,7 @@ module Truffle::CExt
     end
 
     def polyglot_address
-      @address ||= Truffle::CExt.string_pointer_to_native(@string)
+      @address ||= TrufflePrimitive.string_pointer_to_native(@string)
     end
 
     # Every IS_POINTER object should also have TO_NATIVE
@@ -165,15 +165,15 @@ module Truffle::CExt
     end
 
     def [](index)
-      Truffle::CExt.string_pointer_read(@string, index)
+      TrufflePrimitive.string_pointer_read(@string, index)
     end
 
     def []=(index, value)
-      Truffle::CExt.string_pointer_write(@string, index, value)
+      TrufflePrimitive.string_pointer_write(@string, index, value)
     end
 
     def native?
-      Truffle::CExt.string_pointer_is_native?(@string)
+      TrufflePrimitive.string_pointer_is_native?(@string)
     end
 
     alias_method :to_str, :string
@@ -231,7 +231,7 @@ module Truffle::CExt
     end
 
     def polyglot_address
-      @address ||= Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize
+      @address ||= TrufflePrimitive.string_pointer_to_native(@string) + @string.bytesize
     end
 
     # Every IS_POINTER object should also have TO_NATIVE
@@ -442,7 +442,7 @@ module Truffle::CExt
   end
 
   def rb_tr_obj_infect(dest, source)
-    Truffle::Type.infect(dest, source)
+    TrufflePrimitive.infect(dest, source)
   end
 
   FREEZE_METHOD = Kernel.instance_method :freeze
@@ -586,7 +586,7 @@ module Truffle::CExt
   end
 
   def rb_obj_respond_to(object, id, priv)
-    Truffle::Type.object_respond_to?(object, id, priv != 0)
+    TrufflePrimitive.object_respond_to?(object, id, priv != 0)
   end
 
   def rb_check_convert_type(obj, type_name, method)
@@ -1100,7 +1100,7 @@ module Truffle::CExt
     e = capture_exception do
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
-    unless Truffle::Type.object_equal(nil, e)
+    unless TrufflePrimitive.object_equal(nil, e)
       store = (Thread.current[:__stored_exceptions__] ||= [])
       pos = store.push(e).size
     end
@@ -1846,8 +1846,16 @@ module Truffle::CExt
     RbEncoding.get_encoding_from_native(rb_encoding)
   end
 
+  def native_string?(string)
+    TrufflePrimitive.string_pointer_is_native?(string)
+  end
+
   def RSTRING_PTR(string)
     RStringPtr.new(string)
+  end
+
+  def NATIVE_RSTRING_PTR(string)
+    TrufflePrimitive.string_pointer_to_native(string)
   end
 
   def RSTRING_END(string)

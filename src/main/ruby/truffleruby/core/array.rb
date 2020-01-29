@@ -512,7 +512,7 @@ class Array
 
     out = self.class.allocate # new_reserved size
     recursively_flatten(self, out, level)
-    Truffle::Type.infect(out, self)
+    TrufflePrimitive.infect(out, self)
     out
   end
 
@@ -620,7 +620,7 @@ class Array
       end
     end
 
-    Truffle::Type.infect(result, self)
+    TrufflePrimitive.infect(result, self)
     result.shorten!(2)
     result << ']'
     result
@@ -670,7 +670,7 @@ class Array
       end
     end
 
-    Truffle::Type.infect(out, self)
+    TrufflePrimitive.infect(out, self)
   end
 
   def keep_if(&block)

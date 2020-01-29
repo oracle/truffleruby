@@ -151,7 +151,7 @@ class Symbol
       Truffle::RegexpOperations.set_last_match(match_data, TrufflePrimitive.caller_binding)
       if match_data
         result = match_data.to_s
-        Truffle::Type.infect result, index
+        TrufflePrimitive.infect result, index
         return result
       end
     else

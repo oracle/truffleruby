@@ -146,7 +146,7 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless Truffle::Type.object_equal(value, other_value) or value.send(op, other_value)
+        unless TrufflePrimitive.object_equal(value, other_value) or value.send(op, other_value)
           return false
         end
       end
@@ -416,7 +416,7 @@ class Hash
     end
 
     ret = "{#{out.join ', '}}"
-    Truffle::Type.infect(ret, self) unless empty?
+    TrufflePrimitive.infect(ret, self) unless empty?
     ret
   end
   alias_method :to_s, :inspect
@@ -469,7 +469,7 @@ class Hash
       ary << [key, value]
     end
 
-    Truffle::Type.infect ary, self
+    TrufflePrimitive.infect ary, self
     ary
   end
 

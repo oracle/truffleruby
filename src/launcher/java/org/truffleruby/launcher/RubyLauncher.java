@@ -33,6 +33,7 @@ import org.truffleruby.shared.options.OptionsCatalog;
 public class RubyLauncher extends AbstractLanguageLauncher {
 
     private CommandLineOptions config;
+    private String implementationName = null;
 
     public static void main(String[] args) {
         new RubyLauncher().launch(args);
@@ -80,13 +81,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 if (isAOT()) {
                     /*
                      * Append options from ENV variables to args after the last interpreter option,
-                     * which makes sure that maybeExec() processes the --(native|jvm)* options.
+                     * which makes sure that maybeExec() processes the --vm.* options.
                      * These options are removed and are not passed to the new process if exec() is
                      * being called as these options need to be passed when starting the new VM
                      * process. The new process gets all arguments and options including those from
                      * ENV variables. To avoid processing options from ENV variables twice,
                      * --disable-rubyopt is passed. Only the native launcher can apply native and
-                     * jvm options (it is too late for the running JVM to apply --jvm options),
+                     * jvm options (it is too late for the running JVM to apply --vm options),
                      * therefore this is not done on JVM.
                      */
                     final int index = argumentCommandLineParser.getLastInterpreterArgumentIndex();
@@ -100,6 +101,13 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             final List<String> rubyLibPaths = getPathListFromEnvVariable("RUBYLIB");
             for (String path : rubyLibPaths) {
                 config.appendOptionValue(OptionsCatalog.LOAD_PATHS, path);
+            }
+
+            if (config.detectBundler()) {
+                // Apply options to run Bundler more efficiently
+                if (isAOT()) {
+                    args.add(0, "--vm.Xmn1g");
+                }
             }
 
         } catch (CommandLineException commandLineException) {
@@ -266,6 +274,11 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             builder.option(OptionsCatalog.EMBEDDED.getName(), "false");
         }
 
+        if (config.detectBundler() && getImplementationNameFromEngine().contains("Graal")) {
+            // Apply options to run Bundler more efficiently
+            builder.option("engine.Mode", "latency");
+        }
+
         builder.options(config.getOptions());
 
         builder.arguments(TruffleRuby.LANGUAGE_ID, config.getArguments());
@@ -292,7 +305,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         return Collections.emptyList();
     }
 
-    private static void printPreRunInformation(CommandLineOptions config) {
+    private void printPreRunInformation(CommandLineOptions config) {
         if (config.showVersion) {
             System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
         }
@@ -313,10 +326,14 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
     }
 
-    private static String getImplementationNameFromEngine() {
-        try (Engine engine = Engine.create()) {
-            return engine.getImplementationName();
+    private String getImplementationNameFromEngine() {
+        if (implementationName == null) {
+            try (Engine engine = Engine.create()) {
+                implementationName = engine.getImplementationName();
+            }
         }
+
+        return implementationName;
     }
 
     // To update this, use:
