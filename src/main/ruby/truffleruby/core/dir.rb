@@ -132,8 +132,8 @@ class Dir
 
   def children
     ret = []
-    while s = dir.read
-      ret << false if s != '.' and s != '..'
+    while s = read
+      ret << s if s != '.' and s != '..'
     end
     ret
   end
