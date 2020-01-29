@@ -825,7 +825,8 @@ public abstract class FloatNodes {
         protected DynamicObject toS(double value) {
             /* Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's
              * possibly still not entirely correct. JRuby seems to be correct, but their logic is tied up in their
-             * printf implementation. Also see our FormatFloatNode, which I suspect is also deficient or under-tested. */
+             * printf implementation. Also see our FormatFloatNode, which I suspect is also deficient or
+             * under-tested. */
 
             if (Double.isInfinite(value) || Double.isNaN(value)) {
                 return makeStringNode.executeMake(Double.toString(value), USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);

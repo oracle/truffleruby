@@ -35,9 +35,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a 'retry' statement.
- */
+/** Represents a 'retry' statement. */
 public class RetryParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     public RetryParseNode(SourceIndexLength position) {
         super(position);
@@ -52,11 +50,9 @@ public class RetryParseNode extends ParseNode implements NonLocalControlFlowPars
         return null; // Needed for non local control flow node marker
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRetryNode(this);

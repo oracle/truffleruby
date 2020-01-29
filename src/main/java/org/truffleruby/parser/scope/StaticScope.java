@@ -40,17 +40,14 @@ import org.truffleruby.parser.ast.LocalVarParseNode;
 import org.truffleruby.parser.ast.ParseNode;
 import org.truffleruby.parser.ast.VCallParseNode;
 
-/**
- * StaticScope represents lexical scoping of variables and module/class constants.
+/** StaticScope represents lexical scoping of variables and module/class constants.
  *
  * At a very high level every scopes enclosing scope contains variables in the next outer lexical layer. The enclosing
  * scopes variables may or may not be reachable depending on the scoping rules for variables (governed by
  * BlockStaticScope and LocalStaticScope).
  *
  * StaticScope also keeps track of current module/class that is in scope. previousCRefScope will point to the previous
- * scope of the enclosing module/class (cref).
- *
- */
+ * scope of the enclosing module/class (cref). */
 public class StaticScope {
 
     // Next immediate scope.  Variable and constant scoping rules make use of this variable
@@ -87,24 +84,20 @@ public class StaticScope {
         this.file = file;
     }
 
-    /**
-     * Construct a new static scope.
+    /** Construct a new static scope.
      *
      * @param type the type of scope
-     * @param enclosingScope the lexically containing scope.
-     */
+     * @param enclosingScope the lexically containing scope. */
     public StaticScope(Type type, StaticScope enclosingScope) {
         this(type, enclosingScope, NO_NAMES);
     }
 
-    /**
-     * Construct a new static scope. The array of strings should all be the interned versions, since several other
+    /** Construct a new static scope. The array of strings should all be the interned versions, since several other
      * optimizations depend on being able to do object equality checks.
      *
      * @param type the type of scope
      * @param enclosingScope the lexically containing scope.
-     * @param names The list of interned String variable names.
-     */
+     * @param names The list of interned String variable names. */
     protected StaticScope(Type type, StaticScope enclosingScope, String[] names) {
         assert names != null : "names is not null";
         assert namesAreInterned(names);
@@ -115,12 +108,10 @@ public class StaticScope {
         this.isBlockOrEval = (type != Type.LOCAL);
     }
 
-    /**
-     * Check that all strings in the given array are the interned versions.
+    /** Check that all strings in the given array are the interned versions.
      *
      * @param names The array of strings
-     * @return true if they are all interned, false otherwise
-     */
+     * @return true if they are all interned, false otherwise */
     @SuppressFBWarnings("ES")
     private static boolean namesAreInterned(String[] names) {
         for (String name : names) {
@@ -133,12 +124,10 @@ public class StaticScope {
         return true;
     }
 
-    /**
-     * Add a new variable to this (current) scope unless it is already defined in the current scope.
+    /** Add a new variable to this (current) scope unless it is already defined in the current scope.
      *
      * @param name of new variable
-     * @return index of variable
-     */
+     * @return index of variable */
     public int addVariableThisScope(String name) {
         // Ignore duplicate "_" args in blocks
         // (duplicate _ args are named "_$0")
@@ -160,12 +149,10 @@ public class StaticScope {
         return variableNames.length - 1;
     }
 
-    /**
-     * Add a new named capture variable to this (current) scope.
+    /** Add a new named capture variable to this (current) scope.
      *
      * @param name name of variable.
-     * @return index of variable
-     */
+     * @return index of variable */
     public int addNamedCaptureVariable(String name) {
         int index = addVariableThisScope(name);
 
@@ -174,12 +161,10 @@ public class StaticScope {
         return index;
     }
 
-    /**
-     * Add a new variable to this (current) scope unless it is already defined in any reachable scope.
+    /** Add a new variable to this (current) scope unless it is already defined in any reachable scope.
      *
      * @param name of new variable
-     * @return index+depth merged location of scope
-     */
+     * @return index+depth merged location of scope */
     public int addVariable(String name) {
         int slot = isDefined(name);
 
@@ -210,24 +195,20 @@ public class StaticScope {
         System.arraycopy(names, 0, variableNames, 0, names.length);
     }
 
-    /**
-     * Next outer most scope in list of scopes. An enclosing scope may have no direct scoping relationship to its child.
-     * If I am in a localScope and then I enter something which creates another localScope the enclosing scope will be
-     * the first scope, but there are no valid scoping relationships between the two. Methods which walk the enclosing
-     * scopes are responsible for enforcing appropriate scoping relationships.
+    /** Next outer most scope in list of scopes. An enclosing scope may have no direct scoping relationship to its
+     * child. If I am in a localScope and then I enter something which creates another localScope the enclosing scope
+     * will be the first scope, but there are no valid scoping relationships between the two. Methods which walk the
+     * enclosing scopes are responsible for enforcing appropriate scoping relationships.
      *
-     * @return the parent scope
-     */
+     * @return the parent scope */
     public StaticScope getEnclosingScope() {
         return enclosingScope;
     }
 
-    /**
-     * Does the variable exist?
+    /** Does the variable exist?
      *
      * @param name of the variable to find
-     * @return index of variable or -1 if it does not exist
-     */
+     * @return index of variable or -1 if it does not exist */
     public int exists(String name) {
         return findVariableName(name);
     }
@@ -241,24 +222,20 @@ public class StaticScope {
         return -1;
     }
 
-    /**
-     * Is this name in the visible to the current scope
+    /** Is this name in the visible to the current scope
      *
      * @param name to be looked for
      * @return a location where the left-most 16 bits of number of scopes down it is and the right-most 16 bits
-     *         represents its index in that scope
-     */
+     *         represents its index in that scope */
     public int isDefined(String name) {
         return isDefined(name, 0);
     }
 
-    /**
-     * Make a DASgn or LocalAsgn node based on scope logic
+    /** Make a DASgn or LocalAsgn node based on scope logic
      *
      * @param position
      * @param name
-     * @param value
-     */
+     * @param value */
     public AssignableParseNode assign(SourceIndexLength position, String name, ParseNode value) {
         return assign(position, name, value, this, 0);
     }
@@ -318,23 +295,19 @@ public class StaticScope {
         return isBlockOrEval ? enclosingScope.declare(position, name, depth + 1) : new VCallParseNode(position, name);
     }
 
-    /**
-     * Make a DVar or LocalVar node based on scoping logic
+    /** Make a DVar or LocalVar node based on scoping logic
      *
      * @param position the location that in the source that the new node will come from
      * @param name of the variable to be created is named
-     * @return a DVarParseNode or LocalVarParseNode
-     */
+     * @return a DVarParseNode or LocalVarParseNode */
     public ParseNode declare(SourceIndexLength position, String name) {
         return declare(position, name, 0);
     }
 
-    /**
-     * Gets the Local Scope relative to the current Scope. For LocalScopes this will be itself. Blocks will contain the
+    /** Gets the Local Scope relative to the current Scope. For LocalScopes this will be itself. Blocks will contain the
      * LocalScope it contains.
      *
-     * @return localScope
-     */
+     * @return localScope */
 
     public StaticScope getLocalScope() {
         return (type != Type.BLOCK) ? this : enclosingScope.getLocalScope();

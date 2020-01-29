@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents 'self' keyword
- */
+/** Represents 'self' keyword */
 public class SelfParseNode extends ParseNode implements INameNode, SideEffectFree {
     public SelfParseNode(SourceIndexLength position) {
         super(position);
@@ -50,19 +48,15 @@ public class SelfParseNode extends ParseNode implements INameNode, SideEffectFre
         return NodeType.SELFNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitSelfNode(this);
     }
 
-    /**
-     * Get name of self node.
-     */
+    /** Get name of self node. */
     public String getName() {
         return "self";
     }

@@ -23,9 +23,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-/**
- * A ControlFlowException holding a Ruby exception.
- */
+/** A ControlFlowException holding a Ruby exception. */
 public class RaiseException extends RuntimeException implements TruffleException {
 
     private static final long serialVersionUID = -4128190563044417424L;

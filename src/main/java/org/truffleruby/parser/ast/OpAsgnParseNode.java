@@ -67,48 +67,38 @@ public class OpAsgnParseNode extends ParseNode {
         return NodeType.OPASGNNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOpAsgnNode(this);
     }
 
-    /**
-     * Gets the methodName.
+    /** Gets the methodName.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getOperatorName() {
         return operatorName;
     }
 
-    /**
-     * Gets the receiverNode.
+    /** Gets the receiverNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getReceiverNode() {
         return receiverNode;
     }
 
-    /**
-     * Gets the valueNode.
+    /** Gets the valueNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getValueNode() {
         return valueNode;
     }
 
-    /**
-     * Gets the varibaleName.
+    /** Gets the varibaleName.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getVariableName() {
         return variableName;
     }

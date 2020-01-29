@@ -17,8 +17,7 @@ import org.truffleruby.core.thread.ThreadManager;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
-/**
- * Usage:
+/** Usage:
  * 
  * <pre>
  * <code>
@@ -39,7 +38,7 @@ import com.oracle.truffle.api.nodes.Node;
  *  }
  * </code>
  * </pre>
- */
+*/
 public class ReentrantLockFreeingMap<K> {
 
     private final ConcurrentHashMap<K, ReentrantLock> locks = new ConcurrentHashMap<>();

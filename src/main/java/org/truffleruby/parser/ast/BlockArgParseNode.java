@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * An explicit block argument (&amp;my_block) in parameter list.
- */
+/** An explicit block argument (&amp;my_block) in parameter list. */
 public class BlockArgParseNode extends ParseNode implements INameNode {
     private final int count;
     private String name;
@@ -59,30 +57,24 @@ public class BlockArgParseNode extends ParseNode implements INameNode {
         return NodeType.BLOCKARGNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBlockArgNode(this);
     }
 
-    /**
-     * Gets the count.
+    /** Gets the count.
      * 
-     * @return Returns a int
-     */
+     * @return Returns a int */
     public int getCount() {
         return count;
     }
 
-    /**
-     * Get the name of this block argument
+    /** Get the name of this block argument
      *
-     * @return it's name
-     */
+     * @return it's name */
     public String getName() {
         return name;
     }

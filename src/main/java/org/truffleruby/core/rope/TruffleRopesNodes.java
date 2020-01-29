@@ -78,10 +78,8 @@ public abstract class TruffleRopesNodes {
         }
     }
 
-    /**
-     * The returned string (when evaluated) will create a string with the same Rope structure as the string which is
-     * passed as argument.
-     */
+    /** The returned string (when evaluated) will create a string with the same Rope structure as the string which is
+     * passed as argument. */
     @CoreMethod(names = "debug_get_structure_creation", onSingleton = true, required = 1)
     public abstract static class DebugGetStructureCreationNode extends CoreMethodArrayArgumentsNode {
 

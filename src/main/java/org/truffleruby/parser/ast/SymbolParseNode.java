@@ -45,9 +45,7 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a symbol (:symbol_name).
- */
+/** Represents a symbol (:symbol_name). */
 public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNode, SideEffectFree {
 
     private final String name;
@@ -90,11 +88,9 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
         return iVisitor.visitSymbolNode(this);
     }
 
-    /**
-     * Gets the name.
+    /** Gets the name.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getName() {
         return name;
     }

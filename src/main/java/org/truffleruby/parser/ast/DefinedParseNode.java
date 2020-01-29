@@ -37,9 +37,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * a defined statement.
- */
+/** a defined statement. */
 public class DefinedParseNode extends ParseNode {
     private final ParseNode expressionNode;
 
@@ -56,21 +54,17 @@ public class DefinedParseNode extends ParseNode {
         return NodeType.DEFINEDNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDefinedNode(this);
     }
 
-    /**
-     * Gets the expressionNode.
+    /** Gets the expressionNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getExpressionNode() {
         return expressionNode;
     }

@@ -627,12 +627,10 @@ public class RubyLexer implements MagicCommentHandler {
         return codeRange;
     }
 
-    /**
-     * What type/kind of quote are we dealing with?
+    /** What type/kind of quote are we dealing with?
      *
      * @param c first character the the quote construct
-     * @return a token that specifies the quote type
-     */
+     * @return a token that specifies the quote type */
     private int parseQuote(int c) {
         int begin, end;
         boolean shortHand;
@@ -828,11 +826,9 @@ public class RubyLexer implements MagicCommentHandler {
         return true;
     }
 
-    /**
-     * Returns the next token. Also sets yyVal is needed.
+    /** Returns the next token. Also sets yyVal is needed.
      *
-     * @return Description of the Returned Value
-     */
+     * @return Description of the Returned Value */
     @SuppressWarnings("fallthrough")
     private int yylex() {
         int c;
@@ -1180,10 +1176,8 @@ public class RubyLexer implements MagicCommentHandler {
         return bytes.length;
     }
 
-    /**
-     * Peak in source to see if there is a magic comment. This is used by eval() & friends to know the actual encoding
-     * of the source code, and be able to convert to a Java String faithfully.
-     */
+    /** Peak in source to see if there is a magic comment. This is used by eval() & friends to know the actual encoding
+     * of the source code, and be able to convert to a Java String faithfully. */
     public static void parseMagicComment(Rope source, BiConsumer<String, Rope> magicCommentHandler) {
         final byte[] bytes = source.getBytes();
         final int length = source.byteLength();
@@ -2398,12 +2392,10 @@ public class RubyLexer implements MagicCommentHandler {
 
     private ByteArrayBuilder numberBuffer = new ByteArrayBuilder(); // ascii is good enough.
 
-    /**
-     * Parse a number from the input stream.
+    /** Parse a number from the input stream.
      *
      * @param c The first character of the number.
-     * @return A int constant wich represents a token.
-     */
+     * @return A int constant wich represents a token. */
     @SuppressWarnings("fallthrough")
     private int parseNumber(int c) {
         setState(EXPR_END);
@@ -2774,11 +2766,9 @@ public class RubyLexer implements MagicCommentHandler {
         }
     }
 
-    /**
-     * Read up to count hexadecimal digits and store those digits in a token numberBuffer. If strict is provided then
+    /** Read up to count hexadecimal digits and store those digits in a token numberBuffer. If strict is provided then
      * count number of hex digits must be present. If no digits can be read a syntax exception will be thrown. This will
-     * also return the codepoint as a value so codepoint ranges can be checked.
-     */
+     * also return the codepoint as a value so codepoint ranges can be checked. */
     private char scanHexLiteral(RopeBuilder buffer, int count, boolean strict, String errorMessage) {
         int i = 0;
         char hexValue = '\0';
@@ -2805,10 +2795,8 @@ public class RubyLexer implements MagicCommentHandler {
         return hexValue;
     }
 
-    /**
-     * Read up to count hexadecimal digits. If strict is provided then count number of hex digits must be present. If no
-     * digits can be read a syntax exception will be thrown.
-     */
+    /** Read up to count hexadecimal digits. If strict is provided then count number of hex digits must be present. If
+     * no digits can be read a syntax exception will be thrown. */
     private int scanHex(int count, boolean strict, String errorMessage) {
         int i = 0;
         int hexValue = '\0';
@@ -3057,14 +3045,12 @@ public class RubyLexer implements MagicCommentHandler {
         return isIdentifierChar(c);
     }
 
-    /**
-     * This is a valid character for an identifier?
+    /** This is a valid character for an identifier?
      *
      * @param c is character to be compared
      * @return whether c is an identifier or not
      *
-     *         mri: is_identchar
-     */
+     *         mri: is_identchar */
     public boolean isIdentifierChar(int c) {
         return c != EOF && (Character.isLetterOrDigit(c) || c == '_' || !isASCII(c));
     }
@@ -3395,15 +3381,13 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     // mri: parser_tokadd_mbchar
-    /**
-     * This differs from MRI in a few ways. This version does not apply value to a separate token buffer. It is for use
+    /** This differs from MRI in a few ways. This version does not apply value to a separate token buffer. It is for use
      * when we know we will not be omitting or including ant non-syntactical characters. Use tokadd_mbchar(int,
      * ByteArrayView) if the string differs from actual source. Secondly, this returns a boolean instead of the first
      * byte passed. MRI only used the return value as a success/failure code to return EOF.
      *
      * Because this version does not use a separate token buffer we only just increment lex_p. When we reach end of the
-     * token it will just get the bytes directly from source directly.
-     */
+     * token it will just get the bytes directly from source directly. */
     public boolean tokadd_mbchar(int firstByte) {
         int length = precise_mbclen();
 
@@ -3435,10 +3419,8 @@ public class RubyLexer implements MagicCommentHandler {
         return true;
     }
 
-    /**
-     * This looks deceptively like tokadd_mbchar(int, ByteArrayView) but it differs in that it uses the bytelists
-     * encoding and the first parameter is a full codepoint and not the first byte of a mbc sequence.
-     */
+    /** This looks deceptively like tokadd_mbchar(int, ByteArrayView) but it differs in that it uses the bytelists
+     * encoding and the first parameter is a full codepoint and not the first byte of a mbc sequence. */
     public void tokaddmbc(int codepoint, RopeBuilder buffer) {
         Encoding encoding = buffer.getEncoding();
         int length = encoding.codeToMbcLength(codepoint);
@@ -3499,11 +3481,9 @@ public class RubyLexer implements MagicCommentHandler {
         }
     }
 
-    /**
-     * Value of last token (if it is a token which has a value).
+    /** Value of last token (if it is a token which has a value).
      *
-     * @return value of last value-laden token
-     */
+     * @return value of last value-laden token */
     public Object value() {
         return yaccValue;
     }
@@ -3586,10 +3566,8 @@ public class RubyLexer implements MagicCommentHandler {
     public static final int SUFFIX_I = 1 << 1;
     public static final int SUFFIX_ALL = 3;
 
-    /**
-     * @param c the character to test
-     * @return true if character is a hex value (0-9a-f)
-     */
+    /** @param c the character to test
+     * @return true if character is a hex value (0-9a-f) */
     public static boolean isHexChar(int c) {
         return Character.isDigit(c) || ('a' <= c && c <= 'f') || ('A' <= c && c <= 'F');
     }
@@ -3633,10 +3611,8 @@ public class RubyLexer implements MagicCommentHandler {
         return c != EOF && (Character.isLetterOrDigit(c) || c == '_');
     }
 
-    /**
-     * @param c the character to test
-     * @return true if character is an octal value (0-7)
-     */
+    /** @param c the character to test
+     * @return true if character is an octal value (0-7) */
     public static boolean isOctChar(int c) {
         return '0' <= c && c <= '7';
     }

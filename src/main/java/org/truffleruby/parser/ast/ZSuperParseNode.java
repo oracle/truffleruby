@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * a call to 'super' with no arguments in a method.
- */
+/** a call to 'super' with no arguments in a method. */
 public class ZSuperParseNode extends ParseNode implements BlockAcceptingParseNode {
     private ParseNode iterNode;
 
@@ -51,11 +49,9 @@ public class ZSuperParseNode extends ParseNode implements BlockAcceptingParseNod
         return NodeType.ZSUPERNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitZSuperNode(this);

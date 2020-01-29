@@ -37,9 +37,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * an 'if' statement.
- */
+/** an 'if' statement. */
 public class IfParseNode extends ParseNode {
     private final ParseNode condition;
     private final ParseNode thenBody;
@@ -60,39 +58,31 @@ public class IfParseNode extends ParseNode {
         return NodeType.IFNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitIfNode(this);
     }
 
-    /**
-     * Gets the condition.
+    /** Gets the condition.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getCondition() {
         return condition;
     }
 
-    /**
-     * Gets the elseBody.
+    /** Gets the elseBody.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getElseBody() {
         return elseBody;
     }
 
-    /**
-     * Gets the thenBody.
+    /** Gets the thenBody.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getThenBody() {
         return thenBody;
     }

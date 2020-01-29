@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-/**
- * Represents a module definition.
- */
+/** Represents a module definition. */
 public class ModuleParseNode extends ParseNode implements IScopingNode {
     private final Colon3ParseNode cpath;
     private final StaticScope scope;
@@ -62,39 +60,31 @@ public class ModuleParseNode extends ParseNode implements IScopingNode {
         return NodeType.MODULENODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitModuleNode(this);
     }
 
-    /**
-     * Gets the body of this class.
+    /** Gets the body of this class.
      *
-     * @return the contents
-     */
+     * @return the contents */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Get the static scoping information.
+    /** Get the static scoping information.
      *
-     * @return the scoping info
-     */
+     * @return the scoping info */
     public StaticScope getScope() {
         return scope;
     }
 
-    /**
-     * Gets the name.
+    /** Gets the name.
      * 
-     * @return Representation of the module path+name
-     */
+     * @return Representation of the module path+name */
     public Colon3ParseNode getCPath() {
         return cpath;
     }

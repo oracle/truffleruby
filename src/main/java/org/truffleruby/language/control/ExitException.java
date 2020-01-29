@@ -9,9 +9,7 @@
  */
 package org.truffleruby.language.control;
 
-/**
- * Exception sent by the hard Kernel#exit!
- */
+/** Exception sent by the hard Kernel#exit! */
 public final class ExitException extends TerminationException {
 
     private static final long serialVersionUID = 8152389017577849952L;

@@ -9,10 +9,8 @@
  */
 package org.truffleruby.core.hash;
 
-/**
- * An entry in the Ruby hash. That is, a container for a key and a value, and a member of two lists - the chain of
- * buckets for a given index, and the chain of entries for the insertion order across the whole hash.
- */
+/** An entry in the Ruby hash. That is, a container for a key and a value, and a member of two lists - the chain of
+ * buckets for a given index, and the chain of entries for the insertion order across the whole hash. */
 public final class Entry {
 
     private int hashed;

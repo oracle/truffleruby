@@ -26,9 +26,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-/**
- * Marker interface for return, break, next, redo, retry
- */
+/** Marker interface for return, break, next, redo, retry */
 public interface NonLocalControlFlowParseNode {
     ParseNode getValueNode();
 }

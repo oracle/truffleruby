@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Declaration (and assignment) of a Constant.
- */
+/** Declaration (and assignment) of a Constant. */
 public class ConstDeclParseNode extends AssignableParseNode implements INameNode {
     private final String name;
     private final INameNode constNode;
@@ -58,32 +56,26 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
         return NodeType.CONSTDECLNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitConstDeclNode(this);
     }
 
-    /**
-     * Gets the name (this is the rightmost element of lhs (in Foo::BAR it is BAR).
+    /** Gets the name (this is the rightmost element of lhs (in Foo::BAR it is BAR).
      * 
-     * @return name the constant Name, it normally starts with a Capital
-     */
+     * @return name the constant Name, it normally starts with a Capital */
     public String getName() {
         return (name == null ? constNode.getName() : name);
     }
 
-    /**
-     * Get the full path, including the name of the new constant (in Foo::BAR it is Foo::BAR) or null. Your probably
+    /** Get the full path, including the name of the new constant (in Foo::BAR it is Foo::BAR) or null. Your probably
      * want to extract the left part with <code>((Colon2ParseNode) node.getConstNode()).getLeftNode()</code> if
      * <code>node.getConstNode()</code> is a <code>Colon2ConstParseNode</code>.
      * 
-     * @return pathNode
-     */
+     * @return pathNode */
     public ParseNode getConstNode() {
         return (ParseNode) constNode;
     }

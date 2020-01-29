@@ -269,11 +269,9 @@ public class RubyContext {
         this.preInitializing = false;
     }
 
-    /**
-     * Re-initialize parts of the RubyContext depending on the running process. This is a small subset of the full
+    /** Re-initialize parts of the RubyContext depending on the running process. This is a small subset of the full
      * initialization which needs to be performed to adapt to the new process and external environment. Calls are kept
-     * in the same order as during normal initialization.
-     */
+     * in the same order as during normal initialization. */
     protected boolean patch(Env newEnv) {
         this.env = newEnv;
 
@@ -520,10 +518,8 @@ public class RubyContext {
         return hashing;
     }
 
-    /**
-     * With context pre-initialization, the random seed must be reset at runtime. So every use of the random seed
-     * through Hashing should provide a way to rehash to take the new random seed in account.
-     */
+    /** With context pre-initialization, the random seed must be reset at runtime. So every use of the random seed
+     * through Hashing should provide a way to rehash to take the new random seed in account. */
     public Hashing getHashing(ReHashable reHashable) {
         if (isPreInitializing()) {
             preInitializationManager.addReHashable(reHashable);
@@ -823,10 +819,8 @@ public class RubyContext {
         return regexpCache;
     }
 
-    /**
-     * Returns the path of a Source. Returns the short path for the main script (the file argument given to "ruby"). The
-     * path of eval(code, nil, filename) is just filename.
-     */
+    /** Returns the path of a Source. Returns the short path for the main script (the file argument given to "ruby").
+     * The path of eval(code, nil, filename) is just filename. */
     public String getPath(Source source) {
         final String name = source.getName();
 
@@ -837,10 +831,8 @@ public class RubyContext {
         }
     }
 
-    /**
-     * Returns the path of a Source. Returns the canonical path for the main script. Note however that the path of
-     * eval(code, nil, filename) is just filename and might not be absolute.
-     */
+    /** Returns the path of a Source. Returns the canonical path for the main script. Note however that the path of
+     * eval(code, nil, filename) is just filename and might not be absolute. */
     public String getAbsolutePath(Source source) {
         if (source == mainSource) {
             return mainSourceAbsolutePath;

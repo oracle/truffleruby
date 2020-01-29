@@ -41,9 +41,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Base class for all Nodes in the AST
- */
+/** Base class for all Nodes in the AST */
 public abstract class ParseNode {
     // We define an actual list to get around bug in java integration (1387115)
     static final List<ParseNode> EMPTY_LIST = new ArrayList<>();
@@ -71,9 +69,7 @@ public abstract class ParseNode {
         return newline;
     }
 
-    /**
-     * Location of this node within the source
-     */
+    /** Location of this node within the source */
     public SourceIndexLength getPosition() {
         return new SourceIndexLength(sourceCharIndex, sourceLength);
     }
@@ -190,15 +186,13 @@ public abstract class ParseNode {
         return builder.toString();
     }
 
-    /**
-     * Overridden by nodes that have additional internal state to be displayed in toString.
+    /** Overridden by nodes that have additional internal state to be displayed in toString.
      *
      * For nodes that have it, name is handled separately, by implementing INameNode.
      *
      * Child nodes are handled via iterating #childNodes.
      *
-     * @return A string representing internal node state, or null if none.
-     */
+     * @return A string representing internal node state, or null if none. */
     protected String toStringInternal() {
         return null;
     }
@@ -214,25 +208,19 @@ public abstract class ParseNode {
         return name.substring(name.lastIndexOf('.') + 1);
     }
 
-    /**
-     * @return the nodeId
-     */
+    /** @return the nodeId */
     public abstract NodeType getNodeType();
 
-    /**
-     * Whether the node evaluates to nil and has no side effects.
+    /** Whether the node evaluates to nil and has no side effects.
      *
-     * @return true if nil, false otherwise
-     */
+     * @return true if nil, false otherwise */
     public boolean isNil() {
         return false;
     }
 
-    /**
-     * Check whether the given node is considered always "defined" or whether it has some form of definition check.
+    /** Check whether the given node is considered always "defined" or whether it has some form of definition check.
      *
-     * @return Whether the type of node represents a possibly undefined construct
-     */
+     * @return Whether the type of node represents a possibly undefined construct */
     public boolean needsDefinitionCheck() {
         return true;
     }

@@ -37,11 +37,9 @@ import org.truffleruby.parser.ast.types.INameNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 
-/**
- * Produces code to reload arguments from local variables back into the arguments array. Only works for simple cases.
+/** Produces code to reload arguments from local variables back into the arguments array. Only works for simple cases.
  * Used for zsuper calls which pass the same arguments, but will pick up modifications made to them in the method so
- * far.
- */
+ * far. */
 public class ReloadArgumentsTranslator extends Translator {
 
     private final BodyTranslator methodBodyTranslator;

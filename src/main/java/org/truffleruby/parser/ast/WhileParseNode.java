@@ -36,15 +36,13 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a while statement. This could be the both versions:
+/** Represents a while statement. This could be the both versions:
  *
  * while &lt;condition&gt; &lt;body&gt; end
  *
  * and
  *
- * &lt;body&gt; 'while' &lt;condition&gt;
- */
+ * &lt;body&gt; 'while' &lt;condition&gt; */
 public class WhileParseNode extends ParseNode {
     private final ParseNode conditionNode;
     private final ParseNode bodyNode;
@@ -74,39 +72,31 @@ public class WhileParseNode extends ParseNode {
         return NodeType.WHILENODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitWhileNode(this);
     }
 
-    /**
-     * Gets the bodyNode.
+    /** Gets the bodyNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Gets the conditionNode.
+    /** Gets the conditionNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getConditionNode() {
         return conditionNode;
     }
 
-    /**
-     * Determine whether this is while or do while
+    /** Determine whether this is while or do while
      * 
-     * @return true if you are a while, false if do while
-     */
+     * @return true if you are a while, false if do while */
     public boolean evaluateAtStart() {
         return evaluateAtStart;
     }

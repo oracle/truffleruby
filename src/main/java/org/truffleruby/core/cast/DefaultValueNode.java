@@ -16,9 +16,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-/**
- * Return the given default value if the argument is not provided.
- */
+/** Return the given default value if the argument is not provided. */
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class DefaultValueNode extends RubyContextSourceNode {
 

@@ -13,8 +13,7 @@ public abstract class LoopRecovery {
 
     private static final String DIRECTIVES = "CSLQcslqInjJNvVUwDdFfEeFfAaZBbHhuMmpPXx@";
 
-    /**
-     * Format strings can sometimes be dynamically generated with code such as:
+    /** Format strings can sometimes be dynamically generated with code such as:
      * <p>
      * <code>'x' + ('NX' * size)</code>
      * <p>
@@ -32,8 +31,7 @@ public abstract class LoopRecovery {
      * for the moment we just look for one simple loop.
      * <p>
      * To do that, for each character we look 1..n characters behind and see if that pattern is repeated. If it is we
-     * have the loop. We then keep going and see how many more times we can loop. Nothing more complicated than that.
-     */
+     * have the loop. We then keep going and see how many more times we can loop. Nothing more complicated than that. */
     public static String recoverLoop(String format) {
         // The index is the point in the format string where we look backwards for loops from
 

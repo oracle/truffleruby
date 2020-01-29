@@ -22,9 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Get the arguments of a super call with implicit arguments (using the ones of the surrounding method).
- */
+/** Get the arguments of a super call with implicit arguments (using the ones of the surrounding method). */
 public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] reloadNodes;

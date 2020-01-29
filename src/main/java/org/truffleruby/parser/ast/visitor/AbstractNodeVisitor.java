@@ -134,10 +134,8 @@ import org.truffleruby.parser.ast.YieldParseNode;
 import org.truffleruby.parser.ast.ZArrayParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
 
-/**
- * An abstract implementation of {@link NodeVisitor} that has an abstract default visit method, and provides a utility
- * method to visit children.
- */
+/** An abstract implementation of {@link NodeVisitor} that has an abstract default visit method, and provides a utility
+ * method to visit children. */
 public abstract class AbstractNodeVisitor<T> implements NodeVisitor<T> {
 
     abstract protected T defaultVisit(ParseNode node);

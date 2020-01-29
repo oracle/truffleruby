@@ -87,10 +87,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private final ConcurrentMap<String, RubyConstant> constants = new ConcurrentHashMap<>();
     private final ConcurrentMap<String, Object> classVariables = new ConcurrentHashMap<>();
 
-    /**
-     * The refinements (calls to Module#refine) nested under/contained in this namespace module (M). Represented as a
-     * map of refined classes (C) to refinement modules (R).
-     */
+    /** The refinements (calls to Module#refine) nested under/contained in this namespace module (M). Represented as a
+     * map of refined classes (C) to refinement modules (R). */
     private final ConcurrentMap<DynamicObject, DynamicObject> refinements = new ConcurrentHashMap<>();
 
     private final CyclicAssumption methodsUnmodifiedAssumption;
@@ -314,9 +312,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         prependInvalidation();
     }
 
-    /**
-     * Set the value of a constant, possibly redefining it.
-     */
+    /** Set the value of a constant, possibly redefining it. */
     @TruffleBoundary
     public RubyConstant setConstant(RubyContext context, Node currentNode, String name, Object value) {
         if (RubyGuards.isRubyModule(value)) {
@@ -462,9 +458,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    /**
-     * Also searches on Object for modules. Used for alias_method, visibility changes, etc.
-     */
+    /** Also searches on Object for modules. Used for alias_method, visibility changes, etc. */
     @TruffleBoundary
     public InternalMethod deepMethodSearch(RubyContext context, String name) {
         InternalMethod method = ModuleOperations.lookupMethodUncached(rubyModuleObject, name, null);
@@ -680,16 +674,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return rubyModuleObject;
     }
 
-    /**
-     * Iterate over all ancestors, skipping PrependMarker and resolving IncludedModule.
-     */
+    /** Iterate over all ancestors, skipping PrependMarker and resolving IncludedModule. */
     public Iterable<DynamicObject> ancestors() {
         return () -> new AncestorIterator(start);
     }
 
-    /**
-     * Iterates over prepend'ed and include'd modules.
-     */
+    /** Iterates over prepend'ed and include'd modules. */
     public Iterable<DynamicObject> prependedAndIncludedModules() {
         return () -> new IncludedModulesIterator(start, this);
     }
@@ -786,11 +776,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return sourceSection;
     }
 
-    /**
-     * Registers an Assumption for a given method name, which is invalidated when a method with same name is defined or
+    /** Registers an Assumption for a given method name, which is invalidated when a method with same name is defined or
      * undefined in this class or when a module is prepended to this class. This does not check re-definitions in
-     * subclasses.
-     */
+     * subclasses. */
     public Assumption registerAssumption(String methodName) {
         assert context.getCoreLibrary().isInitializing();
         Assumption assumption = Truffle.getRuntime().createAssumption("inlined " + getName() + "#" + methodName);

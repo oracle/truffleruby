@@ -510,13 +510,11 @@ public class CommandLineParser {
         throw new CommandLineException("missing argument for --" + label + "\n", true);
     }
 
-    /**
-     * Split string into (limited) sub-parts.
+    /** Split string into (limited) sub-parts.
      * 
      * @param str the string
      * @param sep the separator
-     * @param lim has same effect as with {@link String#split(String, int)}
-     */
+     * @param lim has same effect as with {@link String#split(String, int)} */
     private static List<String> split(final String str, final char sep, final int lim) {
         final int len = str.length();
         if (len == 0) {

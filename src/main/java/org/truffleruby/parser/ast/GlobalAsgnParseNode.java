@@ -39,9 +39,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an assignment to a global variable.
- */
+/** Represents an assignment to a global variable. */
 public class GlobalAsgnParseNode extends AssignableParseNode implements INameNode {
     private String name;
 
@@ -56,21 +54,17 @@ public class GlobalAsgnParseNode extends AssignableParseNode implements INameNod
         return NodeType.GLOBALASGNNODE;
     }
 
-    /**
-     * RubyMethod used by visitors. accepts the visitor
+    /** RubyMethod used by visitors. accepts the visitor
      * 
-     * @param iVisitor the visitor to accept
-     **/
+     * @param iVisitor the visitor to accept **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitGlobalAsgnNode(this);
     }
 
-    /**
-     * Gets the name.
+    /** Gets the name.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getName() {
         return name;
     }

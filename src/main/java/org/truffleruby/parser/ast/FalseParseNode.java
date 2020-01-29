@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a false literal.
- */
+/** Represents a false literal. */
 public class FalseParseNode extends ParseNode implements INameNode, SideEffectFree {
     public FalseParseNode(SourceIndexLength position) {
         super(position);
@@ -50,19 +48,15 @@ public class FalseParseNode extends ParseNode implements INameNode, SideEffectFr
         return NodeType.FALSENODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitFalseNode(this);
     }
 
-    /**
-     * Name of false node.
-     */
+    /** Name of false node. */
     public String getName() {
         return "false";
     }

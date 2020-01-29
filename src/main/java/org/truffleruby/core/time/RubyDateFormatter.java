@@ -204,20 +204,16 @@ public abstract class RubyDateFormatter {
             return new Token(Format.FORMAT_OUTPUT, formatter);
         }
 
-        /**
-         * Gets the data.
+        /** Gets the data.
          * 
-         * @return Returns a Object
-         */
+         * @return Returns a Object */
         public Object getData() {
             return data;
         }
 
-        /**
-         * Gets the format.
+        /** Gets the format.
          * 
-         * @return Returns a int
-         */
+         * @return Returns a int */
         public Format getFormat() {
             return format;
         }

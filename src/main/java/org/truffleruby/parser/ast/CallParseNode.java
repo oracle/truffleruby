@@ -38,9 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * A method or operator call.
- */
+/** A method or operator call. */
 public class CallParseNode extends ParseNode implements INameNode, IArgumentNode, BlockAcceptingParseNode {
     private final ParseNode receiverNode;
     private ParseNode argsNode;
@@ -80,11 +78,9 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
         return NodeType.CALLNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitCallNode(this);
@@ -100,40 +96,32 @@ public class CallParseNode extends ParseNode implements INameNode, IArgumentNode
         return this;
     }
 
-    /**
-     * Gets the argsNode representing the method's arguments' value for this call.
+    /** Gets the argsNode representing the method's arguments' value for this call.
      * 
-     * @return argsNode
-     */
+     * @return argsNode */
     public ParseNode getArgsNode() {
         return argsNode;
     }
 
-    /**
-     * Set the argsNode. This is for re-writer and not general interpretation.
+    /** Set the argsNode. This is for re-writer and not general interpretation.
      *
-     * @param argsNode set the arguments for this node.
-     */
+     * @param argsNode set the arguments for this node. */
     public ParseNode setArgsNode(ParseNode argsNode) {
         this.argsNode = argsNode;
 
         return argsNode;
     }
 
-    /**
-     * Gets the name.
+    /** Gets the name.
      * 
-     * @return name the name of the method called
-     */
+     * @return name the name of the method called */
     public String getName() {
         return name;
     }
 
-    /**
-     * Gets the receiverNode.
+    /** Gets the receiverNode.
      * 
-     * @return receiverNode the object on which the method is being called
-     */
+     * @return receiverNode the object on which the method is being called */
     public ParseNode getReceiverNode() {
         return receiverNode;
     }

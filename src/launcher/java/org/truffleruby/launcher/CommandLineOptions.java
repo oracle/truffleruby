@@ -54,11 +54,9 @@ public class CommandLineOptions {
     /** A thing to be executed: a file, inline script, etc. Used by executionAction when applicable. */
     String toExecute = "";
 
-    /**
-     * This should not be modified, as otherwise when exec()-ing to JVM from a native launcher, these options would be
+    /** This should not be modified, as otherwise when exec()-ing to JVM from a native launcher, these options would be
      * passed on the command line, which fails if they are experimental. This would also cause parsing the options twice
-     * with the current Launcher design.
-     */
+     * with the current Launcher design. */
     private final Map<String, String> polyglotOptions;
     private final Map<String, String> options;
     private String[] arguments;

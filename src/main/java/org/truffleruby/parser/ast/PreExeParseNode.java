@@ -32,9 +32,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-/**
- * A pre-execution construction (BEGIN { ... }).
- */
+/** A pre-execution construction (BEGIN { ... }). */
 public class PreExeParseNode extends IterParseNode {
     public PreExeParseNode(SourceIndexLength position, StaticScope scope, ParseNode body) {
         super(position, new ArgsParseNode(position, null, null, null, null, null, null, null), body, scope);

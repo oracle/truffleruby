@@ -31,9 +31,7 @@ package org.truffleruby.parser.ast;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.SourceIndexLength;
 
-/**
- * Represents __FILE__ nodes
- */
+/** Represents __FILE__ nodes */
 public class FileParseNode extends StrParseNode implements SideEffectFree {
     public FileParseNode(SourceIndexLength position, Rope value) {
         super(position, value);

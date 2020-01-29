@@ -36,8 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an operator assignment to an element.
+/** Represents an operator assignment to an element.
  *
  * This could be for example:
  *
@@ -45,7 +44,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * a[4] += 5
  * a[3] &&= true
  * </pre>
- */
+*/
 public class OpElementAsgnParseNode extends ParseNode {
     private final ParseNode receiverNode;
     private final ParseNode argsNode;
@@ -74,48 +73,38 @@ public class OpElementAsgnParseNode extends ParseNode {
         return NodeType.OPELEMENTASGNNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOpElementAsgnNode(this);
     }
 
-    /**
-     * Gets the argsNode.
+    /** Gets the argsNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getArgsNode() {
         return argsNode;
     }
 
-    /**
-     * Gets the operatorName.
+    /** Gets the operatorName.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getOperatorName() {
         return operatorName;
     }
 
-    /**
-     * Gets the receiverNode.
+    /** Gets the receiverNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getReceiverNode() {
         return receiverNode;
     }
 
-    /**
-     * Gets the valueNode.
+    /** Gets the valueNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getValueNode() {
         return valueNode;
     }

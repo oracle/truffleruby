@@ -24,9 +24,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/**
- * Convert objects to a String by calling #to_str, but leave existing Strings or Symbols as they are.
- */
+/** Convert objects to a String by calling #to_str, but leave existing Strings or Symbols as they are. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
 

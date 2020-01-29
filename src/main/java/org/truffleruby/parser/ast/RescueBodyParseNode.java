@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents the contents of a rescue to be evaluated
- */
+/** Represents the contents of a rescue to be evaluated */
 public class RescueBodyParseNode extends ParseNode {
     private final ParseNode exceptionNodes;
     private final ParseNode bodyNode;
@@ -63,37 +61,29 @@ public class RescueBodyParseNode extends ParseNode {
         return NodeType.RESCUEBODYNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRescueBodyNode(this);
     }
 
-    /**
-     * Gets the bodyNode.
+    /** Gets the bodyNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Get the next rescue node (if any).
-     */
+    /** Get the next rescue node (if any). */
     public RescueBodyParseNode getOptRescueNode() {
         return optRescueNode;
     }
 
-    /**
-     * Gets the exceptionNodes.
+    /** Gets the exceptionNodes.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getExceptionNodes() {
         return exceptionNodes;
     }

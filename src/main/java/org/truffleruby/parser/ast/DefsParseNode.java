@@ -38,9 +38,7 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-/**
- * Represents a singleton method definition.
- */
+/** Represents a singleton method definition. */
 public class DefsParseNode extends MethodDefParseNode implements INameNode {
     private final ParseNode receiverNode;
 
@@ -63,21 +61,17 @@ public class DefsParseNode extends MethodDefParseNode implements INameNode {
         return NodeType.DEFSNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDefsNode(this);
     }
 
-    /**
-     * Gets the receiverNode.
+    /** Gets the receiverNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getReceiverNode() {
         return receiverNode;
     }

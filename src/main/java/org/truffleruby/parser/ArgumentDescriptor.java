@@ -26,9 +26,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser;
 
-/**
- * A description of a single argument in a Ruby argument list.
- */
+/** A description of a single argument in a Ruby argument list. */
 public class ArgumentDescriptor {
     /** The type of the argument */
     public final ArgumentType type;

@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a when condition
- */
+/** Represents a when condition */
 public class WhenParseNode extends ParseNode {
     protected final ParseNode expressionNodes;
     protected final ParseNode bodyNode;
@@ -63,35 +61,27 @@ public class WhenParseNode extends ParseNode {
         return NodeType.WHENNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitWhenNode(this);
     }
 
-    /**
-     * Gets the bodyNode.
+    /** Gets the bodyNode.
      * 
-     * @return Returns a INode
-     */
+     * @return Returns a INode */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Gets the next case node (if any).
-     */
+    /** Gets the next case node (if any). */
     public ParseNode getNextCase() {
         return nextCase;
     }
 
-    /**
-     * Get the expressionNode(s).
-     */
+    /** Get the expressionNode(s). */
     public ParseNode getExpressionNodes() {
         return expressionNodes;
     }

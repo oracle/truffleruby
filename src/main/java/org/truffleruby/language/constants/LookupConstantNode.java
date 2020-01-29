@@ -25,9 +25,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/**
- * Caches {@link ModuleOperations#lookupConstant} and checks visibility.
- */
+/** Caches {@link ModuleOperations#lookupConstant} and checks visibility. */
 public abstract class LookupConstantNode extends LookupConstantBaseNode implements LookupConstantInterface {
 
     private final boolean ignoreVisibility;

@@ -25,9 +25,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/**
- * Share the internal fields of an object, accessible by its Layout
- */
+/** Share the internal fields of an object, accessible by its Layout */
 @ImportStatic({ ShapeCachingGuards.class, ArrayGuards.class })
 public abstract class ShareInternalFieldsNode extends RubyContextNode {
 

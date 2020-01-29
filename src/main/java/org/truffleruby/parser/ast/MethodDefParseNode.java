@@ -59,38 +59,30 @@ public abstract class MethodDefParseNode extends ParseNode implements INameNode,
     }
 
 
-    /**
-     * Gets the argsNode.
+    /** Gets the argsNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ArgsParseNode getArgsNode() {
         return argsNode;
     }
 
-    /**
-     * Get the static scoping information.
+    /** Get the static scoping information.
      *
-     * @return the scoping info
-     */
+     * @return the scoping info */
     public StaticScope getScope() {
         return scope;
     }
 
-    /**
-     * Gets the body of this class.
+    /** Gets the body of this class.
      *
-     * @return the contents
-     */
+     * @return the contents */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Gets the name.
+    /** Gets the name.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getName() {
         return name;
     }

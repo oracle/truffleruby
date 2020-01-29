@@ -55,30 +55,24 @@ public class OpAsgnOrParseNode extends ParseNode implements BinaryOperatorParseN
         return NodeType.OPASGNORNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOpAsgnOrNode(this);
     }
 
-    /**
-     * Gets the firstNode.
+    /** Gets the firstNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getFirstNode() {
         return firstNode;
     }
 
-    /**
-     * Gets the secondNode.
+    /** Gets the secondNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getSecondNode() {
         return secondNode;
     }

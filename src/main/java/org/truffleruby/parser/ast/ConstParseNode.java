@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * The access to a Constant.
- */
+/** The access to a Constant. */
 public class ConstParseNode extends ParseNode implements INameNode {
     private String name;
 
@@ -53,21 +51,17 @@ public class ConstParseNode extends ParseNode implements INameNode {
         return NodeType.CONSTNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitConstNode(this);
     }
 
-    /**
-     * Gets the name.
+    /** Gets the name.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getName() {
         return name;
     }

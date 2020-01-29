@@ -17,9 +17,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Creates a symbol from a string.
- */
+/** Creates a symbol from a string. */
 @NodeChild(value = "string", type = RubyNode.class)
 public abstract class StringToSymbolNode extends RubyContextSourceNode {
 

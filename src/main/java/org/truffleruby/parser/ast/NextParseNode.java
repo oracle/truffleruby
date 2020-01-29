@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a 'next' statement.
- */
+/** Represents a 'next' statement. */
 public class NextParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     private final ParseNode valueNode;
 
@@ -55,21 +53,17 @@ public class NextParseNode extends ParseNode implements NonLocalControlFlowParse
         return NodeType.NEXTNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitNextNode(this);
     }
 
-    /**
-     * Gets the valueNode.
+    /** Gets the valueNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getValueNode() {
         return valueNode;
     }

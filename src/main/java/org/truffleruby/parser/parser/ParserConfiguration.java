@@ -83,21 +83,17 @@ public class ParserConfiguration {
         return isDebug;
     }
 
-    /**
-     * Is the requested parse for an eval()?
+    /** Is the requested parse for an eval()?
      * 
-     * @return true if for eval
-     */
+     * @return true if for eval */
     public boolean isEvalParse() {
         return isEvalParse;
     }
 
-    /**
-     * If we are performing an eval we should pass existing scope in. Calling this lets the parser know we need to do
+    /** If we are performing an eval we should pass existing scope in. Calling this lets the parser know we need to do
      * this.
      * 
-     * @param existingScope is the scope that captures new vars, etc...
-     */
+     * @param existingScope is the scope that captures new vars, etc... */
     public void parseAsBlock(StaticScope existingScope) {
         this.asBlock = true;
         this.existingScope = existingScope;
@@ -107,11 +103,9 @@ public class ParserConfiguration {
         return context;
     }
 
-    /**
-     * This method returns the appropriate first scope for the parser.
+    /** This method returns the appropriate first scope for the parser.
      * 
-     * @return correct top scope for source to be parsed
-     */
+     * @return correct top scope for source to be parsed */
     public StaticScope getScope(String file) {
         if (asBlock) {
             return existingScope;
@@ -124,18 +118,14 @@ public class ParserConfiguration {
         return !isEvalParse();
     }
 
-    /**
-     * Get whether we are saving the DATA contents of the file.
-     */
+    /** Get whether we are saving the DATA contents of the file. */
     public boolean isSaveData() {
         return saveData;
     }
 
-    /**
-     * Are we parsing source provided as part of the '-e' option to Ruby.
+    /** Are we parsing source provided as part of the '-e' option to Ruby.
      * 
-     * @return true if source is from -e option
-     */
+     * @return true if source is from -e option */
     public boolean isInlineSource() {
         return inlineSource;
     }

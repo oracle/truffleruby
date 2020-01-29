@@ -93,10 +93,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             extends
             PhantomReference<T> implements ProcessingReference<R> {
 
-        /**
-         * Doubly linked list of references to keep to allow the reference service to traverse them and to keep the
-         * references alive for processing.
-         */
+        /** Doubly linked list of references to keep to allow the reference service to traverse them and to keep the
+         * references alive for processing. */
         private R next;
         private R previous;
         private ReferenceProcessingService<R> service;
@@ -203,9 +201,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
     }
 
-    /**
-     * The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace.
-     */
+    /** The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace. */
     private R first = null;
 
     protected final ReferenceProcessor referenceProcessor;

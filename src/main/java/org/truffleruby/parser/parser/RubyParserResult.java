@@ -49,11 +49,9 @@ public class RubyParserResult {
         return ast;
     }
 
-    /**
-     * Sets the ast.
+    /** Sets the ast.
      * 
-     * @param ast The ast to set
-     */
+     * @param ast The ast to set */
     public void setAST(ParseNode ast) {
         this.ast = ast;
     }

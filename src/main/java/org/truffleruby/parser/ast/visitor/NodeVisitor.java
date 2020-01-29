@@ -139,14 +139,12 @@ import org.truffleruby.parser.ast.YieldParseNode;
 import org.truffleruby.parser.ast.ZArrayParseNode;
 import org.truffleruby.parser.ast.ZSuperParseNode;
 
-/**
- * Visitor interface to be implemented by visitors of the jRuby AST. each node will call the visit method appropriate to
- * its type.
+/** Visitor interface to be implemented by visitors of the jRuby AST. each node will call the visit method appropriate
+ * to its type.
  * 
  * @see ParseNode
  *
- * @author Benoit Cerrina
- **/
+ * @author Benoit Cerrina **/
 public interface NodeVisitor<T> {
     T visitAliasNode(AliasParseNode iVisited);
 

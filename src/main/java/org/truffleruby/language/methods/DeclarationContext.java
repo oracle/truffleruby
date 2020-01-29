@@ -24,14 +24,13 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * The set of values captured when a method is defined:
+/** The set of values captured when a method is defined:
  * <ul>
  * <li>the visibility of the method</li>
  * <li>the current module (default definee) to define the method on</li>
  * <li>the currently activated refinement modules which apply to the method</li>
  * </ul>
- */
+*/
 public class DeclarationContext {
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */

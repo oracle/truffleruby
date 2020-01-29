@@ -26,13 +26,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.source.SourceSection;
 
-/**
- * Displays a warning when code is compiled that will compile successfully but is very low performance. We don't want to
- * bail out, as this isn't visible to users - we want them to see if they're using code like this in something like a
+/** Displays a warning when code is compiled that will compile successfully but is very low performance. We don't want
+ * to bail out, as this isn't visible to users - we want them to see if they're using code like this in something like a
  * benchmark.
  *
- * Ideally you should not use this node, and instead you should optimise the code which would use it.
- */
+ * Ideally you should not use this node, and instead you should optimise the code which would use it. */
 @GenerateUncached
 public abstract class NotOptimizedWarningNode extends RubyBaseNode {
 

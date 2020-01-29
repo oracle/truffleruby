@@ -22,9 +22,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Casts a value into an int.
- */
+/** Casts a value into an int. */
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
 public abstract class IntegerCastNode extends RubyBaseNode {

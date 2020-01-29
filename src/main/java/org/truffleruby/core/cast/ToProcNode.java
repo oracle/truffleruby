@@ -23,9 +23,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/**
- * Casts an object to a Ruby Proc object.
- */
+/** Casts an object to a Ruby Proc object. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToProcNode extends RubyContextSourceNode {
 

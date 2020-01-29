@@ -9,8 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
-/**
- * The result of looking for an entry (an {@link Entry}) in a Ruby hash. We get the previous entry in the lookup chain
+/** The result of looking for an entry (an {@link Entry}) in a Ruby hash. We get the previous entry in the lookup chain
  * for this index until the entry was found, the entry that was found, and the index that was used. There are three
  * possible outcomes for a search.
  * <ul>
@@ -20,7 +19,7 @@ package org.truffleruby.core.hash;
  * <li>A entry was found for our key, in which case the entry will be the one correspond to the key, and the previous
  * entry will be the one in the entry chain before that one</li>
  * </ul>
- */
+*/
 public class HashLookupResult {
 
     private final int hashed;

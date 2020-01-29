@@ -50,10 +50,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 
-/**
- * Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long} values, mapped to objects
- * with a weak hash map.
- */
+/** Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long} values, mapped to objects
+ * with a weak hash map. */
 public class ObjectSpaceManager {
 
     // behaves as volatile by piggybacking on Assumption semantics

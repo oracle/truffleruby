@@ -19,8 +19,7 @@ import org.truffleruby.core.queue.UnsizedQueue;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Class to provide GC marking and other facilities to keep objects alive for native extensions.
+/** Class to provide GC marking and other facilities to keep objects alive for native extensions.
  *
  * Native extensions expect objects on the stack to be kept alive even when they have been stored in native structures
  * on the stack (e.g. pg keeps the VALUE of a ruby array in a structure on the stack, and places other objects in that
@@ -35,9 +34,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * be run the next time an object is added.
  *
  * Marker references only keep a week reference to their owning object to ensure they don't themselves stop the object
- * from being garbage collected.
- *
- */
+ * from being garbage collected. */
 public class MarkingService extends ReferenceProcessingService<MarkerReference> {
 
     public static interface MarkerAction {
@@ -51,12 +48,9 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
     }
 
-    /**
-     * This service handles actually running the mark functions when this is needed. It's done this way so that mark
+    /** This service handles actually running the mark functions when this is needed. It's done this way so that mark
      * functions and finalizers are run on the same thread, and so that we can avoid the use of any additional locks in
-     * this process (as these may cause deadlocks).
-     *
-     */
+     * this process (as these may cause deadlocks). */
     public static class MarkRunnerService extends ReferenceProcessingService<MarkingService.MarkRunnerReference> {
 
         private final MarkingService markingService;

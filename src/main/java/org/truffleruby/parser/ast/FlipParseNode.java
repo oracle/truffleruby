@@ -37,9 +37,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * A Range in a boolean expression (named after a FlipFlop component in electronic?).
- */
+/** A Range in a boolean expression (named after a FlipFlop component in electronic?). */
 public class FlipParseNode extends ParseNode {
     private final ParseNode beginNode;
     private final ParseNode endNode;
@@ -70,57 +68,45 @@ public class FlipParseNode extends ParseNode {
         return NodeType.FLIPNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitFlipNode(this);
     }
 
-    /**
-     * Gets the beginNode. beginNode will set the FlipFlop the first time it is true
+    /** Gets the beginNode. beginNode will set the FlipFlop the first time it is true
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getBeginNode() {
         return beginNode;
     }
 
-    /**
-     * Gets the endNode. endNode will reset the FlipFlop when it is true while the FlipFlop is set.
+    /** Gets the endNode. endNode will reset the FlipFlop when it is true while the FlipFlop is set.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getEndNode() {
         return endNode;
     }
 
-    /**
-     * Gets the exclusive.
+    /** Gets the exclusive.
      * 
-     * @return if the range is a 2 dot range it is false if it is a three dot it is true
-     */
+     * @return if the range is a 2 dot range it is false if it is a three dot it is true */
     public boolean isExclusive() {
         return exclusive;
     }
 
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
+    /** How many scopes should we burrow down to until we need to set the block variable value.
      *
-     * @return 0 for current scope, 1 for one down, ...
-     */
+     * @return 0 for current scope, 1 for one down, ... */
     public int getDepth() {
         return location >> 16;
     }
 
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value of this local variable
+    /** Gets the index within the scope construct that actually holds the eval'd value of this local variable
      *
-     * @return Returns an int offset into storage structure
-     */
+     * @return Returns an int offset into storage structure */
     public int getIndex() {
         return location & 0xffff;
     }

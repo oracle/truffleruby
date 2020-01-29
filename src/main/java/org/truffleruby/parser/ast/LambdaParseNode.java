@@ -33,9 +33,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-/**
- * Stubby lambda node (1.9 only)
- */
+/** Stubby lambda node (1.9 only) */
 public class LambdaParseNode extends IterParseNode {
     public LambdaParseNode(SourceIndexLength position, ArgsParseNode args, ParseNode body, StaticScope scope) {
         super(position, args, body, scope);

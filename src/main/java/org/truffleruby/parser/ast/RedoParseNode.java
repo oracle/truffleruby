@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a 'redo'
- */
+/** Represents a 'redo' */
 public class RedoParseNode extends ParseNode implements NonLocalControlFlowParseNode {
     public RedoParseNode(SourceIndexLength position) {
         super(position);
@@ -53,11 +51,9 @@ public class RedoParseNode extends ParseNode implements NonLocalControlFlowParse
         return null; // Needed for non local control flow node marker
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitRedoNode(this);

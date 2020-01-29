@@ -35,23 +35,19 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * All Nodes which have a list representation inherit this. This is also used as generic container for additional
+/** All Nodes which have a list representation inherit this. This is also used as generic container for additional
  * information that is not directly evaluated. In particular, f_arg production rule uses this to capture arg information
- * for the editor projects who want position info saved.
- */
+ * for the editor projects who want position info saved. */
 public abstract class ListParseNode extends ParseNode {
     private static final ParseNode[] EMPTY = new ParseNode[0];
     private static final int INITIAL_SIZE = 4;
     private ParseNode[] list;
     private int size = 0;
 
-    /**
-     * Create a new ListParseNode.
+    /** Create a new ListParseNode.
      *
      * @param position where list is
-     * @param firstNode first element of the list
-     */
+     * @param firstNode first element of the list */
     protected ListParseNode(SourceIndexLength position, ParseNode firstNode) {
         super(position);
 
@@ -100,12 +96,10 @@ public abstract class ListParseNode extends ParseNode {
         size += other.size;
     }
 
-    /**
-     * Add a node to this list
+    /** Add a node to this list
      *
      * @param node the node to add
-     * @return this instance for method chaining
-     */
+     * @return this instance for method chaining */
     public ListParseNode add(ParseNode node) {
         // Ruby Grammar productions return plenty of nulls.
         if (node == null || node == NilImplicitParseNode.NIL) {
@@ -128,12 +122,10 @@ public abstract class ListParseNode extends ParseNode {
     }
 
 
-    /**
-     * Add all elements in other list to this list node.
+    /** Add all elements in other list to this list node.
      *
      * @param other list which has elements
-     * @return this instance for method chaining
-     */
+     * @return this instance for method chaining */
     public ListParseNode addAll(ListParseNode other) {
         if (other != null && other.size() > 0) {
             addAllInternal(other);

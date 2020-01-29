@@ -38,10 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * RubyMethod call without any arguments
- *
- */
+/** RubyMethod call without any arguments */
 public class VCallParseNode extends ParseNode implements INameNode {
     private String name;
 
@@ -56,21 +53,17 @@ public class VCallParseNode extends ParseNode implements INameNode {
         return NodeType.VCALLNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitVCallNode(this);
     }
 
-    /**
-     * Gets the methodName.
+    /** Gets the methodName.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getName() {
         return name;
     }

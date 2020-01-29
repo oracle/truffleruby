@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * An 'ensure' statement.
- */
+/** An 'ensure' statement. */
 public class EnsureParseNode extends ParseNode {
     private final ParseNode bodyNode;
     private final ParseNode ensureNode;
@@ -57,30 +55,24 @@ public class EnsureParseNode extends ParseNode {
         return NodeType.ENSURENODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitEnsureNode(this);
     }
 
-    /**
-     * Gets the bodyNode.
+    /** Gets the bodyNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Gets the ensureNode.
+    /** Gets the ensureNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getEnsureNode() {
         return ensureNode;
     }

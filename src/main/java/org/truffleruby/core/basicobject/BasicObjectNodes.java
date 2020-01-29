@@ -462,10 +462,8 @@ public abstract class BasicObjectNodes {
             return superCallNode != null;
         }
 
-        /**
-         * See {@link org.truffleruby.language.dispatch.DispatchNode#lookup}. The only way to fail if method is not null
-         * and not undefined is visibility.
-         */
+        /** See {@link org.truffleruby.language.dispatch.DispatchNode#lookup}. The only way to fail if method is not
+         * null and not undefined is visibility. */
         private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name,
                 FrameAndCallNode callerFrame) {
             final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.frame);

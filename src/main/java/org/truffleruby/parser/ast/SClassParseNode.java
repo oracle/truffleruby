@@ -37,15 +37,14 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-/**
- * Singleton class definition.
+/** Singleton class definition.
  *
  * <pre>
  * class &lt;&lt; anObject
  *
  * end
  * </pre>
- */
+*/
 public class SClassParseNode extends ParseNode {
     private final ParseNode receiverNode;
     private final StaticScope scope;
@@ -67,39 +66,31 @@ public class SClassParseNode extends ParseNode {
         return NodeType.SCLASSNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitSClassNode(this);
     }
 
-    /**
-     * Gets the body of this class.
+    /** Gets the body of this class.
      *
-     * @return the contents
-     */
+     * @return the contents */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Gets the scope of this class
+    /** Gets the scope of this class
      *
-     * @return the scope
-     */
+     * @return the scope */
     public StaticScope getScope() {
         return scope;
     }
 
-    /**
-     * Gets the receiverNode.
+    /** Gets the receiverNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getReceiverNode() {
         return receiverNode;
     }

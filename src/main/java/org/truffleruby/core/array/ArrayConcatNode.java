@@ -20,9 +20,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/**
- * Concatenate argument arrays (translating a org.jruby.ast.ArgsCatParseNode).
- */
+/** Concatenate argument arrays (translating a org.jruby.ast.ArgsCatParseNode). */
 public final class ArrayConcatNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] children;

@@ -69,20 +69,14 @@ public class ConvertBytes {
         }
     }
 
-    /**
-     * rb_cstr_to_inum
-     *
-     */
+    /** rb_cstr_to_inum */
 
     public static Object byteListToInum19(RubyContext context, Node node, FixnumOrBignumNode fixnumOrBignumNode,
             RopeNodes.BytesNode bytesNode, DynamicObject str, int base, boolean badcheck) {
         return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, base, badcheck).byteListToInum();
     }
 
-    /**
-     * conv_digit
-     *
-     */
+    /** conv_digit */
     private byte convertDigit(byte c) {
         if (c < 0) {
             return -1;
@@ -90,10 +84,7 @@ public class ConvertBytes {
         return conv_digit[c];
     }
 
-    /**
-     * ISSPACE
-     *
-     */
+    /** ISSPACE */
     private boolean isSpace(int str) {
         byte c;
         if (str == end || (c = data[str]) < 0) {
@@ -549,10 +540,7 @@ public class ConvertBytes {
         }
     }
 
-    /**
-     * rb_invalid_str
-     *
-     */
+    /** rb_invalid_str */
     private void invalidString() {
         throw new RaiseException(context, context.getCoreExceptions().argumentErrorInvalidStringToInteger(_str, node));
     }

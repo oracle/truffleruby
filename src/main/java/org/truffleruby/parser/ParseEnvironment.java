@@ -16,9 +16,7 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.ReturnID;
 
-/**
- * Translator environment, unique per parse/translation.
- */
+/** Translator environment, unique per parse/translation. */
 public class ParseEnvironment {
 
     private LexicalScope lexicalScope = null;

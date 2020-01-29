@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * represents '||' (or) statements
- */
+/** represents '||' (or) statements */
 public class OrParseNode extends ParseNode implements BinaryOperatorParseNode {
     private final ParseNode firstNode;
     private final ParseNode secondNode;
@@ -58,30 +56,24 @@ public class OrParseNode extends ParseNode implements BinaryOperatorParseNode {
         return NodeType.ORNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOrNode(this);
     }
 
-    /**
-     * Gets the firstNode.
+    /** Gets the firstNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getFirstNode() {
         return firstNode;
     }
 
-    /**
-     * Gets the secondNode.
+    /** Gets the secondNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getSecondNode() {
         return secondNode;
     }

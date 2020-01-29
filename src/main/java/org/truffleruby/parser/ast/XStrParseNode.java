@@ -40,9 +40,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * A Backtick(`) string
- */
+/** A Backtick(`) string */
 public class XStrParseNode extends ParseNode implements ILiteralNode {
     private final Rope value;
     private CodeRange coderange;
@@ -59,21 +57,17 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
         return NodeType.XSTRNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitXStrNode(this);
     }
 
-    /**
-     * Gets the value.
+    /** Gets the value.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public Rope getValue() {
         return value;
     }

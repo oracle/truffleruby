@@ -31,9 +31,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * This is a port of MRI's rb_cmpint, as taken from RubyComparable and broken out into specialized nodes.
- */
+/** This is a port of MRI's rb_cmpint, as taken from RubyComparable and broken out into specialized nodes. */
 public abstract class CmpIntNode extends RubyContextNode {
 
     public static CmpIntNode create() {

@@ -38,9 +38,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a method call with self as an implicit receiver.
- */
+/** Represents a method call with self as an implicit receiver. */
 public class FCallParseNode extends ParseNode implements INameNode, IArgumentNode, BlockAcceptingParseNode {
     private String name;
     protected ParseNode argsNode;
@@ -62,19 +60,15 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
         return NodeType.FCALLNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitFCallNode(this);
     }
 
-    /**
-     * Get the node that represents a block or a block variable.
-     */
+    /** Get the node that represents a block or a block variable. */
     public ParseNode getIterNode() {
         return iterNode;
     }
@@ -85,30 +79,24 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
         return this;
     }
 
-    /**
-     * Gets the argsNode.
+    /** Gets the argsNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getArgsNode() {
         return argsNode;
     }
 
-    /**
-     * Set the argsNode. Changes to parser means fcall is made before actual args are associated with fcall so we need a
-     * setter.
-     */
+    /** Set the argsNode. Changes to parser means fcall is made before actual args are associated with fcall so we need
+     * a setter. */
     public ParseNode setArgsNode(ParseNode argsNode) {
         this.argsNode = argsNode;
 
         return argsNode;
     }
 
-    /**
-     * Gets the name.
+    /** Gets the name.
      * 
-     * @return Returns a String
-     */
+     * @return Returns a String */
     public String getName() {
         return name;
     }

@@ -129,10 +129,8 @@ public abstract class ConditionVariableNodes {
             }
         }
 
-        /**
-         * This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for
-         * safepoints.
-         */
+        /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for
+         * safepoints. */
         @SuppressFBWarnings(value = "UL")
         private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, ReentrantLock condLock,
                 Condition condition, long endNanoTime) {

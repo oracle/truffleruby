@@ -32,9 +32,7 @@ package org.truffleruby.parser.ast;
 
 import org.truffleruby.language.SourceIndexLength;
 
-/**
- * Base class of any node which can be assigned to.
- */
+/** Base class of any node which can be assigned to. */
 public abstract class AssignableParseNode extends ParseNode {
     private ParseNode valueNode;
 
@@ -50,20 +48,16 @@ public abstract class AssignableParseNode extends ParseNode {
         this.valueNode = valueNode;
     }
 
-    /**
-     * Gets the valueNode.
+    /** Gets the valueNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getValueNode() {
         return valueNode;
     }
 
-    /**
-     * Sets the valueNode.
+    /** Sets the valueNode.
      * 
-     * @param valueNode The valueNode to set
-     */
+     * @param valueNode The valueNode to set */
     public void setValueNode(ParseNode valueNode) {
         this.valueNode = valueNode == null ? NilImplicitParseNode.NIL : valueNode;
     }

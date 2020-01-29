@@ -263,9 +263,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-/**
- * A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes.
- */
+/** A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes. */
 public class BodyTranslator extends Translator {
 
     protected final BodyTranslator parent;
@@ -872,14 +870,13 @@ public class BodyTranslator extends Translator {
         }
     }
 
-    /**
-     * Translates module and class nodes.
+    /** Translates module and class nodes.
      * <p>
      * In Ruby, a module or class definition is somewhat like a method. It has a local scope and a value for self, which
      * is the module or class object that is being defined. Therefore for a module or class definition we translate into
      * a special method. We run that method with self set to be the newly allocated module or class.
      * </p>
-     */
+    */
     private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, String name, ParseNode bodyNode,
             boolean sclass) {
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
@@ -1399,8 +1396,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitForNode(ForParseNode node) {
-        /**
-         * A Ruby for-loop, such as:
+        /** A Ruby for-loop, such as:
          *
          * <pre>
          * for x in y
@@ -1460,8 +1456,7 @@ public class BodyTranslator extends Translator {
          * which we recognise when visiting an iter node.
          *
          * Finally, note that JRuby's terminology is strange here. Normally 'iter' is a different term for a block.
-         * Here, JRuby calls the object being iterated over the 'iter'.
-         */
+         * Here, JRuby calls the object being iterated over the 'iter'. */
 
         final String temp = environment.allocateLocalTemp("for");
 

@@ -37,9 +37,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a range literal.
- */
+/** Represents a range literal. */
 public class DotParseNode extends ParseNode {
     private final ParseNode beginNode;
     private final ParseNode endNode;
@@ -68,49 +66,39 @@ public class DotParseNode extends ParseNode {
         return NodeType.DOTNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDotNode(this);
     }
 
-    /**
-     * Gets the beginNode.
+    /** Gets the beginNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getBeginNode() {
         return beginNode;
     }
 
-    /**
-     * Gets the endNode.
+    /** Gets the endNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getEndNode() {
         return endNode;
     }
 
-    /**
-     * Gets the exclusive.
+    /** Gets the exclusive.
      * 
-     * @return Returns a boolean
-     */
+     * @return Returns a boolean */
     public boolean isExclusive() {
         return exclusive;
     }
 
-    /**
-     * Is this a literal node. MRI has a literal node type and we currently don't. We provide this attribute so we can
+    /** Is this a literal node. MRI has a literal node type and we currently don't. We provide this attribute so we can
      * detect that this should be a literal to match MRI semantics of literal DOT nodes.
      *
-     * @return true is literal
-     */
+     * @return true is literal */
     public boolean isLiteral() {
         return isLiteral;
     }

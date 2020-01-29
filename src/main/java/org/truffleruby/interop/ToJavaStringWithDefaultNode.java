@@ -16,9 +16,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
-/**
- * Convert a Ruby String or Symbol to a Java string, or return a default string if a value was not provided.
- */
+/** Convert a Ruby String or Symbol to a Java string, or return a default string if a value was not provided. */
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode {
 

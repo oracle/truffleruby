@@ -28,10 +28,7 @@ package org.truffleruby.parser.ast;
 
 import org.truffleruby.language.SourceIndexLength;
 
-/**
- *
- * @author enebo
- */
+/** @author enebo */
 public class Colon2ConstParseNode extends Colon2ParseNode {
     public Colon2ConstParseNode(SourceIndexLength position, ParseNode leftNode, String name) {
         super(position, leftNode, name);

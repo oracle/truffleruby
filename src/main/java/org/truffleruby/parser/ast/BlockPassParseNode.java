@@ -36,19 +36,15 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Explicit block argument (on caller side): foobar(1, 2, &foo) foobar(1, 2,
+/** Explicit block argument (on caller side): foobar(1, 2, &foo) foobar(1, 2,
  * &lhs_which_returns_something_block/proc_like)
  *
- * bodyNode is any expression which can return something which is ultimately coercible to a proc.
- */
+ * bodyNode is any expression which can return something which is ultimately coercible to a proc. */
 public class BlockPassParseNode extends ParseNode {
     private final ParseNode bodyNode;
 
-    /**
-     * Used by the arg_blk_pass and new_call, new_fcall and new_super methods in ParserSupport to temporary save the
-     * args node. This should not be used directly by compiler or interpreter.
-     */
+    /** Used by the arg_blk_pass and new_call, new_fcall and new_super methods in ParserSupport to temporary save the
+     * args node. This should not be used directly by compiler or interpreter. */
     private ParseNode argsNode;
 
     public BlockPassParseNode(SourceIndexLength position, ParseNode bodyNode) {
@@ -61,39 +57,31 @@ public class BlockPassParseNode extends ParseNode {
         return NodeType.BLOCKPASSNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBlockPassNode(this);
     }
 
-    /**
-     * Gets the bodyNode.
+    /** Gets the bodyNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Gets the argsNode.
+    /** Gets the argsNode.
      * 
-     * @return Returns a IListNode
-     */
+     * @return Returns a IListNode */
     public ParseNode getArgsNode() {
         return argsNode;
     }
 
-    /**
-     * Sets the argsNode.
+    /** Sets the argsNode.
      * 
-     * @param argsNode The argsNode to set
-     */
+     * @param argsNode The argsNode to set */
     public void setArgsNode(ParseNode argsNode) {
         this.argsNode = argsNode;
     }

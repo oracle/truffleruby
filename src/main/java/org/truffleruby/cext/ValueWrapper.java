@@ -20,10 +20,8 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/**
- * This object represents a VALUE in C which wraps the raw Ruby object. This allows foreign access methods to be set up
- * which convert these value wrappers to native pointers without affecting the semantics of the wrapped objects.
- */
+/** This object represents a VALUE in C which wraps the raw Ruby object. This allows foreign access methods to be set up
+ * which convert these value wrappers to native pointers without affecting the semantics of the wrapped objects. */
 @ExportLibrary(InteropLibrary.class)
 public class ValueWrapper implements TruffleObject {
 

@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-/**
- * Represents a block.
- */
+/** Represents a block. */
 public class IterParseNode extends ParseNode implements DefNode {
     private final ParseNode varNode;
     private final ParseNode bodyNode;
@@ -47,10 +45,8 @@ public class IterParseNode extends ParseNode implements DefNode {
     // What static scoping relationship exists when it comes into being.
     private StaticScope scope;
 
-    /**
-     * Used by Truffle 'for' and by ForParseNode only. This is to support 1.8-style assignments which only 'for'
-     * expressions use.
-     */
+    /** Used by Truffle 'for' and by ForParseNode only. This is to support 1.8-style assignments which only 'for'
+     * expressions use. */
     public IterParseNode(SourceIndexLength position, ParseNode args, StaticScope scope, ParseNode body) {
         super(position);
 
@@ -59,9 +55,7 @@ public class IterParseNode extends ParseNode implements DefNode {
         this.bodyNode = body;
     }
 
-    /**
-     * Used for all non-for types of blocks.
-     */
+    /** Used for all non-for types of blocks. */
     public IterParseNode(SourceIndexLength position, ArgsParseNode args, ParseNode body, StaticScope scope) {
         super(position);
 
@@ -75,11 +69,9 @@ public class IterParseNode extends ParseNode implements DefNode {
         return NodeType.ITERNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitIterNode(this);
@@ -94,20 +86,16 @@ public class IterParseNode extends ParseNode implements DefNode {
         return scope;
     }
 
-    /**
-     * Gets the bodyNode.
+    /** Gets the bodyNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Gets the varNode.
+    /** Gets the varNode.
      * 
-     * @return Returns a ParseNode
-     */
+     * @return Returns a ParseNode */
     public ParseNode getVarNode() {
         return varNode;
     }

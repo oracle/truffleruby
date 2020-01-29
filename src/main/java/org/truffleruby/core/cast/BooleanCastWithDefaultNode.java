@@ -17,9 +17,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Casts a value into a boolean and defaults to the given value if not provided.
- */
+/** Casts a value into a boolean and defaults to the given value if not provided. */
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class BooleanCastWithDefaultNode extends RubyContextSourceNode {
 

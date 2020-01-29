@@ -20,20 +20,14 @@ public @interface Primitive {
 
     String name();
 
-    /**
-     * Try to lower argument <code>i</code> (starting at 0) to an int if its value is a long. The argument at 0 is
-     * usually the <code>receiver</code>.
-     */
+    /** Try to lower argument <code>i</code> (starting at 0) to an int if its value is a long. The argument at 0 is
+     * usually the <code>receiver</code>. */
     int[] lowerFixnum() default {};
 
-    /**
-     * Raise an error if any of the arguments with a given index is frozen. Indexation is same as for
-     * {@link #lowerFixnum()}.
-     */
+    /** Raise an error if any of the arguments with a given index is frozen. Indexation is same as for
+     * {@link #lowerFixnum()}. */
     int[] raiseIfFrozen() default {};
 
-    /**
-     * Use these names in Ruby core methods stubs, ignore argument names in Java specializations.
-     */
+    /** Use these names in Ruby core methods stubs, ignore argument names in Java specializations. */
     String[] argumentNames() default {};
 }

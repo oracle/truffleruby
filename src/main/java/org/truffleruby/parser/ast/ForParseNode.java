@@ -37,12 +37,10 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-/**
- * A 'for' statement. This is implemented using iter and that is how MRI does things, but 'for's do not have their own
+/** A 'for' statement. This is implemented using iter and that is how MRI does things, but 'for's do not have their own
  * stack, so doing this way is mildly painful.
  *
- * @see IterParseNode
- */
+ * @see IterParseNode */
 public class ForParseNode extends IterParseNode {
     private ParseNode iterNode;
 
@@ -77,11 +75,9 @@ public class ForParseNode extends IterParseNode {
         return iterNode;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitForNode(this);

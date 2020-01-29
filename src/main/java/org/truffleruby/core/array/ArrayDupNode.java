@@ -24,9 +24,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class.
- */
+/** Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class. */
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayDupNode extends RubyContextNode {
 

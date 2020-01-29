@@ -18,11 +18,9 @@ import org.truffleruby.core.adapters.OutputStreamAdapter;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * A simple file descriptor -> IO stream class.
+/** A simple file descriptor -> IO stream class.
  *
- * STDIO FDs will map to the polyglot STDIO streams. For all other IO, a valid Ruby IO object must be provided.
- */
+ * STDIO FDs will map to the polyglot STDIO streams. For all other IO, a valid Ruby IO object must be provided. */
 public class IoStream {
 
     private final RubyContext context;

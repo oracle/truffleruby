@@ -36,9 +36,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an array. This could be an array literal, quoted words or some args stuff.
- */
+/** Represents an array. This could be an array literal, quoted words or some args stuff. */
 public class ArrayParseNode extends ListParseNode implements ILiteralNode {
     public ArrayParseNode(SourceIndexLength position, ParseNode firstNode) {
         super(position, firstNode);
@@ -55,11 +53,9 @@ public class ArrayParseNode extends ListParseNode implements ILiteralNode {
         return NodeType.ARRAYNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitArrayNode(this);

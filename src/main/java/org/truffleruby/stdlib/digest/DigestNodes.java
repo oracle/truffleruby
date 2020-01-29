@@ -179,8 +179,7 @@ public abstract class DigestNodes {
             return makeStringNode.executeMake(bubblebabbleBytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
-        /**
-         * Ported from OpenSSH
+        /** Ported from OpenSSH
          * (https://github.com/openssh/openssh-portable/blob/957fbceb0f3166e41b76fdb54075ab3b9cc84cba/sshkey.c#L942-
          * L987)
          *
@@ -201,8 +200,7 @@ public abstract class DigestNodes {
          * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
          * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
          * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-         * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-         */
+         * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
         public static ByteArrayBuilder bubblebabble(byte[] message, int begin, int length) {
             char[] vowels = new char[]{ 'a', 'e', 'i', 'o', 'u', 'y' };
             char[] consonants = new char[]{

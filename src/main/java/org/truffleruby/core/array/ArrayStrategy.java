@@ -47,10 +47,8 @@ public abstract class ArrayStrategy {
         throw unsupported();
     }
 
-    /**
-     * When the strategy {@link #matches(DynamicObject)} an Array, this can be used to see if the given value can be
-     * written in the Array without generalizing the storage.
-     */
+    /** When the strategy {@link #matches(DynamicObject)} an Array, this can be used to see if the given value can be
+     * written in the Array without generalizing the storage. */
     public abstract boolean accepts(Object value);
 
     public abstract boolean isPrimitive();
@@ -91,10 +89,8 @@ public abstract class ArrayStrategy {
 
     protected abstract Iterable<Object> getIterableFrom(Object array, int from, int length);
 
-    /**
-     * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of array storage
-     * needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
-     */
+    /** Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of array storage
+     * needed to store this value (so e.g., Object[] specializesFor non-int/long/double). */
     public boolean specializesFor(Object value) {
         throw unsupported();
     }
@@ -218,9 +214,7 @@ public abstract class ArrayStrategy {
         return NativeArrayStrategy.INSTANCE;
     }
 
-    /**
-     * Use together with {@link #specializesFor(Object)}, not {@link #accepts(Object)}.
-     */
+    /** Use together with {@link #specializesFor(Object)}, not {@link #accepts(Object)}. */
     @TruffleBoundary
     public static ArrayStrategy forValue(Object value) {
         if (value instanceof Integer) {

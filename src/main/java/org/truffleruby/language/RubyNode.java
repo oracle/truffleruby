@@ -34,12 +34,10 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-/**
- * RubyNode has source, execute, and is instrument-able. However, it does not have any fields which would prevent
+/** RubyNode has source, execute, and is instrument-able. However, it does not have any fields which would prevent
  * using @GenerateUncached. It should never be subclassed directly, either use {@link RubyContextSourceNode} or
  * {@link RubySourceNode}. SourceRubyNode is not defined since there was no use for it for now. Nodes having context are
- * described by {@link WithContext}. There is also {@link RubyContextNode} if context is needed but source is not.
- */
+ * described by {@link WithContext}. There is also {@link RubyContextNode} if context is needed but source is not. */
 @GenerateWrapper
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
@@ -56,10 +54,8 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     // Fundamental execute methods
     abstract public Object execute(VirtualFrame frame);
 
-    /**
-     * This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of this
-     * method which would increase the number of runtime compilable methods.
-     */
+    /** This method does not start with "execute" on purpose, so the Truffle DSL does not generate useless copies of
+     * this method which would increase the number of runtime compilable methods. */
     public void doExecuteVoid(VirtualFrame frame) {
         execute(frame);
     }

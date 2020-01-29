@@ -22,8 +22,7 @@ import org.truffleruby.parser.TranslatorEnvironment;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * We inline basic operations as it makes little sense to compile them in isolation without the surrounding method and
+/** We inline basic operations as it makes little sense to compile them in isolation without the surrounding method and
  * it delays more interesting compilations by filling the compilation queue. The performance in interpreter is typically
  * also improved, making inlined basic operations an optimization useful mostly for warmup. The choice of inlining a
  * basic operation is based on running benchmarks and observing which basic operations methods are compiled early.
@@ -39,8 +38,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * {@link ModuleFields#registerAssumption(String)}). In such cases the method must be public as we do not check
  * visibility.</li>
  * <li>Otherwise, we need to do a method lookup and verify the method that would be called is the standard definition we
- * expect.</li>
- */
+ * expect.</li> */
 public class CoreMethods {
 
     private final RubyContext context;

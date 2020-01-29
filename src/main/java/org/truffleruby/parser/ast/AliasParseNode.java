@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an alias statement (<code>alias newName oldName</code>).
- */
+/** Represents an alias statement (<code>alias newName oldName</code>). */
 public class AliasParseNode extends ParseNode {
     private ParseNode oldName;
     private ParseNode newName;
@@ -54,30 +52,24 @@ public class AliasParseNode extends ParseNode {
         return NodeType.ALIASNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
+    /** Accept for the visitor pattern.
      * 
-     * @param iVisitor the visitor
-     **/
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitAliasNode(this);
     }
 
-    /**
-     * Gets the newName.
+    /** Gets the newName.
      * 
-     * @return the newName as in the alias statement : <code> alias <b>newName</b> oldName </code>
-     */
+     * @return the newName as in the alias statement : <code> alias <b>newName</b> oldName </code> */
     public ParseNode getNewName() {
         return newName;
     }
 
-    /**
-     * Gets the oldName.
+    /** Gets the oldName.
      * 
-     * @return the oldName as in the alias statement : <code> alias newName <b>oldName</b></code>
-     */
+     * @return the oldName as in the alias statement : <code> alias newName <b>oldName</b></code> */
     public ParseNode getOldName() {
         return oldName;
     }
