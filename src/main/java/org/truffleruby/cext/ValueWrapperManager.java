@@ -116,7 +116,7 @@ public class ValueWrapperManager {
         if (size > map.length) {
             Object[] newMap = new Object[size];
             if (map.length > 0) {
-                System.arraycopy(map, 0, newMap, 0, size - 1);
+                System.arraycopy(map, 0, newMap, 0, map.length);
             }
             map = newMap;
         }
