@@ -170,6 +170,7 @@ module Kernel
   module_function :` # `
 
   def =~(other)
+    warn "deprecated Object#=~ is called on #{self.class}; it always returns nil", uplevel: 1 if $VERBOSE
     nil
   end
 
