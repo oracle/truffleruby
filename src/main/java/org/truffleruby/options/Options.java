@@ -136,6 +136,8 @@ public class Options {
     public final boolean GETS_LOOP;
     /** --print-loop=false */
     public final boolean PRINT_LOOP;
+    /** --split-loop=false */
+    public final boolean SPLIT_LOOP;
     /** --ignore-lines-before-ruby-shebang=false */
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     /** --syntax-check=false */
@@ -327,6 +329,7 @@ public class Options {
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
         GETS_LOOP = options.get(OptionsCatalog.GETS_LOOP_KEY);
         PRINT_LOOP = options.get(OptionsCatalog.PRINT_LOOP_KEY);
+        SPLIT_LOOP = options.get(OptionsCatalog.SPLIT_LOOP_KEY);
         IGNORE_LINES_BEFORE_RUBY_SHEBANG = options.get(OptionsCatalog.IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY);
         SYNTAX_CHECK = options.get(OptionsCatalog.SYNTAX_CHECK_KEY);
         ARGV_GLOBAL_VALUES = options.get(OptionsCatalog.ARGV_GLOBAL_VALUES_KEY);
@@ -511,6 +514,8 @@ public class Options {
                 return GETS_LOOP;
             case "ruby.print-loop":
                 return PRINT_LOOP;
+            case "ruby.split-loop":
+                return SPLIT_LOOP;
             case "ruby.ignore-lines-before-ruby-shebang":
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax-check":

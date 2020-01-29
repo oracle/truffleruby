@@ -1,2 +1,2 @@
-fails:The -a command line option runs the code in loop conditional on Kernel.gets()
-fails:The -a command line option sets $-a
+slow:The -a command line option runs the code in loop conditional on Kernel.gets()
+slow:The -a command line option sets $-a
