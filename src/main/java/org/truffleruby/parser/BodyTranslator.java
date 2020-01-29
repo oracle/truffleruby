@@ -1709,7 +1709,7 @@ public class BodyTranslator extends Translator {
         // About every case will use a SelfParseNode, just don't it use more than once.
         final SelfNode self = new SelfNode(environment.getFrameDescriptor());
 
-        final RubyNode ret = new ReadInstanceVariableNode(name, self);
+        final RubyNode ret = new ReadInstanceVariableNode(name, self, true);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
@@ -2533,7 +2533,9 @@ public class BodyTranslator extends Translator {
         RubyNode rhs = node.getSecondNode().accept(this);
 
         // This is needed for class variables. Constants are handled separately in visitOpAsgnConstDeclNode.
-        if (node.getFirstNode().needsDefinitionCheck() && !(node.getFirstNode() instanceof InstVarParseNode)) {
+        // It is also needed for instance variables to prevent attempted read which may trigger "not initialized"
+        // warnings unintentionally.
+        if (node.getFirstNode().needsDefinitionCheck()) {
             RubyNode defined = new DefinedNode(lhs);
             lhs = new AndNode(defined, lhs);
         }

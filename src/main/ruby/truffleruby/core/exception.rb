@@ -166,17 +166,6 @@ class ZeroDivisionError < StandardError
 end
 
 class ArgumentError < StandardError
-  def to_s
-    if @given and @expected
-      if @method_name
-        "method '#{@method_name}': given #{@given}, expected #{@expected}"
-      else
-        "given #{@given}, expected #{@expected}"
-      end
-    else
-      super
-    end
-  end
 end
 
 class UncaughtThrowError < ArgumentError

@@ -26,6 +26,7 @@ Compatibility:
 * Implemented `Float#truncate` with `ndigits` argument.
 
 * Implemented `-p` CLI option.
+* Implemented "instance variable not initialized" warning.
 
 Performance:
 

@@ -515,6 +515,7 @@ module Marshal
       @has_ivar = []
       @proc = proc
       @call = true
+      @user_class = nil
     end
 
     def const_lookup(name, type = nil)
