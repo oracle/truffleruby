@@ -61,6 +61,7 @@ public class YieldParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -70,6 +71,7 @@ public class YieldParseNode extends ParseNode {
 
     /**
      * Gets the argsNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getArgsNode() {

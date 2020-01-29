@@ -474,11 +474,9 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         if (!src.isFromRope() && !isUTF8Subset(newEncoding)) {
-            /*
-             * The source we are lexing came in via a String (or Reader, or File) from the Polyglot API, so we only
-             * have the String - we don't have any access to the original bytes, so we cannot re-interpret them
-             * in another encoding without risking errors.
-             */
+            /* The source we are lexing came in via a String (or Reader, or File) from the Polyglot API, so we only have
+             * the String - we don't have any access to the original bytes, so we cannot re-interpret them in another
+             * encoding without risking errors. */
 
             final String description;
 
@@ -831,9 +829,9 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     /**
-     *  Returns the next token. Also sets yyVal is needed.
+     * Returns the next token. Also sets yyVal is needed.
      *
-     *@return    Description of the Returned Value
+     * @return Description of the Returned Value
      */
     @SuppressWarnings("fallthrough")
     private int yylex() {
@@ -1183,8 +1181,8 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     /**
-     * Peak in source to see if there is a magic comment. This is used by eval() & friends to know
-     * the actual encoding of the source code, and be able to convert to a Java String faithfully.
+     * Peak in source to see if there is a magic comment. This is used by eval() & friends to know the actual encoding
+     * of the source code, and be able to convert to a Java String faithfully.
      */
     public static void parseMagicComment(Rope source, BiConsumer<String, Rope> magicCommentHandler) {
         final byte[] bytes = source.getBytes();
@@ -1373,8 +1371,7 @@ public class RubyLexer implements MagicCommentHandler {
         }
     }
 
-    /* MRI: magic_comment_marker
-     * Find -*-, as in emacs "file local variable" (special comment at the top of the file) */
+    /* MRI: magic_comment_marker Find -*-, as in emacs "file local variable" (special comment at the top of the file) */
     private static int findEmacsStyleMarker(Rope str, int begin, int end) {
         final byte[] bytes = str.getBytes();
         int i = begin;
@@ -2201,11 +2198,7 @@ public class RubyLexer implements MagicCommentHandler {
                     case '\t':
                         c2 = 't';
                         break;
-                    /* What is \v in C?
-                    case '\v':
-                    c2 = 'v';
-                    break;
-                    */
+                    /* What is \v in C? case '\v': c2 = 'v'; break; */
                     case '\r':
                         c2 = 'r';
                         break;
@@ -2406,10 +2399,10 @@ public class RubyLexer implements MagicCommentHandler {
     private ByteArrayBuilder numberBuffer = new ByteArrayBuilder(); // ascii is good enough.
 
     /**
-     *  Parse a number from the input stream.
+     * Parse a number from the input stream.
      *
-     *@param c The first character of the number.
-     *@return A int constant wich represents a token.
+     * @param c The first character of the number.
+     * @return A int constant wich represents a token.
      */
     @SuppressWarnings("fallthrough")
     private int parseNumber(int c) {
@@ -2782,10 +2775,9 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     /**
-     * Read up to count hexadecimal digits and store those digits in a token numberBuffer.  If strict is
-     * provided then count number of hex digits must be present. If no digits can be read a syntax
-     * exception will be thrown.  This will also return the codepoint as a value so codepoint
-     * ranges can be checked.
+     * Read up to count hexadecimal digits and store those digits in a token numberBuffer. If strict is provided then
+     * count number of hex digits must be present. If no digits can be read a syntax exception will be thrown. This will
+     * also return the codepoint as a value so codepoint ranges can be checked.
      */
     private char scanHexLiteral(RopeBuilder buffer, int count, boolean strict, String errorMessage) {
         int i = 0;
@@ -2814,8 +2806,8 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     /**
-     * Read up to count hexadecimal digits.  If strict is provided then count number of hex
-     * digits must be present. If no digits can be read a syntax exception will be thrown.
+     * Read up to count hexadecimal digits. If strict is provided then count number of hex digits must be present. If no
+     * digits can be read a syntax exception will be thrown.
      */
     private int scanHex(int count, boolean strict, String errorMessage) {
         int i = 0;
@@ -3071,7 +3063,7 @@ public class RubyLexer implements MagicCommentHandler {
      * @param c is character to be compared
      * @return whether c is an identifier or not
      *
-     * mri: is_identchar
+     *         mri: is_identchar
      */
     public boolean isIdentifierChar(int c) {
         return c != EOF && (Character.isLetterOrDigit(c) || c == '_' || !isASCII(c));
@@ -3404,14 +3396,13 @@ public class RubyLexer implements MagicCommentHandler {
 
     // mri: parser_tokadd_mbchar
     /**
-     * This differs from MRI in a few ways.  This version does not apply value to a separate token buffer.
-     * It is for use when we know we will not be omitting or including ant non-syntactical characters.  Use
-     * tokadd_mbchar(int, ByteArrayView) if the string differs from actual source.  Secondly, this returns a boolean
-     * instead of the first byte passed.  MRI only used the return value as a success/failure code to return
-     * EOF.
+     * This differs from MRI in a few ways. This version does not apply value to a separate token buffer. It is for use
+     * when we know we will not be omitting or including ant non-syntactical characters. Use tokadd_mbchar(int,
+     * ByteArrayView) if the string differs from actual source. Secondly, this returns a boolean instead of the first
+     * byte passed. MRI only used the return value as a success/failure code to return EOF.
      *
-     * Because this version does not use a separate token buffer we only just increment lex_p.  When we reach
-     * end of the token it will just get the bytes directly from source directly.
+     * Because this version does not use a separate token buffer we only just increment lex_p. When we reach end of the
+     * token it will just get the bytes directly from source directly.
      */
     public boolean tokadd_mbchar(int firstByte) {
         int length = precise_mbclen();
@@ -3445,9 +3436,8 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     /**
-     *  This looks deceptively like tokadd_mbchar(int, ByteArrayView) but it differs in that it uses
-     *  the bytelists encoding and the first parameter is a full codepoint and not the first byte
-     *  of a mbc sequence.
+     * This looks deceptively like tokadd_mbchar(int, ByteArrayView) but it differs in that it uses the bytelists
+     * encoding and the first parameter is a full codepoint and not the first byte of a mbc sequence.
      */
     public void tokaddmbc(int codepoint, RopeBuilder buffer) {
         Encoding encoding = buffer.getEncoding();

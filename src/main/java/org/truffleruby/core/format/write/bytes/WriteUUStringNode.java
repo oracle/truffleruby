@@ -19,8 +19,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /**
- * Read a string that contains UU-encoded data and write as actual binary
- * data.
+ * Read a string that contains UU-encoded data and write as actual binary data.
  */
 @NodeChild("value")
 public abstract class WriteUUStringNode extends FormatNode {

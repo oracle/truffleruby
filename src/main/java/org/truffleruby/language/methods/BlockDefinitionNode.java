@@ -24,8 +24,8 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /**
- * Create a Ruby Proc to pass as a block to the called method. The literal block is represented as
- * call targets and a SharedMethodInfo. This is executed at the call site just before dispatch.
+ * Create a Ruby Proc to pass as a block to the called method. The literal block is represented as call targets and a
+ * SharedMethodInfo. This is executed at the call site just before dispatch.
  */
 public class BlockDefinitionNode extends RubyContextSourceNode {
 

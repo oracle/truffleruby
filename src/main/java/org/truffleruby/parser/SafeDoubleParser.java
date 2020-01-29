@@ -36,8 +36,7 @@ final public class SafeDoubleParser extends SafeDecimalParser {
     /**
      * Safe way of parsing a Double value from a String
      * 
-     * @param s
-     *            The input String
+     * @param s The input String
      * @return the Double value
      */
     public static Double valueOf(String s) {
@@ -47,8 +46,7 @@ final public class SafeDoubleParser extends SafeDecimalParser {
     /**
      * Safe way of parsing a Double value from a String
      * 
-     * @param s
-     *            The input String
+     * @param s The input String
      * @return the Double value
      */
     public static Double parseDouble(String s) {

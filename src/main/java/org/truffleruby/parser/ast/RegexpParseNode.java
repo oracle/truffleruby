@@ -77,6 +77,7 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
 
     /**
      * Gets the value.
+     * 
      * @return Returns a Rope
      */
     public Rope getValue() {

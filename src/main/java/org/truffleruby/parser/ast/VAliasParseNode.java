@@ -56,6 +56,7 @@ public class VAliasParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -65,6 +66,7 @@ public class VAliasParseNode extends ParseNode {
 
     /**
      * Gets the newName.
+     * 
      * @return Returns a String
      */
     public String getNewName() {
@@ -73,6 +75,7 @@ public class VAliasParseNode extends ParseNode {
 
     /**
      * Gets the oldName.
+     * 
      * @return Returns a String
      */
     public String getOldName() {

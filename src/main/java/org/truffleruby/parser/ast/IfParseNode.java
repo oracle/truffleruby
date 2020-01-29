@@ -62,6 +62,7 @@ public class IfParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -71,6 +72,7 @@ public class IfParseNode extends ParseNode {
 
     /**
      * Gets the condition.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getCondition() {
@@ -79,6 +81,7 @@ public class IfParseNode extends ParseNode {
 
     /**
      * Gets the elseBody.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getElseBody() {
@@ -87,6 +90,7 @@ public class IfParseNode extends ParseNode {
 
     /**
      * Gets the thenBody.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getThenBody() {

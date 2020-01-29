@@ -82,6 +82,7 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param visitor the visitor
      **/
     @Override
@@ -90,8 +91,8 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
     }
 
     /**
-     * Gets the name.
-     * name is the name of the method called
+     * Gets the name. name is the name of the method called
+     * 
      * @return name
      */
     public String getName() {
@@ -99,8 +100,8 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
     }
 
     /**
-     * Gets the receiverNode.
-     * receiverNode is the object on which the method is being called
+     * Gets the receiverNode. receiverNode is the object on which the method is being called
+     * 
      * @return receiverNode
      */
     public ParseNode getReceiverNode() {
@@ -108,8 +109,8 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
     }
 
     /**
-     * Gets the argsNode.
-     * argsNode representing the method's arguments' value for this call.
+     * Gets the argsNode. argsNode representing the method's arguments' value for this call.
+     * 
      * @return argsNode
      */
     public ParseNode getArgsNode() {

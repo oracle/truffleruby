@@ -88,17 +88,14 @@ public class TryNode extends RubyContextSourceNode {
                 }
 
                 if (canOmitBacktrace) {
-                    /* If we're in this branch, we've already determined that the rescue body doesn't access `$!`.
-                     * Thus, we can safely skip writing that value. Writing to `$!` is quite expensive, so we want
-                     * to avoid it wherever we can.
-                     */
+                    /* If we're in this branch, we've already determined that the rescue body doesn't access `$!`. Thus,
+                     * we can safely skip writing that value. Writing to `$!` is quite expensive, so we want to avoid it
+                     * wherever we can. */
                     return rescue.execute(frame);
                 } else {
-                    /*
-                     * We materialize the backtrace eagerly here, as the exception is being rescued and
-                     * therefore the exception is no longer being thrown on the exception path and the
-                     * lazy stacktrace is no longer filled.
-                     */
+                    /* We materialize the backtrace eagerly here, as the exception is being rescued and therefore the
+                     * exception is no longer being thrown on the exception path and the lazy stacktrace is no longer
+                     * filled. */
                     TruffleStackTrace.fillIn(exception);
 
                     CompilerAsserts.partialEvaluationConstant(rescue);

@@ -37,11 +37,8 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
- *  Regexp back reference:
- *    - $&amp; last successful match
- *    - $+ highest numbered group matched in last successful match.
- *    - $` what precedes the last successful match
- *    - $' what follows the last successful match
+ * Regexp back reference: - $&amp; last successful match - $+ highest numbered group matched in last successful match. -
+ * $` what precedes the last successful match - $' what follows the last successful match
  */
 public class BackRefParseNode extends ParseNode {
     /**
@@ -61,6 +58,7 @@ public class BackRefParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override

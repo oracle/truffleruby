@@ -55,6 +55,7 @@ public class ConstParseNode extends ParseNode implements INameNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -64,6 +65,7 @@ public class ConstParseNode extends ParseNode implements INameNode {
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {

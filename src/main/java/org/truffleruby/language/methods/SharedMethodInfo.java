@@ -19,8 +19,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
- * {@link InternalMethod} objects are copied as properties such as visibility are changed.
- * {@link SharedMethodInfo} stores the state that does not change, such as where the method was defined.
+ * {@link InternalMethod} objects are copied as properties such as visibility are changed. {@link SharedMethodInfo}
+ * stores the state that does not change, such as where the method was defined.
  */
 public class SharedMethodInfo {
 
@@ -29,8 +29,8 @@ public class SharedMethodInfo {
     private final Arity arity;
     @CompilationFinal private DynamicObject definitionModule;
     /**
-     * The original name of the method. Does not change when aliased.
-     * This is the name shown in backtraces: "from FILE:LINE:in `NAME'".
+     * The original name of the method. Does not change when aliased. This is the name shown in backtraces:
+     * "from FILE:LINE:in `NAME'".
      */
     private final String name;
     private final int blockDepth;
@@ -118,8 +118,8 @@ public class SharedMethodInfo {
     }
 
     /**
-     * A more complete name than just <code>this.name</code>, for tooling, to easily identify what a
-     * RubyRootNode corresponds to.
+     * A more complete name than just <code>this.name</code>, for tooling, to easily identify what a RubyRootNode
+     * corresponds to.
      */
     public String getModuleAndMethodName() {
         if (blockDepth > 0) {

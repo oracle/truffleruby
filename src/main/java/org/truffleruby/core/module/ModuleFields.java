@@ -88,8 +88,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     private final ConcurrentMap<String, Object> classVariables = new ConcurrentHashMap<>();
 
     /**
-     * The refinements (calls to Module#refine) nested under/contained in this namespace module (M).
-     * Represented as a map of refined classes (C) to refinement modules (R).
+     * The refinements (calls to Module#refine) nested under/contained in this namespace module (M). Represented as a
+     * map of refined classes (C) to refinement modules (R).
      */
     private final ConcurrentMap<DynamicObject, DynamicObject> refinements = new ConcurrentHashMap<>();
 
@@ -463,8 +463,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     /**
-     * Also searches on Object for modules.
-     * Used for alias_method, visibility changes, etc.
+     * Also searches on Object for modules. Used for alias_method, visibility changes, etc.
      */
     @TruffleBoundary
     public InternalMethod deepMethodSearch(RubyContext context, String name) {
@@ -788,9 +787,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     /**
-     * Registers an Assumption for a given method name, which is invalidated when a method with same
-     * name is defined or undefined in this class or when a module is prepended to this class.
-     * This does not check re-definitions in subclasses.
+     * Registers an Assumption for a given method name, which is invalidated when a method with same name is defined or
+     * undefined in this class or when a module is prepended to this class. This does not check re-definitions in
+     * subclasses.
      */
     public Assumption registerAssumption(String methodName) {
         assert context.getCoreLibrary().isInitializing();

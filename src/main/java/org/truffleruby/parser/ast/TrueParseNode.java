@@ -52,6 +52,7 @@ public class TrueParseNode extends ParseNode implements INameNode, SideEffectFre
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override

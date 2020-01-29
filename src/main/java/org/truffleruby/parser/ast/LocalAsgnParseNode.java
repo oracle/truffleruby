@@ -62,6 +62,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -78,6 +79,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
 
     /**
      * Change the name of this local assignment (for refactoring)
+     * 
      * @param name
      */
     public void setName(String name) {
@@ -94,8 +96,7 @@ public class LocalAsgnParseNode extends AssignableParseNode implements INameNode
     }
 
     /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
+     * Gets the index within the scope construct that actually holds the eval'd value of this local variable
      *
      * @return Returns an int offset into storage structure
      */

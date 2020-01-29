@@ -72,6 +72,7 @@ public class FlipParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -80,8 +81,8 @@ public class FlipParseNode extends ParseNode {
     }
 
     /**
-     * Gets the beginNode.
-     * beginNode will set the FlipFlop the first time it is true
+     * Gets the beginNode. beginNode will set the FlipFlop the first time it is true
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getBeginNode() {
@@ -89,8 +90,8 @@ public class FlipParseNode extends ParseNode {
     }
 
     /**
-     * Gets the endNode.
-     * endNode will reset the FlipFlop when it is true while the FlipFlop is set.
+     * Gets the endNode. endNode will reset the FlipFlop when it is true while the FlipFlop is set.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getEndNode() {
@@ -99,6 +100,7 @@ public class FlipParseNode extends ParseNode {
 
     /**
      * Gets the exclusive.
+     * 
      * @return if the range is a 2 dot range it is false if it is a three dot it is true
      */
     public boolean isExclusive() {
@@ -115,8 +117,7 @@ public class FlipParseNode extends ParseNode {
     }
 
     /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
+     * Gets the index within the scope construct that actually holds the eval'd value of this local variable
      *
      * @return Returns an int offset into storage structure
      */

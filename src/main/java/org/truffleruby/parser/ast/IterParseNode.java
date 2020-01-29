@@ -48,8 +48,8 @@ public class IterParseNode extends ParseNode implements DefNode {
     private StaticScope scope;
 
     /**
-     *  Used by Truffle 'for' and by ForParseNode only.
-     * This is to support 1.8-style assignments which only 'for' expressions use.
+     * Used by Truffle 'for' and by ForParseNode only. This is to support 1.8-style assignments which only 'for'
+     * expressions use.
      */
     public IterParseNode(SourceIndexLength position, ParseNode args, StaticScope scope, ParseNode body) {
         super(position);
@@ -77,6 +77,7 @@ public class IterParseNode extends ParseNode implements DefNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -95,6 +96,7 @@ public class IterParseNode extends ParseNode implements DefNode {
 
     /**
      * Gets the bodyNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getBodyNode() {
@@ -103,6 +105,7 @@ public class IterParseNode extends ParseNode implements DefNode {
 
     /**
      * Gets the varNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getVarNode() {

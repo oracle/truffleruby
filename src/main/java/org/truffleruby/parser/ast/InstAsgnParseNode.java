@@ -61,6 +61,7 @@ public class InstAsgnParseNode extends AssignableParseNode implements INameNode 
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -70,6 +71,7 @@ public class InstAsgnParseNode extends AssignableParseNode implements INameNode 
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {

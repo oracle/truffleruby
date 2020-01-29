@@ -206,6 +206,7 @@ public abstract class RubyDateFormatter {
 
         /**
          * Gets the data.
+         * 
          * @return Returns a Object
          */
         public Object getData() {
@@ -214,6 +215,7 @@ public abstract class RubyDateFormatter {
 
         /**
          * Gets the format.
+         * 
          * @return Returns a int
          */
         public Format getFormat() {

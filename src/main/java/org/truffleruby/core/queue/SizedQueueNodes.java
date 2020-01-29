@@ -31,8 +31,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /**
- * We do not reuse much of class Queue since we need to be able to replace the queue in this case
- * and methods are small anyway.
+ * We do not reuse much of class Queue since we need to be able to replace the queue in this case and methods are small
+ * anyway.
  */
 @CoreModule(value = "SizedQueue", isClass = true)
 public abstract class SizedQueueNodes {

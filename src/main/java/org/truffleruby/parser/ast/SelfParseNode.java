@@ -52,6 +52,7 @@ public class SelfParseNode extends ParseNode implements INameNode, SideEffectFre
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override

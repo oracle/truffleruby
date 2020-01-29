@@ -60,6 +60,7 @@ public class FixnumParseNode extends NumericParseNode implements ILiteralNode, S
 
     /**
      * Gets the value.
+     * 
      * @return Returns a long
      */
     public long getValue() {

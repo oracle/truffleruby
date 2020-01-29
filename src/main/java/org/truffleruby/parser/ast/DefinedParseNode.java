@@ -58,6 +58,7 @@ public class DefinedParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -67,6 +68,7 @@ public class DefinedParseNode extends ParseNode {
 
     /**
      * Gets the expressionNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getExpressionNode() {

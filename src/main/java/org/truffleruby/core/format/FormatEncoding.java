@@ -57,9 +57,8 @@ public enum FormatEncoding {
     }
 
     /**
-     * Given the current encoding for a pack string, and something that requires
-     * another encoding, give us the encoding that we should use for the result
-     * of pack.
+     * Given the current encoding for a pack string, and something that requires another encoding, give us the encoding
+     * that we should use for the result of pack.
      */
     public FormatEncoding unifyWith(FormatEncoding other) {
         if (this == DEFAULT) {

@@ -94,8 +94,8 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             PhantomReference<T> implements ProcessingReference<R> {
 
         /**
-         * Doubly linked list of references to keep to allow the reference service to traverse them
-         * and to keep the references alive for processing.
+         * Doubly linked list of references to keep to allow the reference service to traverse them and to keep the
+         * references alive for processing.
          */
         private R next;
         private R previous;
@@ -153,16 +153,12 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
             } else {
 
-                /*
-                 * We can't create a new thread while the context is initializing or finalizing, as
-                 * the polyglot API locks on creating new threads, and some core loading does things
-                 * such as stat files which could allocate memory that is marked to be automatically
-                 * freed and so would want to start the finalization thread. So don't start the
-                 * finalization thread if we are initializing. We will rely on some other finalizer
-                 * to be created to ever free this memory allocated during startup, but that's a
-                 * reasonable assumption and a low risk of leaking a tiny number of bytes if it
-                 * doesn't hold.
-                 */
+                /* We can't create a new thread while the context is initializing or finalizing, as the polyglot API
+                 * locks on creating new threads, and some core loading does things such as stat files which could
+                 * allocate memory that is marked to be automatically freed and so would want to start the finalization
+                 * thread. So don't start the finalization thread if we are initializing. We will rely on some other
+                 * finalizer to be created to ever free this memory allocated during startup, but that's a reasonable
+                 * assumption and a low risk of leaking a tiny number of bytes if it doesn't hold. */
 
                 if (processingThread == null && !context.isPreInitializing() && context.isInitialized() &&
                         !context.isFinalizing()) {
@@ -208,8 +204,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     }
 
     /**
-     * The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for
-     * ObjectSpace.
+     * The head of a doubly-linked list of FinalizerReference, needed to collect finalizer Procs for ObjectSpace.
      */
     private R first = null;
 

@@ -64,6 +64,7 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -86,6 +87,7 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
 
     /**
      * Gets the argsNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getArgsNode() {
@@ -93,8 +95,8 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
     }
 
     /**
-     * Set the argsNode.  Changes to parser means fcall is made before actual
-     * args are associated with fcall so we need a setter.
+     * Set the argsNode. Changes to parser means fcall is made before actual args are associated with fcall so we need a
+     * setter.
      */
     public ParseNode setArgsNode(ParseNode argsNode) {
         this.argsNode = argsNode;
@@ -104,6 +106,7 @@ public class FCallParseNode extends ParseNode implements INameNode, IArgumentNod
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {

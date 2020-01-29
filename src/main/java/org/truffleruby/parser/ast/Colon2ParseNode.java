@@ -55,6 +55,7 @@ public abstract class Colon2ParseNode extends Colon3ParseNode implements INameNo
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -64,6 +65,7 @@ public abstract class Colon2ParseNode extends Colon3ParseNode implements INameNo
 
     /**
      * Gets the leftNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getLeftNode() {

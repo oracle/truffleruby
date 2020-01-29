@@ -54,6 +54,7 @@ public class UndefParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -63,6 +64,7 @@ public class UndefParseNode extends ParseNode {
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public ParseNode getName() {

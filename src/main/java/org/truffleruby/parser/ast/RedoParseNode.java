@@ -55,6 +55,7 @@ public class RedoParseNode extends ParseNode implements NonLocalControlFlowParse
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override

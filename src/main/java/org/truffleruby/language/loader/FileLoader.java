@@ -71,11 +71,9 @@ public class FileLoader {
             name = path;
         }
 
-        /*
-         * We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
+        /* We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
          * We could convert the CharSequence back to bytes, but that's more expensive than just reading the bytes once
-         * and pass them down to the lexer and to the Source.
-         */
+         * and pass them down to the lexer and to the Source. */
 
         final byte[] sourceBytes = file.readAllBytes();
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -129,15 +127,14 @@ public class FileLoader {
     }
 
     Source buildSource(TruffleFile file, String name, Rope sourceRope, boolean internal) {
-        /*
-         * I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
+        /* I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
          * default MIME type that Ruby supports.
          *
          * But if you remove setting the MIME type you get the following failures:
          *
-         * - test/truffle/compiler/stf-optimises.sh (I think the value is different, not the compilation that fails)
-         * - test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before, it's just changed)
-         */
+         * - test/truffle/compiler/stf-optimises.sh (I think the value is different, not the compilation that fails) -
+         * test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before,
+         * it's just changed) */
 
         return Source
                 .newBuilder(TruffleRuby.LANGUAGE_ID, file)

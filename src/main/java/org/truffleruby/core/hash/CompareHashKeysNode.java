@@ -31,8 +31,8 @@ public class CompareHashKeysNode extends RubyContextNode {
     }
 
     /**
-     * Checks if the two keys are the same object, which is used by both modes (by identity or not)
-     * of lookup. Enables to check if the two keys are the same without a method call.
+     * Checks if the two keys are the same object, which is used by both modes (by identity or not) of lookup. Enables
+     * to check if the two keys are the same without a method call.
      */
     public boolean referenceEqualKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey,
             int otherHashed) {

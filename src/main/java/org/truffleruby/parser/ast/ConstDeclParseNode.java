@@ -60,6 +60,7 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -69,6 +70,7 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
 
     /**
      * Gets the name (this is the rightmost element of lhs (in Foo::BAR it is BAR).
+     * 
      * @return name the constant Name, it normally starts with a Capital
      */
     public String getName() {
@@ -76,10 +78,10 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
     }
 
     /**
-     * Get the full path, including the name of the new constant (in Foo::BAR it is Foo::BAR) or null.
-     * Your probably want to extract the left part with
-     * <code>((Colon2ParseNode) node.getConstNode()).getLeftNode()</code>
-     * if <code>node.getConstNode()</code> is a <code>Colon2ConstParseNode</code>.
+     * Get the full path, including the name of the new constant (in Foo::BAR it is Foo::BAR) or null. Your probably
+     * want to extract the left part with <code>((Colon2ParseNode) node.getConstNode()).getLeftNode()</code> if
+     * <code>node.getConstNode()</code> is a <code>Colon2ConstParseNode</code>.
+     * 
      * @return pathNode
      */
     public ParseNode getConstNode() {

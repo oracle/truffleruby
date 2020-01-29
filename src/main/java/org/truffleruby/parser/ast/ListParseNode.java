@@ -36,10 +36,9 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
- * All Nodes which have a list representation inherit this.  This is also used
- * as generic container for additional information that is not directly evaluated.
- * In particular, f_arg production rule uses this to capture arg information for
- * the editor projects who want position info saved.
+ * All Nodes which have a list representation inherit this. This is also used as generic container for additional
+ * information that is not directly evaluated. In particular, f_arg production rule uses this to capture arg information
+ * for the editor projects who want position info saved.
  */
 public abstract class ListParseNode extends ParseNode {
     private static final ParseNode[] EMPTY = new ParseNode[0];

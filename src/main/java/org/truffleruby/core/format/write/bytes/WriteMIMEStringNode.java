@@ -87,8 +87,9 @@ public abstract class WriteMIMEStringNode extends FormatNode {
     }
 
     /**
-     * encodes a String with the Quoted printable, MIME encoding (see RFC2045).
-     * appends the result of the encoding in a StringBuffer
+     * encodes a String with the Quoted printable, MIME encoding (see RFC2045). appends the result of the encoding in a
+     * StringBuffer
+     * 
      * @param io2Append The StringBuffer which should receive the result
      * @param i2Encode The String to encode
      * @param iLength The max number of characters to encode

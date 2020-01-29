@@ -57,6 +57,7 @@ public class Match2ParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -66,6 +67,7 @@ public class Match2ParseNode extends ParseNode {
 
     /**
      * Gets the receiverNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getReceiverNode() {
@@ -74,6 +76,7 @@ public class Match2ParseNode extends ParseNode {
 
     /**
      * Gets the valueNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getValueNode() {

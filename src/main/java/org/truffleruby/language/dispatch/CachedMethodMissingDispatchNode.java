@@ -68,11 +68,9 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
     @Override
     protected void applySplittingInliningStrategy(DirectCallNode callNode, InternalMethod method) {
-        /*
-         * The way that #method_missing is used is usually as an indirection to call some other
-         * method, and possibly to modify the arguments. In both cases, but especially the latter,
-         * it makes a lot of sense to manually clone the call target and to inline it.
-         */
+        /* The way that #method_missing is used is usually as an indirection to call some other method, and possibly to
+         * modify the arguments. In both cases, but especially the latter, it makes a lot of sense to manually clone the
+         * call target and to inline it. */
         if (callNode.isCallTargetCloningAllowed() && (getContext().getOptions().METHODMISSING_ALWAYS_CLONE ||
                 method.getSharedMethodInfo().shouldAlwaysClone())) {
             insert(callNode);

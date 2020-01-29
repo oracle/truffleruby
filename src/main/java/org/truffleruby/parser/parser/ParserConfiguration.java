@@ -93,8 +93,8 @@ public class ParserConfiguration {
     }
 
     /**
-     * If we are performing an eval we should pass existing scope in.
-     * Calling this lets the parser know we need to do this.
+     * If we are performing an eval we should pass existing scope in. Calling this lets the parser know we need to do
+     * this.
      * 
      * @param existingScope is the scope that captures new vars, etc...
      */

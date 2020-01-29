@@ -54,8 +54,7 @@ class SafeDecimalParser {
     /**
      * Heuristic test if we should look closer at the value
      * 
-     * @param s
-     *            The non-null input String
+     * @param s The non-null input String
      * @return <code>true</code> if the value is suspicious, <code>false</code> otherwise
      */
     final protected static boolean isSuspicious(String s) {
@@ -65,8 +64,7 @@ class SafeDecimalParser {
     /**
      * Safe parsing of a String into a Double
      * 
-     * @param s
-     *            The input String, can be null
+     * @param s The input String, can be null
      * @return The Double value
      */
     final protected static Double decimalValueOf(String s) {
@@ -125,8 +123,7 @@ class SafeDecimalParser {
      * <p>
      * Rounding takes place if the value is inside the bad interval
      * 
-     * @param s
-     *            The non-null input String
+     * @param s The non-null input String
      * @return the double value
      */
     final private static Double parseSafely(String s) {
@@ -147,8 +144,7 @@ class SafeDecimalParser {
     /**
      * Extract the digits from a numeric string
      * 
-     * @param s
-     *            The non-null String value
+     * @param s The non-null String value
      * @return A String containing only the digits
      */
     final private static String digits(String s) {
@@ -167,8 +163,7 @@ class SafeDecimalParser {
     /**
      * Tests if the value is in the dangerous interval
      * 
-     * @param bd
-     *            The big decimal value
+     * @param bd The big decimal value
      * @return <code>true</code> if the value is dangerous, <code>false</code> otherwise
      */
     final private static boolean isDangerous(BigDecimal bd) {

@@ -40,8 +40,8 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.parser.parser.Tokens;
 
 /**
- * A lexing unit for scanning a heredoc element.
- * Example:
+ * A lexing unit for scanning a heredoc element. Example:
+ * 
  * <pre>
  * foo(<<EOS, bar)
  * This is heredoc country!

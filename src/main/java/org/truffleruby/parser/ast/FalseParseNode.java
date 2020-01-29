@@ -52,6 +52,7 @@ public class FalseParseNode extends ParseNode implements INameNode, SideEffectFr
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override

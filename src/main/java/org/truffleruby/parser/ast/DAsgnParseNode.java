@@ -61,6 +61,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -70,6 +71,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {
@@ -86,8 +88,7 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
     }
 
     /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
+     * Gets the index within the scope construct that actually holds the eval'd value of this local variable
      *
      * @return Returns an int offset into storage structure
      */

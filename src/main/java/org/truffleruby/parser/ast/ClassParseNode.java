@@ -71,6 +71,7 @@ public class ClassParseNode extends ParseNode implements IScopingNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -98,6 +99,7 @@ public class ClassParseNode extends ParseNode implements IScopingNode {
 
     /**
      * Gets the className.
+     * 
      * @return Returns representation of class path+name
      */
     public Colon3ParseNode getCPath() {
@@ -106,6 +108,7 @@ public class ClassParseNode extends ParseNode implements IScopingNode {
 
     /**
      * Gets the superNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getSuperNode() {

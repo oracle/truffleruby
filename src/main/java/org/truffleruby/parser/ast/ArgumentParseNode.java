@@ -35,9 +35,8 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
- * Simple ParseNode for named entities.  Things like the name of a method will make a node
- * for the name.  Also local variables will make a ArgumentParseNode. In the case of a local
- * variable we will also keep a list of it's location.
+ * Simple ParseNode for named entities. Things like the name of a method will make a node for the name. Also local
+ * variables will make a ArgumentParseNode. In the case of a local variable we will also keep a list of it's location.
  */
 public class ArgumentParseNode extends ParseNode implements INameNode {
     private String identifier;
@@ -75,8 +74,7 @@ public class ArgumentParseNode extends ParseNode implements INameNode {
     }
 
     /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
+     * Gets the index within the scope construct that actually holds the eval'd value of this local variable
      *
      * @return Returns an int offset into storage structure
      */

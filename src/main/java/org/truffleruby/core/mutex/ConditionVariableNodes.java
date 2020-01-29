@@ -112,12 +112,10 @@ public abstract class ConditionVariableNodes {
                 try {
                     awaitSignal(conditionVariable, thread, durationInNanos, condLock, condition, endNanoTime);
                 } catch (Error | RuntimeException e) {
-                    /*
-                     * Consume a signal if one was waiting. We do this because the error may have
-                     * occurred while we were waiting, or at some point after exiting a safepoint that
-                     * throws an exception and another thread has attempted to signal us. It is valid
-                     * for us to consume this signal because we are still marked as waiting for it.
-                     */
+                    /* Consume a signal if one was waiting. We do this because the error may have occurred while we were
+                     * waiting, or at some point after exiting a safepoint that throws an exception and another thread
+                     * has attempted to signal us. It is valid for us to consume this signal because we are still marked
+                     * as waiting for it. */
                     consumeSignal(conditionVariable);
                     throw e;
                 } finally {
@@ -131,7 +129,10 @@ public abstract class ConditionVariableNodes {
             }
         }
 
-        /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for safepoints. */
+        /**
+         * This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for
+         * safepoints.
+         */
         @SuppressFBWarnings(value = "UL")
         private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, ReentrantLock condLock,
                 Condition condition, long endNanoTime) {
@@ -140,14 +141,13 @@ public abstract class ConditionVariableNodes {
                 Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
                 try {
                     try {
-                        /*
-                         * We must not consumeSignal() here, as we should only consume a signal after being awaken by
+                        /* We must not consumeSignal() here, as we should only consume a signal after being awaken by
                          * condition.signal() or condition.signalAll(). Otherwise, ConditionVariable#signal might
-                         * condition.signal() a waiting thread, and then if the current thread calls ConditionVariable#wait
-                         * before the waiting thread awakes, we might steal that waiting thread's signal with consumeSignal().
-                         * So, we must await() first. spec/ruby/library/conditionvariable/signal_spec.rb is a good spec
-                         * for this (run with repeats = 10000).
-                         */
+                         * condition.signal() a waiting thread, and then if the current thread calls
+                         * ConditionVariable#wait before the waiting thread awakes, we might steal that waiting thread's
+                         * signal with consumeSignal(). So, we must await() first.
+                         * spec/ruby/library/conditionvariable/signal_spec.rb is a good spec for this (run with repeats
+                         * = 10000). */
                         if (durationInNanos >= 0) {
                             final long currentTime = System.nanoTime();
                             if (currentTime >= endNanoTime) {
@@ -165,14 +165,11 @@ public abstract class ConditionVariableNodes {
                         Layouts.THREAD.setStatus(thread, status);
                     }
                 } catch (InterruptedException e) {
-                    /*
-                     * Working with ConditionVariables is tricky because of safepoints. To call
-                     * await or signal on a condition variable we must hold the lock, and that lock
-                     * is released when we start waiting. However if the wait is interrupted then
-                     * the lock will be reacquired before control returns to us. If we are
-                     * interrupted for a safepoint then we must release the lock so that all threads
-                     * can enter the safepoint, and acquire it again before resuming waiting.
-                     */
+                    /* Working with ConditionVariables is tricky because of safepoints. To call await or signal on a
+                     * condition variable we must hold the lock, and that lock is released when we start waiting.
+                     * However if the wait is interrupted then the lock will be reacquired before control returns to us.
+                     * If we are interrupted for a safepoint then we must release the lock so that all threads can enter
+                     * the safepoint, and acquire it again before resuming waiting. */
                     condLock.unlock();
                     try {
                         getContext().getSafepointManager().pollFromBlockingCall(this);

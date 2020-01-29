@@ -74,12 +74,10 @@ public abstract class TruffleGraalNodes {
     }
 
     /**
-     * This method creates a new Proc with a copy of the captured variables' values, which is
-     * correct if these variables are not changed in the parent scope later on. It works by
-     * replacing {@link ReadDeclarationVariableNode} with the captured variables' values. This
-     * avoids constantly reading from the declaration frame (which always escapes in a
-     * define_method) and folds many checks on these captured variables since their values become
-     * compilation constants.
+     * This method creates a new Proc with a copy of the captured variables' values, which is correct if these variables
+     * are not changed in the parent scope later on. It works by replacing {@link ReadDeclarationVariableNode} with the
+     * captured variables' values. This avoids constantly reading from the declaration frame (which always escapes in a
+     * define_method) and folds many checks on these captured variables since their values become compilation constants.
      * <p>
      * Similar to Smalltalk's fixTemps, but not mutating the Proc.
      */

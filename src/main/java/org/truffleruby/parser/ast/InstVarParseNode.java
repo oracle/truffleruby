@@ -56,6 +56,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -65,6 +66,7 @@ public class InstVarParseNode extends ParseNode implements INameNode, SideEffect
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {

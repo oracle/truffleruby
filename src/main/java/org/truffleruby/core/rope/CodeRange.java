@@ -18,8 +18,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 
 public enum CodeRange {
     /**
-     * Used for {@link NativeRope}, where the bytes can change from real native code.
-     * Also used when building a new {@link Rope} and the code range is unknown.
+     * Used for {@link NativeRope}, where the bytes can change from real native code. Also used when building a new
+     * {@link Rope} and the code range is unknown.
      */
     CR_UNKNOWN(0),
     /**

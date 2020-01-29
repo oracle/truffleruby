@@ -39,9 +39,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 /**
  * Represents a while statement. This could be the both versions:
  *
- * while &lt;condition&gt;
- *    &lt;body&gt;
- * end
+ * while &lt;condition&gt; &lt;body&gt; end
  *
  * and
  *
@@ -78,6 +76,7 @@ public class WhileParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -87,6 +86,7 @@ public class WhileParseNode extends ParseNode {
 
     /**
      * Gets the bodyNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getBodyNode() {
@@ -95,6 +95,7 @@ public class WhileParseNode extends ParseNode {
 
     /**
      * Gets the conditionNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getConditionNode() {
@@ -103,6 +104,7 @@ public class WhileParseNode extends ParseNode {
 
     /**
      * Determine whether this is while or do while
+     * 
      * @return true if you are a while, false if do while
      */
     public boolean evaluateAtStart() {

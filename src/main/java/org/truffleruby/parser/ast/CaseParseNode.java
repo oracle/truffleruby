@@ -37,8 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
- * A Case statement.  Represents a complete case statement, including the body with its
- * when statements.
+ * A Case statement. Represents a complete case statement, including the body with its when statements.
  */
 public class CaseParseNode extends ParseNode {
     /**
@@ -74,6 +73,7 @@ public class CaseParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -83,6 +83,7 @@ public class CaseParseNode extends ParseNode {
 
     /**
      * Gets the caseNode.
+     * 
      * @return caseNode the case expression
      */
     public ParseNode getCaseNode() {

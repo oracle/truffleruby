@@ -72,8 +72,8 @@ public abstract class ClassNodes {
     }
 
     /**
-     * This constructor supports initialization and solves boot-order problems and should not
-     * normally be used from outside this class.
+     * This constructor supports initialization and solves boot-order problems and should not normally be used from
+     * outside this class.
      */
     @TruffleBoundary
     public static DynamicObject createBootClass(RubyContext context, SourceSection sourceSection,
@@ -265,10 +265,9 @@ public abstract class ClassNodes {
     }
 
     /**
-     * #allocate should only be defined as an instance method of Class (Class#allocate), which is
-     * required for compatibility. __allocate__ is our version of the "allocation function" as
-     * defined by rb_define_alloc_func() in MRI to define how to create instances of specific
-     * classes.
+     * #allocate should only be defined as an instance method of Class (Class#allocate), which is required for
+     * compatibility. __allocate__ is our version of the "allocation function" as defined by rb_define_alloc_func() in
+     * MRI to define how to create instances of specific classes.
      */
     @CoreMethod(names = "allocate")
     public abstract static class AllocateInstanceNode extends CoreMethodArrayArgumentsNode {

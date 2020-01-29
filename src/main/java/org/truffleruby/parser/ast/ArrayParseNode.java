@@ -57,6 +57,7 @@ public class ArrayParseNode extends ListParseNode implements ILiteralNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override

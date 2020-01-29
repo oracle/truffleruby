@@ -512,6 +512,7 @@ public class CommandLineParser {
 
     /**
      * Split string into (limited) sub-parts.
+     * 
      * @param str the string
      * @param sep the separator
      * @param lim has same effect as with {@link String#split(String, int)}

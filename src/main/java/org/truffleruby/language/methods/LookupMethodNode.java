@@ -36,8 +36,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /**
- * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)}
- * on an actual instance.
+ * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)} on an actual instance.
  */
 @ReportPolymorphism
 @GenerateUncached

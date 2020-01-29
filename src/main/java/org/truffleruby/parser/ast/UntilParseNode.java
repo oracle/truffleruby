@@ -70,6 +70,7 @@ public class UntilParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -79,6 +80,7 @@ public class UntilParseNode extends ParseNode {
 
     /**
      * Gets the bodyNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getBodyNode() {
@@ -87,6 +89,7 @@ public class UntilParseNode extends ParseNode {
 
     /**
      * Gets the conditionNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getConditionNode() {
@@ -100,6 +103,7 @@ public class UntilParseNode extends ParseNode {
 
     /**
      * Determine whether this is while or do while
+     * 
      * @return true if you are a while, false if do while
      */
     public boolean evaluateAtStart() {

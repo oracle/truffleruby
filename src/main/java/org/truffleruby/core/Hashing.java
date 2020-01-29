@@ -66,10 +66,8 @@ public final class Hashing {
         return murmurStep(murmurStep(hash, 10), 17);
     }
 
-    /*
-     * stringHash is not resistant to known Ruby vulnerabilities and so should be used in combination with the context's
-     * Hashing instance.
-     */
+    /* stringHash is not resistant to known Ruby vulnerabilities and so should be used in combination with the context's
+     * Hashing instance. */
     public static int stringHash(byte[] bytes, int startingHashCode, int offset, int length) {
         assert offset + length <= bytes.length;
 

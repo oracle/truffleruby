@@ -50,8 +50,8 @@ public class BlockParseNode extends ListParseNode {
     }
 
     /**
-     * RubyMethod used by visitors.
-     * accepts the visitor
+     * RubyMethod used by visitors. accepts the visitor
+     * 
      * @param iVisitor the visitor to accept
      **/
     @Override

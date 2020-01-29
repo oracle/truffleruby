@@ -45,8 +45,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 /**
  * A thread-safe cache removing entries when the value is no longer in use.
  *
- * Callers must hold to the returned value. The entry will stay in the map as long as the value is
- * referenced.
+ * Callers must hold to the returned value. The entry will stay in the map as long as the value is referenced.
  */
 public class WeakValueCache<Key, Value> implements ReHashable {
 
@@ -64,8 +63,8 @@ public class WeakValueCache<Key, Value> implements ReHashable {
     }
 
     /**
-     * Returns the value in the cache (existing or added).
-     * Similar to a putIfAbsent() but always return the value in the cache.
+     * Returns the value in the cache (existing or added). Similar to a putIfAbsent() but always return the value in the
+     * cache.
      */
     @TruffleBoundary
     public Value addInCacheIfAbsent(Key key, Value newValue) {

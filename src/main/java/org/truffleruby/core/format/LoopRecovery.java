@@ -16,26 +16,23 @@ public abstract class LoopRecovery {
     /**
      * Format strings can sometimes be dynamically generated with code such as:
      * <p>
-     *   <code>'x' + ('NX' * size)</code>
+     * <code>'x' + ('NX' * size)</code>
      * <p>
      * This is problematic for us as it expands to:
      * <p>
-     *   <code>xNXNXNXNXNXNXNXNXNXNX...</code>
+     * <code>xNXNXNXNXNXNXNXNXNXNX...</code>
      * <p>
-     * We will struggle to compile that with a large value for size because it
-     * will generate a huge number of nodes. Even if we could compile it, it's
-     * not great for memory consumption or the instruction cache. Instead, we'd
-     * like to recover the loop in there and convert it to:
+     * We will struggle to compile that with a large value for size because it will generate a huge number of nodes.
+     * Even if we could compile it, it's not great for memory consumption or the instruction cache. Instead, we'd like
+     * to recover the loop in there and convert it to:
      * <p>
-     *   <code>x(NX)1000</code>
+     * <code>x(NX)1000</code>
      * <p>
-     * We could try and do something really sophisticated here, with nested
-     * loops and finding the optimal pattern, but for the moment we just look
-     * for one simple loop.
+     * We could try and do something really sophisticated here, with nested loops and finding the optimal pattern, but
+     * for the moment we just look for one simple loop.
      * <p>
-     * To do that, for each character we look 1..n characters behind and see if
-     * that pattern is repeated. If it is we have the loop. We then keep going
-     * and see how many more times we can loop. Nothing more complicated than that.
+     * To do that, for each character we look 1..n characters behind and see if that pattern is repeated. If it is we
+     * have the loop. We then keep going and see how many more times we can loop. Nothing more complicated than that.
      */
     public static String recoverLoop(String format) {
         // The index is the point in the format string where we look backwards for loops from

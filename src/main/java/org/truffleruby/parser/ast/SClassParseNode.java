@@ -69,6 +69,7 @@ public class SClassParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -96,6 +97,7 @@ public class SClassParseNode extends ParseNode {
 
     /**
      * Gets the receiverNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getReceiverNode() {

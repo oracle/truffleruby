@@ -24,11 +24,9 @@ import com.oracle.truffle.api.library.ExportMessage;
 public class GlobalScope {
 
     public static Scope getGlobalScope(GlobalVariables globalVariables) {
-        /*
-         * TODO CS 23-Apr-19 what really is the global scope of Ruby? Global variables? Top-level binding? The main
+        /* TODO CS 23-Apr-19 what really is the global scope of Ruby? Global variables? Top-level binding? The main
          * object? The Object class? All of them? In what order? I think we're supposed to include explicitly exported
-         * symbols here.
-         */
+         * symbols here. */
 
         return Scope.newBuilder("global", new GlobalVariablesObject(globalVariables)).build();
     }

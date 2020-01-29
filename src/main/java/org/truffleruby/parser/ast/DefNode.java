@@ -34,6 +34,7 @@ import org.truffleruby.parser.scope.StaticScope;
 public interface DefNode {
     /**
      * Gets the argsNode.
+     * 
      * @return Returns a ParseNode
      */
     ArgsParseNode getArgsNode();

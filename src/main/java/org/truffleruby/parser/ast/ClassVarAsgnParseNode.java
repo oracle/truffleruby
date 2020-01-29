@@ -45,7 +45,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
 
     /**
      * @param name id of the class variable to assign to
-     * @param valueNode  ParseNode used to compute the new value when the assignment is evaled
+     * @param valueNode ParseNode used to compute the new value when the assignment is evaled
      */
     public ClassVarAsgnParseNode(SourceIndexLength position, String name, ParseNode valueNode) {
         super(position, valueNode);
@@ -60,6 +60,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -69,6 +70,7 @@ public class ClassVarAsgnParseNode extends AssignableParseNode implements INameN
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {

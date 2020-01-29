@@ -39,16 +39,14 @@ public abstract class Rope {
     }
 
     /**
-     * Only used internally by WithEncodingNode.
-     * Returns a Rope with the given Encoding.
-     * Both the original and new Encodings must be ASCII-compatible and the rope must be {@link #isAsciiOnly()}.
+     * Only used internally by WithEncodingNode. Returns a Rope with the given Encoding. Both the original and new
+     * Encodings must be ASCII-compatible and the rope must be {@link #isAsciiOnly()}.
      */
     abstract Rope withEncoding7bit(Encoding newEncoding);
 
     /**
-     * Only used internally by WithEncodingNode.
-     * Returns a Rope with the BINARY Encoding.
-     * The original Encoding must be ASCII-compatible and {@link #getCodeRange()} must be {@link CodeRange#CR_VALID} to call this.
+     * Only used internally by WithEncodingNode. Returns a Rope with the BINARY Encoding. The original Encoding must be
+     * ASCII-compatible and {@link #getCodeRange()} must be {@link CodeRange#CR_VALID} to call this.
      */
     abstract Rope withBinaryEncoding();
 
@@ -116,11 +114,9 @@ public abstract class Rope {
 
     @TruffleBoundary
     public boolean bytesEqual(Rope other) {
-        /*
-         * What is the right strategy to compare ropes for byte equality? There are lots of options. We're going to
+        /* What is the right strategy to compare ropes for byte equality? There are lots of options. We're going to
          * force and compare the hash codes, and then flatten for a byte equality. Both the intermediate hash
-         * generations of the nodes, and the final Array.equals if needed, should have good inner-loop implementations.
-         */
+         * generations of the nodes, and the final Array.equals if needed, should have good inner-loop implementations. */
         return this.hashCode() == other.hashCode() && Arrays.equals(this.getBytes(), other.getBytes());
     }
 

@@ -14,13 +14,11 @@ package org.truffleruby.core.hash;
  * for this index until the entry was found, the entry that was found, and the index that was used. There are three
  * possible outcomes for a search.
  * <ul>
- *     <li>There is nothing at that index, in which case the entry and previous entry in the chain will be
- *     {@code null}</li>
- *     <li>There were entries at that index, but none for our key, in which case the entry will be null, but the
- *     previous entry will be the last entry in the chain at that index, presumably where we will want to insert our
- *     new entry</li>
- *     <li>A entry was found for our key, in which case the entry will be the one correspond to the key, and the
- *     previous entry will be the one in the entry chain before that one</li>
+ * <li>There is nothing at that index, in which case the entry and previous entry in the chain will be {@code null}</li>
+ * <li>There were entries at that index, but none for our key, in which case the entry will be null, but the previous
+ * entry will be the last entry in the chain at that index, presumably where we will want to insert our new entry</li>
+ * <li>A entry was found for our key, in which case the entry will be the one correspond to the key, and the previous
+ * entry will be the one in the entry chain before that one</li>
  * </ul>
  */
 public class HashLookupResult {

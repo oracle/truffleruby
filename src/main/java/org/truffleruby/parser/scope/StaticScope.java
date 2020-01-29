@@ -43,12 +43,12 @@ import org.truffleruby.parser.ast.VCallParseNode;
 /**
  * StaticScope represents lexical scoping of variables and module/class constants.
  *
- * At a very high level every scopes enclosing scope contains variables in the next outer
- * lexical layer.  The enclosing scopes variables may or may not be reachable depending
- * on the scoping rules for variables (governed by BlockStaticScope and LocalStaticScope).
+ * At a very high level every scopes enclosing scope contains variables in the next outer lexical layer. The enclosing
+ * scopes variables may or may not be reachable depending on the scoping rules for variables (governed by
+ * BlockStaticScope and LocalStaticScope).
  *
- * StaticScope also keeps track of current module/class that is in scope.  previousCRefScope
- * will point to the previous scope of the enclosing module/class (cref).
+ * StaticScope also keeps track of current module/class that is in scope. previousCRefScope will point to the previous
+ * scope of the enclosing module/class (cref).
  *
  */
 public class StaticScope {
@@ -90,7 +90,7 @@ public class StaticScope {
     /**
      * Construct a new static scope.
      *
-     * @param type           the type of scope
+     * @param type the type of scope
      * @param enclosingScope the lexically containing scope.
      */
     public StaticScope(Type type, StaticScope enclosingScope) {
@@ -98,13 +98,12 @@ public class StaticScope {
     }
 
     /**
-     * Construct a new static scope. The array of strings should all be the
-     * interned versions, since several other optimizations depend on being
-     * able to do object equality checks.
+     * Construct a new static scope. The array of strings should all be the interned versions, since several other
+     * optimizations depend on being able to do object equality checks.
      *
-     * @param type           the type of scope
+     * @param type the type of scope
      * @param enclosingScope the lexically containing scope.
-     * @param names          The list of interned String variable names.
+     * @param names The list of interned String variable names.
      */
     protected StaticScope(Type type, StaticScope enclosingScope, String[] names) {
         assert names != null : "names is not null";
@@ -135,8 +134,7 @@ public class StaticScope {
     }
 
     /**
-     * Add a new variable to this (current) scope unless it is already defined in the
-     * current scope.
+     * Add a new variable to this (current) scope unless it is already defined in the current scope.
      *
      * @param name of new variable
      * @return index of variable
@@ -177,8 +175,7 @@ public class StaticScope {
     }
 
     /**
-     * Add a new variable to this (current) scope unless it is already defined in any
-     * reachable scope.
+     * Add a new variable to this (current) scope unless it is already defined in any reachable scope.
      *
      * @param name of new variable
      * @return index+depth merged location of scope
@@ -214,11 +211,10 @@ public class StaticScope {
     }
 
     /**
-     * Next outer most scope in list of scopes.  An enclosing scope may have no direct scoping
-     * relationship to its child.  If I am in a localScope and then I enter something which
-     * creates another localScope the enclosing scope will be the first scope, but there are
-     * no valid scoping relationships between the two.  Methods which walk the enclosing scopes
-     * are responsible for enforcing appropriate scoping relationships.
+     * Next outer most scope in list of scopes. An enclosing scope may have no direct scoping relationship to its child.
+     * If I am in a localScope and then I enter something which creates another localScope the enclosing scope will be
+     * the first scope, but there are no valid scoping relationships between the two. Methods which walk the enclosing
+     * scopes are responsible for enforcing appropriate scoping relationships.
      *
      * @return the parent scope
      */
@@ -249,8 +245,8 @@ public class StaticScope {
      * Is this name in the visible to the current scope
      *
      * @param name to be looked for
-     * @return a location where the left-most 16 bits of number of scopes down it is and the
-     * right-most 16 bits represents its index in that scope
+     * @return a location where the left-most 16 bits of number of scopes down it is and the right-most 16 bits
+     *         represents its index in that scope
      */
     public int isDefined(String name) {
         return isDefined(name, 0);
@@ -326,7 +322,7 @@ public class StaticScope {
      * Make a DVar or LocalVar node based on scoping logic
      *
      * @param position the location that in the source that the new node will come from
-     * @param name     of the variable to be created is named
+     * @param name of the variable to be created is named
      * @return a DVarParseNode or LocalVarParseNode
      */
     public ParseNode declare(SourceIndexLength position, String name) {
@@ -334,8 +330,8 @@ public class StaticScope {
     }
 
     /**
-     * Gets the Local Scope relative to the current Scope.  For LocalScopes this will be itself.
-     * Blocks will contain the LocalScope it contains.
+     * Gets the Local Scope relative to the current Scope. For LocalScopes this will be itself. Blocks will contain the
+     * LocalScope it contains.
      *
      * @return localScope
      */

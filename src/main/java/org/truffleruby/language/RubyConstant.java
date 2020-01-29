@@ -28,7 +28,10 @@ public class RubyConstant implements ObjectGraphNode {
     private final boolean isDeprecated;
 
     private final AutoloadConstant autoloadConstant;
-    /** A autoload constant can become "undefined" after the autoload loads the file but the constant is not defined by the file */
+    /**
+     * A autoload constant can become "undefined" after the autoload loads the file but the constant is not defined by
+     * the file
+     */
     private final boolean undefined;
 
     private final SourceSection sourceSection;

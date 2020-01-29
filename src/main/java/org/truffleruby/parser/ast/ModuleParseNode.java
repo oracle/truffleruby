@@ -64,6 +64,7 @@ public class ModuleParseNode extends ParseNode implements IScopingNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -91,6 +92,7 @@ public class ModuleParseNode extends ParseNode implements IScopingNode {
 
     /**
      * Gets the name.
+     * 
      * @return Representation of the module path+name
      */
     public Colon3ParseNode getCPath() {

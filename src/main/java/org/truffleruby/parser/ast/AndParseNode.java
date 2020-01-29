@@ -65,6 +65,7 @@ public class AndParseNode extends ParseNode implements BinaryOperatorParseNode {
 
     /**
      * Gets the secondNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getSecondNode() {
@@ -73,6 +74,7 @@ public class AndParseNode extends ParseNode implements BinaryOperatorParseNode {
 
     /**
      * Gets the firstNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getFirstNode() {

@@ -65,8 +65,7 @@ public class RegexpOptions implements Cloneable {
     }
 
     /**
-     * This regexp has an explicit encoding flag or 'nesu' letter associated
-     * with it.
+     * This regexp has an explicit encoding flag or 'nesu' letter associated with it.
      * 
      * @param kcode to be set
      */
@@ -84,9 +83,8 @@ public class RegexpOptions implements Cloneable {
     }
 
     /**
-     * Whether the kcode associated with this regexp is implicit (aka
-     * default) or is specified explicitly (via 'nesu' syntax postscript or
-     * flags to Regexp.new.
+     * Whether the kcode associated with this regexp is implicit (aka default) or is specified explicitly (via 'nesu'
+     * syntax postscript or flags to Regexp.new.
      */
     public boolean isKcodeDefault() {
         return kcodeDefault;
@@ -160,9 +158,8 @@ public class RegexpOptions implements Cloneable {
     }
 
     /**
-     * This int value is meant to only be used when dealing directly with
-     * the joni regular expression library.  It differs from embeddedOptions
-     * in that it only contains bit values which Joni cares about.
+     * This int value is meant to only be used when dealing directly with the joni regular expression library. It
+     * differs from embeddedOptions in that it only contains bit values which Joni cares about.
      */
     public int toJoniOptions() {
         int options = 0;

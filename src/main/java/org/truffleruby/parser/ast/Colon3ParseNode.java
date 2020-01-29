@@ -38,8 +38,8 @@ import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
- * Global scope node (::FooBar).  This is used to gain access to the global scope (that of the
- * Object class) when referring to a constant or method.
+ * Global scope node (::FooBar). This is used to gain access to the global scope (that of the Object class) when
+ * referring to a constant or method.
  */
 public class Colon3ParseNode extends ParseNode implements INameNode {
     protected String name;
@@ -56,6 +56,7 @@ public class Colon3ParseNode extends ParseNode implements INameNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -65,6 +66,7 @@ public class Colon3ParseNode extends ParseNode implements INameNode {
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {

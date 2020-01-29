@@ -39,8 +39,7 @@ import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
- * A regexp which contains some expressions which will need to be evaluated every time the regexp
- * is used for a match.
+ * A regexp which contains some expressions which will need to be evaluated every time the regexp is used for a match.
  */
 public class DRegexpParseNode extends DParseNode implements ILiteralNode {
     private final RegexpOptions options;
@@ -58,6 +57,7 @@ public class DRegexpParseNode extends DParseNode implements ILiteralNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -67,6 +67,7 @@ public class DRegexpParseNode extends DParseNode implements ILiteralNode {
 
     /**
      * Gets the once.
+     * 
      * @return Returns a boolean
      */
     public boolean getOnce() {

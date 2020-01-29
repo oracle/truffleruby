@@ -23,9 +23,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.object.DynamicObject;
 
 /**
- * A Ruby method: either a method in a module,
- * a literal module/class body
- * or some meta-information for eval'd code.
+ * A Ruby method: either a method in a module, a literal module/class body or some meta-information for eval'd code.
  * Blocks capture the method in which they are defined.
  */
 public class InternalMethod implements ObjectGraphNode {

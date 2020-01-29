@@ -70,6 +70,7 @@ public class DotParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -79,6 +80,7 @@ public class DotParseNode extends ParseNode {
 
     /**
      * Gets the beginNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getBeginNode() {
@@ -87,6 +89,7 @@ public class DotParseNode extends ParseNode {
 
     /**
      * Gets the endNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getEndNode() {
@@ -95,6 +98,7 @@ public class DotParseNode extends ParseNode {
 
     /**
      * Gets the exclusive.
+     * 
      * @return Returns a boolean
      */
     public boolean isExclusive() {
@@ -102,9 +106,8 @@ public class DotParseNode extends ParseNode {
     }
 
     /**
-     * Is this a literal node.  MRI has a literal node type and we currently don't.
-     * We provide this attribute so we can detect that this should be a literal to
-     * match MRI semantics of literal DOT nodes.
+     * Is this a literal node. MRI has a literal node type and we currently don't. We provide this attribute so we can
+     * detect that this should be a literal to match MRI semantics of literal DOT nodes.
      *
      * @return true is literal
      */

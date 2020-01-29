@@ -4170,8 +4170,8 @@ public abstract class StringNodes {
     /**
      * Calculates the byte offset of a character, indicated by a character index, starting from a provided byte offset
      * into the rope. Providing a 0 starting offset simply finds the byte offset for the nth character into the rope,
-     * according to the rope's encoding. Providing a non-zero starting byte offset effectively allows for calculating
-     * a character's byte offset into a substring of the rope without having to creating a SubstringRope.
+     * according to the rope's encoding. Providing a non-zero starting byte offset effectively allows for calculating a
+     * character's byte offset into a substring of the rope without having to creating a SubstringRope.
      *
      * @rope - The rope/string being indexed.
      * @startByteOffset - Starting position in the rope for the calculation of the character's byte offset.

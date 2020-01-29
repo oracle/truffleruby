@@ -32,8 +32,8 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @GenerateUncached
-/* This node is called either with cached name from CachedForeignDispatchNode
- * or from DSLUncachedDispatchNode where it uses uncached version of this node. */
+/* This node is called either with cached name from CachedForeignDispatchNode or from DSLUncachedDispatchNode where it
+ * uses uncached version of this node. */
 public abstract class OutgoingForeignCallNode extends RubyBaseNode {
 
     // TODO (pitr-ch 01-Apr-2019): support to_int special form with new interop, consider others
@@ -150,13 +150,13 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "name == cachedName",
                     "canHaveBadArguments(cachedName)",
                     "badArity(args, cachedArity, cachedName)" },
-            limit = "1" /* the name is constant*/)
+            limit = "1" /* the name is constant */)
     protected Object withBadArguments(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached(
                     value = "expectedArity(cachedName)",
-                    allowUncached = true) /*@Cached.Shared("arity")*/ int cachedArity,
+                    allowUncached = true) /* @Cached.Shared("arity") */ int cachedArity,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
                 context,
@@ -233,7 +233,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached(
                     value = "expectedArity(cachedName)",
-                    allowUncached = true) /*@Cached.Shared("arity")*/ int cachedArity,
+                    allowUncached = true) /* @Cached.Shared("arity") */ int cachedArity,
             @Cached(value = "specialToInteropMethod(cachedName)", allowUncached = true) String interopMethodName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("createPrivate()") @Shared("dispatch") CallDispatchHeadNode callDispatchHeadNode,

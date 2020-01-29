@@ -92,6 +92,7 @@ public class SymbolParseNode extends ParseNode implements ILiteralNode, INameNod
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {

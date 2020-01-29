@@ -54,6 +54,7 @@ public class MatchParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -63,6 +64,7 @@ public class MatchParseNode extends ParseNode {
 
     /**
      * Gets the regexpNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getRegexpNode() {

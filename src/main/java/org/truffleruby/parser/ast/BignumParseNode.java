@@ -61,6 +61,7 @@ public class BignumParseNode extends NumericParseNode implements SideEffectFree 
 
     /**
      * Gets the value.
+     * 
      * @return Returns a BigInteger
      */
     public BigInteger getValue() {

@@ -58,6 +58,7 @@ public class VCallParseNode extends ParseNode implements INameNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -67,6 +68,7 @@ public class VCallParseNode extends ParseNode implements INameNode {
 
     /**
      * Gets the methodName.
+     * 
      * @return Returns a String
      */
     public String getName() {

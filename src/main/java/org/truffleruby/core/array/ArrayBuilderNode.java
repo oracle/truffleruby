@@ -34,14 +34,14 @@ import com.oracle.truffle.api.object.DynamicObject;
  */
 
 /**
- * Builds a new Array and learns its storage strategy and its expected length. The storage strategy
- * is generalized as needed and the expected length is increased until all elements fit.
+ * Builds a new Array and learns its storage strategy and its expected length. The storage strategy is generalized as
+ * needed and the expected length is increased until all elements fit.
  * <p>
  * Append nodes handle only one strategy, but must still return a valid storage when:
  *
  * <li>The element(s) added do not match the strategy.
- * <li>The being-built storage no longer matches the strategy, due to the node having been replaced
- * by another thread or by another usage (e.g. recursive) of this ArrayBuilderNode.
+ * <li>The being-built storage no longer matches the strategy, due to the node having been replaced by another thread or
+ * by another usage (e.g. recursive) of this ArrayBuilderNode.
  */
 public abstract class ArrayBuilderNode extends RubyContextNode {
 

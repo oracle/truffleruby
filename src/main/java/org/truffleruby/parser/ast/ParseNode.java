@@ -229,8 +229,7 @@ public abstract class ParseNode {
     }
 
     /**
-     * Check whether the given node is considered always "defined" or whether it
-     * has some form of definition check.
+     * Check whether the given node is considered always "defined" or whether it has some form of definition check.
      *
      * @return Whether the type of node represents a possibly undefined construct
      */

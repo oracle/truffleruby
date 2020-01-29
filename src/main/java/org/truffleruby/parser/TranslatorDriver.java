@@ -107,11 +107,8 @@ public class TranslatorDriver {
 
         final StaticScope staticScope = new StaticScope(StaticScope.Type.LOCAL, null);
 
-        /*
-         * Note that jruby-parser will be mistaken about how deep the existing variables are,
-         * but that doesn't matter as we look them up ourselves after being told they're in some
-         * parent scope.
-         */
+        /* Note that jruby-parser will be mistaken about how deep the existing variables are, but that doesn't matter as
+         * we look them up ourselves after being told they're in some parent scope. */
 
         final TranslatorEnvironment parentEnvironment;
 

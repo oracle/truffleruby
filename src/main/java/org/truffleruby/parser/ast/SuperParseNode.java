@@ -60,6 +60,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -69,6 +70,7 @@ public class SuperParseNode extends ParseNode implements BlockAcceptingParseNode
 
     /**
      * Gets the argsNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getArgsNode() {

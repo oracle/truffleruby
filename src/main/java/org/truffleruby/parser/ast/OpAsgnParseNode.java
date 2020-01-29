@@ -69,6 +69,7 @@ public class OpAsgnParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -78,6 +79,7 @@ public class OpAsgnParseNode extends ParseNode {
 
     /**
      * Gets the methodName.
+     * 
      * @return Returns a String
      */
     public String getOperatorName() {
@@ -86,6 +88,7 @@ public class OpAsgnParseNode extends ParseNode {
 
     /**
      * Gets the receiverNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getReceiverNode() {
@@ -94,6 +97,7 @@ public class OpAsgnParseNode extends ParseNode {
 
     /**
      * Gets the valueNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getValueNode() {
@@ -102,6 +106,7 @@ public class OpAsgnParseNode extends ParseNode {
 
     /**
      * Gets the varibaleName.
+     * 
      * @return Returns a String
      */
     public String getVariableName() {

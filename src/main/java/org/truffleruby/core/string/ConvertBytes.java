@@ -69,7 +69,8 @@ public class ConvertBytes {
         }
     }
 
-    /** rb_cstr_to_inum
+    /**
+     * rb_cstr_to_inum
      *
      */
 
@@ -78,7 +79,8 @@ public class ConvertBytes {
         return new ConvertBytes(context, node, fixnumOrBignumNode, bytesNode, str, base, badcheck).byteListToInum();
     }
 
-    /** conv_digit
+    /**
+     * conv_digit
      *
      */
     private byte convertDigit(byte c) {
@@ -88,7 +90,8 @@ public class ConvertBytes {
         return conv_digit[c];
     }
 
-    /** ISSPACE
+    /**
+     * ISSPACE
      *
      */
     private boolean isSpace(int str) {
@@ -546,7 +549,8 @@ public class ConvertBytes {
         }
     }
 
-    /** rb_invalid_str
+    /**
+     * rb_invalid_str
      *
      */
     private void invalidString() {

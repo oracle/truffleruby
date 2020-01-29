@@ -65,6 +65,7 @@ public class WhenParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -74,6 +75,7 @@ public class WhenParseNode extends ParseNode {
 
     /**
      * Gets the bodyNode.
+     * 
      * @return Returns a INode
      */
     public ParseNode getBodyNode() {

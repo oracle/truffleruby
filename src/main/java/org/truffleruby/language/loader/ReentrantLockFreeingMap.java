@@ -19,7 +19,9 @@ import com.oracle.truffle.api.nodes.Node;
 
 /**
  * Usage:
- * <pre><code>
+ * 
+ * <pre>
+ * <code>
  *  ReentrantLockFreeingMap<String> fileLocks = new ReentrantLockFreeingMap<String>();
  *  while (true) {
  *      final ReentrantLock lock = fileLocks.getLock(key);
@@ -35,7 +37,8 @@ import com.oracle.truffle.api.nodes.Node;
  *          fileLocks.unlock(key, lock);
  *      }
  *  }
- * </code></pre>
+ * </code>
+ * </pre>
  */
 public class ReentrantLockFreeingMap<K> {
 

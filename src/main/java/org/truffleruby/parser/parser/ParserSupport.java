@@ -272,9 +272,9 @@ public class ParserSupport {
     }
 
     /**
-     *  Wraps node with NEWLINE node.
+     * Wraps node with NEWLINE node.
      *
-     *@param node
+     * @param node
      */
     public ParseNode newline_node(ParseNode node, SourceIndexLength position) {
         if (node == null) {
@@ -556,7 +556,7 @@ public class ParserSupport {
     }
 
     /**
-     * Check to see if current node is an useless statement.  If useless a warning if printed.
+     * Check to see if current node is an useless statement. If useless a warning if printed.
      *
      * @param node to be checked.
      */
@@ -829,9 +829,9 @@ public class ParserSupport {
     }
 
     /**
-     * Ok I admit that this is somewhat ugly.  We post-process a chain of when nodes and analyze
-     * them to re-insert them back into our new CaseParseNode the way we want.  The grammar is being
-     * difficult and until I go back into the depths of that this is where things are.
+     * Ok I admit that this is somewhat ugly. We post-process a chain of when nodes and analyze them to re-insert them
+     * back into our new CaseParseNode the way we want. The grammar is being difficult and until I go back into the
+     * depths of that this is where things are.
      *
      * @param expression of the case node (e.g. case foo)
      * @param firstWhenNode first when (which could also be the else)
@@ -855,15 +855,13 @@ public class ParserSupport {
         return caseNode;
     }
 
-    /*
-     * This method exists for us to break up multiple expression when nodes (e.g. when 1,2,3:)
-     * into individual whenNodes.  The primary reason for this is to ensure lazy evaluation of
-     * the arguments (when foo,bar,gar:) to prevent side-effects.  In the old code this was done
-     * using nested when statements, which was awful for interpreter and compilation.
+    /* This method exists for us to break up multiple expression when nodes (e.g. when 1,2,3:) into individual
+     * whenNodes. The primary reason for this is to ensure lazy evaluation of the arguments (when foo,bar,gar:) to
+     * prevent side-effects. In the old code this was done using nested when statements, which was awful for interpreter
+     * and compilation.
      *
-     * Notes: This has semantic equivalence but will not be lexically equivalent.  Compiler
-     * needs to detect same bodies to simplify bytecode generated.
-     */
+     * Notes: This has semantic equivalence but will not be lexically equivalent. Compiler needs to detect same bodies
+     * to simplify bytecode generated. */
     private void simplifyMultipleArgumentWhenNodes(WhenParseNode sourceWhen, ArrayParseNode cases) {
         ParseNode expressionNodes = sourceWhen.getExpressionNodes();
 
@@ -1049,20 +1047,24 @@ public class ParserSupport {
     }
 
     /**
-    *  Description of the RubyMethod
-    */
+     * Description of the RubyMethod
+     */
     public void initTopLocalVariables() {
         currentScope = configuration.getScope(lexer.getFile());
     }
 
-    /** Getter for property inSingle.
+    /**
+     * Getter for property inSingle.
+     * 
      * @return Value of property inSingle.
      */
     public boolean isInSingle() {
         return inSingleton != 0;
     }
 
-    /** Setter for property inSingle.
+    /**
+     * Setter for property inSingle.
+     * 
      * @param inSingle New value of property inSingle.
      */
     public void setInSingle(int inSingle) {
@@ -1077,7 +1079,9 @@ public class ParserSupport {
         this.inDefinition = inDef;
     }
 
-    /** Getter for property inSingle.
+    /**
+     * Getter for property inSingle.
+     * 
      * @return Value of property inSingle.
      */
     public int getInSingle() {
@@ -1086,6 +1090,7 @@ public class ParserSupport {
 
     /**
      * Gets the result.
+     * 
      * @return Returns a RubyParserResult
      */
     public RubyParserResult getResult() {
@@ -1094,6 +1099,7 @@ public class ParserSupport {
 
     /**
      * Sets the result.
+     * 
      * @param result The result to set
      */
     public void setResult(RubyParserResult result) {
@@ -1102,6 +1108,7 @@ public class ParserSupport {
 
     /**
      * Sets the configuration.
+     * 
      * @param configuration The configuration to set
      */
     public void setConfiguration(ParserConfiguration configuration) {
@@ -1409,6 +1416,7 @@ public class ParserSupport {
 
     /**
      * generate parsing error
+     * 
      * @param message text to be displayed.
      * @param expected list of acceptable tokens, if available.
      */
@@ -1518,9 +1526,8 @@ public class ParserSupport {
 
     // 1.9
     /**
-     * If node is a splat and it is splatting a literal array then return the literal array.
-     * Otherwise return null.  This allows grammar to not splat into a Ruby Array if splatting
-     * a literal array.
+     * If node is a splat and it is splatting a literal array then return the literal array. Otherwise return null. This
+     * allows grammar to not splat into a Ruby Array if splatting a literal array.
      */
     public ParseNode splat_array(ParseNode node) {
         if (node instanceof SplatParseNode) {

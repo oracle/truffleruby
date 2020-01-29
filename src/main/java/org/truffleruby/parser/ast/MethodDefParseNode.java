@@ -61,6 +61,7 @@ public abstract class MethodDefParseNode extends ParseNode implements INameNode,
 
     /**
      * Gets the argsNode.
+     * 
      * @return Returns a ParseNode
      */
     public ArgsParseNode getArgsNode() {
@@ -87,6 +88,7 @@ public abstract class MethodDefParseNode extends ParseNode implements INameNode,
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {

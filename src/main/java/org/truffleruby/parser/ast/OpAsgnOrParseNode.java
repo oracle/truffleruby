@@ -57,6 +57,7 @@ public class OpAsgnOrParseNode extends ParseNode implements BinaryOperatorParseN
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -66,6 +67,7 @@ public class OpAsgnOrParseNode extends ParseNode implements BinaryOperatorParseN
 
     /**
      * Gets the firstNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getFirstNode() {
@@ -74,6 +76,7 @@ public class OpAsgnOrParseNode extends ParseNode implements BinaryOperatorParseN
 
     /**
      * Gets the secondNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getSecondNode() {

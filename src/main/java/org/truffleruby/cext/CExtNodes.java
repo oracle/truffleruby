@@ -911,7 +911,7 @@ public class CExtNodes {
                 if (method == null) {
                     return null;
                 } else if (method.getName().equals(/* Truffle::CExt. */ "rb_frame_this_func") ||
-                        method.getName().equals(/* Truffle::Interop  */ "execute_without_conversion")) {
+                        method.getName().equals(/* Truffle::Interop */ "execute_without_conversion")) {
                     // TODO CS 11-Mar-17 must have a more precise check to skip these methods
                     return null;
                 } else {
@@ -1495,13 +1495,10 @@ public class CExtNodes {
         @TruffleBoundary
         protected void addObjectToMarkingService(DynamicObject object, DynamicObject marker) {
             RubyContext aContext = getContext();
-            /*
-             * The code here has to be a little subtle. The marker must be associated with the
-             * object it will act on, but the lambda must not capture the object (and prevent
-             * garbage collection). So the marking function is a lambda that will take the
-             * object as an argument 'o' which will be provided when the marking function is
-             * called by the marking service.
-             */
+            /* The code here has to be a little subtle. The marker must be associated with the object it will act on,
+             * but the lambda must not capture the object (and prevent garbage collection). So the marking function is a
+             * lambda that will take the object as an argument 'o' which will be provided when the marking function is
+             * called by the marking service. */
             getContext().getMarkingService().addMarker(object, (o) -> aContext.send(marker, "call", o));
         }
     }

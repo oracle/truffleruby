@@ -80,8 +80,8 @@ public class StringGuards {
     }
 
     /**
-     * The string can be optimized to single-byte representation and is a simple case mapping
-     * (ASCII-only or full Unicode).
+     * The string can be optimized to single-byte representation and is a simple case mapping (ASCII-only or full
+     * Unicode).
      */
     public static boolean isSingleByteCaseMapping(DynamicObject string, int caseMappingOptions,
             RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {
@@ -89,8 +89,8 @@ public class StringGuards {
     }
 
     /**
-     * The string's encoding is ASCII-compatible, the mapping is ASCII-only and {@link
-     * #isSingleByteCaseMapping} is not applicable.
+     * The string's encoding is ASCII-compatible, the mapping is ASCII-only and {@link #isSingleByteCaseMapping} is not
+     * applicable.
      */
     public static boolean isSimpleAsciiCaseMapping(DynamicObject string, int caseMappingOptions,
             RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode) {

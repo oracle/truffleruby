@@ -224,8 +224,7 @@ public class FiberManager {
     }
 
     /**
-     * Send the Java thread that represents this fiber to sleep until it receives a resume or exit
-     * message.
+     * Send the Java thread that represents this fiber to sleep until it receives a resume or exit message.
      */
     @TruffleBoundary
     private Object[] waitForResume(DynamicObject fiber) {
@@ -255,9 +254,8 @@ public class FiberManager {
     }
 
     /**
-     * Send a resume message to a fiber by posting into its message queue. Doesn't explicitly notify
-     * the Java thread (although the queue implementation may) and doesn't wait for the message to
-     * be received.
+     * Send a resume message to a fiber by posting into its message queue. Doesn't explicitly notify the Java thread
+     * (although the queue implementation may) and doesn't wait for the message to be received.
      */
     private void resume(DynamicObject fromFiber, DynamicObject fiber, FiberOperation operation, Object... args) {
         addToMessageQueue(fiber, new FiberResumeMessage(operation, fromFiber, args));

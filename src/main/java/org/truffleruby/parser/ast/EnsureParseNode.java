@@ -59,6 +59,7 @@ public class EnsureParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -68,6 +69,7 @@ public class EnsureParseNode extends ParseNode {
 
     /**
      * Gets the bodyNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getBodyNode() {
@@ -76,6 +78,7 @@ public class EnsureParseNode extends ParseNode {
 
     /**
      * Gets the ensureNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getEnsureNode() {

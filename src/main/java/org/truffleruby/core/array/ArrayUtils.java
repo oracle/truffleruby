@@ -19,6 +19,7 @@ public abstract class ArrayUtils {
 
     /**
      * Extracts part of an array into a newly allocated byte[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
@@ -34,6 +35,7 @@ public abstract class ArrayUtils {
 
     /**
      * Extracts part of an array into a newly allocated int[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
@@ -49,6 +51,7 @@ public abstract class ArrayUtils {
 
     /**
      * Extracts part of an array into a newly allocated long[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
@@ -64,6 +67,7 @@ public abstract class ArrayUtils {
 
     /**
      * Extracts part of an array into a newly allocated double[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
@@ -79,6 +83,7 @@ public abstract class ArrayUtils {
 
     /**
      * Extracts part of an array into a newly allocated Object[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start

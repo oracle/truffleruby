@@ -65,6 +65,7 @@ public class RescueBodyParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -74,6 +75,7 @@ public class RescueBodyParseNode extends ParseNode {
 
     /**
      * Gets the bodyNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getBodyNode() {
@@ -89,6 +91,7 @@ public class RescueBodyParseNode extends ParseNode {
 
     /**
      * Gets the exceptionNodes.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getExceptionNodes() {

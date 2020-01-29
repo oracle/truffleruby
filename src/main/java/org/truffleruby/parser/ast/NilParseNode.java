@@ -52,6 +52,7 @@ public class NilParseNode extends ParseNode implements INameNode, SideEffectFree
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override

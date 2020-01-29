@@ -61,6 +61,7 @@ public class BlockArgParseNode extends ParseNode implements INameNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -70,6 +71,7 @@ public class BlockArgParseNode extends ParseNode implements INameNode {
 
     /**
      * Gets the count.
+     * 
      * @return Returns a int
      */
     public int getCount() {

@@ -61,6 +61,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -78,8 +79,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
     }
 
     /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
+     * Gets the index within the scope construct that actually holds the eval'd value of this local variable
      *
      * @return Returns an int offset into storage structure
      */
@@ -89,6 +89,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
 
     /**
      * Gets the name.
+     * 
      * @return Returns a String
      */
     public String getName() {
@@ -97,6 +98,7 @@ public class DVarParseNode extends ParseNode implements INameNode, IScopedNode, 
 
     /**
      * Sets the name of this variable (for refactoring support)
+     * 
      * @param name to set the variable to
      */
     public void setName(String name) {

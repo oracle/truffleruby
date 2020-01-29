@@ -41,16 +41,11 @@ import org.truffleruby.language.methods.Arity;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
- * Represents the argument declarations of a method.  The fields:
- * foo(p1, ..., pn, o1 = v1, ..., on = v2, *r, q1, ..., qn, k1:, ..., kn:, **K, &b)
+ * Represents the argument declarations of a method. The fields: foo(p1, ..., pn, o1 = v1, ..., on = v2, *r, q1, ...,
+ * qn, k1:, ..., kn:, **K, &b)
  *
- * p1...pn = pre arguments
- * o1...on = optional arguments
- * r       = rest argument
- * q1...qn = post arguments (only in 1.9)
- * k1...kn = keyword arguments
- * K       = keyword rest argument
- * b       = block arg
+ * p1...pn = pre arguments o1...on = optional arguments r = rest argument q1...qn = post arguments (only in 1.9) k1...kn
+ * = keyword arguments K = keyword rest argument b = block arg
  */
 public class ArgsParseNode extends ParseNode {
 

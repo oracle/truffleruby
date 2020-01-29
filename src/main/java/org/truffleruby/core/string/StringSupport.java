@@ -104,14 +104,14 @@ public final class StringSupport {
 
 
     /**
-     * This method returns the byte length of the first encountered character in `bytes`, starting at
-     * offset `p` and ending at byte position `e`. The `Encoding` implementation will perform character
-     * validation and return a negative number if the byte sequence does not correspond to a valid character.
-     * Otherwise, the byte length of the character is returned. See the docs for `Encoding#length` for more details.
+     * This method returns the byte length of the first encountered character in `bytes`, starting at offset `p` and
+     * ending at byte position `e`. The `Encoding` implementation will perform character validation and return a
+     * negative number if the byte sequence does not correspond to a valid character. Otherwise, the byte length of the
+     * character is returned. See the docs for `Encoding#length` for more details.
      *
-     * It is up to the caller to check if the return value is negative. In practice, it is expected this method
-     * is only called when the caller knows the code range of the byte sequence is either `CR_7BIT` or `CR_VALID`,
-     * in which case no check on the return values is necessary -- it will always be positive.
+     * It is up to the caller to check if the return value is negative. In practice, it is expected this method is only
+     * called when the caller knows the code range of the byte sequence is either `CR_7BIT` or `CR_VALID`, in which case
+     * no check on the return values is necessary -- it will always be positive.
      *
      * Corresponding MRI method: rb_enc_fast_mbclen
      */
@@ -121,20 +121,20 @@ public final class StringSupport {
     }
 
     /**
-     * This method functions like `StringSupport.encLength`, but differs when an invalid character is encountered
-     * (i.e., a negative byte length). In such cases, it attempts to perform a limited form of error recovery.
-     * It checks the `Encoding`'s minimum length to see if it's small enough to fit within the range [end - p].
-     * If it is, the method pretends a character with a byte length equal to the `Encoding`'s minimum length was
-     * discovered and that byte length is returned. If the minimum character length can't fit in the range, this
-     * method pretends a character with a byte length corresponding to the size of the range was encountered and
-     * the range size is returned. If a valid character was encountered, its byte length is returned just as would
-     * be the case with `StringSupport.encLength`. Consequently, this method never returns a negative value.
+     * This method functions like `StringSupport.encLength`, but differs when an invalid character is encountered (i.e.,
+     * a negative byte length). In such cases, it attempts to perform a limited form of error recovery. It checks the
+     * `Encoding`'s minimum length to see if it's small enough to fit within the range [end - p]. If it is, the method
+     * pretends a character with a byte length equal to the `Encoding`'s minimum length was discovered and that byte
+     * length is returned. If the minimum character length can't fit in the range, this method pretends a character with
+     * a byte length corresponding to the size of the range was encountered and the range size is returned. If a valid
+     * character was encountered, its byte length is returned just as would be the case with `StringSupport.encLength`.
+     * Consequently, this method never returns a negative value.
      *
-     * Ruby allows Strings with a `CR_BROKEN` code range to propagate through to an end user, who may call methods
-     * on that String. This variant of getting a character's length is designed is intended to be used in such cases.
-     * E.g., if calling `String#each_char` on a String that is `CR_BROKEN`, returning negative values for the
-     * character length would break iteration. In such cases, Ruby just pretends broken byte sequences have some
-     * arbitrary, but deterministic, positive byte length.
+     * Ruby allows Strings with a `CR_BROKEN` code range to propagate through to an end user, who may call methods on
+     * that String. This variant of getting a character's length is designed is intended to be used in such cases. E.g.,
+     * if calling `String#each_char` on a String that is `CR_BROKEN`, returning negative values for the character length
+     * would break iteration. In such cases, Ruby just pretends broken byte sequences have some arbitrary, but
+     * deterministic, positive byte length.
      *
      * Corresponding MRI method: rb_enc_mbclen
      */
@@ -148,14 +148,13 @@ public final class StringSupport {
     }
 
     /**
-     * This method functions like `StringSupport.encLength`, but differs when a character sequence is too short.
-     * In such cases, it examines the return value from `Encoding#length` and if exceeds the length of the byte
-     * sequence, it returns the number of bytes required to make the character valid, but negated. Since the value
-     * is negated, the caller can distinguish between good character lengths ad bad ones by checking the sign of
-     * the value.
+     * This method functions like `StringSupport.encLength`, but differs when a character sequence is too short. In such
+     * cases, it examines the return value from `Encoding#length` and if exceeds the length of the byte sequence, it
+     * returns the number of bytes required to make the character valid, but negated. Since the value is negated, the
+     * caller can distinguish between good character lengths ad bad ones by checking the sign of the value.
      *
-     * It is intended to be called when then code range of the byte sequence is unknown. In such cases, it cannot
-     * be trusted like `StringSupport.encLength`. Nor is it safe to recover invalid byte sequences as is done with
+     * It is intended to be called when then code range of the byte sequence is unknown. In such cases, it cannot be
+     * trusted like `StringSupport.encLength`. Nor is it safe to recover invalid byte sequences as is done with
      * `StringSupport.length`.
      *
      * Corresponding MRI method: rb_enc_precise_mbclen
@@ -1362,9 +1361,9 @@ public final class StringSupport {
     }
 
     /**
-     * Returns a copy of {@code bytes} but with ASCII characters' case swapped, or {@code bytes}
-     * itself if the string doesn't require changes. The encoding must be ASCII-compatible (i.e.
-     * represent each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
+     * Returns a copy of {@code bytes} but with ASCII characters' case swapped, or {@code bytes} itself if the string
+     * doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
+     * byte ({@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
     public static byte[] swapcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
@@ -1419,9 +1418,9 @@ public final class StringSupport {
     }
 
     /**
-     * Returns a copy of {@code bytes} but with ASCII characters downcased, or {@code bytes} itself
-     * if no ASCII characters need upcasing. The encoding must be ASCII-compatible (i.e. represent
-     * each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
+     * Returns a copy of {@code bytes} but with ASCII characters downcased, or {@code bytes} itself if no ASCII
+     * characters need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single
+     * byte ({@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
     public static byte[] downcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
@@ -1486,9 +1485,9 @@ public final class StringSupport {
     }
 
     /**
-     * Returns a copy of {@code bytes} but with ASCII characters upcased, or {@code bytes} itself
-     * if no ASCII characters need upcasing. The encoding must be ASCII-compatible (i.e. represent
-     * each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
+     * Returns a copy of {@code bytes} but with ASCII characters upcased, or {@code bytes} itself if no ASCII characters
+     * need upcasing. The encoding must be ASCII-compatible (i.e. represent each ASCII character as a single byte (
+     * {@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
     public static byte[] upcaseMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
@@ -1552,8 +1551,8 @@ public final class StringSupport {
 
     /**
      * Returns a copy of {@code bytes} but capitalized (affecting only ASCII characters), or {@code
-     * bytes} itself if the string doesn't require changes. The encoding must be ASCII-compatible
-     * (i.e. represent each ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
+     * bytes} itself if the string doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each
+     * ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}).
      */
     @TruffleBoundary
     public static byte[] capitalizeMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
@@ -1643,8 +1642,9 @@ public final class StringSupport {
         return c >= 'A' && c <= 'Z';
     }
 
-    /** MRI: ISSPACE() and rb_isspace()
-     * True for ' ', \t, \n, \v, \f, and \r */
+    /**
+     * MRI: ISSPACE() and rb_isspace() True for ' ', \t, \n, \v, \f, and \r
+     */
     public static boolean isAsciiSpace(int c) {
         return c == ' ' || ('\t' <= c && c <= '\r');
     }

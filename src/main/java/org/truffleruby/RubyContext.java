@@ -183,12 +183,10 @@ public class RubyContext {
 
         // Stuff that needs to be loaded before we load any code
 
-        /*
-         * The Graal option InliningMaxCallerSize sets the maximum size of a method for where we consider to inline
+        /* The Graal option InliningMaxCallerSize sets the maximum size of a method for where we consider to inline
          * calls from that method. So it's the caller method we're talking about, not the called method. The default
          * value doesn't produce good results for Ruby programs, but we aren't sure why yet. Perhaps it prevents a few
-         * key methods from the core library from inlining other methods.
-         */
+         * key methods from the core library from inlining other methods. */
 
         if (compilerOptions.supportsOption("MinInliningMaxCallerSize")) {
             compilerOptions.setOption("MinInliningMaxCallerSize", 5000);
@@ -272,9 +270,9 @@ public class RubyContext {
     }
 
     /**
-     * Re-initialize parts of the RubyContext depending on the running process. This is a small
-     * subset of the full initialization which needs to be performed to adapt to the new process and
-     * external environment. Calls are kept in the same order as during normal initialization.
+     * Re-initialize parts of the RubyContext depending on the running process. This is a small subset of the full
+     * initialization which needs to be performed to adapt to the new process and external environment. Calls are kept
+     * in the same order as during normal initialization.
      */
     protected boolean patch(Env newEnv) {
         this.env = newEnv;
@@ -523,9 +521,8 @@ public class RubyContext {
     }
 
     /**
-     * With context pre-initialization, the random seed must be reset at runtime. So every use of
-     * the random seed through Hashing should provide a way to rehash to take the new random seed in
-     * account.
+     * With context pre-initialization, the random seed must be reset at runtime. So every use of the random seed
+     * through Hashing should provide a way to rehash to take the new random seed in account.
      */
     public Hashing getHashing(ReHashable reHashable) {
         if (isPreInitializing()) {
@@ -807,10 +804,8 @@ public class RubyContext {
 
     private static SecureRandom createRandomInstance() {
         try {
-            /*
-             * We want to use a non-blocking source because this is what MRI does (via /dev/urandom) and it's been found
-             * in practice that blocking sources are a problem for deploying JRuby.
-             */
+            /* We want to use a non-blocking source because this is what MRI does (via /dev/urandom) and it's been found
+             * in practice that blocking sources are a problem for deploying JRuby. */
             return SecureRandom.getInstance("NativePRNGNonBlocking");
         } catch (NoSuchAlgorithmException e) {
             throw new JavaException(e);
@@ -829,8 +824,8 @@ public class RubyContext {
     }
 
     /**
-     * Returns the path of a Source. Returns the short path for the main script (the file argument
-     * given to "ruby"). The path of eval(code, nil, filename) is just filename.
+     * Returns the path of a Source. Returns the short path for the main script (the file argument given to "ruby"). The
+     * path of eval(code, nil, filename) is just filename.
      */
     public String getPath(Source source) {
         final String name = source.getName();
@@ -843,8 +838,8 @@ public class RubyContext {
     }
 
     /**
-     * Returns the path of a Source. Returns the canonical path for the main script. Note however
-     * that the path of eval(code, nil, filename) is just filename and might not be absolute.
+     * Returns the path of a Source. Returns the canonical path for the main script. Note however that the path of
+     * eval(code, nil, filename) is just filename and might not be absolute.
      */
     public String getAbsolutePath(Source source) {
         if (source == mainSource) {

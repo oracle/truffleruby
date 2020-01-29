@@ -36,7 +36,8 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/** Represents an operator assignment to an element.
+/**
+ * Represents an operator assignment to an element.
  *
  * This could be for example:
  *
@@ -75,6 +76,7 @@ public class OpElementAsgnParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -84,6 +86,7 @@ public class OpElementAsgnParseNode extends ParseNode {
 
     /**
      * Gets the argsNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getArgsNode() {
@@ -92,6 +95,7 @@ public class OpElementAsgnParseNode extends ParseNode {
 
     /**
      * Gets the operatorName.
+     * 
      * @return Returns a String
      */
     public String getOperatorName() {
@@ -100,6 +104,7 @@ public class OpElementAsgnParseNode extends ParseNode {
 
     /**
      * Gets the receiverNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getReceiverNode() {
@@ -108,6 +113,7 @@ public class OpElementAsgnParseNode extends ParseNode {
 
     /**
      * Gets the valueNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getValueNode() {

@@ -52,6 +52,7 @@ public abstract class AssignableParseNode extends ParseNode {
 
     /**
      * Gets the valueNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getValueNode() {
@@ -60,6 +61,7 @@ public abstract class AssignableParseNode extends ParseNode {
 
     /**
      * Sets the valueNode.
+     * 
      * @param valueNode The valueNode to set
      */
     public void setValueNode(ParseNode valueNode) {

@@ -61,6 +61,7 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -70,6 +71,7 @@ public class XStrParseNode extends ParseNode implements ILiteralNode {
 
     /**
      * Gets the value.
+     * 
      * @return Returns a String
      */
     public Rope getValue() {

@@ -48,8 +48,8 @@ public abstract class ArrayStrategy {
     }
 
     /**
-     * When the strategy {@link #matches(DynamicObject)} an Array, this can be used to see if the
-     * given value can be written in the Array without generalizing the storage.
+     * When the strategy {@link #matches(DynamicObject)} an Array, this can be used to see if the given value can be
+     * written in the Array without generalizing the storage.
      */
     public abstract boolean accepts(Object value);
 
@@ -92,8 +92,8 @@ public abstract class ArrayStrategy {
     protected abstract Iterable<Object> getIterableFrom(Object array, int from, int length);
 
     /**
-     * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of
-     * array storage needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
+     * Whether the strategy obtained from {@link #forValue(Object)} describes accurately the kind of array storage
+     * needed to store this value (so e.g., Object[] specializesFor non-int/long/double).
      */
     public boolean specializesFor(Object value) {
         throw unsupported();

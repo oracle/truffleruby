@@ -57,6 +57,7 @@ public class BreakParseNode extends ParseNode implements NonLocalControlFlowPars
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -66,6 +67,7 @@ public class BreakParseNode extends ParseNode implements NonLocalControlFlowPars
 
     /**
      * Gets the valueNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getValueNode() {

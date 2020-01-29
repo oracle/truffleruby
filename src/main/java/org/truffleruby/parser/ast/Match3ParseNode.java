@@ -37,7 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /**
- * Used when a Regexp literal is the RHS of a match call.  E.g., "abc" =~ /.+/
+ * Used when a Regexp literal is the RHS of a match call. E.g., "abc" =~ /.+/
  */
 public class Match3ParseNode extends ParseNode {
     private final ParseNode receiverNode;
@@ -60,6 +60,7 @@ public class Match3ParseNode extends ParseNode {
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -69,6 +70,7 @@ public class Match3ParseNode extends ParseNode {
 
     /**
      * Gets the receiverNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getReceiverNode() {
@@ -77,6 +79,7 @@ public class Match3ParseNode extends ParseNode {
 
     /**
      * Gets the valueNode.
+     * 
      * @return Returns a ParseNode
      */
     public ParseNode getValueNode() {

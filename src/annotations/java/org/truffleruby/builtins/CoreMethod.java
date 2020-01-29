@@ -37,9 +37,9 @@ public @interface CoreMethod {
     boolean constructor() default false;
 
     /**
-     * Defines the method as public on the singleton class and as a private instance method.
-     * {@link #needsSelf() needsSelf} is always false as it could be either a module or any receiver.
-     * Only use when it is required to be both a singleton method and instance method.
+     * Defines the method as public on the singleton class and as a private instance method. {@link #needsSelf()
+     * needsSelf} is always false as it could be either a module or any receiver. Only use when it is required to be
+     * both a singleton method and instance method.
      */
     boolean isModuleFunction() default false;
 
@@ -50,8 +50,8 @@ public @interface CoreMethod {
     int optional() default 0;
 
     /**
-     * Declares that a keyword argument with this name will be passed into the method as if it was an
-     * extra trailing positional optional argument.
+     * Declares that a keyword argument with this name will be passed into the method as if it was an extra trailing
+     * positional optional argument.
      */
     String keywordAsOptional() default "";
 
@@ -60,9 +60,8 @@ public @interface CoreMethod {
     boolean needsBlock() default false;
 
     /**
-     * Try to lower argument <code>i</code> (starting at 0) to an int if its value is a long.
-     * The 0 is reserved for <code>self</code>.
-     * If {@link #needsSelf() needsSelf} is false then there is no 0 argument explicitly passed.
+     * Try to lower argument <code>i</code> (starting at 0) to an int if its value is a long. The 0 is reserved for
+     * <code>self</code>. If {@link #needsSelf() needsSelf} is false then there is no 0 argument explicitly passed.
      * Therefore the remaining arguments start at 1.
      */
     int[] lowerFixnum() default {};
@@ -73,8 +72,7 @@ public @interface CoreMethod {
     boolean raiseIfFrozenSelf() default false;
 
     /**
-     * Taint the result if argument <code>i</code> (starting at 1) is tainted.
-     * Use 0 for <code>self</code>.
+     * Taint the result if argument <code>i</code> (starting at 1) is tainted. Use 0 for <code>self</code>.
      */
     int taintFrom() default -1;
 
@@ -83,14 +81,13 @@ public @interface CoreMethod {
     boolean returnsEnumeratorIfNoBlock() default false;
 
     /**
-     * Method to call to determine the size of the returned Enumerator. Implies
-     * {@link #returnsEnumeratorIfNoBlock()}.
+     * Method to call to determine the size of the returned Enumerator. Implies {@link #returnsEnumeratorIfNoBlock()}.
      */
     String enumeratorSize() default "";
 
     /**
-     * Disallow method splitting for this CoreMethod. Useful for methods not specializing on their
-     * arguments and just calling a TruffleBoundary method.
+     * Disallow method splitting for this CoreMethod. Useful for methods not specializing on their arguments and just
+     * calling a TruffleBoundary method.
      */
     boolean neverSplit() default false;
 

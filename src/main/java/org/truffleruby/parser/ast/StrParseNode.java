@@ -83,6 +83,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
 
     /**
      * Accept for the visitor pattern.
+     * 
      * @param iVisitor the visitor
      **/
     @Override
@@ -92,6 +93,7 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
 
     /**
      * Gets the value.
+     * 
      * @return Returns a String
      */
     public Rope getValue() {

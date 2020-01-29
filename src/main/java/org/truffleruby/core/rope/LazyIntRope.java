@@ -34,10 +34,8 @@ public class LazyIntRope extends LazyRope {
         final int sign;
 
         if (value < 0) {
-            /*
-             * We can't represent -Integer.MIN_VALUE, and we're about to multiple by 10 to add the space needed for the
-             * negative character, so handle both of those out-of-range cases.
-             */
+            /* We can't represent -Integer.MIN_VALUE, and we're about to multiple by 10 to add the space needed for the
+             * negative character, so handle both of those out-of-range cases. */
 
             if (value <= -1000000000) {
                 return 11;

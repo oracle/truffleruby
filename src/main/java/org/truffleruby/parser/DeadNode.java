@@ -15,8 +15,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 /**
- * Dead nodes are removed wherever they are found during translation. They fill in for some missing
- * nodes when we're processing the AST.
+ * Dead nodes are removed wherever they are found during translation. They fill in for some missing nodes when we're
+ * processing the AST.
  */
 public class DeadNode extends RubyContextSourceNode {
 
