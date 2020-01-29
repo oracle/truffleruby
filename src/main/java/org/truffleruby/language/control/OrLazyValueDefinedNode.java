@@ -63,14 +63,10 @@ public class OrLazyValueDefinedNode extends RubyNode {
         if (conditionProfile.profile(castToBoolean(leftValue))) {
             return leftValue;
         } else {
-            if (CompilerDirectives.inInterpreter()) {
-                // Count how many times the RHS is used
-                rightUsage = rightUsage.next();
-            }
-
             if (rightUsage != RightUsage.MANY) {
                 // Don't compile the RHS of a lazy initialization unless it has been used many times
                 CompilerDirectives.transferToInterpreterAndInvalidate();
+                rightUsage = rightUsage.next();
             }
 
             return right.execute(frame);
