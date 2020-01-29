@@ -9,8 +9,13 @@ describe "Range#to_s" do
     ('A'...'Z').to_s.should == 'A...Z'
     (0xfff..0xfffff).to_s.should == "4095..1048575"
     (0.5..2.4).to_s.should == "0.5..2.4"
-    (1..).to_s.should == "1.."
-    (1.0...).to_s.should == "1.0..."
+  end
+
+  ruby_version_is "2.6" do
+    it "can show endless ranges" do
+      eval("(1..)").to_s.should == "1.."
+      eval("(1.0...)").to_s.should == "1.0..."
+    end
   end
 
   ruby_version_is ''...'2.7' do
