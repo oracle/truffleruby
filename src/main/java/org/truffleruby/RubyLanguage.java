@@ -11,9 +11,6 @@ package org.truffleruby;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.utilities.CyclicAssumption;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
@@ -30,6 +27,8 @@ import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.stdlib.CoverageManager;
 
+import com.oracle.truffle.api.Assumption;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
@@ -42,6 +41,7 @@ import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 @TruffleLanguage.Registration(
         name = "Ruby",

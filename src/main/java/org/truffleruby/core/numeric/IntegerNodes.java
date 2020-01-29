@@ -11,12 +11,11 @@ package org.truffleruby.core.numeric;
 
 import java.math.BigInteger;
 
-import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
@@ -44,6 +43,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -449,7 +449,7 @@ public abstract class IntegerNodes {
     public abstract static class IDivNode extends BignumCoreMethodNode {
 
         @Child private DivNode divNode = DivNodeFactory.create(null);
-        @Child private FloatNodes.FloorNode floorNode = FloatNodesFactory.FloorNodeFactory.create(null);
+        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 
         @Specialization
         protected Object idiv(Object a, Object b,
@@ -459,7 +459,7 @@ public abstract class IntegerNodes {
                 if (zeroProfile.profile((double) b == 0.0)) {
                     throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
                 }
-                return floorNode.executeFloor((double) quotient);
+                return fixnumOrBignum.fixnumOrBignum(Math.floor((double) quotient));
             } else {
                 return quotient;
             }

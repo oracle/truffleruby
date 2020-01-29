@@ -11,7 +11,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public abstract class ToFNode extends RubyBaseNode {
+public abstract class ToFNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode toFNode;
 

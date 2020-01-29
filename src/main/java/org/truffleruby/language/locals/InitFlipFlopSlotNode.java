@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class InitFlipFlopSlotNode extends RubyNode {
+public class InitFlipFlopSlotNode extends RubyContextSourceNode {
 
     private final FrameSlot frameSlot;
 

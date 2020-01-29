@@ -12,7 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
@@ -38,7 +38,7 @@ import com.oracle.truffle.api.utilities.NeverValidAssumption;
 @ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
 @ReportPolymorphism
 @GenerateUncached
-public abstract class WriteObjectFieldNode extends RubyBaseWithoutContextNode {
+public abstract class WriteObjectFieldNode extends RubyBaseNode {
 
     public static WriteObjectFieldNode create() {
         return WriteObjectFieldNodeGen.create();

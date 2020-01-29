@@ -57,9 +57,9 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.interop.ToJavaStringNodeGen;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -166,7 +166,7 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex_and_frame")
     public abstract static class CallCWithMuteAndFramexNode extends PrimitiveArrayArgumentsNode {
 
-        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(EMPTY_ARRAY);
+        @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
         protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray,
@@ -957,8 +957,8 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "string_pointer_size", onSingleton = true, required = 1)
-    public abstract static class StringPointerSizeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_size")
+    public abstract static class StringPointerSizeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected int size(DynamicObject string) {
@@ -975,7 +975,7 @@ public class CExtNodes {
 
     }
 
-    public abstract static class StringToNativeNode extends RubyBaseNode {
+    public abstract static class StringToNativeNode extends RubyContextNode {
 
         public static StringToNativeNode create() {
             return StringToNativeNodeGen.create();
@@ -1010,8 +1010,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_to_native", onSingleton = true, required = 1)
-    public abstract static class StringPointerToNativeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_to_native")
+    public abstract static class StringPointerToNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected long toNative(DynamicObject string,
@@ -1038,8 +1038,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_is_native?", onSingleton = true, required = 1)
-    public abstract static class StringPointerIsNativeNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_is_native?")
+    public abstract static class StringPointerIsNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected boolean isNative(DynamicObject string) {
@@ -1048,8 +1048,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_read", onSingleton = true, required = 2, lowerFixnum = 2)
-    public abstract static class StringPointerReadNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_read", lowerFixnum = 1)
+    public abstract static class StringPointerReadNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected Object read(DynamicObject string, int index,
@@ -1068,8 +1068,8 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_pointer_write", onSingleton = true, required = 3, lowerFixnum = { 2, 3 })
-    public abstract static class StringPointerWriteNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "string_pointer_write", lowerFixnum = { 1, 2 })
+    public abstract static class StringPointerWriteNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
         protected int write(DynamicObject string, int index, int value,

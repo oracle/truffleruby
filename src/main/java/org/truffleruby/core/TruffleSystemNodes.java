@@ -43,15 +43,14 @@ import java.nio.file.NoSuchFileException;
 import java.util.Set;
 import java.util.logging.Level;
 
-import com.oracle.truffle.api.TruffleFile;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
@@ -66,6 +65,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;

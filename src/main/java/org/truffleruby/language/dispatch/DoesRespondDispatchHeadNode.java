@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.dispatch;
 
-import org.truffleruby.language.RubyNode;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -45,7 +43,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
                 receiverObject,
                 methodName,
                 null,
-                RubyNode.EMPTY_ARGUMENTS);
+                EMPTY_ARGUMENTS);
     }
 
     private static class Uncached extends DoesRespondDispatchHeadNode {
@@ -62,7 +60,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
                     name,
                     null,
                     null,
-                    RubyNode.EMPTY_ARGUMENTS,
+                    EMPTY_ARGUMENTS,
                     DispatchAction.RESPOND_TO_METHOD,
                     MissingBehavior.RETURN_MISSING,
                     true,

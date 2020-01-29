@@ -1,1 +1,0 @@
-fails:Float#ceil returns the smallest number greater than or equal to self with an optionally given precision

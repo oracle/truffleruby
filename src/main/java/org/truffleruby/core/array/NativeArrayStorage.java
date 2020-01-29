@@ -11,11 +11,11 @@ package org.truffleruby.core.array;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.objects.ObjectGraphNode;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public final class NativeArrayStorage implements ObjectGraphNode {
 

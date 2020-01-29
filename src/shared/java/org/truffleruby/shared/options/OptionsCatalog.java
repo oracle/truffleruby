@@ -76,6 +76,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> GETS_LOOP_KEY = new OptionKey<>(false);
+    public static final OptionKey<Boolean> PRINT_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SYNTAX_CHECK_KEY = new OptionKey<>(false);
     public static final OptionKey<String[]> ARGV_GLOBAL_VALUES_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
@@ -531,6 +532,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor GETS_LOOP = OptionDescriptor
             .newBuilder(GETS_LOOP_KEY, "ruby.gets-loop")
             .help("assume while gets(); ... end loop around your script (configured by the -n Ruby option)")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor PRINT_LOOP = OptionDescriptor
+            .newBuilder(PRINT_LOOP_KEY, "ruby.print-loop")
+            .help("assume loop like -n but print line also like sed (configured by the -p Ruby option)")
             .category(OptionCategory.INTERNAL)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1111,6 +1119,8 @@ public class OptionsCatalog {
                 return ARGV_GLOBALS;
             case "ruby.gets-loop":
                 return GETS_LOOP;
+            case "ruby.print-loop":
+                return PRINT_LOOP;
             case "ruby.ignore-lines-before-ruby-shebang":
                 return IGNORE_LINES_BEFORE_RUBY_SHEBANG;
             case "ruby.syntax-check":
@@ -1306,6 +1316,7 @@ public class OptionsCatalog {
             CEXTS_LOG_WARNINGS,
             ARGV_GLOBALS,
             GETS_LOOP,
+            PRINT_LOOP,
             IGNORE_LINES_BEFORE_RUBY_SHEBANG,
             SYNTAX_CHECK,
             ARGV_GLOBAL_VALUES,

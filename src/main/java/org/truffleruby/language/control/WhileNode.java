@@ -12,6 +12,7 @@ package org.truffleruby.language.control;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.Truffle;
@@ -23,7 +24,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-public final class WhileNode extends RubyNode {
+public final class WhileNode extends RubyContextSourceNode {
 
     @Child private LoopNode loopNode;
 

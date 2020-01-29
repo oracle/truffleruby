@@ -9,12 +9,13 @@
  */
 package org.truffleruby.language.exceptions;
 
-import com.oracle.truffle.api.CompilerAsserts;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RetryException;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
 
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -23,7 +24,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class TryNode extends RubyNode {
+public class TryNode extends RubyContextSourceNode {
 
     @Child private ExceptionTranslatingNode tryPart;
     @Children private final RescueNode[] rescueParts;
@@ -109,7 +110,8 @@ public class TryNode extends RubyNode {
         throw exception;
     }
 
-    private Object setLastExceptionAndRunRescue(VirtualFrame frame, RaiseException exception, RubyNode rescue) {
+    private Object setLastExceptionAndRunRescue(VirtualFrame frame, RaiseException exception,
+            RubyNode rescue) {
         if (setExceptionVariableNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             setExceptionVariableNode = insert(new SetExceptionVariableNode());

@@ -11,6 +11,7 @@ package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -21,7 +22,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 /**
  * Get the arguments of a super call with explicit arguments.
  */
-public class ReadSuperArgumentsNode extends RubyNode {
+public class ReadSuperArgumentsNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] arguments;
     @Child private ArrayToObjectArrayNode unsplatNode;

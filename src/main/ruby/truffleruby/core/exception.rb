@@ -211,18 +211,19 @@ end
 
 class NameError < StandardError
 
-  def initialize(*args)
+  def initialize(*args, receiver: undefined)
     name = args.size > 1 ? args.pop : nil
     super(*args)
     TrufflePrimitive.name_error_set_name self, name
+    TrufflePrimitive.name_error_set_receiver self, receiver unless TrufflePrimitive.undefined?(receiver)
   end
 end
 
 class NoMethodError < NameError
 
-  def initialize(*arguments)
+  def initialize(*arguments, receiver: undefined)
     args = arguments.size > 2 ? arguments.pop : nil
-    super(*arguments) # TODO BJF Jul 24, 2016 Need to handle NoMethodError.new(1,2,3,4)
+    super(*arguments, receiver: receiver) # TODO BJF Jul 24, 2016 Need to handle NoMethodError.new(1,2,3,4)
     TrufflePrimitive.no_method_error_set_args self, args
   end
 end
@@ -355,6 +356,7 @@ class SystemCallError < StandardError
         location = nil
       when 2
         message, errno = args
+        message = StringValue(message) unless message.nil?
         location = nil
       when 3
         message, errno, location = args
@@ -363,11 +365,12 @@ class SystemCallError < StandardError
       end
 
       # If it corresponds to a known Errno class, create and return it now
-      if errno && error = SystemCallError.errno_error(message, errno, location)
-        return error
-      else
-        return super(message, errno, location)
+      if errno
+        errno = Truffle::Type.rb_num2long(errno)
+        error = SystemCallError.errno_error(message, errno, location)
+        return error unless error.nil?
       end
+      super(message, errno, location)
     else
       case args.size
       when 0

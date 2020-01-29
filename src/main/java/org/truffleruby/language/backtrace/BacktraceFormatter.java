@@ -24,6 +24,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.methods.TranslateExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -31,7 +32,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.language.methods.TranslateExceptionNode;
 
 public class BacktraceFormatter {
 

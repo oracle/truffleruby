@@ -27,9 +27,9 @@ import org.joni.exception.SyntaxException;
 import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.cast.TaintResultNode;
@@ -43,7 +43,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -165,7 +165,7 @@ public class TruffleRegexpNodes {
         }
     }
 
-    public static abstract class MatchNode extends RubyBaseNode {
+    public static abstract class MatchNode extends RubyContextNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();

@@ -10,8 +10,8 @@
 package org.truffleruby.core.string;
 
 import org.truffleruby.core.cast.ToSNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.TaintNode;
@@ -25,7 +25,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 /**
  * A list of expressions to build up into a string.
  */
-public final class InterpolatedStringNode extends RubyNode {
+public final class InterpolatedStringNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;
 

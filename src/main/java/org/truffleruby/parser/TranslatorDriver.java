@@ -45,6 +45,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.core.LoadRequiredLibrariesNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
+import org.truffleruby.core.kernel.KernelPrintLastLineNode;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -278,6 +279,11 @@ public class TranslatorDriver {
         }
 
         if (parserContext == ParserContext.TOP_LEVEL_FIRST && context.getOptions().GETS_LOOP) {
+            if (context.getOptions().PRINT_LOOP) {
+                truffleNode = Translator.sequence(
+                        sourceIndexLength,
+                        Arrays.asList(truffleNode, new KernelPrintLastLineNode()));
+            }
             truffleNode = new WhileNode(new WhileNode.WhileRepeatingNode(context, new KernelGetsNode(), truffleNode));
         }
 

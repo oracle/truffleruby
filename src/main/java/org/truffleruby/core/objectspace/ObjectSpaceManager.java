@@ -43,12 +43,12 @@ import java.lang.management.ManagementFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 
 /**
  * Supports the Ruby {@code ObjectSpace} module. Object IDs are lazily allocated {@code long}

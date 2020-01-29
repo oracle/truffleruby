@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.locals.FindDeclarationVariableNodesFactory.FindAndReadDeclarationVariableNodeGen;
 
@@ -61,7 +61,7 @@ public class FindDeclarationVariableNodes {
 
     @ReportPolymorphism
     @ImportStatic(FindDeclarationVariableNodes.class)
-    public static abstract class FindAndReadDeclarationVariableNode extends RubyBaseNode {
+    public static abstract class FindAndReadDeclarationVariableNode extends RubyContextNode {
         public abstract Object execute(MaterializedFrame frame, String name);
 
         private final Object defaultValue;

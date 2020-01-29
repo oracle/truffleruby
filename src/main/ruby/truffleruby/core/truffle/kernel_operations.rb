@@ -44,13 +44,13 @@ module Truffle
 
     define_read_only_global(:$-a, -> { nil })
     define_read_only_global(:$-l, -> { nil })
-    define_read_only_global(:$-p, -> { nil })
+    define_read_only_global(:$-p, -> { Truffle::Boot.get_option 'print-loop' })
 
     define_hooked_variable(
       :$/,
       -> { TrufflePrimitive.global_variable_get :$/ },
       -> v {
-        if v && !Truffle::Type.object_kind_of?(v, String)
+        if v && !TrufflePrimitive.object_kind_of?(v, String)
           raise TypeError, '$/ must be a String'
         end
         TrufflePrimitive.global_variable_set :$/, v
@@ -64,7 +64,7 @@ module Truffle
       :'$,',
       -> { TrufflePrimitive.global_variable_get :$, },
       -> v {
-        if v && !Truffle::Type.object_kind_of?(v, String)
+        if v && !TrufflePrimitive.object_kind_of?(v, String)
           raise TypeError, '$, must be a String'
         end
         TrufflePrimitive.global_variable_set :$,, v

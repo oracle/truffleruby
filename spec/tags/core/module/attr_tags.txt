@@ -1,1 +1,0 @@
-fails:Module#attr is a public method

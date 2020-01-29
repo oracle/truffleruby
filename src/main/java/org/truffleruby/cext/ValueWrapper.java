@@ -10,12 +10,11 @@
 package org.truffleruby.cext;
 
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
+import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
 import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
-
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;

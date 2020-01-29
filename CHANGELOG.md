@@ -7,9 +7,29 @@ New features:
 Bug fixes:
 
 * Fixed `Exception#dup` to copy exception backtrace string array.
+* Fixed `rb_warn` and `rb_warning` when used as statements (#1886, @chrisseaton).
+* Fixed `NameError.new` and `NoMethodError.new` `:receiver` argument.
+* Correctly handle large numbers of arguments to `rb_funcall` (#1882).
+* Added arity check to `Module#{include, prepend}`.
+* Fix `OpenSSL::Digest.{digest,hexdigest,base64digest}` to handle `algorithm, data` arguments (#1889, @bdewater).
+* Fixed `SystemCallError.new` parameter conversion.
+* Fixed `File#{chmod, umask}` argument conversion check.
+* Added warning in `Hash.[]` for non-array elements.
+* Fixed `File.lchmod` raises `NotImplementedError` when not available.
+* `RSTRING_PTR()` now always returns a native pointer, resolving two bugs `memcpy`ing to (#1822) and from (#1772) Ruby Strings.
+* Fixed issue with duping during splat (#1883).
 
 Compatibility:
 
+* Implemented `Float#{floor, ceil}` with `ndigits` argument.
+* Implemented `Thread#fetch`.
+* Implemented `Float#truncate` with `ndigits` argument.
+
+* Implemented `-p` CLI option.
+
+Performance:
+
+* Optimized `RSTRING_PTR()` accesses by going to native directly, optimized various core methods, use Mode=latency and tune GC heap size for Bundler. This speeds up `bundle install` from 84s to 19s for a small Gemfile with 6 gems (#1398).
 
 # 20.0.0
 
@@ -18,6 +38,7 @@ New features:
 * Enable and document `--coverage` option (#1840, @chrisseaton).
 * Update the internal LLVM toolchain to LLVM 9 and reduce its download size.
 * Updated to Ruby 2.6.5 (#1749).
+* Automatically set `PKG_CONFIG_PATH` as needed for compiling OpenSSL on macOS (#1830).
 
 Bug fixes:
 
@@ -122,8 +143,8 @@ Compatibility:
 * Implemented `Random.bytes`.
 * Implemented `Random.random_number`.
 * Added the ability to parse endless ranges.
-* Made `Range#to_a` compatible with endless ranges.
-* Made `Array#[]` and `Array#[]= ` compatible with endless ranges.
+* Made `Range#{to_a, step, each, bsearch, step, last, max, min, to_s, ==}` compatible with endless ranges.
+* Made `Array#{[], []=, values_at, fill, slice!}` compatible with endless ranges.
 
 Performance:
 

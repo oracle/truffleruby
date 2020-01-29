@@ -77,7 +77,7 @@ The priority for options is the command line first, then the Graal-SDK polyglot
 API configuration, then system properties last.
 
 TruffleRuby options, as well as conventional Ruby options and VM options, can
-also bet set in the `TRUFFLERUBYOPT` and `RUBYOPT` environment variables, if
+also be set in the `TRUFFLERUBYOPT` and `RUBYOPT` environment variables, if
 run from the Ruby launcher.
 
 `--` or the first non-option argument stops processing of TrufflRuby and VM

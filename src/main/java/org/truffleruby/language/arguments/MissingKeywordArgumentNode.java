@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class MissingKeywordArgumentNode extends RubyNode {
+public class MissingKeywordArgumentNode extends RubyContextSourceNode {
 
     private final String name;
 

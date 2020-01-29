@@ -13,14 +13,14 @@ import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.SetNode;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadRejectedKeywordArgumentsNode extends RubyBaseNode implements BiConsumerNode {
+public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements BiConsumerNode {
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();

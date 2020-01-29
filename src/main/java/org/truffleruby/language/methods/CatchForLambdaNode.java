@@ -9,22 +9,23 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
+import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.LocalReturnException;
 import org.truffleruby.language.control.NextException;
-import org.truffleruby.language.control.DynamicReturnException;
-import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoException;
 import org.truffleruby.language.control.RetryException;
+import org.truffleruby.language.control.ReturnID;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class CatchForLambdaNode extends RubyNode {
+public class CatchForLambdaNode extends RubyContextSourceNode {
 
     private final ReturnID returnID;
     private final BreakID breakID;

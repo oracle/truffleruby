@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.NextException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class CatchNextNode extends RubyNode {
+public class CatchNextNode extends RubyContextSourceNode {
 
     @Child private RubyNode body;
 

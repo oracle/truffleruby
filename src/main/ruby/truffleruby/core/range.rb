@@ -26,7 +26,10 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# rubocop:disable Lint/LiteralAsCondition
+
 class Range
+
   include Enumerable
 
   # Only used if called directly with allocate + #initialize.
@@ -46,12 +49,16 @@ class Range
   end
   private :initialize
 
+  private def endless?
+    self.end.equal?(nil)
+  end
+
   def ==(other)
     return true if equal? other
 
     other.kind_of?(Range) and
-      self.first == other.first and
-      self.last == other.last and
+      self.begin == other.begin and
+      self.end == other.end and
       self.exclude_end? == other.exclude_end?
   end
 
@@ -59,86 +66,195 @@ class Range
     return true if equal? other
 
     other.kind_of?(Range) and
-        self.first.eql?(other.first) and
-        self.last.eql?(other.last) and
+        self.begin.eql?(other.begin) and
+        self.end.eql?(other.end) and
         self.exclude_end? == other.exclude_end?
   end
 
-  def bsearch
+  def bsearch(&block)
     return to_enum :bsearch unless block_given?
 
-    unless self.begin.kind_of? Numeric and self.end.kind_of? Numeric
-      raise TypeError, "bsearch is not available for #{self.begin.class}"
+    start = self.begin
+    stop  = self.end
+
+    if Float === start || Float === stop
+      bsearch_float(&block)
+    elsif Integer === start
+      if stop.equal?(nil)
+        bsearch_endless(&block)
+      elsif Integer === stop
+        bsearch_integer(&block)
+      else
+        raise TypeError, "bsearch is not available for #{stop.class}"
+      end
+    else
+      raise TypeError, "bsearch is not available for #{start.class}"
+    end
+  end
+
+  private def midpoint(low, high)
+    mid1 = (low + high) / 2
+    mid2 = low/2 + high/2
+    mid1.abs.infinite? ? mid2 : mid1 # mitigate potential overflow
+
+    # NOTE(norswap, 23 Jan. 2020)
+    #   This might not be a very "centered" midpoint, but it's sufficient to cut the range so that we still get
+    #   ~ O(log n) binary search runtime.
+  end
+
+  private def bsearch_float(&block)
+    normalized_begin = self.begin.to_f
+    normalized_end = endless? ? Float::INFINITY : self.end.to_f
+    normalized_end = normalized_end.prev_float if self.exclude_end?
+    min = normalized_begin
+    max = normalized_end
+    last_admissible = nil
+    stop = false
+
+    # The next max-min comparisons simplify infinity handling.
+    # Infinity-handling is necessary to be able to cut ranges in two.
+    return nil if max < min || max == min && self.exclude_end? #-inf.prev_float == -inf!
+    if max == min
+      result = yield max
+      return result == true || result == 0 ? max : nil
     end
 
-    min = self.begin
-    max = self.end
-
-    max -= 1 if max.kind_of? Integer and exclude_end?
-
-    start = min = Truffle::Type.coerce_to min, Integer, :to_int
-    max = Truffle::Type.coerce_to max, Integer, :to_int
-
-    last_true = nil
-
-    seeker = Proc.new do |current|
-      x = yield current
-
-      return current if x == 0
-
-      case x
+    # max == -Float::INFINITY will already be covered by the comparisons above.
+    if max == Float::INFINITY
+      result = yield max
+      case result
       when Numeric
-        if x > 0
-          min = current + 1
-        else
-          max = current
+        if result == 0
+          return max
+        elsif result > 0
+          # There is nothing above infinity.
+          return nil
         end
       when true
-        last_true = current
-        max = current
+        last_admissible = max
+      end
+      max = normalized_end = Float::MAX # guaranteed to be >= min
+    end
+
+    # min == Float::INFINITY is already covered by the comparisons above.
+    if min == -Float::INFINITY
+      result = yield min
+      # Find-minimum mode: It's not going to get any smaller than negative infinity.
+      return min if result == true || result == 0
+      return nil if result.kind_of?(Numeric) && result < 0
+      min = normalized_begin = -Float::MAX # guaranteed to be <= max
+    end
+
+    mid = 0
+    until stop
+      mid = midpoint(min, max)
+      result = yield mid
+
+      # Must check this before modifying min or max.
+      stop = true if min == mid || mid == max
+
+      case result
+      when Numeric
+        if result > 0
+          min = mid
+        elsif result < 0
+          max = mid
+        else
+          last_admissible = mid
+          break
+        end
+      when true
+        last_admissible = mid
+        max = mid
       when false, nil
-        min = current + 1
+        min = mid
       else
         raise TypeError, 'Range#bsearch block must return Numeric or boolean'
       end
     end
 
-    while min < max
-      if max < 0 and min < 0
-        mid = min + (max - min) / 2
-      elsif min < -max
-        mid = -((-1 - min - max) / 2 + 1)
-      else
-        mid = (min + max) / 2
-      end
-
-      seeker.call mid
+    # At the end of the loop, mid could be equal to min or max due to precision limits and the other bound
+    # might not have been tested in some cases.
+    if mid == min && max == normalized_end && (last_admissible.equal?(nil) || last_admissible == Float::INFINITY)
+      # max is untested only if it's the end of the range.
+      # It can only change the result of the search if we haven't found an admissible value yet (+ infinity edge case).
+      result = yield max
+      return max if result == true || result == 0
+    elsif mid == max && min == normalized_begin
+      # min is untested only if it's the begin of the range.
+      result = yield min
+      # Favor smallest value in case we're in find-minimum mode.
+      return min if result == true || result == 0
     end
 
-    if min == max
-      seeker.call min
-    end
-
-    if min < max
-      return self.begin if mid == start
-      return self.begin.kind_of?(Float) ? mid.to_f : mid
-    end
-
-    if last_true
-      return self.begin if last_true == start
-      return self.begin.kind_of?(Float) ? last_true.to_f : last_true
-    end
-
-    nil
+    last_admissible
   end
 
-  def each_internal
+  private def bsearch_endless(&block)
+    min = self.begin
+    cur = min
+    diff = 1
+
+    while true
+      result = yield cur
+      case result
+      when 0
+        return cur
+      when Numeric
+        return (min..cur).bsearch(&block) if result < 0
+      when true
+        return (min..cur).bsearch(&block)
+      end
+      cur += diff
+      diff *= 2
+    end
+  end
+
+  private def bsearch_integer(&block)
+    min = self.begin
+    max = self.end
+    max -= 1 if max.kind_of? Integer and exclude_end?
+    return nil if max < min
+    last_admissible = nil
+    stop = false
+
+    until stop
+      # Do one last iteration on the bounds when they converge.
+      stop = true if min == max
+      mid = (min + max) / 2 # integers don't overflow \o/
+      result = yield mid
+
+      case result
+      when Numeric
+        if result > 0
+          min = mid + 1
+        elsif result < 0
+          max = mid
+        else
+          return mid
+        end
+      when true
+        last_admissible = mid
+        max = mid
+      when false, nil
+        min = mid + 1
+      else
+        raise TypeError, 'Range#bsearch block must return Numeric or boolean'
+      end
+    end
+
+    last_admissible
+  end
+
+  private def each_internal(&block)
     return to_enum { size } unless block_given?
     first, last = self.begin, self.end
 
     unless first.respond_to?(:succ) && !first.kind_of?(Time)
       raise TypeError, "can't iterate from #{first.class}"
     end
+
+    return each_endless(first, &block) if last.equal?(nil)
 
     case first
     when Integer
@@ -174,6 +290,22 @@ class Range
     end
 
     self
+  end
+
+  private def each_endless(first, &block)
+    if Integer === first
+      i = first
+      while true
+        yield i
+        i += 1
+      end
+    else
+      current = first
+      while true
+        yield current
+        current = current.succ
+      end
+    end
   end
 
   def first(n=undefined)
@@ -216,17 +348,19 @@ class Range
   end
 
   def inspect
-    result = "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{self.end.inspect}"
-    Truffle::Type.infect(result, self)
+    result = "#{self.begin.inspect}#{exclude_end? ? "..." : ".."}#{endless? ? "" : self.end.inspect}"
+    TrufflePrimitive.infect(result, self)
   end
 
   def last(n=undefined)
+    raise RangeError, 'cannot get the last element of endless range' if endless?
     return self.end if TrufflePrimitive.undefined? n
 
     to_a.last(n)
   end
 
   def max
+    raise RangeError, 'cannot get the maximum of endless range' if endless?
     return super if block_given? || (exclude_end? && !self.end.kind_of?(Numeric))
     return nil if self.end < self.begin || (exclude_end? && self.end == self.begin)
     return self.end unless exclude_end?
@@ -244,12 +378,12 @@ class Range
 
   def min
     return super if block_given?
-    return nil if self.end < self.begin || (exclude_end? && self.end == self.begin)
+    return nil if (!endless? && self.end < self.begin) || (exclude_end? && self.end == self.begin)
 
     self.begin
   end
 
-  def step_internal(step_size=1) # :yields: object
+  private def step_internal(step_size=1, &block) # :yields: object
     return to_enum(:step, step_size) do
       validated_step_args = Truffle::RangeOperations.validate_step_size(self.begin, self.end, step_size)
       Truffle::RangeOperations.step_iterations_size(self, *validated_step_args)
@@ -259,6 +393,8 @@ class Range
     first = values[0]
     last = values[1]
     step_size = values[2]
+
+    return step_endless(first, step_size, &block) if last.equal?(nil)
 
     case first
     when Float
@@ -290,9 +426,25 @@ class Range
     self
   end
 
+  private def step_endless(first, step_size, &block)
+    if Numeric === first
+      curr = first
+      while true
+        yield curr
+        curr += step_size
+      end
+    else
+      i = 0
+      each_endless(first) do |item|
+        yield item if i % step_size == 0
+        i += 1
+      end
+    end
+  end
+
   def to_s
-    result = "#{self.begin}#{exclude_end? ? "..." : ".."}#{self.end}"
-    Truffle::Type.infect(result, self)
+    result = "#{self.begin}#{exclude_end? ? "..." : ".."}#{endless? ? "" : self.end}"
+    TrufflePrimitive.infect(result, self)
   end
 
   def cover?(value)
@@ -302,6 +454,7 @@ class Range
     return false unless beg_compare
 
     if Comparable.compare_int(beg_compare) <= 0
+      return true if endless?
       end_compare = (value <=> self.end)
 
       if exclude_end?
@@ -316,6 +469,7 @@ class Range
 
   def size
     return nil unless self.begin.kind_of?(Numeric)
+    return Float::INFINITY if endless?
 
     delta = self.end - self.begin
     return 0 if delta < 0
@@ -343,7 +497,7 @@ class Range
   end
   alias_method :map, :collect
 
-  def to_a_internal # MODIFIED called from java to_a
+  private def to_a_internal # MODIFIED called from java to_a
     return to_a_from_enumerable unless self.begin.kind_of? Integer and self.end.kind_of? Integer
 
     fin = self.end
@@ -363,14 +517,14 @@ class Range
     ary
   end
 
-  def to_a_from_enumerable(*arg)
+  private def to_a_from_enumerable(*arg)
     ary = []
     each(*arg) do
       o = TrufflePrimitive.single_block_arg
       ary << o
       nil
     end
-    Truffle::Type.infect ary, self
+    TrufflePrimitive.infect ary, self
     ary
   end
 end

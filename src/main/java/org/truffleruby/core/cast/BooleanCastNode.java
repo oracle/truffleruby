@@ -11,7 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -33,7 +33,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
  */
 @GenerateUncached
 @NodeChild(value = "value", type = RubyNode.class)
-public abstract class BooleanCastNode extends RubyBaseWithoutContextNode {
+public abstract class BooleanCastNode extends RubyBaseNode {
 
     public static BooleanCastNode create() {
         return BooleanCastNodeGen.create(null);

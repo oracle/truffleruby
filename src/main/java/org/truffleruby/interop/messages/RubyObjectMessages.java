@@ -15,7 +15,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
-import org.truffleruby.interop.ForeignExecuteHelperNode;
 import org.truffleruby.interop.ForeignReadStringCachingHelperNode;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
@@ -41,8 +40,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectMessages {
 
-    public Class<?> dispatch() {
-        return RubyObjectMessages.class;
+    public final Class<?> dispatch() {
+        return null;
     }
 
     // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly
@@ -433,23 +432,6 @@ public class RubyObjectMessages {
     public static boolean hasMemberWriteSideEffects(DynamicObject receiver, String name) {
         // TODO (pitr-ch 29-May-2019): is that always true?
         return false;
-    }
-
-    @ExportMessage
-    public static boolean isExecutable(DynamicObject receiver) {
-        // TODO (pitr-ch 19-Mar-2019): break down to types
-        return RubyGuards.isRubyMethod(receiver) || RubyGuards.isRubyProc(receiver);
-    }
-
-    @ExportMessage
-    public static Object execute(
-            DynamicObject receiver,
-            Object[] arguments,
-            @Cached ForeignExecuteHelperNode executeMethodNode,
-            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        return executeMethodNode.executeCall(
-                receiver,
-                foreignToRubyArgumentsNode.executeConvert(arguments));
     }
 
     @ExportMessage

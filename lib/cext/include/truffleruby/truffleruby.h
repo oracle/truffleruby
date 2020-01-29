@@ -78,17 +78,17 @@ typedef void *(*gvl_call)(void *);
 
 // Utilities
 
-#define rb_warn(FORMAT, ...) do { \
+#define rb_warn(FORMAT, ...) __extension__ ({                   \
 if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warn?"))) { \
   RUBY_INVOKE(rb_mKernel, "warn", rb_sprintf(FORMAT, ##__VA_ARGS__));   \
 } \
-} while (0);
+})
 
-#define rb_warning(FORMAT, ...) do { \
+#define rb_warning(FORMAT, ...) __extension__({                    \
 if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
   RUBY_INVOKE(rb_mKernel, "warn", rb_sprintf(FORMAT, ##__VA_ARGS__)); \
 } \
-} while (0);
+    })
 
 #define rb_tr_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_tr_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
@@ -125,8 +125,16 @@ if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
 #define RUBY_INVOKE_IMPL_8(recv, name, V1, V2, V3, V4, V5, V6, V7, V8) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8))
 #define RUBY_INVOKE_IMPL_9(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9))
 #define RUBY_INVOKE_IMPL_10(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10))
-#define INVOKE_IMPL(RECV, MESG, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, NAME, ...) NAME
-#define RUBY_INVOKE_IMPL_NO_WRAP(RECV, NAME, ...) INVOKE_IMPL(RECV, NAME, ##__VA_ARGS__, RUBY_INVOKE_IMPL_10, RUBY_INVOKE_IMPL_9, RUBY_INVOKE_IMPL_8, RUBY_INVOKE_IMPL_7, RUBY_INVOKE_IMPL_6, RUBY_INVOKE_IMPL_5, RUBY_INVOKE_IMPL_4, RUBY_INVOKE_IMPL_3, RUBY_INVOKE_IMPL_2, RUBY_INVOKE_IMPL_1, RUBY_INVOKE_IMPL_0)(RECV, NAME, ##__VA_ARGS__)
+#define RUBY_INVOKE_IMPL_11(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10), rb_tr_unwrap(V11))
+#define RUBY_INVOKE_IMPL_12(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10), rb_tr_unwrap(V11), rb_tr_unwrap(V12))
+#define RUBY_INVOKE_IMPL_13(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10), rb_tr_unwrap(V11), rb_tr_unwrap(V12), rb_tr_unwrap(V13))
+#define RUBY_INVOKE_IMPL_14(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10), rb_tr_unwrap(V11), rb_tr_unwrap(V12), rb_tr_unwrap(V13), rb_tr_unwrap(V14))
+#define RUBY_INVOKE_IMPL_15(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10), rb_tr_unwrap(V11), rb_tr_unwrap(V12), rb_tr_unwrap(V13), rb_tr_unwrap(V14), rb_tr_unwrap(V15))
+#define RUBY_INVOKE_IMPL_16(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10), rb_tr_unwrap(V11), rb_tr_unwrap(V12), rb_tr_unwrap(V13), rb_tr_unwrap(V14), rb_tr_unwrap(V15), rb_tr_unwrap(V16))
+#define RUBY_INVOKE_IMPL_17(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10), rb_tr_unwrap(V11), rb_tr_unwrap(V12), rb_tr_unwrap(V13), rb_tr_unwrap(V14), rb_tr_unwrap(V15), rb_tr_unwrap(V16), rb_tr_unwrap(V17))
+#define RUBY_INVOKE_IMPL_18(recv, name, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18) polyglot_invoke(recv, name, rb_tr_unwrap(V1), rb_tr_unwrap(V2), rb_tr_unwrap(V3), rb_tr_unwrap(V4), rb_tr_unwrap(V5), rb_tr_unwrap(V6), rb_tr_unwrap(V7), rb_tr_unwrap(V8), rb_tr_unwrap(V9), rb_tr_unwrap(V10), rb_tr_unwrap(V11), rb_tr_unwrap(V12), rb_tr_unwrap(V13), rb_tr_unwrap(V14), rb_tr_unwrap(V15), rb_tr_unwrap(V16), rb_tr_unwrap(V17), rb_tr_unwrap(V18))
+#define INVOKE_IMPL(RECV, MESG, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, NAME, ...) NAME
+#define RUBY_INVOKE_IMPL_NO_WRAP(RECV, NAME, ...) INVOKE_IMPL(RECV, NAME, ##__VA_ARGS__, RUBY_INVOKE_IMPL_18, RUBY_INVOKE_IMPL_17, RUBY_INVOKE_IMPL_16, RUBY_INVOKE_IMPL_15, RUBY_INVOKE_IMPL_14, RUBY_INVOKE_IMPL_13, RUBY_INVOKE_IMPL_12, RUBY_INVOKE_IMPL_11, RUBY_INVOKE_IMPL_10, RUBY_INVOKE_IMPL_9, RUBY_INVOKE_IMPL_8, RUBY_INVOKE_IMPL_7, RUBY_INVOKE_IMPL_6, RUBY_INVOKE_IMPL_5, RUBY_INVOKE_IMPL_4, RUBY_INVOKE_IMPL_3, RUBY_INVOKE_IMPL_2, RUBY_INVOKE_IMPL_1, RUBY_INVOKE_IMPL_0)(RECV, NAME, ##__VA_ARGS__)
 #define RUBY_INVOKE_IMPL(RECV, NAME, ...) rb_tr_wrap(RUBY_INVOKE_IMPL_NO_WRAP(RECV, NAME, ##__VA_ARGS__))
 
 // Public macros used in this header and ruby.c
@@ -158,7 +166,7 @@ int rb_encdb_alias(const char *alias, const char *orig);
 VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value);
 
 // Additional macro to make sure the RSTRING_PTR and the bytes are in native memory, for testing.
-#define NATIVE_RSTRING_PTR(str) ((char*) polyglot_as_i64(polyglot_invoke(RSTRING_PTR(str), "polyglot_address")))
+#define NATIVE_RSTRING_PTR(str) ((char*) polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("NATIVE_RSTRING_PTR", str)))
 
 // Inline implementations
 

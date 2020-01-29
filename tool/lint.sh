@@ -22,3 +22,10 @@ if [ -n "$bad" ]; then
 	echo "$bad"
 	exit 1
 fi
+
+bad=$(egrep "$(printf '\t')" src/main/c/cext/ruby.c || exit 0)
+if [ -n "$bad" ]; then
+	echo "There should be no tabs in ruby.c"
+	echo "$bad"
+	exit 1
+fi

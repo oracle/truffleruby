@@ -19,7 +19,7 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -44,7 +44,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * by another thread or by another usage (e.g. recursive) of this ArrayBuilderNode.</li>
  * </ul>
  */
-public abstract class ArrayBuilderNode extends RubyBaseNode {
+public abstract class ArrayBuilderNode extends RubyContextNode {
 
     public static ArrayBuilderNode create() {
         return new ArrayBuilderProxyNode();
@@ -128,7 +128,7 @@ public abstract class ArrayBuilderNode extends RubyBaseNode {
         }
     }
 
-    public abstract static class ArrayBuilderBaseNode extends RubyBaseWithoutContextNode {
+    public abstract static class ArrayBuilderBaseNode extends RubyBaseNode {
 
         protected void replaceNodes(ArrayStrategy strategy, int size) {
             final ArrayBuilderProxyNode parent = (ArrayBuilderProxyNode) getParent();

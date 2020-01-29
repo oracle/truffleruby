@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -24,8 +25,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 // TODO(CS): copy and paste of ArrayCastNode
 
-@NodeChild("child")
-public abstract class HashCastNode extends RubyNode {
+@NodeChild(value = "child", type = RubyNode.class)
+public abstract class HashCastNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode toHashNode = CallDispatchHeadNode.createReturnMissing();
 

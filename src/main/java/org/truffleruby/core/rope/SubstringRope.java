@@ -11,7 +11,6 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
-
 import org.jcodings.specific.ASCIIEncoding;
 
 public class SubstringRope extends ManagedRope {

@@ -140,6 +140,58 @@ class Float < Numeric
     end
   end
 
+  def ceil(ndigits=undefined)
+    if TrufflePrimitive.undefined?(ndigits)
+      TrufflePrimitive.float_ceil(self)
+    else
+      ndigits = Truffle::Type.rb_num2int(ndigits)
+      return ndigits > 0 ? 0.0 : 0 if self == 0.0
+      if ndigits == 0
+        TrufflePrimitive.float_ceil(self)
+      elsif ndigits > 0
+        _, exp = Math.frexp(self)
+        if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
+          # float is too large to be represent by ndigits, return self
+          self
+        elsif self < 0.0 && ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
+          # float is too small to be represent by ndigits, return 0.0
+          0.0
+        else
+          TrufflePrimitive.float_ceil_ndigits(self, ndigits)
+        end
+      else
+        ceiled = TrufflePrimitive.float_ceil(self)
+        ceiled.ceil(ndigits)
+      end
+    end
+  end
+
+  def floor(ndigits=undefined)
+    if TrufflePrimitive.undefined?(ndigits)
+      TrufflePrimitive.float_floor(self)
+    else
+      ndigits = Truffle::Type.rb_num2int(ndigits)
+      return ndigits > 0 ? 0.0 : 0 if self == 0.0
+      if ndigits == 0
+        TrufflePrimitive.float_floor(self)
+      elsif ndigits > 0
+        _, exp = Math.frexp(self)
+        if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
+          # float is too large to be represent by ndigits, return self
+          self
+        elsif self > 0.0 && ndigits < -(exp > 0 ? exp / 3 + 1 : exp / 4)
+          # float is too small to be represent by ndigits, return 0.0
+          0.0
+        else
+          TrufflePrimitive.float_floor_ndigits(self, ndigits)
+        end
+      else
+        floored = TrufflePrimitive.float_floor(self)
+        floored.floor(ndigits)
+      end
+    end
+  end
+
   def round(ndigits=undefined, half: nil)
     if TrufflePrimitive.undefined?(ndigits)
       if infinite?
@@ -163,7 +215,7 @@ class Float < Numeric
       if ndigits == 0
         round(half: half)
       elsif ndigits < 0
-        truncate.round(ndigits)
+        to_i.round(ndigits, :half => half)
       elsif infinite? or nan?
         self
       else
@@ -177,6 +229,14 @@ class Float < Numeric
           (self * f).round(half: half) / f.to_f
         end
       end
+    end
+  end
+
+  def truncate(ndigits = 0)
+    if positive?
+      floor(ndigits)
+    else
+      ceil(ndigits)
     end
   end
 

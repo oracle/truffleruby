@@ -347,6 +347,7 @@ static VALUE object_spec_rb_class_inherited_p(VALUE self, VALUE mod, VALUE arg) 
 
 static VALUE speced_allocator(VALUE klass) {
   VALUE flags = 0;
+  VALUE instance;
   if (rb_class_inherited_p(klass, rb_cString)) {
     flags = T_STRING;
   } else if (rb_class_inherited_p(klass, rb_cArray)) {
@@ -354,7 +355,7 @@ static VALUE speced_allocator(VALUE klass) {
   } else {
     flags = T_OBJECT;
   }
-  VALUE instance = rb_newobj_of(klass, flags);
+  instance = rb_newobj_of(klass, flags);
   rb_iv_set(instance, "@from_custom_allocator", Qtrue);
   return instance;
 }

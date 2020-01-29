@@ -9,13 +9,12 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayDupNode;
 import org.truffleruby.core.array.ArrayDupNodeGen;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -25,13 +24,12 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /**
  * Splat as used to cast a value to an array if it isn't already, as in {@code *value}.
  */
-@NodeChild("child")
-public abstract class SplatCastNode extends RubyNode {
+@NodeChild(value = "child", type = RubyNode.class)
+public abstract class SplatCastNode extends RubyContextSourceNode {
 
     public enum NilBehavior {
         EMPTY_ARRAY,
@@ -95,7 +93,6 @@ public abstract class SplatCastNode extends RubyNode {
 
     @Specialization(guards = { "!isNil(object)", "!isRubyArray(object)" })
     protected DynamicObject splat(VirtualFrame frame, Object object,
-            @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
         final Object array = toArrayNode.call(
                 coreLibrary().truffleTypeModule,
@@ -103,18 +100,15 @@ public abstract class SplatCastNode extends RubyNode {
                 object,
                 coreLibrary().arrayClass,
                 conversionMethod);
-        if (RubyGuards.isRubyArray(array)) {
-            return (DynamicObject) array;
-        } else if (array == nil()) {
+        if (array == nil()) {
             return createArray(new Object[]{ object }, 1);
         } else {
-            errorProfile.enter();
-            throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertTo(
-                    object,
-                    "Array",
-                    Layouts.SYMBOL.getString(conversionMethod),
-                    array,
-                    this));
+            assert RubyGuards.isRubyArray(array);
+            if (copy) {
+                return executeDup(frame, (DynamicObject) array);
+            } else {
+                return (DynamicObject) array;
+            }
         }
     }
 

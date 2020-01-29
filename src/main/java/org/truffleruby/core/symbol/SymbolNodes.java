@@ -9,11 +9,10 @@
  */
 package org.truffleruby.core.symbol;
 
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.proc.ProcOperations;
@@ -35,6 +34,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;

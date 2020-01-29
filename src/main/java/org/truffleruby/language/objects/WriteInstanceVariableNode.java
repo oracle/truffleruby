@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -17,7 +19,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class WriteInstanceVariableNode extends RubyNode {
+public class WriteInstanceVariableNode extends RubyContextSourceNode {
 
     private final String name;
 
@@ -53,7 +55,7 @@ public class WriteInstanceVariableNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         return coreStrings().ASSIGNMENT.createInstance();
     }
 

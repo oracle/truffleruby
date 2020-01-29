@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @ImportStatic(ShapeCachingGuards.class)
-public abstract class IsSharedNode extends RubyBaseNode {
+public abstract class IsSharedNode extends RubyContextNode {
 
     protected static final int CACHE_LIMIT = 8;
 

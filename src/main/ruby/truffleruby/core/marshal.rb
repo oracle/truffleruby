@@ -541,7 +541,7 @@ module Marshal
     end
 
     def add_non_immediate_object(obj)
-      return if Truffle::Type.object_kind_of? obj, ImmediateValue
+      return if TrufflePrimitive.object_kind_of? obj, ImmediateValue
       add_object(obj)
     end
 
@@ -724,7 +724,7 @@ module Marshal
 
       store_unique_object obj
 
-      unless Truffle::Type.object_respond_to? obj, :_load_data
+      unless TrufflePrimitive.object_respond_to? obj, :_load_data, false
         raise TypeError,
               "class #{name} needs to have instance method `_load_data'"
       end
@@ -891,7 +891,7 @@ module Marshal
 
       data = get_byte_sequence
 
-      if Truffle::Type.object_respond_to? klass, :__construct__
+      if TrufflePrimitive.object_respond_to? klass, :__construct__, false
         return klass.__construct__(self, data, ivar_index, @has_ivar)
       end
 
@@ -916,7 +916,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless Truffle::Type.object_respond_to_marshal_load? obj
+      unless TrufflePrimitive.object_respond_to? obj, :marshal_load, true
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -983,9 +983,9 @@ module Marshal
         add_non_immediate_object obj
 
         # ORDER MATTERS.
-        if Truffle::Type.object_respond_to_marshal_dump? obj
+        if TrufflePrimitive.object_respond_to? obj, :marshal_dump, true
           str = serialize_user_marshal obj
-        elsif Truffle::Type.object_respond_to__dump? obj
+        elsif TrufflePrimitive.object_respond_to? obj, :_dump, true
           str = serialize_user_defined obj
         else
           str = obj.__send__ :__marshal__, self
@@ -994,7 +994,7 @@ module Marshal
 
       @depth += 1
 
-      Truffle::Type.infect(str, obj)
+      TrufflePrimitive.infect(str, obj)
     end
 
     def serialize_extended_object(obj)
@@ -1121,13 +1121,13 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
-      if Truffle::Type.object_respond_to? obj, :__custom_marshal__
+      if TrufflePrimitive.object_respond_to? obj, :__custom_marshal__, false
         return obj.__custom_marshal__(self)
       end
 
       str = obj.__send__ :_dump, @depth
 
-      unless Truffle::Type.object_kind_of? str, String
+      unless TrufflePrimitive.object_kind_of? str, String
         raise TypeError, '_dump() must return string'
       end
 
@@ -1189,7 +1189,7 @@ module Marshal
         raise TypeError, 'dump format error' unless Object === obj
 
         store_unique_object obj
-        if Truffle::Type.object_kind_of? obj, Exception
+        if TrufflePrimitive.object_kind_of? obj, Exception
           set_exception_variables obj
         else
           set_instance_variables obj
@@ -1274,7 +1274,7 @@ module Marshal
 
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit
-      if Truffle::Type.object_kind_of? an_io, Integer
+      if TrufflePrimitive.object_kind_of? an_io, Integer
         limit = an_io
         an_io = nil
       else
@@ -1286,10 +1286,10 @@ module Marshal
     ms = State.new nil, depth, nil
 
     if an_io
-      if !Truffle::Type.object_respond_to? an_io, :write
+      unless TrufflePrimitive.object_respond_to? an_io, :write, false
         raise TypeError, 'output must respond to write'
       end
-      if Truffle::Type.object_respond_to? an_io, :binmode
+      if TrufflePrimitive.object_respond_to? an_io, :binmode, false
         an_io.binmode
       end
     end
@@ -1305,7 +1305,7 @@ module Marshal
   end
 
   def self.load(obj, prc = nil)
-    if Truffle::Type.object_respond_to? obj, :to_str
+    if TrufflePrimitive.object_respond_to? obj, :to_str, false
       data = obj.to_s
 
       major = data.getbyte 0
@@ -1313,8 +1313,8 @@ module Marshal
 
       ms = StringState.new data, nil, prc
 
-    elsif Truffle::Type.object_respond_to? obj, :read and
-          Truffle::Type.object_respond_to? obj, :getc
+    elsif TrufflePrimitive.object_respond_to? obj, :read, false and
+          TrufflePrimitive.object_respond_to? obj, :getc, false
       ms = IOState.new obj, nil, prc
 
       major = ms.consume_byte

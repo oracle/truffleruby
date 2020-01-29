@@ -12,7 +12,14 @@ set -x
 # Build
 tool/jt.rb build --env native
 
-release_home=$(tool/jt.rb mx --env native standalone-home ruby)
+standalone=$(tool/jt.rb mx --env native standalone-home ruby)
+release_home="$PWD/mxbuild/truffleruby-standalone"
+rm -rf "$release_home"
+cp -R "$standalone" "$release_home"
+# Clean build results to make sure nothing refers to them while testing
+tool/jt.rb mx --env native clean
+rm -rf ../graal/sdk/mxbuild
+rm -rf bin lib src
 
 # Test the post-install hook
 TRUFFLERUBY_RECOMPILE_OPENSSL=true "$release_home/lib/truffle/post_install_hook.sh"

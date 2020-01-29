@@ -10,7 +10,7 @@
 package org.truffleruby.interop;
 
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -18,7 +18,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 @GenerateUncached
-public abstract class RubyToForeignArgumentsNode extends RubyBaseWithoutContextNode {
+public abstract class RubyToForeignArgumentsNode extends RubyBaseNode {
 
     public static RubyToForeignArgumentsNode create() {
         return RubyToForeignArgumentsNodeGen.create();

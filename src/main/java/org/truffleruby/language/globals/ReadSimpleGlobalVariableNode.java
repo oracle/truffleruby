@@ -9,12 +9,12 @@
  */
 package org.truffleruby.language.globals;
 
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 
-public abstract class ReadSimpleGlobalVariableNode extends RubyBaseNode {
+public abstract class ReadSimpleGlobalVariableNode extends RubyContextNode {
 
     protected final String name;
 

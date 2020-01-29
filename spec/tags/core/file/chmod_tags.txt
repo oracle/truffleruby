@@ -1,2 +1,0 @@
-fails:File#chmod raises RangeError with too large values
-fails:File.chmod raises RangeError with too large values

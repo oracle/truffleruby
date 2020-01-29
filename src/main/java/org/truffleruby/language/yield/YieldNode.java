@@ -11,7 +11,7 @@ package org.truffleruby.language.yield;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.proc.ProcOperations;
-import org.truffleruby.language.RubyBaseWithoutContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -19,7 +19,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
-public abstract class YieldNode extends RubyBaseWithoutContextNode {
+public abstract class YieldNode extends RubyBaseNode {
 
     public static YieldNode create() {
         return YieldNodeGen.create();

@@ -10,10 +10,10 @@
 package org.truffleruby.core.queue;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.RubyNode;

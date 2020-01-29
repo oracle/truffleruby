@@ -74,14 +74,13 @@ import org.truffleruby.language.constants.WriteConstantNode;
 import org.truffleruby.language.control.AndNode;
 import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.BreakNode;
+import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.ElidableResultNode;
 import org.truffleruby.language.control.FrameOnStackNode;
 import org.truffleruby.language.control.IfElseNode;
 import org.truffleruby.language.control.IfNode;
 import org.truffleruby.language.control.LocalReturnNode;
 import org.truffleruby.language.control.NextNode;
-import org.truffleruby.language.control.ReturnID;
-import org.truffleruby.language.control.DynamicReturnNode;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.OnceNode;
 import org.truffleruby.language.control.OrNode;
@@ -89,6 +88,7 @@ import org.truffleruby.language.control.OrLazyValueDefinedNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
 import org.truffleruby.language.control.RetryNode;
+import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.control.UnlessNode;
 import org.truffleruby.language.control.WhileNode;
 import org.truffleruby.language.defined.DefinedNode;
@@ -290,6 +290,10 @@ public class BodyTranslator extends Translator {
         this.environment = environment;
     }
 
+    private static RubyNode[] createArray(int size) {
+        return size == 0 ? RubyNode.EMPTY_ARRAY : new RubyNode[size];
+    }
+
     private RubyNode translateNameNodeToSymbol(ParseNode node) {
         if (node instanceof LiteralParseNode) {
             return new ObjectLiteralNode(context.getSymbolTable().getSymbol(((LiteralParseNode) node).getName()));
@@ -388,7 +392,7 @@ public class BodyTranslator extends Translator {
     public RubyNode visitArrayNode(ArrayParseNode node) {
         final ParseNode[] values = node.children();
 
-        final RubyNode[] translatedValues = RubyNode.createArray(values.length);
+        final RubyNode[] translatedValues = createArray(values.length);
 
         for (int n = 0; n < values.length; n++) {
             translatedValues[n] = values[n].accept(this);
@@ -513,8 +517,8 @@ public class BodyTranslator extends Translator {
 
         final RubyNode translated = translateCallNode(node, false, false, false);
 
-        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice but can't figure it out here
-
+        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice
+        //  but can't figure it out here
         if (!translated.hasSource()) {
             translated.unsafeSetSourceSection(sourceSection);
         }
@@ -671,7 +675,7 @@ public class BodyTranslator extends Translator {
             throw new UnsupportedOperationException("Unknown argument node type: " + argsNode.getClass());
         }
 
-        final RubyNode[] argumentsTranslated = RubyNode.createArray(arguments.length);
+        final RubyNode[] argumentsTranslated = createArray(arguments.length);
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
         }
@@ -1515,8 +1519,8 @@ public class BodyTranslator extends Translator {
             this.translatingForStatement = translatingForStatement;
         }
 
-        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice but can't figure it out here
-
+        // TODO CS 23-Apr-19 I've tried to design logic so we never try to assign source sections twice
+        //  but can't figure it out here
         if (!translated.hasSource()) {
             translated.unsafeSetSourceSection(node.getPosition());
         }
@@ -2916,7 +2920,7 @@ public class BodyTranslator extends Translator {
             SourceIndexLength sourceSection) {
         final ParseNode[] exceptionNodes = arrayParse.children();
 
-        final RubyNode[] handlingClasses = RubyNode.createArray(exceptionNodes.length);
+        final RubyNode[] handlingClasses = createArray(exceptionNodes.length);
 
         for (int n = 0; n < handlingClasses.length; n++) {
             handlingClasses[n] = exceptionNodes[n].accept(this);
@@ -3176,7 +3180,7 @@ public class BodyTranslator extends Translator {
             arguments = new ParseNode[]{ node.getArgsNode() };
         }
 
-        final RubyNode[] argumentsTranslated = RubyNode.createArray(arguments.length);
+        final RubyNode[] argumentsTranslated = createArray(arguments.length);
 
         for (int i = 0; i < arguments.length; i++) {
             argumentsTranslated[i] = arguments[i].accept(this);
@@ -3212,7 +3216,7 @@ public class BodyTranslator extends Translator {
     }
 
     protected RubyNode initFlipFlopStates(SourceIndexLength sourceSection) {
-        final RubyNode[] initNodes = RubyNode.createArray(environment.getFlipFlopStates().size());
+        final RubyNode[] initNodes = createArray(environment.getFlipFlopStates().size());
 
         for (int n = 0; n < initNodes.length; n++) {
             initNodes[n] = new InitFlipFlopSlotNode(environment.getFlipFlopStates().get(n));

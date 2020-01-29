@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -28,7 +28,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class UsingNode extends RubyBaseNode {
+public abstract class UsingNode extends RubyContextNode {
 
     public abstract void executeUsing(DynamicObject module);
 

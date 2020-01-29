@@ -322,12 +322,11 @@ class Dir
     alias_method :unlink, :rmdir
 
     def getwd
-      Truffle::FFI::MemoryPointer.new(Truffle::Platform::PATH_MAX) do |ptr|
-        wd = Truffle::POSIX.getcwd(ptr, Truffle::Platform::PATH_MAX)
-        Errno.handle unless wd
+      ptr = TrufflePrimitive.io_get_thread_buffer(Truffle::Platform::PATH_MAX)
+      wd = Truffle::POSIX.getcwd(ptr, Truffle::Platform::PATH_MAX)
+      Errno.handle unless wd
 
-        Truffle::Type.external_string wd
-      end
+      Truffle::Type.external_string wd
     end
     alias_method :pwd, :getwd
 

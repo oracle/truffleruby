@@ -50,7 +50,7 @@ module Truffle
             str = nil
           else
             str = arg.to_s
-            str = Truffle::Type.rb_any_to_s(arg) unless Truffle::Type.object_kind_of?(str, String)
+            str = Truffle::Type.rb_any_to_s(arg) unless TrufflePrimitive.object_kind_of?(str, String)
           end
 
           if str

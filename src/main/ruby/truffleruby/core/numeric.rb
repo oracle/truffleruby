@@ -242,7 +242,7 @@ class Numeric
 
     values = other.coerce(self)
 
-    unless Truffle::Type.object_kind_of?(values, Array) && values.length == 2
+    unless TrufflePrimitive.object_kind_of?(values, Array) && values.length == 2
       if error == :no_error
         return nil
       else

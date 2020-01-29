@@ -40,7 +40,7 @@ module GC
   end
 
   def self.start(full_mark: true, immediate_sweep: true)
-    TrufflePrimitive.vm_gc_start()
+    TrufflePrimitive.gc_start()
   end
 
   # Totally fake.

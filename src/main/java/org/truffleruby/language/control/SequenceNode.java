@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.control;
 
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -17,7 +18,7 @@ import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(cost = NodeCost.NONE)
-public final class SequenceNode extends RubyNode {
+public final class SequenceNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] body;
 

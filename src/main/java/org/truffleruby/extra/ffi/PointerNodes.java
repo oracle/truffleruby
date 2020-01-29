@@ -46,7 +46,9 @@ public abstract class PointerNodes {
 
     public static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
-    public static void checkNull(Pointer ptr, RubyNode node, BranchProfile nullPointerProfile) {
+    public static <T extends RubyNode & RubyNode.WithContext> void checkNull(
+            Pointer ptr, T node, BranchProfile nullPointerProfile) {
+
         if (ptr.isNull()) {
             nullPointerProfile.enter();
             final RubyContext context = node.getContext();

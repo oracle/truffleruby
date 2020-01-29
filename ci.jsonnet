@@ -38,6 +38,7 @@ local part_definitions = {
         TRUFFLERUBY_CI: "true",
         RUBY_BENCHMARKS: "true",
         MX_PYTHON_VERSION: "3",
+        TRUFFLE_STRICT_OPTION_DEPRECATION: "true",
         PATH: std.join(":", self.path + ["$PATH"]),
       },
 
@@ -74,7 +75,7 @@ local part_definitions = {
       environment+: { path+:: ["$MAVEN_HOME/bin"] },
     },
 
-    build: {
+    build_no_clean: {
       setup+: [["mx", "sversions"]] +
               # aot-build.log is used for the build-stats metrics, in other cases it does no harm
               jt(["build", "--env", self.mx_env] + self.jt_build_options + ["--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
@@ -82,6 +83,11 @@ local part_definitions = {
                 # make sure jt always uses what was just built
                 ["set-export", "RUBY_BIN", jt(["--use", self.mx_env, "--silent", "launcher"])[0]],
               ],
+    },
+
+    build: $.use.build_no_clean + {
+      # Clean build results to make sure nothing refers to them while testing
+      setup+: jt(["mx", "--env", self.mx_env, "clean"]),
     },
 
     clone_enterprise: {
@@ -262,10 +268,11 @@ local part_definitions = {
 
   run: {
     test_unit_tck_specs: {
-      run+: jt(["test", "unit"]) +
-            jt(["test", "tck"]) +
-            jt(["test", "specs"]) +
-            jt(["test", "specs", ":next"]),
+      run+: jt(["test", "specs"]) +
+            jt(["test", "specs", ":next"]) +
+            jt(["build"]) + # We need mx distributions to run unit tests
+            jt(["test", "unit"]) +
+            jt(["test", "tck"]),
     },
 
     test_fast: {
@@ -273,7 +280,7 @@ local part_definitions = {
     },
 
     lint: {
-      is_after:: ["$.use.build"],
+      is_after:: ["$.use.build_no_clean"],
       downloads+: {
         JDT: { name: "ecj", version: "4.5.1", platformspecific: false },
         ECLIPSE: { version: "4.5.2", name: "eclipse", platformspecific: true },
@@ -416,7 +423,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
   test_builds:
     {
-      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.v8 + $.use.common + $.env.jvm + $.use.build + $.run.lint + { timelimit: "30:00" },
+      "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.v8 + $.use.common + $.env.jvm + $.use.build_no_clean + $.run.lint + { timelimit: "30:00" },
     } +
 
     {
@@ -425,9 +432,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
       "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
-      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "50:00" },
+      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
       "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:40:00" },
+      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:20:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "30:00" },
       "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:20:00" },

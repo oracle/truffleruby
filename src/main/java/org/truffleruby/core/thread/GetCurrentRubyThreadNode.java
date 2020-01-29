@@ -10,14 +10,14 @@
 package org.truffleruby.core.thread;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class GetCurrentRubyThreadNode extends RubyBaseNode {
+public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
 
     public static GetCurrentRubyThreadNode create() {
         return GetCurrentRubyThreadNodeGen.create();

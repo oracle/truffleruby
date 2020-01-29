@@ -11,16 +11,14 @@ package org.truffleruby.language;
 
 import java.io.IOException;
 
-import com.oracle.truffle.api.TruffleFile;
-import com.oracle.truffle.api.nodes.LanguageInfo;
 import org.graalvm.options.OptionDescriptor;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -38,10 +36,12 @@ import org.truffleruby.shared.options.OptionsCatalog;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.llvm.api.Toolchain;

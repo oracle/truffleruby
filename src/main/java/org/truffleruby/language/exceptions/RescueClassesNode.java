@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -35,6 +36,11 @@ public class RescueClassesNode extends RescueNode {
         }
 
         return false;
+    }
+
+    @Override
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
+        return RubyNode.defaultIsDefined(context, this);
     }
 
 }

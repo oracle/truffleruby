@@ -10,9 +10,9 @@
 package org.truffleruby.core.exception;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.language.Visibility;
@@ -74,6 +74,17 @@ public abstract class NameErrorNodes {
         protected Object setName(DynamicObject error, Object name) {
             Layouts.NAME_ERROR.setName(error, name);
             return name;
+        }
+
+    }
+
+    @Primitive(name = "name_error_set_receiver")
+    public abstract static class ReceiverSetNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object setReceiver(DynamicObject error, Object receiver) {
+            Layouts.NAME_ERROR.setReceiver(error, receiver);
+            return receiver;
         }
 
     }

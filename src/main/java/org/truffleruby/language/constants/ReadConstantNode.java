@@ -10,7 +10,9 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyNode;
@@ -22,7 +24,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 
 /** Read a literal constant on a given module: MOD::CONST */
-public class ReadConstantNode extends RubyNode {
+public class ReadConstantNode extends RubyContextSourceNode {
 
     private final String name;
 
@@ -62,10 +64,10 @@ public class ReadConstantNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         // TODO (eregon, 17 May 2016): We execute moduleNode twice here but we both want to make sure the LHS is defined and get the result value.
         // Possible solution: have a isDefinedAndReturnValue()?
-        final Object isModuleDefined = moduleNode.isDefined(frame);
+        final Object isModuleDefined = moduleNode.isDefined(frame, context);
         if (isModuleDefined == nil()) {
             return nil();
         }

@@ -122,7 +122,7 @@ class Integer < Numeric
 
   def pow(e, m=undefined)
     return self ** e if TrufflePrimitive.undefined?(m)
-    raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Truffle::Type.object_kind_of?(m, Integer)
+    raise TypeError, '2nd argument not allowed unless all arguments are integers' unless TrufflePrimitive.object_kind_of?(m, Integer)
     (self ** e) % m
   end
 

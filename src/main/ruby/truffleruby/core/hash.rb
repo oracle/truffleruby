@@ -50,8 +50,13 @@ class Hash
 
   def self.new_from_associate_array(associate_array)
     hash = new
-    associate_array.each do |array|
-      next unless array.respond_to? :to_ary
+    associate_array.each_with_index do |array, i|
+      unless array.respond_to? :to_ary
+        warn "wrong element type #{Truffle::Type.object_class(array)} at #{i} (expected array)"
+        warn 'ignoring wrong elements is deprecated, remove them explicitly'
+        warn 'this causes ArgumentError in the next release'
+        next
+      end
       array = array.to_ary
       unless (1..2).cover? array.size
         raise ArgumentError, "invalid number of elements (#{array.size} for 1..2)"
@@ -141,7 +146,7 @@ class Hash
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless Truffle::Type.object_equal(value, other_value) or value.send(op, other_value)
+        unless TrufflePrimitive.object_equal(value, other_value) or value.send(op, other_value)
           return false
         end
       end
@@ -411,7 +416,7 @@ class Hash
     end
 
     ret = "{#{out.join ', '}}"
-    Truffle::Type.infect(ret, self) unless empty?
+    TrufflePrimitive.infect(ret, self) unless empty?
     ret
   end
   alias_method :to_s, :inspect
@@ -464,7 +469,7 @@ class Hash
       ary << [key, value]
     end
 
-    Truffle::Type.infect ary, self
+    TrufflePrimitive.infect ary, self
     ary
   end
 

@@ -10,14 +10,14 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public abstract class IsTaintedNode extends RubyBaseNode {
+public abstract class IsTaintedNode extends RubyContextNode {
 
     public static IsTaintedNode create() {
         return IsTaintedNodeGen.create();

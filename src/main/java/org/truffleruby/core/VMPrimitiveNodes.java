@@ -51,8 +51,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -101,19 +99,6 @@ public abstract class VMPrimitiveNodes {
                 }
             }
         }
-    }
-
-    @Primitive(name = "vm_gc_start")
-    public static abstract class VMGCStartPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected DynamicObject vmGCStart() {
-            getContext().getMarkingService().queueMarking();
-            System.gc();
-            return nil();
-        }
-
     }
 
     // The hard #exit!
@@ -172,33 +157,6 @@ public abstract class VMPrimitiveNodes {
                 return nil();
             }
             return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, method);
-        }
-
-    }
-
-    @Primitive(name = "vm_object_respond_to")
-    public static abstract class VMObjectRespondToNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private KernelNodes.RespondToNode respondToNode = KernelNodesFactory.RespondToNodeFactory
-                .create(null, null, null);
-
-        @Specialization
-        protected boolean vmObjectRespondTo(VirtualFrame frame, Object object, Object name, boolean includePrivate) {
-            return respondToNode.executeDoesRespondTo(frame, object, name, includePrivate);
-        }
-
-    }
-
-
-    @Primitive(name = "vm_object_singleton_class")
-    public static abstract class VMObjectSingletonClassNode extends PrimitiveArrayArgumentsNode {
-
-        @Child private KernelNodes.SingletonClassMethodNode singletonClassNode = KernelNodesFactory.SingletonClassMethodNodeFactory
-                .create(null);
-
-        @Specialization
-        protected Object vmObjectClass(Object object) {
-            return singletonClassNode.executeSingletonClass(object);
         }
 
     }

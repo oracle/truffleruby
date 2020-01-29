@@ -289,7 +289,7 @@ module Kernel
     ivars = TrufflePrimitive.object_ivars self
 
     if ivars.empty?
-      return Truffle::Type.infect "#{prefix}>", self
+      return TrufflePrimitive.infect "#{prefix}>", self
     end
 
     # If it's already been inspected, return the ...
@@ -303,7 +303,7 @@ module Kernel
     end
 
     str = "#{prefix} #{parts.join(', ')}>"
-    Truffle::Type.infect str, self
+    TrufflePrimitive.infect str, self
   end
 
   def load(filename, wrap = false)
@@ -592,7 +592,7 @@ module Kernel
 
   def printf(*args)
     return nil if args.empty?
-    if Truffle::Type.object_kind_of?(args[0], String)
+    if TrufflePrimitive.object_kind_of?(args[0], String)
       print sprintf(*args)
     else
       io = args.shift

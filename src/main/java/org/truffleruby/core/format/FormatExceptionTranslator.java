@@ -27,7 +27,9 @@ import com.oracle.truffle.api.CompilerDirectives;
 public abstract class FormatExceptionTranslator {
 
     @CompilerDirectives.TruffleBoundary
-    public static RuntimeException translate(RubyNode currentNode, FormatException exception) {
+    public static <T extends RubyNode & RubyNode.WithContext> RuntimeException translate(
+            T currentNode, FormatException exception) {
+
         final RubyContext context = currentNode.getContext();
         final CoreExceptions coreExceptions = currentNode.getContext().getCoreExceptions();
 

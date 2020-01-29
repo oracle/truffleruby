@@ -9,17 +9,18 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import static org.truffleruby.core.array.ArrayHelpers.getSize;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
-import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
 

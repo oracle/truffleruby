@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyContext;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -16,7 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public class ReadInstanceVariableNode extends RubyNode {
+public class ReadInstanceVariableNode extends RubyContextSourceNode {
 
     private final String name;
 
@@ -43,7 +45,7 @@ public class ReadInstanceVariableNode extends RubyNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame) {
+    public Object isDefined(VirtualFrame frame, RubyContext context) {
         final Object receiverObject = receiver.execute(frame);
 
         if (objectProfile.profile(receiverObject instanceof DynamicObject)) {
