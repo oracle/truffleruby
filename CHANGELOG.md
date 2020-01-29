@@ -16,6 +16,7 @@ Bug fixes:
 * Added warning in `Hash.[]` for non-array elements.
 * Fixed `File.lchmod` raises `NotImplementedError` when not available.
 * `RSTRING_PTR()` now always returns a native pointer, resolving two bugs `memcpy`ing to (#1822) and from (#1772) Ruby Strings.
+* Fixed issue with duping during splat (#1883).
 
 Compatibility:
 
