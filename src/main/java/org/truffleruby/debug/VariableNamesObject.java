@@ -9,7 +9,7 @@
  */
 package org.truffleruby.debug;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -37,7 +37,7 @@ public class VariableNamesObject implements TruffleObject {
     }
 
     @ExportMessage
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     protected Object readArrayElement(long index) throws InvalidArrayIndexException {
         if (isArrayElementReadable(index)) {
             return names[(int) index];
@@ -47,7 +47,7 @@ public class VariableNamesObject implements TruffleObject {
     }
 
     @ExportMessage
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     protected boolean isArrayElementReadable(long index) {
         return index >= 0 && index < names.length;
     }

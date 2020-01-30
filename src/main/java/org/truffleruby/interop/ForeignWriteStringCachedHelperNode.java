@@ -9,12 +9,12 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -88,12 +88,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
             boolean isIVar,
             Object value,
             @Cached DoesRespondDispatchHeadNode doesRespond) throws UnknownIdentifierException {
-        throw UnknownIdentifierException.create(toString(name));
-    }
-
-    @CompilerDirectives.TruffleBoundary
-    private String toString(Object name) {
-        return name.toString();
+        throw UnknownIdentifierException.create(StringUtils.toString(name));
     }
 
     // TODO CS 9-Aug-17 test method defined once and then run specialisations

@@ -11,7 +11,7 @@ package org.truffleruby.collections;
 
 import java.util.Iterator;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public final class BoundaryIterator<E> implements Iterator<E> {
 
@@ -21,19 +21,19 @@ public final class BoundaryIterator<E> implements Iterator<E> {
         this.iterator = iterator;
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     @Override
     public boolean hasNext() {
         return iterator.hasNext();
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     @Override
     public E next() {
         return iterator.next();
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     @Override
     public void remove() {
         iterator.remove();

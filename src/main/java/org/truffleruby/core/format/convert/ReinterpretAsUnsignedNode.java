@@ -11,6 +11,7 @@ package org.truffleruby.core.format.convert;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
@@ -57,7 +58,7 @@ public abstract class ReinterpretAsUnsignedNode extends FormatNode {
 
     private static final long UNSIGNED_LONG_MASK = 0x7fffffffffffffffL;
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     private BigInteger asUnsignedBigInteger(long value) {
         // TODO CS 28-Mar-16 can't we work out if it would fit into a long, and not create a BigInteger?
 
