@@ -19,6 +19,7 @@ Bug fixes:
 * Fixed issue with duping during splat (#1883).
 * Fixed `Dir#children` implementation.
 * Fixed `SignalException.new` error when bad parameter given.
+* Added deprecation warning to `Kernel#=~`.
 
 Compatibility:
 
