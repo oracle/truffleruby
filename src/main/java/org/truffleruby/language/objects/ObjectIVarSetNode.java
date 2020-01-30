@@ -64,7 +64,7 @@ public abstract class ObjectIVarSetNode extends RubyBaseNode {
 
     protected Object checkName(
             RubyContext context, DynamicObject object, Object name, boolean checkName) {
-        return ObjectIVarGetNode.checkName(this, context, object, name, checkName);
+        return ObjectIVarGetNode.checkName(context, object, name, checkName, this);
     }
 
     protected int getCacheLimit() {

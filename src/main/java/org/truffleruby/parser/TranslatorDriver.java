@@ -232,12 +232,7 @@ public class TranslatorDriver {
         context.getCoverageManager().loadingSource(source);
 
         final BodyTranslator translator = new BodyTranslator(
-                currentNode,
-                context,
-                null,
-                environment,
-                source,
-                parserContext,
+                context, null, environment, source, parserContext, currentNode,
                 topLevel);
 
         printParseTranslateExecuteMetric("before-translate", context, source);

@@ -65,15 +65,15 @@ public class MethodTranslator extends BodyTranslator {
     private final boolean shouldLazyTranslate;
 
     public MethodTranslator(
-            Node currentNode,
             RubyContext context,
             BodyTranslator parent,
             TranslatorEnvironment environment,
             boolean isBlock,
             Source source,
             ParserContext parserContext,
+            Node currentNode,
             ArgsParseNode argsNode) {
-        super(currentNode, context, parent, environment, source, parserContext, false);
+        super(context, parent, environment, source, parserContext, currentNode, false);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
 
@@ -376,10 +376,10 @@ public class MethodTranslator extends BodyTranslator {
         }
 
         final ReloadArgumentsTranslator reloadTranslator = new ReloadArgumentsTranslator(
-                currentNode,
                 context,
                 source,
                 parserContext,
+                currentNode,
                 this);
 
         final ArgsParseNode argsNode = methodArgumentsTranslator.argsNode;

@@ -275,14 +275,14 @@ public class BodyTranslator extends Translator {
     protected String currentCallMethodName = null;
 
     public BodyTranslator(
-            Node currentNode,
             RubyContext context,
             BodyTranslator parent,
             TranslatorEnvironment environment,
             Source source,
             ParserContext parserContext,
+            Node currentNode,
             boolean topLevel) {
-        super(currentNode, context, source, parserContext);
+        super(context, source, parserContext, currentNode);
         this.parserSupport = new ParserSupport(context, context.getPath(source), null);
         this.parent = parent;
         this.environment = environment;
@@ -851,12 +851,12 @@ public class BodyTranslator extends Translator {
                     TranslatorEnvironment.newFrameDescriptor(context));
 
             final BodyTranslator moduleTranslator = new BodyTranslator(
-                    currentNode,
                     context,
                     this,
                     newEnvironment,
                     source,
                     parserContext,
+                    currentNode,
                     false);
 
             final ModuleBodyDefinitionNode definition = moduleTranslator
@@ -1264,13 +1264,7 @@ public class BodyTranslator extends Translator {
         // ownScopeForAssignments is the same for the defined method as the current one.
 
         final MethodTranslator methodCompiler = new MethodTranslator(
-                currentNode,
-                context,
-                this,
-                newEnvironment,
-                false,
-                source,
-                parserContext,
+                context, this, newEnvironment, false, source, parserContext, currentNode,
                 argsNode);
         final RootCallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, defNode, bodyNode);
 
@@ -1752,13 +1746,7 @@ public class BodyTranslator extends Translator {
                 parseEnvironment.allocateBreakID(),
                 TranslatorEnvironment.newFrameDescriptor(context));
         final MethodTranslator methodCompiler = new MethodTranslator(
-                currentNode,
-                context,
-                this,
-                newEnvironment,
-                true,
-                source,
-                parserContext,
+                context, this, newEnvironment, true, source, parserContext, currentNode,
                 argsNode);
 
         if (isProc) {
@@ -2725,7 +2713,7 @@ public class BodyTranslator extends Translator {
         final Rope rope = node.getValue();
         final RegexpOptions options = node.getOptions();
         options.setLiteral(true);
-        Regex regex = TruffleRegexpNodes.compile(currentNode, context, rope, options);
+        Regex regex = TruffleRegexpNodes.compile(context, rope, options, currentNode);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when

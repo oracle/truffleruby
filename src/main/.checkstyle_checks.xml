@@ -180,6 +180,10 @@
     </module>
   </module>
   <module name="RegexpMultiline">
+    <property name="format" value='Node currentNode,\s*RubyContext context'/>
+    <property name="message" value='Pass context first: RubyContext context, Node currentNode'/>
+  </module>
+  <module name="RegexpMultiline">
     <property name="format" value="\r\n"/>
     <property name="message" value="illegal Windows line ending"/>
   </module>

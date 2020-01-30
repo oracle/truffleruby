@@ -122,7 +122,7 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         public DynamicObject createRegexp(Rope pattern) {
             final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
-            final Regex regex = compile(this, getContext(), pattern, regexpOptions);
+            final Regex regex = compile(getContext(), pattern, regexpOptions, this);
 
             final DynamicObjectFactory factory = getContext().getCoreLibrary().regexpFactory;
             return Layouts.REGEXP
@@ -307,7 +307,7 @@ public class TruffleRegexpNodes {
     };
 
     @TruffleBoundary
-    public static Regex compile(Node currentNode, RubyContext context, Rope bytes, RegexpOptions options) {
+    public static Regex compile(RubyContext context, Rope bytes, RegexpOptions options, Node currentNode) {
         try {
             if (options.isEncodingNone()) {
                 bytes = RopeOperations.withEncoding(bytes, ASCIIEncoding.INSTANCE);

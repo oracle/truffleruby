@@ -115,7 +115,7 @@ public class LoadArgumentsTranslator extends Translator {
             boolean isProc,
             boolean isMethod,
             BodyTranslator methodBodyTranslator) {
-        super(currentNode, context, source, parserContext);
+        super(context, source, parserContext, currentNode);
         this.isProc = isProc;
         this.isMethod = isMethod;
         this.methodBodyTranslator = methodBodyTranslator;
