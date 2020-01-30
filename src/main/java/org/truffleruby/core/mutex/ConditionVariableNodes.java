@@ -125,7 +125,7 @@ public abstract class ConditionVariableNodes {
                 }
             } finally {
                 condLock.unlock();
-                MutexOperations.internalLockEvenWithException(mutexLock, getContext(), this);
+                MutexOperations.internalLockEvenWithException(getContext(), mutexLock, this);
             }
         }
 
