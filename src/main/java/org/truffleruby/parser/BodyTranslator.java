@@ -280,8 +280,7 @@ public class BodyTranslator extends Translator {
             TranslatorEnvironment environment,
             Source source,
             ParserContext parserContext,
-            Node currentNode,
-            boolean topLevel) {
+            Node currentNode) {
         super(context, source, parserContext, currentNode);
         this.parserSupport = new ParserSupport(context, context.getPath(source), null);
         this.parent = parent;
@@ -856,8 +855,7 @@ public class BodyTranslator extends Translator {
                     newEnvironment,
                     source,
                     parserContext,
-                    currentNode,
-                    false);
+                    currentNode);
 
             final ModuleBodyDefinitionNode definition = moduleTranslator
                     .compileClassNode(sourceSection, name, bodyNode, sclass);

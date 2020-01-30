@@ -73,7 +73,7 @@ public class MethodTranslator extends BodyTranslator {
             ParserContext parserContext,
             Node currentNode,
             ArgsParseNode argsNode) {
-        super(context, parent, environment, source, parserContext, currentNode, false);
+        super(context, parent, environment, source, parserContext, currentNode);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
 
