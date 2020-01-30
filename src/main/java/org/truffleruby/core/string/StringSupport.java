@@ -1527,9 +1527,9 @@ public final class StringSupport {
         return modified;
     }
 
-    /** Returns a copy of {@code bytes} but capitalized (affecting only ASCII characters), or {@code
-     * bytes} itself if the string doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each
-     * ASCII character as a single byte ({@link Encoding#isAsciiCompatible()}). */
+    /** Returns a copy of {@code bytes} but capitalized (affecting only ASCII characters), or {@code bytes} itself if
+     * the string doesn't require changes. The encoding must be ASCII-compatible (i.e. represent each ASCII character as
+     * a single byte ({@link Encoding#isAsciiCompatible()}). */
     @TruffleBoundary
     public static byte[] capitalizeMultiByteAsciiSimple(Encoding enc, CodeRange codeRange, byte[] bytes) {
         assert enc.isAsciiCompatible();

@@ -237,9 +237,9 @@ public class Backtrace {
         return getActivations(this.raiseException);
     }
 
-    /** Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code
-     * length}, and omitting locations as requested ({@link #getOmitted()}). If more locations are omitted than are
-     * available, return a Ruby {@code nil}.
+    /** Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code length}, and omitting
+     * locations as requested ({@link #getOmitted()}). If more locations are omitted than are available, return a Ruby
+     * {@code nil}.
      *
      * <p>
      * The length can be negative, in which case it is treated as a range ending. Use -1 to get the maximum length.
