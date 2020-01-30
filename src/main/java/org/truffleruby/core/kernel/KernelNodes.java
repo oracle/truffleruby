@@ -1803,7 +1803,7 @@ public abstract class KernelNodes {
                         new Object[]{ arguments, arguments.length, isTaintedNode.executeIsTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(this, e);
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishFormat(cachedFormatLength, result);
@@ -1826,7 +1826,7 @@ public abstract class KernelNodes {
                         new Object[]{ arguments, arguments.length, isTaintedNode.executeIsTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(this, e);
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishFormat(Layouts.STRING.getRope(format).byteLength(), result);

@@ -1344,7 +1344,7 @@ public abstract class ArrayNodes {
                         new Object[]{ getStore(array), getSize(array), false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(this, e);
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishPack(cachedFormatLength, result);
@@ -1363,7 +1363,7 @@ public abstract class ArrayNodes {
                         new Object[]{ getStore(array), getSize(array), false, null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(this, e);
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishPack(Layouts.STRING.getRope(format).byteLength(), result);

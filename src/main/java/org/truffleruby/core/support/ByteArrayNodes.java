@@ -152,7 +152,7 @@ public abstract class ByteArrayNodes {
             final Pointer ptr = Layouts.POINTER.getPointer(source);
             final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
-            PointerNodes.checkNull(ptr, this, nullPointerProfile);
+            PointerNodes.checkNull(ptr, getContext(), this, nullPointerProfile);
 
             ptr.readBytes(srcStart, bytes.getUnsafeBytes(), dstStart, length);
             return source;

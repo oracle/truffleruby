@@ -194,7 +194,7 @@ public abstract class MutexNodes {
             try {
                 return KernelNodes.SleepNode.sleepFor(this, getContext(), thread, durationInMillis);
             } finally {
-                MutexOperations.lockEvenWithExceptions(lock, thread, this);
+                MutexOperations.lockEvenWithExceptions(lock, thread, getContext(), this);
             }
         }
 
