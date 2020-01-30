@@ -53,7 +53,9 @@ public abstract class PointerNodes {
             nullPointerProfile.enter();
             throw new RaiseException(
                     context,
-                    context.getCoreExceptions().ffiNullPointerError("invalid memory access at address=0x0", currentNode));
+                    context.getCoreExceptions().ffiNullPointerError(
+                            "invalid memory access at address=0x0",
+                            currentNode));
         }
     }
 

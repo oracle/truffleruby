@@ -275,7 +275,8 @@ public class MethodTranslator extends BodyTranslator {
 
         final SourceIndexLength bodySourceSection = body.getSourceIndexLength();
 
-        body = createCheckArityNode(arity,
+        body = createCheckArityNode(
+                arity,
                 sequence(bodySourceSection, Arrays.asList(loadArguments, body)));
         body.unsafeSetSourceSection(sourceSection);
 

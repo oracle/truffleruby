@@ -1262,7 +1262,13 @@ public class BodyTranslator extends Translator {
         // ownScopeForAssignments is the same for the defined method as the current one.
 
         final MethodTranslator methodCompiler = new MethodTranslator(
-                context, this, newEnvironment, false, source, parserContext, currentNode,
+                context,
+                this,
+                newEnvironment,
+                false,
+                source,
+                parserContext,
+                currentNode,
                 argsNode);
         final RootCallTarget callTarget = methodCompiler.compileMethodNode(sourceSection, defNode, bodyNode);
 
@@ -1744,7 +1750,13 @@ public class BodyTranslator extends Translator {
                 parseEnvironment.allocateBreakID(),
                 TranslatorEnvironment.newFrameDescriptor(context));
         final MethodTranslator methodCompiler = new MethodTranslator(
-                context, this, newEnvironment, true, source, parserContext, currentNode,
+                context,
+                this,
+                newEnvironment,
+                true,
+                source,
+                parserContext,
+                currentNode,
                 argsNode);
 
         if (isProc) {
