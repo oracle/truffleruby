@@ -2,6 +2,7 @@
 
 New features:
 
+* `||=` will not compile the right-hand-side if it's only executed once, to match the idiomatic lazy-initialisation use-case (#1887, @kipply).
 
 Bug fixes:
 

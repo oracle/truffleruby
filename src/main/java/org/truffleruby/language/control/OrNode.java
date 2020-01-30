@@ -10,11 +10,9 @@
 package org.truffleruby.language.control;
 
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -23,7 +21,7 @@ public class OrNode extends RubyContextSourceNode {
     @Child private RubyNode left;
     @Child private RubyNode right;
 
-    @Child private BooleanCastNode leftCast;
+    @Child private BooleanCastNode leftCast = BooleanCastNode.create();
 
     private final ConditionProfile conditionProfile = ConditionProfile.createCountingProfile();
 
@@ -36,19 +34,11 @@ public class OrNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object leftValue = left.execute(frame);
 
-        if (conditionProfile.profile(castToBoolean(leftValue))) {
+        if (conditionProfile.profile(leftCast.executeToBoolean(leftValue))) {
             return leftValue;
         } else {
             return right.execute(frame);
         }
-    }
-
-    private boolean castToBoolean(final Object value) {
-        if (leftCast == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            leftCast = insert(BooleanCastNodeGen.create(null));
-        }
-        return leftCast.executeToBoolean(value);
     }
 
 }

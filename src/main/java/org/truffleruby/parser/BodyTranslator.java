@@ -84,6 +84,7 @@ import org.truffleruby.language.control.NextNode;
 import org.truffleruby.language.control.NotNode;
 import org.truffleruby.language.control.OnceNode;
 import org.truffleruby.language.control.OrNode;
+import org.truffleruby.language.control.OrLazyValueDefinedNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.RedoNode;
 import org.truffleruby.language.control.RetryNode;
@@ -2554,7 +2555,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret = new DefinedWrapperNode(
                 context.getCoreStrings().ASSIGNMENT,
-                new OrNode(lhs, rhs));
+                new OrLazyValueDefinedNode(lhs, rhs));
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
