@@ -69,7 +69,7 @@ module Truffle
       n + 1
     end
 
-    def self.step_size(value, limit, step, uses_kwargs)
+    def self.step_size(value, limit, step, uses_kwargs, exclude_end)
       values = step_fetch_args(value, limit, step, uses_kwargs)
       value = values[0]
       limit = values[1]
@@ -80,12 +80,18 @@ module Truffle
       if stepping_forever?(limit, step, desc)
         Float::INFINITY
       elsif is_float
-        float_step_size(value, limit, step, false)
+        float_step_size(value, limit, step, exclude_end)
       else
         if (desc && value < limit) || (!desc && value > limit)
           0
         else
-          ((value - limit).abs + 1).fdiv(step.abs).ceil
+          len = ((value - limit).abs + 1).fdiv(step.abs).ceil
+          if exclude_end
+            last = value + (step * (len - 1))
+            last == limit ? len - 1 : len
+          else
+            len
+          end
         end
       end
     end

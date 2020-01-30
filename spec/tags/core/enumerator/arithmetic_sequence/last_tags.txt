@@ -1,1 +1,0 @@
-fails:Enumerator::ArithmeticSequence#last returns the last element of the sequence

@@ -1,1 +1,0 @@
-fails:Enumerator::ArithmeticSequence#hash is based on begin, end, step and exclude_end?
