@@ -16,4 +16,9 @@ module Gem
   def self.default_dir
     @default_dir ||= "#{Truffle::Boot.ruby_home or raise 'TruffleRuby home not found'}/lib/gems"
   end
+
+  # Only report the RUBY platform as supported to make sure gems precompiled for MRI are not used.
+  # TruffleRuby has a different ABI and cannot reuse gems precompiled for MRI.
+  # See https://github.com/rubygems/rubygems/issues/2945
+  Gem.platforms = [Gem::Platform::RUBY]
 end

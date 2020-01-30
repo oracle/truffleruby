@@ -113,6 +113,7 @@ Bug fixes:
 * Fixed `IO.try_convert` parameter conversion.
 * Fixed linking of always-inline C API functions with `-std=gnu90` (#1837, #1879).
 * Avoid race conditions during `gem install` by using a single download thread.
+* Do not use gems precompiled for MRI on TruffleRuby (#1837).
 
 Compatibility:
 
