@@ -10,7 +10,6 @@
 package org.truffleruby.language.control;
 
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -31,7 +30,7 @@ public class OrLazyValueDefinedNode extends RubyContextSourceNode {
     @Child private RubyNode left;
     @Child private RubyNode right;
 
-    @Child private BooleanCastNode leftCast;
+    @Child private BooleanCastNode leftCast = BooleanCastNode.create();
 
     private enum RightUsage {
         NEVER,
@@ -61,7 +60,7 @@ public class OrLazyValueDefinedNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object leftValue = left.execute(frame);
 
-        if (conditionProfile.profile(castToBoolean(leftValue))) {
+        if (conditionProfile.profile(leftCast.executeToBoolean(leftValue))) {
             return leftValue;
         } else {
             if (rightUsage != RightUsage.MANY) {
@@ -72,14 +71,6 @@ public class OrLazyValueDefinedNode extends RubyContextSourceNode {
 
             return right.execute(frame);
         }
-    }
-
-    private boolean castToBoolean(final Object value) {
-        if (leftCast == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            leftCast = insert(BooleanCastNodeGen.create(null));
-        }
-        return leftCast.executeToBoolean(value);
     }
 
 }
