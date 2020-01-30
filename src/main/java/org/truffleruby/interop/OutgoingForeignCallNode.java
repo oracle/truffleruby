@@ -169,9 +169,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object withBadArguments(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached(
-                    value = "expectedArity(cachedName)",
-                    allowUncached = true) /* @Cached.Shared("arity") */ int cachedArity,
+            @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
                 context,
@@ -248,9 +246,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object redirectToTruffleInterop(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached(
-                    value = "expectedArity(cachedName)",
-                    allowUncached = true) /* @Cached.Shared("arity") */ int cachedArity,
+            @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
             @Cached(value = "specialToInteropMethod(cachedName)", allowUncached = true) String interopMethodName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("createPrivate()") @Shared("dispatch") CallDispatchHeadNode callDispatchHeadNode,
