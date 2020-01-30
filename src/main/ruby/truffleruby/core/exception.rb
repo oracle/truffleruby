@@ -427,7 +427,9 @@ class SignalException < Exception
       if sig.is_a?(Symbol)
         sig = sig.to_s
       else
-        sig = StringValue(sig)
+        sig_converted = Truffle::Type.rb_check_convert_type sig, String, :to_str
+        raise ArgumentError, "bad signal type #{sig.class.name}" if sig_converted.nil?
+        sig = sig_converted
       end
       signal_name = sig
       if signal_name.start_with?('SIG')

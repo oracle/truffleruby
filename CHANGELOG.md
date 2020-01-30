@@ -18,6 +18,7 @@ Bug fixes:
 * `RSTRING_PTR()` now always returns a native pointer, resolving two bugs `memcpy`ing to (#1822) and from (#1772) Ruby Strings.
 * Fixed issue with duping during splat (#1883).
 * Fixed `Dir#children` implementation.
+* Fixed `SignalException.new` error when bad parameter given.
 
 Compatibility:
 
