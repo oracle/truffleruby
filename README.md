@@ -139,7 +139,7 @@ should read our [migration guide](doc/user/jruby-migration.md).
 
 ## Documentation
 
-Extensive documentation is available in [`doc`](doc).
+Extensive user documentation is available in [`doc/user`](doc/user).
 
 See our [source code repository](https://github.com/oracle/truffleruby) and
 [contributor
