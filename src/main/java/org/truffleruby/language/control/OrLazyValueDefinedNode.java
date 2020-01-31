@@ -18,13 +18,11 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/**
- * OrLazyValueDefinedNode is used as the 'or' node for ||=, because we know from idiomatic Ruby usage that this is
- * often used to lazy initialize a value. In that case normal counting profiling gives a misleading result. With the
- * RHS having been executed once (the lazy initialization) it will be compiled expecting it to be used again. We know
- * that it's unlikely to be used again, so only compile it in when it's been used more than once, by using a small
- * saturating counter.
- */
+/** OrLazyValueDefinedNode is used as the 'or' node for ||=, because we know from idiomatic Ruby usage that this is
+ * often used to lazy initialize a value. In that case normal counting profiling gives a misleading result. With the RHS
+ * having been executed once (the lazy initialization) it will be compiled expecting it to be used again. We know that
+ * it's unlikely to be used again, so only compile it in when it's been used more than once, by using a small saturating
+ * counter. */
 public class OrLazyValueDefinedNode extends RubyContextSourceNode {
 
     @Child private RubyNode left;
