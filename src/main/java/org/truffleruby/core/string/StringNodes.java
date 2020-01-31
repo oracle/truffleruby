@@ -524,7 +524,6 @@ public abstract class StringNodes {
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
         //region Fields
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
         @Child private CallDispatchHeadNode toLongNode;
@@ -661,23 +660,9 @@ public abstract class StringNodes {
         private Object sliceRange(VirtualFrame frame, DynamicObject string, int begin, int end, boolean excludesEnd) {
             final int stringLength = charLength(string);
             begin = normalizeIndex(begin, stringLength);
-
             if (begin < 0 || begin > stringLength) {
                 return outOfBoundsNil();
             }
-
-            if (begin == stringLength) {
-                final RopeBuilder builder = new RopeBuilder();
-                builder.setEncoding(encoding(string));
-                return allocateObjectNode.allocate(
-                        Layouts.BASIC_OBJECT.getLogicalClass(string),
-                        Layouts.STRING.build(
-                                false,
-                                false,
-                                RopeOperations
-                                        .withEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
-            }
-
             end = normalizeIndex(end, stringLength);
             int length = StringOperations.clampExclusiveIndex(stringLength, excludesEnd ? end : end + 1) - begin;
             return substring(frame, string, begin, Math.max(length, 0));
