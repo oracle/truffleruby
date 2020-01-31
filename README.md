@@ -167,34 +167,8 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 ## Authors
 
 The main authors of TruffleRuby ordered by first contribution are:
-
-* Chris Seaton
-* Benoit Daloze
-* Kevin Menard
-* Petr Chalupa
-* Brandon Fish
-* Duncan MacGregor
-* Christian Wirth
-* Rafael França
-* Alan Wu
-* Nicolas Laurent
-
-Additionally:
-
-* Thomas Würthinger
-* Matthias Grimmer
-* Josef Haider
-* Fabio Niephaus
-* Matthias Springer
-* Lucas Allan Amorim
-* Aditya Bhardwaj
-
-Collaborations with:
-
-* [Institut für Systemsoftware at Johannes Kepler University
-   Linz](http://ssw.jku.at)
-
-And others.
+Chris Seaton, Benoit Daloze, Kevin Menard, Petr Chalupa, Brandon Fish, Duncan
+MacGregor, Christian Wirth, Rafael França, Alan Wu, Nicolas Laurent.
 
 ## Security
 
