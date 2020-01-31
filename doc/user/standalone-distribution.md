@@ -2,9 +2,9 @@
 
 There are three ways to install TruffleRuby, see
 [getting started](../../README.md#getting-started). The recommended way is
-[GraalVM](installing-graalvm.md). You can also use what we call the standalone
-distribution of TruffleRuby, either via your Ruby manager/installer, or as a
-simple binary tarball.
+[GraalVM](installing-graalvm.md) as it provides the most flexibility.
+You can also use what we call the standalone distribution of TruffleRuby,
+either via your Ruby manager/installer, or as a simple binary tarball.
 
 Releases of the standalone distribution are
 [available on GitHub](https://github.com/oracle/truffleruby/releases).
@@ -30,6 +30,30 @@ rvm:
 
 See https://docs.travis-ci.com/user/languages/ruby#truffleruby for details.
 Please [report](https://github.com/oracle/truffleruby/issues) any issue you might find while testing with TruffleRuby.
+
+## Testing TruffleRuby in GitHub Actions
+
+In GitHub Actions, you can easily setup TruffleRuby with [use-ruby-action](https://github.com/eregon/use-ruby-action):
+
+```yaml
+name: My workflow
+on: [push]
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        ruby: [ 2.6, truffleruby ]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: eregon/use-ruby-action@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+    - run: ruby -v
+```
+
+See the [README](https://github.com/marketplace/actions/setup-ruby-jruby-and-truffleruby) of that action for more documentation.
 
 ## Testing TruffleRuby in CI
 

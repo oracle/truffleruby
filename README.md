@@ -30,8 +30,14 @@ There are three ways to install TruffleRuby:
   rvm:
     - truffleruby
   ```
+  And on GitHub Actions:
+  ```yaml
+  - uses: eregon/use-ruby-action@v1
+    with:
+      ruby-version: truffleruby
+  ```
 
-You can use `gem` to install Gems as normal.
+You can use `gem` and `bundle` to install Gems as normal.
 
 Please report any issue you might find on [GitHub](https://github.com/oracle/truffleruby/issues).
 
@@ -99,7 +105,7 @@ TruffleRuby is actively tested on these systems:
 * Ubuntu 16.04 LTS
 * Fedora 28
 * macOS 10.14 (Mojave)
-* macOS 10.13 (High Sierra)
+* macOS 10.15 (Catalina)
 
 You may find that TruffleRuby will not work if you severely restrict the
 environment, for example by unmounting system filesystems such as `/dev/shm`.
@@ -139,7 +145,7 @@ should read our [migration guide](doc/user/jruby-migration.md).
 
 ## Documentation
 
-Extensive documentation is available in [`doc`](doc).
+Extensive user documentation is available in [`doc/user`](doc/user).
 
 See our [source code repository](https://github.com/oracle/truffleruby) and
 [contributor
@@ -167,33 +173,8 @@ Announcements about GraalVM, including TruffleRuby, are made on the
 ## Authors
 
 The main authors of TruffleRuby ordered by first contribution are:
-
-* Chris Seaton
-* Benoit Daloze
-* Kevin Menard
-* Petr Chalupa
-* Brandon Fish
-* Duncan MacGregor
-* Christian Wirth
-* Rafael França
-* Alan Wu
-
-Additionally:
-
-* Thomas Würthinger
-* Matthias Grimmer
-* Josef Haider
-* Fabio Niephaus
-* Matthias Springer
-* Lucas Allan Amorim
-* Aditya Bhardwaj
-
-Collaborations with:
-
-* [Institut für Systemsoftware at Johannes Kepler University
-   Linz](http://ssw.jku.at)
-
-And others.
+Chris Seaton, Benoit Daloze, Kevin Menard, Petr Chalupa, Brandon Fish, Duncan
+MacGregor, Christian Wirth, Rafael França, Alan Wu, Nicolas Laurent.
 
 ## Security
 
