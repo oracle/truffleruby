@@ -85,10 +85,12 @@ local part_definitions = {
               ],
     },
 
-    build: $.use.build_no_clean + {
+    clean: {
       # Clean build results to make sure nothing refers to them while testing
       setup+: jt(["mx", "--env", self.mx_env, "clean"]),
     },
+
+    build: $.use.build_no_clean + $.use.clean,
 
     clone_enterprise: {
       setup+: [["mx", "sversions"]] + jt(["checkout_enterprise_revision"]),
@@ -267,12 +269,16 @@ local part_definitions = {
   },
 
   run: {
-    test_unit_tck_specs: {
+    test_unit_tck: {
+      # Run unittests first before cleaning, they need a full non-cleaned build
+      setup+: jt(["test", "unit"]) +
+              jt(["test", "tck"])
+    },
+
+    test_specs: {
       run+: jt(["test", "specs"]) +
             jt(["test", "specs", ":next"]) +
-            jt(["build"]) + # We need mx distributions to run unit tests
-            jt(["test", "unit"]) +
-            jt(["test", "tck"]),
+            jt(["test", "basictest"]),
     },
 
     test_fast: {
@@ -293,7 +299,6 @@ local part_definitions = {
       run+: jt(["lint"]),
     },
 
-    test_basictest: { run+: jt(["test", "basictest"]) },
     test_mri: { run+: jt(["test", "mri", "--no-sulong", "--", "-j4"]) },
     test_integration: { run+: jt(["test", "integration"]) },
     test_gems: { run+: jt(["test", "gems"]) },
@@ -431,10 +436,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local gate = gate_no_build + $.use.build,
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "40:00" },
-      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "40:00" },
-      "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:20:00" },
+      "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "40:00" },
+      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "40:00" },
+      "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "30:00" },
       "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:20:00" },
