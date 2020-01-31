@@ -30,6 +30,12 @@ There are three ways to install TruffleRuby:
   rvm:
     - truffleruby
   ```
+  And on GitHub Actions:
+  ```yaml
+  - uses: eregon/use-ruby-action@v1
+    with:
+      ruby-version: truffleruby
+  ```
 
 You can use `gem` to install Gems as normal.
 
