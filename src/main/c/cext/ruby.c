@@ -812,7 +812,7 @@ char *rb_string_value_cstr(VALUE *value_pointer) {
 }
 
 char *RSTRING_PTR_IMPL(VALUE string) {
-  return (char *)polyglot_as_i8_array(RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_PTR", string));
+  return NATIVE_RSTRING_PTR(string);
 }
 
 char *RSTRING_END(VALUE string) {

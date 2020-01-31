@@ -15,6 +15,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseWithoutContextNode;
 
@@ -114,13 +115,10 @@ public class ValueWrapperManager {
 
     private Object[] ensureCapacity(Object[] map, int size) {
         if (size > map.length) {
-            Object[] newMap = new Object[size];
-            if (map.length > 0) {
-                System.arraycopy(map, 0, newMap, 0, size - 1);
-            }
-            map = newMap;
+            return ArrayUtils.grow(map, size);
+        } else {
+            return map;
         }
-        return map;
     }
 
     public synchronized Object getFromHandleMap(long handle) {

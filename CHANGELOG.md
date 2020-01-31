@@ -5,6 +5,7 @@ New features:
 * Enable and document `--coverage` option (#1840, @chrisseaton).
 * Update the internal LLVM toolchain to LLVM 9 and reduce its download size.
 * Updated to Ruby 2.6.5 (#1749).
+* Automatically set `PKG_CONFIG_PATH` as needed for compiling OpenSSL on macOS (#1830).
 
 Bug fixes:
 
@@ -76,6 +77,8 @@ Bug fixes:
 * Fixed `IO.try_convert` parameter conversion.
 * Fixed linking of always-inline C API functions with `-std=gnu90` (#1837, #1879).
 * Avoid race conditions during `gem install` by using a single download thread.
+* `RSTRING_PTR()` now always returns a native pointer, resolving two bugs `memcpy`ing to (#1822) and from (#1772) Ruby Strings.
+* Do not use gems precompiled for MRI on TruffleRuby (#1837).
 
 Compatibility:
 

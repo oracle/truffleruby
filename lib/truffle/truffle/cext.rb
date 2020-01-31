@@ -149,7 +149,7 @@ module Truffle::CExt
     end
 
     def size
-      Truffle::CExt.string_pointer_size(@string)
+      TrufflePrimitive.string_pointer_size(@string)
     end
 
     def polyglot_pointer?
@@ -157,7 +157,7 @@ module Truffle::CExt
     end
 
     def polyglot_address
-      @address ||= Truffle::CExt.string_pointer_to_native(@string)
+      @address ||= TrufflePrimitive.string_pointer_to_native(@string)
     end
 
     # Every IS_POINTER object should also have TO_NATIVE
@@ -165,15 +165,15 @@ module Truffle::CExt
     end
 
     def [](index)
-      Truffle::CExt.string_pointer_read(@string, index)
+      TrufflePrimitive.string_pointer_read(@string, index)
     end
 
     def []=(index, value)
-      Truffle::CExt.string_pointer_write(@string, index, value)
+      TrufflePrimitive.string_pointer_write(@string, index, value)
     end
 
     def native?
-      Truffle::CExt.string_pointer_is_native?(@string)
+      TrufflePrimitive.string_pointer_is_native?(@string)
     end
 
     alias_method :to_str, :string
@@ -231,7 +231,7 @@ module Truffle::CExt
     end
 
     def polyglot_address
-      @address ||= Truffle::CExt.string_pointer_to_native(@string) + @string.bytesize
+      @address ||= TrufflePrimitive.string_pointer_to_native(@string) + @string.bytesize
     end
 
     # Every IS_POINTER object should also have TO_NATIVE
@@ -1846,8 +1846,16 @@ module Truffle::CExt
     RbEncoding.get_encoding_from_native(rb_encoding)
   end
 
+  def native_string?(string)
+    TrufflePrimitive.string_pointer_is_native?(string)
+  end
+
   def RSTRING_PTR(string)
     RStringPtr.new(string)
+  end
+
+  def NATIVE_RSTRING_PTR(string)
+    TrufflePrimitive.string_pointer_to_native(string)
   end
 
   def RSTRING_END(string)
