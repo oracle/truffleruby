@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Access a local variable
- */
+/** Access a local variable */
 public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNode, SideEffectFree {
     // The name of the variable
     private String name;
@@ -59,47 +57,38 @@ public class LocalVarParseNode extends ParseNode implements INameNode, IScopedNo
         return NodeType.LOCALVARNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitLocalVarNode(this);
     }
 
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
+    /** How many scopes should we burrow down to until we need to set the block variable value.
      *
-     * @return 0 for current scope, 1 for one down, ...
-     */
+     * @return 0 for current scope, 1 for one down, ... */
     public int getDepth() {
         return location >> 16;
     }
 
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
+    /** Gets the index within the scope construct that actually holds the eval'd value of this local variable
      *
-     * @return Returns an int offset into storage structure
-     */
+     * @return Returns an int offset into storage structure */
     public int getIndex() {
         return location & 0xffff;
     }
 
-    /**
-     * What is the name of this variable
+    /** What is the name of this variable
      *
-     * @return the name of the variable
-     */
+     * @return the name of the variable */
     public String getName() {
         return name;
     }
 
-    /**
-     * Set the name of this variable (for refactoring support)
-     * @param name the new name
-     */
+    /** Set the name of this variable (for refactoring support)
+     * 
+     * @param name the new name */
     public void setName(String name) {
         this.name = name;
     }

@@ -453,17 +453,14 @@ public class ThreadManager {
         return result;
     }
 
-    /**
-     * Runs {@code action} until it returns a non-null value. The given action should throw an
-     * {@link InterruptedException} when {@link Thread#interrupt()} is called. Otherwise, the
-     * {@link SafepointManager} will not be able to interrupt this action. See
-     * {@link ThreadManager#runBlockingNFISystemCallUntilResult(Node, BlockingAction)} for blocking
-     * native calls. If the action throws an {@link InterruptedException}, it will be retried until
-     * it returns a non-null value.
+    /** Runs {@code action} until it returns a non-null value. The given action should throw an
+     * {@link InterruptedException} when {@link Thread#interrupt()} is called. Otherwise, the {@link SafepointManager}
+     * will not be able to interrupt this action. See
+     * {@link ThreadManager#runBlockingNFISystemCallUntilResult(Node, BlockingAction)} for blocking native calls. If the
+     * action throws an {@link InterruptedException}, it will be retried until it returns a non-null value.
      *
      * @param action must not touch any Ruby state
-     * @return the first non-null return value from {@code action}
-     */
+     * @return the first non-null return value from {@code action} */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action) {
         final DynamicObject runningThread = getCurrentThread();
@@ -488,19 +485,16 @@ public class ThreadManager {
         return result;
     }
 
-    /**
-     * Runs {@code action} until it returns a non-null value. The blocking action might be
-     * {@link Thread#interrupted()}, for instance by the {@link SafepointManager}, in which case it
-     * will be run again. The unblocking action is registered with the thread manager and will be
-     * invoked if the {@link SafepointManager} needs to interrupt the thread. If the blocking action
-     * is making a native call, simply interrupting the thread will not unblock the action. It is
-     * the responsibility of the unblocking action to break out of the native call so the thread can
-     * be interrupted.
+    /** Runs {@code action} until it returns a non-null value. The blocking action might be {@link Thread#interrupted()}
+     * , for instance by the {@link SafepointManager}, in which case it will be run again. The unblocking action is
+     * registered with the thread manager and will be invoked if the {@link SafepointManager} needs to interrupt the
+     * thread. If the blocking action is making a native call, simply interrupting the thread will not unblock the
+     * action. It is the responsibility of the unblocking action to break out of the native call so the thread can be
+     * interrupted.
      *
      * @param blockingAction must not touch any Ruby state
      * @param unblockingAction must not touch any Ruby state
-     * @return the first non-null return value from {@code action}
-     */
+     * @return the first non-null return value from {@code action} */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> blockingAction, UnblockingAction unblockingAction) {
         assert unblockingAction != null;
@@ -514,12 +508,10 @@ public class ThreadManager {
         }
     }
 
-    /**
-     * Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for
-     * blocking native calls. If the {@link SafepointManager} needs to interrupt the thread, it will
-     * send a SIGVTALRM to abort the blocking syscall and the action will return NotProvided if the
-     * syscall fails with errno=EINTR, meaning it was interrupted.
-     */
+    /** Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for blocking native calls. If
+     * the {@link SafepointManager} needs to interrupt the thread, it will send a SIGVTALRM to abort the blocking
+     * syscall and the action will return NotProvided if the syscall fails with errno=EINTR, meaning it was
+     * interrupted. */
     @TruffleBoundary
     public Object runBlockingNFISystemCallUntilResult(Node currentNode, BlockingAction<Object> action) {
         return runUntilResult(currentNode, () -> {
@@ -637,9 +629,7 @@ public class ThreadManager {
         cleanup(rootThread, rootJavaThread);
     }
 
-    /**
-     * Kill all Ruby threads, except the current Ruby Thread. Each Ruby Threads kills its fibers.
-     */
+    /** Kill all Ruby threads, except the current Ruby Thread. Each Ruby Threads kills its fibers. */
     @TruffleBoundary
     private void doKillOtherThreads() {
         final Thread initiatingJavaThread = Thread.currentThread();

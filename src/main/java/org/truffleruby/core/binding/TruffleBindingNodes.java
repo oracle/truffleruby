@@ -31,10 +31,8 @@ public abstract class TruffleBindingNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject ofCaller() {
-            /*
-             * When you use this method you're asking for the binding of the caller at the call site. When we get into
-             * this method, that is then the binding of the caller of the caller.
-             */
+            /* When you use this method you're asking for the binding of the caller at the call site. When we get into
+             * this method, that is then the binding of the caller of the caller. */
 
             final Memo<Integer> frameCount = new Memo<>(0);
             final Memo<SourceSection> sourceSection = new Memo<>(null);

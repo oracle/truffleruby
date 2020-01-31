@@ -35,10 +35,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/**
- * Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)}
- * on an actual instance.
- */
+/** Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)} on an actual
+ * instance. */
 @ReportPolymorphism
 @GenerateUncached
 public abstract class LookupMethodNode extends RubyBaseNode {

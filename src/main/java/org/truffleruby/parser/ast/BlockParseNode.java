@@ -36,9 +36,7 @@ package org.truffleruby.parser.ast;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a block of nodes (read that as list).
- */
+/** Represents a block of nodes (read that as list). */
 public class BlockParseNode extends ListParseNode {
     public BlockParseNode(SourceIndexLength position) {
         super(position);
@@ -49,11 +47,9 @@ public class BlockParseNode extends ListParseNode {
         return NodeType.BLOCKNODE;
     }
 
-    /**
-     * RubyMethod used by visitors.
-     * accepts the visitor
-     * @param iVisitor the visitor to accept
-     **/
+    /** RubyMethod used by visitors. accepts the visitor
+     * 
+     * @param iVisitor the visitor to accept **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBlockNode(this);

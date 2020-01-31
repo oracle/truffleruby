@@ -33,10 +33,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/**
- * Converts a method name to a Java String.
- * The exception message below assumes this conversion is done for a method name.
- */
+/** Converts a method name to a Java String. The exception message below assumes this conversion is done for a method
+ * name. */
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @GenerateUncached
 public abstract class NameToJavaStringNode extends RubyBaseNode {

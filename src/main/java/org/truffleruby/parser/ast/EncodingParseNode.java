@@ -34,9 +34,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents __ENCODING__.
- */
+/** Represents __ENCODING__. */
 public class EncodingParseNode extends ParseNode {
     private final Encoding encoding;
 

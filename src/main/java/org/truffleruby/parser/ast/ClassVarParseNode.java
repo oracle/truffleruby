@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Access to a class variable.
- */
+/** Access to a class variable. */
 public class ClassVarParseNode extends ParseNode implements INameNode, SideEffectFree {
     private String name;
 
@@ -53,19 +51,17 @@ public class ClassVarParseNode extends ParseNode implements INameNode, SideEffec
         return NodeType.CLASSVARNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitClassVarNode(this);
     }
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
+    /** Gets the name.
+     * 
+     * @return Returns a String */
     public String getName() {
         return name;
     }

@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a capture global variable ($1..$N).
- */
+/** Represents a capture global variable ($1..$N). */
 public class NthRefParseNode extends ParseNode {
     private final int matchNumber;
 

@@ -18,10 +18,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/**
- * An efficient way to check if the value is a module. Needed for A::B constant lookup to check that
- * A is a module, see {@link ReadConstantNode}.
- */
+/** An efficient way to check if the value is a module. Needed for A::B constant lookup to check that A is a module, see
+ * {@link ReadConstantNode}. */
 public abstract class CheckModuleNode extends RubyContextNode {
 
     public abstract DynamicObject executeCheckModule(Object module);

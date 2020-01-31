@@ -86,14 +86,13 @@ public abstract class WriteMIMEStringNode extends FormatNode {
         hex_table = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
     }
 
-    /**
-     * encodes a String with the Quoted printable, MIME encoding (see RFC2045).
-     * appends the result of the encoding in a StringBuffer
+    /** encodes a String with the Quoted printable, MIME encoding (see RFC2045). appends the result of the encoding in a
+     * StringBuffer
+     * 
      * @param io2Append The StringBuffer which should receive the result
      * @param i2Encode The String to encode
      * @param iLength The max number of characters to encode
-     * @return the io2Append buffer
-     **/
+     * @return the io2Append buffer **/
     public static ByteArrayBuilder qpencode(ByteArrayBuilder io2Append, byte[] i2Encode, int iLength) {
         io2Append.unsafeEnsureSpace(1024);
         int lCurLineLength = 0;

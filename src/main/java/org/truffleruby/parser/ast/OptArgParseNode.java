@@ -33,10 +33,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- *
- * @author enebo
- */
+/** @author enebo */
 public class OptArgParseNode extends ParseNode implements INameNode {
     private ParseNode value;
 

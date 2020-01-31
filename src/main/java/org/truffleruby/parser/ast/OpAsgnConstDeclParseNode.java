@@ -31,9 +31,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * A::B ||= 1
- */
+/** A::B ||= 1 */
 public class OpAsgnConstDeclParseNode extends ParseNode implements BinaryOperatorParseNode {
     private ParseNode lhs;
     private String operator;

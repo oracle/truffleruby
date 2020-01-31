@@ -2036,12 +2036,8 @@ public abstract class ModuleNodes {
                 return;
             }
 
-            /*
-             * If the method was already defined in this class, that's fine
-             * {@link addMethod} will overwrite it, otherwise we do actually
-             * want to add a copy of the method with a different visibility
-             * to this module.
-             */
+            /* If the method was already defined in this class, that's fine {@link addMethod} will overwrite it,
+             * otherwise we do actually want to add a copy of the method with a different visibility to this module. */
             addMethodNode.executeAddMethod(module, method, visibility);
         }
 

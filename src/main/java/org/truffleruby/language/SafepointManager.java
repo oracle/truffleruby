@@ -305,10 +305,9 @@ public class SafepointManager {
         this.action = action;
         this.deferred = deferred;
 
-        /* this is a potential cause for race conditions,
-         * but we need to invalidate first so the interrupted threads
-         * see the invalidation in poll() in their catch(InterruptedException) clause
-         * and wait on the barrier instead of retrying their blocking action. */
+        /* this is a potential cause for race conditions, but we need to invalidate first so the interrupted threads see
+         * the invalidation in poll() in their catch(InterruptedException) clause and wait on the barrier instead of
+         * retrying their blocking action. */
         assumption.invalidate();
         interruptOtherThreads();
 

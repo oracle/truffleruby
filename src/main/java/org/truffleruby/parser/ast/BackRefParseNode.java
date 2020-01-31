@@ -36,17 +36,10 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- *  Regexp back reference:
- *    - $&amp; last successful match
- *    - $+ highest numbered group matched in last successful match.
- *    - $` what precedes the last successful match
- *    - $' what follows the last successful match
- */
+/** Regexp back reference: - $&amp; last successful match - $+ highest numbered group matched in last successful match.
+ * - $` what precedes the last successful match - $' what follows the last successful match */
 public class BackRefParseNode extends ParseNode {
-    /**
-     * the character which generated the back reference
-     **/
+    /** the character which generated the back reference **/
     private final char type;
 
     public BackRefParseNode(SourceIndexLength position, int type) {
@@ -59,20 +52,17 @@ public class BackRefParseNode extends ParseNode {
         return NodeType.BACKREFNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBackRefNode(this);
     }
 
-    /**
-     * Gets the type
+    /** Gets the type
      *
-     * @return the character which generates the back reference
-     */
+     * @return the character which generates the back reference */
     public char getType() {
         return type;
     }

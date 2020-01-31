@@ -38,9 +38,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a big integer literal.
- */
+/** Represents a big integer literal. */
 public class BignumParseNode extends NumericParseNode implements SideEffectFree {
     private BigInteger value;
 
@@ -59,10 +57,9 @@ public class BignumParseNode extends NumericParseNode implements SideEffectFree 
         return iVisitor.visitBignumNode(this);
     }
 
-    /**
-     * Gets the value.
-     * @return Returns a BigInteger
-     */
+    /** Gets the value.
+     * 
+     * @return Returns a BigInteger */
     public BigInteger getValue() {
         return value;
     }

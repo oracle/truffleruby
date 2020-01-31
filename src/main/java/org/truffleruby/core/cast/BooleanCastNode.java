@@ -28,9 +28,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/**
- * Casts a value into a boolean.
- */
+/** Casts a value into a boolean. */
 @GenerateUncached
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class BooleanCastNode extends RubyBaseNode {

@@ -98,11 +98,9 @@ public abstract class ProcNodes {
 
         @TruffleBoundary
         protected DynamicObject tryParentBlockForCExts() {
-            /*
-             * TODO CS 11-Mar-17 to pass the remaining cext proc specs we need to determine here if Proc.new has been
-             * called from a cext from rb_funcall, and then reach down the stack to the Ruby method that originally
-             * went into C and get the block from there.
-             */
+            /* TODO CS 11-Mar-17 to pass the remaining cext proc specs we need to determine here if Proc.new has been
+             * called from a cext from rb_funcall, and then reach down the stack to the Ruby method that originally went
+             * into C and get the block from there. */
 
             return nil();
         }
@@ -323,14 +321,12 @@ public abstract class ProcNodes {
                 @Cached("createBinaryProfile()") ConditionProfile emptyArgsProfile,
                 @Cached("createBinaryProfile()") ConditionProfile singleArgProfile) {
 
-            /*
-             * In Rubinius, this method inspects the values yielded to the block, regardless of whether the block
+            /* In Rubinius, this method inspects the values yielded to the block, regardless of whether the block
              * captures the values, and returns the first value in the list of values yielded to the block.
              *
-             * NB: In our case the arguments have already been destructured by the time this node is encountered.
-             * Thus, we don't need to do the destructuring work that Rubinius would do and in the case that we receive
-             * multiple arguments we need to reverse the destructuring by collecting the values into an array.
-             */
+             * NB: In our case the arguments have already been destructured by the time this node is encountered. Thus,
+             * we don't need to do the destructuring work that Rubinius would do and in the case that we receive
+             * multiple arguments we need to reverse the destructuring by collecting the values into an array. */
             int userArgumentCount = RubyArguments.getArgumentsCount(frame);
 
             if (emptyArgsProfile.profile(userArgumentCount == 0)) {

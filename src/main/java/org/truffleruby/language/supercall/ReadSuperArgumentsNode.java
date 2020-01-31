@@ -19,9 +19,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-/**
- * Get the arguments of a super call with explicit arguments.
- */
+/** Get the arguments of a super call with explicit arguments. */
 public class ReadSuperArgumentsNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] arguments;

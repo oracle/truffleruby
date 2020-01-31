@@ -24,10 +24,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Caches {@link ModuleOperations#lookupSuperMethod}
- * on an actual instance.
- */
+/** Caches {@link ModuleOperations#lookupSuperMethod} on an actual instance. */
 public abstract class LookupSuperMethodNode extends RubyContextNode {
 
     @Child private MetaClassNode metaClassNode;

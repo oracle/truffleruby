@@ -33,11 +33,11 @@ public abstract class FormatFloatHumanReadableNode extends FormatNode {
     }
 
     protected boolean isInteger(double value) {
-        /**
-         * General approach taken from StackOverflow: http://stackoverflow.com/questions/703396/how-to-nicely-format-floating-numbers-to-string-without-unnecessary-decimal-0
-         * Answers provided by JasonD (http://stackoverflow.com/users/1288598/jasond) and Darthenius (http://stackoverflow.com/users/974531/darthenius)
-         * Licensed by cc-wiki license: http://creativecommons.org/licenses/by-sa/3.0/
-         */
+        /** General approach taken from StackOverflow:
+         * http://stackoverflow.com/questions/703396/how-to-nicely-format-floating-numbers-to-string-without-unnecessary
+         * -decimal-0 Answers provided by JasonD (http://stackoverflow.com/users/1288598/jasond) and Darthenius
+         * (http://stackoverflow.com/users/974531/darthenius) Licensed by cc-wiki license:
+         * http://creativecommons.org/licenses/by-sa/3.0/ */
 
         // TODO (nirvdrum 09-Mar-15) Make this adhere to the MRI invariant: "single-precision, network (big-endian) byte order"
 

@@ -29,8 +29,7 @@ package org.truffleruby.parser.ast.types;
 
 /** A marker for literal nodes.
  * 
- * @author  jpetersen
- */
+ * @author jpetersen */
 public interface ILiteralNode {
     // only a marker interface
 }

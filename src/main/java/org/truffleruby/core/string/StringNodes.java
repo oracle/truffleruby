@@ -201,10 +201,8 @@ public abstract class StringNodes {
             return executeMake(builder.getBytes(), builder.getEncoding(), codeRange);
         }
 
-        /**
-         * All callers of this factory method must guarantee that the builder's byte array cannot change after this
-         * call, otherwise the rope built from the builder will end up in an inconsistent state.
-         */
+        /** All callers of this factory method must guarantee that the builder's byte array cannot change after this
+         * call, otherwise the rope built from the builder will end up in an inconsistent state. */
         public DynamicObject fromBuilderUnsafe(RopeBuilder builder, CodeRange codeRange) {
             final byte[] unsafeBytes = builder.getUnsafeBytes();
             final byte[] ropeBytes;
@@ -4167,16 +4165,14 @@ public abstract class StringNodes {
         }
     }
 
-    /**
-     * Calculates the byte offset of a character, indicated by a character index, starting from a provided byte offset
+    /** Calculates the byte offset of a character, indicated by a character index, starting from a provided byte offset
      * into the rope. Providing a 0 starting offset simply finds the byte offset for the nth character into the rope,
-     * according to the rope's encoding. Providing a non-zero starting byte offset effectively allows for calculating
-     * a character's byte offset into a substring of the rope without having to creating a SubstringRope.
+     * according to the rope's encoding. Providing a non-zero starting byte offset effectively allows for calculating a
+     * character's byte offset into a substring of the rope without having to creating a SubstringRope.
      *
      * @rope - The rope/string being indexed.
      * @startByteOffset - Starting position in the rope for the calculation of the character's byte offset.
-     * @characterIndex - The character index into the rope, starting from the provided byte offset.
-     */
+     * @characterIndex - The character index into the rope, starting from the provided byte offset. */
     @ImportStatic({ RopeGuards.class, StringGuards.class, StringOperations.class })
     public static abstract class ByteIndexFromCharIndexNode extends RubyContextNode {
 

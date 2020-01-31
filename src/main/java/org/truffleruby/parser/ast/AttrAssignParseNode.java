@@ -34,9 +34,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * ParseNode that represents an assignment of either an array element or attribute.
- */
+/** ParseNode that represents an assignment of either an array element or attribute. */
 public class AttrAssignParseNode extends ParseNode implements INameNode, IArgumentNode {
     protected final ParseNode receiverNode;
     private String name;
@@ -80,47 +78,38 @@ public class AttrAssignParseNode extends ParseNode implements INameNode, IArgume
         return NodeType.ATTRASSIGNNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param visitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param visitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> visitor) {
         return visitor.visitAttrAssignNode(this);
     }
 
-    /**
-     * Gets the name.
-     * name is the name of the method called
-     * @return name
-     */
+    /** Gets the name. name is the name of the method called
+     * 
+     * @return name */
     public String getName() {
         return name;
     }
 
-    /**
-     * Gets the receiverNode.
-     * receiverNode is the object on which the method is being called
-     * @return receiverNode
-     */
+    /** Gets the receiverNode. receiverNode is the object on which the method is being called
+     * 
+     * @return receiverNode */
     public ParseNode getReceiverNode() {
         return receiverNode;
     }
 
-    /**
-     * Gets the argsNode.
-     * argsNode representing the method's arguments' value for this call.
-     * @return argsNode
-     */
+    /** Gets the argsNode. argsNode representing the method's arguments' value for this call.
+     * 
+     * @return argsNode */
     public ParseNode getArgsNode() {
         return argsNode;
     }
 
-    /**
-     * Set the argsNode
+    /** Set the argsNode
      *
-     * @param argsNode set the arguments for this node.
-     */
+     * @param argsNode set the arguments for this node. */
     public ParseNode setArgsNode(ParseNode argsNode) {
         this.argsNode = argsNode;
 

@@ -28,10 +28,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.lexer;
 
-/**
- * 
- * @author jpetersen
- */
+/** @author jpetersen */
 public class StackState implements Cloneable {
     private long stack = 0;
 

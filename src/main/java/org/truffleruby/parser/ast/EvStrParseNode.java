@@ -37,12 +37,11 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/** Represents an #{} expression in a string. This ParseNode is always a subnode
- * of a DStrParseNode, DXStrParseNode or a DRegexpParseNode.
+/** Represents an #{} expression in a string. This ParseNode is always a subnode of a DStrParseNode, DXStrParseNode or a
+ * DRegexpParseNode.
  *
- * Before this ParseNode is evaluated it contains the code as a String (value). After
- * the first evaluation this String is parsed into the evaluatedNode ParseNode.
- */
+ * Before this ParseNode is evaluated it contains the code as a String (value). After the first evaluation this String
+ * is parsed into the evaluatedNode ParseNode. */
 public class EvStrParseNode extends ParseNode {
     private final ParseNode body;
 
@@ -56,19 +55,17 @@ public class EvStrParseNode extends ParseNode {
         return NodeType.EVSTRNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitEvStrNode(this);
     }
 
-    /**
-     * Gets the evaluatedNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the evaluatedNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getBody() {
         return body;
     }

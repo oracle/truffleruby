@@ -46,10 +46,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Always use {@link Encoding#getIndex()} for encoding indices. Never use
- * {@link org.jcodings.EncodingDB.Entry#getIndex()}.
- */
+/** Always use {@link Encoding#getIndex()} for encoding indices. Never use
+ * {@link org.jcodings.EncodingDB.Entry#getIndex()}. */
 public class EncodingManager {
 
     private static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();

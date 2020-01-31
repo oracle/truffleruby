@@ -24,9 +24,7 @@ import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.source.SourceSection;
 
-/**
- * The node at the root of a pack expression.
- */
+/** The node at the root of a pack expression. */
 public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode {
 
     private final RubyContext context;
@@ -69,11 +67,9 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
         if (outputLength > expectedLength) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
-            /*
-             * Don't over-compensate and allocate 2x or something like that for next time, as we have to copy the
-             * byte[] at the end if it's too big to make it fit its contents. In the ideal case the byte[] is exactly
-             * the right size. If we have to keep making it bigger in the slow-path, we can live with that.
-             */
+            /* Don't over-compensate and allocate 2x or something like that for next time, as we have to copy the byte[]
+             * at the end if it's too big to make it fit its contents. In the ideal case the byte[] is exactly the right
+             * size. If we have to keep making it bigger in the slow-path, we can live with that. */
 
             expectedLength = outputLength;
         }

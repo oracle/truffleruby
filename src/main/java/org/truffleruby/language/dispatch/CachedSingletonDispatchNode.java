@@ -23,10 +23,8 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Like {@link CachedBoxedDispatchNode}, but on singleton objects.
- * Checking identity of the DynamicObject is therefore faster than reading the Shape and checking the Shape identity.
- */
+/** Like {@link CachedBoxedDispatchNode}, but on singleton objects. Checking identity of the DynamicObject is therefore
+ * faster than reading the Shape and checking the Shape identity. */
 public class CachedSingletonDispatchNode extends CachedDispatchNode {
 
     private final DynamicObject expectedReceiver;

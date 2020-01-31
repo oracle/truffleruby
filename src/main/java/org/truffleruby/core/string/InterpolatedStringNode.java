@@ -22,9 +22,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/**
- * A list of expressions to build up into a string.
- */
+/** A list of expressions to build up into a string. */
 public final class InterpolatedStringNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;

@@ -22,9 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/**
- * Casts a value into a Ruby Float (double).
- */
+/** Casts a value into a Ruby Float (double). */
 public abstract class NumericToFloatNode extends RubyContextNode {
 
     @Child private IsANode isANode = IsANode.create();

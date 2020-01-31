@@ -217,12 +217,10 @@ public class ParserSupport {
         return firstNode;
     }
 
-    /**
-     * We know for callers of this that it cannot be any of the specials checked in gettable.
+    /** We know for callers of this that it cannot be any of the specials checked in gettable.
      *
      * @param node to check its variable type
-     * @return an AST node representing this new variable
-     */
+     * @return an AST node representing this new variable */
     public ParseNode gettable2(ParseNode node) {
         switch (node.getNodeType()) {
             case DASGNNODE: // LOCALVAR
@@ -271,11 +269,9 @@ public class ParserSupport {
         lexer.compile_error(PID.BAD_IDENTIFIER, "identifier " + identifier + " is not valid to get");
     }
 
-    /**
-     *  Wraps node with NEWLINE node.
+    /** Wraps node with NEWLINE node.
      *
-     *@param node
-     */
+     * @param node */
     public ParseNode newline_node(ParseNode node, SourceIndexLength position) {
         if (node == null) {
             return null;
@@ -381,26 +377,22 @@ public class ParserSupport {
         return getOperatorCallNode(firstNode, "=~", secondNode);
     }
 
-    /**
-     * Define an array set condition so we can return lhs
+    /** Define an array set condition so we can return lhs
      *
      * @param receiver array being set
      * @param index node which should evalute to index of array set
-     * @return an AttrAssignParseNode
-     */
+     * @return an AttrAssignParseNode */
     public ParseNode aryset(ParseNode receiver, ParseNode index) {
         checkExpression(receiver);
 
         return new_attrassign(receiver.getPosition(), receiver, "[]=", index, false);
     }
 
-    /**
-     * Define an attribute set condition so we can return lhs
+    /** Define an attribute set condition so we can return lhs
      *
      * @param receiver object which contains attribute
      * @param name of the attribute being set
-     * @return an AttrAssignParseNode
-     */
+     * @return an AttrAssignParseNode */
     public ParseNode attrset(ParseNode receiver, String name) {
         return attrset(receiver, ".", name);
     }
@@ -436,9 +428,7 @@ public class ParserSupport {
         return new ArgsPushParseNode(position, node1, node2);
     }
 
-    /**
-     * @fixme position
-     **/
+    /** @fixme position **/
     public ParseNode node_assign(ParseNode lhs, ParseNode rhs) {
         if (lhs == null) {
             return null;
@@ -476,12 +466,10 @@ public class ParserSupport {
         return node;
     }
 
-    /**
-     * Is the supplied node a break/control statement?
+    /** Is the supplied node a break/control statement?
      *
      * @param node to be checked
-     * @return true if a control node, false otherwise
-     */
+     * @return true if a control node, false otherwise */
     public boolean isBreakStatement(ParseNode node) {
         do { // breakLoop:
             if (node == null) {
@@ -555,11 +543,9 @@ public class ParserSupport {
                 "Useless use of " + useless + " in void context.");
     }
 
-    /**
-     * Check to see if current node is an useless statement.  If useless a warning if printed.
+    /** Check to see if current node is an useless statement. If useless a warning if printed.
      *
-     * @param node to be checked.
-     */
+     * @param node to be checked. */
     public void checkUselessStatement(ParseNode node) {
         if (!warnings.isVerbose() || (!configuration.isInlineSource() && configuration.isEvalParse())) {
             return;
@@ -643,11 +629,9 @@ public class ParserSupport {
         }
     }
 
-    /**
-     * Check all nodes but the last one in a BlockParseNode for useless (void context) statements.
+    /** Check all nodes but the last one in a BlockParseNode for useless (void context) statements.
      *
-     * @param blockNode to be checked.
-     */
+     * @param blockNode to be checked. */
     public void checkUselessStatements(BlockParseNode blockNode) {
         if (warnings.isVerbose()) {
             ParseNode lastNode = blockNode.getLast();
@@ -662,9 +646,7 @@ public class ParserSupport {
         }
     }
 
-    /**
-     * assign_in_cond
-     **/
+    /** assign_in_cond **/
     private boolean checkAssignmentInCondition(ParseNode node) {
         if (node instanceof MultipleAsgnParseNode) {
             lexer.compile_error(PID.MULTIPLE_ASSIGNMENT_IN_CONDITIONAL, "multiple assignment in conditional");
@@ -828,15 +810,13 @@ public class ParserSupport {
         return new OrParseNode(position(left, right), makeNullNil(left), makeNullNil(right));
     }
 
-    /**
-     * Ok I admit that this is somewhat ugly.  We post-process a chain of when nodes and analyze
-     * them to re-insert them back into our new CaseParseNode the way we want.  The grammar is being
-     * difficult and until I go back into the depths of that this is where things are.
+    /** Ok I admit that this is somewhat ugly. We post-process a chain of when nodes and analyze them to re-insert them
+     * back into our new CaseParseNode the way we want. The grammar is being difficult and until I go back into the
+     * depths of that this is where things are.
      *
      * @param expression of the case node (e.g. case foo)
      * @param firstWhenNode first when (which could also be the else)
-     * @return a new case node
-     */
+     * @return a new case node */
     public CaseParseNode newCaseNode(SourceIndexLength position, ParseNode expression, ParseNode firstWhenNode) {
         ArrayParseNode cases = new ArrayParseNode(firstWhenNode != null ? firstWhenNode.getPosition() : position);
         CaseParseNode caseNode = new CaseParseNode(position, expression, cases);
@@ -855,15 +835,13 @@ public class ParserSupport {
         return caseNode;
     }
 
-    /*
-     * This method exists for us to break up multiple expression when nodes (e.g. when 1,2,3:)
-     * into individual whenNodes.  The primary reason for this is to ensure lazy evaluation of
-     * the arguments (when foo,bar,gar:) to prevent side-effects.  In the old code this was done
-     * using nested when statements, which was awful for interpreter and compilation.
+    /* This method exists for us to break up multiple expression when nodes (e.g. when 1,2,3:) into individual
+     * whenNodes. The primary reason for this is to ensure lazy evaluation of the arguments (when foo,bar,gar:) to
+     * prevent side-effects. In the old code this was done using nested when statements, which was awful for interpreter
+     * and compilation.
      *
-     * Notes: This has semantic equivalence but will not be lexically equivalent.  Compiler
-     * needs to detect same bodies to simplify bytecode generated.
-     */
+     * Notes: This has semantic equivalence but will not be lexically equivalent. Compiler needs to detect same bodies
+     * to simplify bytecode generated. */
     private void simplifyMultipleArgumentWhenNodes(WhenParseNode sourceWhen, ArrayParseNode cases) {
         ParseNode expressionNodes = sourceWhen.getExpressionNodes();
 
@@ -1048,23 +1026,21 @@ public class ParserSupport {
         return new SuperParseNode(position, args);
     }
 
-    /**
-    *  Description of the RubyMethod
-    */
+    /** Description of the RubyMethod */
     public void initTopLocalVariables() {
         currentScope = configuration.getScope(lexer.getFile());
     }
 
     /** Getter for property inSingle.
-     * @return Value of property inSingle.
-     */
+     * 
+     * @return Value of property inSingle. */
     public boolean isInSingle() {
         return inSingleton != 0;
     }
 
     /** Setter for property inSingle.
-     * @param inSingle New value of property inSingle.
-     */
+     * 
+     * @param inSingle New value of property inSingle. */
     public void setInSingle(int inSingle) {
         this.inSingleton = inSingle;
     }
@@ -1078,32 +1054,29 @@ public class ParserSupport {
     }
 
     /** Getter for property inSingle.
-     * @return Value of property inSingle.
-     */
+     * 
+     * @return Value of property inSingle. */
     public int getInSingle() {
         return inSingleton;
     }
 
-    /**
-     * Gets the result.
-     * @return Returns a RubyParserResult
-     */
+    /** Gets the result.
+     * 
+     * @return Returns a RubyParserResult */
     public RubyParserResult getResult() {
         return result;
     }
 
-    /**
-     * Sets the result.
-     * @param result The result to set
-     */
+    /** Sets the result.
+     * 
+     * @param result The result to set */
     public void setResult(RubyParserResult result) {
         this.result = result;
     }
 
-    /**
-     * Sets the configuration.
-     * @param configuration The configuration to set
-     */
+    /** Sets the configuration.
+     * 
+     * @param configuration The configuration to set */
     public void setConfiguration(ParserConfiguration configuration) {
         this.configuration = configuration;
 
@@ -1400,18 +1373,15 @@ public class ParserSupport {
         return new UndefParseNode(position, nameNode);
     }
 
-    /**
-     * generate parsing error
-     */
+    /** generate parsing error */
     public void yyerror(String message) {
         lexer.compile_error(PID.GRAMMAR_ERROR, message);
     }
 
-    /**
-     * generate parsing error
+    /** generate parsing error
+     * 
      * @param message text to be displayed.
-     * @param expected list of acceptable tokens, if available.
-     */
+     * @param expected list of acceptable tokens, if available. */
     public void yyerror(String message, String[] expected, String found) {
         lexer.compile_error(PID.GRAMMAR_ERROR, message + ", unexpected " + found);
     }
@@ -1517,11 +1487,8 @@ public class ParserSupport {
     }
 
     // 1.9
-    /**
-     * If node is a splat and it is splatting a literal array then return the literal array.
-     * Otherwise return null.  This allows grammar to not splat into a Ruby Array if splatting
-     * a literal array.
-     */
+    /** If node is a splat and it is splatting a literal array then return the literal array. Otherwise return null.
+     * This allows grammar to not splat into a Ruby Array if splatting a literal array. */
     public ParseNode splat_array(ParseNode node) {
         if (node instanceof SplatParseNode) {
             node = ((SplatParseNode) node).getValue();

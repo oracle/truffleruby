@@ -19,10 +19,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
-/**
- * Warns if $VERBOSE is true or false, but not nil.
- * Corresponds to Kernel#warn(message, uplevel: 1), but in Java with a given SourceSection.
- */
+/** Warns if $VERBOSE is true or false, but not nil. Corresponds to Kernel#warn(message, uplevel: 1), but in Java with a
+ * given SourceSection. */
 public class WarnNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.createPrivate();

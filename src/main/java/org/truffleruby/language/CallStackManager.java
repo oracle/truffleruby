@@ -143,11 +143,9 @@ public class CallStackManager {
         return iterateFrames(1, filter, f -> f.getFrame(frameAccess));
     }
 
-    /**
-     * Returns action() for the first frame matching the filter, and null if none matches.
+    /** Returns action() for the first frame matching the filter, and null if none matches.
      * <p>
-     * skip=0 starts at the current frame and skip=1 starts at the caller frame.
-     */
+     * skip=0 starts at the current frame and skip=1 starts at the caller frame. */
     private <R> R iterateFrames(int skip, Predicate<FrameInstance> filter, Function<FrameInstance, R> action) {
         return Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<R>() {
             int skipped = 0;

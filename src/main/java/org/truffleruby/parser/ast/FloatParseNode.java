@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a float literal.
- */
+/** Represents a float literal. */
 public class FloatParseNode extends NumericParseNode implements ILiteralNode, SideEffectFree {
     private double value;
 
@@ -58,18 +56,16 @@ public class FloatParseNode extends NumericParseNode implements ILiteralNode, Si
         return iVisitor.visitFloatNode(this);
     }
 
-    /**
-     * Gets the value.
-     * @return Returns a double
-     */
+    /** Gets the value.
+     * 
+     * @return Returns a double */
     public double getValue() {
         return value;
     }
 
-    /**
-     * Sets the value
-     * @param value to set
-     */
+    /** Sets the value
+     * 
+     * @param value to set */
     public void setValue(double value) {
         this.value = value;
     }

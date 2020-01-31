@@ -100,10 +100,8 @@ public abstract class WrapNode extends RubyBaseNode {
             synchronized (value) {
                 wrapper = (ValueWrapper) readWrapperNode.execute(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
                 if (wrapper == null) {
-                    /*
-                     * This is double-checked locking, but it's safe because the object that we create,
-                     * the ValueWrapper, is not published until after a memory store fence.
-                     */
+                    /* This is double-checked locking, but it's safe because the object that we create, the
+                     * ValueWrapper, is not published until after a memory store fence. */
                     wrapper = new ValueWrapper(value, UNSET_HANDLE, null);
                     Pointer.UNSAFE.storeFence();
                     writeWrapperNode.write(value, Layouts.VALUE_WRAPPER_IDENTIFIER, wrapper);

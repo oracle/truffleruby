@@ -21,10 +21,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * This node implements the front part of the coercion logic in BigDecimal - the types it handles before going into
- * normal coercion logic. Also see calls to <code>#redo_coerced</code> in nodes in {@link BigDecimalNodes}.
- */
+/** This node implements the front part of the coercion logic in BigDecimal - the types it handles before going into
+ * normal coercion logic. Also see calls to <code>#redo_coerced</code> in nodes in {@link BigDecimalNodes}. */
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class BigDecimalCoerceNode extends RubyContextSourceNode {
 

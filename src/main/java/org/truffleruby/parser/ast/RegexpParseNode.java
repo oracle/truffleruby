@@ -40,9 +40,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a simple regular expression literal.
- */
+/** Represents a simple regular expression literal. */
 public class RegexpParseNode extends ParseNode implements ILiteralNode {
     private final Rope value;
     private final RegexpOptions options;
@@ -68,17 +66,14 @@ public class RegexpParseNode extends ParseNode implements ILiteralNode {
         return iVisitor.visitRegexpNode(this);
     }
 
-    /**
-     * Gets the options.
-     */
+    /** Gets the options. */
     public RegexpOptions getOptions() {
         return options;
     }
 
-    /**
-     * Gets the value.
-     * @return Returns a Rope
-     */
+    /** Gets the value.
+     * 
+     * @return Returns a Rope */
     public Rope getValue() {
         return value;
     }

@@ -130,8 +130,7 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    /** default constructor
-     */
+    /** default constructor */
     ClassicRegexp(RubyContext context) {
         this.context = context;
         this.options = new RegexpOptions();
@@ -158,11 +157,9 @@ public class ClassicRegexp implements ReOptions {
         //}
     }
 
-    /**
-     * throws RaiseException on error so parser can pick this up and give proper line and line number
-     * error as opposed to any non-literal regexp creation which may raise a syntax error but will not
-     * have this extra source info in the error message
-     */
+    /** throws RaiseException on error so parser can pick this up and give proper line and line number error as opposed
+     * to any non-literal regexp creation which may raise a syntax error but will not have this extra source info in the
+     * error message */
     public static ClassicRegexp newRegexpParser(RubyContext runtime, Rope pattern, RegexpOptions options) {
         return new ClassicRegexp(runtime, pattern, (RegexpOptions) options.clone());
     }
@@ -663,9 +660,7 @@ public class ClassicRegexp implements ReOptions {
         return regexpEnc;
     }
 
-    /** rb_reg_quote
-     *
-     */
+    /** rb_reg_quote */
     private static final int QUOTED_V = 11;
 
     @TruffleBoundary

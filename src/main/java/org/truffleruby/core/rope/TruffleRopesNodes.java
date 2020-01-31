@@ -78,10 +78,8 @@ public abstract class TruffleRopesNodes {
         }
     }
 
-    /**
-     * The returned string (when evaluated) will create a string with the same
-     * Rope structure as the string which is passed as argument.
-     */
+    /** The returned string (when evaluated) will create a string with the same Rope structure as the string which is
+     * passed as argument. */
     @CoreMethod(names = "debug_get_structure_creation", onSingleton = true, required = 1)
     public abstract static class DebugGetStructureCreationNode extends CoreMethodArrayArgumentsNode {
 
@@ -143,10 +141,8 @@ public abstract class TruffleRopesNodes {
 
     }
 
-    /*
-     * Truffle.create_simple_string creates a string 'test' without any part of the string escaping. Useful
-     * for testing compilation of String because most other ways to construct a string can currently escape.
-     */
+    /* Truffle.create_simple_string creates a string 'test' without any part of the string escaping. Useful for testing
+     * compilation of String because most other ways to construct a string can currently escape. */
 
     @CoreMethod(names = "create_simple_string", onSingleton = true)
     public abstract static class CreateSimpleStringNode extends CoreMethodArrayArgumentsNode {

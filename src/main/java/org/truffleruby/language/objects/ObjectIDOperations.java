@@ -27,8 +27,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 
-/**
- * <pre>
+/** <pre>
  * Object IDs distribution
  *
  * We try to respect MRI scheme when it makes sense (Fixnum for the moment).
@@ -46,7 +45,7 @@ import com.oracle.truffle.api.object.Property;
  * ... 0001 | 64-bit long = Fixnum if value < -2^62 or value >= 2^62
  * ... 0010 | 64-bit raw double bits = Float
  * </pre>
- */
+*/
 public abstract class ObjectIDOperations {
 
     public static final long FALSE = FALSE_HANDLE;

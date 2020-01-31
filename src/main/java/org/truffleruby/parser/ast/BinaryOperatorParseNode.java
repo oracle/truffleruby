@@ -29,17 +29,11 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-/**
- * Convenience interface for operations which only have two nodes
- */
+/** Convenience interface for operations which only have two nodes */
 public interface BinaryOperatorParseNode {
-    /**
-     * Gets the firstNode.
-     */
+    /** Gets the firstNode. */
     public abstract ParseNode getFirstNode();
 
-    /**
-     * Gets the secondNode.
-     */
+    /** Gets the secondNode. */
     public abstract ParseNode getSecondNode();
 }

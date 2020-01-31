@@ -22,9 +22,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 
-/**
- * Visit files with knowledge of the root of the subtree the traversal started from.
- */
+/** Visit files with knowledge of the root of the subtree the traversal started from. */
 public interface RootedFileVisitor<T> extends FileVisitor<T> {
     void setRoot(T root);
 

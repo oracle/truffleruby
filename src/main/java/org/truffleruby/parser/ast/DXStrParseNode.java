@@ -35,10 +35,8 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Dynamic backquote string. Backquote strings are eXecuted using the shell, hence the X 
- * or maybe the X is due to the %x general quote syntax?
- */
+/** Dynamic backquote string. Backquote strings are eXecuted using the shell, hence the X or maybe the X is due to the
+ * %x general quote syntax? */
 public class DXStrParseNode extends DParseNode implements ILiteralNode {
     public DXStrParseNode(SourceIndexLength position, DStrParseNode node) {
         super(position, node.getEncoding());
@@ -54,10 +52,9 @@ public class DXStrParseNode extends DParseNode implements ILiteralNode {
         return NodeType.DXSTRNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDXStrNode(this);

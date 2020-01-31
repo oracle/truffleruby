@@ -19,9 +19,7 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Take a Ruby object that has an encoding and extracts the Java-level encoding object.
- */
+/** Take a Ruby object that has an encoding and extracts the Java-level encoding object. */
 public abstract class ToEncodingNode extends RubyContextNode {
 
     public static ToEncodingNode create() {

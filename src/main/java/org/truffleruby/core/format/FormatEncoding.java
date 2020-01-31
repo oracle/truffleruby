@@ -56,11 +56,8 @@ public enum FormatEncoding {
         throw new UnsupportedOperationException("Can't find format encoding for " + new String(encoding.getName()));
     }
 
-    /**
-     * Given the current encoding for a pack string, and something that requires
-     * another encoding, give us the encoding that we should use for the result
-     * of pack.
-     */
+    /** Given the current encoding for a pack string, and something that requires another encoding, give us the encoding
+     * that we should use for the result of pack. */
     public FormatEncoding unifyWith(FormatEncoding other) {
         if (this == DEFAULT) {
             return other;

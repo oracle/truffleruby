@@ -40,9 +40,7 @@ import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
-/**
- * Manages Ruby {@code Fiber} objects for a given Ruby thread.
- */
+/** Manages Ruby {@code Fiber} objects for a given Ruby thread. */
 public class FiberManager {
 
     public static final String NAME_PREFIX = "Ruby Fiber";
@@ -223,10 +221,7 @@ public class FiberManager {
         Layouts.FIBER.getMessageQueue(fiber).add(message);
     }
 
-    /**
-     * Send the Java thread that represents this fiber to sleep until it receives a resume or exit
-     * message.
-     */
+    /** Send the Java thread that represents this fiber to sleep until it receives a resume or exit message. */
     @TruffleBoundary
     private Object[] waitForResume(DynamicObject fiber) {
         assert RubyGuards.isRubyFiber(fiber);
@@ -254,11 +249,8 @@ public class FiberManager {
         }
     }
 
-    /**
-     * Send a resume message to a fiber by posting into its message queue. Doesn't explicitly notify
-     * the Java thread (although the queue implementation may) and doesn't wait for the message to
-     * be received.
-     */
+    /** Send a resume message to a fiber by posting into its message queue. Doesn't explicitly notify the Java thread
+     * (although the queue implementation may) and doesn't wait for the message to be received. */
     private void resume(DynamicObject fromFiber, DynamicObject fiber, FiberOperation operation, Object... args) {
         addToMessageQueue(fiber, new FiberResumeMessage(operation, fromFiber, args));
     }
@@ -404,9 +396,7 @@ public class FiberManager {
 
     }
 
-    /**
-     * Used to cleanup and terminate Fibers when the parent Thread dies.
-     */
+    /** Used to cleanup and terminate Fibers when the parent Thread dies. */
     private static class FiberShutdownException extends TerminationException {
         private static final long serialVersionUID = 1522270454305076317L;
     }

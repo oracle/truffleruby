@@ -32,12 +32,9 @@ public class GlobalVariables {
         return variables.containsKey(name);
     }
 
-    /**
-     * The returned storage must be checked if it is still valid with
-     * {@link GlobalVariableStorage#getValidAssumption()}. A storage
-     * becomes invalid when it is aliased and therefore the storage
-     * instance needs to change.
-     */
+    /** The returned storage must be checked if it is still valid with
+     * {@link GlobalVariableStorage#getValidAssumption()} . A storage becomes invalid when it is aliased and therefore
+     * the storage instance needs to change. */
     @TruffleBoundary
     public GlobalVariableStorage getStorage(String name) {
         return ConcurrentOperations.getOrCompute(

@@ -17,13 +17,12 @@ public abstract class ArrayUtils {
 
     public static final Object[] EMPTY_ARRAY = new Object[0];
 
-    /**
-     * Extracts part of an array into a newly allocated byte[] array. Does not perform safety checks on parameters.
+    /** Extracts part of an array into a newly allocated byte[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
+     * @return a newly allocated array with the extracted elements and length (end - start) */
     public static byte[] extractRange(byte[] source, int start, int end) {
         assert assertExtractRangeArgs(source, start, end);
         int length = end - start;
@@ -32,13 +31,12 @@ public abstract class ArrayUtils {
         return result;
     }
 
-    /**
-     * Extracts part of an array into a newly allocated int[] array. Does not perform safety checks on parameters.
+    /** Extracts part of an array into a newly allocated int[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
+     * @return a newly allocated array with the extracted elements and length (end - start) */
     public static int[] extractRange(int[] source, int start, int end) {
         assert assertExtractRangeArgs(source, start, end);
         int length = end - start;
@@ -47,13 +45,12 @@ public abstract class ArrayUtils {
         return result;
     }
 
-    /**
-     * Extracts part of an array into a newly allocated long[] array. Does not perform safety checks on parameters.
+    /** Extracts part of an array into a newly allocated long[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
+     * @return a newly allocated array with the extracted elements and length (end - start) */
     public static long[] extractRange(long[] source, int start, int end) {
         assert assertExtractRangeArgs(source, start, end);
         int length = end - start;
@@ -62,13 +59,12 @@ public abstract class ArrayUtils {
         return result;
     }
 
-    /**
-     * Extracts part of an array into a newly allocated double[] array. Does not perform safety checks on parameters.
+    /** Extracts part of an array into a newly allocated double[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
+     * @return a newly allocated array with the extracted elements and length (end - start) */
     public static double[] extractRange(double[] source, int start, int end) {
         assert assertExtractRangeArgs(source, start, end);
         int length = end - start;
@@ -77,13 +73,12 @@ public abstract class ArrayUtils {
         return result;
     }
 
-    /**
-     * Extracts part of an array into a newly allocated Object[] array. Does not perform safety checks on parameters.
+    /** Extracts part of an array into a newly allocated Object[] array. Does not perform safety checks on parameters.
+     * 
      * @param source the source array whose values should be extracted
      * @param start the start index, must be >= 0 and <= source.length
      * @param end the end index (exclusive), must be >= 0 and <= source.length and >= start
-     * @return a newly allocated array with the extracted elements and length (end - start)
-     */
+     * @return a newly allocated array with the extracted elements and length (end - start) */
     public static Object[] extractRange(Object[] source, int start, int end) {
         assert assertExtractRangeArgs(source, start, end);
         int length = end - start;

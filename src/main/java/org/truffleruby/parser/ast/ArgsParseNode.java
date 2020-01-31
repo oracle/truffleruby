@@ -40,18 +40,11 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents the argument declarations of a method.  The fields:
- * foo(p1, ..., pn, o1 = v1, ..., on = v2, *r, q1, ..., qn, k1:, ..., kn:, **K, &b)
+/** Represents the argument declarations of a method. The fields: foo(p1, ..., pn, o1 = v1, ..., on = v2, *r, q1, ...,
+ * qn, k1:, ..., kn:, **K, &b)
  *
- * p1...pn = pre arguments
- * o1...on = optional arguments
- * r       = rest argument
- * q1...qn = post arguments (only in 1.9)
- * k1...kn = keyword arguments
- * K       = keyword rest argument
- * b       = block arg
- */
+ * p1...pn = pre arguments o1...on = optional arguments r = rest argument q1...qn = post arguments (only in 1.9) k1...kn
+ * = keyword arguments K = keyword rest argument b = block arg */
 public class ArgsParseNode extends ParseNode {
 
     private final ParseNode[] args;
@@ -67,9 +60,7 @@ public class ArgsParseNode extends ParseNode {
 
     private static final ParseNode[] NO_ARGS = new ParseNode[]{};
 
-    /**
-     * Construct a new ArgsParseNode with no keyword arguments.
-     */
+    /** Construct a new ArgsParseNode with no keyword arguments. */
     public ArgsParseNode(
             SourceIndexLength position,
             ListParseNode pre,
@@ -80,9 +71,7 @@ public class ArgsParseNode extends ParseNode {
         this(position, pre, optionalArguments, rest, post, null, null, blockArgNode);
     }
 
-    /**
-     * Construct a new ArgsParseNode with keyword arguments.
-     */
+    /** Construct a new ArgsParseNode with keyword arguments. */
     public ArgsParseNode(
             SourceIndexLength position,
             ListParseNode pre,
@@ -246,11 +235,9 @@ public class ArgsParseNode extends ParseNode {
         return keywords || keyRest != null;
     }
 
-    /**
-     * Gets the explicit block argument of the parameter list (&block).
+    /** Gets the explicit block argument of the parameter list (&block).
      *
-     * @return Returns a BlockArgParseNode
-     */
+     * @return Returns a BlockArgParseNode */
     public BlockArgParseNode getBlock() {
         return blockArgNode;
     }

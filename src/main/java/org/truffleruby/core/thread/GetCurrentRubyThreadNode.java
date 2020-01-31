@@ -25,15 +25,12 @@ public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
 
     public abstract DynamicObject executeGetRubyThread(VirtualFrame frame);
 
-    /*
-     * Note: the frame argument is used as a dynamic parameter here. Otherwise, The TruffleDSL
-     * assumes cached parameters or calls with only cached arguments (including calls with no
-     * arguments) never change.
+    /* Note: the frame argument is used as a dynamic parameter here. Otherwise, The TruffleDSL assumes cached parameters
+     * or calls with only cached arguments (including calls with no arguments) never change.
      *
-     * Note: we need to check that the Fiber is still running on a Java thread to cache based on the
-     * Java thread. If the Fiber finished its execution, the Java thread can be reused for another
-     * Fiber belonging to another Ruby Thread, due to using a thread pool for Fibers.
-     */
+     * Note: we need to check that the Fiber is still running on a Java thread to cache based on the Java thread. If the
+     * Fiber finished its execution, the Java thread can be reused for another Fiber belonging to another Ruby Thread,
+     * due to using a thread pool for Fibers. */
     @Specialization(
             guards = {
                     "getCurrentJavaThread(frame) == cachedJavaThread",

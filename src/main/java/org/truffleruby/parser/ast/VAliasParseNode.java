@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an alias of a global variable.
- */
+/** Represents an alias of a global variable. */
 public class VAliasParseNode extends ParseNode {
     private String oldName;
     private String newName;
@@ -54,27 +52,24 @@ public class VAliasParseNode extends ParseNode {
         return NodeType.VALIASNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitVAliasNode(this);
     }
 
-    /**
-     * Gets the newName.
-     * @return Returns a String
-     */
+    /** Gets the newName.
+     * 
+     * @return Returns a String */
     public String getNewName() {
         return newName;
     }
 
-    /**
-     * Gets the oldName.
-     * @return Returns a String
-     */
+    /** Gets the oldName.
+     * 
+     * @return Returns a String */
     public String getOldName() {
         return oldName;
     }

@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a && (and) operator.
- */
+/** Represents a && (and) operator. */
 public class AndParseNode extends ParseNode implements BinaryOperatorParseNode {
     private final ParseNode firstNode;
     private final ParseNode secondNode;
@@ -63,18 +61,16 @@ public class AndParseNode extends ParseNode implements BinaryOperatorParseNode {
         return iVisitor.visitAndNode(this);
     }
 
-    /**
-     * Gets the secondNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the secondNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getSecondNode() {
         return secondNode;
     }
 
-    /**
-     * Gets the firstNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the firstNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getFirstNode() {
         return firstNode;
     }

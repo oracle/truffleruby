@@ -27,13 +27,11 @@ public class TimeZoneAndName {
 
     private final ZoneId zone;
 
-    /**
-     * {@code name} is non-null if and only if the timezone is just a fixed offset (a ZoneOffset).
-     * In that case, the timezone name is captured from $TZ such as "PST" when TZ=PST8:00:00.
+    /** {@code name} is non-null if and only if the timezone is just a fixed offset (a ZoneOffset). In that case, the
+     * timezone name is captured from $TZ such as "PST" when TZ=PST8:00:00.
      *
-     * Otherwise (e.g., TZ=Europe/Vienna or TZ is unset), the timezone name is computed later in
-     * getName(), as the timezone name depends on the date (e.g. CET vs CEST).
-     */
+     * Otherwise (e.g., TZ=Europe/Vienna or TZ is unset), the timezone name is computed later in getName(), as the
+     * timezone name depends on the date (e.g. CET vs CEST). */
     private final String name;
 
     public TimeZoneAndName(ZoneId zone) {

@@ -31,40 +31,41 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
 
-/**
- * Represents a backtrace: a list of activations (~ call sites).
+/** Represents a backtrace: a list of activations (~ call sites).
  *
- * <p>A backtrace is always constructed from a Java throwable, but does not always correspond to a
- * Ruby exception (e.g. {@code Kernel.caller_locations}). Whenever constructing a backtrace from a
- * Ruby exception, it will be encapsulated in a Java throwable ({@link RaiseException}).
+ * <p>
+ * A backtrace is always constructed from a Java throwable, but does not always correspond to a Ruby exception (e.g.
+ * {@code Kernel.caller_locations}). Whenever constructing a backtrace from a Ruby exception, it will be encapsulated in
+ * a Java throwable ({@link RaiseException}).
  *
- * <p>Whenever a backtrace is associated with a Ruby exception, there is a 1-1-1 match between
- * the backtrace, the Ruby exception (which has a backtrace field) and the
- * {@link #getRaiseException() raiseException} stored in the backtrace (which encapsulates the
- * Ruby exception).
+ * <p>
+ * Whenever a backtrace is associated with a Ruby exception, there is a 1-1-1 match between the backtrace, the Ruby
+ * exception (which has a backtrace field) and the {@link #getRaiseException() raiseException} stored in the backtrace
+ * (which encapsulates the Ruby exception).
  *
- * <p>NOTE(norswap): At least, that's how it should work, but there are cases where a Ruby
- * exception's backtrace may not link back to the exception (e.g. in {@code
+ * <p>
+ * NOTE(norswap): At least, that's how it should work, but there are cases where a Ruby exception's backtrace may not
+ * link back to the exception (e.g. in {@code
  * TranslateExceptionNode#translateThrowable}).
  *
- * <p>Note in passing that not all Ruby exceptions have an associated backtrace (simply creating an
- * exception via {@code Exception.new} does not fill its backtrace), nor does the associated
- * backtrace necessarily match the result of {@code Exception#backtrace} in Ruby, because the user
- * may have set a custom backtrace (an array of strings).
+ * <p>
+ * Note in passing that not all Ruby exceptions have an associated backtrace (simply creating an exception via
+ * {@code Exception.new} does not fill its backtrace), nor does the associated backtrace necessarily match the result of
+ * {@code Exception#backtrace} in Ruby, because the user may have set a custom backtrace (an array of strings).
  *
- * <p>In general, there isn't any guarantee that the getters will return non-null values, excepted
- * {@link #getActivations()}, {@link #getActivations(Throwable)} and
- * {@link #getBacktraceLocations(int, Node)}.
+ * <p>
+ * In general, there isn't any guarantee that the getters will return non-null values, excepted
+ * {@link #getActivations()}, {@link #getActivations(Throwable)} and {@link #getBacktraceLocations(int, Node)}.
  *
- * <p>NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions
- * on the backtrace object and generally require being very defensive depending on the information
- * available - but fixing this would require a dangerous refactoring for little benefit.
+ * <p>
+ * NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions on the backtrace object
+ * and generally require being very defensive depending on the information available - but fixing this would require a
+ * dangerous refactoring for little benefit.
  *
- * <p>Also note that the activations are recorded lazily when one of the aforementionned methods is
- * called, excepted when specified otherwise in the constructor. The activations will match the
- * state of the Truffle call stack whenever the activations are recorded (so, during the constructor
- * call or first method call).
- */
+ * <p>
+ * Also note that the activations are recorded lazily when one of the aforementionned methods is called, excepted when
+ * specified otherwise in the constructor. The activations will match the state of the Truffle call stack whenever the
+ * activations are recorded (so, during the constructor call or first method call). */
 public class Backtrace {
 
     // See accessors for info on most undocumented fields.
@@ -81,9 +82,7 @@ public class Backtrace {
 
     // region Constructors
 
-    /**
-     * Fully explicit constructor.
-     */
+    /** Fully explicit constructor. */
     public Backtrace(Node location, SourceSection sourceLocation, int omitted, Throwable javaThrowable) {
         this.location = location;
         this.sourceLocation = sourceLocation;
@@ -91,11 +90,9 @@ public class Backtrace {
         this.javaThrowable = javaThrowable;
     }
 
-    /**
-     * Creates a backtrace for the given Truffle exception, setting the
-     * {@link #getLocation() location} and {@link #getSourceLocation() source location} accordingly,
-     * and computing the activations eagerly (since the exception itself is not retained).
-     */
+    /** Creates a backtrace for the given Truffle exception, setting the {@link #getLocation() location} and
+     * {@link #getSourceLocation() source location} accordingly, and computing the activations eagerly (since the
+     * exception itself is not retained). */
     public Backtrace(TruffleException exception) {
         assert !(exception instanceof RaiseException);
         this.location = exception.getLocation();
@@ -105,11 +102,8 @@ public class Backtrace {
         this.activations = getActivations((Throwable) exception);
     }
 
-    /**
-     * Creates a backtrace for the given throwable, in which only the activations and the backtrace
-     * locations may be retrieved. The activations are computed eagerly, since the exception itself
-     * is not retained.
-     */
+    /** Creates a backtrace for the given throwable, in which only the activations and the backtrace locations may be
+     * retrieved. The activations are computed eagerly, since the exception itself is not retained. */
     public Backtrace(Throwable exception) {
         this.location = null;
         this.sourceLocation = null;
@@ -121,59 +115,42 @@ public class Backtrace {
     // endregion
     // region Accessors
 
-    /**
-     * AST node that caused the associated exception, if the info is available, or null.
-     */
+    /** AST node that caused the associated exception, if the info is available, or null. */
     public Node getLocation() {
         return location;
     }
 
-    /**
-     * Only set for {@code SyntaxError}, where it represents where the error occurred
-     * (while {@link #getLocation()} does not).
-     */
+    /** Only set for {@code SyntaxError}, where it represents where the error occurred (while {@link #getLocation()}
+     * does not). */
     public SourceSection getSourceLocation() {
         return sourceLocation;
     }
 
-    /**
-     * Returns the wrapper for the Ruby exception associated with this backtrace, if any, and
-     * null otherwise.
-     */
+    /** Returns the wrapper for the Ruby exception associated with this backtrace, if any, and null otherwise. */
     public RaiseException getRaiseException() {
         return raiseException;
     }
 
-    /**
-     * Sets the wrapper for the Ruby exception associated with this backtrace.
-     */
+    /** Sets the wrapper for the Ruby exception associated with this backtrace. */
     public void setRaiseException(RaiseException raiseException) {
         assert this.raiseException == null : "the RaiseException of a Backtrace must not be set again, otherwise the original backtrace is lost";
         this.raiseException = raiseException;
     }
 
-    /**
-     * Returns the number of activations to omit from the top (= most recently called) of the
-     * activation stack.
-     */
+    /** Returns the number of activations to omit from the top (= most recently called) of the activation stack. */
     public int getOmitted() {
         return omitted;
     }
 
-    /**
-     * Returns the Java exception the associated Ruby exception was translated from, if any.
-     * (This is not the same as {@link #getRaiseException() the raise exception} which is simply
-     * a wrapper around the Ruby exception.)
-     */
+    /** Returns the Java exception the associated Ruby exception was translated from, if any. (This is not the same as
+     * {@link #getRaiseException() the raise exception} which is simply a wrapper around the Ruby exception.) */
     public Throwable getJavaThrowable() {
         return javaThrowable;
     }
 
     // endregion
 
-    /**
-     * Used to copy the backtrace when copying {@code exception}.
-     */
+    /** Used to copy the backtrace when copying {@code exception}. */
     public Backtrace copy(RubyContext context, DynamicObject exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception.
@@ -260,25 +237,21 @@ public class Backtrace {
         return getActivations(this.raiseException);
     }
 
-    /**
-     * Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code
-     * length}, and omitting locations as requested ({@link #getOmitted()}). If more locations are
-     * omitted than are available, return a Ruby {@code nil}.
+    /** Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code length}, and omitting
+     * locations as requested ({@link #getOmitted()}). If more locations are omitted than are available, return a Ruby
+     * {@code nil}.
      *
-     * <p>The length can be negative, in which case it is treated as a range ending. Use -1 to
-     * get the maximum length.
+     * <p>
+     * The length can be negative, in which case it is treated as a range ending. Use -1 to get the maximum length.
      *
-     * <p>This causes the activations to be computed if not yet the case.
+     * <p>
+     * This causes the activations to be computed if not yet the case.
      *
-     * @param length the maximum number of locations to return (if positive), or -1 minus the
-     *               number of items to exclude at the end. You can use
-     *               {@link GetBacktraceException#UNLIMITED} to signal that you want all locations.
+     * @param length the maximum number of locations to return (if positive), or -1 minus the number of items to exclude
+     *            at the end. You can use {@link GetBacktraceException#UNLIMITED} to signal that you want all locations.
      *
-     * @param node the node at which we're requiring the backtrace. Can be null if the backtrace
-     *             is associated with a ruby exception or if we are sure the activations have
-     *             already been computed.
-     *
-     */
+     * @param node the node at which we're requiring the backtrace. Can be null if the backtrace is associated with a
+     *            ruby exception or if we are sure the activations have already been computed. */
     public DynamicObject getBacktraceLocations(int length, Node node) {
 
         final RubyContext context = RubyLanguage.getCurrentContext();

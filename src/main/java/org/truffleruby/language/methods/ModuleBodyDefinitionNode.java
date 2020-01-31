@@ -23,9 +23,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Define a method from a module body (module/class/class << self ... end).
- */
+/** Define a method from a module body (module/class/class << self ... end). */
 public class ModuleBodyDefinitionNode extends RubyContextNode {
 
     private final String name;

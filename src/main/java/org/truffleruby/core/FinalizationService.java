@@ -16,10 +16,7 @@ import org.truffleruby.core.MarkingService.ExtensionCallStack;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Finalizers are implemented with phantom references and reference queues, and are run in a
- * dedicated Ruby thread.
- */
+/** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
 public class FinalizationService extends ReferenceProcessingService<FinalizerReference> {
 
     static class Finalizer {

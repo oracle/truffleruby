@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Begin/End block.  A Begin ... End block without rescue.
- */
+/** Begin/End block. A Begin ... End block without rescue. */
 public class BeginParseNode extends ParseNode {
     private final ParseNode bodyNode;
 
@@ -55,19 +53,17 @@ public class BeginParseNode extends ParseNode {
         return NodeType.BEGINNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBeginNode(this);
     }
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a INode
-     */
+    /** Gets the bodyNode.
+     * 
+     * @return Returns a INode */
     public ParseNode getBodyNode() {
         return bodyNode;
     }

@@ -38,16 +38,12 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an instance variable assignment.
- */
+/** Represents an instance variable assignment. */
 public class InstAsgnParseNode extends AssignableParseNode implements INameNode {
     private String name;
 
-    /**
-     * @param name the name of the instance variable
-     * @param valueNode the value of the variable
-     **/
+    /** @param name the name of the instance variable
+     * @param valueNode the value of the variable **/
     public InstAsgnParseNode(SourceIndexLength position, String name, ParseNode valueNode) {
         super(position, valueNode);
 
@@ -59,19 +55,17 @@ public class InstAsgnParseNode extends AssignableParseNode implements INameNode 
         return NodeType.INSTASGNNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitInstAsgnNode(this);
     }
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
+    /** Gets the name.
+     * 
+     * @return Returns a String */
     public String getName() {
         return name;
     }

@@ -52,19 +52,17 @@ public class MatchParseNode extends ParseNode {
         return NodeType.MATCHNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitMatchNode(this);
     }
 
-    /**
-     * Gets the regexpNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the regexpNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getRegexpNode() {
         return regexpNode;
     }

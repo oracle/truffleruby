@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an until statement.
- */
+/** Represents an until statement. */
 public class UntilParseNode extends ParseNode {
     private final ParseNode conditionNode;
     private final ParseNode bodyNode;
@@ -68,27 +66,24 @@ public class UntilParseNode extends ParseNode {
         this.evaluateAtStart = evaluateAtStart;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitUntilNode(this);
     }
 
-    /**
-     * Gets the bodyNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the bodyNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Gets the conditionNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the conditionNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getConditionNode() {
         return conditionNode;
     }
@@ -98,10 +93,9 @@ public class UntilParseNode extends ParseNode {
         return ParseNode.createList(conditionNode, bodyNode);
     }
 
-    /**
-     * Determine whether this is while or do while
-     * @return true if you are a while, false if do while
-     */
+    /** Determine whether this is while or do while
+     * 
+     * @return true if you are a while, false if do while */
     public boolean evaluateAtStart() {
         return evaluateAtStart;
     }

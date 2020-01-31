@@ -53,10 +53,8 @@ public class FeatureLoader {
     private final RubyContext context;
 
     private final ReentrantLockFreeingMap<String> fileLocks = new ReentrantLockFreeingMap<>();
-    /**
-     * Maps basename without extension -> autoload path -> autoload constant,
-     * to detect when require-ing a file already registered with autoload.
-     */
+    /** Maps basename without extension -> autoload path -> autoload constant, to detect when require-ing a file already
+     * registered with autoload. */
     private final Map<String, Map<String, RubyConstant>> registeredAutoloads = new HashMap<>();
     private final ReentrantLock registeredAutoloadsLock = new ReentrantLock();
 

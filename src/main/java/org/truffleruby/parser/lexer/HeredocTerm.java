@@ -39,9 +39,8 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.parser.parser.Tokens;
 
-/**
- * A lexing unit for scanning a heredoc element.
- * Example:
+/** A lexing unit for scanning a heredoc element. Example:
+ * 
  * <pre>
  * foo(<<EOS, bar)
  * This is heredoc country!
@@ -51,8 +50,7 @@ import org.truffleruby.parser.parser.Tokens;
  * EOS = marker
  * ',bar)\n' = lastLine
  * </pre>
- *
- */
+*/
 public class HeredocTerm extends StrTerm {
     // Marker delimiting heredoc boundary
     private final Rope nd_lit;

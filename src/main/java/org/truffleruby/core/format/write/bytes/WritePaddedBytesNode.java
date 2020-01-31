@@ -16,9 +16,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-/**
- * Simply write bytes.
- */
+/** Simply write bytes. */
 @NodeChild("width")
 @NodeChild("value")
 public abstract class WritePaddedBytesNode extends FormatNode {

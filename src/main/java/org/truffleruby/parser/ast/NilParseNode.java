@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * represents 'nil'
- */
+/** represents 'nil' */
 public class NilParseNode extends ParseNode implements INameNode, SideEffectFree {
     public NilParseNode(SourceIndexLength position) {
         super(position);
@@ -50,18 +48,15 @@ public class NilParseNode extends ParseNode implements INameNode, SideEffectFree
         return NodeType.NILNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitNilNode(this);
     }
 
-    /**
-     * Name of nil node.
-     **/
+    /** Name of nil node. **/
     public String getName() {
         return "nil";
     }

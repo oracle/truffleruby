@@ -35,13 +35,9 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 import com.oracle.truffle.api.source.Source;
 
-/**
- * Represents the top of the AST.  This is a node not present in MRI.  It was created to
- * hold the top-most static scope in an easy to grab way and it also exists to hold BEGIN
- * and END nodes.  These can then be interpreted/compiled in the same places as the rest
- * of the code.
- *
- */
+/** Represents the top of the AST. This is a node not present in MRI. It was created to hold the top-most static scope
+ * in an easy to grab way and it also exists to hold BEGIN and END nodes. These can then be interpreted/compiled in the
+ * same places as the rest of the code. */
 public class RootParseNode extends ParseNode {
 
     private final ParseNode beginNode;
@@ -82,11 +78,9 @@ public class RootParseNode extends ParseNode {
         return beginNode;
     }
 
-    /**
-     * First real AST node to be interpreted
+    /** First real AST node to be interpreted
      *
-     * @return real top AST node
-     */
+     * @return real top AST node */
     public ParseNode getBodyNode() {
         return bodyNode;
     }

@@ -9,10 +9,7 @@
  */
 package org.truffleruby;
 
-/**
- * If the Thread dies from an exception, rethrow it on join().
- * This Thread can then be used for assert*().
- */
+/** If the Thread dies from an exception, rethrow it on join(). This Thread can then be used for assert*(). */
 public class TestingThread {
 
     private final Thread thread;

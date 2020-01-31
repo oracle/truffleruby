@@ -13,9 +13,7 @@ import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * A reference to an included RubyModule.
- */
+/** A reference to an included RubyModule. */
 public class IncludedModule extends ModuleChain {
 
     private final DynamicObject includedModule;

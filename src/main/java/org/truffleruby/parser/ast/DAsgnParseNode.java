@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * An assignment to a dynamic variable (e.g. block scope local variable).
- */
+/** An assignment to a dynamic variable (e.g. block scope local variable). */
 public class DAsgnParseNode extends AssignableParseNode implements INameNode, IScopedNode {
     // The name of the variable
     private String name;
@@ -59,38 +57,31 @@ public class DAsgnParseNode extends AssignableParseNode implements INameNode, IS
         return NodeType.DASGNNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitDAsgnNode(this);
     }
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
+    /** Gets the name.
+     * 
+     * @return Returns a String */
     public String getName() {
         return name;
     }
 
-    /**
-     * How many scopes should we burrow down to until we need to set the block variable value.
+    /** How many scopes should we burrow down to until we need to set the block variable value.
      *
-     * @return 0 for current scope, 1 for one down, ...
-     */
+     * @return 0 for current scope, 1 for one down, ... */
     public int getDepth() {
         return location >> 16;
     }
 
-    /**
-     * Gets the index within the scope construct that actually holds the eval'd value
-     * of this local variable
+    /** Gets the index within the scope construct that actually holds the eval'd value of this local variable
      *
-     * @return Returns an int offset into storage structure
-     */
+     * @return Returns an int offset into storage structure */
     public int getIndex() {
         return location & 0xffff;
     }

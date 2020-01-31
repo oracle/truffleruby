@@ -9,9 +9,7 @@
  */
 package org.truffleruby.language.control;
 
-/**
- * Used by Thread#kill and to terminate threads.
- */
+/** Used by Thread#kill and to terminate threads. */
 public final class KillException extends TerminationException {
 
     private static final long serialVersionUID = 4546683467567415385L;

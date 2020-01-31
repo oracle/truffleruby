@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an integer literal.
- */
+/** Represents an integer literal. */
 public class FixnumParseNode extends NumericParseNode implements ILiteralNode, SideEffectFree {
     private long value;
 
@@ -58,10 +56,9 @@ public class FixnumParseNode extends NumericParseNode implements ILiteralNode, S
         return NodeType.FIXNUMNODE;
     }
 
-    /**
-     * Gets the value.
-     * @return Returns a long
-     */
+    /** Gets the value.
+     * 
+     * @return Returns a long */
     public long getValue() {
         return value;
     }

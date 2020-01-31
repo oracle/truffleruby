@@ -86,11 +86,9 @@ public class MainLoader {
         final TruffleFile file = env.getPublicTruffleFile(path);
         fileLoader.ensureReadable(file);
 
-        /*
-         * We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
+        /* We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
          * We could convert the CharSequence back to bytes, but that's more expensive than just reading the bytes once
-         * and pass them down to the lexer and to the Source.
-         */
+         * and pass them down to the lexer and to the Source. */
 
         byte[] sourceBytes = file.readAllBytes();
         final Rope sourceRope = transformScript(currentNode, path, sourceBytes);

@@ -13,9 +13,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 
-/**
- * Represents a value that was not provided by the user, such as optional arguments to a core library node.
- */
+/** Represents a value that was not provided by the user, such as optional arguments to a core library node. */
 @ExportLibrary(InteropLibrary.class)
 public final class NotProvided implements TruffleObject {
 

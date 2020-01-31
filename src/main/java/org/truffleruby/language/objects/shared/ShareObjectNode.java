@@ -29,10 +29,7 @@ import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
-/**
- * Share the object and all that is reachable from it
- * (see {@link ObjectGraph#getAdjacentObjects(DynamicObject)}.
- */
+/** Share the object and all that is reachable from it (see {@link ObjectGraph#getAdjacentObjects(DynamicObject)}. */
 @ImportStatic(ShapeCachingGuards.class)
 public abstract class ShareObjectNode extends RubyContextNode {
 

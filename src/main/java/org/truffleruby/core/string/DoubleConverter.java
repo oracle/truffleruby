@@ -78,11 +78,9 @@ public class DoubleConverter {
         return bytes[index++];
     }
 
-    /**
-     * Shift back to previous character in the incoming bytes
+    /** Shift back to previous character in the incoming bytes
      *
-     * @return false to indicate we are not in an EOS condition
-     */
+     * @return false to indicate we are not in an EOS condition */
     private boolean previous() {
         index--;
         return false;
@@ -174,11 +172,8 @@ public class DoubleConverter {
         }
     }
 
-    /**
-     * Everything runs in 1.9+ mode now, so the `is19` parameter is vestigial.
-     * However, in order to maintain binary compatibility with extensions we can't
-     * just change the signature either.
-     */
+    /** Everything runs in 1.9+ mode now, so the `is19` parameter is vestigial. However, in order to maintain binary
+     * compatibility with extensions we can't just change the signature either. */
     public double parse(Rope rope, boolean strict, boolean is19) {
         init(rope, strict);
 
@@ -198,14 +193,10 @@ public class DoubleConverter {
         return completeCalculation();
     }
 
-    /**
-     * Consume initial whitespace and underscores so that next character
-     * examined is not whitespace.  1.9 and strict do not allow leading
-     * underscores.  Returns whether next position is at the end of the
-     * string or not.
+    /** Consume initial whitespace and underscores so that next character examined is not whitespace. 1.9 and strict do
+     * not allow leading underscores. Returns whether next position is at the end of the string or not.
      * <p>
-     * Trivia: " _ _ _ _ 1".to_f == 1.0 in Ruby 1.8
-     */
+     * Trivia: " _ _ _ _ 1".to_f == 1.0 in Ruby 1.8 */
     private boolean skipWhitespace() {
         while (!isEOS()) {
             byte value = next();

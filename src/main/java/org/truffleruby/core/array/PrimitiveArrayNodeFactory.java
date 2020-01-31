@@ -14,9 +14,7 @@ import org.truffleruby.language.literal.IntegerFixnumLiteralNode;
 
 public abstract class PrimitiveArrayNodeFactory {
 
-    /**
-     * Create a node to read from an array with a constant denormalized index.
-     */
+    /** Create a node to read from an array with a constant denormalized index. */
     public static RubyNode read(RubyNode array, int index) {
         final RubyNode literalIndex = new IntegerFixnumLiteralNode(index);
 

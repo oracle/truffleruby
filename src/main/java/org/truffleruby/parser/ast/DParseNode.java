@@ -30,9 +30,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.language.SourceIndexLength;
 
-/**
- * Base class for all D (e.g. Dynamic) node types like DStrParseNode, DSymbolParseNode, etc...
- */
+/** Base class for all D (e.g. Dynamic) node types like DStrParseNode, DSymbolParseNode, etc... */
 public abstract class DParseNode extends ListParseNode {
     protected Encoding encoding;
 

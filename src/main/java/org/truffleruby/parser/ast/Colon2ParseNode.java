@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a '::' constant access or method call (Java::JavaClass).
- */
+/** Represents a '::' constant access or method call (Java::JavaClass). */
 public abstract class Colon2ParseNode extends Colon3ParseNode implements INameNode {
     protected final ParseNode leftNode;
 
@@ -53,19 +51,17 @@ public abstract class Colon2ParseNode extends Colon3ParseNode implements INameNo
         return NodeType.COLON2NODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitColon2Node(this);
     }
 
-    /**
-     * Gets the leftNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the leftNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getLeftNode() {
         return leftNode;
     }

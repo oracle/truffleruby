@@ -36,9 +36,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents an 'undef' statement.
- */
+/** Represents an 'undef' statement. */
 public class UndefParseNode extends ParseNode {
     private ParseNode name;
 
@@ -52,19 +50,17 @@ public class UndefParseNode extends ParseNode {
         return NodeType.UNDEFNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitUndefNode(this);
     }
 
-    /**
-     * Gets the name.
-     * @return Returns a String
-     */
+    /** Gets the name.
+     * 
+     * @return Returns a String */
     public ParseNode getName() {
         return name;
     }

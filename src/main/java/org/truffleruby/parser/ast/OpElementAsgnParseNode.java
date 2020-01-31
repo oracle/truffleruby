@@ -44,7 +44,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * a[4] += 5
  * a[3] &&= true
  * </pre>
- */
+*/
 public class OpElementAsgnParseNode extends ParseNode {
     private final ParseNode receiverNode;
     private final ParseNode argsNode;
@@ -73,43 +73,38 @@ public class OpElementAsgnParseNode extends ParseNode {
         return NodeType.OPELEMENTASGNNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitOpElementAsgnNode(this);
     }
 
-    /**
-     * Gets the argsNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the argsNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getArgsNode() {
         return argsNode;
     }
 
-    /**
-     * Gets the operatorName.
-     * @return Returns a String
-     */
+    /** Gets the operatorName.
+     * 
+     * @return Returns a String */
     public String getOperatorName() {
         return operatorName;
     }
 
-    /**
-     * Gets the receiverNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the receiverNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getReceiverNode() {
         return receiverNode;
     }
 
-    /**
-     * Gets the valueNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the valueNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getValueNode() {
         return valueNode;
     }

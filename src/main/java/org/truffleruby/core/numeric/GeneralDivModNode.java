@@ -67,10 +67,8 @@ public class GeneralDivModNode extends RubyContextNode {
         return divMod(a, b);
     }
 
-    /*
-     * div-mod algorithms copied from org.jruby.RubyFixnum, org.jruby.RubyBignum and org.jrubyRubyFloat. See license
-     * and contributors there.
-     */
+    /* div-mod algorithms copied from org.jruby.RubyFixnum, org.jruby.RubyBignum and org.jrubyRubyFloat. See license and
+     * contributors there. */
 
     private DynamicObject divMod(long a, long b) {
         if (b == 0) {

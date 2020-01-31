@@ -27,9 +27,8 @@ package org.truffleruby.core.time;
 
 import org.truffleruby.core.time.RubyDateFormatter.FieldType;
 
-/**
- * Support for GNU-C output formatters, see: http://www.gnu.org/software/libc/manual/html_node/Formatting-Calendar-Time.html
- */
+/** Support for GNU-C output formatters, see:
+ * http://www.gnu.org/software/libc/manual/html_node/Formatting-Calendar-Time.html */
 public class RubyTimeOutputFormatter {
     final String flags;
     final int width;

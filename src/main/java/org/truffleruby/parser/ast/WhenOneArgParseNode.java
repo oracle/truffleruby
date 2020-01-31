@@ -28,10 +28,7 @@ package org.truffleruby.parser.ast;
 
 import org.truffleruby.language.SourceIndexLength;
 
-/**
- *
- * @author enebo
- */
+/** @author enebo */
 public class WhenOneArgParseNode extends WhenParseNode {
     public WhenOneArgParseNode(
             SourceIndexLength position,

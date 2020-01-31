@@ -23,10 +23,8 @@ public class FinalizerReference
         extends
         ReferenceProcessingService.PhantomProcessingReference<FinalizerReference, Object> implements ObjectGraphNode {
 
-    /**
-     * All accesses to this Deque must be synchronized by taking the
-     * {@link FinalizationService} monitor, to avoid concurrent access.
-     */
+    /** All accesses to this Deque must be synchronized by taking the {@link FinalizationService} monitor, to avoid
+     * concurrent access. */
     private final Deque<FinalizationService.Finalizer> finalizers = new LinkedList<>();
 
     FinalizerReference(Object object, ReferenceQueue<? super Object> queue, FinalizationService service) {

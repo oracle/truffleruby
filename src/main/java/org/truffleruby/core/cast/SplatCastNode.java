@@ -25,9 +25,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Splat as used to cast a value to an array if it isn't already, as in {@code *value}.
- */
+/** Splat as used to cast a value to an array if it isn't already, as in {@code *value}. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class SplatCastNode extends RubyContextSourceNode {
 

@@ -200,12 +200,10 @@ public class RubyTCKLanguageProvider implements LanguageProvider {
                 .newBuilder(operator, function, returnType)
                 .parameterTypes(lhsType, rhsType)
                 .resultVerifier(snippetRun -> {
-                    /*
-                     * If the test returned a result, we're expecting a NUMBER, and we get an Ruby Bignum that's fine even
-                     * though that value will be marked as an OBJECT. We don't want to make it a NUMBER at the moment as we
-                     * aren't sure what to UNBOX it to. To work out if it's a Bignum the only way I can see is to check it
-                     * doesn't fit into a long.
-                     */
+                    /* If the test returned a result, we're expecting a NUMBER, and we get an Ruby Bignum that's fine
+                     * even though that value will be marked as an OBJECT. We don't want to make it a NUMBER at the
+                     * moment as we aren't sure what to UNBOX it to. To work out if it's a Bignum the only way I can see
+                     * is to check it doesn't fit into a long. */
 
                     if (snippetRun.getResult() != null && returnType == TypeDescriptor.NUMBER &&
                             TypeDescriptor.forValue(snippetRun.getResult()) == TypeDescriptor.OBJECT &&

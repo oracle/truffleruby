@@ -34,9 +34,7 @@ package org.truffleruby.parser.ast;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Captures END statements (END {...})
- */
+/** Captures END statements (END {...}) */
 public class PostExeParseNode extends IterParseNode {
     public PostExeParseNode(SourceIndexLength position, ParseNode body) {
         super(position, new ArgsParseNode(position, null, null, null, null, null, null, null), body, null);
@@ -47,10 +45,9 @@ public class PostExeParseNode extends IterParseNode {
         return NodeType.POSTEXENODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitPostExeNode(this);

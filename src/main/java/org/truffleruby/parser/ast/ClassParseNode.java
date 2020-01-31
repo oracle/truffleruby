@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 import org.truffleruby.parser.scope.StaticScope;
 
-/**
- * A class statement (name, superClass, body). Classes bodies also define their own scope.
- */
+/** A class statement (name, superClass, body). Classes bodies also define their own scope. */
 public class ClassParseNode extends ParseNode implements IScopingNode {
     private final Colon3ParseNode cpath;
     private final StaticScope scope;
@@ -69,45 +67,38 @@ public class ClassParseNode extends ParseNode implements IScopingNode {
         return NodeType.CLASSNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitClassNode(this);
     }
 
-    /**
-     * Gets the body of this class.
+    /** Gets the body of this class.
      *
-     * @return the contents
-     */
+     * @return the contents */
     public ParseNode getBodyNode() {
         return bodyNode;
     }
 
-    /**
-     * Get the static scoping information.
+    /** Get the static scoping information.
      *
-     * @return the scoping info
-     */
+     * @return the scoping info */
     public StaticScope getScope() {
         return scope;
     }
 
-    /**
-     * Gets the className.
-     * @return Returns representation of class path+name
-     */
+    /** Gets the className.
+     * 
+     * @return Returns representation of class path+name */
     public Colon3ParseNode getCPath() {
         return cpath;
     }
 
-    /**
-     * Gets the superNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the superNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getSuperNode() {
         return superNode;
     }

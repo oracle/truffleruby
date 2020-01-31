@@ -31,10 +31,7 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- *
- * @author enebo
- */
+/** @author enebo */
 public class RationalParseNode extends NumericParseNode implements SideEffectFree {
     private final long numerator;
     private final long denominator;

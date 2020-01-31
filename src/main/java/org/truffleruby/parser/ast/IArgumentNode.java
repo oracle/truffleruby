@@ -28,9 +28,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
-/**
- * Does the node contain an argument list?
- */
+/** Does the node contain an argument list? */
 public interface IArgumentNode {
     ParseNode getArgsNode();
 

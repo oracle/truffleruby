@@ -18,9 +18,7 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
 
-/**
- * Manages the available primitive calls.
- */
+/** Manages the available primitive calls. */
 public class PrimitiveManager {
 
     private final Map<String, String> lazyPrimitiveClasses = new ConcurrentHashMap<>();

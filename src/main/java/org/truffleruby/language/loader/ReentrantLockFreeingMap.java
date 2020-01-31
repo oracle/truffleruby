@@ -17,9 +17,10 @@ import org.truffleruby.core.thread.ThreadManager;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
-/**
- * Usage:
- * <pre><code>
+/** Usage:
+ * 
+ * <pre>
+ * <code>
  *  ReentrantLockFreeingMap<String> fileLocks = new ReentrantLockFreeingMap<String>();
  *  while (true) {
  *      final ReentrantLock lock = fileLocks.getLock(key);
@@ -35,8 +36,9 @@ import com.oracle.truffle.api.nodes.Node;
  *          fileLocks.unlock(key, lock);
  *      }
  *  }
- * </code></pre>
- */
+ * </code>
+ * </pre>
+*/
 public class ReentrantLockFreeingMap<K> {
 
     private final ConcurrentHashMap<K, ReentrantLock> locks = new ConcurrentHashMap<>();

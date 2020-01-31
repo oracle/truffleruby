@@ -36,18 +36,11 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * A Case statement.  Represents a complete case statement, including the body with its
- * when statements.
- */
+/** A Case statement. Represents a complete case statement, including the body with its when statements. */
 public class CaseParseNode extends ParseNode {
-    /**
-     * the case expression.
-     **/
+    /** the case expression. **/
     private final ParseNode caseNode;
-    /**
-     * A list of all choices including else
-     */
+    /** A list of all choices including else */
     private final ListParseNode cases;
     private ParseNode elseNode = null;
 
@@ -72,19 +65,17 @@ public class CaseParseNode extends ParseNode {
         return NodeType.CASENODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitCaseNode(this);
     }
 
-    /**
-     * Gets the caseNode.
-     * @return caseNode the case expression
-     */
+    /** Gets the caseNode.
+     * 
+     * @return caseNode the case expression */
     public ParseNode getCaseNode() {
         return caseNode;
     }

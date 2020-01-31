@@ -19,26 +19,22 @@ import org.truffleruby.core.queue.UnsizedQueue;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * Class to provide GC marking and other facilities to keep objects alive for native extensions.
+/** Class to provide GC marking and other facilities to keep objects alive for native extensions.
  *
- * Native extensions expect objects on the stack to be kept alive even when they have been stored in
- * native structures on the stack (e.g. pg keeps the VALUE of a ruby array in a structure on the
- * stack, and places other objects in that array to keep them alive). They also expect structs in
- * objects with custom mark functions to keep marked objects alive.
+ * Native extensions expect objects on the stack to be kept alive even when they have been stored in native structures
+ * on the stack (e.g. pg keeps the VALUE of a ruby array in a structure on the stack, and places other objects in that
+ * array to keep them alive). They also expect structs in objects with custom mark functions to keep marked objects
+ * alive.
  *
- * Since we are not running on a VM that allows us to add custom mark functions to our garbage
- * collector we keep objects alive in 2 ways. Any object converted to a native handle can be kept
- * alive by executing a {@link MarkingServiceNodes.KeepAliveNode}. This will add the object to two
- * lists, a list of all objects converted to native during this call to a C extension function which
- * will be popped when the we return to Ruby code, and a fixed sized list of objects converted to
- * native handles. When the latter of these two lists is full all mark functions will be run the
- * next time an object is added.
+ * Since we are not running on a VM that allows us to add custom mark functions to our garbage collector we keep objects
+ * alive in 2 ways. Any object converted to a native handle can be kept alive by executing a
+ * {@link MarkingServiceNodes.KeepAliveNode}. This will add the object to two lists, a list of all objects converted to
+ * native during this call to a C extension function which will be popped when the we return to Ruby code, and a fixed
+ * sized list of objects converted to native handles. When the latter of these two lists is full all mark functions will
+ * be run the next time an object is added.
  *
- * Marker references only keep a week reference to their owning object to ensure they don't
- * themselves stop the object from being garbage collected.
- *
- */
+ * Marker references only keep a week reference to their owning object to ensure they don't themselves stop the object
+ * from being garbage collected. */
 public class MarkingService extends ReferenceProcessingService<MarkerReference> {
 
     public static interface MarkerAction {
@@ -52,12 +48,9 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
     }
 
-    /**
-     * This service handles actually running the mark functions when this is needed. It's done this
-     * way so that mark functions and finalizers are run on the same thread, and so that we can
-     * avoid the use of any additional locks in this process (as these may cause deadlocks).
-     *
-     */
+    /** This service handles actually running the mark functions when this is needed. It's done this way so that mark
+     * functions and finalizers are run on the same thread, and so that we can avoid the use of any additional locks in
+     * this process (as these may cause deadlocks). */
     public static class MarkRunnerService extends ReferenceProcessingService<MarkingService.MarkRunnerReference> {
 
         private final MarkingService markingService;
@@ -72,11 +65,8 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
         @Override
         protected void processReference(ProcessingReference<?> reference) {
-            /*
-             * We need to keep all the objects that might be marked
-             * alive during the marking process itself, so we add the
-             * arrays to a list to achieve this.
-             */
+            /* We need to keep all the objects that might be marked alive during the marking process itself, so we add
+             * the arrays to a list to achieve this. */
             super.processReference(reference);
             ArrayList<ValueWrapperManager.HandleBlock> keptObjectLists = new ArrayList<>();
             ValueWrapperManager.HandleBlock block;
@@ -182,13 +172,10 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     @TruffleBoundary
     public MarkerThreadLocalData makeThreadLocalData() {
         MarkerThreadLocalData data = new MarkerThreadLocalData(this);
-        /*
-         * This finalizer will ensure all the objects remaining in our kept objects buffer will be
-         * queue at some point. We don't need to do a queue and reset as the MarkerKeptObjects is
-         * going to be GC'ed anyway. We also don't simply queue the keptObjects buffer because it
-         * may only have zero, or very few, objects in it and we don't want to run mark functions
-         * more often than we have to.
-         */
+        /* This finalizer will ensure all the objects remaining in our kept objects buffer will be queue at some point.
+         * We don't need to do a queue and reset as the MarkerKeptObjects is going to be GC'ed anyway. We also don't
+         * simply queue the keptObjects buffer because it may only have zero, or very few, objects in it and we don't
+         * want to run mark functions more often than we have to. */
         //        context.getFinalizationService().addFinalizer(data, null, MarkingService.class, () -> getThreadLocalData().keptObjects.keepObjects(keptObjects), null);
         return data;
     }
@@ -201,9 +188,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         }
     }
 
-    /*
-     * Convenience method to schedule marking now. Puts an empty array on the queue.
-     */
+    /* Convenience method to schedule marking now. Puts an empty array on the queue. */
     public void queueMarking() {
         queueForMarking(ValueWrapperManager.HandleBlock.DUMMY_BLOCK);
     }

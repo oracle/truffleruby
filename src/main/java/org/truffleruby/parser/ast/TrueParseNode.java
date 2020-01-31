@@ -37,9 +37,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents 'true'.
- */
+/** Represents 'true'. */
 public class TrueParseNode extends ParseNode implements INameNode, SideEffectFree {
     public TrueParseNode(SourceIndexLength position) {
         super(position);
@@ -50,18 +48,15 @@ public class TrueParseNode extends ParseNode implements INameNode, SideEffectFre
         return NodeType.TRUENODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitTrueNode(this);
     }
 
-    /**
-     * Name of the true node.
-     */
+    /** Name of the true node. */
     public String getName() {
         return "true";
     }

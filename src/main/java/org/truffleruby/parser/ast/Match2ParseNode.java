@@ -55,27 +55,24 @@ public class Match2ParseNode extends ParseNode {
         return NodeType.MATCH2NODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitMatch2Node(this);
     }
 
-    /**
-     * Gets the receiverNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the receiverNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getReceiverNode() {
         return receiverNode;
     }
 
-    /**
-     * Gets the valueNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the valueNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getValueNode() {
         return valueNode;
     }

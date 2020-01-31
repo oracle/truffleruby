@@ -149,10 +149,8 @@ import com.oracle.truffle.api.source.SourceSection;
 @CoreModule("Kernel")
 public abstract class KernelNodes {
 
-    /**
-     * Check if operands are the same object or call #==.
-     * Known as rb_equal() in MRI. The fact Kernel#=== uses this is pure coincidence.
-     */
+    /** Check if operands are the same object or call #==. Known as rb_equal() in MRI. The fact Kernel#=== uses this is
+     * pure coincidence. */
     @Primitive(name = "object_same_or_equal")
     public abstract static class SameOrEqualNode extends PrimitiveArrayArgumentsNode {
 

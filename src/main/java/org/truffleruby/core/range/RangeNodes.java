@@ -405,10 +405,8 @@ public abstract class RangeNodes {
 
     }
 
-    /**
-     * Returns a conversion of the range into an int range, with regard to the supplied array
-     * (the array is necessary to handle endless ranges).
-     */
+    /** Returns a conversion of the range into an int range, with regard to the supplied array (the array is necessary
+     * to handle endless ranges). */
     @Primitive(name = "range_to_int_range")
     public abstract static class ToIntRangeNode extends PrimitiveArrayArgumentsNode {
 

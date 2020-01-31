@@ -128,11 +128,9 @@ public abstract class EncodingConverterNodes {
             return createArray(ret, ret.length);
         }
 
-        /**
-         * We and JCodings process Encoding::Converter options flags differently.  We split the processing
-         * between initial setup and the replacement value setup, whereas JCodings handles them all during initial setup.
-         * We figure out what flags JCodings additionally expects to be set and set them to satisfy EConv.
-         */
+        /** We and JCodings process Encoding::Converter options flags differently. We split the processing between
+         * initial setup and the replacement value setup, whereas JCodings handles them all during initial setup. We
+         * figure out what flags JCodings additionally expects to be set and set them to satisfy EConv. */
         private int toJCodingFlags(int flags) {
             if ((flags & EConvFlags.XML_TEXT_DECORATOR) != 0) {
                 flags |= EConvFlags.UNDEF_HEX_CHARREF;

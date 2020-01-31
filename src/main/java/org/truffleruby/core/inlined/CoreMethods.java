@@ -22,27 +22,23 @@ import org.truffleruby.parser.TranslatorEnvironment;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.object.DynamicObject;
 
-/**
- * We inline basic operations as it makes little sense to compile them in isolation without the
- * surrounding method and it delays more interesting compilations by filling the compilation queue.
- * The performance in interpreter is typically also improved, making inlined basic operations an
- * optimization useful mostly for warmup. The choice of inlining a basic operation is based on
- * running benchmarks and observing which basic operations methods are compiled early.
+/** We inline basic operations as it makes little sense to compile them in isolation without the surrounding method and
+ * it delays more interesting compilations by filling the compilation queue. The performance in interpreter is typically
+ * also improved, making inlined basic operations an optimization useful mostly for warmup. The choice of inlining a
+ * basic operation is based on running benchmarks and observing which basic operations methods are compiled early.
  * <p>
- * Each inlined basic operation has its own Node to conveniently express guards and assumptions.
- * Inlined basic operations execute in the caller frame, which may be useful for some operations
- * accessing the caller frame like Kernel#block_given?. Therefore, the guards must ensure no
- * exception (e.g.: division by 0) can happen during the inlined operation, as that would make the
- * inlined operation NOT appear in the backtrace.
+ * Each inlined basic operation has its own Node to conveniently express guards and assumptions. Inlined basic
+ * operations execute in the caller frame, which may be useful for some operations accessing the caller frame like
+ * Kernel#block_given?. Therefore, the guards must ensure no exception (e.g.: division by 0) can happen during the
+ * inlined operation, as that would make the inlined operation NOT appear in the backtrace.
  * <p>
  * Two strategies are used to check method re-definition.
- * <li>If the class is a leaf class (there cannot be instances of a subclass of that class), then we
- * only need to check the receiver is an instance of that class and register an Assumption for the
- * given method name (see {@link ModuleFields#registerAssumption(String)}). In such cases the method
- * must be public as we do not check visibility.</li>
- * <li>Otherwise, we need to do a method lookup and verify the method that would be called is the
- * standard definition we expect.</li>
- */
+ * <li>If the class is a leaf class (there cannot be instances of a subclass of that class), then we only need to check
+ * the receiver is an instance of that class and register an Assumption for the given method name (see
+ * {@link ModuleFields#registerAssumption(String)}). In such cases the method must be public as we do not check
+ * visibility.</li>
+ * <li>Otherwise, we need to do a method lookup and verify the method that would be called is the standard definition we
+ * expect.</li> */
 public class CoreMethods {
 
     private final RubyContext context;

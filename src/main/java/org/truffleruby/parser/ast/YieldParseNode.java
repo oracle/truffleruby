@@ -36,18 +36,14 @@ import java.util.List;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Represents a yield statement.
- */
+/** Represents a yield statement. */
 public class YieldParseNode extends ParseNode {
     private final ParseNode argsNode;
 
-    /**
-     * Construct a new YieldParseNode.
+    /** Construct a new YieldParseNode.
      *
      * @param position position of the node in the source
-     * @param argsNode the arguments to the yield (null == no args)
-     */
+     * @param argsNode the arguments to the yield (null == no args) */
     public YieldParseNode(SourceIndexLength position, ParseNode argsNode) {
         super(position);
 
@@ -59,19 +55,17 @@ public class YieldParseNode extends ParseNode {
         return NodeType.YIELDNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitYieldNode(this);
     }
 
-    /**
-     * Gets the argsNode.
-     * @return Returns a ParseNode
-     */
+    /** Gets the argsNode.
+     * 
+     * @return Returns a ParseNode */
     public ParseNode getArgsNode() {
         return argsNode;
     }

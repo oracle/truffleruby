@@ -41,9 +41,7 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
-/**
- * Representing a simple String literal.
- */
+/** Representing a simple String literal. */
 public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectFree {
     private Rope value;
     private final CodeRange codeRange;
@@ -81,28 +79,24 @@ public class StrParseNode extends ParseNode implements ILiteralNode, SideEffectF
         return NodeType.STRNODE;
     }
 
-    /**
-     * Accept for the visitor pattern.
-     * @param iVisitor the visitor
-     **/
+    /** Accept for the visitor pattern.
+     * 
+     * @param iVisitor the visitor **/
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitStrNode(this);
     }
 
-    /**
-     * Gets the value.
-     * @return Returns a String
-     */
+    /** Gets the value.
+     * 
+     * @return Returns a String */
     public Rope getValue() {
         return value;
     }
 
-    /**
-     * Get the string's coderange.
+    /** Get the string's coderange.
      *
-     * @return the string's coderange
-     */
+     * @return the string's coderange */
     public CodeRange getCodeRange() {
         return codeRange;
     }
