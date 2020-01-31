@@ -2648,7 +2648,7 @@ public abstract class StringNodes {
                                 readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(this, e);
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishUnpack(result);
@@ -2675,7 +2675,7 @@ public abstract class StringNodes {
                                 readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null) });
             } catch (FormatException e) {
                 exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(this, e);
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishUnpack(result);

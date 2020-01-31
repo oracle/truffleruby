@@ -10,6 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
 
@@ -19,15 +20,28 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public class CheckArityNode extends RubyContextSourceNode {
 
     private final Arity arity;
+    @Child private RubyNode body;
 
     private final BranchProfile checkFailedProfile = BranchProfile.create();
 
-    public CheckArityNode(Arity arity) {
+    public CheckArityNode(Arity arity, RubyNode body) {
         this.arity = arity;
+        this.body = body;
     }
 
     @Override
     public void doExecuteVoid(VirtualFrame frame) {
+        checkArity(frame);
+        body.doExecuteVoid(frame);
+    }
+
+    @Override
+    public Object execute(VirtualFrame frame) {
+        checkArity(frame);
+        return body.execute(frame);
+    }
+
+    private void checkArity(VirtualFrame frame) {
         final int given = RubyArguments.getArgumentsCount(frame);
 
         if (!checkArity(arity, given)) {
@@ -48,13 +62,7 @@ public class CheckArityNode extends RubyContextSourceNode {
         }
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        doExecuteVoid(frame);
-        return nil();
-    }
-
-    public static boolean checkArity(Arity arity, int given) {
+    static boolean checkArity(Arity arity, int given) {
         final int required = arity.getRequired();
 
         if (required != 0 && given < required) {

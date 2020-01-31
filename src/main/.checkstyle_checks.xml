@@ -178,6 +178,14 @@
       <property name="format" value='@Cached\("create\(\)"\)'/>
       <property name="message" value='Replace @Cached("create()") with @Cached.'/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='@CompilerDirectives\.TruffleBoundary'/>
+      <property name="message" value='Use @TruffleBoundary instead.'/>
+    </module>
+  </module>
+  <module name="RegexpMultiline">
+    <property name="format" value='Node currentNode,\s*RubyContext context'/>
+    <property name="message" value='Pass context first: RubyContext context, Node currentNode'/>
   </module>
   <module name="RegexpMultiline">
     <property name="format" value="\r\n"/>

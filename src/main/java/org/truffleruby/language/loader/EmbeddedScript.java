@@ -11,9 +11,9 @@ package org.truffleruby.language.loader;
 
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 /*
@@ -35,7 +35,7 @@ public class EmbeddedScript {
         return isShebangLine(sourceBytes) || context.getOptions().IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     }
 
-    byte[] transformForExecution(RubyNode currentNode, byte[] sourceBytes, String path) {
+    byte[] transformForExecution(Node currentNode, byte[] sourceBytes, String path) {
         // Guess the transformed output will be no more than twice as long as the input
         final ByteArrayBuilder transformed = new ByteArrayBuilder(sourceBytes.length * 2);
 

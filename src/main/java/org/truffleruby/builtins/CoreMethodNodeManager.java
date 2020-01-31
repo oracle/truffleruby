@@ -9,7 +9,6 @@
  */
 package org.truffleruby.builtins;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
@@ -306,11 +305,9 @@ public class CoreMethodNodeManager {
         }
 
         RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
-
-        final RubyNode checkArity = Translator.createCheckArityNode(sharedMethodInfo.getArity());
-
         node = transformResult(method, node);
-        node = Translator.sequence(null, Arrays.asList(checkArity, node));
+
+        node = Translator.createCheckArityNode(sharedMethodInfo.getArity(), node);
 
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }

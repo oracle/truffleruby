@@ -232,13 +232,12 @@ public class TranslatorDriver {
         context.getCoverageManager().loadingSource(source);
 
         final BodyTranslator translator = new BodyTranslator(
-                currentNode,
                 context,
                 null,
                 environment,
                 source,
                 parserContext,
-                topLevel);
+                currentNode);
 
         printParseTranslateExecuteMetric("before-translate", context, source);
         RubyNode beginNode = null;

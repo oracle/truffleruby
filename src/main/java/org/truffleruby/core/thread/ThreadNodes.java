@@ -68,7 +68,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -341,7 +340,7 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected DynamicObject join(DynamicObject thread, NotProvided timeout) {
-            doJoin(this, thread);
+            doJoin(getContext(), this, thread);
             return thread;
         }
 
@@ -369,10 +368,7 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        public static <T extends RubyNode & RubyNode.WithContext> void doJoin(
-                T currentNode, final DynamicObject thread) {
-
-            final RubyContext context = currentNode.getContext();
+        static void doJoin(RubyContext context, Node currentNode, DynamicObject thread) {
             context.getThreadManager().runUntilResult(currentNode, () -> {
                 Layouts.THREAD.getFinishedLatch(thread).await();
                 return ThreadManager.BlockingAction.SUCCESS;
@@ -472,7 +468,7 @@ public abstract class ThreadNodes {
 
         @Specialization
         protected Object value(DynamicObject self) {
-            JoinNode.doJoin(this, self);
+            JoinNode.doJoin(getContext(), this, self);
             final Object value = Layouts.THREAD.getValue(self);
             assert value != null;
             return value;

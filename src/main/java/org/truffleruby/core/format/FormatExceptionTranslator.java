@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.format;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.format.exceptions.CantCompressNegativeException;
@@ -19,19 +21,14 @@ import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.format.exceptions.OutsideOfStringException;
 import org.truffleruby.core.format.exceptions.RangeException;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.CompilerDirectives;
 
 public abstract class FormatExceptionTranslator {
 
-    @CompilerDirectives.TruffleBoundary
-    public static <T extends RubyNode & RubyNode.WithContext> RuntimeException translate(
-            T currentNode, FormatException exception) {
-
-        final RubyContext context = currentNode.getContext();
-        final CoreExceptions coreExceptions = currentNode.getContext().getCoreExceptions();
+    @TruffleBoundary
+    public static RuntimeException translate(RubyContext context, Node currentNode, FormatException exception) {
+        final CoreExceptions coreExceptions = context.getCoreExceptions();
 
         if (exception instanceof TooFewArgumentsException) {
             return new RaiseException(context, coreExceptions.argumentErrorTooFewArguments(currentNode));

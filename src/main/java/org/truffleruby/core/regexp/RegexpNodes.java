@@ -127,11 +127,11 @@ public abstract class RegexpNodes {
         return strEnc;
     }
 
-    public static void initialize(RubyContext context, DynamicObject regexp, Node currentNode, Rope setSource,
-            int options) {
+    public static void initialize(RubyContext context, DynamicObject regexp, Rope setSource, int options,
+            Node currentNode) {
         assert RubyGuards.isRubyRegexp(regexp);
         final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(options);
-        final Regex regex = TruffleRegexpNodes.compile(currentNode, context, setSource, regexpOptions);
+        final Regex regex = TruffleRegexpNodes.compile(context, setSource, regexpOptions, currentNode);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
@@ -149,7 +149,7 @@ public abstract class RegexpNodes {
 
     public static DynamicObject createRubyRegexp(RubyContext context, Node currentNode, DynamicObjectFactory factory,
             Rope source, RegexpOptions options) {
-        final Regex regexp = TruffleRegexpNodes.compile(currentNode, context, source, options);
+        final Regex regexp = TruffleRegexpNodes.compile(context, source, options, currentNode);
 
         // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
@@ -391,7 +391,7 @@ public abstract class RegexpNodes {
 
         @Specialization(guards = { "!isRegexpLiteral(regexp)", "!isInitialized(regexp)", "isRubyString(pattern)" })
         protected DynamicObject initialize(DynamicObject regexp, DynamicObject pattern, int options) {
-            RegexpNodes.initialize(getContext(), regexp, this, StringOperations.rope(pattern), options);
+            RegexpNodes.initialize(getContext(), regexp, StringOperations.rope(pattern), options, this);
             return regexp;
         }
     }

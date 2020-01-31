@@ -192,9 +192,9 @@ public abstract class MutexNodes {
 
             MutexOperations.unlock(lock, thread);
             try {
-                return KernelNodes.SleepNode.sleepFor(this, getContext(), thread, durationInMillis);
+                return KernelNodes.SleepNode.sleepFor(getContext(), thread, durationInMillis, this);
             } finally {
-                MutexOperations.lockEvenWithExceptions(lock, thread, this);
+                MutexOperations.lockEvenWithExceptions(getContext(), lock, thread, this);
             }
         }
 

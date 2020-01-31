@@ -1739,12 +1739,12 @@ public abstract class KernelNodes {
             // it should only be considered if we are inside the sleep when Thread#{run,wakeup} is called.
             Layouts.THREAD.getWakeUp(thread).set(false);
 
-            return sleepFor(this, getContext(), thread, durationInMillis);
+            return sleepFor(getContext(), thread, durationInMillis, this);
         }
 
         @TruffleBoundary
-        public static long sleepFor(Node currentNode, RubyContext context, DynamicObject thread,
-                long durationInMillis) {
+        public static long sleepFor(RubyContext context, DynamicObject thread, long durationInMillis,
+                Node currentNode) {
             assert durationInMillis >= 0;
 
             // We want a monotonic clock to measure sleep duration
@@ -1803,7 +1803,7 @@ public abstract class KernelNodes {
                         new Object[]{ arguments, arguments.length, isTaintedNode.executeIsTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(this, e);
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishFormat(cachedFormatLength, result);
@@ -1826,7 +1826,7 @@ public abstract class KernelNodes {
                         new Object[]{ arguments, arguments.length, isTaintedNode.executeIsTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
-                throw FormatExceptionTranslator.translate(this, e);
+                throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
             return finishFormat(Layouts.STRING.getRope(format).byteLength(), result);

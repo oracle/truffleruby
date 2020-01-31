@@ -11,10 +11,10 @@ package org.truffleruby.core.format.unpack;
 
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.format.LoopRecovery;
 import org.truffleruby.core.format.pack.SimplePackParser;
-import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -22,9 +22,9 @@ import com.oracle.truffle.api.Truffle;
 public class UnpackCompiler {
 
     private final RubyContext context;
-    private final RubyNode currentNode;
+    private final Node currentNode;
 
-    public UnpackCompiler(RubyContext context, RubyNode currentNode) {
+    public UnpackCompiler(RubyContext context, Node currentNode) {
         this.context = context;
         this.currentNode = currentNode;
     }

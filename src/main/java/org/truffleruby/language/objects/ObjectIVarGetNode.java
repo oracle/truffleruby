@@ -57,11 +57,11 @@ public abstract class ObjectIVarGetNode extends RubyBaseNode {
     }
 
     protected Object checkName(RubyContext context, DynamicObject object, Object name, boolean checkName) {
-        return checkName(this, context, object, name, checkName);
+        return checkName(context, object, name, checkName, this);
     }
 
     static Object checkName(
-            Node currentNode, RubyContext context, DynamicObject object, Object name, boolean checkName) {
+            RubyContext context, DynamicObject object, Object name, boolean checkName, Node currentNode) {
         return checkName ? SymbolTable.checkInstanceVariableName(context, (String) name, object, currentNode) : name;
     }
 

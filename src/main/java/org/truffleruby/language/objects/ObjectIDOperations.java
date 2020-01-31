@@ -17,13 +17,13 @@ import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 
@@ -113,7 +113,7 @@ public abstract class ObjectIDOperations {
         return big;
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     public static long verySlowGetObjectID(RubyContext context, DynamicObject object) {
         // TODO(CS): we should specialise on reading this in the #object_id method and anywhere else it's used
         Property property = object.getShape().getProperty(Layouts.OBJECT_ID_IDENTIFIER);

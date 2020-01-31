@@ -11,6 +11,7 @@ package org.truffleruby.extra.ffi;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -27,7 +28,6 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -46,15 +46,16 @@ public abstract class PointerNodes {
 
     public static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
 
-    public static <T extends RubyNode & RubyNode.WithContext> void checkNull(
-            Pointer ptr, T node, BranchProfile nullPointerProfile) {
+    public static void checkNull(
+            Pointer ptr, RubyContext context, Node currentNode, BranchProfile nullPointerProfile) {
 
         if (ptr.isNull()) {
             nullPointerProfile.enter();
-            final RubyContext context = node.getContext();
             throw new RaiseException(
                     context,
-                    context.getCoreExceptions().ffiNullPointerError("invalid memory access at address=0x0", node));
+                    context.getCoreExceptions().ffiNullPointerError(
+                            "invalid memory access at address=0x0",
+                            currentNode));
         }
     }
 
@@ -63,7 +64,7 @@ public abstract class PointerNodes {
         private final BranchProfile nullPointerProfile = BranchProfile.create();
 
         protected void checkNull(Pointer ptr) {
-            PointerNodes.checkNull(ptr, this, nullPointerProfile);
+            PointerNodes.checkNull(ptr, getContext(), this, nullPointerProfile);
         }
 
     }

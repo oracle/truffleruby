@@ -65,15 +65,15 @@ public class MethodTranslator extends BodyTranslator {
     private final boolean shouldLazyTranslate;
 
     public MethodTranslator(
-            Node currentNode,
             RubyContext context,
             BodyTranslator parent,
             TranslatorEnvironment environment,
             boolean isBlock,
             Source source,
             ParserContext parserContext,
+            Node currentNode,
             ArgsParseNode argsNode) {
-        super(currentNode, context, parent, environment, source, parserContext, false);
+        super(context, parent, environment, source, parserContext, currentNode);
         this.isBlock = isBlock;
         this.argsNode = argsNode;
 
@@ -156,11 +156,7 @@ public class MethodTranslator extends BodyTranslator {
             preludeProc = loadArguments;
         }
 
-        final RubyNode checkArity = createCheckArityNode(arityForCheck);
-
-        final RubyNode preludeLambda = sequence(
-                sourceSection,
-                Arrays.asList(checkArity, NodeUtil.cloneNode(loadArguments)));
+        final RubyNode preludeLambda = createCheckArityNode(arityForCheck, NodeUtil.cloneNode(loadArguments));
 
         if (!translatingForStatement) {
             // Make sure to declare block-local variables
@@ -279,10 +275,10 @@ public class MethodTranslator extends BodyTranslator {
 
         final SourceIndexLength bodySourceSection = body.getSourceIndexLength();
 
-        final RubyNode checkArity = createCheckArityNode(arity);
-        checkArity.unsafeSetSourceSection(sourceSection);
-
-        body = sequence(bodySourceSection, Arrays.asList(checkArity, loadArguments, body));
+        body = createCheckArityNode(
+                arity,
+                sequence(bodySourceSection, Arrays.asList(loadArguments, body)));
+        body.unsafeSetSourceSection(sourceSection);
 
         if (environment.getFlipFlopStates().size() > 0) {
             body = sequence(bodySourceSection, Arrays.asList(initFlipFlopStates(sourceSection), body));
@@ -381,10 +377,10 @@ public class MethodTranslator extends BodyTranslator {
         }
 
         final ReloadArgumentsTranslator reloadTranslator = new ReloadArgumentsTranslator(
-                currentNode,
                 context,
                 source,
                 parserContext,
+                currentNode,
                 this);
 
         final ArgsParseNode argsNode = methodArgumentsTranslator.argsNode;

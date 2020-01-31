@@ -11,6 +11,7 @@ package org.truffleruby.core.mutex;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -43,18 +44,18 @@ public abstract class MutexOperations {
     }
 
     @TruffleBoundary
-    protected static <T extends RubyNode & RubyNode.WithContext> void lockEvenWithExceptions(
-            ReentrantLock lock, DynamicObject thread, T currentNode) {
+    protected static void lockEvenWithExceptions(
+            RubyContext context, ReentrantLock lock, DynamicObject thread, Node currentNode) {
         // We need to re-lock this lock after a Mutex#sleep, no matter what, even if another thread throw us an exception.
         // Yet, we also need to allow safepoints to happen otherwise the thread that could unlock could be blocked.
         try {
-            internalLockEvenWithException(lock, currentNode, currentNode.getContext());
+            internalLockEvenWithException(context, lock, currentNode);
         } finally {
             Layouts.THREAD.getOwnedLocks(thread).add(lock);
         }
     }
 
-    protected static void internalLockEvenWithException(ReentrantLock lock, RubyNode currentNode, RubyContext context) {
+    protected static void internalLockEvenWithException(RubyContext context, ReentrantLock lock, Node currentNode) {
         if (lock.isHeldByCurrentThread()) {
             throw new RaiseException(context, context.getCoreExceptions().threadErrorRecursiveLocking(currentNode));
         }
