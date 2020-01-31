@@ -528,7 +528,7 @@ public abstract class StringNodes {
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
         @Child private CallDispatchHeadNode toLongNode;
-        @Child private SizeNode sizeNode = SizeNode.create();
+        @Child private RopeNodes.CharacterLengthNode charLengthNode;
         private final BranchProfile outOfBounds = BranchProfile.create();
 
         // endregion
@@ -536,19 +536,16 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object getIndex(VirtualFrame frame, DynamicObject string, int index, NotProvided length) {
-            // Check for the only difference from str[index, 1]
-            if (index == sizeNode.execute(string)) {
-                outOfBounds.enter();
-                return nil();
-            }
-            return getSubstringNode().execute(frame, string, index, 1);
+            return index == charLength(string) // Check for the only difference from str[index, 1]
+                    ? outOfBoundsNil()
+                    : substring(frame, string, index, 1);
         }
 
         @Specialization
         protected Object getIndex(VirtualFrame frame, DynamicObject string, long index, NotProvided length) {
             int indexInt = (int) index;
             return indexInt != index
-                    ? nil() // the index cannot possibly be in the string
+                    ? outOfBoundsNil()
                     : getIndex(frame, string, indexInt, length);
         }
 
@@ -562,7 +559,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object slice(VirtualFrame frame, DynamicObject string, int start, int length) {
-            return getSubstringNode().execute(frame, string, start, length);
+            return substring(frame, string, start, length);
         }
 
         @Specialization
@@ -574,8 +571,8 @@ public abstract class StringNodes {
 
             final int startInt = (int) start;
             return startInt != start
-                    ? nil() // the index cannot possibly be in the string
-                    : getSubstringNode().execute(frame, string, startInt, lengthInt);
+                    ? outOfBoundsNil()
+                    : substring(frame, string, startInt, lengthInt);
         }
 
         @Specialization(guards = "wasProvided(length)")
@@ -649,8 +646,7 @@ public abstract class StringNodes {
                 boolean excludesEnd) {
             final int beginInt = (int) begin;
             if (beginInt != begin) {
-                // The begin index cannot possibly be in the string.
-                return nil();
+                return outOfBoundsNil();
             }
 
             int endInt = (int) end;
@@ -662,49 +658,29 @@ public abstract class StringNodes {
             return sliceRange(frame, string, beginInt, endInt, excludesEnd);
         }
 
-        private Object sliceRange(VirtualFrame frame, DynamicObject string, int begin, int end,
-                boolean excludesEnd) {
-            if (normalizeIndexNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                normalizeIndexNode = insert(NormalizeIndexNode.create());
-            }
-
-            final int stringLength = sizeNode.execute(string);
-            begin = normalizeIndexNode.executeNormalize(begin, stringLength);
+        private Object sliceRange(VirtualFrame frame, DynamicObject string, int begin, int end, boolean excludesEnd) {
+            final int stringLength = charLength(string);
+            begin = normalizeIndex(begin, stringLength);
 
             if (begin < 0 || begin > stringLength) {
-                outOfBounds.enter();
-                return nil();
-            } else {
-
-                if (begin == stringLength) {
-                    final RopeBuilder builder = new RopeBuilder();
-                    builder.setEncoding(encoding(string));
-                    return allocateObjectNode.allocate(
-                            Layouts.BASIC_OBJECT.getLogicalClass(string),
-                            Layouts.STRING.build(
-                                    false,
-                                    false,
-                                    RopeOperations
-                                            .withEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
-                }
-
-                // TODO probably redundant
-                end = normalizeIndexNode.executeNormalize(end, stringLength);
-                int length = StringOperations.clampExclusiveIndex(string, excludesEnd ? end : end + 1);
-
-                if (end > stringLength) {
-                    end = stringLength;
-                }
-
-                length -= begin;
-
-                if (length < 0) {
-                    length = 0;
-                }
-
-                return getSubstringNode().execute(frame, string, begin, length);
+                return outOfBoundsNil();
             }
+
+            if (begin == stringLength) {
+                final RopeBuilder builder = new RopeBuilder();
+                builder.setEncoding(encoding(string));
+                return allocateObjectNode.allocate(
+                        Layouts.BASIC_OBJECT.getLogicalClass(string),
+                        Layouts.STRING.build(
+                                false,
+                                false,
+                                RopeOperations
+                                        .withEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
+            }
+
+            end = normalizeIndex(end, stringLength);
+            int length = StringOperations.clampExclusiveIndex(stringLength, excludesEnd ? end : end + 1) - begin;
+            return substring(frame, string, begin, Math.max(length, 0));
         }
 
         // endregion
@@ -767,15 +743,20 @@ public abstract class StringNodes {
         }
 
         // endregion
-        // region Lazy Children
+        // region Helpers
 
-        private StringSubstringPrimitiveNode getSubstringNode() {
+        private DynamicObject outOfBoundsNil() {
+            outOfBounds.enter();
+            return nil();
+        }
+
+        private Object substring(VirtualFrame frame, DynamicObject string, int start, int length) {
             if (substringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 substringNode = insert(StringSubstringPrimitiveNodeFactory.create(null));
             }
 
-            return substringNode;
+            return substringNode.execute(frame, string, start, length);
         }
 
         private long toLong(VirtualFrame frame, Object value) {
@@ -786,6 +767,24 @@ public abstract class StringNodes {
 
             // The Number dance is necessary otherwise we might attempt to cast Integer into Long, which is invalid.
             return ((Number) toLongNode.call(coreLibrary().truffleTypeModule, "rb_num2long", value)).longValue();
+        }
+
+        private int charLength(DynamicObject string) {
+            if (charLengthNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                charLengthNode = insert(RopeNodes.CharacterLengthNode.create());
+            }
+
+            return charLengthNode.execute(rope(string));
+        }
+
+        private int normalizeIndex(int index, int length) {
+            if (normalizeIndexNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                normalizeIndexNode = insert(NormalizeIndexNode.create());
+            }
+
+            return normalizeIndexNode.executeNormalize(index, length);
         }
 
         // endregion

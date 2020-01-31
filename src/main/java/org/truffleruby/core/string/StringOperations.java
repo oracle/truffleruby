@@ -63,9 +63,8 @@ public abstract class StringOperations {
         return RopeOperations.decodeRope(StringOperations.rope(string));
     }
 
-    public static int clampExclusiveIndex(DynamicObject string, int index) {
-        // TODO (nirvdrum 21-Jan-16): Verify this is supposed to be the byteLength and not the characterLength.
-        return ArrayOperations.clampExclusiveIndex(StringOperations.rope(string).byteLength(), index);
+    public static int clampExclusiveIndex(int length, int index) {
+        return ArrayOperations.clampExclusiveIndex(length, index);
     }
 
     @TruffleBoundary
