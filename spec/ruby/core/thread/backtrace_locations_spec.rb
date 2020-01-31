@@ -46,6 +46,14 @@ describe "Thread#backtrace_locations" do
     locations1[2..-2].map(&:to_s).should == locations3.map(&:to_s)
   end
 
+  ruby_version_is "2.6" do
+    it "can be called with an endless range" do
+      locations1 = caller_locations(0)
+      locations2 = caller_locations(2..)
+      locations1[2..].map(&:to_s).should == locations2.map(&:to_s)
+    end
+  end
+
   it "returns nil if omitting more locations than available" do
     Thread.current.backtrace_locations(100).should == nil
     Thread.current.backtrace_locations(100..-1).should == nil
