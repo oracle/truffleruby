@@ -511,6 +511,10 @@ module Utilities
     end
   end
 
+  def git_clone(*args)
+    mx('sclone', '--kind', 'git', *args)
+  end
+
   def run_mspec(env_vars, command = 'run', *args)
     mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec']
     Dir.chdir(TRUFFLERUBY_DIR) do
@@ -1390,7 +1394,7 @@ EOS
         abort 'Need a git remote in truffleruby with the internal repository URL'
       end
       url = Remotes.url(Remotes.bitbucket).sub('truffleruby', name)
-      sh 'git', 'clone', url
+      git_clone(url, gem_test_pack)
     end
 
     # Unset variable set by the pre-commit hook which confuses git
@@ -1851,7 +1855,7 @@ EOS
       if bitbucket_ee_url == github_ee_url
         raise "#{ee_path} is missing and could not be cloned using urlrewrite, clone the repository manually or setup the urlrewrite rules"
       end
-      raw_sh 'git', 'clone', bitbucket_ee_url, ee_path
+      git_clone(bitbucket_ee_url, ee_path)
     end
 
     raw_sh 'git', '-C', ee_path, 'fetch', 'origin'
