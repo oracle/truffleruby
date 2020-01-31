@@ -61,6 +61,20 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected final static String TO_STR = "to_str";
     protected final static String IS_A = "is_a?";
     protected final static String KIND_OF = "kind_of?";
+    protected final static String OBJECT_ID = "object_id";
+    protected final static String ID = "__id__";
+
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "cachedName.equals(OBJECT_ID) || cachedName.equals(ID)",
+                    "args.length == 0" },
+            limit = "1")
+    protected Object objectId(
+            Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName) {
+        return System.identityHashCode(receiver);
+    }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(INDEX_READ)", "args.length == 1" }, limit = "1")
     protected Object indexRead(
@@ -138,7 +152,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
 
     protected static boolean canHaveBadArguments(String cachedName) {
         return cachedName.equals(INDEX_READ) || cachedName.equals(INDEX_WRITE) || cachedName.equals(SEND) ||
-                cachedName.equals(NIL) || cachedName.equals(EQUAL);
+                cachedName.equals(NIL) || cachedName.equals(EQUAL) || cachedName.equals(OBJECT_ID) ||
+                cachedName.equals(ID);
     }
 
     protected static boolean badArity(Object[] args, int cachedArity, String cachedName) {
@@ -154,9 +169,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object withBadArguments(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached(
-                    value = "expectedArity(cachedName)",
-                    allowUncached = true) /* @Cached.Shared("arity") */ int cachedArity,
+            @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
                 context,
@@ -175,6 +188,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case TO_S:
             case TO_STR:
             case NIL:
+            case OBJECT_ID:
+            case ID:
                 return 0;
             case RESPOND_TO:
             case DELETE:
@@ -231,9 +246,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object redirectToTruffleInterop(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached(
-                    value = "expectedArity(cachedName)",
-                    allowUncached = true) /* @Cached.Shared("arity") */ int cachedArity,
+            @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
             @Cached(value = "specialToInteropMethod(cachedName)", allowUncached = true) String interopMethodName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("createPrivate()") @Shared("dispatch") CallDispatchHeadNode callDispatchHeadNode,

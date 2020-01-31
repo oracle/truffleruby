@@ -40,7 +40,8 @@ module Truffle
           if arg.equal? nil
             str = ''
           elsif arg.kind_of?(String)
-            str = arg
+            # might be a Foreign String we need to convert
+            str = arg.to_str
           elsif Thread.guarding? arg
             str = '[...]'
           elsif (ary = Truffle::Type.rb_check_convert_type(arg, Array, :to_ary))

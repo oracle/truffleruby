@@ -21,6 +21,7 @@ Bug fixes:
 * Fixed `Dir#children` implementation.
 * Fixed `SignalException.new` error when bad parameter given.
 * Added deprecation warning to `Kernel#=~`.
+* Fixed `puts` for a foreign objects, e.g. `puts Polyglot.eval('js', '[]')` (#1881) 
 
 Compatibility:
 
