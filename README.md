@@ -37,7 +37,7 @@ There are three ways to install TruffleRuby:
       ruby-version: truffleruby
   ```
 
-You can use `gem` to install Gems as normal.
+You can use `gem` and `bundle` to install Gems as normal.
 
 Please report any issue you might find on [GitHub](https://github.com/oracle/truffleruby/issues).
 
