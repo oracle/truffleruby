@@ -431,8 +431,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local gate = gate_no_build + $.use.build,
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
-      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "35:00" },
+      "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "40:00" },
+      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "40:00" },
       "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:20:00" },
       "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate + $.run.test_unit_tck_specs + $.run.test_basictest + { timelimit: "01:20:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
