@@ -99,7 +99,6 @@ TruffleRuby is actively tested on these systems:
 * Ubuntu 16.04 LTS
 * Fedora 28
 * macOS 10.14 (Mojave)
-* macOS 10.13 (High Sierra)
 
 You may find that TruffleRuby will not work if you severely restrict the
 environment, for example by unmounting system filesystems such as `/dev/shm`.
