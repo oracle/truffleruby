@@ -614,7 +614,11 @@ module Kernel
 
   def caller(start = 1, limit = nil)
     args = if start.is_a? Range
-             [start.begin + 1, start.size]
+             if start.end == nil
+               [start.begin + 1]
+             else
+               [start.begin + 1, start.size]
+             end
            elsif limit.nil?
              [start + 1]
            else
