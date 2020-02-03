@@ -118,11 +118,36 @@ class Exception
     end
   end
 
-  def full_message(highlight: undefined, order: :bottom)
-    bt = backtrace || caller(1..1)
-    "#{bt[0]}: #{Truffle::ExceptionOperations.message_and_class(self)}\n" + bt[1..-1].map do |l|
-      "\tfrom #{l}\n"
-    end.join
+  def full_message(highlight: nil, order: undefined)
+    highlight = if highlight.equal?(nil)
+                  Truffle::ExceptionOperations.original_std_err_tty?
+                else
+                  raise ArgumentError, "expected true of false as highlight: #{highlight}" unless highlight.equal?(true) || highlight.equal?(false)
+                  !highlight.equal?(false)
+                end
+    reverse = if TrufflePrimitive.undefined?(order)
+                Truffle::ExceptionOperations.original_std_err_tty?
+              else
+                raise ArgumentError, "expected :top or :bottom as order: #{order}" unless order.equal?(:top) || order.equal?(:bottom)
+                !order.equal?(:top)
+              end
+
+    result = ''.b
+    bt = backtrace || caller(1)
+    if reverse
+      traceback_msg = if highlight
+                        "\e[1mTraceback\e[m (most recent call last):\n"
+                      else
+                        "Traceback (most recent call last):\n"
+                      end
+      result << traceback_msg
+      Truffle::ExceptionOperations.append_causes(result, self, {}.compare_by_identity, reverse, highlight)
+      result << Truffle::ExceptionOperations.backtrace_message(highlight, reverse, bt, self)
+    else
+      result << Truffle::ExceptionOperations.backtrace_message(highlight, reverse, bt, self)
+      Truffle::ExceptionOperations.append_causes(result, self, {}.compare_by_identity, reverse, highlight)
+    end
+    result
   end
 
   class << self
@@ -147,6 +172,10 @@ class Exception
 
   def location
     [context.file.to_s, context.line]
+  end
+
+  def self.to_tty?
+    Truffle::ExceptionOperations.original_std_err_tty?
   end
 end
 
