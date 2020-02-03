@@ -34,6 +34,7 @@ Compatibility:
 * Implemented `-p` CLI option.
 * Implemented "instance variable not initialized" warning.
 * Implemented `-p` and `-a` CLI options.
+* Implemented `Dir#each_child`.
 
 Performance:
 

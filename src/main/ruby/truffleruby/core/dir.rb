@@ -138,6 +138,15 @@ class Dir
     ret
   end
 
+  def each_child
+    return to_enum(:each_child) unless block_given?
+
+    while s = read
+      yield s unless s == '.' or s == '..'
+    end
+    self
+  end
+
   def inspect
     "#<#{self.class}:#{@path}>"
   end
