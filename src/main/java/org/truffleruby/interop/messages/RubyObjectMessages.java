@@ -83,6 +83,89 @@ public class RubyObjectMessages {
         }
     }
 
+    @ExportMessage
+    public static Object readArrayElement(
+            DynamicObject receiver, long index,
+            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
+        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
+        try {
+            return helperNode.executeStringCachingHelper(receiver, index);
+        } catch (UnknownIdentifierException e) {
+            errorProfile.enter();
+            throw new IllegalStateException("never happens");
+        }
+    }
+
+    @ExportMessage
+    public static void writeArrayElement(
+            DynamicObject receiver,
+            long index,
+            Object value,
+            @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) {
+        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
+        try {
+            helperNode.executeStringCachingHelper(receiver, index, foreignToRubyNode.executeConvert(value));
+        } catch (UnknownIdentifierException e) {
+            errorProfile.enter();
+            throw new IllegalStateException("never happens");
+        }
+    }
+
+    @ExportMessage
+    public static void removeArrayElement(DynamicObject receiver, long index) throws UnsupportedMessageException {
+        throw UnsupportedMessageException.create();
+    }
+
+
+    @ExportMessage
+    public static boolean isArrayElementReadable(
+            DynamicObject receiver, long index,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_readable") @Cached CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().truffleInteropModule,
+                "object_key_readable?",
+                receiver,
+                index);
+    }
+
+    @ExportMessage
+    public static boolean isArrayElementModifiable(
+            DynamicObject receiver, long index,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_modifiable") @Cached CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().truffleInteropModule,
+                "object_key_modifiable?",
+                receiver,
+                index);
+    }
+
+    @ExportMessage
+    public static boolean isArrayElementInsertable(DynamicObject receiver, long index,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_insertable") @Cached CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().truffleInteropModule,
+                "object_key_insertable?",
+                receiver,
+                index);
+    }
+
+    @ExportMessage
+    public static boolean isArrayElementRemovable(DynamicObject receiver, long index,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Shared("object_key_removable") @Cached CallDispatchHeadNode dispatchNode) {
+        return (boolean) dispatchNode.call(
+                context.getCoreLibrary().truffleInteropModule,
+                "object_key_removable?",
+                receiver,
+                index);
+    }
+
     // FIXME (pitr 18-Mar-2019): replace #unbox support with testing #to_int etc.
     //   since if an object had un-box method it could be have been un-boxed
     @ExportMessage
@@ -147,82 +230,6 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static Object readArrayElement(DynamicObject receiver, long index,
-            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
-        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
-        try {
-            return helperNode.executeStringCachingHelper(receiver, index);
-        } catch (UnknownIdentifierException e) {
-            errorProfile.enter();
-            throw new IllegalStateException("never happens");
-        }
-    }
-
-    @ExportMessage
-    public static boolean isArrayElementReadable(
-            DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_readable") @Cached CallDispatchHeadNode dispatchNode) {
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_readable?",
-                receiver,
-                index);
-    }
-
-    @ExportMessage
-    public static boolean isArrayElementModifiable(
-            DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_modifiable") @Cached CallDispatchHeadNode dispatchNode) {
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_modifiable?",
-                receiver,
-                index);
-    }
-
-    @ExportMessage
-    public static boolean isArrayElementInsertable(DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_insertable") @Cached CallDispatchHeadNode dispatchNode) {
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_insertable?",
-                receiver,
-                index);
-    }
-
-    @ExportMessage
-    public static boolean isArrayElementRemovable(DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_removable") @Cached CallDispatchHeadNode dispatchNode) {
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_removable?",
-                receiver,
-                index);
-    }
-
-    @ExportMessage
-    public static void writeArrayElement(
-            DynamicObject receiver,
-            long index,
-            Object value,
-            @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) {
-        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
-        try {
-            helperNode.executeStringCachingHelper(receiver, index, foreignToRubyNode.executeConvert(value));
-        } catch (UnknownIdentifierException e) {
-            errorProfile.enter();
-            throw new IllegalStateException("never happens");
-        }
-    }
-
-    @ExportMessage
     public static void writeMember(
             DynamicObject receiver,
             String name,
@@ -231,11 +238,6 @@ public class RubyObjectMessages {
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         helperNode.executeStringCachingHelper(receiver, name, foreignToRubyNode.executeConvert(value));
-    }
-
-    @ExportMessage
-    public static void removeArrayElement(DynamicObject receiver, long index) throws UnsupportedMessageException {
-        throw UnsupportedMessageException.create();
     }
 
     @ExportMessage
