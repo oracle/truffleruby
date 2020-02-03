@@ -43,34 +43,46 @@ class String
 
   Truffle::Graal.always_split(instance_method(:to_sym))
 
+  private def range_begin(range, size)
+    first = Truffle::Type.rb_num2int range.begin
+    first += size if first < 0
+    first
+  end
+
+  private def range_end(range, size)
+    last = range.end
+    return size - 1 if last.equal? nil
+    last = Truffle::Type.rb_num2int last
+    last += size if last < 0
+    last -= 1 if range.exclude_end?
+    last
+  end
+
   def byteslice(index_or_range, length=undefined)
+    # Handles the (int index) and (int index, int length) forms.
     str = TrufflePrimitive.string_byte_substring self, index_or_range, length
     return str unless TrufflePrimitive.undefined?(str)
 
-    if index_or_range.kind_of? Range
-      index = Truffle::Type.rb_num2int(index_or_range.begin)
-      index += bytesize if index < 0
+    # Convert to (int index, int length) form.
+    if Range === index_or_range && TrufflePrimitive.undefined?(length)
+      index = range_begin(index_or_range, bytesize)
       return if index < 0 or index > bytesize
-
-      finish = Truffle::Type.rb_num2int(index_or_range.end)
-      finish += bytesize if finish < 0
-
-      finish += 1 unless index_or_range.exclude_end?
-      length = finish - index
-
+      finish = range_end(index_or_range, bytesize)
+      length = finish + 1 - index
       return byteslice 0, 0 if length < 0
     else
-      index = Truffle::Type.rb_num2int(index_or_range)
+      index = Truffle::Type.rb_num2long(index_or_range)
       index += bytesize if index < 0
 
       if TrufflePrimitive.undefined?(length)
         return if index == bytesize
         length = 1
       else
-        length = Truffle::Type.rb_num2int(length)
+        length = Truffle::Type.rb_num2long(length)
         return if length < 0
       end
 
+      length = bytesize unless TrufflePrimitive.integer_fits_into_int(index)
       return if index < 0 or index > bytesize
     end
 

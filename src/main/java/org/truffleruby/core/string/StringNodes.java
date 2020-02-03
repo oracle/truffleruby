@@ -98,6 +98,7 @@ import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -520,115 +521,64 @@ public abstract class StringNodes {
             taintFrom = 0,
             argumentNames = { "index_start_range_string_or_regexp", "length_capture" })
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
+        //region Fields
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
-        @Child private CallDispatchHeadNode toIntNode;
-        @Child private SizeNode sizeNode = SizeNode.create();
-
+        @Child private CallDispatchHeadNode toLongNode;
+        @Child private LongCastNode longCastNode;
+        @Child private RopeNodes.CharacterLengthNode charLengthNode;
         private final BranchProfile outOfBounds = BranchProfile.create();
 
+        // endregion
+        // region GetIndex Specializations
+
         @Specialization
-        protected Object getIndex(VirtualFrame frame, DynamicObject string, int index, NotProvided length) {
-            // Check for the only difference from str[index, 1]
-            if (index == sizeNode.execute(string)) {
-                outOfBounds.enter();
-                return nil();
-            }
-            return getSubstringNode().execute(frame, string, index, 1);
+        protected Object getIndex(DynamicObject string, int index, NotProvided length) {
+            return index == charLength(string) // Check for the only difference from str[index, 1]
+                    ? outOfBoundsNil()
+                    : substring(string, index, 1);
+        }
+
+        @Specialization
+        protected Object getIndex(DynamicObject string, long index, NotProvided length) {
+            assert (int) index != index; // verified via lowerFixnum
+            return outOfBoundsNil();
         }
 
         @Specialization(guards = { "!isRubyRange(index)", "!isRubyRegexp(index)", "!isRubyString(index)" })
-        protected Object getIndex(VirtualFrame frame, DynamicObject string, Object index, NotProvided length) {
-            return getIndex(frame, string, toInt(frame, index), length);
+        protected Object getIndex(DynamicObject string, Object index, NotProvided length) {
+            long indexLong = toLong(index);
+            int indexInt = (int) indexLong;
+            return indexInt != indexLong
+                    ? outOfBoundsNil()
+                    : getIndex(string, indexInt, length);
         }
 
-        @Specialization(guards = "isIntRange(range)")
-        protected Object sliceIntegerRange(VirtualFrame frame, DynamicObject string, DynamicObject range,
-                NotProvided length) {
-            return sliceRange(
-                    frame,
-                    string,
-                    Layouts.INT_RANGE.getBegin(range),
-                    Layouts.INT_RANGE.getEnd(range),
-                    Layouts.INT_RANGE.getExcludedEnd(range));
-        }
+        // endregion
+        // region Two-Arg Slice Specializations
 
-        @Specialization(guards = "isLongRange(range)")
-        protected Object sliceLongRange(VirtualFrame frame, DynamicObject string, DynamicObject range,
-                NotProvided length) {
-            // TODO (nirvdrum 31-Mar-15) The begin and end values should be properly lowered, only if possible.
-            return sliceRange(
-                    frame,
-                    string,
-                    (int) Layouts.LONG_RANGE.getBegin(range),
-                    (int) Layouts.LONG_RANGE.getEnd(range),
-                    Layouts.LONG_RANGE.getExcludedEnd(range));
-        }
-
-        @Specialization(guards = "isObjectRange(range)")
-        protected Object sliceObjectRange(VirtualFrame frame, DynamicObject string, DynamicObject range,
-                NotProvided length) {
-            // TODO (nirvdrum 31-Mar-15) The begin and end values may return Fixnums beyond int boundaries and we should handle that -- Bignums are always errors.
-            final int coercedBegin = toInt(frame, Layouts.OBJECT_RANGE.getBegin(range));
-            final int coercedEnd = toInt(frame, Layouts.OBJECT_RANGE.getEnd(range));
-
-            return sliceRange(frame, string, coercedBegin, coercedEnd, Layouts.OBJECT_RANGE.getExcludedEnd(range));
-        }
-
-        private Object sliceRange(VirtualFrame frame, DynamicObject string, int begin, int end,
-                boolean doesExcludeEnd) {
-            if (normalizeIndexNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                normalizeIndexNode = insert(NormalizeIndexNode.create());
-            }
-
-            final int stringLength = sizeNode.execute(string);
-            begin = normalizeIndexNode.executeNormalize(begin, stringLength);
-
-            if (begin < 0 || begin > stringLength) {
-                outOfBounds.enter();
-                return nil();
-            } else {
-
-                if (begin == stringLength) {
-                    final RopeBuilder builder = new RopeBuilder();
-                    builder.setEncoding(encoding(string));
-                    return allocateObjectNode.allocate(
-                            Layouts.BASIC_OBJECT.getLogicalClass(string),
-                            Layouts.STRING.build(
-                                    false,
-                                    false,
-                                    RopeOperations
-                                            .withEncoding(RopeConstants.EMPTY_ASCII_8BIT_ROPE, encoding(string))));
-                }
-
-                end = normalizeIndexNode.executeNormalize(end, stringLength);
-                int length = StringOperations.clampExclusiveIndex(string, doesExcludeEnd ? end : end + 1);
-
-                if (length > stringLength) {
-                    length = stringLength;
-                }
-
-                length -= begin;
-
-                if (length < 0) {
-                    length = 0;
-                }
-
-                return getSubstringNode().execute(frame, string, begin, length);
-            }
+        @Specialization
+        protected Object slice(DynamicObject string, int start, int length) {
+            return substring(string, start, length);
         }
 
         @Specialization
-        protected Object slice(VirtualFrame frame, DynamicObject string, int start, int length) {
-            return getSubstringNode().execute(frame, string, start, length);
+        protected Object slice(DynamicObject string, long start, long length) {
+            int lengthInt = (int) length;
+            if (lengthInt != length) {
+                lengthInt = Integer.MAX_VALUE; // go to end of string
+            }
+
+            final int startInt = (int) start;
+            return startInt != start
+                    ? outOfBoundsNil()
+                    : substring(string, startInt, lengthInt);
         }
 
         @Specialization(guards = "wasProvided(length)")
-        protected Object slice(VirtualFrame frame, DynamicObject string, int start, Object length) {
-            return slice(frame, string, start, toInt(frame, length));
+        protected Object slice(DynamicObject string, long start, Object length) {
+            return slice(string, start, toLong(length));
         }
 
         @Specialization(
@@ -637,16 +587,85 @@ public abstract class StringNodes {
                         "!isRubyRegexp(start)",
                         "!isRubyString(start)",
                         "wasProvided(length)" })
-        protected Object slice(VirtualFrame frame, DynamicObject string, Object start, Object length) {
-            return slice(frame, string, toInt(frame, start), toInt(frame, length));
+        protected Object slice(DynamicObject string, Object start, Object length) {
+            return slice(string, toLong(start), toLong(length));
         }
 
+        // endregion
+        // region Range Slice Specializations
+
+        @Specialization(guards = "isIntRange(range)")
+        protected Object sliceIntegerRange(DynamicObject string, DynamicObject range, NotProvided length) {
+            return sliceRange(
+                    string,
+                    Layouts.INT_RANGE.getBegin(range),
+                    Layouts.INT_RANGE.getEnd(range),
+                    Layouts.INT_RANGE.getExcludedEnd(range));
+        }
+
+        @Specialization(guards = "isLongRange(range)")
+        protected Object sliceLongRange(DynamicObject string, DynamicObject range, NotProvided length) {
+            return sliceRange(
+                    string,
+                    Layouts.LONG_RANGE.getBegin(range),
+                    Layouts.LONG_RANGE.getEnd(range),
+                    Layouts.LONG_RANGE.getExcludedEnd(range));
+        }
+
+        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(getContext(), range)" })
+        protected Object sliceEndlessRange(DynamicObject string, DynamicObject range, NotProvided length) {
+            boolean excludesEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
+            return sliceRange(
+                    string,
+                    toLong(Layouts.OBJECT_RANGE.getBegin(range)),
+                    // Get until the end of the string.
+                    excludesEnd ? Integer.MAX_VALUE : Integer.MAX_VALUE - 1,
+                    excludesEnd);
+        }
+
+        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(getContext(), range)" })
+        protected Object sliceObjectRange(DynamicObject string, DynamicObject range, NotProvided length) {
+            return sliceRange(
+                    string,
+                    toLong(Layouts.OBJECT_RANGE.getBegin(range)),
+                    toLong(Layouts.OBJECT_RANGE.getEnd(range)),
+                    Layouts.OBJECT_RANGE.getExcludedEnd(range));
+        }
+
+        // endregion
+        // region Range Slice Logic
+
+        private Object sliceRange(DynamicObject string, long begin, long end, boolean excludesEnd) {
+            final int beginInt = (int) begin;
+            if (beginInt != begin) {
+                return outOfBoundsNil();
+            }
+
+            int endInt = (int) end;
+            if (endInt != end) {
+                // Get until the end of the string.
+                endInt = excludesEnd ? Integer.MAX_VALUE : Integer.MAX_VALUE - 1;
+            }
+
+            return sliceRange(string, beginInt, endInt, excludesEnd);
+        }
+
+        private Object sliceRange(DynamicObject string, int begin, int end, boolean excludesEnd) {
+            final int stringLength = charLength(string);
+            begin = normalizeIndex(begin, stringLength);
+            if (begin < 0 || begin > stringLength) {
+                return outOfBoundsNil();
+            }
+            end = normalizeIndex(end, stringLength);
+            int length = StringOperations.clampExclusiveIndex(stringLength, excludesEnd ? end : end + 1) - begin;
+            return substring(string, begin, Math.max(length, 0));
+        }
+
+        // endregion
+        // region Regexp Slice Specializations
+
         @Specialization(guards = "isRubyRegexp(regexp)")
-        protected Object slice1(
-                VirtualFrame frame,
-                DynamicObject string,
-                DynamicObject regexp,
-                NotProvided capture,
+        protected Object slice1(VirtualFrame frame, DynamicObject string, DynamicObject regexp, NotProvided capture,
                 @Cached("createPrivate()") CallDispatchHeadNode callNode,
                 @Cached("createPrivate()") CallDispatchHeadNode setLastMatchNode,
                 @Cached ReadCallerFrameNode readCallerNode) {
@@ -654,11 +673,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isRubyRegexp(regexp)", "wasProvided(capture)" })
-        protected Object sliceCapture(
-                VirtualFrame frame,
-                DynamicObject string,
-                DynamicObject regexp,
-                Object capture,
+        protected Object sliceCapture(VirtualFrame frame, DynamicObject string, DynamicObject regexp, Object capture,
                 @Cached("createPrivate()") CallDispatchHeadNode callNode,
                 @Cached("createPrivate()") CallDispatchHeadNode setLastMatchNode,
                 @Cached ReadCallerFrameNode readCallerNode) {
@@ -679,8 +694,11 @@ public abstract class StringNodes {
             return array[1];
         }
 
+        // endregion
+        // region String Slice Specialization
+
         @Specialization(guards = "isRubyString(matchStr)")
-        protected Object slice2(VirtualFrame frame, DynamicObject string, DynamicObject matchStr, NotProvided length,
+        protected Object slice2(DynamicObject string, DynamicObject matchStr, NotProvided length,
                 @Cached("createPrivate()") CallDispatchHeadNode includeNode,
                 @Cached BooleanCastNode booleanCastNode,
                 @Cached("createPrivate()") CallDispatchHeadNode dupNode) {
@@ -694,23 +712,56 @@ public abstract class StringNodes {
             return nil();
         }
 
-        private StringSubstringPrimitiveNode getSubstringNode() {
+        // endregion
+        // region Helpers
+
+        private DynamicObject outOfBoundsNil() {
+            outOfBounds.enter();
+            return nil();
+        }
+
+        private Object substring(DynamicObject string, int start, int length) {
             if (substringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 substringNode = insert(StringSubstringPrimitiveNodeFactory.create(null));
             }
 
-            return substringNode;
+            return substringNode.execute(string, start, length);
         }
 
-        private int toInt(VirtualFrame frame, Object value) {
-            if (toIntNode == null) {
+        private long toLong(Object value) {
+            if (toLongNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(CallDispatchHeadNode.createPrivate());
+                toLongNode = insert(CallDispatchHeadNode.createPrivate());
+            }
+            if (longCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                longCastNode = insert(LongCastNode.create());
             }
 
-            return (int) toIntNode.call(coreLibrary().truffleTypeModule, "rb_num2int", value);
+            // The long cast is necessary to avoid the invalid `(long) Integer` situation.
+            return longCastNode.executeCastLong(toLongNode.call(coreLibrary().truffleTypeModule, "rb_num2long", value));
         }
+
+        private int charLength(DynamicObject string) {
+            if (charLengthNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                charLengthNode = insert(RopeNodes.CharacterLengthNode.create());
+            }
+
+            return charLengthNode.execute(rope(string));
+        }
+
+        private int normalizeIndex(int index, int length) {
+            if (normalizeIndexNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                normalizeIndexNode = insert(NormalizeIndexNode.create());
+            }
+
+            return normalizeIndexNode.executeNormalize(index, length);
+        }
+
+        // endregion
     }
 
     @CoreMethod(names = "ascii_only?")
@@ -4728,7 +4779,7 @@ public abstract class StringNodes {
                 .create();
         @Child private RopeNodes.SubstringNode substringNode;
 
-        public abstract Object execute(VirtualFrame frame, DynamicObject string, int index, int length);
+        public abstract Object execute(DynamicObject string, int index, int length);
 
         @Specialization(
                 guards = {
