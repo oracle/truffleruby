@@ -98,6 +98,7 @@ import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToIntNodeGen;
@@ -527,6 +528,7 @@ public abstract class StringNodes {
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
         @Child private CallDispatchHeadNode toLongNode;
+        @Child private LongCastNode longCastNode;
         @Child private RopeNodes.CharacterLengthNode charLengthNode;
         private final BranchProfile outOfBounds = BranchProfile.create();
 
@@ -731,9 +733,13 @@ public abstract class StringNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toLongNode = insert(CallDispatchHeadNode.createPrivate());
             }
+            if (longCastNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                longCastNode = insert(LongCastNode.create());
+            }
 
-            // The Number dance is necessary otherwise we might attempt to cast Integer into Long, which is invalid.
-            return ((Number) toLongNode.call(coreLibrary().truffleTypeModule, "rb_num2long", value)).longValue();
+            // The long cast is necessary to avoid the invalid `(long) Integer` situation.
+            return longCastNode.executeCastLong(toLongNode.call(coreLibrary().truffleTypeModule, "rb_num2long", value));
         }
 
         private int charLength(DynamicObject string) {
