@@ -54,11 +54,12 @@ Calls `new`, passing the arguments as you'd expect.
 
 ### `HAS_SIZE`
 
-Returns `true` only for `Array`.
+Returns `true` for `Array` and any Object having `#polyglot_array?` method
+returning `true`.
 
 ### `GET_SIZE`
 
-Call `size` on the object.
+Return size of the `Array` or call `#polyglot_array_size`.
 
 ### `IS_BOXED`
 

@@ -66,6 +66,68 @@ module TruffleInteropSpecs
     end
   end
 
+  class PolyglotArray
+    attr_reader :log
+
+    def initialize
+      @log = []
+      @storage = []
+    end
+
+    def polyglot_array?
+      @log << [__callee__]
+      true
+    end
+
+    def polyglot_array_size
+      @log << [__callee__]
+      @storage.size
+    end
+
+    def polyglot_array_read(index)
+      @log << [__callee__, index]
+      @storage[index]
+    end
+
+    def polyglot_array_write(index, value)
+      @log << [__callee__, index, value]
+      @storage[index] = value
+      nil
+    end
+
+    def polyglot_array_remove(index)
+      @log << [__callee__, index]
+      if index == @storage.size - 1
+        @storage.pop
+      else
+        # TODO (pitr-ch 28-Jan-2020): what should be raised? there should be a protocol
+        raise
+      end
+      nil
+    end
+
+    def polyglot_array_readable?(index)
+      @log << [__callee__, index]
+      index >= 0 && index < @storage.size
+    end
+
+    def polyglot_array_modifiable?(index)
+      @log << [__callee__, index]
+      index >= 0 && index < @storage.size
+    end
+
+    def polyglot_array_insertable?(index)
+      @log << [__callee__, index]
+      #  ignoring that it should fit into int
+      index >= @storage.size
+    end
+
+    def polyglot_array_removable?(index)
+      @log << [__callee__, index]
+      index == @storage.size - 1
+    end
+  end
+
   class ReadHasIndex
     attr_reader :key
 
