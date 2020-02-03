@@ -99,8 +99,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                 config.appendOptionValue(OptionsCatalog.LOAD_PATHS, path);
             }
 
-            if (config.detectBundler()) {
-                // Apply options to run Bundler more efficiently
+            if (config.isGemOrBundle()) {
+                // Apply options to run gem/bundle more efficiently
                 if (isAOT()) {
                     args.add(0, "--vm.Xmn1g");
                 }
@@ -267,8 +267,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
             builder.option(OptionsCatalog.EMBEDDED.getName(), "false");
         }
 
-        if (config.detectBundler() && getImplementationNameFromEngine().contains("Graal")) {
-            // Apply options to run Bundler more efficiently
+        if (config.isGemOrBundle() && getImplementationNameFromEngine().contains("Graal")) {
+            // Apply options to run gem/bundle more efficiently
             builder.option("engine.Mode", "latency");
         }
 
