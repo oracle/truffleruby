@@ -270,6 +270,9 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         if (config.isGemOrBundle() && getImplementationNameFromEngine().contains("Graal")) {
             // Apply options to run gem/bundle more efficiently
             builder.option("engine.Mode", "latency");
+            if (Boolean.getBoolean("truffleruby.launcher.log")) {
+                System.err.println("[ruby] CONFIG: detected gem or bundle command, using --engine.Mode=latency");
+            }
         }
 
         builder.options(config.getOptions());
