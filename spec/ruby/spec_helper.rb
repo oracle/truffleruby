@@ -3,9 +3,6 @@ root = File.dirname(__FILE__)
 dir = "fixtures/code"
 CODE_LOADING_DIR = use_realpath ? File.realpath(dir, root) : File.expand_path(dir, root)
 
-# Don't run ruby/spec as root
-raise 'ruby/spec is not designed to be run as root' if Process.uid == 0
-
 # Enable Thread.report_on_exception by default to catch thread errors earlier
 if Thread.respond_to? :report_on_exception=
   Thread.report_on_exception = true
