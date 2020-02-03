@@ -54,7 +54,7 @@ class String
     return size - 1 if last.equal? nil
     last = Truffle::Type.rb_num2int last
     last += size if last < 0
-    last -=1 if range.exclude_end?
+    last -= 1 if range.exclude_end?
     last
   end
 
