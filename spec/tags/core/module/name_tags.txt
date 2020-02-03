@@ -1,1 +1,1 @@
-fails:Module#name returns nil for a singleton class object
+fails:Module#name returns nil for a singleton class

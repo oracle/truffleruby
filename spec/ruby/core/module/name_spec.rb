@@ -18,9 +18,10 @@ describe "Module#name" do
     m::N.name.should =~ /\A#<Module:0x[0-9a-f]+>::N\z/
   end
 
-  it "returns nil for a singleton class object" do
-    m = Module.new
-    m.singleton_class.name.should be_nil
+  it "returns nil for a singleton class" do
+    Module.new.singleton_class.name.should be_nil
+    String.singleton_class.name.should be_nil
+    Object.new.singleton_class.name.should be_nil
   end
 
   it "changes when the module is reachable through a constant path" do
