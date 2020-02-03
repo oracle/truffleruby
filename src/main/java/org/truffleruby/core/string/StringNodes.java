@@ -544,15 +544,17 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object getIndex(DynamicObject string, long index, NotProvided length) {
-            int indexInt = (int) index;
-            return indexInt != index
-                    ? outOfBoundsNil()
-                    : getIndex(string, indexInt, length);
+            assert (int) index != index; // verified via lowerFixnum
+            return outOfBoundsNil();
         }
 
         @Specialization(guards = { "!isRubyRange(index)", "!isRubyRegexp(index)", "!isRubyString(index)" })
         protected Object getIndex(DynamicObject string, Object index, NotProvided length) {
-            return getIndex(string, toLong(index), length);
+            long indexLong = toLong(index);
+            int indexInt = (int) indexLong;
+            return indexInt != indexLong
+                    ? outOfBoundsNil()
+                    : getIndex(string, indexInt, length);
         }
 
         // endregion
@@ -582,7 +584,8 @@ public abstract class StringNodes {
         }
 
         @Specialization(
-                guards = {"!isRubyRange(start)",
+                guards = {
+                        "!isRubyRange(start)",
                         "!isRubyRegexp(start)",
                         "!isRubyString(start)",
                         "wasProvided(length)" })
