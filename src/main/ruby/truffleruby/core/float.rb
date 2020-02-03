@@ -129,7 +129,7 @@ class Float < Numeric
   alias_method :phase, :arg
 
   def rationalize(eps=undefined)
-    if TrufflePrimitive.undefined?(eps)
+    if Primitive.undefined?(eps)
       f, n = Math.frexp self
       f = Math.ldexp(f, Float::MANT_DIG).to_i
       n -= Float::MANT_DIG
@@ -141,13 +141,13 @@ class Float < Numeric
   end
 
   def ceil(ndigits=undefined)
-    if TrufflePrimitive.undefined?(ndigits)
-      TrufflePrimitive.float_ceil(self)
+    if Primitive.undefined?(ndigits)
+      Primitive.float_ceil(self)
     else
       ndigits = Truffle::Type.rb_num2int(ndigits)
       return ndigits > 0 ? 0.0 : 0 if self == 0.0
       if ndigits == 0
-        TrufflePrimitive.float_ceil(self)
+        Primitive.float_ceil(self)
       elsif ndigits > 0
         _, exp = Math.frexp(self)
         if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
@@ -157,23 +157,23 @@ class Float < Numeric
           # float is too small to be represent by ndigits, return 0.0
           0.0
         else
-          TrufflePrimitive.float_ceil_ndigits(self, ndigits)
+          Primitive.float_ceil_ndigits(self, ndigits)
         end
       else
-        ceiled = TrufflePrimitive.float_ceil(self)
+        ceiled = Primitive.float_ceil(self)
         ceiled.ceil(ndigits)
       end
     end
   end
 
   def floor(ndigits=undefined)
-    if TrufflePrimitive.undefined?(ndigits)
-      TrufflePrimitive.float_floor(self)
+    if Primitive.undefined?(ndigits)
+      Primitive.float_floor(self)
     else
       ndigits = Truffle::Type.rb_num2int(ndigits)
       return ndigits > 0 ? 0.0 : 0 if self == 0.0
       if ndigits == 0
-        TrufflePrimitive.float_floor(self)
+        Primitive.float_floor(self)
       elsif ndigits > 0
         _, exp = Math.frexp(self)
         if ndigits >= (Float::DIG + 2) - (exp > 0 ? exp / 4 : exp / 3 - 1)
@@ -183,17 +183,17 @@ class Float < Numeric
           # float is too small to be represent by ndigits, return 0.0
           0.0
         else
-          TrufflePrimitive.float_floor_ndigits(self, ndigits)
+          Primitive.float_floor_ndigits(self, ndigits)
         end
       else
-        floored = TrufflePrimitive.float_floor(self)
+        floored = Primitive.float_floor(self)
         floored.floor(ndigits)
       end
     end
   end
 
   def round(ndigits=undefined, half: nil)
-    if TrufflePrimitive.undefined?(ndigits)
+    if Primitive.undefined?(ndigits)
       if infinite?
         raise FloatDomainError, 'Infinite'
       elsif nan?
@@ -201,11 +201,11 @@ class Float < Numeric
       else
         case half
         when nil, :up
-          TrufflePrimitive.float_round_up(self)
+          Primitive.float_round_up(self)
         when :even
-          TrufflePrimitive.float_round_even(self)
+          Primitive.float_round_even(self)
         when :down
-          TrufflePrimitive.float_round_down(self)
+          Primitive.float_round_down(self)
         else
           raise ArgumentError, "invalid rounding mode: #{half}"
         end

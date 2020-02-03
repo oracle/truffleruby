@@ -34,7 +34,7 @@ class Truffle::Randomizer
   attr_reader :seed
 
   def seed=(new_seed)
-    TrufflePrimitive.randomizer_set_seed self, new_seed
+    Primitive.randomizer_set_seed self, new_seed
     @seed = new_seed
   end
 
@@ -45,7 +45,7 @@ class Truffle::Randomizer
   end
 
   def random(limit)
-    if TrufflePrimitive.undefined?(limit)
+    if Primitive.undefined?(limit)
       random_float
     else
       if limit.kind_of?(Range)
@@ -132,7 +132,7 @@ class Random
   end
 
   def self.srand(seed=undefined)
-    if TrufflePrimitive.undefined? seed
+    if Primitive.undefined? seed
       seed = Thread.current.randomizer.generate_seed
     end
 
@@ -149,12 +149,12 @@ class Random
   end
 
   def self.bytes(length)
-    TrufflePrimitive.randomizer_bytes(Thread.current.randomizer, length)
+    Primitive.randomizer_bytes(Thread.current.randomizer, length)
   end
 
   def initialize(seed=undefined)
     @randomizer = Truffle::Randomizer.new
-    if !TrufflePrimitive.undefined?(seed)
+    if !Primitive.undefined?(seed)
       @randomizer.swap_seed seed.to_int
     end
   end
@@ -180,7 +180,7 @@ class Random
   # Returns a random binary string.
   # The argument size specified the length of the result string.
   def bytes(length)
-    TrufflePrimitive.randomizer_bytes @randomizer, length
+    Primitive.randomizer_bytes @randomizer, length
   end
 end
 

@@ -8,11 +8,11 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "TrufflePrimitive.compiler_bailout" do
+describe "Primitive.compiler_bailout" do
 
   guard -> { !TruffleRuby.jit? } do
     it "returns nil" do
-      TrufflePrimitive.compiler_bailout("message").should be_nil
+      Primitive.compiler_bailout("message").should be_nil
     end
   end
 

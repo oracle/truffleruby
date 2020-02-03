@@ -217,10 +217,10 @@ class Rational < Numeric
   private_constant :CLASS_SALT
 
   def hash
-    val = TrufflePrimitive.vm_hash_start CLASS_SALT
-    val = TrufflePrimitive.vm_hash_update val, @numerator.hash
-    val = TrufflePrimitive.vm_hash_update val, @denominator.hash
-    TrufflePrimitive.vm_hash_end val
+    val = Primitive.vm_hash_start CLASS_SALT
+    val = Primitive.vm_hash_update val, @numerator.hash
+    val = Primitive.vm_hash_update val, @denominator.hash
+    Primitive.vm_hash_end val
   end
 
   def inspect
@@ -228,7 +228,7 @@ class Rational < Numeric
   end
 
   def rationalize(eps = undefined)
-    return self if TrufflePrimitive.undefined?(eps)
+    return self if Primitive.undefined?(eps)
 
     e = eps.abs
     a = self - e

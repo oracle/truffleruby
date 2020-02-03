@@ -30,10 +30,10 @@ module Kernel
   def catch(tag = Object.new, &block)
     raise LocalJumpError unless block_given?
 
-    tags = TrufflePrimitive.fiber_get_catch_tags
+    tags = Primitive.fiber_get_catch_tags
     tags << tag
     begin
-      TrufflePrimitive.vm_catch tag, block
+      Primitive.vm_catch tag, block
     ensure
       tags.pop
     end
@@ -41,11 +41,11 @@ module Kernel
   module_function :catch
 
   def throw(tag, value=nil)
-    tags = TrufflePrimitive.fiber_get_catch_tags
+    tags = Primitive.fiber_get_catch_tags
 
     tags.each do |c|
-      if TrufflePrimitive.object_equal(c, tag)
-        TrufflePrimitive.vm_throw tag, value
+      if Primitive.object_equal(c, tag)
+        Primitive.vm_throw tag, value
       end
     end
 

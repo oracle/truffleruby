@@ -113,7 +113,7 @@ module Enumerable
 
   def count(item = undefined)
     seq = 0
-    if !TrufflePrimitive.undefined?(item)
+    if !Primitive.undefined?(item)
       warn 'given block not used', uplevel: 1 if block_given?
       each { |o| seq += 1 if item == o }
     elsif block_given?
@@ -135,7 +135,7 @@ module Enumerable
   def each_with_object(memo)
     return to_enum(:each_with_object, memo) { enumerator_size } unless block_given?
     each do
-      yield TrufflePrimitive.single_block_arg, memo
+      yield Primitive.single_block_arg, memo
     end
     memo
   end
@@ -168,7 +168,7 @@ module Enumerable
   end
 
   def enumerator_size
-    TrufflePrimitive.object_respond_to?(self, :size, false) ? size : nil
+    Primitive.object_respond_to?(self, :size, false) ? size : nil
   end
   private :enumerator_size
 
@@ -177,7 +177,7 @@ module Enumerable
 
     h = {}
     each do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       key = yield(o)
       if h.key?(key)
         h[key] << o
@@ -185,12 +185,12 @@ module Enumerable
         h[key] = [o]
       end
     end
-    TrufflePrimitive.infect h, self
+    Primitive.infect h, self
     h
   end
 
   def slice_after(arg = undefined, &block)
-    has_arg = !(TrufflePrimitive.undefined? arg)
+    has_arg = !(Primitive.undefined? arg)
     if block_given?
       raise ArgumentError, 'both pattern and block are given' if has_arg
     else
@@ -217,12 +217,12 @@ module Enumerable
 
   def slice_before(arg = undefined, &block)
     if block_given?
-      has_init = !(TrufflePrimitive.undefined? arg)
+      has_init = !(Primitive.undefined? arg)
       if has_init
         raise ArgumentError, 'both pattern and block are given'
       end
     else
-      raise ArgumentError, 'wrong number of arguments (0 for 1)' if TrufflePrimitive.undefined? arg
+      raise ArgumentError, 'wrong number of arguments (0 for 1)' if Primitive.undefined? arg
       block = Proc.new{ |elem| arg === elem }
     end
     Enumerator.new do |yielder|
@@ -271,11 +271,11 @@ module Enumerable
   def to_a(*arg)
     ary = []
     each(*arg) do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       ary << o
       nil
     end
-    TrufflePrimitive.infect ary, self
+    Primitive.infect ary, self
     ary
   end
   alias_method :entries, :to_a
@@ -310,7 +310,7 @@ module Enumerable
     results = []
     i = 0
     each do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       entry = args.inject([o]) do |ary, a|
         ary << case a
                when Array
@@ -338,11 +338,11 @@ module Enumerable
     return to_enum(:each_with_index, *args) { enumerator_size } unless block_given?
 
     if Array === self
-      TrufflePrimitive.array_each_with_index(self, block)
+      Primitive.array_each_with_index(self, block)
     else
       idx = 0
       each(*args) do
-        o = TrufflePrimitive.single_block_arg
+        o = Primitive.single_block_arg
         yield o, idx
         idx += 1
       end
@@ -356,7 +356,7 @@ module Enumerable
 
     if block_given?
       each do
-        o = TrufflePrimitive.single_block_arg
+        o = Primitive.single_block_arg
         matches = pattern === o
         Truffle::RegexpOperations.set_last_match($~, block.binding)
         if matches
@@ -365,13 +365,13 @@ module Enumerable
       end
     else
       each do
-        o = TrufflePrimitive.single_block_arg
+        o = Primitive.single_block_arg
         if pattern === o
           ary << o
         end
       end
 
-      Truffle::RegexpOperations.set_last_match($~, TrufflePrimitive.caller_binding)
+      Truffle::RegexpOperations.set_last_match($~, Primitive.caller_binding)
     end
 
     ary
@@ -382,7 +382,7 @@ module Enumerable
 
     if block_given?
       each do
-        o = TrufflePrimitive.single_block_arg
+        o = Primitive.single_block_arg
         matches = pattern === o
         Truffle::RegexpOperations.set_last_match($~, block.binding)
         unless matches
@@ -391,13 +391,13 @@ module Enumerable
       end
     else
       each do
-        o = TrufflePrimitive.single_block_arg
+        o = Primitive.single_block_arg
         unless pattern === o
           ary << o
         end
       end
 
-      Truffle::RegexpOperations.set_last_match($~, TrufflePrimitive.caller_binding)
+      Truffle::RegexpOperations.set_last_match($~, Primitive.caller_binding)
     end
 
     ary
@@ -447,11 +447,11 @@ module Enumerable
 
   def inject(initial=undefined, sym=undefined, &block)
     if Array === self
-      return TrufflePrimitive.array_inject(self, initial, sym, block)
+      return Primitive.array_inject(self, initial, sym, block)
     end
 
-    if !block_given? or !TrufflePrimitive.undefined?(sym)
-      if TrufflePrimitive.undefined?(sym)
+    if !block_given? or !Primitive.undefined?(sym)
+      if Primitive.undefined?(sym)
         sym = initial
         initial = undefined
       end
@@ -461,8 +461,8 @@ module Enumerable
       sym = sym.to_sym
 
       each do
-        o = TrufflePrimitive.single_block_arg
-        if TrufflePrimitive.undefined? initial
+        o = Primitive.single_block_arg
+        if Primitive.undefined? initial
           initial = o
         else
           initial = initial.__send__(sym, o)
@@ -472,8 +472,8 @@ module Enumerable
       # Block version
     else
       each do
-        o = TrufflePrimitive.single_block_arg
-        if TrufflePrimitive.undefined? initial
+        o = Primitive.single_block_arg
+        if Primitive.undefined? initial
           initial = o
         else
           initial = yield(initial, o)
@@ -481,28 +481,28 @@ module Enumerable
       end
     end
 
-    TrufflePrimitive.undefined?(initial) ? nil : initial
+    Primitive.undefined?(initial) ? nil : initial
   end
   alias_method :reduce, :inject
 
   def all?(pattern = undefined)
-    if !TrufflePrimitive.undefined?(pattern)
-      each { return false unless pattern === TrufflePrimitive.single_block_arg }
+    if !Primitive.undefined?(pattern)
+      each { return false unless pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*e| return false unless yield(*e) }
     else
-      each { return false unless TrufflePrimitive.single_block_arg }
+      each { return false unless Primitive.single_block_arg }
     end
     true
   end
 
   def any?(pattern = undefined)
-    if !TrufflePrimitive.undefined?(pattern)
-      each { return true if pattern === TrufflePrimitive.single_block_arg }
+    if !Primitive.undefined?(pattern)
+      each { return true if pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*o| return true if yield(*o) }
     else
-      each { return true if TrufflePrimitive.single_block_arg }
+      each { return true if Primitive.single_block_arg }
     end
     false
   end
@@ -523,7 +523,7 @@ module Enumerable
 
     cache = []
     each do
-      elem = TrufflePrimitive.single_block_arg
+      elem = Primitive.single_block_arg
       cache << elem
       yield elem
     end
@@ -561,7 +561,7 @@ module Enumerable
     ary = []
     dropping = true
     each do
-      obj = TrufflePrimitive.single_block_arg
+      obj = Primitive.single_block_arg
       ary << obj unless dropping &&= yield(obj)
     end
 
@@ -587,7 +587,7 @@ module Enumerable
 
     array = []
     each do
-      element = TrufflePrimitive.single_block_arg
+      element = Primitive.single_block_arg
       array << element
       array.shift if array.size > n
       yield array.dup if array.size == n
@@ -608,7 +608,7 @@ module Enumerable
 
     a = []
     each do
-      element = TrufflePrimitive.single_block_arg
+      element = Primitive.single_block_arg
       a << element
       if a.length == n
         yield a
@@ -624,7 +624,7 @@ module Enumerable
     return to_enum(:find, ifnone) unless block_given?
 
     each do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       return o if yield(o)
     end
 
@@ -638,7 +638,7 @@ module Enumerable
 
     ary = []
     each do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       ary << o if yield(o)
     end
     ary
@@ -648,7 +648,7 @@ module Enumerable
   alias_method :filter, :find_all
 
   def find_index(value=undefined)
-    if TrufflePrimitive.undefined? value
+    if Primitive.undefined? value
       return to_enum(:find_index) unless block_given?
 
       i = 0
@@ -661,7 +661,7 @@ module Enumerable
 
       i = 0
       each do
-        e = TrufflePrimitive.single_block_arg
+        e = Primitive.single_block_arg
         return i if e == value
         i += 1
       end
@@ -670,13 +670,13 @@ module Enumerable
   end
 
   def first(n=undefined)
-    return __take__(n) unless TrufflePrimitive.undefined?(n)
+    return __take__(n) unless Primitive.undefined?(n)
     each { |obj| return obj }
     nil
   end
 
   def min(n = undefined, &block)
-    return min_n(n, &block) if !TrufflePrimitive.undefined?(n) && !n.nil?
+    return min_n(n, &block) if !Primitive.undefined?(n) && !n.nil?
     min_max(-1, &block)
   end
 
@@ -689,7 +689,7 @@ module Enumerable
   private :min_n
 
   def max(n = undefined, &block)
-    return max_n(n, &block) if !TrufflePrimitive.undefined?(n) && !n.nil?
+    return max_n(n, &block) if !Primitive.undefined?(n) && !n.nil?
     min_max(+1, &block)
   end
 
@@ -704,8 +704,8 @@ module Enumerable
   def min_max(relative)
     chosen = undefined
     each do
-      o = TrufflePrimitive.single_block_arg
-      if TrufflePrimitive.undefined? chosen
+      o = Primitive.single_block_arg
+      if Primitive.undefined? chosen
         chosen = o
       else
         comp = block_given? ? yield(o, chosen) : o <=> chosen
@@ -719,7 +719,7 @@ module Enumerable
       end
     end
 
-    TrufflePrimitive.undefined?(chosen) ? nil : chosen
+    Primitive.undefined?(chosen) ? nil : chosen
   end
   private :min_max
 
@@ -738,10 +738,10 @@ module Enumerable
     max_result = undefined
 
     each do
-      object = TrufflePrimitive.single_block_arg
+      object = Primitive.single_block_arg
       result = yield object
 
-      if TrufflePrimitive.undefined?(max_result) or \
+      if Primitive.undefined?(max_result) or \
            Truffle::Type.coerce_to_comparison(max_result, result) < 0
         max_object = object
         max_result = result
@@ -766,10 +766,10 @@ module Enumerable
     min_result = undefined
 
     each do
-      object = TrufflePrimitive.single_block_arg
+      object = Primitive.single_block_arg
       result = yield object
 
-      if TrufflePrimitive.undefined?(min_result) or \
+      if Primitive.undefined?(min_result) or \
            Truffle::Type.coerce_to_comparison(min_result, result) > 0
         min_object = object
         min_result = result
@@ -794,7 +794,7 @@ module Enumerable
     min, max = nil
 
     each do
-      object = TrufflePrimitive.single_block_arg
+      object = Primitive.single_block_arg
       if first_time
         min = max = object
         first_time = false
@@ -824,16 +824,16 @@ module Enumerable
     max_result = undefined
 
     each do
-      object = TrufflePrimitive.single_block_arg
+      object = Primitive.single_block_arg
       result = yield object
 
-      if TrufflePrimitive.undefined?(min_result) or \
+      if Primitive.undefined?(min_result) or \
            Truffle::Type.coerce_to_comparison(min_result, result) > 0
         min_object = object
         min_result = result
       end
 
-      if TrufflePrimitive.undefined?(max_result) or \
+      if Primitive.undefined?(max_result) or \
            Truffle::Type.coerce_to_comparison(max_result, result) < 0
         max_object = object
         max_result = result
@@ -844,12 +844,12 @@ module Enumerable
   end
 
   def none?(pattern = undefined)
-    if !TrufflePrimitive.undefined?(pattern)
-      each { return false if pattern === TrufflePrimitive.single_block_arg }
+    if !Primitive.undefined?(pattern)
+      each { return false if pattern === Primitive.single_block_arg }
     elsif block_given?
       each { |*o| return false if yield(*o) }
     else
-      each { return false if TrufflePrimitive.single_block_arg }
+      each { return false if Primitive.single_block_arg }
     end
 
     true
@@ -858,9 +858,9 @@ module Enumerable
   def one?(pattern = undefined)
     found_one = false
 
-    if !TrufflePrimitive.undefined?(pattern)
+    if !Primitive.undefined?(pattern)
       each do
-        if pattern === TrufflePrimitive.single_block_arg
+        if pattern === Primitive.single_block_arg
           return false if found_one
           found_one = true
         end
@@ -874,7 +874,7 @@ module Enumerable
       end
     else
       each do
-        if TrufflePrimitive.single_block_arg
+        if Primitive.single_block_arg
           return false if found_one
           found_one = true
         end
@@ -890,7 +890,7 @@ module Enumerable
     left = []
     right = []
     each do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       yield(o) ? left.push(o) : right.push(o)
     end
 
@@ -902,7 +902,7 @@ module Enumerable
 
     ary = []
     each do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       ary << o unless yield(o)
     end
 
@@ -925,7 +925,7 @@ module Enumerable
 
     unless n <= 0
       each do
-        elem = TrufflePrimitive.single_block_arg
+        elem = Primitive.single_block_arg
         array << elem
         break if array.size >= n
       end
@@ -949,7 +949,7 @@ module Enumerable
   end
 
   def include?(obj)
-    each { return true if TrufflePrimitive.single_block_arg == obj }
+    each { return true if Primitive.single_block_arg == obj }
     false
   end
   alias_method :member?, :include?

@@ -9,13 +9,13 @@
 abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
 
 def init_once
-  $init_once ||= (TrufflePrimitive.compiler_bailout('init_once compiled'); true)
+  $init_once ||= (Primitive.compiler_bailout('init_once compiled'); true)
 end
 
 begin
   loop do
     init_once
-    TrufflePrimitive.assert_not_compiled
+    Primitive.assert_not_compiled
   end
 rescue Exception => e
   if e.message.include? 'assert_not_compiled'
@@ -28,7 +28,7 @@ rescue Exception => e
 end
 
 def init_many
-  $init_many ||= (TrufflePrimitive.assert_not_compiled; true)
+  $init_many ||= (Primitive.assert_not_compiled; true)
 end
 
 begin
@@ -45,14 +45,14 @@ rescue Exception => e
 end
 
 def init_never
-  $init_never ||= (TrufflePrimitive.compiler_bailout('init_never compiled'); true)
+  $init_never ||= (Primitive.compiler_bailout('init_never compiled'); true)
 end
 
 begin
   $init_never = true
   loop do
     init_never
-    TrufflePrimitive.assert_not_compiled
+    Primitive.assert_not_compiled
   end
 rescue Exception => e
   if e.message.include? 'assert_not_compiled'

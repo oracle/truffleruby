@@ -114,7 +114,7 @@ class Exception
     cause = self.cause
     out << ms.serialize_fixnum(cause ? number_of_ivars + 1 : number_of_ivars)
     out << ms.serialize(:mesg)
-    out << ms.serialize(TrufflePrimitive.exception_message(self))
+    out << ms.serialize(Primitive.exception_message(self))
     out << ms.serialize(:bt)
     out << ms.serialize(self.backtrace)
     if cause
@@ -156,7 +156,7 @@ class Time
     out << ms.serialize_integer(count)
 
     ivars.each do |ivar|
-      val = TrufflePrimitive.object_ivar_get self, ivar
+      val = Primitive.object_ivar_get self, ivar
       out << ms.serialize(ivar)
       out << ms.serialize(val)
     end
@@ -173,12 +173,12 @@ end
 module Marshal
   class State
     def serialize_encoding?(obj)
-      enc = TrufflePrimitive.encoding_get_object_encoding obj
+      enc = Primitive.encoding_get_object_encoding obj
       enc && enc != Encoding::BINARY
     end
 
     def serialize_encoding(obj)
-      enc = TrufflePrimitive.encoding_get_object_encoding obj
+      enc = Primitive.encoding_get_object_encoding obj
       case enc
       when Encoding::US_ASCII
         :E.__send__(:__marshal__, self) + false.__send__(:__marshal__, self)
@@ -220,7 +220,7 @@ module Marshal
           end
         end
 
-        TrufflePrimitive.object_ivar_set obj, prepare_ivar(ivar), value
+        Primitive.object_ivar_set obj, prepare_ivar(ivar), value
       end
     end
 
@@ -243,7 +243,7 @@ module Marshal
           end
         end
 
-        TrufflePrimitive.string_initialize(obj, bytes, Encoding::ASCII_8BIT)
+        Primitive.string_initialize(obj, bytes, Encoding::ASCII_8BIT)
       else
         obj = bytes
       end
@@ -276,7 +276,7 @@ class Range
     out << ms.serialize(:excl)
     out << ms.serialize(self.exclude_end?)
     ivars.each do |ivar|
-      val = TrufflePrimitive.object_ivar_get self, ivar
+      val = Primitive.object_ivar_get self, ivar
       out << ms.serialize(ivar)
       out << ms.serialize(val)
     end
@@ -419,7 +419,7 @@ class Time
     nano_num = obj.instance_variable_get(:@nano_num)
     nano_den = obj.instance_variable_get(:@nano_den)
     if nano_num && nano_den
-      TrufflePrimitive.time_set_nseconds(obj,
+      Primitive.time_set_nseconds(obj,
         Rational(nano_num, nano_den).to_i)
     end
 
@@ -542,7 +542,7 @@ module Marshal
     end
 
     def add_non_immediate_object(obj)
-      return if TrufflePrimitive.object_kind_of? obj, ImmediateValue
+      return if Primitive.object_kind_of? obj, ImmediateValue
       add_object(obj)
     end
 
@@ -725,7 +725,7 @@ module Marshal
 
       store_unique_object obj
 
-      unless TrufflePrimitive.object_respond_to? obj, :_load_data, false
+      unless Primitive.object_respond_to? obj, :_load_data, false
         raise TypeError,
               "class #{name} needs to have instance method `_load_data'"
       end
@@ -863,7 +863,7 @@ module Marshal
             [klass, slot, members[i]]
         end
 
-        TrufflePrimitive.object_hidden_var_set obj, slot, construct
+        Primitive.object_hidden_var_set obj, slot, construct
       end
 
       obj
@@ -892,7 +892,7 @@ module Marshal
 
       data = get_byte_sequence
 
-      if TrufflePrimitive.object_respond_to? klass, :__construct__, false
+      if Primitive.object_respond_to? klass, :__construct__, false
         return klass.__construct__(self, data, ivar_index, @has_ivar)
       end
 
@@ -917,7 +917,7 @@ module Marshal
 
       extend_object obj if @modules
 
-      unless TrufflePrimitive.object_respond_to? obj, :marshal_load, true
+      unless Primitive.object_respond_to? obj, :marshal_load, true
         raise TypeError, "instance of #{klass} needs to have method `marshal_load'"
       end
 
@@ -984,9 +984,9 @@ module Marshal
         add_non_immediate_object obj
 
         # ORDER MATTERS.
-        if TrufflePrimitive.object_respond_to? obj, :marshal_dump, true
+        if Primitive.object_respond_to? obj, :marshal_dump, true
           str = serialize_user_marshal obj
-        elsif TrufflePrimitive.object_respond_to? obj, :_dump, true
+        elsif Primitive.object_respond_to? obj, :_dump, true
           str = serialize_user_defined obj
         else
           str = obj.__send__ :__marshal__, self
@@ -995,19 +995,19 @@ module Marshal
 
       @depth += 1
 
-      TrufflePrimitive.infect(str, obj)
+      Primitive.infect(str, obj)
     end
 
     def serialize_extended_object(obj)
       str = +''
-      TrufflePrimitive.vm_extended_modules obj, -> mod do
+      Primitive.vm_extended_modules obj, -> mod do
         str << "e#{serialize(mod.name.to_sym)}"
       end
       Truffle::Type.binary_string(str)
     end
 
     def serializable_instance_variables(obj, exclude_ivars)
-      ivars = TrufflePrimitive.object_ivars obj
+      ivars = Primitive.object_ivars obj
       ivars -= exclude_ivars if exclude_ivars
       ivars
     end
@@ -1042,7 +1042,7 @@ module Marshal
       str = ''.b
 
       ivars.each do |ivar|
-        val = TrufflePrimitive.object_ivar_get obj, ivar
+        val = Primitive.object_ivar_get obj, ivar
         str << serialize(ivar)
         str << serialize(val)
       end
@@ -1122,13 +1122,13 @@ module Marshal
     end
 
     def serialize_user_defined(obj)
-      if TrufflePrimitive.object_respond_to? obj, :__custom_marshal__, false
+      if Primitive.object_respond_to? obj, :__custom_marshal__, false
         return obj.__custom_marshal__(self)
       end
 
       str = obj.__send__ :_dump, @depth
 
-      unless TrufflePrimitive.object_kind_of? str, String
+      unless Primitive.object_kind_of? str, String
         raise TypeError, '_dump() must return string'
       end
 
@@ -1167,13 +1167,13 @@ module Marshal
         value = construct
         case ivar
         when :bt
-          TrufflePrimitive.object_ivar_set obj, :@custom_backtrace, value
+          Primitive.object_ivar_set obj, :@custom_backtrace, value
         when :mesg
-          TrufflePrimitive.exception_set_message obj, value
+          Primitive.exception_set_message obj, value
         when :cause
-          TrufflePrimitive.exception_set_cause obj, value
+          Primitive.exception_set_cause obj, value
         else # Regular instance variable
-          TrufflePrimitive.object_ivar_set obj, ivar, value
+          Primitive.object_ivar_set obj, ivar, value
         end
       end
     end
@@ -1190,7 +1190,7 @@ module Marshal
         raise TypeError, 'dump format error' unless Object === obj
 
         store_unique_object obj
-        if TrufflePrimitive.object_kind_of? obj, Exception
+        if Primitive.object_kind_of? obj, Exception
           set_exception_variables obj
         else
           set_instance_variables obj
@@ -1228,7 +1228,7 @@ module Marshal
       store_unique_object range
 
       ivars.each do |name, value|
-        TrufflePrimitive.object_ivar_set range, name, value
+        Primitive.object_ivar_set range, name, value
       end
 
       range
@@ -1275,7 +1275,7 @@ module Marshal
 
   def self.dump(obj, an_io=nil, limit=nil)
     unless limit
-      if TrufflePrimitive.object_kind_of? an_io, Integer
+      if Primitive.object_kind_of? an_io, Integer
         limit = an_io
         an_io = nil
       else
@@ -1287,10 +1287,10 @@ module Marshal
     ms = State.new nil, depth, nil
 
     if an_io
-      unless TrufflePrimitive.object_respond_to? an_io, :write, false
+      unless Primitive.object_respond_to? an_io, :write, false
         raise TypeError, 'output must respond to write'
       end
-      if TrufflePrimitive.object_respond_to? an_io, :binmode, false
+      if Primitive.object_respond_to? an_io, :binmode, false
         an_io.binmode
       end
     end
@@ -1306,7 +1306,7 @@ module Marshal
   end
 
   def self.load(obj, prc = nil)
-    if TrufflePrimitive.object_respond_to? obj, :to_str, false
+    if Primitive.object_respond_to? obj, :to_str, false
       data = obj.to_s
 
       major = data.getbyte 0
@@ -1314,8 +1314,8 @@ module Marshal
 
       ms = StringState.new data, nil, prc
 
-    elsif TrufflePrimitive.object_respond_to? obj, :read, false and
-          TrufflePrimitive.object_respond_to? obj, :getc, false
+    elsif Primitive.object_respond_to? obj, :read, false and
+          Primitive.object_respond_to? obj, :getc, false
       ms = IOState.new obj, nil, prc
 
       major = ms.consume_byte

@@ -74,7 +74,7 @@ module Truffle
 
       if String === pattern
         index = byte_index(orig, pattern, 0)
-        match = index ? TrufflePrimitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
+        match = index ? Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
       else
         pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
         match = pattern.search_region(orig, 0, orig.bytesize, true)
@@ -113,7 +113,7 @@ module Truffle
 
         if String === pattern
           index = byte_index(orig, pattern, offset)
-          match = index ? TrufflePrimitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
+          match = index ? Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
         else
           match = pattern.match_from orig, offset
         end
@@ -138,7 +138,7 @@ module Truffle
       byte_count_to_copy = sz - dest_offset if byte_count_to_copy > sz - dest_offset
 
       replacement = other.byteslice(other_offset, byte_count_to_copy)
-      TrufflePrimitive.string_splice(string, replacement, dest_offset, byte_count_to_copy, string.encoding)
+      Primitive.string_splice(string, replacement, dest_offset, byte_count_to_copy, string.encoding)
     end
 
     def self.case_mapping_option_to_int(option, downcasing=false)
@@ -194,7 +194,7 @@ module Truffle
     def self.byte_index(src, str, start=0)
       start += src.bytesize if start < 0
       if start < 0 or start > src.bytesize
-        Truffle::RegexpOperations.set_last_match(nil, TrufflePrimitive.caller_binding) if str.kind_of? Regexp
+        Truffle::RegexpOperations.set_last_match(nil, Primitive.caller_binding) if str.kind_of? Regexp
         return nil
       end
 
@@ -202,7 +202,7 @@ module Truffle
 
       Truffle::Type.compatible_encoding src, str
 
-      TrufflePrimitive.string_byte_index(src, str, start)
+      Primitive.string_byte_index(src, str, start)
     end
   end
 end

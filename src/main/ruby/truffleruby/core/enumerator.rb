@@ -52,13 +52,13 @@ class Enumerator
     size = nil
 
     if block_given?
-      unless TrufflePrimitive.undefined? receiver_or_size
+      unless Primitive.undefined? receiver_or_size
         size = receiver_or_size
       end
 
       receiver = Generator.new(&block)
     else
-      if TrufflePrimitive.undefined? receiver_or_size
+      if Primitive.undefined? receiver_or_size
         raise ArgumentError, 'Enumerator#initialize requires a block when called without arguments'
       end
 
@@ -114,7 +114,7 @@ class Enumerator
     idx = 0
 
     each do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       val = yield(o, idx)
       idx += 1
       val
@@ -125,7 +125,7 @@ class Enumerator
     return to_enum(:each_with_object, memo) { size } unless block_given?
 
     each do
-      obj = TrufflePrimitive.single_block_arg
+      obj = Primitive.single_block_arg
       yield obj, memo
     end
     memo
@@ -196,7 +196,7 @@ class Enumerator
     return to_enum(:with_index, offset) { size } unless block_given?
 
     each do
-      o = TrufflePrimitive.single_block_arg
+      o = Primitive.single_block_arg
       val = yield(o, offset)
       offset += 1
       val
@@ -258,7 +258,7 @@ class Enumerator
 
     def initialize(receiver, size=nil)
       raise ArgumentError, 'Lazy#initialize requires a block' unless block_given?
-      TrufflePrimitive.check_frozen self
+      Primitive.check_frozen self
 
       super(size) do |yielder, *each_args|
         begin
@@ -385,7 +385,7 @@ class Enumerator
     end
 
     def grep(pattern, &block)
-      binding = block ? block.binding : TrufflePrimitive.caller_binding
+      binding = block ? block.binding : Primitive.caller_binding
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
@@ -403,7 +403,7 @@ class Enumerator
     end
 
     def grep_v(pattern, &block)
-      binding = block ? block.binding : TrufflePrimitive.caller_binding
+      binding = block ? block.binding : Primitive.caller_binding
 
       Lazy.new(self, nil) do |yielder, *args|
         val = args.length >= 2 ? args : args.first
@@ -435,8 +435,8 @@ class Enumerator
       Lazy.new(self, nil) do |yielder, *args|
         yield_ret = yield(*args)
 
-        if TrufflePrimitive.object_respond_to?(yield_ret, :force, false) &&
-           TrufflePrimitive.object_respond_to?(yield_ret, :each, false)
+        if Primitive.object_respond_to?(yield_ret, :force, false) &&
+           Primitive.object_respond_to?(yield_ret, :each, false)
           yield_ret.each do |v|
             yielder.yield v
           end
@@ -463,7 +463,7 @@ class Enumerator
         case
         when array
           array
-        when TrufflePrimitive.object_respond_to?(list, :each, false)
+        when Primitive.object_respond_to?(list, :each, false)
           list.to_enum :each
         else
           raise TypeError, "wrong argument type #{list.class} (must respond to :each)"
@@ -566,7 +566,7 @@ end
 
 class Enumerator::Chain < Enumerator
   def initialize(*args, &block)
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
     @enums = args.freeze
     @pos = -1
     self

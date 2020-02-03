@@ -37,8 +37,8 @@ module Truffle
     alias $" $LOADED_FEATURES
 
     # The runtime needs to access these values, so we want them to be set in the variable storage.
-    TrufflePrimitive.global_variable_set :$LOAD_PATH, LOAD_PATH
-    TrufflePrimitive.global_variable_set :$LOADED_FEATURES, LOADED_FEATURES
+    Primitive.global_variable_set :$LOAD_PATH, LOAD_PATH
+    Primitive.global_variable_set :$LOADED_FEATURES, LOADED_FEATURES
 
     define_read_only_global(:$*, -> { ARGV })
 
@@ -48,12 +48,12 @@ module Truffle
 
     define_hooked_variable(
       :$/,
-      -> { TrufflePrimitive.global_variable_get :$/ },
+      -> { Primitive.global_variable_get :$/ },
       -> v {
-        if v && !TrufflePrimitive.object_kind_of?(v, String)
+        if v && !Primitive.object_kind_of?(v, String)
           raise TypeError, '$/ must be a String'
         end
-        TrufflePrimitive.global_variable_set :$/, v
+        Primitive.global_variable_set :$/, v
       })
 
     $/ = "\n".freeze
@@ -68,12 +68,12 @@ module Truffle
 
     define_hooked_variable(
       :'$,',
-      -> { TrufflePrimitive.global_variable_get :$, },
+      -> { Primitive.global_variable_get :$, },
       -> v {
-        if v && !TrufflePrimitive.object_kind_of?(v, String)
+        if v && !Primitive.object_kind_of?(v, String)
           raise TypeError, '$, must be a String'
         end
-        TrufflePrimitive.global_variable_set :$,, v
+        Primitive.global_variable_set :$,, v
       })
 
     $, = nil # It should be defined by the time boot has finished.
@@ -82,10 +82,10 @@ module Truffle
 
     define_hooked_variable(
       :$VERBOSE,
-      -> { TrufflePrimitive.global_variable_get :$VERBOSE },
+      -> { Primitive.global_variable_get :$VERBOSE },
       -> v {
         v = v.nil? ? nil : !!v
-        TrufflePrimitive.global_variable_set :$VERBOSE, v
+        Primitive.global_variable_set :$VERBOSE, v
       })
 
     Truffle::Boot.redo do
@@ -106,25 +106,25 @@ module Truffle
 
     define_hooked_variable(
       :$stdout,
-      -> { TrufflePrimitive.global_variable_get :$stdout },
+      -> { Primitive.global_variable_get :$stdout },
       -> v {
         raise TypeError, "$stdout must have a write method, #{v.class} given" unless v.respond_to?(:write)
-        TrufflePrimitive.global_variable_set :$stdout, v
+        Primitive.global_variable_set :$stdout, v
       })
 
     alias $> $stdout
 
     define_hooked_variable(
       :$stderr,
-      -> { TrufflePrimitive.global_variable_get :$stderr },
+      -> { Primitive.global_variable_get :$stderr },
       -> v {
         raise TypeError, "$stderr must have a write method, #{v.class} given" unless v.respond_to?(:write)
-        TrufflePrimitive.global_variable_set :$stderr, v
+        Primitive.global_variable_set :$stderr, v
       })
 
     def self.internal_raise(exc, msg, ctx, internal)
       skip = false
-      if TrufflePrimitive.undefined? exc
+      if Primitive.undefined? exc
         exc = $!
         if exc
           skip = true
@@ -132,7 +132,7 @@ module Truffle
           exc = RuntimeError.new ''
         end
       elsif exc.respond_to? :exception
-        if TrufflePrimitive.undefined? msg
+        if Primitive.undefined? msg
           exc = exc.exception
         else
           exc = exc.exception msg
@@ -147,18 +147,18 @@ module Truffle
       unless skip
         exc.set_context ctx if ctx
         exc.capture_backtrace!(2) unless exc.backtrace?
-        TrufflePrimitive.exception_set_cause exc, $! unless exc.equal?($!)
+        Primitive.exception_set_cause exc, $! unless exc.equal?($!)
       end
 
       if $DEBUG
         STDERR.puts "Exception: `#{exc.class}' #{caller(2, 1)[0]} - #{exc.message}\n"
       end
 
-      TrufflePrimitive.vm_raise_exception exc, internal
+      Primitive.vm_raise_exception exc, internal
     end
 
     def self.check_last_line(line)
-      unless TrufflePrimitive.object_kind_of? line, String
+      unless Primitive.object_kind_of? line, String
         raise TypeError, "$_ value need to be String (#{Truffle::ExceptionOperations.to_class_name(line)} given)"
       end
       line

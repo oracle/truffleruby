@@ -27,7 +27,7 @@ class TracePoint
 
     raise ArgumentError, 'must be called with a block' unless handler
 
-    TrufflePrimitive.tracepoint_initialize self, events.uniq, handler
+    Primitive.tracepoint_initialize self, events.uniq, handler
   end
 
   def inspect

@@ -22,13 +22,13 @@ module Math
       # Much faster (~10x) than calling the Math.hypot() / hypot(3)
       Math.sqrt(a*a + b*b)
     else
-      TrufflePrimitive.math_hypot a, b
+      Primitive.math_hypot a, b
     end
   end
 
   def frexp(x)
-    result = TrufflePrimitive.math_frexp(x)
-    if !TrufflePrimitive.undefined?(result)
+    result = Primitive.math_frexp(x)
+    if !Primitive.undefined?(result)
       result
     else
       frexp Truffle::Type.coerce_to_float(x)
@@ -36,8 +36,8 @@ module Math
   end
 
   def ldexp(fraction, exponent)
-    result = TrufflePrimitive.math_ldexp(fraction, exponent)
-    if !TrufflePrimitive.undefined?(result)
+    result = Primitive.math_ldexp(fraction, exponent)
+    if !Primitive.undefined?(result)
       result
     elsif Float === exponent and exponent.nan?
       raise RangeError, 'float NaN out of range of integer'

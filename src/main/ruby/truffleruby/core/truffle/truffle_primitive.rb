@@ -8,11 +8,11 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-module TrufflePrimitive
+module Primitive
 
   def self.method_missing(name, *args, &block)
     raise NoMethodError.new(
-        "TrufflePrimitive.#{name} has to be called syntactically.", name)
+        "Primitive.#{name} has to be called syntactically.", name)
   end
 
 end

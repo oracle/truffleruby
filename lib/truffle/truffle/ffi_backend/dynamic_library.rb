@@ -51,7 +51,7 @@ module FFI
 
     def self.open(libname, flags)
       code = libname ? "load '#{libname}'" : 'default'
-      handle = TrufflePrimitive.interop_eval_nfi code
+      handle = Primitive.interop_eval_nfi code
       DynamicLibrary.new(libname, handle)
     end
 

@@ -17,7 +17,7 @@ describe "Truffle::POSIX returns the correct value for an identity function retu
     end
 
     lazy_library = Truffle::POSIX::LazyLibrary.new do
-      TrufflePrimitive.interop_eval_nfi "load '#{lib}'"
+      Primitive.interop_eval_nfi "load '#{lib}'"
     end
 
     @libtestnfi = Module.new do

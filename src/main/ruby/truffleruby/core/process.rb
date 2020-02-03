@@ -94,7 +94,7 @@ module Process
       code = Truffle::Type.coerce_to code, Integer, :to_int
     end
 
-    TrufflePrimitive.vm_exit code
+    Primitive.vm_exit code
   end
 
   section = 'platform.clocks.'
@@ -156,9 +156,9 @@ module Process
 
     case id
     when CLOCK_REALTIME
-      time = TrufflePrimitive.process_time_currenttimemillis * 1_000_000
+      time = Primitive.process_time_currenttimemillis * 1_000_000
     when CLOCK_MONOTONIC
-      time = TrufflePrimitive.process_time_nanotime
+      time = Primitive.process_time_nanotime
     else
       time = Truffle::POSIX.truffleposix_clock_gettime(id)
       Errno.handle if time == 0
@@ -280,7 +280,7 @@ module Process
     resource =  coerce_rlimit_resource(resource)
     cur_limit = Truffle::Type.coerce_to cur_limit, Integer, :to_int
 
-    if TrufflePrimitive.undefined? max_limit
+    if Primitive.undefined? max_limit
       max_limit = cur_limit
     else
       max_limit = Truffle::Type.coerce_to max_limit, Integer, :to_int
@@ -322,7 +322,7 @@ module Process
   def self.fork
     raise NotImplementedError, 'fork is not available'
   end
-  TrufflePrimitive.method_unimplement method(:fork)
+  Primitive.method_unimplement method(:fork)
 
   def self.times
     Truffle::FFI::MemoryPointer.new(:double, 4) do |ptr|
@@ -363,7 +363,7 @@ module Process
 
       if pid == Process.pid && signal != 0
         signal_name = Signal::Numbers[signal].to_sym
-        result = TrufflePrimitive.process_kill_raise signal_name
+        result = Primitive.process_kill_raise signal_name
         if result == -1 # Try kill() if the java Signal.raise() failed
           result = Truffle::POSIX.kill(pid, signal)
           Errno.handle if result == -1
@@ -614,7 +614,7 @@ module Process
         raw_status = ints.last
 
         status = Process::Status.new(pid, exitcode, termsig, stopsig, raw_status)
-        TrufflePrimitive.thread_set_return_code status
+        Primitive.thread_set_return_code status
 
         [pid, status]
       end
@@ -999,11 +999,11 @@ end
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$0',
-  -> { TrufflePrimitive.global_variable_get :'$0' },
+  -> { Primitive.global_variable_get :'$0' },
   -> v {
     v = StringValue(v)
     Process.setproctitle(v)
-    TrufflePrimitive.global_variable_set :'$0', v
+    Primitive.global_variable_set :'$0', v
   })
 
 alias $PROGRAM_NAME $0

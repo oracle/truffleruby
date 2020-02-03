@@ -171,7 +171,7 @@ describe "Sharing is correctly propagated for" do
     shared?(ary).should == true
 
     new_ary = []
-    TrufflePrimitive.steal_array_storage(ary, new_ary)
+    Primitive.steal_array_storage(ary, new_ary)
     shared?(new_ary).should == true
   end
 

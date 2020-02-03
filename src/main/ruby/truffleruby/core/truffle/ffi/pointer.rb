@@ -48,7 +48,7 @@ module Truffle::FFI
 
     # NOTE: redefined in lib/truffle/ffi.rb for full FFI
     def self.find_type_size(type)
-      TrufflePrimitive.pointer_find_type_size(type)
+      Primitive.pointer_find_type_size(type)
     end
 
     def self.size
@@ -56,7 +56,7 @@ module Truffle::FFI
     end
 
     def initialize(type, address = undefined)
-      if TrufflePrimitive.undefined? address
+      if Primitive.undefined? address
         address = type
         type = nil
       end
@@ -81,14 +81,14 @@ module Truffle::FFI
     def initialize_copy(from)
       total = from.total
       raise RuntimeError, 'cannot duplicate unbounded memory area' unless total
-      TrufflePrimitive.pointer_malloc self, total
-      TrufflePrimitive.pointer_copy_memory address, from.address, total
+      Primitive.pointer_malloc self, total
+      Primitive.pointer_copy_memory address, from.address, total
       self
     end
 
     def clear
       raise RuntimeError, 'cannot clear unbounded memory area' unless @total
-      TrufflePrimitive.pointer_clear self, @total
+      Primitive.pointer_clear self, @total
     end
 
     def inspect
@@ -150,7 +150,7 @@ module Truffle::FFI
     end
 
     def get_string(offset, length = nil)
-      TrufflePrimitive.pointer_read_string_to_null address + offset, length
+      Primitive.pointer_read_string_to_null address + offset, length
     end
 
     def put_string(offset, str)
@@ -213,7 +213,7 @@ module Truffle::FFI
     end
 
     def get_bytes(offset, length)
-      TrufflePrimitive.pointer_read_bytes address + offset, length
+      Primitive.pointer_read_bytes address + offset, length
     end
 
     def put_bytes(offset, str, index = 0, length = nil)
@@ -228,7 +228,7 @@ module Truffle::FFI
         end
         length = str.bytesize - index
       end
-      TrufflePrimitive.pointer_write_bytes address + offset, str, index, length
+      Primitive.pointer_write_bytes address + offset, str, index, length
       self
     end
 
@@ -241,7 +241,7 @@ module Truffle::FFI
     end
 
     def __copy_from__(pointer, size)
-      TrufflePrimitive.pointer_copy_memory address, pointer.address, size
+      Primitive.pointer_copy_memory address, pointer.address, size
     end
 
     def read_array_of_type(type, reader, length)
@@ -299,8 +299,8 @@ module Truffle::FFI
       super(type, 0)
       @total = @type_size * (count || 1)
 
-      TrufflePrimitive.pointer_malloc self, @total
-      TrufflePrimitive.pointer_clear self, @total if clear
+      Primitive.pointer_malloc self, @total
+      Primitive.pointer_clear self, @total if clear
     end
 
     def self.new(type, count = 1, clear = true)
@@ -346,7 +346,7 @@ module Truffle::FFI
         offsets << [total_length, length]
         total_length += length
       end
-      buffer = TrufflePrimitive.io_get_thread_buffer(total_length)
+      buffer = Primitive.io_get_thread_buffer(total_length)
       pointers = offsets.map { |offset, length| buffer.slice(offset, length) }
       pointers.size == 1 ? pointers[0] : pointers
     end

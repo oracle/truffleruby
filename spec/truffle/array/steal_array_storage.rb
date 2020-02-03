@@ -21,7 +21,7 @@ describe ":steal_array_storage primitive" do
   it "should no-op when called on itself" do
     copy = @array.dup
 
-    TrufflePrimitive.steal_array_storage(@array, @array)
+    Primitive.steal_array_storage(@array, @array)
 
     storage(@array).should == "Object[]"
     @array.should == copy
@@ -31,7 +31,7 @@ describe ":steal_array_storage primitive" do
     other = [1, 2, 3, 4, 5]
     other_copy = other.dup
 
-    TrufflePrimitive.steal_array_storage(@array, other)
+    Primitive.steal_array_storage(@array, other)
 
     storage(@array).should == "int[]"
     @array.should == other_copy
