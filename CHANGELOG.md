@@ -23,6 +23,7 @@ Bug fixes:
 * Added deprecation warning to `Kernel#=~`.
 * Fixed `puts` for a foreign objects, e.g. `puts Polyglot.eval('js', '[]')` (#1881) 
 * Fixed `Exception#full_message` implementation.
+* Updated `Kernel.Complex()` to handle the `exception: false` parameter.
 
 Compatibility:
 
