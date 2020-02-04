@@ -1235,7 +1235,7 @@ class Array
 
   private def range_end(range)
     last = range.end
-    return size - 1 if last.equal? nil
+    return size - 1 if last.nil?
     last = Truffle::Type.coerce_to_collection_index last
     last += size if last < 0
     last -=1 if range.exclude_end?

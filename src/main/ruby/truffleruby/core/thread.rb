@@ -418,7 +418,7 @@ class Thread
     if Range === omit
       range = omit
       omit = Truffle::Type.coerce_to_int(range.begin)
-      unless range.end.equal? nil
+      unless range.end.nil?
         end_index = Truffle::Type.coerce_to_int(range.end)
         if end_index < 0
           length = end_index
