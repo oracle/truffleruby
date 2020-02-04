@@ -130,13 +130,15 @@ class JT
 
       check_post_install_message = [
           "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
-          "RUN grep '/#{language_dir}/ruby/lib/truffle/post_install_hook.sh' install.log"
+          "RUN grep '/languages/ruby/lib/truffle/post_install_hook.sh' install.log"
       ]
 
       case install_method
       when :graalvm
         FileUtils.copy graalvm_tarball, docker_dir unless print_only
         graalvm_tarball = File.basename(graalvm_tarball)
+        language_dir = graalvm_tarball.include?('java11') ? 'languages' : 'jre/languages'
+
         lines << "COPY #{graalvm_tarball} /test/"
         graalvm_base = '/test/graalvm'
         lines << "RUN mkdir #{graalvm_base}"
