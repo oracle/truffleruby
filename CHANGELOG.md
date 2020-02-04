@@ -36,6 +36,7 @@ Compatibility:
 * Implemented `-p` and `-a` CLI options.
 * Make `Kernel#{caller, caller_locations}` and `Thread#backtrace_locations` compatible with endless ranges.
 * Implemented `Dir#each_child`.
+* Implemented `Kernel.{chomp, chop}` and `Kernel#{chomp, chop}`.
 
 Performance:
 

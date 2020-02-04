@@ -307,7 +307,7 @@ module Truffle
       r = check_funcall(obj, meth)
       if TrufflePrimitive.undefined?(r)
         if raise_on_error
-          raise TypeError, Truffle::ExceptionOperations.conversion_error_message(r, meth, obj, cls)
+          raise TypeError, Truffle::ExceptionOperations.conversion_error_message(meth, obj, cls)
         else
           nil
         end
