@@ -31,7 +31,7 @@ describe 'Kernel#caller_locations' do
   ruby_version_is "2.6" do
     it "works with endless ranges" do
       locations1 = caller_locations(0)
-      locations2 = caller_locations(2..)
+      locations2 = caller_locations(eval("(2..)"))
       locations1[2..].map(&:to_s).should == locations2.map(&:to_s)
     end
   end
