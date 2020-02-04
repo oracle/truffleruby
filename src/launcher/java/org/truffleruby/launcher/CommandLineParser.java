@@ -303,7 +303,8 @@ public class CommandLineParser {
                     break;
                 case 'l':
                     disallowedInRubyOpts(argument);
-                    throw notImplemented("-l");
+                    config.setOption(OptionsCatalog.CHOMP_LOOP, true);
+                    break;
                 case 'n':
                     disallowedInRubyOpts(argument);
                     config.setOption(OptionsCatalog.GETS_LOOP, true);
