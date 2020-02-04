@@ -1,24 +1,18 @@
 rpm_packages: &rpm_packages
   locale:
-  curl: curl
-  git: git
   tar: tar gzip
   specs: which findutils
   zlib: zlib-devel
   openssl: openssl-devel
   cext: gcc make
-  source: file gcc-c++ python ruby
 
 deb_packages: &deb_packages
   locale: locales
-  curl: curl
-  git: git
   tar:
   specs: netbase
   zlib: libz-dev
   openssl: libssl-dev
   cext: gcc make
-  source: file g++ python ruby
 
 ol7:
   base: oraclelinux:7-slim

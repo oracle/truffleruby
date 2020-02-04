@@ -71,9 +71,6 @@ class JT
         when '--standalone'
           install_method = :standalone
           standalone_tarball = args.shift
-        when '--source'
-          install_method = :source
-          source_branch = args.shift
         when '--rebuild-images'
           rebuild_images = true
           native_component = args.shift
@@ -99,16 +96,12 @@ class JT
       packages = []
       packages << distro.fetch('locale')
 
-      packages << distro.fetch('curl') if install_method == :source
-      packages << distro.fetch('git') if install_method == :source
-      packages << distro.fetch('tar') if install_method != :source
+      packages << distro.fetch('tar')
       packages << distro.fetch('specs') if full_test
 
       packages << distro.fetch('zlib')
       packages << distro.fetch('openssl')
       packages << distro.fetch('cext')
-
-      packages << distro.fetch('source') if install_method == :source
 
       lines = [
         "FROM #{distro.fetch('base')}",
@@ -165,16 +158,6 @@ class JT
         lines << "RUN tar -zxf #{standalone_tarball} -C #{ruby_base} --strip-components=1"
         ruby_bin = "#{ruby_base}/bin"
         lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
-      when :source
-        lines << 'RUN git clone --depth 1 https://github.com/graalvm/mx.git'
-        lines << 'ENV PATH=$PATH:/test/mx'
-        raw_sh 'git', 'clone', '--branch', source_branch, TRUFFLERUBY_DIR, "#{docker_dir}/truffleruby" unless print_only
-        raw_sh 'git', 'clone', GRAAL_DIR, "#{docker_dir}/graal" unless print_only
-        lines << 'COPY --chown=test truffleruby truffleruby'
-        lines << 'COPY --chown=test graal graal'
-        lines << 'RUN cd truffleruby && tool/jt.rb build'
-        ruby_base = '/test/truffleruby/mxbuild/truffleruby-jvm'
-        ruby_bin = "#{ruby_base}/bin"
       else
         raise "Unknown install method: #{install_method}"
       end

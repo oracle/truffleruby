@@ -21,13 +21,6 @@ $ jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby
 $ jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
-Or, to print a Dockerfile to show how to install TruffleRuby from source on
-Fedora:
-
-```bash
-$ jt docker print --fedora28 --source
-```
-
 ## Distributions
 
 Pick one of:
@@ -43,7 +36,6 @@ Pick one of:
 
 * From a GraalVM binary tarball and Ruby component you have locally, `--graalvm graalvm.tar.gz llvm-toolchain-installable.jar:ruby-installable.jar`
 * From a TruffleRuby standalone distribution you have locally, `--standalone truffleruby-1.0.0-linux-amd64.tar.gz`
-* From source, `--source master`
 
 ## What to do
 
