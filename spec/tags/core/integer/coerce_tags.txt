@@ -1,2 +1,0 @@
-fails:Integer#coerce bignum raises a TypeError when passed a String
-fails:Integer#coerce bignum raises a TypeError when passed a Float
