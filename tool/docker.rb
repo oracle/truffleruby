@@ -244,9 +244,9 @@ class JT
         end
 
         configs.each do |c|
-          excludes = ['fails', 'slow']
+          excludes = %w[fails slow]
 
-          [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle', ':truffle_capi'].each do |set|
+          %w[:command_line :security :language :core :library :capi :library_cext :truffle :truffle_capi].each do |set|
             t_config = c.empty? ? '' : '-T' + c
             t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
             lines << "RUN ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"
