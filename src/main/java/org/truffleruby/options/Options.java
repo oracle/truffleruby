@@ -118,6 +118,8 @@ public class Options {
     public final boolean CEXTS;
     /** --cexts-lock=true */
     public final boolean CEXT_LOCK;
+    /** --keep-handles-alive=false */
+    public final boolean CEXTS_KEEP_HANDLES_ALIVE;
     /** --options-log=false */
     public final boolean OPTIONS_LOG;
     /** --log-load=false */
@@ -320,6 +322,7 @@ public class Options {
         BACKTRACE_ON_RESCUE = options.get(OptionsCatalog.BACKTRACE_ON_RESCUE_KEY);
         CEXTS = options.get(OptionsCatalog.CEXTS_KEY);
         CEXT_LOCK = options.get(OptionsCatalog.CEXT_LOCK_KEY);
+        CEXTS_KEEP_HANDLES_ALIVE = options.get(OptionsCatalog.CEXTS_KEEP_HANDLES_ALIVE_KEY);
         OPTIONS_LOG = options.get(OptionsCatalog.OPTIONS_LOG_KEY);
         LOG_LOAD = options.get(OptionsCatalog.LOG_LOAD_KEY);
         LOG_AUTOLOAD = options.get(OptionsCatalog.LOG_AUTOLOAD_KEY);
@@ -496,6 +499,8 @@ public class Options {
                 return CEXTS;
             case "ruby.cexts-lock":
                 return CEXT_LOCK;
+            case "ruby.keep-handles-alive":
+                return CEXTS_KEEP_HANDLES_ALIVE;
             case "ruby.options-log":
                 return OPTIONS_LOG;
             case "ruby.log-load":
