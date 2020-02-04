@@ -28,6 +28,7 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.launcher;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,8 +62,7 @@ public class CommandLineOptions {
     private final Map<String, String> options;
     private String[] arguments;
     private final List<String> unknownArguments;
-    /** Whether we are executing Bundler */
-    private Boolean bundler = null;
+    private Boolean gemOrBundle = null;
 
     public CommandLineOptions(Map<String, String> polyglotOptions) {
         this.polyglotOptions = Collections.unmodifiableMap(polyglotOptions);
@@ -125,16 +125,36 @@ public class CommandLineOptions {
         return unknownArguments;
     }
 
-    boolean detectBundler() {
-        if (bundler == null) {
-            if (executionAction == ExecutionAction.FILE) {
-                bundler = toExecute.endsWith("/bin/bundle") || toExecute.endsWith("/bin/bundler");
-            } else if (executionAction == ExecutionAction.PATH) {
-                bundler = toExecute.equals("bundle") || toExecute.equals("bundler");
-            } else {
-                bundler = false;
+    /** Whether we are executing a gem or bundle command that would benefit from faster warmup and lower peak
+     * performance. False for 'bundle exec'. */
+    boolean isGemOrBundle() {
+        if (gemOrBundle == null) {
+            gemOrBundle = detectGemOrBundle();
+        }
+        return gemOrBundle;
+    }
+
+    private boolean detectGemOrBundle() {
+        String executable = new File(toExecute).getName();
+        if (executable.equals("gem")) {
+            // All gem commands seem fine with --engine.Mode=latency.
+            return true;
+        } else if (executable.equals("bundle") || executable.equals("bundler")) {
+            // Exclude 'bundle exec' and aliases as they should run with the default --engine.Mode.
+            // Other bundle commands seem fine with --engine.Mode=latency.
+            return !contains(arguments, "exec") && !contains(arguments, "exe") &&
+                    !contains(arguments, "ex") && !contains(arguments, "e");
+        } else {
+            return false;
+        }
+    }
+
+    private boolean contains(String[] array, String element) {
+        for (String e : array) {
+            if (e.equals(element)) {
+                return true;
             }
         }
-        return bundler;
+        return false;
     }
 }
