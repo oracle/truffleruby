@@ -51,8 +51,7 @@ class JT
       config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
       distro = 'ol7'
-      install_method = :public
-      public_version = '1.0.0-rc14'
+      install_method = nil
       rebuild_images = false
       rebuild_openssl = true
       basic_test = false
@@ -65,9 +64,6 @@ class JT
         case arg
         when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28'
           distro = arg[2..-1]
-        when '--public'
-          install_method = :public
-          public_version = args.shift
         when '--graalvm'
           install_method = :graalvm
           graalvm_tarball = args.shift
@@ -103,7 +99,7 @@ class JT
       packages = []
       packages << distro.fetch('locale')
 
-      packages << distro.fetch('curl') if install_method == :public || install_method == :source
+      packages << distro.fetch('curl') if install_method == :source
       packages << distro.fetch('git') if install_method == :source
       packages << distro.fetch('tar') if install_method != :source
       packages << distro.fetch('specs') if full_test
@@ -138,18 +134,6 @@ class JT
       ]
 
       case install_method
-      when :public
-        graalvm_tarball = "graalvm-ce-#{public_version}-linux-amd64.tar.gz"
-        lines << "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/#{graalvm_tarball}"
-        graalvm_base = '/test/graalvm'
-        lines << "RUN mkdir #{graalvm_base}"
-        lines << "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
-        lines << "RUN #{graalvm_base}/bin/gu install ruby | tee install.log"
-        lines.push(*check_post_install_message)
-        ruby_base = "#{graalvm_base}/#{language_dir}/ruby"
-        graalvm_bin = "#{graalvm_base}/bin"
-        ruby_bin = graalvm_bin
-        lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
       when :graalvm
         FileUtils.copy graalvm_tarball, docker_dir unless print_only
         graalvm_tarball = File.basename(graalvm_tarball)
@@ -213,20 +197,20 @@ class JT
 
 
       if rebuild_images
-        if [:public, :graalvm].include?(install_method)
+        if install_method == :graalvm
           FileUtils.copy native_component, docker_dir unless print_only
           native_component = File.basename(native_component)
           lines << "COPY #{native_component} /test/"
           lines << "RUN #{graalvm_bin}/gu install --file /test/#{native_component} | tee install.log"
           lines << "RUN #{graalvm_base}/bin/gu rebuild-images polyglot libpolyglot"
         else
-          abort "can't rebuild images for a build not from public or from local GraalVM components"
+          abort "can't rebuild images for a build not from local GraalVM components"
         end
       end
 
       lines << "ENV PATH=#{ruby_bin}:$PATH"
 
-      configs = [:public, :graalvm].include?(install_method) ? %w[--native --jvm] : ['']
+      configs = install_method == :graalvm ? %w[--native --jvm] : ['']
 
       configs.each do |c|
         lines << "RUN ruby #{c} --version"
