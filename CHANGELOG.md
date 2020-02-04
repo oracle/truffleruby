@@ -34,6 +34,7 @@ Compatibility:
 * Implemented `-p` CLI option.
 * Implemented "instance variable not initialized" warning.
 * Implemented `-p` and `-a` CLI options.
+* Make `Kernel#{caller, caller_locations}` and `Thread#backtrace_locations` compatible with endless ranges.
 
 Performance:
 

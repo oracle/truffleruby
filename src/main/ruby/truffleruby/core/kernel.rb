@@ -614,7 +614,11 @@ module Kernel
 
   def caller(start = 1, limit = nil)
     args = if start.is_a? Range
-             [start.begin + 1, start.size]
+             if start.end == nil
+               [start.begin + 1]
+             else
+               [start.begin + 1, start.size]
+             end
            elsif limit.nil?
              [start + 1]
            else
@@ -633,12 +637,14 @@ module Kernel
     if Range === omit
       range = omit
       omit = Truffle::Type.coerce_to_int(range.begin)
-      end_index = Truffle::Type.coerce_to_int(range.end)
-      if end_index < 0
-        length = end_index
-      else
-        end_index += (range.exclude_end? ? 0 : 1)
-        length = omit > end_index ? 0 : end_index - omit
+      unless range.end.nil?
+        end_index = Truffle::Type.coerce_to_int(range.end)
+        if end_index < 0
+          length = end_index
+        else
+          end_index += (range.exclude_end? ? 0 : 1)
+          length = omit > end_index ? 0 : end_index - omit
+        end
       end
     end
     TrufflePrimitive.kernel_caller_locations(omit, length)

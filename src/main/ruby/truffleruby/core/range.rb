@@ -50,7 +50,7 @@ class Range
   private :initialize
 
   private def endless?
-    self.end.equal?(nil)
+    self.end.nil?
   end
 
   def ==(other)
@@ -80,7 +80,7 @@ class Range
     if Float === start || Float === stop
       bsearch_float(&block)
     elsif Integer === start
-      if stop.equal?(nil)
+      if stop.nil?
         bsearch_endless(&block)
       elsif Integer === stop
         bsearch_integer(&block)
@@ -175,7 +175,7 @@ class Range
 
     # At the end of the loop, mid could be equal to min or max due to precision limits and the other bound
     # might not have been tested in some cases.
-    if mid == min && max == normalized_end && (last_admissible.equal?(nil) || last_admissible == Float::INFINITY)
+    if mid == min && max == normalized_end && (last_admissible.nil? || last_admissible == Float::INFINITY)
       # max is untested only if it's the end of the range.
       # It can only change the result of the search if we haven't found an admissible value yet (+ infinity edge case).
       result = yield max
@@ -254,7 +254,7 @@ class Range
       raise TypeError, "can't iterate from #{first.class}"
     end
 
-    return each_endless(first, &block) if last.equal?(nil)
+    return each_endless(first, &block) if last.nil?
 
     case first
     when Integer
@@ -394,7 +394,7 @@ class Range
     last = values[1]
     step_size = values[2]
 
-    return step_endless(first, step_size, &block) if last.equal?(nil)
+    return step_endless(first, step_size, &block) if last.nil?
 
     case first
     when Float
