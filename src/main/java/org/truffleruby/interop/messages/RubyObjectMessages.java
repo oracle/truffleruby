@@ -207,6 +207,24 @@ public class RubyObjectMessages {
         // we ignore the method missing, toNative never throws
     }
 
+    @ExportMessage
+    public static boolean hasMembers(DynamicObject receiver) {
+        return true;
+    }
+
+    @ExportMessage
+    public static Object getMembers(
+            DynamicObject receiver,
+            boolean internal,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode) {
+        return dispatchNode.call(
+                context.getCoreLibrary().truffleInteropModule,
+                "object_keys",
+                receiver,
+                internal);
+    }
+
     protected static boolean isIVar(String name) {
         return !name.isEmpty() && name.charAt(0) == '@';
     }
@@ -364,24 +382,6 @@ public class RubyObjectMessages {
         // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
         errorProfile.enter();
         throw UnknownIdentifierException.create(name);
-    }
-
-    @ExportMessage
-    public static boolean hasMembers(DynamicObject receiver) {
-        return true;
-    }
-
-    @ExportMessage
-    public static Object getMembers(
-            DynamicObject receiver,
-            boolean internal,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode) {
-        return dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_keys",
-                receiver,
-                internal);
     }
 
     @ExportMessage
