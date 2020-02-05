@@ -57,21 +57,12 @@ TruffleRuby aims to:
 
 There are two main configurations of TruffleRuby: *Native* and *JVM* which make different trade-offs.
 
-### Native Configuration
-
-The *native* configuration is the default. In this configuration, TruffleRuby is
-ahead-of-time compiled to a standalone native executable. The advantages are
-that it starts about as fast as MRI and it becomes fast in less time. The
-disadvantage is that *peak performance may be lower than on the JVM*. You can
-select the native configuration by passing `--native`.
-
-### JVM Configuration
-
-In the *JVM* configuration, TruffleRuby runs as a normal Java application on the JVM. The
-advantages are that you can use Java interoperability easily,
-and *peak performance may be higher than the native configuration*. The
-disadvantage are that it takes much longer to start and to get fast.
-You can select the JVM configuration by passing `--jvm`.
+| Configuration: | Native (`--native`, default) | JVM (`--jvm`) |
+| ------------------ | ------------: | ------------: |
+| Time to start TruffleRuby | about as fast as MRI startup | slower |
+| Time to get to peak performance | faster | slower |
+| Peak performance (also considering GC) | good | best |
+| Java host interoperability | needs reflection configuration | just works |
 
 To find out which configuration is used, run `ruby --version` on the command line
 or check the value of `RUBY_DESCRIPTION` or `TruffleRuby.native?` in Ruby code.
