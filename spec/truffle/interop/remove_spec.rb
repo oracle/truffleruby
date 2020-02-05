@@ -36,22 +36,6 @@ describe "Truffle::Interop.remove" do
     end
   end
 
-  describe "with Hash" do
-    before :each do
-      @hash = { 'a' => 1, 'b' => 2, 'c' => 3 }
-    end
-
-    it "removes the element with the specified key" do
-      Truffle::Interop.remove(@hash, 'b').should == true
-      @hash.keys.should == ['a', 'c']
-    end
-
-    it "raises when the key doesn't exist" do
-      -> { Truffle::Interop.remove(@hash, 'bad_key') }.should raise_error NameError
-      @hash.keys.should == ['a', 'b', 'c']
-    end
-  end
-
   describe "with any other type" do
     describe "with a name that starts with @" do
       before :each do

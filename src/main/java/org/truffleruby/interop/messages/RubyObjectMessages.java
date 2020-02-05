@@ -239,20 +239,6 @@ public class RubyObjectMessages {
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
 
         // TODO (pitr-ch 19-Mar-2019): profile
-        // TODO (pitr-ch 19-Mar-2019): break down
-        if (RubyGuards.isRubyHash(receiver)) {
-            // TODO (pitr-ch 13-May-2019): remove Hash member mapping
-            Object key = foreignToRubyNode.executeConvert(name);
-            if (booleanCast.executeToBoolean(hashKeyNode.call(receiver, "key?", key))) {
-                hashDeleteNode.call(receiver, "delete", key);
-            } else {
-                errorProfile.enter();
-                throw UnknownIdentifierException.create(name);
-            }
-            return;
-        }
-
-        // TODO (pitr-ch 19-Mar-2019): profile
         if (!name.isEmpty() && name.charAt(0) == '@') {
             removeInstanceVariableNode.call(
                     receiver,

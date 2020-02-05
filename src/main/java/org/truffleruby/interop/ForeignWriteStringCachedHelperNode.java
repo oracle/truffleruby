@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -33,19 +34,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
     public abstract Object executeStringCachedHelper(DynamicObject receiver, Object name,
             Object stringName, boolean isIVar, Object value) throws UnknownIdentifierException;
 
-    @Specialization(guards = "isRubyHash(receiver)")
-    protected Object writeArrayHash(
-            DynamicObject receiver,
-            Object name,
-            Object stringName,
-            boolean isIVar,
-            Object value,
-            @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached CallDispatchHeadNode dispatch) {
-        return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
-    }
-
-    @Specialization(guards = { "!isRubyArray(receiver)", "!isRubyHash(receiver)", "isIVar" })
+    @Specialization(guards = { "isIVar" })
     protected Object writeInstanceVariable(
             DynamicObject receiver,
             Object name,
@@ -57,12 +46,9 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
         return value;
     }
 
-    @Specialization(
-            guards = {
-                    "!isRubyArray(receiver)",
-                    "!isRubyHash(receiver)",
-                    "!isIVar",
-                    "methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)" })
+    @Specialization(guards = {
+            "!isIVar",
+            "indexSetMethod(receiver, doesRespond)" })
     protected Object index(
             DynamicObject receiver,
             Object name,
@@ -75,12 +61,9 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
         return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
-    @Specialization(
-            guards = {
-                    "!isRubyArray(receiver)",
-                    "!isRubyHash(receiver)",
-                    "!isIVar",
-                    "!methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond)" })
+    @Specialization(guards = {
+            "!isIVar",
+            "!indexSetMethod(receiver, doesRespond)" })
     protected Object unknownIdentifier(
             DynamicObject receiver,
             Object name,
@@ -90,6 +73,12 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
             @Cached DoesRespondDispatchHeadNode doesRespond)
             throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(StringUtils.toString(name));
+    }
+
+    protected static boolean indexSetMethod(DynamicObject receiver, DoesRespondDispatchHeadNode doesRespond) {
+        return methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond) &&
+                !RubyGuards.isRubyArray(receiver) &&
+                !RubyGuards.isRubyHash(receiver);
     }
 
     // TODO CS 9-Aug-17 test method defined once and then run specialisations

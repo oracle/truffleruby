@@ -42,9 +42,7 @@ module Truffle
 
     def self.object_keys(object, internal)
       # TODO (pitr-ch 23-May-2019): add assert that called methods are in members list
-      if object.is_a?(Hash)
-        keys = object.keys # FIXME (pitr-ch 11-May-2019): no return methods
-      elsif object.respond_to?(:[]) && !object.is_a?(Array) && !object.is_a?(String) && !object.is_a?(Symbol)
+      if object.respond_to?(:[]) && !object.is_a?(Array) && !object.is_a?(String) && !object.is_a?(Symbol) && !object.is_a?(Hash)
         # FIXME (pitr-ch 11-May-2019): remove the branch
         keys = []
       else
@@ -100,28 +98,11 @@ module Truffle
       flags
     end
 
-    HASH_PUBLIC_METHODS = Hash.public_instance_methods.map(&:to_s)
-    private_constant :HASH_PUBLIC_METHODS
-
     # FIXME (pitr-ch 11-May-2019): breakdown
     def self.object_key_info(object, name)
       readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
 
-      if object.is_a?(Hash)
-        # TODO (pitr-ch 23-May-2019): make instance variables and methods accessible for hash
-        if HASH_PUBLIC_METHODS.include? name
-          # all the methods have to be readable and invocable otherwise they cannot be invoked from C
-          readable = true
-          invocable = true
-        else
-          frozen = object.frozen?
-          has_key = object.has_key?(name)
-          readable = has_key
-          modifiable = !frozen && has_key
-          removable = modifiable
-          insertable = !frozen && !has_key
-        end
-      elsif object.is_a?(Array) && name.is_a?(Integer)
+      if object.is_a?(Array) && name.is_a?(Integer)
         raise 'should be unreachable'
       elsif name.is_a?(String) && name.start_with?('@')
         frozen = object.frozen?
@@ -141,7 +122,7 @@ module Truffle
           modifiable = insertable = false
           internal = true
         else
-          unless object.is_a?(Array) || object.is_a?(Class) # exclude #[] constructors
+          unless object.is_a?(Hash) || object.is_a?(Array) || object.is_a?(Class) # exclude #[] constructors
             # FIXME (pitr-ch 11-May-2019): remove [] mapping to members
             readable = object.respond_to?(:[])
             modifiable = object.respond_to?(:[]=)
