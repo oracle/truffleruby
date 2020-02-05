@@ -89,8 +89,8 @@ module Truffle
       })
 
     Truffle::Boot.redo do
-      $DEBUG = Truffle::Boot.get_option 'debug'
-      $VERBOSE = case Truffle::Boot.get_option 'verbose'
+      $DEBUG = Truffle::Boot.get_option_or_default('debug', false)
+      $VERBOSE = case Truffle::Boot.get_option_or_default('verbose', false)
                  when :TRUE
                    true
                  when :FALSE
