@@ -25,14 +25,6 @@ if Truffle::Boot.ruby_home
   end
 
   if Truffle::Boot.get_option 'rubygems'
-    Truffle::Boot.delay do
-      if Truffle::Boot.resilient_gem_home?
-        ENV.delete 'GEM_HOME'
-        ENV.delete 'GEM_PATH'
-        ENV.delete 'GEM_ROOT'
-      end
-    end
-
     begin
       Truffle::Boot.print_time_metric :'before-rubygems'
       begin

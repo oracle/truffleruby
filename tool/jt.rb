@@ -292,10 +292,8 @@ module Utilities
 
   def no_gem_vars_env
     {
-      'TRUFFLERUBY_RESILIENT_GEM_HOME' => nil,
       'GEM_HOME' => nil,
       'GEM_PATH' => nil,
-      'GEM_ROOT' => nil,
     }
   end
 
@@ -686,10 +684,7 @@ module Commands
 
   def env
     puts 'Environment'
-    env_vars = %w[JAVA_HOME JVMCI_HOME PATH RUBY_BIN
-                  TRUFFLERUBY_RESILIENT_GEM_HOME
-                  OPENSSL_PREFIX
-                  TRUFFLERUBYOPT RUBYOPT]
+    env_vars = %w[JAVA_HOME JVMCI_HOME PATH RUBY_BIN OPENSSL_PREFIX TRUFFLERUBYOPT RUBYOPT]
     column_size = env_vars.map(&:size).max
     env_vars.each do |e|
       puts format "%#{column_size}s: %s", e, ENV[e].inspect
@@ -1029,7 +1024,6 @@ module Commands
       'EXCLUDES' => 'test/mri/excludes',
       'RUBYGEMS_TEST_PATH' => MRI_TEST_PREFIX,
       'RUBYOPT' => [*ENV['RUBYOPT'], '--disable-gems'].join(' '),
-      'TRUFFLERUBY_RESILIENT_GEM_HOME' => nil,
     }
     compile_env = {
       # MRI C-ext tests expect to be built with $extmk = true.

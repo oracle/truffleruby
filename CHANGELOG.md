@@ -39,6 +39,10 @@ Compatibility:
 * Implemented `Kernel.{chomp, chop}` and `Kernel#{chomp, chop}`.
 * Implemented `-p` and `-a`, and `-l` CLI options.
 
+Changes:
+
+* `TRUFFLERUBY_RESILIENT_GEM_HOME` has been removed. Unset `GEM_HOME` and `GEM_PATH` instead if you need to.
+
 Performance:
 
 * Optimized `RSTRING_PTR()` accesses by going to native directly, optimized various core methods, use Mode=latency and tune GC heap size for Bundler. This speeds up `bundle install` from 84s to 19s for a small Gemfile with 6 gems (#1398).
