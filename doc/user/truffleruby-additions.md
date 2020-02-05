@@ -20,9 +20,7 @@ In Ruby code, you can look at the standard `RUBY_ENGINE` constant, which will be
 `'truffleruby'`. In C code `TRUFFLERUBY` is defined.
 
 It is also possible to use feature-detection instead of looking at
-`RUBY_ENGINE`. For example if you are writing an application that uses
-TruffleRuby's interoperability with Java you could test for `defined?(Java)`,
-which will be set when in hosted mode on the JVM but not in native mode.
+`RUBY_ENGINE`.
 
 TruffleRuby is an integral part of GraalVM, so the version number of TruffleRuby
 is always the same as the version of GraalVM that contains it. If you are using
