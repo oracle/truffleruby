@@ -24,7 +24,32 @@ describe "Foreign arrays" do
   it "can be printed with #p" do
     -> {
       p Truffle::Interop.to_java_array([1, 2, 3])
-    }.should output_to_fd(/#<Java:0x\h+ \[1, 2, 3\]>/)
+    }.should output_to_fd(/#<Java:0x\h+ \[1, 2, 3\]>\n/)
   end
 
+end
+
+describe "Foreign arrays that are also pointers" do
+  it "implement #to_s with #inspect" do
+    foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+    foreign.to_s.should == foreign.inspect
+  end
+
+  it "can be printed with #puts" do
+    -> {
+      puts Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+    }.should output_to_fd("1\n2\n3\n")
+  end
+
+  it "can be printed with #p" do
+    -> {
+      p Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+    }.should output_to_fd(/#<Foreign pointer 0x\h+ \[1, 2, 3\]>\n/)
+  end
+
+  it "can be printed with #print" do
+    -> {
+      print Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+    }.should output_to_fd(/#<Foreign pointer 0x\h+ \[1, 2, 3\]>/)
+  end
 end
