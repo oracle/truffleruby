@@ -40,9 +40,11 @@ class Complex < Numeric
                :div, :divmod, :floor, :ceil, :modulo, :remainder,
                :round, :step, :truncate, :i, :negative?, :positive?
 
-  def self.convert(real, imag = undefined)
+  def self.convert(real, imag = undefined, exception: true)
+    raise_exception = !exception.equal?(false)
     if nil.equal?(real) || nil.equal?(imag)
-      raise TypeError, 'cannot convert nil into Complex'
+      return nil unless raise_exception
+      raise TypeError, "can't convert nil into Complex"
     end
     imag = nil if TrufflePrimitive.undefined?(imag)
 
@@ -69,12 +71,21 @@ class Complex < Numeric
       if real.kind_of?(Numeric) && !real.real?
         return real
       elsif !real.kind_of?(Numeric)
-        return Truffle::Type.coerce_to(real, Complex, :to_c)
+        if raise_exception
+          return Truffle::Type.rb_convert_type(real, Complex, :to_c)
+        else
+          return Truffle::Type.rb_check_convert_type(real, Complex, :to_c)
+        end
       else
         imag = 0
       end
     elsif real.kind_of?(Numeric) && imag.kind_of?(Numeric) && (!real.real? || !imag.real?)
       return real + imag * Complex.new(0, 1)
+    end
+
+    if !imag.nil? && !raise_exception && !TrufflePrimitive.object_kind_of?(imag, Integer) &&
+        !TrufflePrimitive.object_kind_of?(imag, Float) && !TrufflePrimitive.object_kind_of?(imag, Rational)
+      return nil
     end
 
     rect(real, imag)
