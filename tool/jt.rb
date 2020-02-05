@@ -424,8 +424,7 @@ module Utilities
     end
 
     env = env.map { |k, v| "#{k}=#{shellescape(v)}" }
-    # do not shellscpape if the command is passed as one string
-    args = args.map { |a| shellescape(a) } if args.size > 1
+    args = args.map { |a| shellescape(a) }
 
     all = [*env, *args]
     size = all.reduce(0) { |s, v| s + v.size }
