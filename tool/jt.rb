@@ -421,6 +421,7 @@ module Utilities
       *args, _options = args
     end
 
+    raise 'use multiple arguments instead of a single string with spaces' if args[0].include?(' ')
     env = env.map { |k, v| "#{k}=#{shellescape(v)}" }
     args = args.map { |a| shellescape(a) }
 
