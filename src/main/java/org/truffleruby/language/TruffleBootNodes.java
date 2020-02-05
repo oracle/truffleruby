@@ -310,6 +310,15 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(optionName)")
         protected Object getOption(DynamicObject optionName) {
+            if (getContext().isPreInitializing()) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().runtimeError(
+                                "Truffle::Boot.get_option() should not be called during pre-initialization as options might change at runtime.\n" +
+                                        "Use Truffle::Boot.{delay,redo} to delay such a check to runtime.",
+                                this));
+            }
+
             final String optionNameString = StringOperations.getString(optionName);
             final OptionDescriptor descriptor = OptionsCatalog.fromName("ruby." + optionNameString);
 
