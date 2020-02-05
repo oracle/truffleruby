@@ -14,10 +14,10 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
-import org.truffleruby.interop.ForeignReadStringCachingHelperNode;
+import org.truffleruby.interop.ForeignReadStringCachedHelperNode;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
-import org.truffleruby.interop.ForeignWriteStringCachingHelperNode;
+import org.truffleruby.interop.ForeignWriteStringCachedHelperNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -201,15 +201,19 @@ public class RubyObjectMessages {
         // we ignore the method missing, toNative never throws
     }
 
+    protected static boolean isIVar(String name) {
+        return !name.isEmpty() && name.charAt(0) == '@';
+    }
+
     @ExportMessage
     public static Object readMember(
             DynamicObject receiver,
             String name,
-            @Cached ForeignReadStringCachingHelperNode helperNode,
+            @Cached ForeignReadStringCachedHelperNode helperNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
-            return helperNode.executeStringCachingHelper(receiver, name);
+            return helperNode.executeStringCachedHelper(receiver, name, name, isIVar(name));
         } catch (InvalidArrayIndexException e) {
             errorProfile.enter();
             throw new IllegalStateException("never happens");
@@ -221,10 +225,11 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             Object value,
-            @Cached ForeignWriteStringCachingHelperNode helperNode,
+            @Cached ForeignWriteStringCachedHelperNode helperNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
-        helperNode.executeStringCachingHelper(receiver, name, foreignToRubyNode.executeConvert(value));
+        helperNode
+                .executeStringCachedHelper(receiver, name, name, isIVar(name), foreignToRubyNode.executeConvert(value));
     }
 
     @ExportMessage

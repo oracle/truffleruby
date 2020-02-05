@@ -23,7 +23,7 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
-abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
+public abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
 
     protected final static String INDEX_SET_METHOD_NAME = "[]=";
 
