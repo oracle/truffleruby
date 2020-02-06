@@ -26,7 +26,7 @@
 #
 #   jt --env jvm-ce ruby --experimental-options --engine.TraceCompilation --engine.CompilationExceptionsAreFatal --engine.IterativePartialEscape test.rb
 
-abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
+require_relative 'pe_harness'
 
 TIMEOUT = 10
 
@@ -118,14 +118,7 @@ EXAMPLES.each do |example|
   runner = proc do
     begin
       tested += 1
-      eval <<-RUBY, nil, __FILE__, __LINE__+1
-      # truffleruby_primitives: true
-      def test_pe_code
-        value = Primitive.assert_compilation_constant(begin; #{example.code}; end)
-        Primitive.assert_not_compiled
-        value
-      end
-      RUBY
+      create_test_pe_code_method(example.code)
       while true
         value = test_pe_code
       end
