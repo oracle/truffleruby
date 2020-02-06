@@ -787,7 +787,12 @@ module Truffle::CExt
   end
 
   def rb_cstr_to_dbl(string, badcheck)
-    Primitive.string_to_f string, badcheck
+    result = Primitive.string_to_f string, badcheck
+    if !badcheck && result.nil?
+      0.0
+    else
+      result
+    end
   end
 
   def rb_str_new_rstring_ptr(rstring_ptr, length)
