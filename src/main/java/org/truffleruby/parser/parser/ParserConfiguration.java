@@ -48,6 +48,7 @@ public class ParserConfiguration {
     private boolean saveData = false;
 
     private boolean frozenStringLiteral = false;
+    public boolean allowTruffleRubyPrimitives = false;
 
     private Encoding defaultEncoding;
     private RubyContext context;

@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 #
 # Copyright (C) 2008-2010 Wayne Meissner
 # Copyright (c) 2007, 2008 Evan Phoenix

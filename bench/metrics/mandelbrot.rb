@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright © 2004-2013 Brent Fulgham
 #
 # All rights reserved.
@@ -40,7 +42,7 @@
 # http://benchmarksgame.alioth.debian.org/u64q/program.php?test=mandelbrot&lang=yarv&id=3
 
 def mandelbrot(size)
-  TrufflePrimitive.assert_not_compiled
+  Primitive.assert_not_compiled
 
   sum = 0
 

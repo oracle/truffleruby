@@ -118,12 +118,14 @@ EXAMPLES.each do |example|
   runner = proc do
     begin
       tested += 1
-      eval "
+      eval <<-RUBY, nil, __FILE__, __LINE__+1
+      # truffleruby_primitives: true
       def test_pe_code
         value = Primitive.assert_compilation_constant(begin; #{example.code}; end)
         Primitive.assert_not_compiled
         value
-      end", nil, __FILE__, __LINE__
+      end
+      RUBY
       while true
         value = test_pe_code
       end

@@ -507,8 +507,7 @@ public class BodyTranslator extends Translator {
         }
 
         if (receiver instanceof ConstParseNode &&
-                ((ConstParseNode) receiver).getName().equals("Primitive") &&
-                (inCore() || hasPath("lib/truffle") || hasPath("test/truffle/compiler") || hasPath("spec/truffle"))) {
+                ((ConstParseNode) receiver).getName().equals("Primitive") && canUsePrimitives()) {
             final RubyNode ret = translateInvokePrimitive(sourceSection, node);
             return addNewlineIfNeeded(node, ret);
         }
@@ -522,6 +521,10 @@ public class BodyTranslator extends Translator {
         }
 
         return addNewlineIfNeeded(node, translated);
+    }
+
+    private boolean canUsePrimitives() {
+        return inCore() || environment.getParseEnvironment().allowTruffleRubyPrimitives;
     }
 
     private RubyNode translateInvokePrimitive(SourceIndexLength sourceSection, CallParseNode node) {
@@ -1059,11 +1062,6 @@ public class BodyTranslator extends Translator {
     private boolean inCore() {
         final String path = context.getPath(source);
         return path.startsWith(environment.getParseEnvironment().getCorePath());
-    }
-
-    private boolean hasPath(String path) {
-        final String sourcePath = context.getPath(source);
-        return sourcePath.contains(path);
     }
 
     @Override

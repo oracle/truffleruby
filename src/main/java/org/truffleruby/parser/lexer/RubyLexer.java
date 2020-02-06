@@ -432,9 +432,13 @@ public class RubyLexer implements MagicCommentHandler {
             return;
         }
 
-        // Enebo: This is a hash in MRI for multiple potential compile options but we currently only support one.
-        // I am just going to set it and when a second is done we will reevaluate how they are populated.
-        parserSupport.getConfiguration().setFrozenStringLiteral(b == 1);
+        if (name.equals("frozen_string_literal")) {
+            parserSupport.getConfiguration().setFrozenStringLiteral(b == 1);
+        } else if (name.equals("truffleruby_primitives")) {
+            parserSupport.getConfiguration().allowTruffleRubyPrimitives = (b == 1);
+        } else {
+            compile_error("Unknown compile option flag: " + name);
+        }
     }
 
     private static final Rope TRUE = RopeOperations
@@ -1405,7 +1409,10 @@ public class RubyLexer implements MagicCommentHandler {
             magicCommentEncoding(value);
             return true;
         } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
-            setCompileOptionFlag(name, value);
+            setCompileOptionFlag("frozen_string_literal", value);
+            return true;
+        } else if ("truffleruby_primitives".equalsIgnoreCase(name)) {
+            setCompileOptionFlag("truffleruby_primitives", value);
             return true;
         } else if ("warn_indent".equalsIgnoreCase(name)) {
             setTokenInfo(name, value);
@@ -1420,6 +1427,8 @@ public class RubyLexer implements MagicCommentHandler {
         } else if ("frozen_string_literal".equalsIgnoreCase(name)) {
             return true;
         } else if ("warn_indent".equalsIgnoreCase(name)) {
+            return true;
+        } else if ("truffleruby_primitives".equalsIgnoreCase(name)) {
             return true;
         } else {
             return false;

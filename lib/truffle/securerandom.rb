@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # = Secure random number generator interface.
 #
 # This library is an interface for secure random number generator which is
