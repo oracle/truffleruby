@@ -13,7 +13,7 @@ YYTABLE_PREFIX=
 #DEBUG=true
 ###### Do not change below ######
 
-unset GEM_HOME GEM_PATH GEM_ROOT
+unset GEM_HOME GEM_PATH
 
 if [ "$1" != "" ]; then
   PARSER_BASE=$1

@@ -8,25 +8,13 @@
 
 require_relative '../../ruby/spec_helper'
 
-guard -> { TruffleRuby.native? } do
-  describe "Java" do
-
-    it "is not defined" do
-      defined?(Java).should be_nil
-    end
-
+describe "Java" do
+  it "is defined" do
+    defined?(Java).should == "constant"
   end
-end
 
-guard -> { !TruffleRuby.native? } do
-  describe "Java" do
-
-    it "is defined" do
-      defined?(Java).should_not be_nil
-    end
-
+  guard -> { !TruffleRuby.native? } do
     describe ".type" do
-
       it "returns a Java class for a known primitive name" do
         Java.type("int").getName.should == "int"
       end
@@ -50,7 +38,6 @@ guard -> { !TruffleRuby.native? } do
       it "works with symbols" do
         Java.type(:int).getName.should == "int"
       end
-
     end
   end
 end

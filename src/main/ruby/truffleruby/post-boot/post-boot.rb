@@ -24,24 +24,14 @@ if Truffle::Boot.ruby_home
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   end
 
-  if Truffle::Boot.get_option 'rubygems'
-    Truffle::Boot.delay do
-      if Truffle::Boot.resilient_gem_home?
-        ENV.delete 'GEM_HOME'
-        ENV.delete 'GEM_PATH'
-        ENV.delete 'GEM_ROOT'
-      end
-    end
-
+  if Truffle::Boot.get_option_or_default('rubygems', true)
     begin
       Truffle::Boot.print_time_metric :'before-rubygems'
       begin
-        if Truffle::Boot.get_option('rubygems-lazy')
+        if Truffle::Boot.get_option_or_default('rubygems-lazy', true)
           require 'truffle/lazy-rubygems'
         else
-          Truffle::Boot.delay do
-            require 'rubygems'
-          end
+          require 'rubygems'
         end
       ensure
         Truffle::Boot.print_time_metric :'after-rubygems'
@@ -49,7 +39,7 @@ if Truffle::Boot.ruby_home
     rescue LoadError => e
       Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
     else
-      if Truffle::Boot.get_option 'did-you-mean'
+      if Truffle::Boot.get_option_or_default('did-you-mean', true)
         # Load DidYouMean here manually, to avoid loading RubyGems eagerly
         Truffle::Boot.print_time_metric :'before-did-you-mean'
         begin

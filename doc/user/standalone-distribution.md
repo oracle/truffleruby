@@ -68,7 +68,6 @@ Set `TRUFFLERUBY_VERSION` to the latest TruffleRuby version from
 
 ```bash
 $ export TRUFFLERUBY_VERSION=<desired_version>
-$ export TRUFFLERUBY_RESILIENT_GEM_HOME=true
 $ curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
 $ export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
 $ $PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/lib/truffle/post_install_hook.sh
@@ -76,8 +75,7 @@ $ ruby -v # => truffleruby 1.0.0, like ruby x.y.z, GraalVM CE Native [x86_64-lin
 ```
 
 Note that you also need to ensure `GEM_HOME` and `GEM_PATH` are not set, so
-TruffleRuby uses the correct `GEM_HOME` and `GEM_PATH`. This is the reason for
-`export TRUFFLERUBY_RESILIENT_GEM_HOME=true` above.
+TruffleRuby uses the correct `GEM_HOME` and `GEM_PATH`.
 See [Using TruffleRuby without a Ruby manager](ruby-managers.md#using-truffleruby-without-a-ruby-manager)
 for details.
 

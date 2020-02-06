@@ -84,4 +84,14 @@ module Truffle::Boot
       yield
     end
   end
+
+  # Return default if pre-initializing. Should only be used in rare cases where
+  # using the default during pre-initialization does not change semantics.
+  def self.get_option_or_default(name, default)
+    if preinitializing?
+      default
+    else
+      get_option(name)
+    end
+  end
 end
