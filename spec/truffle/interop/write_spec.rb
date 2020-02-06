@@ -50,11 +50,10 @@ describe "Truffle::Interop.write" do
   describe "with an object with an index set method" do
 
     it "calls the index set method" do
-      object = TruffleInteropSpecs::WriteHasIndexSet.new
+      object = TruffleInteropSpecs::PolyglotMember.new
       Truffle::Interop.write(object, :foo, 14)
-      object.called.should be_true
-      object.key.should == 'foo'
-      object.value.should == 14
+      object.log.should include([:polyglot_member_write, "foo", 14])
+      Truffle::Interop.read(object, :foo).should == 14
     end
 
   end

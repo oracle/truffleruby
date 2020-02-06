@@ -123,6 +123,82 @@ module TruffleInteropSpecs
     end
   end
 
+  class PolyglotMember
+    attr_reader :log
+
+    def initialize
+      @log = []
+      @storage = {}
+    end
+
+    def polyglot_members?
+      true
+    end
+
+    def polyglot_members(internal)
+      @log << [__callee__, internal]
+      internal ? [] : @storage.keys
+    end
+
+    def polyglot_member_read(name)
+      @log << [__callee__, name]
+      @storage.fetch name # TODO (pitr-ch 07-Feb-2020): error translation for missing keys?
+    end
+
+    def polyglot_member_write(name, value)
+      @log << [__callee__, name, value]
+      @storage[name] = value
+    end
+
+    def polyglot_member_remove(name)
+      @log << [__callee__, name]
+      @storage.delete name # TODO (pitr-ch 07-Feb-2020): error translation for missing keys?
+    end
+
+    def polyglot_member_invoke(name, *args)
+      @log << [__callee__, name, *args]
+      # TODO (pitr-ch 07-Feb-2020): error handling?
+      @storage.fetch(name).call(*args)
+    end
+
+    def polyglot_member_readable?(name)
+      @log << [__callee__, name]
+      @storage.key? name
+    end
+
+    def polyglot_member_modifiable?(name)
+      @log << [__callee__, name]
+      @storage.key? name
+    end
+
+    def polyglot_member_removable?(name)
+      @log << [__callee__, name]
+      @storage.key? name
+    end
+
+    def polyglot_member_insertable?(name)
+      @log << [__callee__, name]
+      !@storage.key? name
+    end
+
+    def polyglot_member_invocable?(name)
+      @log << [__callee__, name]
+      @storage.key?(name) && Truffle::Interop.executable?(@storage.fetch(name))
+    end
+
+    def polyglot_member_internal?(name)
+      false
+    end
+
+    def polyglot_member_read_side_effects?(name)
+      false
+    end
+
+    def polyglot_member_write_side_effects?(name)
+      false
+    end
+  end
+
   class ReadHasIndex
     attr_reader :key
 

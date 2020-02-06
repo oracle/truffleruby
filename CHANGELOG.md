@@ -5,7 +5,7 @@ New features:
 * `||=` will not compile the right-hand-side if it's only executed once, to match the idiomatic lazy-initialisation use-case (#1887, @kipply).
 * The implicit interface for allowing Ruby objects to behave as polyglot arrays with `#size`, `#[]` methods has been removed and replaced with an explicit interface where each method starts with `polyglot_*`.
 * Hash keys are no longer reported as polyglot members.
-* All `polyglot_*` methods for defining polyglot behaviour in Ruby match InteropLibrary names.
+* All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods. 
 
 Bug fixes:
 
