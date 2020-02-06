@@ -29,8 +29,6 @@ module Truffle::CExt
   end
 
   class RData
-    DATA_FIELD_INDEX = 2
-
     def initialize(object)
       @object = object
     end
