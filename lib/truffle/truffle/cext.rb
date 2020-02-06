@@ -361,16 +361,15 @@ module Truffle::CExt
     end
 
     def polyglot_pointer?
-      true
+      Primitive.array_store_native?(@array)
     end
 
     def polyglot_address
-      Primitive.array_store_to_native(@array)
       Primitive.array_store_address(@array)
     end
 
-    # Every IS_POINTER object should also have TO_NATIVE
     def polyglot_to_native
+      Primitive.array_store_to_native(@array)
     end
 
     def polyglot_array?
