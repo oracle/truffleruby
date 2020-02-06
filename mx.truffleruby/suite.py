@@ -94,7 +94,6 @@ suite = {
             "load_path": ["src/main/ruby/truffleruby/core"],
             "test": ["spec", "test"],
             "excluded": [
-                "bench",
                 "dumps",
                 "logo",
                 "mxbuild",
