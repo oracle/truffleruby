@@ -123,7 +123,7 @@ EXAMPLES.each do |example|
         value = Primitive.assert_compilation_constant(begin; #{example.code}; end)
         Primitive.assert_not_compiled
         value
-      end"
+      end", nil, __FILE__, __LINE__
       while true
         value = test_pe_code
       end

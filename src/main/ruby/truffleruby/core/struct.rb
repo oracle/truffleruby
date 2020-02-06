@@ -373,7 +373,7 @@ class Struct
       "hash = Primitive.vm_hash_update hash, #{calc}"
     end.join("\n")
 
-    code = <<-CODE
+    code, line = <<-CODE, __LINE__+1
       def initialize(#{args.join(", ")})
         #{assigns.join(';')}
         self
@@ -401,7 +401,7 @@ class Struct
 
     begin
       mod = Module.new do
-        module_eval code
+        module_eval code, __FILE__, line
       end
       include mod
     rescue SyntaxError

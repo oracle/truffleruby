@@ -11,7 +11,7 @@ require_relative '../../ruby/spec_helper'
 describe "Primitive.assert_compilation_constant" do
 
   it "raises a RuntimeError when called dynamically" do
-    -> { tp = Primitive; tp.assert_constant(14 + 2) }.should raise_error(NoMethodError, /syntactically/)
+    -> { tp = Primitive; tp.assert_constant(14 + 2) }.should raise_error(NameError, /uninitialized constant/)
   end
 
   guard -> { !TruffleRuby.jit? } do

@@ -19,7 +19,7 @@ loop do
 
   test_thread = Thread.new do
     begin
-      eval "loop { Primitive.assert_compilation_constant #{code}; Primitive.assert_not_compiled; Thread.pass }"
+      eval "loop { Primitive.assert_compilation_constant #{code}; Primitive.assert_not_compiled; Thread.pass }", nil, __FILE__, __LINE__
     rescue Truffle::GraalError => e
       if e.message.include? 'Primitive.assert_not_compiled'
         puts "Yes! Truffle can constant fold this to #{eval(code).inspect}"

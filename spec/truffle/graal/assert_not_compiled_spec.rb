@@ -11,7 +11,7 @@ require_relative '../../ruby/spec_helper'
 describe "Primitive.assert_not_compiled" do
 
   it "raises a RuntimeError when called dynamically" do
-    -> { tp = Primitive; tp.assert_not_compiled }.should raise_error(NoMethodError, /syntactically/)
+    -> { tp = Primitive; tp.assert_not_compiled }.should raise_error(NameError, /uninitialized constant/)
   end
 
   guard -> { !TruffleRuby.jit? } do
