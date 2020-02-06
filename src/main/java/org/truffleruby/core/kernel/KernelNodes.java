@@ -554,42 +554,18 @@ public abstract class KernelNodes {
         @Child private CopyNode copyNode = CopyNodeFactory.create(null);
         @Child private CallDispatchHeadNode initializeDupNode = CallDispatchHeadNode.createPrivate();
 
-        @Specialization(guards = "!isSpecialDup(self)")
-        protected DynamicObject dup(VirtualFrame frame, DynamicObject self) {
-            final DynamicObject newObject = copyNode.executeCopy(frame, self);
+        @Specialization
+        protected Object dup(VirtualFrame frame, Object self,
+                @Cached IsImmutableObjectNode isImmutableObjectNode) {
+            if (isImmutableObjectNode.execute(self)) {
+                return self;
+            }
+
+            final DynamicObject newObject = copyNode.executeCopy(frame, (DynamicObject) self);
 
             initializeDupNode.call(newObject, "initialize_dup", self);
 
             return newObject;
-        }
-
-        @Specialization(guards = "isSpecialDup(self)")
-        protected DynamicObject dupSpecial(DynamicObject self) {
-            return self;
-        }
-
-        @Specialization
-        protected Object dup(boolean self) {
-            return self;
-        }
-
-        @Specialization
-        protected Object dup(int self) {
-            return self;
-        }
-
-        @Specialization
-        protected Object dup(long self) {
-            return self;
-        }
-
-        @Specialization
-        protected Object dup(double self) {
-            return self;
-        }
-
-        protected boolean isSpecialDup(DynamicObject object) {
-            return isNil(object) || RubyGuards.isRubyInteger(object) || RubyGuards.isRubySymbol(object);
         }
 
     }
