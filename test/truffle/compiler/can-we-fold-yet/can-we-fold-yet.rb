@@ -12,7 +12,7 @@ require 'readline'
 
 require_relative '../pe/pe_harness'
 
-puts 'Can Truffle constant fold yet?'
+puts 'Can TruffleRuby constant fold yet?'
 
 loop do
   code = Readline.readline('> ', true)
