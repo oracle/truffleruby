@@ -97,6 +97,11 @@ describe "Inspect on a foreign" do
         array.inspect.should =~ /#<Foreign:0x\h+ \[1, 2, 3\]>/
       end
 
+      it "gives a similar representation to Ruby, even if it is also a pointer" do
+        array = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
+        array.inspect.should =~ /#<Foreign pointer 0x\h+ \[1, 2, 3\]>/
+      end
+
     end
 
   end

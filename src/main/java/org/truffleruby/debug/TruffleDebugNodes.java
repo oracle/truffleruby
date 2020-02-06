@@ -623,7 +623,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            final boolean isArrayElementInsertable(long index) {
+            public final boolean isArrayElementInsertable(long index) {
                 return false;
             }
 
@@ -649,6 +649,39 @@ public abstract class TruffleDebugNodes {
 
         protected boolean strategyMatches(ArrayStrategy strategy, TruffleObject array) {
             return strategy.matchesStore(getContext().getEnv().asHostObject(array));
+        }
+    }
+
+    @CoreMethod(names = "foreign_pointer_array_from_java", required = 1, onSingleton = true)
+    public abstract static class ForeignPointerArrayFromJavaNode extends ForeignArrayFromJavaNode {
+
+        @ExportLibrary(InteropLibrary.class)
+        public static class ForeignPointerArrayFromJava extends ForeignArrayFromJava {
+
+            public ForeignPointerArrayFromJava(Object[] array) {
+                super(array);
+            }
+
+            @ExportMessage
+            public boolean isPointer() {
+                return true;
+            }
+
+            @ExportMessage
+            public long asPointer() {
+                return 0; // shouldn't be used
+            }
+        }
+
+        @Override
+        @TruffleBoundary
+        @Specialization(guards = "strategyMatches(strategy, array)")
+        protected Object foreignArrayFromJava(TruffleObject array,
+                @Cached("strategy(array)") ArrayStrategy strategy,
+                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
+                @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode) {
+            Object hostObject = getContext().getEnv().asHostObject(array);
+            return new ForeignPointerArrayFromJava(boxedCopyNode.execute(hostObject, capacityNode.execute(hostObject)));
         }
     }
 
