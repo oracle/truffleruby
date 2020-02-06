@@ -51,8 +51,7 @@ class JT
       config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
       distro = 'ol7'
-      install_method = :public
-      public_version = '1.0.0-rc14'
+      install_method = nil
       rebuild_images = false
       rebuild_openssl = true
       basic_test = false
@@ -65,9 +64,6 @@ class JT
         case arg
         when '--ol7', '--ubuntu1804', '--ubuntu1604', '--fedora28'
           distro = arg[2..-1]
-        when '--public'
-          install_method = :public
-          public_version = args.shift
         when '--graalvm'
           install_method = :graalvm
           graalvm_tarball = args.shift
@@ -75,9 +71,6 @@ class JT
         when '--standalone'
           install_method = :standalone
           standalone_tarball = args.shift
-        when '--source'
-          install_method = :source
-          source_branch = args.shift
         when '--rebuild-images'
           rebuild_images = true
           native_component = args.shift
@@ -103,16 +96,12 @@ class JT
       packages = []
       packages << distro.fetch('locale')
 
-      packages << distro.fetch('curl') if install_method == :public || install_method == :source
-      packages << distro.fetch('git') if install_method == :source
-      packages << distro.fetch('tar') if install_method != :source
+      packages << distro.fetch('tar')
       packages << distro.fetch('specs') if full_test
 
       packages << distro.fetch('zlib')
       packages << distro.fetch('openssl')
       packages << distro.fetch('cext')
-
-      packages << distro.fetch('source') if install_method == :source
 
       lines = [
         "FROM #{distro.fetch('base')}",
@@ -134,25 +123,15 @@ class JT
 
       check_post_install_message = [
           "RUN grep 'The Ruby openssl C extension needs to be recompiled on your system to work with the installed libssl' install.log",
-          "RUN grep '/#{language_dir}/ruby/lib/truffle/post_install_hook.sh' install.log"
+          "RUN grep '/languages/ruby/lib/truffle/post_install_hook.sh' install.log"
       ]
 
       case install_method
-      when :public
-        graalvm_tarball = "graalvm-ce-#{public_version}-linux-amd64.tar.gz"
-        lines << "RUN curl -OL https://github.com/oracle/graal/releases/download/vm-#{public_version}/#{graalvm_tarball}"
-        graalvm_base = '/test/graalvm'
-        lines << "RUN mkdir #{graalvm_base}"
-        lines << "RUN tar -zxf #{graalvm_tarball} -C #{graalvm_base} --strip-components=1"
-        lines << "RUN #{graalvm_base}/bin/gu install ruby | tee install.log"
-        lines.push(*check_post_install_message)
-        ruby_base = "#{graalvm_base}/#{language_dir}/ruby"
-        graalvm_bin = "#{graalvm_base}/bin"
-        ruby_bin = graalvm_bin
-        lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
       when :graalvm
         FileUtils.copy graalvm_tarball, docker_dir unless print_only
         graalvm_tarball = File.basename(graalvm_tarball)
+        language_dir = graalvm_tarball.include?('java11') ? 'languages' : 'jre/languages'
+
         lines << "COPY #{graalvm_tarball} /test/"
         graalvm_base = '/test/graalvm'
         lines << "RUN mkdir #{graalvm_base}"
@@ -179,16 +158,6 @@ class JT
         lines << "RUN tar -zxf #{standalone_tarball} -C #{ruby_base} --strip-components=1"
         ruby_bin = "#{ruby_base}/bin"
         lines << "RUN #{ruby_base}/lib/truffle/post_install_hook.sh" if run_post_install_hook
-      when :source
-        lines << 'RUN git clone --depth 1 https://github.com/graalvm/mx.git'
-        lines << 'ENV PATH=$PATH:/test/mx'
-        raw_sh 'git', 'clone', '--branch', source_branch, TRUFFLERUBY_DIR, "#{docker_dir}/truffleruby" unless print_only
-        raw_sh 'git', 'clone', GRAAL_DIR, "#{docker_dir}/graal" unless print_only
-        lines << 'COPY --chown=test truffleruby truffleruby'
-        lines << 'COPY --chown=test graal graal'
-        lines << 'RUN cd truffleruby && tool/jt.rb build'
-        ruby_base = '/test/truffleruby/mxbuild/truffleruby-jvm'
-        ruby_bin = "#{ruby_base}/bin"
       else
         raise "Unknown install method: #{install_method}"
       end
@@ -213,20 +182,20 @@ class JT
 
 
       if rebuild_images
-        if [:public, :graalvm].include?(install_method)
+        if install_method == :graalvm
           FileUtils.copy native_component, docker_dir unless print_only
           native_component = File.basename(native_component)
           lines << "COPY #{native_component} /test/"
           lines << "RUN #{graalvm_bin}/gu install --file /test/#{native_component} | tee install.log"
           lines << "RUN #{graalvm_base}/bin/gu rebuild-images polyglot libpolyglot"
         else
-          abort "can't rebuild images for a build not from public or from local GraalVM components"
+          abort "can't rebuild images for a build not from local GraalVM components"
         end
       end
 
       lines << "ENV PATH=#{ruby_bin}:$PATH"
 
-      configs = [:public, :graalvm].include?(install_method) ? %w[--native --jvm] : ['']
+      configs = install_method == :graalvm ? %w[--native --jvm] : ['']
 
       configs.each do |c|
         lines << "RUN ruby #{c} --version"
@@ -258,9 +227,9 @@ class JT
         end
 
         configs.each do |c|
-          excludes = ['fails', 'slow']
+          excludes = %w[fails slow]
 
-          [':command_line', ':security', ':language', ':core', ':library', ':capi', ':library_cext', ':truffle', ':truffle_capi'].each do |set|
+          %w[:command_line :security :language :core :library :capi :library_cext :truffle :truffle_capi].each do |set|
             t_config = c.empty? ? '' : '-T' + c
             t_excludes = excludes.map { |e| '--excl-tag ' + e }.join(' ')
             lines << "RUN ruby spec/mspec/bin/mspec --config spec/truffle.mspec -t #{ruby_bin}/ruby #{t_config} #{t_excludes} #{set}"
