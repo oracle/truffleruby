@@ -1899,4 +1899,7 @@ module Truffle::CExt
     Primitive.object_hidden_var_set object, name, value
   end
 
+  def test_cext_wrap(value)
+    Primitive.cext_wrap(value)
+  end
 end
