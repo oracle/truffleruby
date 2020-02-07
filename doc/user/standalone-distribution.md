@@ -33,7 +33,7 @@ Please [report](https://github.com/oracle/truffleruby/issues) any issue you migh
 
 ## Testing TruffleRuby in GitHub Actions
 
-In GitHub Actions, you can easily setup TruffleRuby with [use-ruby-action](https://github.com/eregon/use-ruby-action):
+In GitHub Actions, you can easily setup TruffleRuby with [ruby/setup-ruby](https://github.com/ruby/setup-ruby):
 
 ```yaml
 name: My workflow
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: eregon/use-ruby-action@v1
+    - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby }}
     - run: ruby -v
