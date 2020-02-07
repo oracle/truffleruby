@@ -41,23 +41,23 @@ public class DoubleArrayStore {
     static class AcceptsAllValues {
 
         @Specialization
-        static boolean acceptsZeroValues(double[] store, ZeroLengthArrayStore otherStore) {
+        protected static boolean acceptsZeroValues(double[] store, ZeroLengthArrayStore otherStore) {
             return true;
         }
 
         @Specialization
-        static boolean acceptsDoubleValues(double[] store, double[] otherStore) {
+        protected static boolean acceptsDoubleValues(double[] store, double[] otherStore) {
             return true;
         }
 
         @Specialization
-        static boolean acceptsDelegateValues(double[] store, DelegatedArrayStorage otherStore,
+        protected static boolean acceptsDelegateValues(double[] store, DelegatedArrayStorage otherStore,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.acceptsAllValues(store, otherStore.storage);
         }
 
         @Specialization
-        static boolean acceptsOtherValues(double[] store, Object otherStore) {
+        protected static boolean acceptsOtherValues(double[] store, Object otherStore) {
             return false;
         }
     }
@@ -98,12 +98,12 @@ public class DoubleArrayStore {
     static class CopyContents {
 
         @Specialization
-        static void copyContents(double[] srcStore, int srcStart, double[] destStore, int destStart, int length) {
+        protected static void copyContents(double[] srcStore, int srcStart, double[] destStore, int destStart, int length) {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
         @Specialization
-        static void copyContents(double[] srcStore, int srcStart, Object destStore, int destStart, int length,
+        protected static void copyContents(double[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
             for (int i = srcStart; i < length; i++) {
                 destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
@@ -156,12 +156,12 @@ public class DoubleArrayStore {
     static class GeneralizeForValue {
 
         @Specialization
-        static ArrayAllocator generalize(double[] store, double newValue) {
+        protected static ArrayAllocator generalize(double[] store, double newValue) {
             return DOUBLE_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(double[] store, Object newValue) {
+        protected static ArrayAllocator generalize(double[] store, Object newValue) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
     }
@@ -170,27 +170,27 @@ public class DoubleArrayStore {
     static class GeneralizeForStore {
 
         @Specialization
-        static ArrayAllocator generalize(double[] store, int[] newStore) {
+        protected static ArrayAllocator generalize(double[] store, int[] newStore) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(double[] store, long[] newStore) {
+        protected static ArrayAllocator generalize(double[] store, long[] newStore) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(double[] store, double[] newStore) {
+        protected static ArrayAllocator generalize(double[] store, double[] newStore) {
             return DOUBLE_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(double[] store, Object[] newStore) {
+        protected static ArrayAllocator generalize(double[] store, Object[] newStore) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(double[] store, Object newStore,
+        protected static ArrayAllocator generalize(double[] store, Object newStore,
                 @CachedLibrary(limit = "3") ArrayStoreLibrary newStores) {
             return newStores.generalizeForStore(newStore, store);
         }

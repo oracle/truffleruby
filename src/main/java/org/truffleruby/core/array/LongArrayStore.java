@@ -41,28 +41,28 @@ public class LongArrayStore {
     static class AcceptsAllValues {
 
         @Specialization
-        static boolean acceptsZeroValues(long[] store, ZeroLengthArrayStore otherStore) {
+        protected static boolean acceptsZeroValues(long[] store, ZeroLengthArrayStore otherStore) {
             return true;
         }
 
         @Specialization
-        static boolean acceptsIntValues(long[] store, int[] otherStore) {
+        protected static boolean acceptsIntValues(long[] store, int[] otherStore) {
             return true;
         }
 
         @Specialization
-        static boolean acceptsLongValues(long[] store, long[] otherStore) {
+        protected static boolean acceptsLongValues(long[] store, long[] otherStore) {
             return true;
         }
 
         @Specialization
-        static boolean acceptsDelegateValues(long[] store, DelegatedArrayStorage otherStore,
+        protected static boolean acceptsDelegateValues(long[] store, DelegatedArrayStorage otherStore,
                 @CachedLibrary("store") ArrayStoreLibrary stores) {
             return stores.acceptsAllValues(store, otherStore.storage);
         }
 
         @Specialization
-        static boolean acceptsOtherValues(long[] store, Object otherStore) {
+        protected static boolean acceptsOtherValues(long[] store, Object otherStore) {
             return false;
         }
     }
@@ -85,12 +85,12 @@ public class LongArrayStore {
     @ExportMessage
     static class Write {
         @Specialization
-        public static void write(long[] store, int index, int value) {
+        protected static void write(long[] store, int index, int value) {
             store[index] = value;
         }
 
         @Specialization
-        public static void write(long[] store, int index, long value) {
+        protected static void write(long[] store, int index, long value) {
             store[index] = value;
         }
     }
@@ -111,12 +111,12 @@ public class LongArrayStore {
     static class CopyContents {
 
         @Specialization
-        static void copyContents(long[] srcStore, int srcStart, long[] destStore, int destStart, int length) {
+        protected static void copyContents(long[] srcStore, int srcStart, long[] destStore, int destStart, int length) {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
         @Specialization
-        static void copyContents(long[] srcStore, int srcStart, Object destStore, int destStart, int length,
+        protected static void copyContents(long[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
             for (int i = srcStart; i < length; i++) {
                 destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
@@ -169,22 +169,22 @@ public class LongArrayStore {
     static class GeneralizeForValue {
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, int newValue) {
+        protected static ArrayAllocator generalize(long[] store, int newValue) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, long newValue) {
+        protected static ArrayAllocator generalize(long[] store, long newValue) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, double newValue) {
+        protected static ArrayAllocator generalize(long[] store, double newValue) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, Object newValue) {
+        protected static ArrayAllocator generalize(long[] store, Object newValue) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
     }
@@ -193,27 +193,27 @@ public class LongArrayStore {
     static class GeneralizeForStore {
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, int[] newStore) {
+        protected static ArrayAllocator generalize(long[] store, int[] newStore) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, long[] newStore) {
+        protected static ArrayAllocator generalize(long[] store, long[] newStore) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, double[] newStore) {
+        protected static ArrayAllocator generalize(long[] store, double[] newStore) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, Object[] newStore) {
+        protected static ArrayAllocator generalize(long[] store, Object[] newStore) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(long[] store, Object newStore,
+        protected static ArrayAllocator generalize(long[] store, Object newStore,
                 @CachedLibrary(limit = "3") ArrayStoreLibrary newStores) {
             return newStores.generalizeForStore(newStore, store);
         }

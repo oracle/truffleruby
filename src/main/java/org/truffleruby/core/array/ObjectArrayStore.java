@@ -78,12 +78,12 @@ public class ObjectArrayStore {
     static class CopyContents {
 
         @Specialization
-        static void copyContents(Object[] srcStore, int srcStart, Object[] destStore, int destStart, int length) {
+        protected static void copyContents(Object[] srcStore, int srcStart, Object[] destStore, int destStart, int length) {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
         @Specialization
-        static void copyContents(Object[] srcStore, int srcStart, Object destStore, int destStart, int length,
+        protected static void copyContents(Object[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
             for (int i = srcStart; i < length; i++) {
                 destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
@@ -146,27 +146,27 @@ public class ObjectArrayStore {
     static class GeneralizeForStore {
 
         @Specialization
-        static ArrayAllocator generalize(Object[] store, int[] newStore) {
+        protected static ArrayAllocator generalize(Object[] store, int[] newStore) {
             return OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(Object[] store, long[] newStore) {
+        protected static ArrayAllocator generalize(Object[] store, long[] newStore) {
             return OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(Object[] store, double[] newStore) {
+        protected static ArrayAllocator generalize(Object[] store, double[] newStore) {
             return OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(Object[] store, Object[] newStore) {
+        protected static ArrayAllocator generalize(Object[] store, Object[] newStore) {
             return OBJECT_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(Object[] store, Object newStore,
+        protected static ArrayAllocator generalize(Object[] store, Object newStore,
                 @CachedLibrary(limit = "3") ArrayStoreLibrary newStores) {
             return newStores.generalizeForStore(newStore, store);
         }

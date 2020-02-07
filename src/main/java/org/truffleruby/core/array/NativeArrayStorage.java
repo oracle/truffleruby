@@ -89,7 +89,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class Read {
 
         @Specialization
-        static Object read(NativeArrayStorage storage, int index,
+        protected static Object read(NativeArrayStorage storage, int index,
                 @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
             return unwrapNode.execute(storage.readElement(index));
         }
@@ -99,7 +99,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class Write {
 
         @Specialization
-        static void write(NativeArrayStorage storage, int index, Object value,
+        protected static void write(NativeArrayStorage storage, int index, Object value,
                 @CachedLibrary(limit = "1") InteropLibrary wrappers,
                 @Cached() WrapNode wrapNode,
                 @Cached BranchProfile errorProfile) {
@@ -108,7 +108,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
                 storage.writeElement(index, wrappers.asPointer(wrapper));
             } catch (UnsupportedMessageException e) {
                 errorProfile.enter();
-                throw new UnsupportedOperationException(e);
+                throw new UnsupportedOperationException();
             }
         }
     }
@@ -122,7 +122,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class Expand {
 
         @Specialization
-        static NativeArrayStorage expand(NativeArrayStorage storage, int newCapacity) {
+        protected static NativeArrayStorage expand(NativeArrayStorage storage, int newCapacity) {
             Pointer newPointer = Pointer.malloc(storage.capacity());
             newPointer.writeBytes(0, storage.pointer, 0, storage.capacity());
             newPointer.writeBytes(storage.capacity(), newCapacity - storage.capacity(), (byte) 0);
@@ -138,7 +138,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class CopyContents {
 
         @Specialization
-        static void copyContents(NativeArrayStorage srcStore, int srcStart, Object destStore, int destStart,
+        protected static void copyContents(NativeArrayStorage srcStore, int srcStart, Object destStore, int destStart,
                 int length,
                 @CachedLibrary("srcStore") ArrayStoreLibrary srcStores,
                 @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {

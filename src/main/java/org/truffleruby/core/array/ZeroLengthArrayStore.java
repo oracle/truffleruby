@@ -100,22 +100,22 @@ public class ZeroLengthArrayStore {
     static class GeneralizeForValue {
 
         @Specialization
-        static ArrayAllocator generalize(ZeroLengthArrayStore store, int newValue) {
+        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, int newValue) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(ZeroLengthArrayStore store, long newValue) {
+        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, long newValue) {
             return LongArrayStore.LONG_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(ZeroLengthArrayStore store, double newValue) {
+        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, double newValue) {
             return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newValue) {
+        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newValue) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
     }
@@ -124,12 +124,12 @@ public class ZeroLengthArrayStore {
     static class GeneralizeForStore {
 
         @Specialization
-        static ArrayAllocator generalize(ZeroLengthArrayStore store, ZeroLengthArrayStore newStore) {
+        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, ZeroLengthArrayStore newStore) {
             return ZERO_LENGTH_ALLOCATOR;
         }
 
         @Specialization
-        static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newStore,
+        protected static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newStore,
                 @CachedLibrary(limit = "7") ArrayStoreLibrary newStores) {
             return newStores.allocator(newStore);
         }
