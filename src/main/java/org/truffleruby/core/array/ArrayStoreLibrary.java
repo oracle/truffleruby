@@ -60,7 +60,7 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract String toString(Object store);
 
     @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable", "sort" })
-    public void write(Object store, int index, Object valur) {
+    public void write(Object store, int index, Object value) {
         throw new UnsupportedOperationException();
     }
 

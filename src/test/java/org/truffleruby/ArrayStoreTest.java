@@ -91,7 +91,7 @@ public class ArrayStoreTest {
         Object newValue = new Object();
         assertFalse(stores.acceptsValue(store, newValue));
         Object newStore = stores.generalizeForValue(store, newValue).allocate(1);
-        assertEquals(newStore.getClass(), long[].class);
+        assertEquals(newStore.getClass(), Object[].class);
     }
 
     @Test
