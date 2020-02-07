@@ -30,7 +30,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     public final int length;
 
     @ExportMessage
-    public Object read(long index,
+    public Object read(int index,
             @CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
         return stores.read(storage, index + offset);
     }
@@ -47,22 +47,22 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public long capacity() {
+    public int capacity() {
         return length;
     }
 
     @ExportMessage
-    public Object expand(long capacity) {
-        return DelegatedArrayStorage.create(storage, offset, (int) capacity);
+    public Object expand(int capacity) {
+        return DelegatedArrayStorage.create(storage, offset, capacity);
     }
 
     @ExportMessage
-    public Object extractRange(long start, long end) {
-        return DelegatedArrayStorage.create(storage, (int) (offset + start), (int) (end - start));
+    public Object extractRange(int start, int end) {
+        return DelegatedArrayStorage.create(storage, (offset + start), (end - start));
     }
 
     @ExportMessage
-    public void copyContents(long srcStart, Object destStore, long destStart, long length,
+    public void copyContents(int srcStart, Object destStore, int destStart, int length,
             @CachedLibrary(limit = "5") ArrayStoreLibrary srcStores,
             @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
         for (int i = 0; i < length; i++) {
@@ -71,7 +71,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public Object copyStore(long length,
+    public Object copyStore(int length,
             @CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
         Object newStore = stores.allocator(storage).allocate(length);
         stores.copyContents(storage, 0, newStore, offset, length);
@@ -79,7 +79,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public Iterable<Object> getIterable(long from, long length,
+    public Iterable<Object> getIterable(int from, int length,
             @CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
         return stores.getIterable(storage, from + offset, length);
     }

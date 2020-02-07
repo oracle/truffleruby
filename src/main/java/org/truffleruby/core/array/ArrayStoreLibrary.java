@@ -32,7 +32,7 @@ public abstract class ArrayStoreLibrary extends Library {
     }
 
     // Read a value from the store
-    public abstract Object read(Object store, long index);
+    public abstract Object read(Object store, int index);
 
     // Return whether the store can accept this value.
     @Abstract(ifExported = { "write", "acceptsAllValues", "isMutable", "sort" })
@@ -60,28 +60,28 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract String toString(Object store);
 
     @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable", "sort" })
-    public void write(Object store, long index, Object valur) {
+    public void write(Object store, int index, Object valur) {
         throw new UnsupportedOperationException();
     }
 
-    public abstract long capacity(Object store);
+    public abstract int capacity(Object store);
 
-    public abstract Object expand(Object store, long capacity);
+    public abstract Object expand(Object store, int capacity);
 
-    public Object extractRange(Object store, long start, long end) {
-        return DelegatedArrayStorage.create(store, (int) start, (int) (end - start));
+    public Object extractRange(Object store, int start, int end) {
+        return DelegatedArrayStorage.create(store, start, (end - start));
     }
 
-    public abstract void copyContents(Object store, long srcStart, Object dest, long destStart, long length);
+    public abstract void copyContents(Object store, int srcStart, Object dest, int destStart, int length);
 
-    public abstract Object copyStore(Object store, long length);
+    public abstract Object copyStore(Object store, int length);
 
     @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable", "write" })
-    public void sort(Object store, long size) {
+    public void sort(Object store, int size) {
         throw new UnsupportedOperationException();
     }
 
-    public abstract Iterable<Object> getIterable(Object store, long start, long length);
+    public abstract Iterable<Object> getIterable(Object store, int start, int length);
 
     public abstract ArrayAllocator generalizeForValue(Object store, Object newValue);
 
@@ -103,7 +103,7 @@ public abstract class ArrayStoreLibrary extends Library {
 
     public static abstract class ArrayAllocator {
 
-        public abstract Object allocate(long capacity);
+        public abstract Object allocate(int capacity);
 
         public abstract boolean accepts(Object value);
 

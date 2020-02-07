@@ -31,7 +31,7 @@ public class ZeroLengthArrayStore {
     public static final ZeroLengthArrayStore ZERO_LENGTH_STORE = new ZeroLengthArrayStore();
 
     @ExportMessage
-    public Object read(long index) {
+    public Object read(int index) {
         return null;
     }
 
@@ -46,37 +46,37 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    public long capacity() {
+    public int capacity() {
         return 0;
     }
 
     @ExportMessage
-    public Object[] expand(long newCapacity) {
-        return new Object[(int) newCapacity];
+    public Object[] expand(int newCapacity) {
+        return new Object[newCapacity];
     }
 
     @ExportMessage
-    public Object extractRange(long start, long end) {
+    public Object extractRange(int start, int end) {
         assert start == 0;
         assert end == 0;
         return this;
     }
 
     @ExportMessage
-    public void copyContents(long srcStart, Object destStore, long destStart,
-            long length) {
+    public void copyContents(int srcStart, Object destStore, int destStart,
+            int length) {
         assert srcStart == 0;
         assert length == 0;
         return;
     }
 
     @ExportMessage
-    public ZeroLengthArrayStore copyStore(long length) {
+    public ZeroLengthArrayStore copyStore(int length) {
         return this;
     }
 
     @ExportMessage
-    public Iterable<Object> getIterable(long from, long length) {
+    public Iterable<Object> getIterable(int from, int length) {
         return () -> new Iterator<Object>() {
             @Override
             public boolean hasNext() {
@@ -145,7 +145,7 @@ public class ZeroLengthArrayStore {
     static class ZeroLengthAllocator extends ArrayAllocator {
 
         @Override
-        public Object allocate(long capacity) {
+        public Object allocate(int capacity) {
             assert capacity == 0;
             return ZERO_LENGTH_STORE;
         }

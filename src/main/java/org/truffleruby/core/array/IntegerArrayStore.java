@@ -28,8 +28,8 @@ import org.truffleruby.core.array.ArrayStoreLibrary.ArrayAllocator;
 public class IntegerArrayStore {
 
     @ExportMessage
-    public static int read(int[] store, long index) {
-        return store[(int) index];
+    public static int read(int[] store, int index) {
+        return store[index];
     }
 
     @ExportMessage
@@ -78,18 +78,22 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    public static void write(int[] store, long index, Object value) {
-        store[(int) index] = (int) value;
+    static class Write {
+
+        @Specialization
+        static void writeInt(int[] store, int index, int value) {
+            store[index] = value;
+        }
     }
 
     @ExportMessage
-    public static long capacity(int[] store) {
+    public static int capacity(int[] store) {
         return store.length;
     }
 
     @ExportMessage
-    public static int[] expand(int[] store, long newCapacity) {
-        int[] newStore = new int[(int) newCapacity];
+    public static int[] expand(int[] store, int newCapacity) {
+        int[] newStore = new int[newCapacity];
         System.arraycopy(store, 0, newStore, 0, store.length);
         return newStore;
     }
@@ -98,35 +102,35 @@ public class IntegerArrayStore {
     static class CopyContents {
 
         @Specialization
-        static void copyContents(int[] srcStore, long srcStart, int[] destStore, long destStart, long length) {
-            System.arraycopy(srcStore, (int) srcStart, destStore, (int) destStart, (int) length);
+        static void copyContents(int[] srcStore, int srcStart, int[] destStore, int destStart, int length) {
+            System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
         @Specialization
-        static void copyContents(int[] srcStore, long srcStart, Object destStore, long destStart, long length,
+        static void copyContents(int[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
-            for (long i = srcStart; i < length; i++) {
-                destStores.write(destStore, destStart + i, srcStore[(int) (srcStart + i)]);
+            for (int i = srcStart; i < length; i++) {
+                destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
             }
         }
     }
 
     @ExportMessage
-    public static int[] copyStore(int[] store, long length) {
-        return ArrayUtils.grow(store, (int) length);
+    public static int[] copyStore(int[] store, int length) {
+        return ArrayUtils.grow(store, length);
     }
 
     @ExportMessage
     @TruffleBoundary
-    public static void sort(int[] store, long size) {
-        Arrays.sort(store, 0, (int) size);
+    public static void sort(int[] store, int size) {
+        Arrays.sort(store, 0, size);
     }
 
     @ExportMessage
-    public static Iterable<Object> getIterable(int[] store, long from, long length) {
+    public static Iterable<Object> getIterable(int[] store, int from, int length) {
         return () -> new Iterator<Object>() {
 
-            private int n = (int) from;
+            private int n = from;
 
             @Override
             public boolean hasNext() {
@@ -216,8 +220,8 @@ public class IntegerArrayStore {
     private static class IntegerArrayAllocator extends ArrayAllocator {
 
         @Override
-        public int[] allocate(long capacity) {
-            return new int[(int) capacity];
+        public int[] allocate(int capacity) {
+            return new int[capacity];
         }
 
         @Override

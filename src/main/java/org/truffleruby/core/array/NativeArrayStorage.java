@@ -89,9 +89,9 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class Read {
 
         @Specialization
-        static Object read(NativeArrayStorage storage, long index,
+        static Object read(NativeArrayStorage storage, int index,
                 @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
-            return unwrapNode.execute(storage.readElement((int) index));
+            return unwrapNode.execute(storage.readElement(index));
         }
     }
 
@@ -99,13 +99,13 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class Write {
 
         @Specialization
-        static void write(NativeArrayStorage storage, long index, Object value,
+        static void write(NativeArrayStorage storage, int index, Object value,
                 @CachedLibrary(limit = "1") InteropLibrary wrappers,
                 @Cached() WrapNode wrapNode,
                 @Cached BranchProfile errorProfile) {
             ValueWrapper wrapper = wrapNode.execute(value);
             try {
-                storage.writeElement((int) index, wrappers.asPointer(wrapper));
+                storage.writeElement(index, wrappers.asPointer(wrapper));
             } catch (UnsupportedMessageException e) {
                 errorProfile.enter();
                 throw new UnsupportedOperationException(e);
@@ -114,7 +114,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public long capacity() {
+    public int capacity() {
         return length;
     }
 
@@ -122,15 +122,15 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class Expand {
 
         @Specialization
-        static NativeArrayStorage expand(NativeArrayStorage storage, long newCapacity) {
+        static NativeArrayStorage expand(NativeArrayStorage storage, int newCapacity) {
             Pointer newPointer = Pointer.malloc(storage.capacity());
             newPointer.writeBytes(0, storage.pointer, 0, storage.capacity());
             newPointer.writeBytes(storage.capacity(), newCapacity - storage.capacity(), (byte) 0);
-            Object[] newMarkedObjects = new Object[(int) newCapacity];
+            Object[] newMarkedObjects = new Object[newCapacity];
             /* We copy the contents of the marked objects to ensure the references will be kept alive even if the old
              * store becomes unreachable. */
             System.arraycopy(storage.markedObjects, 0, newMarkedObjects, 0, storage.length);
-            return new NativeArrayStorage(newPointer, (int) newCapacity, newMarkedObjects);
+            return new NativeArrayStorage(newPointer, newCapacity, newMarkedObjects);
         }
     }
 
@@ -138,20 +138,20 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class CopyContents {
 
         @Specialization
-        static void copyContents(NativeArrayStorage srcStore, long srcStart, Object destStore, long destStart,
-                long length,
+        static void copyContents(NativeArrayStorage srcStore, int srcStart, Object destStore, int destStart,
+                int length,
                 @CachedLibrary("srcStore") ArrayStoreLibrary srcStores,
                 @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
-            for (long i = srcStart; i < length; i++) {
+            for (int i = srcStart; i < length; i++) {
                 destStores.write(destStore, destStart + i, srcStores.read(srcStore, (srcStart + i)));
             }
         }
     }
 
     @ExportMessage
-    public Object[] copyStore(long size,
+    public Object[] copyStore(int size,
             @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
-        Object[] newStore = new Object[(int) size];
+        Object[] newStore = new Object[size];
         assert size >= length;
         for (int i = 0; i < length; i++) {
             newStore[i] = unwrapNode.execute(readElement(i));
@@ -160,24 +160,24 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public void sort(long size,
+    public void sort(int size,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        Object[] elements = new Object[(int) size];
+        Object[] elements = new Object[size];
         for (int i = 0; i < size; i++) {
             elements[i] = stores.read(this, i);
         }
-        Arrays.sort(elements, 0, (int) size);
+        Arrays.sort(elements, 0, size);
         for (int i = 0; i < size; i++) {
             stores.write(this, i, elements[i]);
         }
     }
 
     @ExportMessage
-    public static Iterable<Object> getIterable(NativeArrayStorage store, long from, long length,
+    public static Iterable<Object> getIterable(NativeArrayStorage store, int from, int length,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         return () -> new Iterator<Object>() {
 
-            private int n = (int) from;
+            private int n = from;
 
             @Override
             public boolean hasNext() {
