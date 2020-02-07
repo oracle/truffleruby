@@ -36,21 +36,6 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public boolean acceptsValue(Object value) {
-        return false;
-    }
-
-    @ExportMessage
-    public boolean acceptsAllValues(Object otherStore) {
-        return false;
-    }
-
-    @ExportMessage
-    public boolean isMutable() {
-        return false;
-    }
-
-    @ExportMessage
     public boolean isPrimitive(@CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
         return stores.isPrimitive(storage);
     }
@@ -59,10 +44,6 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     @TruffleBoundary
     public String toString(@CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
         return String.format("Delegate of (%s)", stores.toString(storage));
-    }
-
-    @ExportMessage
-    public void write(long index, Object value) {
     }
 
     @ExportMessage
@@ -95,10 +76,6 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
         Object newStore = stores.allocator(storage).allocate(length);
         stores.copyContents(storage, 0, newStore, offset, length);
         return newStore;
-    }
-
-    @ExportMessage
-    public void sort(long size) {
     }
 
     @ExportMessage

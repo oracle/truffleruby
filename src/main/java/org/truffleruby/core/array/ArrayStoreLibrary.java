@@ -13,6 +13,7 @@ package org.truffleruby.core.array;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
+import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 
 @GenerateLibrary
@@ -34,12 +35,21 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract Object read(Object store, long index);
 
     // Return whether the store can accept this value.
-    public abstract boolean acceptsValue(Object store, Object value);
+    @Abstract(ifExported = { "write", "acceptsAllValues", "isMutable", "sort" })
+    public boolean acceptsValue(Object store, Object value) {
+        return false;
+    }
 
     // Return whether the store can accept all values that could be held in otherStore.
-    public abstract boolean acceptsAllValues(Object store, Object otherStore);
+    @Abstract(ifExported = { "write", "acceptsValue", "isMutable", "sort" })
+    public boolean acceptsAllValues(Object store, Object otherStore) {
+        return false;
+    }
 
-    public abstract boolean isMutable(Object store);
+    @Abstract(ifExported = { "write", "acceptsValue", "acceptsAllValues", "sort" })
+    public boolean isMutable(Object store) {
+        return false;
+    }
 
     public boolean isNative(Object store) {
         return false;
@@ -49,7 +59,10 @@ public abstract class ArrayStoreLibrary extends Library {
 
     public abstract String toString(Object store);
 
-    public abstract void write(Object store, long index, Object valur);
+    @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable", "sort" })
+    public void write(Object store, long index, Object valur) {
+        throw new UnsupportedOperationException();
+    }
 
     public abstract long capacity(Object store);
 
@@ -63,7 +76,10 @@ public abstract class ArrayStoreLibrary extends Library {
 
     public abstract Object copyStore(Object store, long length);
 
-    public abstract void sort(Object store, long size);
+    @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable", "write" })
+    public void sort(Object store, long size) {
+        throw new UnsupportedOperationException();
+    }
 
     public abstract Iterable<Object> getIterable(Object store, long start, long length);
 

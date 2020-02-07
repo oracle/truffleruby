@@ -36,21 +36,6 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    public boolean acceptsValue(Object value) {
-        return false;
-    }
-
-    @ExportMessage
-    public boolean acceptsAllValues(Object otherStore) {
-        return false;
-    }
-
-    @ExportMessage
-    public boolean isMutable() {
-        return false;
-    }
-
-    @ExportMessage
     public boolean isPrimitive() {
         return false;
     }
@@ -58,10 +43,6 @@ public class ZeroLengthArrayStore {
     @ExportMessage
     public static String toString(ZeroLengthArrayStore store) {
         return "empty";
-    }
-
-    @ExportMessage
-    public void write(long index, Object value) {
     }
 
     @ExportMessage
@@ -92,12 +73,6 @@ public class ZeroLengthArrayStore {
     @ExportMessage
     public ZeroLengthArrayStore copyStore(long length) {
         return this;
-    }
-
-    @ExportMessage
-    public void sort(long size) {
-        assert size == 0;
-        return;
     }
 
     @ExportMessage
