@@ -16,6 +16,7 @@ import java.util.NoSuchElementException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -75,6 +76,7 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
+    @ImportStatic(ArrayGuards.class)
     static class CopyContents {
 
         @Specialization
@@ -82,9 +84,9 @@ public class ObjectArrayStore {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
-        @Specialization
+        @Specialization(limit = "STORAGE_STRATEGIES")
         protected static void copyContents(Object[] srcStore, int srcStart, Object destStore, int destStart, int length,
-                @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
+                @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
             for (int i = srcStart; i < length; i++) {
                 destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
             }
@@ -143,6 +145,7 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
+    @ImportStatic(ArrayGuards.class)
     static class GeneralizeForStore {
 
         @Specialization
@@ -165,9 +168,9 @@ public class ObjectArrayStore {
             return OBJECT_ARRAY_ALLOCATOR;
         }
 
-        @Specialization
+        @Specialization(limit = "STORAGE_STRATEGIES")
         protected static ArrayAllocator generalize(Object[] store, Object newStore,
-                @CachedLibrary(limit = "3") ArrayStoreLibrary newStores) {
+                @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.generalizeForStore(newStore, store);
         }
     }

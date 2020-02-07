@@ -13,7 +13,9 @@ package org.truffleruby.core.array;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -114,13 +116,14 @@ public class ZeroLengthArrayStore {
             return DoubleArrayStore.DOUBLE_ARRAY_ALLOCATOR;
         }
 
-        @Specialization
+        @Fallback
         protected static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newValue) {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
     }
 
     @ExportMessage
+    @ImportStatic(ArrayGuards.class)
     static class GeneralizeForStore {
 
         @Specialization
@@ -128,9 +131,9 @@ public class ZeroLengthArrayStore {
             return ZERO_LENGTH_ALLOCATOR;
         }
 
-        @Specialization
+        @Specialization(limit = "STORAGE_STRATEGIES")
         protected static ArrayAllocator generalize(ZeroLengthArrayStore store, Object newStore,
-                @CachedLibrary(limit = "7") ArrayStoreLibrary newStores) {
+                @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.allocator(newStore);
         }
     }

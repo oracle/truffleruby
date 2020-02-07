@@ -16,6 +16,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -23,6 +24,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
+@ImportStatic(ArrayGuards.class)
 public class DelegatedArrayStorage implements ObjectGraphNode {
 
     public final Object storage;
@@ -31,18 +33,18 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     public Object read(int index,
-            @CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.read(storage, index + offset);
     }
 
     @ExportMessage
-    public boolean isPrimitive(@CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
+    public boolean isPrimitive(@CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.isPrimitive(storage);
     }
 
     @ExportMessage
     @TruffleBoundary
-    public String toString(@CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
+    public String toString(@CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return String.format("Delegate of (%s)", stores.toString(storage));
     }
 
@@ -63,8 +65,8 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     public void copyContents(int srcStart, Object destStore, int destStart, int length,
-            @CachedLibrary(limit = "5") ArrayStoreLibrary srcStores,
-            @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary srcStores,
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary destStores) {
         for (int i = 0; i < length; i++) {
             destStores.write(destStore, i + destStart, srcStores.read(storage, srcStart + offset + i));
         }
@@ -72,7 +74,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     public Object copyStore(int length,
-            @CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         Object newStore = stores.allocator(storage).allocate(length);
         stores.copyContents(storage, 0, newStore, offset, length);
         return newStore;
@@ -80,24 +82,24 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     public Iterable<Object> getIterable(int from, int length,
-            @CachedLibrary(limit = "5") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.getIterable(storage, from + offset, length);
     }
 
     @ExportMessage
     ArrayAllocator generalizeForValue(Object newValue,
-            @CachedLibrary(limit = "4") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.generalizeForValue(storage, newValue);
     }
 
     @ExportMessage
     ArrayAllocator generalizeForStore(Object newStore,
-            @CachedLibrary(limit = "4") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.generalizeForStore(newStore, storage);
     }
 
     @ExportMessage
-    ArrayAllocator allocator(@CachedLibrary(limit = "4") ArrayStoreLibrary stores) {
+    ArrayAllocator allocator(@CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.allocator(storage);
     }
 

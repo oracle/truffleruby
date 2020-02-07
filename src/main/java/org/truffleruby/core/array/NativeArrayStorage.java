@@ -24,6 +24,7 @@ import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -135,13 +136,14 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    @ImportStatic(ArrayGuards.class)
     public static abstract class CopyContents {
 
         @Specialization
         protected static void copyContents(NativeArrayStorage srcStore, int srcStart, Object destStore, int destStart,
                 int length,
-                @CachedLibrary("srcStore") ArrayStoreLibrary srcStores,
-                @CachedLibrary(limit = "5") ArrayStoreLibrary destStores) {
+                @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
+                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary destStores) {
             for (int i = srcStart; i < length; i++) {
                 destStores.write(destStore, destStart + i, srcStores.read(srcStore, (srcStart + i)));
             }
