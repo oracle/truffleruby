@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -12,9 +14,10 @@ def foo
   var = 14
   var * 2
 end
+LINE_TO_MODIFY = __LINE__ - 2
 
 tp = TracePoint.new(:line) do |tp|
-  if tp.path == __FILE__ && tp.lineno == 13
+  if tp.path == __FILE__ && tp.lineno == LINE_TO_MODIFY
     tp.binding.local_variable_set(:var, 100)
   end
 end
@@ -25,21 +28,18 @@ begin
   loop do
     x = foo
     raise 'value not correct' unless x == 200
-    TrufflePrimitive.assert_compilation_constant x
-    TrufflePrimitive.assert_not_compiled
+    Primitive.assert_compilation_constant x
+    Primitive.assert_not_compiled
   end
 rescue Truffle::GraalError => e
-  if e.message.include? 'TrufflePrimitive.assert_not_compiled'
+  if e.message.include? 'Primitive.assert_not_compiled'
     puts 'TP optimising'
-    exit 0
-  elsif e.message.include? 'TrufflePrimitive.assert_compilation_constant'
-    puts 'TP not optimising'
-    exit 1
+    exit
+  elsif e.message.include? 'Primitive.assert_compilation_constant'
+    abort 'TP not optimising'
   else
-    p e.message
-    puts 'some other error'
-    exit 1
+    raise e
   end
 end
 
-exit 1
+abort 'should not reach here'

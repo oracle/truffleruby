@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # = Secure random number generator interface.
 #
 # This library is an interface for secure random number generator which is
@@ -51,7 +53,7 @@ module SecureRandom
   def self.random_bytes(n=nil)
     n = n ? Truffle::Type.coerce_to(n, Integer, :to_int) : 16
 
-    TrufflePrimitive.vm_dev_urandom_bytes(n)
+    Primitive.vm_dev_urandom_bytes(n)
   end
 
   # SecureRandom.hex generates a random hex string.

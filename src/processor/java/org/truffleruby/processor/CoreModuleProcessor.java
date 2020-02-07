@@ -210,7 +210,7 @@ public class CoreModuleProcessor extends AbstractProcessor {
                 rubyStream.println("end");
                 rubyStream.println();
 
-                rubyStream.println("module TrufflePrimitive");
+                rubyStream.println("module Primitive");
                 rubyStream.print(rubyPrimitives);
                 rubyStream.println("end");
                 rubyStream.println();

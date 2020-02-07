@@ -142,11 +142,11 @@ class Hash
         other_value = other._get_or_undefined(key)
 
         # Other doesn't even have this key
-        return false if TrufflePrimitive.undefined?(other_value)
+        return false if Primitive.undefined?(other_value)
 
         # Order of the comparison matters! We must compare our value with
         # the other Hash's value and not the other way around.
-        unless TrufflePrimitive.object_equal(value, other_value) or value.send(op, other_value)
+        unless Primitive.object_equal(value, other_value) or value.send(op, other_value)
           return false
         end
       end
@@ -181,15 +181,15 @@ class Hash
   end
 
   def default(key=undefined)
-    if default_proc and !TrufflePrimitive.undefined?(key)
+    if default_proc and !Primitive.undefined?(key)
       default_proc.call(self, key)
     else
-      TrufflePrimitive.hash_default_value self
+      Primitive.hash_default_value self
     end
   end
 
   def default_proc=(proc)
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
     unless proc.nil?
       proc = Truffle::Type.coerce_to proc, Proc, :to_proc
 
@@ -198,7 +198,7 @@ class Hash
       end
     end
 
-    TrufflePrimitive.hash_set_default_proc self, proc
+    Primitive.hash_set_default_proc self, proc
   end
 
   def dig(key, *more)
@@ -213,17 +213,17 @@ class Hash
 
   def fetch(key, default=undefined)
     value = _get_or_undefined(key)
-    unless TrufflePrimitive.undefined?(value)
+    unless Primitive.undefined?(value)
       return value
     end
 
     if block_given?
-      warn 'block supersedes default value argument', uplevel: 1 unless TrufflePrimitive.undefined?(default)
+      warn 'block supersedes default value argument', uplevel: 1 unless Primitive.undefined?(default)
 
       return yield(key)
     end
 
-    return default unless TrufflePrimitive.undefined?(default)
+    return default unless Primitive.undefined?(default)
     raise KeyError.new("key not found: #{key.inspect}", :receiver => self, :key => key)
   end
 
@@ -240,7 +240,7 @@ class Hash
   def keep_if
     return to_enum(:keep_if) { size } unless block_given?
 
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
 
     each_pair { |k,v| delete k unless yield(k, v) }
 
@@ -271,7 +271,7 @@ class Hash
   end
 
   def merge!(*others)
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
 
     others.each do |other|
       other = Truffle::Type.coerce_to other, Hash, :to_hash
@@ -318,7 +318,7 @@ class Hash
   def select!
     return to_enum(:select!) { size } unless block_given?
 
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
 
     return nil if empty?
 
@@ -335,7 +335,7 @@ class Hash
     res = {}
     keys.each do |k|
       v = _get_or_undefined(k)
-      res[k] = v unless TrufflePrimitive.undefined?(v)
+      res[k] = v unless Primitive.undefined?(v)
     end
     res
   end
@@ -359,24 +359,24 @@ class Hash
   private_constant :CLASS_SALT
 
   def hash
-    val = TrufflePrimitive.vm_hash_start CLASS_SALT
-    val = TrufflePrimitive.vm_hash_update val, size
+    val = Primitive.vm_hash_start CLASS_SALT
+    val = Primitive.vm_hash_update val, size
     Thread.detect_outermost_recursion self do
       each_pair do |key,value|
-        entry_val = TrufflePrimitive.vm_hash_start key.hash
-        entry_val = TrufflePrimitive.vm_hash_update entry_val, value.hash
+        entry_val = Primitive.vm_hash_start key.hash
+        entry_val = Primitive.vm_hash_update entry_val, value.hash
         # We have to combine these with xor as the hash must not depend on hash order.
-        val ^= TrufflePrimitive.vm_hash_end entry_val
+        val ^= Primitive.vm_hash_end entry_val
       end
     end
 
-    TrufflePrimitive.vm_hash_end val
+    Primitive.vm_hash_end val
   end
 
   def delete_if(&block)
     return to_enum(:delete_if) { size } unless block_given?
 
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
 
     select(&block).each { |k, _v| delete k }
     self
@@ -416,13 +416,13 @@ class Hash
     end
 
     ret = "{#{out.join ', '}}"
-    TrufflePrimitive.infect(ret, self) unless empty?
+    Primitive.infect(ret, self) unless empty?
     ret
   end
   alias_method :to_s, :inspect
 
   def key?(key)
-    !TrufflePrimitive.undefined?(_get_or_undefined(key))
+    !Primitive.undefined?(_get_or_undefined(key))
   end
   alias_method :has_key?, :key?
   alias_method :include?, :key?
@@ -447,7 +447,7 @@ class Hash
   def reject!(&block)
     return to_enum(:reject!) { size } unless block_given?
 
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
 
     unless empty?
       previous_size = size
@@ -469,7 +469,7 @@ class Hash
       ary << [key, value]
     end
 
-    TrufflePrimitive.infect ary, self
+    Primitive.infect ary, self
     ary
   end
 
@@ -528,7 +528,7 @@ class Hash
   def transform_values!
     return to_enum(:transform_values!) { size } unless block_given?
 
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
 
     each_pair do |key, value|
       self[key] = yield(value)
@@ -549,7 +549,7 @@ class Hash
   def transform_keys!
     return to_enum(:transform_keys!) { size } unless block_given?
 
-    TrufflePrimitive.check_frozen self
+    Primitive.check_frozen self
 
     h = {}
     begin

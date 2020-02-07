@@ -19,14 +19,14 @@
 # do:
 #
 #   loop do
-#     TrufflePrimitive.assert_compilation_constant expression
+#     Primitive.assert_compilation_constant expression
 #   end
 #
 # Run with:
 #
 #   jt --env jvm-ce ruby --experimental-options --engine.TraceCompilation --engine.CompilationExceptionsAreFatal --engine.IterativePartialEscape test.rb
 
-abort 'not running the GraalVM Compiler' unless TruffleRuby.jit?
+require_relative 'pe_harness'
 
 TIMEOUT = 10
 
@@ -118,19 +118,14 @@ EXAMPLES.each do |example|
   runner = proc do
     begin
       tested += 1
-      eval "
-      def test_pe_code
-        value = TrufflePrimitive.assert_compilation_constant(begin; #{example.code}; end)
-        TrufflePrimitive.assert_not_compiled
-        value
-      end"
+      create_test_pe_code_method(example.code)
       while true
         value = test_pe_code
       end
     rescue Truffle::GraalError => e
-      if e.message.include? 'TrufflePrimitive.assert_not_compiled'
+      if e.message.include? 'Primitive.assert_not_compiled'
         constant = true
-      elsif e.message.include? 'TrufflePrimitive.assert_compilation_constant'
+      elsif e.message.include? 'Primitive.assert_compilation_constant'
         constant = false
       else
         constant = nil

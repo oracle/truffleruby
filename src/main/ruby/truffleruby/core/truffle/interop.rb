@@ -51,7 +51,7 @@ module Truffle
         # TODO (pitr-ch 28-Nov-2019): make sure protected methods are not listed unless internal
         keys = []
         object.methods.each do |method|
-          keys << method.to_s if TrufflePrimitive.object_respond_to? object, method, true
+          keys << method.to_s if Primitive.object_respond_to? object, method, true
         end
         if internal
           object.instance_variables.each do |ivar|
@@ -60,7 +60,7 @@ module Truffle
           end
           object.private_methods.each do |method|
             # do not list methods which cannot be read using interop
-            keys << method.to_s if TrufflePrimitive.object_respond_to? object, method, true
+            keys << method.to_s if Primitive.object_respond_to? object, method, true
           end
         end
       end
@@ -231,8 +231,8 @@ module Truffle
     end
 
     def self.to_java_array(array)
-      java_array = TrufflePrimitive.interop_to_java_array(array)
-      if !TrufflePrimitive.undefined?(java_array)
+      java_array = Primitive.interop_to_java_array(array)
+      if !Primitive.undefined?(java_array)
         java_array
       else
         to_java_array(Truffle::Type.coerce_to(array, Array, :to_a))
@@ -240,8 +240,8 @@ module Truffle
     end
 
     def self.to_java_list(array)
-      list = TrufflePrimitive.interop_to_java_list(array)
-      if !TrufflePrimitive.undefined?(list)
+      list = Primitive.interop_to_java_list(array)
+      if !Primitive.undefined?(list)
         list
       else
         to_java_list(Truffle::Type.coerce_to(array, Array, :to_a))

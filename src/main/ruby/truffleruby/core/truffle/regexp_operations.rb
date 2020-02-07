@@ -17,7 +17,7 @@ module Truffle
       str = StringValue(str)
 
       pos = pos < 0 ? pos + str.size : pos
-      pos = TrufflePrimitive.string_byte_index_from_char_index(str, pos)
+      pos = Primitive.string_byte_index_from_char_index(str, pos)
       re.search_region(str, pos, str.bytesize, true)
     end
 
@@ -27,7 +27,7 @@ module Truffle
     Truffle::Graal.always_split(method(:last_match))
 
     def self.set_last_match(value, a_binding)
-      unless value.nil? || TrufflePrimitive.object_kind_of?(value, MatchData)
+      unless value.nil? || Primitive.object_kind_of?(value, MatchData)
         raise TypeError, "Wrong argument type #{value} (expected MatchData)"
       end
       # TODO DMM 2018-01-12 Proc.binding being nil is a bug, we can remove the check once we've fixed it.

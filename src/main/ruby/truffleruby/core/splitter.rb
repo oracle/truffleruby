@@ -59,7 +59,7 @@ module Truffle
 
       tail_empty = false
 
-      if TrufflePrimitive.undefined?(limit)
+      if Primitive.undefined?(limit)
         limited = false
       else
         limit = Truffle::Type.coerce_to_int limit
@@ -86,7 +86,7 @@ module Truffle
           lim = 0
         end
 
-        return TrufflePrimitive.string_awk_split string, lim
+        return Primitive.string_awk_split string, lim
       elsif pattern.kind_of?(Regexp)
       else
         pattern = StringValue(pattern) unless pattern.kind_of?(String)
@@ -150,7 +150,7 @@ module Truffle
       end
 
       # Trim from end
-      if TrufflePrimitive.undefined?(limit) || limit == 0
+      if Primitive.undefined?(limit) || limit == 0
         while s = ret.at(-1) and s.empty?
           ret.pop
         end
@@ -168,7 +168,7 @@ module Truffle
       str_size = string.bytesize
 
       while pos < str_size
-        nxt = TrufflePrimitive.find_string(string, pattern, pos)
+        nxt = Primitive.find_string(string, pattern, pos)
         break unless nxt
 
         match_size = nxt - pos

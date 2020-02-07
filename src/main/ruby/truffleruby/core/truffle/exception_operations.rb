@@ -17,7 +17,7 @@ module Truffle
     def self.receiver_string(exception)
       receiver = exception.receiver
       ret = begin
-        if TrufflePrimitive.object_respond_to?(receiver, :inspect, false)
+        if Primitive.object_respond_to?(receiver, :inspect, false)
           if class_name = class_name(receiver)
             "#{receiver.inspect}:#{class_name}"
           else

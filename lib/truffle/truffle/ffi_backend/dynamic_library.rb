@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 #
 # Copyright (C) 2008-2010 Wayne Meissner
 # Copyright (c) 2007, 2008 Evan Phoenix
@@ -51,7 +53,7 @@ module FFI
 
     def self.open(libname, flags)
       code = libname ? "load '#{libname}'" : 'default'
-      handle = TrufflePrimitive.interop_eval_nfi code
+      handle = Primitive.interop_eval_nfi code
       DynamicLibrary.new(libname, handle)
     end
 

@@ -58,7 +58,7 @@ module Kernel
 
     case obj
     when String
-      value = TrufflePrimitive.string_to_f obj, true
+      value = Primitive.string_to_f obj, true
       raise ArgumentError, 'invalid string for Float' unless value
       value
     when Float
@@ -95,7 +95,7 @@ module Kernel
     raise_exception = !exception.equal?(false)
 
     if String === obj
-      TrufflePrimitive.string_to_inum(obj, base, true, !exception.equal?(false))
+      Primitive.string_to_inum(obj, base, true, !exception.equal?(false))
     else
       bad_base_check = Proc.new do
         if base != 0
@@ -121,7 +121,7 @@ module Kernel
       else
         if base != 0
           converted_to_str_obj = Truffle::Type.rb_check_convert_type(obj, String, :to_str)
-          return TrufflePrimitive.string_to_inum(converted_to_str_obj, base, true, raise_exception) unless converted_to_str_obj.nil?
+          return Primitive.string_to_inum(converted_to_str_obj, base, true, raise_exception) unless converted_to_str_obj.nil?
           return nil unless raise_exception
           raise ArgumentError, 'base is only valid for String values'
         end
@@ -176,7 +176,7 @@ module Kernel
 
   def !~(other)
     r = self =~ other ? false : true
-    Truffle::RegexpOperations.set_last_match($~, TrufflePrimitive.caller_binding)
+    Truffle::RegexpOperations.set_last_match($~, Primitive.caller_binding)
     r
   end
 
@@ -190,7 +190,7 @@ module Kernel
   module_function :abort
 
   def autoload(name, file)
-    nesting = TrufflePrimitive.caller_binding.eval('Module.nesting')
+    nesting = Primitive.caller_binding.eval('Module.nesting')
     mod = nesting.first || (Kernel.equal?(self) ? Kernel : Object)
     if mod.equal?(self)
       super(name, file) # Avoid recursion
@@ -232,10 +232,10 @@ module Kernel
       receiver = a_binding.receiver
     else
       receiver = self
-      a_binding = TrufflePrimitive.caller_binding
+      a_binding = Primitive.caller_binding
     end
 
-    TrufflePrimitive.kernel_eval(receiver, str, a_binding, file, line)
+    Primitive.kernel_eval(receiver, str, a_binding, file, line)
   end
   module_function :eval
 
@@ -279,7 +279,7 @@ module Kernel
 
   def gets(*args)
     line = ARGF.gets(*args)
-    Truffle::IOOperations.set_last_line(line, TrufflePrimitive.caller_binding) if line
+    Truffle::IOOperations.set_last_line(line, Primitive.caller_binding) if line
     line
   end
   module_function :gets
@@ -287,10 +287,10 @@ module Kernel
   def inspect
     prefix = "#<#{self.class}:0x#{self.__id__.to_s(16)}"
 
-    ivars = TrufflePrimitive.object_ivars self
+    ivars = Primitive.object_ivars self
 
     if ivars.empty?
-      return TrufflePrimitive.infect "#{prefix}>", self
+      return Primitive.infect "#{prefix}>", self
     end
 
     # If it's already been inspected, return the ...
@@ -298,13 +298,13 @@ module Kernel
 
     parts = Thread.recursion_guard self do
       ivars.map do |var|
-        value = TrufflePrimitive.object_ivar_get self, var
+        value = Primitive.object_ivar_get self, var
         "#{var}=#{value.inspect}"
       end
     end
 
     str = "#{prefix} #{parts.join(', ')}>"
-    TrufflePrimitive.infect str, self
+    Primitive.infect str, self
   end
 
   def load(filename, wrap = false)
@@ -339,7 +339,7 @@ module Kernel
   module_function :load
 
   def local_variables
-    TrufflePrimitive.caller_binding.local_variables
+    Primitive.caller_binding.local_variables
   end
   module_function :local_variables
   Truffle::Graal.always_split(method(:local_variables))
@@ -434,7 +434,7 @@ module Kernel
   module_function :select
 
   def srand(seed=undefined)
-    if TrufflePrimitive.undefined? seed
+    if Primitive.undefined? seed
       seed = Thread.current.randomizer.generate_seed
     end
 
@@ -555,7 +555,7 @@ module Kernel
 
   def warn(*messages, uplevel: undefined)
     if !$VERBOSE.nil? && !messages.empty?
-      prefix = if TrufflePrimitive.undefined?(uplevel)
+      prefix = if Primitive.undefined?(uplevel)
                  +''
                else
                  uplevel = Truffle::Type.coerce_to_int(uplevel)
@@ -593,7 +593,7 @@ module Kernel
 
   def printf(*args)
     return nil if args.empty?
-    if TrufflePrimitive.object_kind_of?(args[0], String)
+    if Primitive.object_kind_of?(args[0], String)
       print sprintf(*args)
     else
       io = args.shift
@@ -647,7 +647,7 @@ module Kernel
         end
       end
     end
-    TrufflePrimitive.kernel_caller_locations(omit, length)
+    Primitive.kernel_caller_locations(omit, length)
   end
   module_function :caller_locations
 
@@ -660,23 +660,23 @@ module Kernel
     raise NotImplementedError, 'fork is not available'
   end
   module_function :fork
-  TrufflePrimitive.method_unimplement method(:fork)
-  TrufflePrimitive.method_unimplement nil.method(:fork)
+  Primitive.method_unimplement method(:fork)
+  Primitive.method_unimplement nil.method(:fork)
 
   Truffle::Boot.delay do
     if Truffle::Boot.get_option('gets-loop')
       def chomp(separator=$/)
-        last_line = Truffle::IOOperations.last_line(TrufflePrimitive.caller_binding)
+        last_line = Truffle::IOOperations.last_line(Primitive.caller_binding)
         result = Truffle::KernelOperations.check_last_line(last_line).chomp(separator)
-        Truffle::IOOperations.set_last_line(result, TrufflePrimitive.caller_binding)
+        Truffle::IOOperations.set_last_line(result, Primitive.caller_binding)
         result
       end
       module_function :chomp
 
       def chop
-        last_line = Truffle::IOOperations.last_line(TrufflePrimitive.caller_binding)
+        last_line = Truffle::IOOperations.last_line(Primitive.caller_binding)
         result = Truffle::KernelOperations.check_last_line(last_line).chop
-        Truffle::IOOperations.set_last_line(result, TrufflePrimitive.caller_binding)
+        Truffle::IOOperations.set_last_line(result, Primitive.caller_binding)
         result
       end
       module_function :chop

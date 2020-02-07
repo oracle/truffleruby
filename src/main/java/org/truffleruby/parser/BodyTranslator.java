@@ -507,7 +507,7 @@ public class BodyTranslator extends Translator {
         }
 
         if (receiver instanceof ConstParseNode &&
-                ((ConstParseNode) receiver).getName().equals("TrufflePrimitive")) {
+                ((ConstParseNode) receiver).getName().equals("Primitive") && canUsePrimitives()) {
             final RubyNode ret = translateInvokePrimitive(sourceSection, node);
             return addNewlineIfNeeded(node, ret);
         }
@@ -523,10 +523,14 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, translated);
     }
 
+    private boolean canUsePrimitives() {
+        return inCore() || environment.getParseEnvironment().allowTruffleRubyPrimitives;
+    }
+
     private RubyNode translateInvokePrimitive(SourceIndexLength sourceSection, CallParseNode node) {
         /* Translates something that looks like
          *
-         * TrufflePrimitive.foo arg1, arg2, argN
+         * Primitive.foo arg1, arg2, argN
          *
          * into
          *

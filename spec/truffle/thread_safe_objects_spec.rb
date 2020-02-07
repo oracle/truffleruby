@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -171,7 +173,7 @@ describe "Sharing is correctly propagated for" do
     shared?(ary).should == true
 
     new_ary = []
-    TrufflePrimitive.steal_array_storage(ary, new_ary)
+    Primitive.steal_array_storage(ary, new_ary)
     shared?(new_ary).should == true
   end
 

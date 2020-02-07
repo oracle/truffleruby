@@ -21,6 +21,7 @@ public class ParseEnvironment {
 
     private LexicalScope lexicalScope = null;
     private boolean dynamicConstantLookup = false;
+    public boolean allowTruffleRubyPrimitives = false;
     private final String corePath;
 
     public ParseEnvironment(RubyContext context) {

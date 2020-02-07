@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -40,7 +42,7 @@ module Readline
       raise NotImplementedError, "function Readline.#{method_name}() is unimplemented on this machine"
     end
 
-    TrufflePrimitive.method_unimplement method(method_name)
+    Primitive.method_unimplement method(method_name)
   end
 
   @completion_append_character = ' '
@@ -59,7 +61,7 @@ module Readline
   def self.completion_proc=(proc)
     raise ArgumentError, "argument must respond to `call'" unless proc.respond_to?(:call)
 
-    TrufflePrimitive.readline_set_completion_proc -> buffer {
+    Primitive.readline_set_completion_proc -> buffer {
       result = proc.call(buffer)
       unless Array === result
         result = Array(result)
@@ -74,13 +76,13 @@ module Readline
 
   def self.input=(input)
     Truffle::Type.rb_check_type(input, IO)
-    TrufflePrimitive.readline_set_input input.fileno, input
+    Primitive.readline_set_input input.fileno, input
     input
   end
 
   def self.output=(output)
     Truffle::Type.rb_check_type(output, IO)
-    TrufflePrimitive.readline_set_output output.fileno, output
+    Primitive.readline_set_output output.fileno, output
     output
   end
 

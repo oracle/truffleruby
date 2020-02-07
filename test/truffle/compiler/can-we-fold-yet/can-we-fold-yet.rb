@@ -10,20 +10,24 @@
 
 require 'readline'
 
-abort 'You need the GraalVM Compiler to run this' unless TruffleRuby.jit?
+require_relative '../pe/pe_harness'
 
-puts 'Can Truffle constant fold yet?'
+puts 'Can TruffleRuby constant fold yet?'
 
 loop do
   code = Readline.readline('> ', true)
+  break unless code # EOF
 
   test_thread = Thread.new do
     begin
-      eval "loop { TrufflePrimitive.assert_compilation_constant #{code}; TrufflePrimitive.assert_not_compiled; Thread.pass }"
+      create_test_pe_code_method(code)
+      while true
+        value = test_pe_code
+      end
     rescue Truffle::GraalError => e
-      if e.message.include? 'TrufflePrimitive.assert_not_compiled'
-        puts "Yes! Truffle can constant fold this to #{eval(code).inspect}"
-      elsif e.message.include? 'TrufflePrimitive.assert_compilation_constant'
+      if e.message.include? 'Primitive.assert_not_compiled'
+        puts "Yes! Truffle can constant fold this to #{value.inspect}"
+      elsif e.message.include? 'Primitive.assert_compilation_constant'
         puts "No :( Truffle can't constant fold that"
       else
         puts 'There was an error executing that :('

@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -131,7 +133,7 @@ class StringScanner
     end
 
     # We need to match one byte, regardless of the string encoding
-    @match = TrufflePrimitive.regexp_search_from_binary(/./mn, @string, pos)
+    @match = Primitive.regexp_search_from_binary(/./mn, @string, pos)
 
     @prev_pos = @pos
     @pos += 1

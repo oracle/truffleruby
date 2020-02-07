@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -322,7 +324,7 @@ end
 
 module Kernel
   def BigDecimal(value, precision = Truffle::UNDEFINED, exception: true)
-    if !TrufflePrimitive.undefined?(precision)
+    if !Primitive.undefined?(precision)
       precision = Truffle::Type.rb_num2int(precision)
       if precision < 0
         if exception
@@ -364,22 +366,22 @@ module Kernel
         end
       end
     end
-    TrufflePrimitive.bigdecimal_new value, precision, exception
+    Primitive.bigdecimal_new value, precision, exception
   end
 end
 
 module Truffle::BigDecimalOperations
 
   def self.coerce_integer_to_bigdecimal(value)
-    TrufflePrimitive.bigdecimal_new(value, Truffle::UNDEFINED, true)
+    Primitive.bigdecimal_new(value, Truffle::UNDEFINED, true)
   end
 
   def self.coerce_float_to_bigdecimal(value)
-    TrufflePrimitive.bigdecimal_new(value.to_s, Truffle::UNDEFINED, true)
+    Primitive.bigdecimal_new(value.to_s, Truffle::UNDEFINED, true)
   end
 
   def self.coerce_rational_to_bigdecimal(value)
-    TrufflePrimitive.bigdecimal_new(value.to_f.to_s, Truffle::UNDEFINED, true)
+    Primitive.bigdecimal_new(value.to_f.to_s, Truffle::UNDEFINED, true)
   end
 
 end

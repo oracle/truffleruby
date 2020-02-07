@@ -62,28 +62,28 @@ class Numeric
   end
 
   def step(orig_limit = undefined, orig_step = undefined, by: undefined, to: undefined)
-    limit = if !TrufflePrimitive.undefined?(orig_limit) && !TrufflePrimitive.undefined?(to)
+    limit = if !Primitive.undefined?(orig_limit) && !Primitive.undefined?(to)
               raise ArgumentError, 'to is given twice'
-            elsif !TrufflePrimitive.undefined?(orig_limit)
+            elsif !Primitive.undefined?(orig_limit)
               orig_limit
-            elsif !TrufflePrimitive.undefined?(to)
+            elsif !Primitive.undefined?(to)
               to
             else
               nil
             end
-    step = if !TrufflePrimitive.undefined?(orig_step) && !TrufflePrimitive.undefined?(by)
+    step = if !Primitive.undefined?(orig_step) && !Primitive.undefined?(by)
              raise ArgumentError, 'step is given twice'
-           elsif !TrufflePrimitive.undefined?(orig_step)
+           elsif !Primitive.undefined?(orig_step)
              orig_step
-           elsif !TrufflePrimitive.undefined?(by)
+           elsif !Primitive.undefined?(by)
              by
            else
              1
            end
 
     kwargs = {}
-    kwargs[:by] = by unless TrufflePrimitive.undefined?(by)
-    kwargs[:to] = to unless TrufflePrimitive.undefined?(to)
+    kwargs[:by] = by unless Primitive.undefined?(by)
+    kwargs[:to] = to unless Primitive.undefined?(to)
 
     unless block_given?
       return to_enum(:step, orig_limit, orig_step, kwargs) do
@@ -242,7 +242,7 @@ class Numeric
 
     values = other.coerce(self)
 
-    unless TrufflePrimitive.object_kind_of?(values, Array) && values.length == 2
+    unless Primitive.object_kind_of?(values, Array) && values.length == 2
       if error == :no_error
         return nil
       else

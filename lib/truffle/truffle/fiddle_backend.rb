@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -8,8 +10,8 @@
 
 module Truffle::FiddleBackend
 
-  SIZEOF_INT    = TrufflePrimitive.pointer_find_type_size(:int)
-  SIZEOF_LONG   = TrufflePrimitive.pointer_find_type_size(:long)
+  SIZEOF_INT    = Primitive.pointer_find_type_size(:int)
+  SIZEOF_LONG   = Primitive.pointer_find_type_size(:long)
 
   INT_NFI_TYPE  = "SINT#{SIZEOF_INT * 8}"
   UINT_NFI_TYPE  = "UINT#{SIZEOF_INT * 8}"
@@ -123,20 +125,20 @@ module Fiddle
   TYPE_FLOAT        = 7
   TYPE_DOUBLE       = 8
 
-  SIZEOF_VOIDP      = TrufflePrimitive.pointer_find_type_size(:pointer)
-  SIZEOF_CHAR       = TrufflePrimitive.pointer_find_type_size(:char)
-  SIZEOF_SHORT      = TrufflePrimitive.pointer_find_type_size(:short)
+  SIZEOF_VOIDP      = Primitive.pointer_find_type_size(:pointer)
+  SIZEOF_CHAR       = Primitive.pointer_find_type_size(:char)
+  SIZEOF_SHORT      = Primitive.pointer_find_type_size(:short)
   SIZEOF_INT        = Truffle::FiddleBackend::SIZEOF_INT
   SIZEOF_LONG       = Truffle::FiddleBackend::SIZEOF_LONG
-  SIZEOF_LONG_LONG  = TrufflePrimitive.pointer_find_type_size(:long_long)
-  SIZEOF_FLOAT      = TrufflePrimitive.pointer_find_type_size(:float)
-  SIZEOF_DOUBLE     = TrufflePrimitive.pointer_find_type_size(:double)
+  SIZEOF_LONG_LONG  = Primitive.pointer_find_type_size(:long_long)
+  SIZEOF_FLOAT      = Primitive.pointer_find_type_size(:float)
+  SIZEOF_DOUBLE     = Primitive.pointer_find_type_size(:double)
 
-  SIZEOF_SIZE_T     = TrufflePrimitive.pointer_find_type_size(:size_t)
-  SIZEOF_SSIZE_T    = TrufflePrimitive.pointer_find_type_size(:ssize_t)
-  SIZEOF_PTRDIFF_T  = TrufflePrimitive.pointer_find_type_size(:ptrdiff_t)
-  SIZEOF_INTPTR_T   = TrufflePrimitive.pointer_find_type_size(:intptr_t)
-  SIZEOF_UINTPTR_T  = TrufflePrimitive.pointer_find_type_size(:uintptr_t)
+  SIZEOF_SIZE_T     = Primitive.pointer_find_type_size(:size_t)
+  SIZEOF_SSIZE_T    = Primitive.pointer_find_type_size(:ssize_t)
+  SIZEOF_PTRDIFF_T  = Primitive.pointer_find_type_size(:ptrdiff_t)
+  SIZEOF_INTPTR_T   = Primitive.pointer_find_type_size(:intptr_t)
+  SIZEOF_UINTPTR_T  = Primitive.pointer_find_type_size(:uintptr_t)
 
   TYPE_SSIZE_T      = Truffle::FiddleBackend.type_from_config(Truffle::Config.lookup('platform.typedef.ssize_t'))
   TYPE_SIZE_T       = -1 * Truffle::FiddleBackend::SIGNEDNESS_OF_SIZE_T * TYPE_SSIZE_T
@@ -172,15 +174,15 @@ module Fiddle
   end
 
   def self.malloc(size)
-    TrufflePrimitive.pointer_raw_malloc size
+    Primitive.pointer_raw_malloc size
   end
 
   def self.realloc(address, size)
-    TrufflePrimitive.pointer_raw_realloc address, size
+    Primitive.pointer_raw_realloc address, size
   end
 
   def self.free(address)
-    TrufflePrimitive.pointer_raw_free address
+    Primitive.pointer_raw_free address
   end
 
   class Function
@@ -243,7 +245,7 @@ module Fiddle
       else
         library = nil if library == Truffle::FiddleBackend::RTLD_DEFAULT
         begin
-          @handle = TrufflePrimitive.interop_eval_nfi(library ? "load #{library}" : 'default')
+          @handle = Primitive.interop_eval_nfi(library ? "load #{library}" : 'default')
         rescue RuntimeError
           raise DLError, "#{library}: cannot open shared object file: No such file or directory"
         end
@@ -303,7 +305,7 @@ module Fiddle
       else
         ptr = Pointer.new(Integer(val))
       end
-      TrufflePrimitive.infect ptr, val
+      Primitive.infect ptr, val
       ptr
     end
 

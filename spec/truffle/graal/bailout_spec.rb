@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -8,11 +10,11 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "TrufflePrimitive.compiler_bailout" do
+describe "Primitive.compiler_bailout" do
 
   guard -> { !TruffleRuby.jit? } do
     it "returns nil" do
-      TrufflePrimitive.compiler_bailout("message").should be_nil
+      Primitive.compiler_bailout("message").should be_nil
     end
   end
 

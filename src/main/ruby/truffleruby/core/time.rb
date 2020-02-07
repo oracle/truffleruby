@@ -101,7 +101,7 @@ class Time
   end
 
   def zone
-    zone = TrufflePrimitive.time_zone(self)
+    zone = Primitive.time_zone(self)
 
     if zone && zone.ascii_only?
       zone.encode Encoding::US_ASCII
@@ -121,10 +121,10 @@ class Time
   private_constant :CLASS_SALT
 
   def hash
-    val = TrufflePrimitive.vm_hash_start CLASS_SALT
-    val = TrufflePrimitive.vm_hash_update val, tv_sec
-    val = TrufflePrimitive.vm_hash_update val, tv_nsec
-    TrufflePrimitive.vm_hash_end val
+    val = Primitive.vm_hash_start CLASS_SALT
+    val = Primitive.vm_hash_update val, tv_sec
+    val = Primitive.vm_hash_update val, tv_nsec
+    Primitive.vm_hash_end val
   end
 
   def eql?(other)
@@ -148,7 +148,7 @@ class Time
   end
 
   def strftime(format)
-    TrufflePrimitive.time_strftime self, StringValue(format)
+    Primitive.time_strftime self, StringValue(format)
   end
 
   def asctime
@@ -165,7 +165,7 @@ class Time
     if offset
       offset = Truffle::Type.coerce_to_utc_offset(offset)
     end
-    TrufflePrimitive.time_localtime(self, offset)
+    Primitive.time_localtime(self, offset)
   end
 
   def succ
@@ -188,7 +188,7 @@ class Time
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    TrufflePrimitive.time_add(time, other_sec, other_nsec)
+    Primitive.time_add(time, other_sec, other_nsec)
   end
 
   def -(other)
@@ -207,7 +207,7 @@ class Time
 
     time = Time.allocate
     time.send(:initialize_copy, self)
-    TrufflePrimitive.time_add(time, -other_sec, -other_nsec)
+    Primitive.time_add(time, -other_sec, -other_nsec)
   end
 
   def round(places = 0)
@@ -274,13 +274,13 @@ class Time
 
   class << self
     def at(sec, usec=undefined, unit=undefined)
-      if TrufflePrimitive.undefined?(usec)
+      if Primitive.undefined?(usec)
         if sec.kind_of?(Time)
           copy = allocate
           copy.send(:initialize_copy, sec)
           return copy
         elsif sec.kind_of?(Integer)
-          return TrufflePrimitive.time_at self, sec, 0
+          return Primitive.time_at self, sec, 0
         end
       end
 
@@ -289,7 +289,7 @@ class Time
       end
 
       second_arg_scale =
-        if TrufflePrimitive.undefined?(unit) || :microsecond == unit || :usec == unit
+        if Primitive.undefined?(unit) || :microsecond == unit || :usec == unit
           1_000
         elsif :millisecond == unit
           1_000_000
@@ -299,7 +299,7 @@ class Time
           raise ArgumentError, "unexpected unit: #{unit}"
         end
 
-      usec = 0 if TrufflePrimitive.undefined?(usec)
+      usec = 0 if Primitive.undefined?(usec)
 
       s = Truffle::Type.coerce_to_exact_num(sec)
       u = Truffle::Type.coerce_to_exact_num(usec)
@@ -313,12 +313,12 @@ class Time
       sec += nsec / 1_000_000_000
       nsec %= 1_000_000_000
 
-      TrufflePrimitive.time_at self, sec, nsec
+      Primitive.time_at self, sec, nsec
     end
 
     def from_array(sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
-      time = TrufflePrimitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
-      return time unless TrufflePrimitive.undefined?(time)
+      time = Primitive.time_s_from_array(self, sec, min, hour, mday, month, year, nsec, is_dst, is_utc, utc_offset)
+      return time unless Primitive.undefined?(time)
 
       if sec.kind_of?(String)
         sec = sec.to_i
@@ -347,8 +347,8 @@ class Time
 
     def compose(offset, p1, p2=nil, p3=nil, p4=nil, p5=nil, p6=nil, p7=nil,
                 yday=undefined, is_dst=undefined, tz=undefined)
-      if TrufflePrimitive.undefined?(tz)
-        unless TrufflePrimitive.undefined?(is_dst)
+      if Primitive.undefined?(tz)
+        unless Primitive.undefined?(is_dst)
           raise ArgumentError, 'wrong number of arguments (9 for 1..8)'
         end
 
@@ -410,7 +410,7 @@ class Time
     private :compose
 
     def new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
-      if TrufflePrimitive.undefined?(year)
+      if Primitive.undefined?(year)
         self.now
       elsif utc_offset == nil
         compose(:local, year, month, day, hour, minute, second)

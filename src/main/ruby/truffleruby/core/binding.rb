@@ -17,7 +17,7 @@ class Binding
   end
 
   def local_variables
-    TrufflePrimitive.local_variable_names(self).dup
+    Primitive.local_variable_names(self).dup
   end
   Truffle::Graal.always_split(method(:local_variables))
 

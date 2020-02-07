@@ -72,8 +72,8 @@ class Struct
       _specialize attrs unless keyword_init
 
       attrs.each do |a|
-        define_method(a) { TrufflePrimitive.object_hidden_var_get(self, a) }
-        define_method(:"#{a}=") { |value| TrufflePrimitive.object_hidden_var_set(self, a, value) }
+        define_method(a) { Primitive.object_hidden_var_get(self, a) }
+        define_method(:"#{a}=") { |value| Primitive.object_hidden_var_set(self, a, value) }
       end
 
       def self.new(*args, &block)
@@ -136,7 +136,7 @@ class Struct
       values = []
 
       _attrs.each do |var|
-        val = TrufflePrimitive.object_hidden_var_get(self, var)
+        val = Primitive.object_hidden_var_get(self, var)
         values << "#{var}=#{val.inspect}"
       end
 
@@ -169,7 +169,7 @@ class Struct
       unknowns = []
       kw_args.each_pair do |attr, value|
         if attrs.include?(attr)
-          TrufflePrimitive.object_hidden_var_set self, attr, value
+          Primitive.object_hidden_var_set self, attr, value
         else
           unknowns << attr
         end
@@ -180,7 +180,7 @@ class Struct
       end
     else
       attrs.each_with_index do |attr, i|
-        TrufflePrimitive.object_hidden_var_set self, attr, args[i]
+        Primitive.object_hidden_var_set self, attr, args[i]
       end
     end
   end
@@ -210,7 +210,7 @@ class Struct
       raise NameError, "no member '#{var}' in struct"
     end
 
-    TrufflePrimitive.object_hidden_var_get(self, var)
+    Primitive.object_hidden_var_get(self, var)
   end
 
   def []=(var, obj)
@@ -228,13 +228,13 @@ class Struct
       var = check_index_var(var)
     end
 
-    TrufflePrimitive.check_frozen self
-    TrufflePrimitive.object_hidden_var_set(self, var, obj)
+    Primitive.check_frozen self
+    Primitive.object_hidden_var_set(self, var, obj)
   end
 
   def initialize_copy(other)
     other.__send__(:_attrs).each do |a|
-      TrufflePrimitive.object_hidden_var_set self, a, TrufflePrimitive.object_hidden_var_get(other, a)
+      Primitive.object_hidden_var_set self, a, Primitive.object_hidden_var_get(other, a)
     end
     self
   end
@@ -272,8 +272,8 @@ class Struct
 
     Thread.detect_recursion self, other do
       _attrs.each do |var|
-        mine =   TrufflePrimitive.object_hidden_var_get(self, var)
-        theirs = TrufflePrimitive.object_hidden_var_get(other, var)
+        mine =   Primitive.object_hidden_var_get(self, var)
+        theirs = Primitive.object_hidden_var_get(other, var)
 
         return false unless mine.eql? theirs
       end
@@ -294,7 +294,7 @@ class Struct
 
   def each_pair
     return to_enum(:each_pair) { size } unless block_given?
-    _attrs.each { |var| yield [var, TrufflePrimitive.object_hidden_var_get(self, var)] }
+    _attrs.each { |var| yield [var, Primitive.object_hidden_var_get(self, var)] }
     self
   end
 
@@ -306,14 +306,14 @@ class Struct
   private_constant :CLASS_SALT
 
   def hash
-    val = TrufflePrimitive.vm_hash_start(CLASS_SALT)
-    val = TrufflePrimitive.vm_hash_update(val, size)
+    val = Primitive.vm_hash_start(CLASS_SALT)
+    val = Primitive.vm_hash_update(val, size)
     return val if Thread.detect_outermost_recursion self do
       _attrs.each do |var|
-        val = TrufflePrimitive.vm_hash_update(val, TrufflePrimitive.object_hidden_var_get(self, var).hash)
+        val = Primitive.vm_hash_update(val, Primitive.object_hidden_var_get(self, var).hash)
       end
     end
-    TrufflePrimitive.vm_hash_end(val)
+    Primitive.vm_hash_end(val)
   end
 
   def length
@@ -334,7 +334,7 @@ class Struct
   end
 
   def to_a
-    _attrs.map { |var| TrufflePrimitive.object_hidden_var_get(self, var) }
+    _attrs.map { |var| Primitive.object_hidden_var_get(self, var) }
   end
   alias_method :values, :to_a
 
@@ -363,31 +363,31 @@ class Struct
     args, assigns, hashes, vars = [], [], [], []
 
     attrs.each_with_index do |name, i|
-      assigns << "TrufflePrimitive.object_hidden_var_set(self, #{name.inspect}, a#{i})"
-      vars    << "TrufflePrimitive.object_hidden_var_get(self, #{name.inspect})"
+      assigns << "Primitive.object_hidden_var_set(self, #{name.inspect}, a#{i})"
+      vars    << "Primitive.object_hidden_var_get(self, #{name.inspect})"
       args    << "a#{i} = nil"
       hashes  << "#{vars[-1]}.hash"
     end
 
     hash_calculation = hashes.map do |calc|
-      "hash = TrufflePrimitive.vm_hash_update hash, #{calc}"
+      "hash = Primitive.vm_hash_update hash, #{calc}"
     end.join("\n")
 
-    code = <<-CODE
+    code, line = <<-CODE, __LINE__+1
       def initialize(#{args.join(", ")})
         #{assigns.join(';')}
         self
       end
 
       def hash
-        hash = TrufflePrimitive.vm_hash_start CLASS_SALT
-        hash = TrufflePrimitive.vm_hash_update hash, #{hashes.size}
+        hash = Primitive.vm_hash_start CLASS_SALT
+        hash = Primitive.vm_hash_update hash, #{hashes.size}
 
         return hash if Thread.detect_outermost_recursion(self) do
           #{hash_calculation}
         end
 
-        TrufflePrimitive.vm_hash_end hash
+        Primitive.vm_hash_end hash
       end
 
       def to_a
@@ -401,7 +401,7 @@ class Struct
 
     begin
       mod = Module.new do
-        module_eval code
+        module_eval code, __FILE__, line
       end
       include mod
     rescue SyntaxError

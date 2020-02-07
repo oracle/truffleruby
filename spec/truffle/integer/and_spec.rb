@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -11,7 +13,7 @@ require_relative '../../ruby/spec_helper'
 describe "Integer#&" do
   before :each do
     @long = (1 << 48) + 1
-    @mask = TrufflePrimitive.integer_lower(((1 << 30) - 1))
+    @mask = Primitive.integer_lower(((1 << 30) - 1))
   end
 
   it "returns an int for (int, int)" do

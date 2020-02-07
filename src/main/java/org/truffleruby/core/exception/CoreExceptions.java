@@ -967,11 +967,11 @@ public class CoreExceptions {
     // Truffle::GraalError
 
     public DynamicObject graalErrorAssertConstantNotConstant(Node currentNode) {
-        return graalError("value in TrufflePrimitive.assert_compilation_constant was not constant", currentNode);
+        return graalError("value in Primitive.assert_compilation_constant was not constant", currentNode);
     }
 
     public DynamicObject graalErrorAssertNotCompiledCompiled(Node currentNode) {
-        return graalError("call to TrufflePrimitive.assert_not_compiled was compiled", currentNode);
+        return graalError("call to Primitive.assert_not_compiled was compiled", currentNode);
     }
 
     @TruffleBoundary

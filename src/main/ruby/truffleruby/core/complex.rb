@@ -46,7 +46,7 @@ class Complex < Numeric
       return nil unless raise_exception
       raise TypeError, "can't convert nil into Complex"
     end
-    imag = nil if TrufflePrimitive.undefined?(imag)
+    imag = nil if Primitive.undefined?(imag)
 
     if check_real?(real) && check_real?(imag)
       return new(real, imag)
@@ -83,8 +83,8 @@ class Complex < Numeric
       return real + imag * Complex.new(0, 1)
     end
 
-    if !imag.nil? && !raise_exception && !TrufflePrimitive.object_kind_of?(imag, Integer) &&
-        !TrufflePrimitive.object_kind_of?(imag, Float) && !TrufflePrimitive.object_kind_of?(imag, Rational)
+    if !imag.nil? && !raise_exception && !Primitive.object_kind_of?(imag, Integer) &&
+        !Primitive.object_kind_of?(imag, Float) && !Primitive.object_kind_of?(imag, Rational)
       return nil
     end
 
@@ -339,10 +339,10 @@ class Complex < Numeric
   private_constant :CLASS_SALT
 
   def hash
-    val = TrufflePrimitive.vm_hash_start CLASS_SALT
-    val = TrufflePrimitive.vm_hash_update val, @real.hash
-    val = TrufflePrimitive.vm_hash_update val, @imag.hash
-    TrufflePrimitive.vm_hash_end val
+    val = Primitive.vm_hash_start CLASS_SALT
+    val = Primitive.vm_hash_update val, @real.hash
+    val = Primitive.vm_hash_update val, @imag.hash
+    Primitive.vm_hash_end val
   end
 
   def inspect

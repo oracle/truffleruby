@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 #
 # Copyright (C) 2008-2010 Wayne Meissner
 #
@@ -78,7 +80,7 @@ module FFI
       end
 
       if blocking
-        result = TrufflePrimitive.thread_run_blocking_nfi_system_call -> {
+        result = Primitive.thread_run_blocking_nfi_system_call -> {
           r = @function.call(*args)
           if Integer === r and r == -1 and Errno.errno == Errno::EINTR::Errno
             undefined # retry
@@ -146,7 +148,7 @@ module FFI
       elsif FFI::Type::UINT64 == type or FFI::Type::ULONG == type
         Truffle::Type.rb_num2ulong(value)
       elsif FFI::Type::FLOAT32 == type
-        TrufflePrimitive.double_to_float(Truffle::Type.rb_num2dbl(value))
+        Primitive.double_to_float(Truffle::Type.rb_num2dbl(value))
       elsif FFI::Type::POINTER == type
         get_pointer_value(value)
       elsif FFI::Type::STRING == type

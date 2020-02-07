@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -17,7 +19,7 @@ describe "Truffle::POSIX returns the correct value for an identity function retu
     end
 
     lazy_library = Truffle::POSIX::LazyLibrary.new do
-      TrufflePrimitive.interop_eval_nfi "load '#{lib}'"
+      Primitive.interop_eval_nfi "load '#{lib}'"
     end
 
     @libtestnfi = Module.new do

@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -8,15 +10,15 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "TrufflePrimitive.assert_not_compiled" do
+describe "Primitive.assert_not_compiled" do
 
   it "raises a RuntimeError when called dynamically" do
-    -> { tp = TrufflePrimitive; tp.assert_not_compiled }.should raise_error(NoMethodError, /syntactically/)
+    -> { tp = Primitive; tp.assert_not_compiled }.should raise_error(NameError, /uninitialized constant/)
   end
 
   guard -> { !TruffleRuby.jit? } do
     it "returns nil" do
-      TrufflePrimitive.assert_not_compiled.should be_nil
+      Primitive.assert_not_compiled.should be_nil
     end
   end
 

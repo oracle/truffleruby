@@ -482,7 +482,7 @@ class IO
 
     name = Truffle::Type.coerce_to_path name
 
-    separator = $/ if TrufflePrimitive.undefined?(separator)
+    separator = $/ if Primitive.undefined?(separator)
     case separator
     when Integer
       options = limit
@@ -497,12 +497,12 @@ class IO
       separator = StringValue(separator)
     end
 
-    limit = nil if TrufflePrimitive.undefined?(limit)
+    limit = nil if Primitive.undefined?(limit)
     case limit
     when Integer, nil
       # do nothing
     when Hash
-      if TrufflePrimitive.undefined? options
+      if Primitive.undefined? options
         options = limit
         limit = nil
       else
@@ -517,7 +517,7 @@ class IO
       end
     end
 
-    options = {} if TrufflePrimitive.undefined?(options)
+    options = {} if Primitive.undefined?(options)
     case options
     when Hash
       # do nothing
@@ -600,14 +600,14 @@ class IO
     name = Truffle::Type.coerce_to_path name
     mode = 'r'
 
-    if TrufflePrimitive.undefined? length_or_options
+    if Primitive.undefined? length_or_options
       length = undefined
-    elsif TrufflePrimitive.object_kind_of? length_or_options, Hash
+    elsif Primitive.object_kind_of? length_or_options, Hash
       length = undefined
       offset = 0
       options = length_or_options
     elsif length_or_options
-      if TrufflePrimitive.object_kind_of? offset, Hash
+      if Primitive.object_kind_of? offset, Hash
         options = offset
         offset = 0
       else
@@ -637,7 +637,7 @@ class IO
     begin
       io.seek(offset) unless offset == 0
 
-      if TrufflePrimitive.undefined?(length)
+      if Primitive.undefined?(length)
         str = io.read
       else
         str = io.read length
@@ -656,7 +656,7 @@ class IO
   def self.normalize_options(mode, options)
     autoclose = true
 
-    if TrufflePrimitive.undefined?(options)
+    if Primitive.undefined?(options)
       options = Truffle::Type.try_convert(mode, Hash, :to_hash)
       mode = nil if options
     elsif !options.nil?
@@ -744,7 +744,7 @@ class IO
   end
 
   def self.parse_mode(mode)
-    return mode if TrufflePrimitive.object_kind_of? mode, Integer
+    return mode if Primitive.object_kind_of? mode, Integer
 
     mode = StringValue(mode)
 
@@ -942,7 +942,7 @@ class IO
   #
   def self.select(readables = nil, writables = nil, errorables = nil, timeout = nil)
     if timeout
-      unless TrufflePrimitive.object_kind_of? timeout, Numeric
+      unless Primitive.object_kind_of? timeout, Numeric
         raise TypeError, 'Timeout must be numeric'
       end
 
@@ -1128,7 +1128,7 @@ class IO
     _offset = Truffle::Type.coerce_to_int offset
     _len = Truffle::Type.coerce_to_int len
 
-    # TrufflePrimitive.io_advise self, advice, offset, len
+    # Primitive.io_advise self, advice, offset, len
     raise 'IO#advise not implemented'
   end
 
@@ -1687,7 +1687,7 @@ class IO
       line = l
       break
     end
-    Truffle::IOOperations.set_last_line(line, TrufflePrimitive.caller_binding) if line
+    Truffle::IOOperations.set_last_line(line, Primitive.caller_binding) if line
     line
   end
 
@@ -1796,7 +1796,7 @@ class IO
   # IO#gets) if called without arguments. Appends $\.to_s to output. Returns
   # nil.
   def print(*args)
-    Truffle::IOOperations.print self, args, TrufflePrimitive.caller_binding
+    Truffle::IOOperations.print self, args, Primitive.caller_binding
   end
 
   ##
@@ -1810,7 +1810,7 @@ class IO
   #
   #  AA
   def putc(obj)
-    if TrufflePrimitive.object_kind_of? obj, String
+    if Primitive.object_kind_of? obj, String
       write obj.substring(0, 1)
     else
       byte = Truffle::Type.coerce_to(obj, Integer, :to_int) & 0xff
@@ -2095,7 +2095,7 @@ class IO
 
         Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
 
-        TrufflePrimitive.vm_set_class self, io.class
+        Primitive.vm_set_class self, io.class
 
         if io.respond_to?(:path)
           @path = io.path
@@ -2105,7 +2105,7 @@ class IO
       flush unless closed?
 
       # If a mode isn't passed in, use the mode that the IO is already in.
-      if TrufflePrimitive.undefined? mode
+      if Primitive.undefined? mode
         mode = @mode
         # If this IO was already opened for writing, we should
         # create the target file if it doesn't already exist.
@@ -2217,7 +2217,7 @@ class IO
       @external = Encoding.find external
     end
 
-    unless TrufflePrimitive.undefined? options
+    unless Primitive.undefined? options
       # TODO: set the encoding options on the IO instance
       if options and not options.kind_of? Hash
         _options = Truffle::Type.coerce_to options, Hash, :to_hash
@@ -2361,7 +2361,7 @@ class IO
 
     raise EOFError if str.nil?
 
-    unless TrufflePrimitive.undefined? buffer
+    unless Primitive.undefined? buffer
       StringValue(buffer).replace str
     end
     str
@@ -2508,7 +2508,7 @@ class IO
       fd = @descriptor
       if fd >= 0
         # Need to set even if the instance is frozen
-        TrufflePrimitive.object_ivar_set self, :@descriptor, -1
+        Primitive.object_ivar_set self, :@descriptor, -1
         if fd >= 3 && autoclose?
           ret = Truffle::POSIX.close(fd)
           Errno.handle if ret < 0

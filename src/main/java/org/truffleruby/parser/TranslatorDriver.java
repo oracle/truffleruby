@@ -192,6 +192,7 @@ public class TranslatorDriver {
             lexicalScope = new LexicalScope(lexicalScope, (DynamicObject) module);
         }
         parseEnvironment.resetLexicalScope(lexicalScope);
+        parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;
 
         final String methodName = getMethodName(parserContext, parentFrame);
         final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
@@ -240,13 +241,17 @@ public class TranslatorDriver {
                 parserContext,
                 currentNode);
 
-        printParseTranslateExecuteMetric("before-translate", context, source);
         RubyNode beginNode = null;
-        if (node.getBeginNode() != null) {
-            beginNode = translator.translateNodeOrNil(sourceIndexLength, node.getBeginNode());
+        RubyNode truffleNode;
+        printParseTranslateExecuteMetric("before-translate", context, source);
+        try {
+            if (node.getBeginNode() != null) {
+                beginNode = translator.translateNodeOrNil(sourceIndexLength, node.getBeginNode());
+            }
+            truffleNode = translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
+        } finally {
+            printParseTranslateExecuteMetric("after-translate", context, source);
         }
-        RubyNode truffleNode = translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
-        printParseTranslateExecuteMetric("after-translate", context, source);
 
         // Load arguments
 

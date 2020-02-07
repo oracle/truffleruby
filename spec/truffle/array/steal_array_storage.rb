@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -21,7 +23,7 @@ describe ":steal_array_storage primitive" do
   it "should no-op when called on itself" do
     copy = @array.dup
 
-    TrufflePrimitive.steal_array_storage(@array, @array)
+    Primitive.steal_array_storage(@array, @array)
 
     storage(@array).should == "Object[]"
     @array.should == copy
@@ -31,7 +33,7 @@ describe ":steal_array_storage primitive" do
     other = [1, 2, 3, 4, 5]
     other_copy = other.dup
 
-    TrufflePrimitive.steal_array_storage(@array, other)
+    Primitive.steal_array_storage(@array, other)
 
     storage(@array).should == "int[]"
     @array.should == other_copy

@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -154,7 +156,7 @@ module ObjectSpace
   def memsize_of(object)
     size = Truffle::ObjSpace.memsize_of(object)
 
-    memsizer = TrufflePrimitive.object_hidden_var_get object, Truffle::CExt::DATA_MEMSIZER
+    memsizer = Primitive.object_hidden_var_get object, Truffle::CExt::DATA_MEMSIZER
     if memsizer
       size + memsizer.call
     else

@@ -32,15 +32,15 @@ module Truffle
     end
 
     def section(section, &block)
-      TrufflePrimitive.vm_get_config_section section, block
+      Primitive.vm_get_config_section section, block
     end
 
     def lookup(name)
-      TrufflePrimitive.vm_get_config_item name
+      Primitive.vm_get_config_item name
     end
 
     def [](name)
-      value = TrufflePrimitive.vm_get_config_item name
+      value = Primitive.vm_get_config_item name
       raise KeyError, "key #{name} not found" if value.nil?
       value
     end
