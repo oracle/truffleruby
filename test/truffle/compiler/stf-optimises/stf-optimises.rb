@@ -14,9 +14,10 @@ def foo
   var = 14
   var * 2
 end
+LINE_TO_MODIFY = __LINE__ - 2
 
 set_trace_func proc { |event, file, line, id, binding, classname|
-  if event == 'line' && file == __FILE__ && line == 13
+  if event == 'line' && file == __FILE__ && line == LINE_TO_MODIFY
     binding.local_variable_set(:var, 100)
   end
 }
@@ -31,15 +32,12 @@ begin
 rescue Truffle::GraalError => e
   if e.message.include? 'Primitive.assert_not_compiled'
     puts 'STF optimising'
-    exit 0
+    exit
   elsif e.message.include? 'Primitive.assert_compilation_constant'
-    puts 'STF not optimising'
-    exit 1
+    abort 'STF not optimising'
   else
-    p e.message
-    puts 'some other error'
-    exit 1
+    raise e
   end
 end
 
-exit 1
+abort 'should not reach here'

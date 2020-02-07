@@ -14,9 +14,10 @@ def foo
   var = 14
   var * 2
 end
+LINE_TO_MODIFY = __LINE__ - 2
 
 tp = TracePoint.new(:line) do |tp|
-  if tp.path == __FILE__ && tp.lineno == 13
+  if tp.path == __FILE__ && tp.lineno == LINE_TO_MODIFY
     tp.binding.local_variable_set(:var, 100)
   end
 end
@@ -33,15 +34,12 @@ begin
 rescue Truffle::GraalError => e
   if e.message.include? 'Primitive.assert_not_compiled'
     puts 'TP optimising'
-    exit 0
+    exit
   elsif e.message.include? 'Primitive.assert_compilation_constant'
-    puts 'TP not optimising'
-    exit 1
+    abort 'TP not optimising'
   else
-    p e.message
-    puts 'some other error'
-    exit 1
+    raise e
   end
 end
 
-exit 1
+abort 'should not reach here'
