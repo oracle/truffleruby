@@ -10,8 +10,8 @@ so that we know why non-standard APIs have been added.
 
 * `concurrent-ruby` < 1.1.0 used `Truffle::System.full_memory_barrier`,
   `Truffle::Primitive.logical_processors`,  `Truffle::AtomicReference`, and
-  `Truffle::System.synchronized`. These are all still available in order to
-  support these older versions of `concurrent-ruby`.
-
+  `Truffle::System.synchronized`. `Truffle::Primitive.logical_processors`, `Truffle::System.full_memory_barrier`, and
+   `Truffle::AtomicReference` have been removed.
+  
 * `concurrent-ruby` >= 1.1.0 uses `TruffleRuby.full_memory_barrier`,
   `TruffleRuby.synchronized`, and `TruffleRuby::AtomicReference`, 

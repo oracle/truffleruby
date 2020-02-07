@@ -8,29 +8,6 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-# Used by old versions of concurrent-ruby
-
-module Truffle
-
-  class AtomicReference < TruffleRuby::AtomicReference
-    alias_method :value, :get
-    alias_method :value=, :set
-  end
-
-  module Primitive
-    def self.logical_processors
-      Truffle::System.available_processors
-    end
-  end
-
-  module Truffle::System
-    def self.full_memory_barrier
-      TruffleRuby.full_memory_barrier
-    end
-  end
-
-end
-
 module TruffleRuby
 
   def self.sulong?
