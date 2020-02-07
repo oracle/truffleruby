@@ -51,7 +51,7 @@ public class BacktraceInterleaver {
     }
 
     public static boolean isCallBoundary(StackTraceElement element) {
-        return element.toString().startsWith("com.oracle.graal.truffle.OptimizedCallTarget.callProxy") ||
+        return element.toString().startsWith("org.graalvm.compiler.truffle.runtime.OptimizedCallTarget.callProxy") ||
                 element.toString().startsWith("com.oracle.truffle.api.impl.DefaultCallTarget.call");
     }
 
