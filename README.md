@@ -32,7 +32,7 @@ There are three ways to install TruffleRuby:
   ```
   And on GitHub Actions:
   ```yaml
-  - uses: eregon/use-ruby-action@v1
+  - uses: ruby/setup-ruby@v1
     with:
       ruby-version: truffleruby
   ```
