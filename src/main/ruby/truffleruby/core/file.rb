@@ -934,6 +934,8 @@ class File < IO
   end
 
   def self.realpath(path, basedir = nil)
+    path = Truffle::Type.coerce_to_path(path)
+
     unless absolute_path?(path)
       path = expand_path(path, basedir)
     end
