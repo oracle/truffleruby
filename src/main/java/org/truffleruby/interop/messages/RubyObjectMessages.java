@@ -510,17 +510,15 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean isInstantiable(
-            DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode doesRespond) {
+    protected static boolean isInstantiable(DynamicObject receiver,
+            @Exclusive @Cached(parameters = "PUBLIC") DoesRespondDispatchHeadNode doesRespond) {
         return doesRespond.doesRespondTo(null, "new", receiver);
     }
 
     @ExportMessage
-    protected static Object instantiate(
-            DynamicObject receiver, Object[] arguments,
+    protected static Object instantiate(DynamicObject receiver, Object[] arguments,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "PUBLIC_RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode)
             throws UnsupportedMessageException {
 
