@@ -40,6 +40,7 @@ Compatibility:
 * Implemented `Kernel.{chomp, chop}` and `Kernel#{chomp, chop}`.
 * Implemented `-p` and `-a`, and `-l` CLI options.
 * Convert the argument to `File.realpath` with `#to_path` (#1894).
+* Implemented `rb_fd_*` functions (#1623).
 
 Changes:
 
