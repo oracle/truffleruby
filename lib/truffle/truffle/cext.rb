@@ -206,6 +206,11 @@ module Truffle::CExt
     end
 
     def cache_address
+      unless name.polyglot_pointer?
+        name.polyglot_to_native
+        raise unless name.polyglot_pointer?
+      end
+
       addr = name.polyglot_address
       ENCODING_CACHE_MUTEX.synchronize do
         NATIVE_CACHE[addr] = self
@@ -298,18 +303,22 @@ module Truffle::CExt
 
     def initialize(string)
       @string = string
+      @address = 0
     end
 
     def polyglot_pointer?
-      true
+      @address != 0
     end
 
     def polyglot_address
-      @address ||= Primitive.string_pointer_to_native(@string)
+      @address
+    ensure
+      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
     end
 
     # Every isPointer object should also have TO_NATIVE
     def polyglot_to_native
+      @address = Primitive.string_pointer_to_native(@string)
     end
 
     def polyglot_array?
@@ -346,7 +355,7 @@ module Truffle::CExt
     end
 
     def native?
-      Primitive.string_pointer_is_native?(@string)
+      polyglot_is_pointer?
     end
 
     alias_method :to_str, :string
@@ -412,22 +421,22 @@ module Truffle::CExt
   class RStringEndPtr
     def initialize(string)
       @string = string
+      @address = 0
     end
 
-    def size
-      0
-    end
 
     def polyglot_pointer?
-      true
+      @address != 0
     end
 
     def polyglot_address
-      @address ||= Primitive.string_pointer_to_native(@string) + @string.bytesize
+      @address
+    ensure
+      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
     end
 
-    # Every IS_POINTER object should also have TO_NATIVE
     def polyglot_to_native
+      @address = Primitive.string_pointer_to_native(@string) + @string.bytesize
     end
   end
 
