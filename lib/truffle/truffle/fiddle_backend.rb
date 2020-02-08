@@ -78,7 +78,7 @@ module Truffle::FiddleBackend
 
   def self.get_pointer_value(val)
     if val.is_a?(String)
-      Truffle::CExt.string_to_pointer(val)
+      Truffle::CExt.string_to_ffi_pointer(val)
     elsif val.is_a?(Fiddle::Pointer)
       val.to_i
     elsif val.respond_to?(:to_ptr)

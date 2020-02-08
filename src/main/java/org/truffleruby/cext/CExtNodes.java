@@ -1031,7 +1031,7 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "string_to_pointer", onSingleton = true, required = 1)
+    @CoreMethod(names = "string_to_ffi_pointer", onSingleton = true, required = 1)
     public abstract static class StringToPointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")

@@ -355,7 +355,7 @@ module Truffle::CExt
     end
 
     def native?
-      polyglot_is_pointer?
+      polyglot_pointer?
     end
 
     alias_method :to_str, :string
