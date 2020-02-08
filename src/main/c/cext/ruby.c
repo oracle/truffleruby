@@ -3752,7 +3752,48 @@ void rb_fd_dup(rb_fdset_t *dst, const rb_fdset_t *src) {
 }
 
 int rb_fd_select(int n, rb_fdset_t *readfds, rb_fdset_t *writefds, rb_fdset_t *exceptfds, struct timeval *timeout) {
-  rb_tr_error("rb_fd_select not implemented");
+  fd_set *r = NULL, *w = NULL, *e = NULL;
+  if (readfds) {
+    rb_fd_resize(n - 1, readfds);
+    r = rb_fd_ptr(readfds);
+  }
+  if (writefds) {
+    rb_fd_resize(n - 1, writefds);
+    w = rb_fd_ptr(writefds);
+  }
+  if (exceptfds) {
+    rb_fd_resize(n - 1, exceptfds);
+    e = rb_fd_ptr(exceptfds);
+  }
+  return select(n, r, w, e, timeout);
+}
+
+// NOTE: MRI's version has more fields
+struct select_set {
+  int max;
+  rb_fdset_t *rset;
+  rb_fdset_t *wset;
+  rb_fdset_t *eset;
+  struct timeval *timeout;
+};
+
+static void* rb_thread_fd_select_blocking(void *data) {
+  struct select_set *set = (struct select_set*)data;
+  int result = rb_fd_select(set->max, set->rset, set->wset, set->eset, set->timeout);
+  return (void*)(long)result;
+}
+
+int rb_thread_fd_select(int max, rb_fdset_t *read, rb_fdset_t *write, rb_fdset_t *except, struct timeval *timeout) {
+  // NOTE: MRI has more logic in here
+  struct select_set set;
+  set.max = max;
+  set.rset = read;
+  set.wset = write;
+  set.eset = except;
+  set.timeout = timeout;
+
+  void* result = rb_thread_call_without_gvl(rb_thread_fd_select_blocking, (void*)(&set), RUBY_UBF_IO, 0);
+  return (int)(long)result;
 }
 
 VALUE rb_f_exit(int argc, const VALUE *argv) {
@@ -3909,10 +3950,6 @@ VALUE rb_thread_run(VALUE thread) {
 
 VALUE rb_thread_kill(VALUE thread) {
   rb_tr_error("rb_thread_kill not implemented");
-}
-
-int rb_thread_fd_select(int max, rb_fdset_t * read, rb_fdset_t * write, rb_fdset_t * except, struct timeval *timeout) {
-  rb_tr_error("rb_thread_fd_select not implemented");
 }
 
 VALUE rb_thread_main(void) {
