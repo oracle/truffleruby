@@ -426,10 +426,6 @@ module Truffle::CExt
     def polyglot_array_removable?
       false
     end
-
-    def native?
-      false
-    end
   end
 
   T_NONE     = 0x00
