@@ -105,6 +105,9 @@ class StringIO
     self
   end
 
+  # StringIO#inspect should not include the contents of the StringIO
+  alias_method :inspect, :to_s
+
   private def check_readable
     raise IOError, 'not opened for reading' unless @readable
   end
