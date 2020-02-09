@@ -199,6 +199,7 @@ class StringIO
   end
 
   def binmode
+    set_encoding(Encoding::BINARY)
     self
   end
 
