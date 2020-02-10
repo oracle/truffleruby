@@ -556,8 +556,9 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object dup(VirtualFrame frame, Object self,
-                @Cached IsImmutableObjectNode isImmutableObjectNode) {
-            if (isImmutableObjectNode.execute(self)) {
+                @Cached IsImmutableObjectNode isImmutableObjectNode,
+                @Cached("createBinaryProfile()") ConditionProfile immutableProfile) {
+            if (immutableProfile.profile(isImmutableObjectNode.execute(self))) {
                 return self;
             }
 
