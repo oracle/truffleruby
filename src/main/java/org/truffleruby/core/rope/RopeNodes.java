@@ -1137,9 +1137,10 @@ public abstract class RopeNodes {
 
         @Specialization(guards = "rope.getRawBytes() == null")
         protected int getByteRepeatingRope(RepeatingRope rope, int index,
-                @Cached("createBinaryProfile()") ConditionProfile childRawBytesNullProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile childRawBytesNullProfile,
+                @Cached ByteSlowNode slowByte) {
             if (childRawBytesNullProfile.profile(rope.getChild().getRawBytes() == null)) {
-                return rope.getByteSlow(index) & 0xff;
+                return slowByte.execute(rope, index) & 0xff;
             }
 
             return rope.getChild().getRawBytes()[index % rope.getChild().byteLength()] & 0xff;
