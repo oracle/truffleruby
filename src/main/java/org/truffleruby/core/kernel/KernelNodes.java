@@ -336,13 +336,17 @@ public abstract class KernelNodes {
     @ImportStatic(ShapeCachingGuards.class)
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
+        public static CopyNode create() {
+            return CopyNodeFactory.create(null);
+        }
+
         @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
 
-        public abstract DynamicObject executeCopy(VirtualFrame frame, DynamicObject self);
+        public abstract DynamicObject executeCopy(DynamicObject self);
 
         @ExplodeLoop
         @Specialization(guards = "self.getShape() == cachedShape", limit = "getCacheLimit()")
-        protected DynamicObject copyCached(VirtualFrame frame, DynamicObject self,
+        protected DynamicObject copyCached(DynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
                 @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
@@ -359,12 +363,12 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "updateShape(self)")
-        protected Object updateShapeAndCopy(VirtualFrame frame, DynamicObject self) {
-            return executeCopy(frame, self);
+        protected Object updateShapeAndCopy(DynamicObject self) {
+            return executeCopy(self);
         }
 
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
-        protected DynamicObject copyUncached(VirtualFrame frame, DynamicObject self) {
+        protected DynamicObject copyUncached(DynamicObject self) {
             final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(self);
             final DynamicObject newObject = (DynamicObject) allocateNode.call(rubyClass, "__allocate__");
             copyInstanceVariables(self, newObject);
@@ -423,7 +427,7 @@ public abstract class KernelNodes {
     @NodeChild(value = "freeze", type = RubyNode.class)
     public abstract static class CloneNode extends CoreMethodNode {
 
-        @Child private CopyNode copyNode = CopyNodeFactory.create(null);
+        @Child private CopyNode copyNode = CopyNode.create();
         @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
         @Child private IsFrozenNode isFrozenNode = IsFrozenNode.create();
         @Child private FreezeNode freezeNode;
@@ -436,12 +440,12 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = { "!isNil(self)", "!isRubyBignum(self)", "!isRubySymbol(self)" })
-        protected DynamicObject clone(VirtualFrame frame, DynamicObject self, boolean freeze,
+        protected DynamicObject clone(DynamicObject self, boolean freeze,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile,
                 @Cached("createBinaryProfile()") ConditionProfile freezeProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isFrozenProfile,
                 @Cached("createBinaryProfile()") ConditionProfile isRubyClass) {
-            final DynamicObject newObject = copyNode.executeCopy(frame, self);
+            final DynamicObject newObject = copyNode.executeCopy(self);
 
             // Copy the singleton class if any.
             final DynamicObject selfMetaClass = Layouts.BASIC_OBJECT.getMetaClass(self);
@@ -551,18 +555,17 @@ public abstract class KernelNodes {
     @CoreMethod(names = "dup", taintFrom = 0)
     public abstract static class DupNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CopyNode copyNode = CopyNodeFactory.create(null);
-        @Child private CallDispatchHeadNode initializeDupNode = CallDispatchHeadNode.createPrivate();
-
         @Specialization
-        protected Object dup(VirtualFrame frame, Object self,
+        protected Object dup(Object self,
                 @Cached IsImmutableObjectNode isImmutableObjectNode,
-                @Cached("createBinaryProfile()") ConditionProfile immutableProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile immutableProfile,
+                @Cached CopyNode copyNode,
+                @Cached("createPrivate()") CallDispatchHeadNode initializeDupNode) {
             if (immutableProfile.profile(isImmutableObjectNode.execute(self))) {
                 return self;
             }
 
-            final DynamicObject newObject = copyNode.executeCopy(frame, (DynamicObject) self);
+            final DynamicObject newObject = copyNode.executeCopy((DynamicObject) self);
 
             initializeDupNode.call(newObject, "initialize_dup", self);
 
