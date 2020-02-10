@@ -53,7 +53,7 @@ public class ArrayStoreTest {
     }
 
     @Test
-    public void zeroLengtheneralisesToObject() {
+    public void zeroLengthGeneralisesToObject() {
         Object store = ArrayStoreLibrary.INITIAL_STORE;
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
 
@@ -135,7 +135,7 @@ public class ArrayStoreTest {
     }
 
     @Test
-    public void extractRangeOnArrayReturnssDelegatedStorage() {
+    public void extractRangeOnArrayReturnsDelegatedStorage() {
         ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
         assertEquals(stores.extractRange(new int[10], 0, 10).getClass(), DelegatedArrayStorage.class);
         assertEquals(stores.extractRange(new long[10], 0, 10).getClass(), DelegatedArrayStorage.class);
