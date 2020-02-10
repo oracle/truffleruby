@@ -53,18 +53,21 @@ module Kernel
   end
   module_function :Complex
 
-  def Float(obj)
+  def Float(obj, exception: true)
+    raise_exception = !exception.equal?(false)
     obj = Truffle::Interop.unbox_if_needed(obj)
 
     case obj
     when String
-      value = Primitive.string_to_f obj, true
-      raise ArgumentError, 'invalid string for Float' unless value
-      value
+      Primitive.string_to_f obj, raise_exception
     when Float
       obj
     when nil
-      raise TypeError, "can't convert nil into Float"
+      if raise_exception
+        raise TypeError, "can't convert nil into Float"
+      else
+        nil
+      end
     when Complex
       if obj.respond_to?(:imag) && obj.imag.equal?(0)
         Truffle::Type.coerce_to obj, Float, :to_f
@@ -72,7 +75,11 @@ module Kernel
         raise RangeError, "can't convert #{obj} into Float"
       end
     else
-      Truffle::Type.coerce_to obj, Float, :to_f
+      if raise_exception
+        Truffle::Type.rb_convert_type(obj, Float, :to_f)
+      else
+        Truffle::Type.rb_check_convert_type(obj, Float, :to_f)
+      end
     end
   end
   module_function :Float

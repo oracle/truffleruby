@@ -25,6 +25,7 @@ Bug fixes:
 * Fixed `Exception#full_message` implementation.
 * Updated `Kernel.Complex()` to handle the `exception: false` parameter.
 * Fixed `Kernel#dup` to return self for `Complex` and `Rational` objects.
+* Updated `Kernel.Float()` to handle the `exception: false` parameter.
 
 Compatibility:
 

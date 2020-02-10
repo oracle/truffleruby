@@ -3783,9 +3783,7 @@ public abstract class StringNodes {
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             if (rope.isEmpty()) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
+                return error(strict);
             }
             if (string.toString().startsWith("0x")) {
                 try {
@@ -3801,21 +3799,26 @@ public abstract class StringNodes {
                     } else if (result instanceof Double) {
                         return result;
                     } else {
-                        return nil();
+                        return error(strict);
                     }
                 }
             }
             try {
-                return new DoubleConverter().parse(rope, strict, true);
+                return new DoubleConverter().parse(rope, true, true);
             } catch (NumberFormatException e) {
-                if (strict) {
-                    throw new RaiseException(
-                            getContext(),
-                            coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
-                }
-                return 0.0;
+                return error(strict);
             }
         }
+
+        private Object error(boolean strict) {
+            if (strict) {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
+            }
+            return nil();
+        }
+
     }
 
     @Primitive(name = "find_string", lowerFixnum = 2)
