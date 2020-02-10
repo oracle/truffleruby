@@ -141,11 +141,6 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator allocator(Object[] store) {
-        return OBJECT_ARRAY_ALLOCATOR;
-    }
-
-    @ExportMessage
     @ImportStatic(ArrayGuards.class)
     static class GeneralizeForStore {
 
@@ -174,6 +169,11 @@ public class ObjectArrayStore {
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.generalizeForStore(newStore, store);
         }
+    }
+
+    @ExportMessage
+    public static ArrayAllocator allocator(Object[] store) {
+        return OBJECT_ARRAY_ALLOCATOR;
     }
 
     public static final ArrayAllocator OBJECT_ARRAY_ALLOCATOR = new ObjectArrayAllocator();

@@ -45,9 +45,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public final int length;
 
     public NativeArrayStorage(Pointer pointer, int length) {
-        this.pointer = pointer;
-        this.length = length;
-        this.markedObjects = new Object[length];
+        this(pointer, length, new Object[length]);
     }
 
     private NativeArrayStorage(Pointer pointer, int length, Object[] markedObjects) {
@@ -102,9 +100,9 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         @Specialization
         protected static void write(NativeArrayStorage storage, int index, Object value,
                 @CachedLibrary(limit = "1") InteropLibrary wrappers,
-                @Cached() WrapNode wrapNode,
+                @Cached WrapNode wrapNode,
                 @Cached BranchProfile errorProfile) {
-            ValueWrapper wrapper = wrapNode.execute(value);
+            final ValueWrapper wrapper = wrapNode.execute(value);
             try {
                 storage.writeElement(index, wrappers.asPointer(wrapper));
             } catch (UnsupportedMessageException e) {

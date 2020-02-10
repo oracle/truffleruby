@@ -13,6 +13,7 @@ package org.truffleruby.core.array;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -33,8 +34,9 @@ public class ZeroLengthArrayStore {
     public static final ZeroLengthArrayStore ZERO_LENGTH_STORE = new ZeroLengthArrayStore();
 
     @ExportMessage
+    @TruffleBoundary
     public Object read(int index) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @ExportMessage
@@ -65,11 +67,9 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    public void copyContents(int srcStart, Object destStore, int destStart,
-            int length) {
+    public void copyContents(int srcStart, Object destStore, int destStart, int length) {
         assert srcStart == 0;
         assert length == 0;
-        return;
     }
 
     @ExportMessage
