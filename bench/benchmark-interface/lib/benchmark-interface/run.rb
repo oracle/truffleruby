@@ -18,7 +18,7 @@ module BenchmarkInterface
 
     command = nil
 
-    backend = BenchmarkInterface::Backends::Bips
+    backend = BenchmarkInterface::Backends::Simple
     names = []
     
     options = {
