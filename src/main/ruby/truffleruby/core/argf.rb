@@ -70,6 +70,8 @@ module Truffle
       @init = false
       @use_stdin_only = false
       @encoding_args = nil
+      @backup_filename = nil
+      @external = nil
     end
 
     #

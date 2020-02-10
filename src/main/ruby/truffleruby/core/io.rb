@@ -1064,6 +1064,7 @@ class IO
       warn 'IO::new() does not take block; use IO::open() instead', uplevel: 1
     end
     @binmode = nil
+    @internal = nil
     @external = nil
     @eof = false
     @pid = nil
@@ -2516,7 +2517,7 @@ class IO
       end
     end
 
-    if @pid and @pid != 0
+    if defined?(@pid) and @pid and @pid != 0
       begin
         Process.wait @pid
       rescue Errno::ECHILD

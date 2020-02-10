@@ -122,9 +122,7 @@ module Timeout
 
   def self.ensure_timeout_thread_running
     Truffle::System.synchronized(self) do
-      unless @controller
-        @controller = Thread.new { watch_channel }
-      end
+      @controller ||= Thread.new { watch_channel }
     end
   end
 
