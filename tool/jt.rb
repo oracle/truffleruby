@@ -519,6 +519,12 @@ module Utilities
       ruby env_vars, *mspec_args, '-t', ruby_launcher, *args
     end
   end
+
+  def args_split(args)
+    delimiter_index = args.index('--')
+    return [args, []] unless delimiter_index
+    [args[0...delimiter_index], args[(delimiter_index + 1)..-1]]
+  end
 end
 
 module Commands
@@ -1353,12 +1359,7 @@ EOS
 
     options += %w[--format specdoc] if ci?
 
-    delimiter_index = args.index('--')
-    args, ruby_args = if delimiter_index
-                        [args[0...delimiter_index], args[(delimiter_index + 1)..-1]]
-                      else
-                        [args, []]
-                      end
+    args, ruby_args = args_split(args)
 
     vm_args, ruby_args, parsed_options = ruby_options({}, ['--reveal', *ruby_args])
     if truffleruby_native?
@@ -1925,12 +1926,7 @@ EOS
     ee_checkout = options.delete('--ee-checkout') || (options.delete('--no-ee-checkout') ? false : !ci?)
     checkout_enterprise_revision if env.include?('ee') && ee_checkout
 
-    delimiter_index = options.index '--'
-    mx_options, mx_build_options = if delimiter_index
-                                     [options[0...delimiter_index], options[(delimiter_index + 1)..-1]]
-                                   else
-                                     [options, nil]
-                                   end
+    mx_options, mx_build_options = args_split(options)
 
     mx_args = ['-p', TRUFFLERUBY_DIR, '--env', env, *mx_options]
 
