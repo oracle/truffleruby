@@ -1046,7 +1046,7 @@ public class CExtNodes {
 
     }
 
-    @Primitive(name = "string_pointer_is_native?")
+    @Primitive(name = "string_is_native?")
     public abstract static class StringPointerIsNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")

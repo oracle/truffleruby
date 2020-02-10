@@ -2041,7 +2041,7 @@ module Truffle::CExt
   end
 
   def native_string?(string)
-    Primitive.string_pointer_is_native?(string)
+    Primitive.string_is_native?(string)
   end
 
   def RSTRING_PTR(string)
