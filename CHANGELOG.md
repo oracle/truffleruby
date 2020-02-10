@@ -24,6 +24,7 @@ Bug fixes:
 * Fixed `puts` for a foreign objects, e.g. `puts Polyglot.eval('js', '[]')` (#1881) 
 * Fixed `Exception#full_message` implementation.
 * Updated `Kernel.Complex()` to handle the `exception: false` parameter.
+* Fixed `Kernel#dup` to return self for `Complex` and `Rational` objects.
 
 Compatibility:
 
