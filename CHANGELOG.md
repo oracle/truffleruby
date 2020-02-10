@@ -42,6 +42,7 @@ Compatibility:
 * Convert the argument to `File.realpath` with `#to_path` (#1894).
 * `StringIO#binmode` now sets the external encoding to BINARY like MRI (#1898).
 * `StringIO#inspect` should not include the contents of the `StringIO` (#1898).
+* Implemented `rb_fd_*` functions (#1623).
 
 Changes:
 

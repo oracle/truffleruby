@@ -26,6 +26,10 @@
 #include <fcntl.h>
 #include <printf.h>
 
+#ifdef HAVE_SYS_PARAM_H
+#include <sys/param.h>
+#endif
+
 /*
  * Note that some functions are #undef'd just before declaration.
  * This is needed because these functions are declared by MRI as macros in e.g., ruby.h,
@@ -3660,48 +3664,136 @@ VALUE rb_check_funcall(VALUE recv, ID mid, int argc, const VALUE *argv) {
   rb_tr_error("rb_check_funcall not implemented");
 }
 
-void rb_fd_init(rb_fdset_t *set) {
-  rb_tr_error("rb_fd_init not implemented");
+// Assumption for rb_fd_ implementations below
+#if !(defined(NFDBITS) && defined(HAVE_RB_FD_INIT))
+#error "expected NFDBITS and HAVE_RB_FD_INIT to be defined"
+#endif
+
+void rb_fd_init(rb_fdset_t *fds) {
+  fds->maxfd = 0;
+  fds->fdset = ALLOC(fd_set);
+  FD_ZERO(fds->fdset);
 }
 
-void rb_fd_term(rb_fdset_t *set) {
-  rb_tr_error("rb_fd_term not implemented");
+void rb_fd_term(rb_fdset_t *fds) {
+  if (fds->fdset) {
+    xfree(fds->fdset);
+  }
+  fds->maxfd = 0;
+  fds->fdset = NULL;
 }
 
 void rb_fd_zero(rb_fdset_t *fds) {
-  rb_tr_error("rb_fd_zero not implemented");
+  if (fds->fdset) {
+    MEMZERO(fds->fdset, fd_mask, howmany(fds->maxfd, NFDBITS));
+  }
 }
 
-void rb_fd_set(int fd, rb_fdset_t *set) {
-  rb_tr_error("rb_fd_set not implemented");
+static void
+rb_fd_resize(int n, rb_fdset_t *fds) {
+  size_t m = howmany(n + 1, NFDBITS) * sizeof(fd_mask);
+  size_t o = howmany(fds->maxfd, NFDBITS) * sizeof(fd_mask);
+
+  if (m < sizeof(fd_set)) {
+    m = sizeof(fd_set);
+  }
+  if (o < sizeof(fd_set)) {
+    o = sizeof(fd_set);
+  }
+
+  if (m > o) {
+    fds->fdset = xrealloc(fds->fdset, m);
+    memset((char *)fds->fdset + o, 0, m - o);
+  }
+  if (n >= fds->maxfd) {
+    fds->maxfd = n + 1;
+  }
+}
+
+void rb_fd_set(int n, rb_fdset_t *fds) {
+  rb_fd_resize(n, fds);
+  FD_SET(n, fds->fdset);
 }
 
 void rb_fd_clr(int n, rb_fdset_t *fds) {
-  rb_tr_error("rb_fd_clr not implemented");
+  if (n >= fds->maxfd) {
+    return;
+  }
+  FD_CLR(n, fds->fdset);
 }
 
 int rb_fd_isset(int n, const rb_fdset_t *fds) {
-  rb_tr_error("rb_fd_isset not implemented");
+  if (n >= fds->maxfd) {
+    return 0;
+  }
+  return FD_ISSET(n, fds->fdset);
 }
 
 void rb_fd_copy(rb_fdset_t *dst, const fd_set *src, int max) {
-  rb_tr_error("rb_fd_copy not implemented");
+  size_t size = howmany(max, NFDBITS) * sizeof(fd_mask);
+
+  if (size < sizeof(fd_set)) {
+    size = sizeof(fd_set);
+  }
+  dst->maxfd = max;
+  dst->fdset = xrealloc(dst->fdset, size);
+  memcpy(dst->fdset, src, size);
 }
 
 void rb_fd_dup(rb_fdset_t *dst, const rb_fdset_t *src) {
-  rb_tr_error("rb_fd_dup not implemented");
+  size_t size = howmany(rb_fd_max(src), NFDBITS) * sizeof(fd_mask);
+
+  if (size < sizeof(fd_set)) {
+    size = sizeof(fd_set);
+  }
+  dst->maxfd = src->maxfd;
+  dst->fdset = xrealloc(dst->fdset, size);
+  memcpy(dst->fdset, src->fdset, size);
 }
 
 int rb_fd_select(int n, rb_fdset_t *readfds, rb_fdset_t *writefds, rb_fdset_t *exceptfds, struct timeval *timeout) {
-  rb_tr_error("rb_fd_select not implemented");
+  fd_set *r = NULL, *w = NULL, *e = NULL;
+  if (readfds) {
+    rb_fd_resize(n - 1, readfds);
+    r = rb_fd_ptr(readfds);
+  }
+  if (writefds) {
+    rb_fd_resize(n - 1, writefds);
+    w = rb_fd_ptr(writefds);
+  }
+  if (exceptfds) {
+    rb_fd_resize(n - 1, exceptfds);
+    e = rb_fd_ptr(exceptfds);
+  }
+  return select(n, r, w, e, timeout);
 }
 
-void rb_w32_fd_copy(rb_fdset_t *dst, const fd_set *src, int max) {
-  rb_tr_error("rb_w32_fd_copy not implemented");
+// NOTE: MRI's version has more fields
+struct select_set {
+  int max;
+  rb_fdset_t *rset;
+  rb_fdset_t *wset;
+  rb_fdset_t *eset;
+  struct timeval *timeout;
+};
+
+static void* rb_thread_fd_select_blocking(void *data) {
+  struct select_set *set = (struct select_set*)data;
+  int result = rb_fd_select(set->max, set->rset, set->wset, set->eset, set->timeout);
+  return (void*)(long)result;
 }
 
-void rb_w32_fd_dup(rb_fdset_t *dst, const rb_fdset_t *src) {
-  rb_tr_error("rb_w32_fd_dup not implemented");
+int rb_thread_fd_select(int max, rb_fdset_t *read, rb_fdset_t *write, rb_fdset_t *except, struct timeval *timeout) {
+  // NOTE: MRI has more logic in here
+  struct select_set set;
+  set.max = max;
+  set.rset = read;
+  set.wset = write;
+  set.eset = except;
+  set.timeout = timeout;
+
+  void* result = rb_thread_call_without_gvl(rb_thread_fd_select_blocking, (void*)(&set), RUBY_UBF_IO, 0);
+  return (int)(long)result;
 }
 
 VALUE rb_f_exit(int argc, const VALUE *argv) {
@@ -3858,10 +3950,6 @@ VALUE rb_thread_run(VALUE thread) {
 
 VALUE rb_thread_kill(VALUE thread) {
   rb_tr_error("rb_thread_kill not implemented");
-}
-
-int rb_thread_fd_select(int max, rb_fdset_t * read, rb_fdset_t * write, rb_fdset_t * except, struct timeval *timeout) {
-  rb_tr_error("rb_thread_fd_select not implemented");
 }
 
 VALUE rb_thread_main(void) {
