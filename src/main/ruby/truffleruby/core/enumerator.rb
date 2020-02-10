@@ -562,6 +562,103 @@ class Enumerator
 end
 
 class Enumerator::ArithmeticSequence < Enumerator
+
+  def initialize(obj, method_name, enum_begin, enum_end, step, exclude_end)
+    @begin = enum_begin
+    @end =  enum_end
+    @step = step
+    @exclude_end = exclude_end
+    super(obj, method_name)
+  end
+
+  attr_reader :begin, :end, :step
+
+  def exclude_end?
+    @exclude_end
+  end
+
+  def last(n=undefined)
+    from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
+
+    raise RangeError, 'cannot get the last element of endless arithmetic sequence' if to.nil?
+
+    len = (to - from).div(step)
+    if len.negative?
+      return Primitive.undefined?(n) ? nil : []
+    end
+    last = from + (step * len)
+    if exclude_end && last == to
+      last = last - step
+    end
+
+    return last if Primitive.undefined?(n)
+
+    n = Truffle::Type.rb_to_int(n) if !Primitive.object_kind_of?(n, Integer)
+
+    raise ArgumentError, 'negative array size' if n < 0
+
+    ary = Array.new
+    last.step(first, -step) do |e|
+      ary.unshift(e)
+      break if ary.size == n
+    end
+    ary
+  end
+
+  def inspect
+    if Primitive.object_kind_of?(@object, Range)
+      step = @step == 1 ? '' : "(#{@step})"
+      to = @end.to_s
+      exclude_end = exclude_end? ? '.' : ''
+      "((#{@begin}..#{exclude_end}#{to}).step#{step})"
+    else
+      if @step == 1
+        if @end.nil?
+          "(#{@begin}.step)"
+        else
+          "(#{@begin}.step(#{@end}))"
+        end
+      else
+        "(#{@begin}.step(#{@end}, #{@step}))"
+      end
+    end
+  end
+
+  def ==(other)
+    Primitive.object_kind_of?(other, Enumerator::ArithmeticSequence) &&
+        @begin == other.begin &&
+        @end == other.end &&
+        @exclude_end == other.exclude_end? &&
+        @step == other.step
+  end
+  alias_method :===, :==
+  alias_method :eql?, :==
+
+  def hash
+    val = Primitive.vm_hash_start(@exclude_end ? 1 : 0)
+    val = Primitive.vm_hash_update val, @begin.hash
+    val = Primitive.vm_hash_update val, @end.hash
+    val = Primitive.vm_hash_update val, @step.hash
+    Primitive.vm_hash_end val
+  end
+
+  def each(&block)
+    return self if block.nil?
+    from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
+    from.step(to: to, by: step) do |val|
+      break if exclude_end && (step.negative? ? val <= to : val >= to)
+      yield val
+    end
+    self
+  end
+
+  def size
+    from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
+    unless Primitive.object_kind_of?(from, Float) || Primitive.object_kind_of?(to, Float) || Primitive.object_kind_of?(step, Float)
+      step = Truffle::Type.rb_to_int(step)
+    end
+    Truffle::NumericOperations.step_size(from, to, step, true, exclude_end)
+  end
 end
 
 class Enumerator::Chain < Enumerator

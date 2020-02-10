@@ -1,1 +1,0 @@
-fails:Enumerator::ArithmeticSequence#== returns true if begin, end, step and exclude_end? are equal

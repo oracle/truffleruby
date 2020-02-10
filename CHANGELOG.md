@@ -50,6 +50,7 @@ Compatibility:
 Changes:
 
 * `TRUFFLERUBY_RESILIENT_GEM_HOME` has been removed. Unset `GEM_HOME` and `GEM_PATH` instead if you need to.
+* Implemented `Enumerator::ArithmeticSequence`.
 
 Performance:
 

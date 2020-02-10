@@ -86,8 +86,12 @@ class Numeric
     kwargs[:to] = to unless Primitive.undefined?(to)
 
     unless block_given?
+      step = 1 if step.nil?
+      if (Primitive.undefined?(to) || to.nil? || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
+        return Enumerator::ArithmeticSequence.new(self, :step, self, limit, step, false)
+      end
       return to_enum(:step, orig_limit, orig_step, kwargs) do
-        Truffle::NumericOperations.step_size(self, limit, step, kwargs.any?)
+        Truffle::NumericOperations.step_size(self, limit, step, kwargs.any?, false)
       end
     end
 
