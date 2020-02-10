@@ -99,6 +99,7 @@ public class Pointer implements AutoCloseable {
         UNSAFE.setMemory(address + offset, size, value);
     }
 
+    @TruffleBoundary
     public void writeBytes(long offset, Pointer buffer, int bufferPos, long length) {
         assert address + offset != 0 || length == 0;
         assert buffer != null;
@@ -108,6 +109,7 @@ public class Pointer implements AutoCloseable {
         UNSAFE.copyMemory(buffer.getAddress() + bufferPos, address + offset, length);
     }
 
+    @TruffleBoundary
     public void writeBytes(long offset, byte[] buffer, int bufferPos, int length) {
         assert address + offset != 0 || length == 0;
         assert buffer != null;
@@ -117,17 +119,20 @@ public class Pointer implements AutoCloseable {
         UNSAFE.copyMemory(buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, null, address + offset, length);
     }
 
+    @TruffleBoundary
     public byte readByte(long offset) {
         assert address + offset != 0;
         return UNSAFE.getByte(address + offset);
     }
 
+    @TruffleBoundary
     public byte[] readBytes(long offset, int length) {
         final byte[] bytes = new byte[length];
         readBytes(offset, bytes, 0, length);
         return bytes;
     }
 
+    @TruffleBoundary
     public void readBytes(long offset, byte[] buffer, int bufferPos, int length) {
         assert address + offset != 0 || length == 0;
         assert buffer != null;
