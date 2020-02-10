@@ -134,6 +134,7 @@ Bug fixes:
 * Avoid race conditions during `gem install` by using a single download thread.
 * Do not use gems precompiled for MRI on TruffleRuby (#1837).
 * Fixed printing foreign arrays that were also pointers (#1679).
+* Fixed `nil#=~` to not warn.
 
 Compatibility:
 
