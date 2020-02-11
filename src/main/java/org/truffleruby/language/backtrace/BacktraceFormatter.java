@@ -136,13 +136,23 @@ public class BacktraceFormatter {
     }
 
     /** Format the backtrace as a String with \n between each line, but no trailing \n. */
-    @TruffleBoundary
     public String formatBacktrace(DynamicObject exception, Backtrace backtrace) {
-        return String.join("\n", formatBacktraceAsStringArray(exception, backtrace));
+        return formatBacktrace(exception, backtrace, Integer.MAX_VALUE);
+    }
+
+    /** Formats at most {@code length} elements of the backtrace (starting from the top of the call stack) as a String
+     * with \n between each line, but no trailing \n. */
+    @TruffleBoundary
+    public String formatBacktrace(DynamicObject exception, Backtrace backtrace, int length) {
+        return String.join("\n", formatBacktraceAsStringArray(exception, backtrace, length));
     }
 
     public DynamicObject formatBacktraceAsRubyStringArray(DynamicObject exception, Backtrace backtrace) {
-        final String[] lines = formatBacktraceAsStringArray(exception, backtrace);
+        return formatBacktraceAsRubyStringArray(exception, backtrace, Integer.MAX_VALUE);
+    }
+
+    public DynamicObject formatBacktraceAsRubyStringArray(DynamicObject exception, Backtrace backtrace, int length) {
+        final String[] lines = formatBacktraceAsStringArray(exception, backtrace, length);
 
         final Object[] array = new Object[lines.length];
 
@@ -156,20 +166,21 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    private String[] formatBacktraceAsStringArray(DynamicObject exception, Backtrace backtrace) {
+    private String[] formatBacktraceAsStringArray(DynamicObject exception, Backtrace backtrace, int length) {
         if (backtrace == null) {
             backtrace = context.getCallStack().getBacktrace(null);
         }
 
         final Activation[] activations = backtrace.getActivations();
-        final ArrayList<String> lines = new ArrayList<>();
+        length = Math.min(length, activations.length);
+        final ArrayList<String> lines = new ArrayList<>(length);
 
-        if (activations.length == 0 && !flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null) {
+        if (length == 0 && !flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null) {
             lines.add(formatException(exception));
             return lines.toArray(new String[lines.size()]);
         }
 
-        for (int n = 0; n < activations.length; n++) {
+        for (int n = 0; n < length; n++) {
             lines.add(formatLine(activations, n, exception));
         }
 
