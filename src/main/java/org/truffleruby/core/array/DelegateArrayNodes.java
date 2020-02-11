@@ -64,7 +64,7 @@ public class DelegateArrayNodes {
         protected DelegatedArrayStorage newStore(int size,
                 @Cached("strategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode) {
             Object rawStorage = newStoreNode.execute(size);
-            return DelegatedArrayStorage.create(rawStorage, 0, size);
+            return new DelegatedArrayStorage(rawStorage, 0, size);
         }
 
         public static DelegateArrayNewStoreNode create(ArrayStrategy strategy) {
@@ -118,7 +118,7 @@ public class DelegateArrayNodes {
 
         @Specialization
         protected Object extractRange(DelegatedArrayStorage store, int start, int end) {
-            return DelegatedArrayStorage.create(store.storage, store.offset + start, end - start);
+            return new DelegatedArrayStorage(store.storage, store.offset + start, end - start);
         }
 
         public static DelegateArrayExtractRangeNode create() {
@@ -155,7 +155,7 @@ public class DelegateArrayNodes {
         @Specialization
         protected Object extractCopyOnWrite(DynamicObject array, int start, int end) {
             DelegatedArrayStorage oldStore = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
-            return DelegatedArrayStorage.create(oldStore.storage, start + oldStore.offset, end - start);
+            return new DelegatedArrayStorage(oldStore.storage, start + oldStore.offset, end - start);
         }
 
         public static ArrayExtractRangeCopyOnWriteNode create() {

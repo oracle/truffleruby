@@ -86,7 +86,7 @@ public abstract class ArrayStoreLibrary extends Library {
      * . This is usually an unmodifiable view onto the existing store, so the user may need to replace the reference to
      * the original store with a second unmodifiable view. */
     public Object extractRange(Object store, int start, int end) {
-        return DelegatedArrayStorage.create(store, start, (end - start));
+        return new DelegatedArrayStorage(store, start, (end - start));
     }
 
     /** Copy the contents of {@code store} from {@code srcStart} to the {@code dest} store starting from

@@ -56,12 +56,12 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     public Object expand(int capacity) {
-        return DelegatedArrayStorage.create(storage, offset, capacity);
+        return new DelegatedArrayStorage(storage, offset, capacity);
     }
 
     @ExportMessage
     public Object extractRange(int start, int end) {
-        return DelegatedArrayStorage.create(storage, (offset + start), (end - start));
+        return new DelegatedArrayStorage(storage, (offset + start), (end - start));
     }
 
     @ExportMessage
@@ -104,17 +104,13 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
         return stores.allocator(storage);
     }
 
-    protected DelegatedArrayStorage(Object storage, int offset, int length) {
+    public DelegatedArrayStorage(Object storage, int offset, int length) {
         assert offset >= 0;
         assert length >= 0;
+        assert !(storage instanceof DelegatedArrayStorage);
         this.storage = storage;
         this.offset = offset;
         this.length = length;
-    }
-
-    public static DelegatedArrayStorage create(Object storage, int offset, int length) {
-        assert !(storage instanceof DelegatedArrayStorage);
-        return new DelegatedArrayStorage(storage, offset, length);
     }
 
     public boolean hasObjectArrayStorage() {

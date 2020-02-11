@@ -112,9 +112,9 @@ public class ArrayOperationNodes {
         @Specialization
         protected Object extractCopyOnWrite(DynamicObject array, int start, int end) {
             final Object oldStore = Layouts.ARRAY.getStore(array);
-            DelegatedArrayStorage newStore = DelegatedArrayStorage.create(oldStore, 0, Layouts.ARRAY.getSize(array));
+            DelegatedArrayStorage newStore = new DelegatedArrayStorage(oldStore, 0, Layouts.ARRAY.getSize(array));
             Layouts.ARRAY.setStore(array, newStore);
-            return DelegatedArrayStorage.create(oldStore, start, end - start);
+            return new DelegatedArrayStorage(oldStore, start, end - start);
         }
 
         public static ArrayExtractRangeCopyOnWriteNode create() {
