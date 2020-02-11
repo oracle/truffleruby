@@ -73,9 +73,9 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -1502,8 +1502,8 @@ public abstract class KernelNodes {
 
         public RespondToNode() {
             dispatch = DoesRespondDispatchHeadNode.createPublic();
-            dispatchIgnoreVisibility = DoesRespondDispatchHeadNode.create();
-            dispatchRespondToMissing = DoesRespondDispatchHeadNode.create();
+            dispatchIgnoreVisibility = DoesRespondDispatchHeadNode.createIgnoring();
+            dispatchRespondToMissing = DoesRespondDispatchHeadNode.createIgnoring();
         }
 
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name,

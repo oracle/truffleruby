@@ -39,7 +39,7 @@ public class ShouldDestructureNode extends RubyContextSourceNode {
 
         if (respondToToAry == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToAry = insert(DoesRespondDispatchHeadNode.create());
+            respondToToAry = insert(DoesRespondDispatchHeadNode.createIgnoring());
         }
 
         // TODO(cseaton): check this is actually a static "find if there is such method" and not a

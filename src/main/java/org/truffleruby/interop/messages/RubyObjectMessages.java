@@ -58,7 +58,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached IsANode isANode,
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode) {
+            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode) {
         // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
         //   rather have more explicit check then just presence of a [] method, marker module with abstract methods
         return RubyGuards.isRubyArray(receiver) ||
@@ -79,9 +79,9 @@ public class RubyObjectMessages {
     @ExportMessage()
     public static long getArraySize(
             DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode,
             @Cached IntegerCastNode integerCastNode,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode)
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
         // TODO (pitr-ch 19-Mar-2019): profile, breakdown
         if (RubyGuards.isRubyArray(receiver)) {
@@ -99,8 +99,8 @@ public class RubyObjectMessages {
     public static boolean isPointer(
             DynamicObject receiver,
             // TODO (pitr-ch 29-May-2019): it should share the dispatch nodes for respond to and call
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
         // TODO (pitr-ch 18-Mar-2019): branchProfile?
@@ -119,8 +119,8 @@ public class RubyObjectMessages {
     @ExportMessage
     public static long asPointer(
             DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
         // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
@@ -134,8 +134,8 @@ public class RubyObjectMessages {
     @ExportMessage
     public static void toNative(
             DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
         if (respondNode.doesRespondTo(null, "polyglot_to_native", receiver)) {
             dispatchNode.call(receiver, "polyglot_to_native");
         }
@@ -176,7 +176,7 @@ public class RubyObjectMessages {
     public static boolean isArrayElementReadable(
             DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_readable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+            @Shared("object_key_readable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
                 "object_key_readable?",
@@ -187,7 +187,7 @@ public class RubyObjectMessages {
     @ExportMessage
     public static boolean isArrayElementModifiable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_modifiable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+            @Shared("object_key_modifiable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
                 "object_key_modifiable?",
@@ -198,7 +198,7 @@ public class RubyObjectMessages {
     @ExportMessage
     public static boolean isArrayElementInsertable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_insertable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+            @Shared("object_key_insertable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
                 "object_key_insertable?",
@@ -209,7 +209,7 @@ public class RubyObjectMessages {
     @ExportMessage
     public static boolean isArrayElementRemovable(DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_removable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+            @Shared("object_key_removable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
                 "object_key_removable?",
@@ -249,7 +249,7 @@ public class RubyObjectMessages {
     public static void removeArrayElement(
             DynamicObject receiver,
             long index,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode arrayDeleteAtNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode arrayDeleteAtNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnsupportedMessageException, InvalidArrayIndexException {
 
@@ -273,10 +273,10 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode hashDeleteNode,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode hashKeyNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode hashDeleteNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode hashKeyNode,
             @Exclusive @Cached BooleanCastNode booleanCast,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode removeInstanceVariableNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode removeInstanceVariableNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
 
         // TODO (pitr-ch 19-Mar-2019): profile
@@ -318,7 +318,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             boolean internal,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode) {
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
         return dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
                 "object_keys",
@@ -331,7 +331,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_readable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Shared("object_key_readable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -347,7 +347,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_modifiable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Shared("object_key_modifiable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -363,7 +363,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_insertable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Shared("object_key_insertable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -379,7 +379,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_removable") @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Shared("object_key_removable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -395,7 +395,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -411,7 +411,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -439,7 +439,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             Object[] arguments,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
         return dispatchNode.call(receiver, name, foreignToRubyArgumentsNode.executeConvert(arguments));
     }
@@ -447,7 +447,7 @@ public class RubyObjectMessages {
     @ExportMessage
     public static boolean isInstantiable(
             DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode doesRespond) {
+            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode doesRespond) {
         return doesRespond.doesRespondTo(null, "new", receiver);
     }
 
@@ -455,7 +455,7 @@ public class RubyObjectMessages {
     public static Object instantiate(
             DynamicObject receiver,
             Object[] arguments,
-            @Exclusive @Cached(value = "createPrivate()") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
         return dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
     }

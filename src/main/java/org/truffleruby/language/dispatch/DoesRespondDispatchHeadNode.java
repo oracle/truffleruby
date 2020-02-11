@@ -15,12 +15,19 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
-    public static DoesRespondDispatchHeadNode create() {
-        return new DoesRespondDispatchHeadNode(true);
+    public static final boolean IGNORING = true;
+    public static final boolean PUBLIC = false;
+
+    public static DoesRespondDispatchHeadNode create(boolean ignoreVisibility) {
+        return new DoesRespondDispatchHeadNode(ignoreVisibility);
+    }
+
+    public static DoesRespondDispatchHeadNode createIgnoring() {
+        return create(IGNORING);
     }
 
     public static DoesRespondDispatchHeadNode createPublic() {
-        return new DoesRespondDispatchHeadNode(false);
+        return create(PUBLIC);
     }
 
     private DoesRespondDispatchHeadNode(boolean ignoreVisibility) {
@@ -60,7 +67,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
                     EMPTY_ARGUMENTS,
                     DispatchAction.RESPOND_TO_METHOD,
                     MissingBehavior.RETURN_MISSING,
-                    true,
+                    this.ignoreVisibility,
                     false);
         }
 
@@ -92,9 +99,18 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
     }
 
     private static final Uncached UNCACHED_IGNORING_VISIBILITY = new Uncached(true);
+    private static final Uncached UNCACHED_PUBLIC_VISIBILITY = new Uncached(false);
 
-    public static DoesRespondDispatchHeadNode getUncached() {
+    public static DoesRespondDispatchHeadNode getIgnoringUncached() {
         return UNCACHED_IGNORING_VISIBILITY;
+    }
+
+    public static DoesRespondDispatchHeadNode getPublicUncached() {
+        return UNCACHED_PUBLIC_VISIBILITY;
+    }
+
+    public static DoesRespondDispatchHeadNode getUncached(boolean ignoreVisibility) {
+        return ignoreVisibility ? UNCACHED_IGNORING_VISIBILITY : UNCACHED_PUBLIC_VISIBILITY;
     }
 
 }

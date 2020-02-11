@@ -102,8 +102,8 @@ public abstract class TruffleKernelNodes {
                 self = mainObject;
             } else {
                 declarationContext = DeclarationContext.topLevel(wrapModule);
-                self = CallDispatchHeadNode.getUncached().call(mainObject, "clone");
-                CallDispatchHeadNode.getUncached().call(self, "extend", wrapModule);
+                self = CallDispatchHeadNode.getUncachedPrivate().call(mainObject, "clone");
+                CallDispatchHeadNode.getUncachedPrivate().call(self, "extend", wrapModule);
             }
 
             final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(

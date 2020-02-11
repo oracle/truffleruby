@@ -57,9 +57,9 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.interop.ToJavaStringNodeGen;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -1476,7 +1476,8 @@ public class CExtNodes {
     @CoreMethod(names = "define_marker", onSingleton = true, required = 2)
     public abstract static class CreateMarkerNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.getUncached();
+        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode
+                .getIgnoringUncached();
 
         @Specialization
         protected DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,

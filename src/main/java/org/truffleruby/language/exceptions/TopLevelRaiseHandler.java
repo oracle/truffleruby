@@ -91,7 +91,7 @@ public class TopLevelRaiseHandler extends RubyContextSourceNode {
     private void handleSignalException(DynamicObject exception) {
         if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().signalExceptionClass) {
             // Calls raise(3) or no-op
-            CallDispatchHeadNode.getUncached().call(exception, "reached_top_level");
+            CallDispatchHeadNode.getUncachedPrivate().call(exception, "reached_top_level");
         }
     }
 
