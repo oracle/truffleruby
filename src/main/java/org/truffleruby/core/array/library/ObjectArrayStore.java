@@ -10,7 +10,6 @@
 
 package org.truffleruby.core.array.library;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 

@@ -106,8 +106,7 @@ public abstract class ArrayStoreLibrary extends Library {
      * {@code length} elements. */
     public abstract Iterable<Object> getIterable(Object store, int start, int length);
 
-    /** Return an allocator that can accept all the values of {@code
-        * store} and {@code newValue}. */
+    /** Return an allocator that can accept all the values of {@code store} and {@code newValue}. */
     public abstract ArrayAllocator generalizeForValue(Object store, Object newValue);
 
     /** Return an allocator that can accept all the values of {@code store} and all the values that could be held in
@@ -146,7 +145,8 @@ public abstract class ArrayStoreLibrary extends Library {
 
         /** Return whether {@code value} is the default value for stores returned by this allocator. For primitive
          * stores the default value will normally be 0, or its numerical equivalent, while stores that hold Objects will
-         * usually default to {@code null}, but this is not guaranteed. */
+         * usually default to {@code null}, this may not be true for those interacting with native memory where their
+         * default value will be whatever is represented by a zero valuein their implementation. */
         public abstract boolean isDefaultValue(Object value);
 
     }
