@@ -80,12 +80,8 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    static class Write {
-
-        @Specialization
-        protected static void writeInt(int[] store, int index, int value) {
-            store[index] = value;
-        }
+    public static void write(int[] store, int index, Object value) {
+        store[index] = (int) value;
     }
 
     @ExportMessage

@@ -105,7 +105,7 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract Iterable<Object> getIterable(Object store, int start, int length);
 
     /** Return an allocator that can accept all the values of {@code
-      * store} and {@code newValue}. */
+        * store} and {@code newValue}. */
     public abstract ArrayAllocator generalizeForValue(Object store, Object newValue);
 
     /** Return an allocator that can accept all the values of {@code store} and all the values that could be held in
