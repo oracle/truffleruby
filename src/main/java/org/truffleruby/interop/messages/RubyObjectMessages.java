@@ -9,7 +9,6 @@
  */
 package org.truffleruby.interop.messages;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -61,15 +60,14 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode) {
         // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
         //   rather have more explicit check then just presence of a [] method, marker module with abstract methods
-        return RubyGuards.isRubyArray(receiver) ||
-                (respondNode.doesRespondTo(null, "[]", receiver) &&
-                        !RubyGuards.isRubyHash(receiver) &&
-                        !RubyGuards.isRubyString(receiver) &&
-                        !RubyGuards.isRubyInteger(receiver) &&
-                        !RubyGuards.isRubyMethod(receiver) &&
-                        !RubyGuards.isRubyProc(receiver) &&
-                        !RubyGuards.isRubyClass(receiver) && // exclude #[] constructors
-                        !isRubyStruct(context, receiver, isANode)); // Struct does not behave as array
+        return (respondNode.doesRespondTo(null, "[]", receiver) &&
+                !RubyGuards.isRubyHash(receiver) &&
+                !RubyGuards.isRubyString(receiver) &&
+                !RubyGuards.isRubyInteger(receiver) &&
+                !RubyGuards.isRubyMethod(receiver) &&
+                !RubyGuards.isRubyProc(receiver) &&
+                !RubyGuards.isRubyClass(receiver) && // exclude #[] constructors
+                !isRubyStruct(context, receiver, isANode)); // Struct does not behave as array
     }
 
     private static boolean isRubyStruct(RubyContext context, DynamicObject receiver, IsANode isANode) {
@@ -84,9 +82,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
         // TODO (pitr-ch 19-Mar-2019): profile, breakdown
-        if (RubyGuards.isRubyArray(receiver)) {
-            return Layouts.ARRAY.getSize(receiver);
-        } else if (respondNode.doesRespondTo(null, "size", receiver)) {
+        if (respondNode.doesRespondTo(null, "size", receiver)) {
             return integerCastNode.executeCastInt(dispatchNode.call(receiver, "size"));
         } else {
             throw UnsupportedMessageException.create();
@@ -157,9 +153,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static Object readArrayElement(
-            DynamicObject receiver,
-            long index,
+    public static Object readArrayElement(DynamicObject receiver, long index,
             @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
@@ -171,7 +165,6 @@ public class RubyObjectMessages {
         }
     }
 
-    // TODO (pitr-ch 19-Mar-2019): move to arrayType
     @ExportMessage
     public static boolean isArrayElementReadable(
             DynamicObject receiver, long index,
@@ -185,7 +178,8 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static boolean isArrayElementModifiable(DynamicObject receiver, long index,
+    public static boolean isArrayElementModifiable(
+            DynamicObject receiver, long index,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Shared("object_key_modifiable") @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
         return (boolean) dispatchNode.call(
@@ -246,26 +240,9 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static void removeArrayElement(
-            DynamicObject receiver,
-            long index,
-            @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode arrayDeleteAtNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile)
-            throws UnsupportedMessageException, InvalidArrayIndexException {
 
-        // TODO (pitr-ch 19-Mar-2019): profile
-        if (RubyGuards.isRubyArray(receiver)) {
-            // TODO (pitr-ch 19-Mar-2019): it was only checking that it fits into int before
-            if (RubyGuards.fitsInInteger(index) && index >= 0 && index < Layouts.ARRAY.getSize(receiver)) {
-                arrayDeleteAtNode.call(receiver, "delete_at", index);
-            } else {
-                errorProfile.enter();
-                throw InvalidArrayIndexException.create(index);
-            }
-        } else {
-            errorProfile.enter();
-            throw UnsupportedMessageException.create();
-        }
+    public static void removeArrayElement(DynamicObject receiver, long index) throws UnsupportedMessageException {
+        throw UnsupportedMessageException.create();
     }
 
     @ExportMessage

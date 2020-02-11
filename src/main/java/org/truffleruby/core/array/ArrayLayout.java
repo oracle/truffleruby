@@ -15,8 +15,9 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.ObjectType;
 import com.oracle.truffle.api.object.dsl.Layout;
+import org.truffleruby.interop.messages.ArrayMessages;
 
-@Layout
+@Layout(dispatch = ArrayMessages.class)
 public interface ArrayLayout extends BasicObjectLayout {
 
     DynamicObjectFactory createArrayShape(DynamicObject logicalClass,

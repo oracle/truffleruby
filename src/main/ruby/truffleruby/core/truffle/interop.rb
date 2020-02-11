@@ -122,12 +122,7 @@ module Truffle
           insertable = !frozen && !has_key
         end
       elsif object.is_a?(Array) && name.is_a?(Integer)
-        in_bounds = name >= 0 && name < object.size
-        frozen = object.frozen?
-        readable = in_bounds
-        modifiable = !frozen && in_bounds
-        removable = modifiable
-        insertable = !frozen && !in_bounds
+        raise 'should be unreachable'
       elsif name.is_a?(String) && name.start_with?('@')
         frozen = object.frozen?
         exists = object.instance_variable_defined?(name)

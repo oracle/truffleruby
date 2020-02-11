@@ -33,7 +33,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
     public abstract Object executeStringCachedHelper(DynamicObject receiver, Object name,
             Object stringName, boolean isIVar, Object value) throws UnknownIdentifierException;
 
-    @Specialization(guards = "isRubyArray(receiver) || isRubyHash(receiver)")
+    @Specialization(guards = "isRubyHash(receiver)")
     protected Object writeArrayHash(
             DynamicObject receiver,
             Object name,
