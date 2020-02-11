@@ -31,6 +31,10 @@ class NilClass
     false
   end
 
+  def =~(other)
+    nil
+  end
+
   def ^(other)
     !!other
   end
