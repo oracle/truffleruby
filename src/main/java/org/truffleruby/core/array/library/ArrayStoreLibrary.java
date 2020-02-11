@@ -118,7 +118,7 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract ArrayAllocator allocator(Object store);
 
     /** Return an allocator for storage that can hold {@code value}. */
-    public static ArrayAllocator basicAllocator(Object value) {
+    public static ArrayAllocator allocatorForValue(Object value) {
         if (value instanceof Integer) {
             return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR;
         } else if (value instanceof Long) {
