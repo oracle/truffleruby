@@ -116,7 +116,7 @@ public abstract class SizedQueueNodes {
         protected DynamicObject pushBlocking(DynamicObject self, final Object value, boolean nonBlocking) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
-            propagateSharingNode.propagate(self, value);
+            propagateSharingNode.executePropagate(self, value);
             doPushBlocking(value, queue);
 
             return self;
@@ -138,7 +138,7 @@ public abstract class SizedQueueNodes {
                 @Cached BranchProfile errorProfile) {
             final SizedQueue queue = Layouts.SIZED_QUEUE.getQueue(self);
 
-            propagateSharingNode.propagate(self, value);
+            propagateSharingNode.executePropagate(self, value);
 
             switch (queue.offer(value)) {
                 case SUCCESS:

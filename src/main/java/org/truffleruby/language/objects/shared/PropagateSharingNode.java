@@ -11,34 +11,31 @@ package org.truffleruby.language.objects.shared;
 
 import org.truffleruby.language.RubyBaseNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class PropagateSharingNode extends RubyBaseNode {
-
-    @Child private IsSharedNode isSharedNode;
-    @Child private WriteBarrierNode writeBarrierNode;
+@GenerateUncached
+public abstract class PropagateSharingNode extends RubyBaseNode {
 
     public static PropagateSharingNode create() {
-        return new PropagateSharingNode();
+        return PropagateSharingNodeGen.create();
     }
 
-    public PropagateSharingNode() {
-        isSharedNode = IsSharedNodeGen.create();
+    public abstract void executePropagate(DynamicObject source, Object value);
+
+    @Specialization(guards = "!isSharedNode.executeIsShared(source)", limit = "1")
+    public void propagateNotShared(DynamicObject source, Object value,
+            @Cached @Shared("isSharedNode") IsSharedNode isSharedNode) {
+        // do nothing
     }
 
-    public void propagate(DynamicObject source, Object value) {
-        if (isSharedNode.executeIsShared(source)) {
-            writeBarrier(value);
-        }
-    }
-
-    private void writeBarrier(Object value) {
-        if (writeBarrierNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            writeBarrierNode = insert(WriteBarrierNode.create());
-        }
+    @Specialization(guards = "isSharedNode.executeIsShared(source)", limit = "1")
+    public void propagateShared(DynamicObject source, Object value,
+            @Cached @Shared("isSharedNode") IsSharedNode isSharedNode,
+            @Cached WriteBarrierNode writeBarrierNode) {
         writeBarrierNode.executeWriteBarrier(value);
     }
-
 }

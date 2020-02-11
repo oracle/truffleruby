@@ -525,7 +525,7 @@ public abstract class HashNodes {
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setDefaultValue(hash, nil());
-            propagateSharingNode.propagate(hash, block);
+            propagateSharingNode.executePropagate(hash, block);
             Layouts.HASH.setDefaultBlock(hash, block);
             return hash;
         }
@@ -534,7 +534,7 @@ public abstract class HashNodes {
         protected DynamicObject initialize(DynamicObject hash, Object defaultValue, NotProvided block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
-            propagateSharingNode.propagate(hash, defaultValue);
+            propagateSharingNode.executePropagate(hash, defaultValue);
             Layouts.HASH.setDefaultValue(hash, defaultValue);
             Layouts.HASH.setDefaultBlock(hash, nil());
             return hash;
@@ -567,7 +567,7 @@ public abstract class HashNodes {
                 return self;
             }
 
-            propagateSharingNode.propagate(self, from);
+            propagateSharingNode.executePropagate(self, from);
 
             Layouts.HASH.setStore(self, null);
             Layouts.HASH.setSize(self, 0);
@@ -586,7 +586,7 @@ public abstract class HashNodes {
                 return self;
             }
 
-            propagateSharingNode.propagate(self, from);
+            propagateSharingNode.executePropagate(self, from);
 
             final Object[] store = (Object[]) Layouts.HASH.getStore(from);
             Object storeCopy = PackedArrayStrategy.copyStore(getContext(), store);
@@ -609,7 +609,7 @@ public abstract class HashNodes {
                 return self;
             }
 
-            propagateSharingNode.propagate(self, from);
+            propagateSharingNode.executePropagate(self, from);
 
             BucketsStrategy.copyInto(getContext(), from, self);
             copyOtherFields(self, from);
@@ -715,7 +715,7 @@ public abstract class HashNodes {
         @Specialization(guards = "isRubyProc(defaultProc)")
         protected DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            propagateSharingNode.propagate(hash, defaultProc);
+            propagateSharingNode.executePropagate(hash, defaultProc);
 
             Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, defaultProc);
@@ -737,7 +737,7 @@ public abstract class HashNodes {
         @Specialization
         protected Object setDefault(DynamicObject hash, Object defaultValue,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            propagateSharingNode.propagate(hash, defaultValue);
+            propagateSharingNode.executePropagate(hash, defaultValue);
 
             Layouts.HASH.setDefaultValue(hash, defaultValue);
             Layouts.HASH.setDefaultBlock(hash, nil());

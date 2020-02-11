@@ -50,7 +50,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         final int newSize = oldSize + 1;
         final int length = capacityNode.execute(store);
 
-        propagateSharingNode.propagate(array, value);
+        propagateSharingNode.executePropagate(array, value);
 
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacityForOneMore(getContext(), length);
@@ -88,7 +88,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
                 : oldCapacity;
         final Object newStore = newStoreNode.execute(newCapacity);
         copyToNode.execute(currentStore, newStore, 0, 0, oldSize);
-        propagateSharingNode.propagate(array, value);
+        propagateSharingNode.executePropagate(array, value);
         setNode.execute(newStore, oldSize, value);
         generalizedStrategy.setStore(array, newStore);
         setSize(array, newSize);
