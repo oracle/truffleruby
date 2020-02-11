@@ -163,16 +163,8 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public void sort(int size,
-            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
-        Object[] elements = new Object[size];
-        for (int i = 0; i < size; i++) {
-            elements[i] = stores.read(this, i);
-        }
-        Arrays.sort(elements, 0, size);
-        for (int i = 0; i < size; i++) {
-            stores.write(this, i, elements[i]);
-        }
+    public void sort(int size) {
+        throw new UnsupportedOperationException();
     }
 
     @ExportMessage

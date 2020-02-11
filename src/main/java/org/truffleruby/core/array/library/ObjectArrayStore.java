@@ -108,7 +108,7 @@ public class ObjectArrayStore {
     @ExportMessage
     @TruffleBoundary
     public static void sort(Object[] store, int size) {
-        Arrays.sort(store, 0, size);
+        throw new UnsupportedOperationException();
     }
 
     @ExportMessage
