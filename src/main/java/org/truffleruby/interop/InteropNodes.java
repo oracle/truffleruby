@@ -82,6 +82,7 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(fileName)")
         protected Object importFile(DynamicObject fileName) {
             try {
+                //intern() to improve footprint
                 final TruffleFile file = getContext()
                         .getEnv()
                         .getPublicTruffleFile(StringOperations.getString(fileName).intern());

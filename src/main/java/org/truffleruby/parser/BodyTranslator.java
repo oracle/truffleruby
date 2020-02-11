@@ -1891,6 +1891,7 @@ public class BodyTranslator extends Translator {
 
                 for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext(); n++) {
                     final NameEntry e = i.next();
+                    //intern() to improve footprint
                     final String name = new String(e.name, e.nameP, e.nameEnd - e.nameP, StandardCharsets.UTF_8)
                             .intern();
 

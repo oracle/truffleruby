@@ -96,6 +96,7 @@ public abstract class PolyglotNodes {
         @Specialization(guards = "isRubyString(fileName)")
         protected Object evalFile(DynamicObject fileName, NotProvided id) {
             final Source source;
+            //intern() to improve footprint
             final String path = StringOperations.getString(fileName).intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
@@ -132,6 +133,7 @@ public abstract class PolyglotNodes {
         }
 
         private Source getSource(String language, DynamicObject fileName) {
+            //intern() to improve footprint
             final String path = StringOperations.getString(fileName).intern();
             try {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);

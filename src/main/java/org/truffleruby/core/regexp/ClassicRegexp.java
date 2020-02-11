@@ -1045,6 +1045,7 @@ public class ClassicRegexp implements ReOptions {
         int j = 0;
         for (Iterator<NameEntry> i = pattern.namedBackrefIterator(); i.hasNext();) {
             NameEntry e = i.next();
+            //intern() to improve footprint
             names[j++] = new String(e.name, e.nameP, e.nameEnd - e.nameP).intern();
         }
 

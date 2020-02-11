@@ -714,7 +714,8 @@ public abstract class KernelNodes {
 
         protected RubyRootNode buildRootNode(Rope sourceText, MaterializedFrame parentFrame, Rope file, int line,
                 boolean ownScopeForAssignments) {
-            final String sourceFile = RopeOperations.decodeRope(file);
+            //intern() to improve footprint
+            final String sourceFile = RopeOperations.decodeRope(file).intern();
             final RubySource source = createEvalSourceNode.createEvalSource(sourceText, "eval", sourceFile, line);
             return getContext()
                     .getCodeLoader()
