@@ -8,13 +8,15 @@
  * GNU Lesser General Public License version 2.1.
  */
 
-package org.truffleruby.core.array;
+package org.truffleruby.core.array.library;
 
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
+
+import org.truffleruby.core.array.DelegatedArrayStorage;
 
 /** Library for accessing and manipulating the storage used for representing arrays. This includes reading, modifying,
  * and copy the storage. */

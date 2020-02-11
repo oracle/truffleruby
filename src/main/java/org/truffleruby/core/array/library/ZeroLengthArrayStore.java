@@ -8,7 +8,7 @@
  * GNU Lesser General Public License version 2.1.
  */
 
-package org.truffleruby.core.array;
+package org.truffleruby.core.array.library;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -22,7 +22,8 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
-import org.truffleruby.core.array.ArrayStoreLibrary.ArrayAllocator;
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 
 @ExportLibrary(value = ArrayStoreLibrary.class)
 @GenerateUncached

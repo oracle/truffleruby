@@ -11,7 +11,8 @@ package org.truffleruby.core.array;
 
 import java.util.Set;
 
-import org.truffleruby.core.array.ArrayStoreLibrary.ArrayAllocator;
+import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

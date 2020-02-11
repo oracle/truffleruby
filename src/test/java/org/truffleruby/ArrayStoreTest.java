@@ -14,7 +14,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.truffleruby.core.array.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.DelegatedArrayStorage;
 
 public class ArrayStoreTest {

@@ -18,7 +18,9 @@ import org.truffleruby.cext.UnwrapNode;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.cext.WrapNode;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
-import org.truffleruby.core.array.ArrayStoreLibrary.ArrayAllocator;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.ObjectArrayStore;
+import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
