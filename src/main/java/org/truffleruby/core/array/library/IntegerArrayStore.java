@@ -108,12 +108,16 @@ public class IntegerArrayStore {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
-        @Specialization(limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = "!isIntStore(destStore)", limit = "STORAGE_STRATEGIES")
         protected static void copyContents(int[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
             for (int i = srcStart; i < length; i++) {
                 destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
             }
+        }
+
+        protected static boolean isIntStore(Object store) {
+            return store instanceof int[];
         }
     }
 
