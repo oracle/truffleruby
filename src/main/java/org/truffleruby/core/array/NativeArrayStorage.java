@@ -104,6 +104,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
                 @Cached BranchProfile errorProfile) {
             final ValueWrapper wrapper = wrapNode.execute(value);
             try {
+                assert wrappers.isPointer(wrapper);
                 storage.writeElement(index, wrappers.asPointer(wrapper));
             } catch (UnsupportedMessageException e) {
                 errorProfile.enter();
