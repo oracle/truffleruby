@@ -23,6 +23,7 @@ public class ThreadAndFrameLocalStorage {
     private Object originalThreadValue;
     private volatile ThreadLocal<Object> otherThreadValues = null;
 
+    @TruffleBoundary // reference logic is svm-substituted
     public ThreadAndFrameLocalStorage(RubyContext context) {
         // Cannot store a Thread instance while pre-initializing
         originalThread = new WeakReference<>(context.isPreInitializing() ? null : Thread.currentThread());
