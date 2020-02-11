@@ -141,34 +141,8 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    @ImportStatic(ArrayGuards.class)
-    static class GeneralizeForStore {
-
-        @Specialization
-        protected static ArrayAllocator generalize(Object[] store, int[] newStore) {
-            return OBJECT_ARRAY_ALLOCATOR;
-        }
-
-        @Specialization
-        protected static ArrayAllocator generalize(Object[] store, long[] newStore) {
-            return OBJECT_ARRAY_ALLOCATOR;
-        }
-
-        @Specialization
-        protected static ArrayAllocator generalize(Object[] store, double[] newStore) {
-            return OBJECT_ARRAY_ALLOCATOR;
-        }
-
-        @Specialization
-        protected static ArrayAllocator generalize(Object[] store, Object[] newStore) {
-            return OBJECT_ARRAY_ALLOCATOR;
-        }
-
-        @Specialization(limit = "STORAGE_STRATEGIES")
-        protected static ArrayAllocator generalize(Object[] store, Object newStore,
-                @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
-            return newStores.generalizeForStore(newStore, store);
-        }
+    public static ArrayAllocator generalizeForStore(Object[] store, Object newValue) {
+        return OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage
