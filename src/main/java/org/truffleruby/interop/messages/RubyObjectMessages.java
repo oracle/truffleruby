@@ -20,8 +20,8 @@ import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.interop.ForeignWriteStringCachingHelperNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
-import org.truffleruby.language.objects.IsANode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -48,93 +48,164 @@ public class RubyObjectMessages {
     @ExportMessage
     public static boolean hasArrayElements(
             DynamicObject receiver,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached IsANode isANode,
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode) {
-        // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
-        //   rather have more explicit check then just presence of a [] method, marker module with abstract methods
-        return (respondNode.doesRespondTo(null, "[]", receiver) &&
-                !RubyGuards.isRubyHash(receiver) &&
-                !RubyGuards.isRubyString(receiver) &&
-                !RubyGuards.isRubyInteger(receiver) &&
-                !RubyGuards.isRubyMethod(receiver) &&
-                !RubyGuards.isRubyProc(receiver) &&
-                !RubyGuards.isRubyClass(receiver) && // exclude #[] constructors
-                !isRubyStruct(context, receiver, isANode)); // Struct does not behave as array
-    }
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-    private static boolean isRubyStruct(RubyContext context, DynamicObject receiver, IsANode isANode) {
-        return isANode.executeIsA(receiver, context.getCoreLibrary().structClass);
+        // FIXME (pitr 26-Mar-2019): the method should have a marker module
+        Object value = dispatchNode.call(receiver, "polyglot_array?");
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
     @ExportMessage()
     public static long getArraySize(
             DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
             @Cached IntegerCastNode integerCastNode,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode)
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
-        // TODO (pitr-ch 19-Mar-2019): profile, breakdown
-        if (respondNode.doesRespondTo(null, "size", receiver)) {
-            return integerCastNode.executeCastInt(dispatchNode.call(receiver, "size"));
-        } else {
+
+        Object value = dispatchNode.call(receiver, "polyglot_array_size");
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return integerCastNode.executeCastInt(value);
+
+    }
+
+    @ExportMessage
+    @SuppressWarnings("unused") // has to throw here-unused InvalidArrayIndexException because of ArrayMessages
+    public static Object readArrayElement(
+            DynamicObject receiver, long index,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
+            throws InvalidArrayIndexException, UnsupportedMessageException {
+
+        Object value = dispatchNode.call(receiver, "polyglot_array_read", index);
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return value;
+    }
+
+    @ExportMessage
+    public static void writeArrayElement(
+            DynamicObject receiver, long index, Object value,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
+            throws UnsupportedMessageException {
+
+        Object result = dispatchNode.call(receiver, "polyglot_array_write", index, value);
+        if (result == DispatchNode.MISSING) {
+            errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
     }
 
+    @ExportMessage
+    public static void removeArrayElement(
+            DynamicObject receiver, long index,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
+            throws UnsupportedMessageException {
+
+        Object result = dispatchNode.call(receiver, "polyglot_array_remove", index);
+        if (result == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    public static boolean isArrayElementReadable(
+            DynamicObject receiver, long index,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+
+        Object value = dispatchNode.call(receiver, "polyglot_array_readable?", index);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public static boolean isArrayElementModifiable(
+            DynamicObject receiver, long index,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+
+        Object value = dispatchNode.call(receiver, "polyglot_array_modifiable?", index);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public static boolean isArrayElementInsertable(
+            DynamicObject receiver, long index,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+
+        Object value = dispatchNode.call(receiver, "polyglot_array_insertable?", index);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public static boolean isArrayElementRemovable(
+            DynamicObject receiver, long index,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+
+        Object value = dispatchNode.call(receiver, "polyglot_array_removable?", index);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
     // FIXME (pitr 18-Mar-2019): replace #unbox support with testing #to_int etc.
     //   since if an object had un-box method it could be have been un-boxed
+
     @ExportMessage
     public static boolean isPointer(
             DynamicObject receiver,
-            // TODO (pitr-ch 29-May-2019): it should share the dispatch nodes for respond to and call
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-        // TODO (pitr-ch 18-Mar-2019): branchProfile?
-        // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
-        if (respondNode.doesRespondTo(null, "polyglot_pointer?", receiver)) {
-            return booleanCastNode.executeToBoolean(dispatchNode.call(receiver, "polyglot_pointer?"));
-        } else {
-            return false;
-        }
+        Object value = dispatchNode.call(receiver, "polyglot_pointer?");
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
     // FIXME (pitr 11-May-2019): allow Ruby objects to implement interop subProtocols, e.g. for array, or numbers. Not for members though.
 
     // FIXME (pitr 21-Mar-2019): "if-and-only-if" relation between isPointer == true and "asPointer does not throw an UnsupportedMessageException"
     // TODO (pitr-ch 18-Mar-2019): assert #pointer? #address invariant - both has to be defined
+
     @ExportMessage
     public static long asPointer(
             DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
-        // FIXME (pitr 26-Mar-2019): the method should have a prefix, or a marker module
-        if (respondNode.doesRespondTo(null, "polyglot_address", receiver)) {
-            return longCastNode.executeCastLong(dispatchNode.call(receiver, "polyglot_address"));
-        } else {
+        // FIXME (pitr 26-Mar-2019): the method should have a marker module
+        Object value = dispatchNode.call(receiver, "polyglot_address");
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
+        return longCastNode.executeCastLong(value);
     }
 
     @ExportMessage
     public static void toNative(
             DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode respondNode,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode) {
-        if (respondNode.doesRespondTo(null, "polyglot_to_native", receiver)) {
-            dispatchNode.call(receiver, "polyglot_to_native");
-        }
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode) {
+
+        dispatchNode.call(receiver, "polyglot_to_native");
+        // we ignore the method missing, toNative never throws
     }
 
     @ExportMessage
     public static Object readMember(
             DynamicObject receiver,
             String name,
-            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode,
+            @Cached ForeignReadStringCachingHelperNode helperNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         try {
@@ -146,95 +217,14 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static Object readArrayElement(DynamicObject receiver, long index,
-            @Shared("readHelperNode") @Cached ForeignReadStringCachingHelperNode helperNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
-        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
-        try {
-            return helperNode.executeStringCachingHelper(receiver, index);
-        } catch (UnknownIdentifierException e) {
-            errorProfile.enter();
-            throw new IllegalStateException("never happens");
-        }
-    }
-
-    @ExportMessage
-    public static boolean isArrayElementReadable(
-            DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_readable") @Cached CallDispatchHeadNode dispatchNode) {
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_readable?",
-                receiver,
-                index);
-    }
-
-    @ExportMessage
-    public static boolean isArrayElementModifiable(
-            DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_modifiable") @Cached CallDispatchHeadNode dispatchNode) {
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_modifiable?",
-                receiver,
-                index);
-    }
-
-    @ExportMessage
-    public static boolean isArrayElementInsertable(DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_insertable") @Cached CallDispatchHeadNode dispatchNode) {
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_insertable?",
-                receiver,
-                index);
-    }
-
-    @ExportMessage
-    public static boolean isArrayElementRemovable(DynamicObject receiver, long index,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_removable") @Cached CallDispatchHeadNode dispatchNode) {
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_removable?",
-                receiver,
-                index);
-    }
-
-    @ExportMessage
-    public static void writeArrayElement(
-            DynamicObject receiver,
-            long index,
-            Object value,
-            @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) {
-        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
-        try {
-            helperNode.executeStringCachingHelper(receiver, index, foreignToRubyNode.executeConvert(value));
-        } catch (UnknownIdentifierException e) {
-            errorProfile.enter();
-            throw new IllegalStateException("never happens");
-        }
-    }
-
-    @ExportMessage
     public static void writeMember(
             DynamicObject receiver,
             String name,
             Object value,
-            @Shared("writeHelperNode") @Cached ForeignWriteStringCachingHelperNode helperNode,
+            @Cached ForeignWriteStringCachingHelperNode helperNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) throws UnknownIdentifierException {
         // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
         helperNode.executeStringCachingHelper(receiver, name, foreignToRubyNode.executeConvert(value));
-    }
-
-    @ExportMessage
-    public static void removeArrayElement(DynamicObject receiver, long index) throws UnsupportedMessageException {
-        throw UnsupportedMessageException.create();
     }
 
     @ExportMessage
@@ -300,7 +290,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_readable") @Cached CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -316,7 +306,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_modifiable") @Cached CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -332,7 +322,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_insertable") @Cached CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -348,7 +338,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Shared("object_key_removable") @Cached CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
         // TODO (pitr-ch 19-Mar-2019): breakdown
         final Object convertedName = foreignToRubyNode.executeConvert(name);
@@ -422,11 +412,21 @@ public class RubyObjectMessages {
 
     @ExportMessage
     public static Object instantiate(
-            DynamicObject receiver,
-            Object[] arguments,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        return dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
+            DynamicObject receiver, Object[] arguments,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode)
+            throws UnsupportedMessageException {
+
+        Object instance = dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
+
+        // TODO (pitr-ch 28-Jan-2020): we should translate argument-error caused by bad arity to ArityException
+        // TODO (pitr-ch 04-Feb-2020): should we throw UnsupportedTypeException? Defined - if one of the arguments is not compatible to the executable signature
+        if (instance == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return instance;
     }
 
 }

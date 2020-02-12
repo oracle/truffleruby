@@ -150,10 +150,6 @@ module Truffle::CExt
       @string = string
     end
 
-    def size
-      Primitive.string_pointer_size(@string)
-    end
-
     def polyglot_pointer?
       true
     end
@@ -162,16 +158,41 @@ module Truffle::CExt
       @address ||= Primitive.string_pointer_to_native(@string)
     end
 
-    # Every IS_POINTER object should also have TO_NATIVE
+    # Every isPointer object should also have TO_NATIVE
     def polyglot_to_native
     end
 
-    def [](index)
+    def polyglot_array?
+      true
+    end
+
+    # this is called by Sulong for strlen() which calls getArraySize() in Sulong string.c
+    def polyglot_array_size
+      Primitive.string_pointer_size(@string)
+    end
+
+    def polyglot_array_read(index)
       Primitive.string_pointer_read(@string, index)
     end
 
-    def []=(index, value)
+    def polyglot_array_write(index, value)
       Primitive.string_pointer_write(@string, index, value)
+    end
+
+    def polyglot_array_readable?(index)
+      index >= 0 && index < polyglot_array_size
+    end
+
+    def polyglot_array_modifiable?(index)
+      index >= 0 && index < polyglot_array_size
+    end
+
+    def polyglot_array_insertable?(index)
+      false
+    end
+
+    def polyglot_array_removable?
+      false
     end
 
     def native?
@@ -189,10 +210,6 @@ module Truffle::CExt
       @array = array
     end
 
-    def size
-      @array.size
-    end
-
     def polyglot_pointer?
       true
     end
@@ -206,12 +223,36 @@ module Truffle::CExt
     def polyglot_to_native
     end
 
-    def [](index)
-      Primitive.cext_wrap(array[index])
+    def polyglot_array?
+      true
     end
 
-    def []=(index, value)
-      array[index] = Primitive.cext_unwrap(value)
+    def polyglot_array_size
+      @array.size
+    end
+
+    def polyglot_array_read(index)
+      Primitive.cext_wrap(@array[index])
+    end
+
+    def polyglot_array_write(index, value)
+      @array[index] = Primitive.cext_unwrap(value)
+    end
+
+    def polyglot_array_readable?(index)
+      index >= 0 && index < @array.size
+    end
+
+    def polyglot_array_modifiable?(index)
+      index >= 0 && index < @array.size
+    end
+
+    def polyglot_array_insertable?(index)
+      false
+    end
+
+    def polyglot_array_removable?
+      false
     end
 
     def native?

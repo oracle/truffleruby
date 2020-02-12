@@ -8,7 +8,7 @@ operations on foreign objects.
 
 This document only explains how TruffleRuby uses messages. The messages
 themselves are explained in the
-[Truffle JavaDoc](http://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/Message.html).
+[Truffle JavaDoc](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html).
 
 There is a separate document aimed at people using interop to write
 [polyglot programs](../user/polyglot.md). This document gives more internal
@@ -30,179 +30,13 @@ details.
 
 ## How Ruby responds to messages
 
-### `IS_EXECUTABLE`
-
-Returns true only for instances of `Method` and `Proc`.
-
-### `EXECUTE`
-
-Calls either a `Method` or `Proc`, passing the arguments as you'd expect.
-Doesn't pass a block.
-
-### `INVOKE`
-
-Calls the method with the name you provided, passing the arguments as you'd
-expect. Doesn't pass a block.
-
-### `IS_INSTANTIABLE`
-
-Returns if the object responds to `new`.
-
-### `NEW`
-
-Calls `new`, passing the arguments as you'd expect.
-
-### `HAS_SIZE`
-
-Returns `true` only for `Array`.
-
-### `GET_SIZE`
-
-Call `size` on the object.
-
-### `IS_BOXED`
-
-Returns true only for instances of `String`, `Symbol`.
-
-### `UNBOX`
-
-For a `String` or `Symbol`, produces a `java.lang.String`, similar to
-`Truffle::Interop.to_java_string`.
-
-### `IS_POINTER`
-
-Calls `polyglot_pointer?` if the object responds to it, otherwise returns `false`.
-
-### `AS_POINTER`
-
-Calls `polyglot_address` if the object responds to it, otherwise throws
-`UnsupportedMessageException`.
-
-### `TO_NATIVE`
-
-Calls `polyglot_to_native` if the object responds to it.
-
-### `IS_NULL`
-
-Returns true only for the `nil` object.
-
-### `HAS_KEYS`
-
-Returns true, except for `Array` and `String`.
-
-### `KEYS`
-
-If the receiver is a Ruby `Hash`, return the hash keys converted to strings.
-
-Otherwise, if there is a method `[]` defined, return an empty array.
-
-(The convention is that every value returned from `KEYS` could be `READ`, which
-we can't guarantee for a user `[]` method, so we don't return any `KEYS`.)
-
-Otherwise, return all method names via `receiver.methods`, and instance
-variable names if the `internal` flag is set.
-
-Keys are returned as a Ruby `Array` containing Java `String` objects or
-integers.
-
-### `KEY_INFO`
-
-If the receiver is a Ruby `Hash`:
-
-- `READABLE` will be set for key that exists.
-
-- `INSERTABLE` will be set if the hash is not frozen and key does not exist.
-
-- `MODIFIABLE` and `REMOVABLE`  will be set if the key is found and the hash is
-  not frozen.
-
-- `INVOCABLE` and `INTERNAL` will not be set.
-
-Otherwise, if the receiver is a Ruby `Array`:
-
-- `READABLE` will set if the name is an integer and in bounds.
-
-- `INSERTABLE` will be set if the index is out of bounds 
-  and the array is not frozen. 
-
-- `MODIFIABLE` will be set if the index is an integer, in
-  bounds and the array is not frozen.
-
-- `REMOVABLE` is set for any index in bounds.
-
-- `INVOCABLE` and `INTERNAL` will not be set.
-
-Otherwise if the name starts with an `@`:
-
-- `READABLE` will be set if the variable exists
-
-- `INSERTABLE` will be set if the object is not frozen and the instance variable
-  does not exists.
-
-- `MODIFIABLE` and `REMOVABLE` will be set if the instance variable exists and
-  the object is not frozen.
-
-- `INVOCABLE` will not be set.
-
-- `INTERNAL` will be set.
-
-Otherwise:
-
-- `READABLE` will be set if the object has a method of that name, or the object
-  has a `[]` method.
-
-- `MODIFIABLE` will be set if the object has a `[]=` method.
-
-- `INSERTABLE` will not be set
-
-- `REMOVABLE` and `INTERNAL` will not be set.
-
-- `INVOCABLE` will be set if the object has a method of that name.
-
-For all objects:
-
-- `EXISTING` is set if `READABLE`, `MODIFIABLE`, `INVOCABLE`, `INTERNAL` or
-  `REMOVABLE` are set.
-
-### `READ`
-
-If the receiver is a Ruby `Array` or `Hash`, call `receiver[name/index]`.
-
-Otherwise if the name starts with an `@` it is read as an instance variable.
-
-Otherwise, if there is a method `[]` defined on the receiver and the receiver 
-is not a Proc, call `receiver[name/index]`.
-
-Otherwise, if there is a method defined on the object with the same name, return
-it as a (bound) `Method`.
-
-Otherwise, throw `UnknownIdentifierException`.
-
-### `WRITE`
-
-If the receiver is a Ruby `Array` or `Hash`, call
-`receiver[name/index] = value`.
-
-Otherwise if the name starts with an `@` it is set as an instance variable.
-
-Otherwise, if there is a method called `[]=` on the receiver, call
-`receiver[name/index] = value`.
-
-Otherwise, throw `UnknownIdentifierException`.
-
-### `REMOVE`
-
-If the receiver is a Ruby `Array` and the name is an integer, delete the element
-at the index indicated by the name value. If the index is out of bounds then, in
-keeping with Ruby semantics, no-op. If the name value is not an integer, then
-`UnknownIdentifierException` is thrown.
-
-Otherwise, if the receiver is a Ruby `Hash`, delete the key indicated by the
-name value. If no such key exists then, in keeping with Ruby semantics, no-op.
-
-Otherwise, if the name starts with an `@` remove it as an instance variable.
-
-Otherwise, throw `UnknownIdentifierException`.
+All interop message implementations of different Ruby object types are defined 
+in package `org.truffleruby.interop.messages`. 
+`RubyObjectMessages` defines the common behaviour for all Ruby objects. 
+Other Ruby core classes like `NilMessages`, `StringMessages`, etc. then 
+inherit from it.   
+
+More details to be added.  
 
 ## How to explicitly send messages from Ruby
 

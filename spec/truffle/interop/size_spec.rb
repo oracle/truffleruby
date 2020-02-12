@@ -7,6 +7,7 @@
 # GNU Lesser General Public License version 2.1.
 
 require_relative '../../ruby/spec_helper'
+require_relative 'fixtures/classes'
 
 describe "Truffle::Interop.size?" do
 
@@ -35,14 +36,9 @@ describe "Truffle::Interop.size" do
   end
 
   it "returns the size of any object with a size method" do
-    obj = Object.new
-    def obj.size
-      14
-    end
-    def obj.[](i)
-      i
-    end
-    Truffle::Interop.size(obj).should == 14
+    obj = TruffleInteropSpecs::PolyglotArray.new
+    obj.polyglot_array_write 1, true
+    Truffle::Interop.size(obj).should == 2
   end
 
 end
