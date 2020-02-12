@@ -233,10 +233,15 @@ public abstract class BucketsStrategy {
                 return entry != null;
             }
 
+            @TruffleBoundary // because of SVM-substituted Throwable#fillInStackTrace
+            private void throwNoSuchElementException() {
+                throw new NoSuchElementException();
+            }
+
             @Override
             public KeyValue next() {
                 if (!hasNext()) {
-                    throw new NoSuchElementException();
+                    throwNoSuchElementException();
                 }
 
                 final KeyValue entryResult = new KeyValue(entry.getKey(), entry.getValue());
