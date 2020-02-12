@@ -54,7 +54,7 @@ public abstract class QueueNodes {
         protected DynamicObject push(DynamicObject self, final Object value) {
             final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
 
-            propagateSharingNode.propagate(self, value);
+            propagateSharingNode.executePropagate(self, value);
 
             if (queue.add(value)) {
                 return self;

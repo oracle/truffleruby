@@ -33,7 +33,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
     public abstract Object executeStringCachedHelper(DynamicObject receiver, Object name,
             Object stringName, boolean isIVar, Object value) throws UnknownIdentifierException;
 
-    @Specialization(guards = "isRubyArray(receiver) || isRubyHash(receiver)")
+    @Specialization(guards = "isRubyHash(receiver)")
     protected Object writeArrayHash(
             DynamicObject receiver,
             Object name,
@@ -41,7 +41,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
             boolean isIVar,
             Object value,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch) {
+            @Cached CallDispatchHeadNode dispatch) {
         return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
 
@@ -70,7 +70,7 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
             boolean isIVar,
             Object value,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached(value = "createPrivate()") CallDispatchHeadNode dispatch,
+            @Cached CallDispatchHeadNode dispatch,
             @Cached DoesRespondDispatchHeadNode doesRespond) {
         return dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
     }
@@ -87,7 +87,8 @@ abstract class ForeignWriteStringCachedHelperNode extends RubyBaseNode {
             Object stringName,
             boolean isIVar,
             Object value,
-            @Cached DoesRespondDispatchHeadNode doesRespond) throws UnknownIdentifierException {
+            @Cached DoesRespondDispatchHeadNode doesRespond)
+            throws UnknownIdentifierException {
         throw UnknownIdentifierException.create(StringUtils.toString(name));
     }
 

@@ -1553,7 +1553,7 @@ VALUE rb_ary_pop(VALUE array) {
 }
 
 void rb_ary_store(VALUE array, long index, VALUE value) {
-  polyglot_set_array_element(rb_tr_unwrap(array), (int) index, rb_tr_unwrap(value));
+  RUBY_INVOKE_NO_WRAP(array, "[]=", LONG2FIX(index), value);
 }
 
 VALUE rb_ary_entry(VALUE array, long index) {

@@ -76,7 +76,7 @@ public abstract class NameToJavaStringNode extends RubyBaseNode {
     protected String nameToJavaString(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile errorProfile,
-            @Cached("createPrivate()") CallDispatchHeadNode toStr) {
+            @Cached CallDispatchHeadNode toStr) {
         final Object coerced;
 
         try {

@@ -47,8 +47,8 @@ public abstract class SetNode extends RubyContextNode {
 
         final int hashed = hashNode.hash(key, compareByIdentity);
 
-        propagateSharingKeyNode.propagate(hash, key);
-        propagateSharingValueNode.propagate(hash, value);
+        propagateSharingKeyNode.executePropagate(hash, key);
+        propagateSharingValueNode.executePropagate(hash, value);
 
         Object store = PackedArrayStrategy.createStore(getContext(), hashed, key, value);
         Layouts.HASH.setStore(hash, store);
@@ -70,8 +70,8 @@ public abstract class SetNode extends RubyContextNode {
 
         final int hashed = hashNode.hash(key, compareByIdentity);
 
-        propagateSharingKeyNode.propagate(hash, key);
-        propagateSharingValueNode.propagate(hash, value);
+        propagateSharingKeyNode.executePropagate(hash, key);
+        propagateSharingValueNode.executePropagate(hash, value);
 
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
         final int size = Layouts.HASH.getSize(hash);
@@ -113,8 +113,8 @@ public abstract class SetNode extends RubyContextNode {
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
 
-        propagateSharingKeyNode.propagate(hash, key);
-        propagateSharingValueNode.propagate(hash, value);
+        propagateSharingKeyNode.executePropagate(hash, key);
+        propagateSharingValueNode.executePropagate(hash, value);
 
         final HashLookupResult result = lookup(hash, key);
         final Entry entry = result.getEntry();

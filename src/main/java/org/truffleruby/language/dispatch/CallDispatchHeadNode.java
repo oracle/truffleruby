@@ -16,6 +16,30 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 
+    public static final byte PRIVATE = 0b10;
+    public static final byte PUBLIC = 0b00;
+    public static final byte RETURN_MISSING = 0b11;
+    public static final byte PUBLIC_RETURN_MISSING = 0b01;
+
+    public static CallDispatchHeadNode create() {
+        return create(PRIVATE);
+    }
+
+    public static CallDispatchHeadNode create(byte configuration) {
+        switch (configuration) {
+            case PRIVATE:
+                return createPrivate();
+            case PUBLIC:
+                return createPublic();
+            case RETURN_MISSING:
+                return createReturnMissing();
+            case PUBLIC_RETURN_MISSING:
+                return new CallDispatchHeadNode(false, true, MissingBehavior.RETURN_MISSING);
+            default:
+                throw new IllegalStateException("Unexpected value: " + configuration);
+        }
+    }
+
     /** Create a dispatch node ignoring visibility. This is the case for most calls from Java nodes and from the C-API,
      * as checking visibility doesn't make much sense in this context and MRI doesn't do it either. */
     public static CallDispatchHeadNode createPrivate() {
@@ -63,8 +87,8 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
                     null,
                     block,
                     arguments,
-                    DispatchAction.CALL_METHOD,
-                    MissingBehavior.CALL_METHOD_MISSING,
+                    this.dispatchAction,
+                    this.missingBehavior,
                     true,
                     false);
         }
@@ -96,14 +120,42 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         }
     }
 
-    private static final CallDispatchHeadNode UNCACHED_IGNORING_VISIBILITY = new Uncached(
+    private static final CallDispatchHeadNode UNCACHED_PRIVATE = new Uncached(
             true,
             false,
             MissingBehavior.CALL_METHOD_MISSING);
+    private static final CallDispatchHeadNode UNCACHED_PUBLIC = new Uncached(
+            false,
+            true,
+            MissingBehavior.CALL_METHOD_MISSING);
 
-    // FIXME (pitr 29-Jul-2019): this only matches common createPrivate
+    private static final CallDispatchHeadNode UNCACHED_RETURN_MISSING = new Uncached(
+            true,
+            false,
+            MissingBehavior.RETURN_MISSING);
+
+    private static final CallDispatchHeadNode UNCACHED_PUBLIC_RETURN_MISSING = new Uncached(
+            false,
+            true,
+            MissingBehavior.RETURN_MISSING);
+
     public static CallDispatchHeadNode getUncached() {
-        return UNCACHED_IGNORING_VISIBILITY;
+        return getUncached(PRIVATE);
     }
 
+
+    public static CallDispatchHeadNode getUncached(byte configuration) {
+        switch (configuration) {
+            case PRIVATE:
+                return UNCACHED_PRIVATE;
+            case PUBLIC:
+                return UNCACHED_PUBLIC;
+            case RETURN_MISSING:
+                return UNCACHED_RETURN_MISSING;
+            case PUBLIC_RETURN_MISSING:
+                return UNCACHED_PUBLIC_RETURN_MISSING;
+            default:
+                throw new IllegalStateException("Unexpected value: " + configuration);
+        }
+    }
 }

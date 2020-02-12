@@ -38,7 +38,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
     protected Object writeWithin(DynamicObject array, int index, Object value,
             @Cached("of(array)") ArrayStrategy strategy,
             @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
-        propagateSharingNode.propagate(array, value);
+        propagateSharingNode.executePropagate(array, value);
         setNode.execute(Layouts.ARRAY.getStore(array), index, value);
         return value;
     }
@@ -63,7 +63,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
         final Object store = Layouts.ARRAY.getStore(array);
         final Object newStore = newStoreNode.execute(capacityNode.execute(store));
         copyToNode.execute(store, newStore, 0, 0, size);
-        propagateSharingNode.propagate(array, value);
+        propagateSharingNode.executePropagate(array, value);
         setNode.execute(newStore, index, value);
         generalizedStrategy.setStore(array, newStore);
         return value;
@@ -95,7 +95,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
         for (int n = strategy.getSize(array); n < index; n++) {
             objectStore[n] = nil();
         }
-        propagateSharingNode.propagate(array, value);
+        propagateSharingNode.executePropagate(array, value);
         objectStore[index] = value;
         strategy.setStoreAndSize(array, objectStore, newSize);
         return value;
@@ -118,7 +118,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
         for (int n = strategy.getSize(array); n < index; n++) {
             setNode.execute(store, n, nil());
         }
-        propagateSharingNode.propagate(array, value);
+        propagateSharingNode.executePropagate(array, value);
         setNode.execute(store, index, value);
         setSize(array, index + 1);
         return value;

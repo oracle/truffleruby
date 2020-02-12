@@ -48,7 +48,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
         final Object otherStore = Layouts.ARRAY.getStore(other);
         final int length = capacityNode.execute(store);
 
-        propagateSharingNode.propagate(array, other);
+        propagateSharingNode.executePropagate(array, other);
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacity(getContext(), length, newSize);
             Object newStore = copyStoreNode.execute(store, capacity);
@@ -80,7 +80,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
         final Object otherStore = Layouts.ARRAY.getStore(other);
         final Object newStore = newStoreNode.execute(newSize);
 
-        propagateSharingNode.propagate(array, other);
+        propagateSharingNode.executePropagate(array, other);
         copyToNode.execute(store, newStore, 0, 0, oldSize);
         otherCopyToNode.execute(otherStore, newStore, 0, oldSize, otherSize);
         generalized.setStoreAndSize(array, newStore, newSize);

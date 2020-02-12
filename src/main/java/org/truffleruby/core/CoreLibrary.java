@@ -39,8 +39,8 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.JavaException;
@@ -446,7 +446,7 @@ public class CoreLibrary {
         final DynamicObject mutexClass = defineClass("Mutex");
         Layouts.CLASS.setInstanceFactoryUnsafe(mutexClass, Layouts.MUTEX.createMutexShape(mutexClass, mutexClass));
         nilClass = defineClass("NilClass");
-        final DynamicObjectFactory nilFactory = alwaysShared(alwaysFrozen(Layouts.CLASS.getInstanceFactory(nilClass)));
+        DynamicObjectFactory nilFactory = alwaysShared(alwaysFrozen(Layouts.NIL.createNilShape(nilClass, nilClass)));
         Layouts.CLASS.setInstanceFactoryUnsafe(nilClass, nilFactory);
         procClass = defineClass("Proc");
         procFactory = Layouts.PROC.createProcShape(procClass, procClass);

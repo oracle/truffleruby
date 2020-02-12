@@ -832,7 +832,7 @@ public abstract class ArrayNodes {
                 @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
                 @Cached PropagateSharingNode propagateSharingNode) {
             final Object value = args[0];
-            propagateSharingNode.propagate(array, value);
+            propagateSharingNode.executePropagate(array, value);
 
             final Object store = Layouts.ARRAY.getStore(array);
             final int size = strategy.getSize(array);
@@ -1002,7 +1002,7 @@ public abstract class ArrayNodes {
                 @Cached PropagateSharingNode propagateSharingNode) {
             final Object store = newStoreNode.execute(size);
             if (needsFill.profile(!strategy.isDefaultValue(fillingValue))) {
-                propagateSharingNode.propagate(array, fillingValue);
+                propagateSharingNode.executePropagate(array, fillingValue);
                 for (int i = 0; i < size; i++) {
                     setNode.execute(store, i, fillingValue);
                 }
@@ -1031,7 +1031,7 @@ public abstract class ArrayNodes {
             try {
                 for (; n < size; n++) {
                     final Object value = yield(block, n);
-                    propagateSharingNode.propagate(array, value);
+                    propagateSharingNode.executePropagate(array, value);
                     store = arrayBuilder.appendValue(store, n, value);
                 }
             } finally {
@@ -1689,7 +1689,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy arrayStrategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached("otherStrategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
-            propagateSharingNode.propagate(array, other);
+            propagateSharingNode.executePropagate(array, other);
 
             final int size = getSize(other);
             final Object copy = extractRangeCopyOnWriteNode.execute(other, 0, size);
@@ -2070,7 +2070,7 @@ public abstract class ArrayNodes {
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("of(other)") ArrayStrategy otherStrategy,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            propagateSharingNode.propagate(array, other);
+            propagateSharingNode.executePropagate(array, other);
 
             final int size = getSize(other);
             final Object store = getStore(other);

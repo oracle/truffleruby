@@ -16,10 +16,12 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -325,6 +327,21 @@ public abstract class ExceptionNodes {
         protected DynamicObject exceptionErrnoError(DynamicObject message, int errno) {
             return coreExceptions().errnoError(errno, StringOperations.getString(message), null);
         }
+
+    }
+
+    @Primitive(name = "java_breakpoint")
+    @SuppressWarnings("unused")
+    public static abstract class Breakpoint extends PrimitiveNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected boolean breakpoint() {
+            // have a Ruby backtrace at hand
+            String printableRubyBacktrace = BacktraceFormatter.printableRubyBacktrace(getContext(), this);
+            return true; // place to put a Java breakpoint
+        }
+
 
     }
 

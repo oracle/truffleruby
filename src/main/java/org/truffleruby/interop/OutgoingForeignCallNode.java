@@ -114,7 +114,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected Object sendOutgoing(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached("createPrivate()") @Shared("dispatch") CallDispatchHeadNode dispatchNode) {
+            @Cached @Shared("dispatch") CallDispatchHeadNode dispatchNode) {
 
         final Object sendName = args[0];
         final Object[] sendArgs = Arrays.copyOfRange(args, 1, args.length);
@@ -249,7 +249,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
             @Cached(value = "specialToInteropMethod(cachedName)", allowUncached = true) String interopMethodName,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("createPrivate()") @Shared("dispatch") CallDispatchHeadNode callDispatchHeadNode,
+            @Cached @Shared("dispatch") CallDispatchHeadNode callDispatchHeadNode,
             @Cached("createBinaryProfile()") ConditionProfile errorProfile) {
 
         if (errorProfile.profile(args.length == cachedArity)) {
@@ -313,7 +313,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object callBoolean(
                 Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+                @Cached CallDispatchHeadNode dispatch) {
             try {
                 return dispatch.call(receivers.asBoolean(receiver), name, args);
             } catch (UnsupportedMessageException e) {
@@ -326,7 +326,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 Object receiver, String name, Object[] args,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+                @Cached CallDispatchHeadNode dispatch) {
             try {
                 Object rubyString = foreignToRubyNode.executeConvert(receivers.asString(receiver));
                 return dispatch.call(rubyString, name, args);
@@ -341,7 +341,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object callInt(
                 Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+                @Cached CallDispatchHeadNode dispatch) {
             try {
                 return dispatch.call(receivers.asInt(receiver), name, args);
             } catch (UnsupportedMessageException e) {
@@ -358,7 +358,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object callLong(
                 Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+                @Cached CallDispatchHeadNode dispatch) {
             try {
                 return dispatch.call(receivers.asLong(receiver), name, args);
             } catch (UnsupportedMessageException e) {
@@ -375,7 +375,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object callDouble(
                 Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached("createPrivate()") CallDispatchHeadNode dispatch) {
+                @Cached CallDispatchHeadNode dispatch) {
             try {
                 return dispatch.call(receivers.asDouble(receiver), name, args);
             } catch (UnsupportedMessageException e) {

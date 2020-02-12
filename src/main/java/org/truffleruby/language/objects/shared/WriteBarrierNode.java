@@ -9,40 +9,49 @@
  */
 package org.truffleruby.language.objects.shared;
 
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @ImportStatic(ShapeCachingGuards.class)
-public abstract class WriteBarrierNode extends RubyContextNode {
+@GenerateUncached
+@NodeField(name = "depth", type = int.class)
+public abstract class WriteBarrierNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
     protected static final int MAX_DEPTH = 3;
 
-    protected final int depth;
+    abstract protected int getDepth();
 
     public static WriteBarrierNode create() {
         return WriteBarrierNodeGen.create(0);
     }
 
-    public WriteBarrierNode(int depth) {
-        this.depth = depth;
-    }
-
     public abstract void executeWriteBarrier(Object value);
 
     @Specialization(
-            guards = { "value.getShape() == cachedShape", "depth < MAX_DEPTH" },
+            guards = {
+                    "value.getShape() == cachedShape",
+                    "contextReference.get() == cachedContext",
+                    "getDepth() < MAX_DEPTH" },
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
     protected void writeBarrierCached(DynamicObject value,
             @Cached("value.getShape()") Shape cachedShape,
-            @Cached("isShared(cachedShape)") boolean alreadyShared,
+            @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextReference,
+            @Cached("contextReference.get()") RubyContext cachedContext,
+            @Cached("isShared(cachedContext, cachedShape)") boolean alreadyShared,
             @Cached("createShareObjectNode(alreadyShared)") ShareObjectNode shareObjectNode) {
         if (!alreadyShared) {
             shareObjectNode.executeShare(value);
@@ -55,21 +64,22 @@ public abstract class WriteBarrierNode extends RubyContextNode {
     }
 
     @Specialization(replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
-    protected void writeBarrierUncached(DynamicObject value) {
-        SharedObjects.writeBarrier(getContext(), value);
+    protected void writeBarrierUncached(DynamicObject value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        SharedObjects.writeBarrier(context, value);
     }
 
     @Specialization(guards = "!isDynamicObject(value)")
     protected void noWriteBarrier(Object value) {
     }
 
-    protected boolean isShared(Shape shape) {
-        return SharedObjects.isShared(getContext(), shape);
+    protected boolean isShared(RubyContext context, Shape shape) {
+        return SharedObjects.isShared(context, shape);
     }
 
     protected ShareObjectNode createShareObjectNode(boolean alreadyShared) {
         if (!alreadyShared) {
-            return ShareObjectNodeGen.create(depth + 1);
+            return ShareObjectNodeGen.create(getDepth() + 1);
         } else {
             return null;
         }
