@@ -97,6 +97,7 @@ public abstract class RequireNode extends RubyContextNode {
     private boolean requireWithMetrics(String feature, String expandedPathRaw, DynamicObject pathString) {
         requireMetric("before-require-" + feature);
         try {
+            //intern() to improve footprint
             return requireConsideringAutoload(feature, expandedPathRaw.intern(), pathString);
         } finally {
             requireMetric("after-require-" + feature);

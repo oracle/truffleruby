@@ -108,7 +108,7 @@ public class StaticScope {
         this.isBlockOrEval = (type != Type.LOCAL);
     }
 
-    /** Check that all strings in the given array are the interned versions.
+    /** Check that all strings in the given array are the interned versions (for footprint and identity check reasons).
      *
      * @param names The array of strings
      * @return true if they are all interned, false otherwise */

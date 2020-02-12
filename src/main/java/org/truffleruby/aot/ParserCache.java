@@ -35,6 +35,7 @@ public class ParserCache {
             final Map<String, RootParseNode> cache = new HashMap<>();
 
             for (String coreFile : CoreLibrary.CORE_FILES) {
+                //intern() to improve footprint
                 final String path = (defaultCoreLibraryPath + coreFile).intern();
                 final RubySource source = loadSource(path);
                 cache.put(path, parse(source));

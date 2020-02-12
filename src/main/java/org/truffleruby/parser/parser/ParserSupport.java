@@ -166,6 +166,7 @@ public class ParserSupport {
 
     public ParserSupport(RubyContext context, String file, RubyWarnings warnings) {
         this.context = context;
+        //intern() to improve footprint
         this.file = file.intern();
         this.warnings = warnings;
     }

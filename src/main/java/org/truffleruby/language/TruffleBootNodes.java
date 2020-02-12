@@ -108,6 +108,7 @@ public abstract class TruffleBootNodes {
             final RubySource source;
 
             try {
+                //intern() to improve footprint
                 source = loadMainSourceSettingDollarZero(
                         makeStringNode,
                         StringOperations.getString(kind),
