@@ -14,7 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
-import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -49,7 +49,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
             limit = "CACHE_LIMIT")
     protected void writeBarrierCached(DynamicObject value,
             @Cached("value.getShape()") Shape cachedShape,
-            @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
+            @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextReference,
             @Cached("contextReference.get()") RubyContext cachedContext,
             @Cached("isShared(cachedContext, cachedShape)") boolean alreadyShared,
             @Cached("createShareObjectNode(alreadyShared)") ShareObjectNode shareObjectNode) {
