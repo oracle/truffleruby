@@ -43,8 +43,8 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     @Specialization(
             guards = {
                     "value.getShape() == cachedShape",
-                    "getDepth() < MAX_DEPTH",
-                    "contextReference.get() == cachedContext" },
+                    "contextReference.get() == cachedContext",
+                    "getDepth() < MAX_DEPTH" },
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
     protected void writeBarrierCached(DynamicObject value,
