@@ -40,20 +40,20 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract Object read(Object store, int index);
 
     /** Return whether {@code store} can accept this {@code value}. */
-    @Abstract(ifExported = { "write", "acceptsAllValues", "isMutable", "sort" })
+    @Abstract(ifExported = { "write", "acceptsAllValues", "isMutable" })
     public boolean acceptsValue(Object store, Object value) {
         return false;
     }
 
     /** Return whether {@code store} can accept all values that could be held in {@code otherStore}. */
-    @Abstract(ifExported = { "write", "acceptsValue", "isMutable", "sort" })
+    @Abstract(ifExported = { "write", "acceptsValue", "isMutable" })
     public boolean acceptsAllValues(Object store, Object otherStore) {
         return false;
     }
 
     /** Return whether {@code store} can be mutated. If not, then an allocator must be used to create a mutable version
      * of the store and contents copied in order to make modifications. */
-    @Abstract(ifExported = { "write", "acceptsValue", "acceptsAllValues", "sort" })
+    @Abstract(ifExported = { "write", "acceptsValue", "acceptsAllValues" })
     public boolean isMutable(Object store) {
         return false;
     }
@@ -65,13 +65,16 @@ public abstract class ArrayStoreLibrary extends Library {
 
     /** Return whether the {@code store} only holds primitives such as integers or doubles, or might hold other objects
      * as well. */
-    public abstract boolean isPrimitive(Object store);
+    @Abstract(ifExported = "sort")
+    public boolean isPrimitive(Object store) {
+        return false;
+    }
 
     /** Return a description of {@code store} for debugging output. */
     public abstract String toString(Object store);
 
     /** Write {@code value} to {@code index} of {@code store}. */
-    @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable", "sort" })
+    @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable" })
     public void write(Object store, int index, Object value) {
         throw new UnsupportedOperationException();
     }
@@ -97,7 +100,7 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract Object copyStore(Object store, int length);
 
     /** Sort the first {@code size} elements of {@code store} in place. */
-    @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable", "write" })
+    @Abstract(ifExported = "isPrimitive")
     public void sort(Object store, int size) {
         throw new UnsupportedOperationException();
     }

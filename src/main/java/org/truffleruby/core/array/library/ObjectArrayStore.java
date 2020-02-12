@@ -13,7 +13,6 @@ package org.truffleruby.core.array.library;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -47,11 +46,6 @@ public class ObjectArrayStore {
     @ExportMessage
     public static boolean isMutable(Object[] store) {
         return true;
-    }
-
-    @ExportMessage
-    public static boolean isPrimitive(Object[] store) {
-        return false;
     }
 
     @ExportMessage
@@ -102,12 +96,6 @@ public class ObjectArrayStore {
     @ExportMessage
     public static Object[] copyStore(Object[] store, int length) {
         return ArrayUtils.grow(store, length);
-    }
-
-    @ExportMessage
-    @TruffleBoundary
-    public static void sort(Object[] store, int size) {
-        throw new UnsupportedOperationException();
     }
 
     @ExportMessage

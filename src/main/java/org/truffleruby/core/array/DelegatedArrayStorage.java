@@ -82,6 +82,11 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    public void sort(int size) {
+        throw new UnsupportedOperationException();
+    }
+
+    @ExportMessage
     public Iterable<Object> getIterable(int from, int length,
             @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.getIterable(storage, from + offset, length);

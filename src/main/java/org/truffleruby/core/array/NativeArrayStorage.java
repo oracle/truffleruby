@@ -71,11 +71,6 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public boolean isPrimitive() {
-        return false;
-    }
-
-    @ExportMessage
     public boolean isNative() {
         return true;
     }
@@ -159,11 +154,6 @@ public final class NativeArrayStorage implements ObjectGraphNode {
             newStore[i] = unwrapNode.execute(readElement(i));
         }
         return newStore;
-    }
-
-    @ExportMessage
-    public void sort(int size) {
-        throw new UnsupportedOperationException();
     }
 
     @ExportMessage

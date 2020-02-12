@@ -41,11 +41,6 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    public boolean isPrimitive() {
-        return false;
-    }
-
-    @ExportMessage
     public static String toString(ZeroLengthArrayStore store) {
         return "empty";
     }
