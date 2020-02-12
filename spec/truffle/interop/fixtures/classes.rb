@@ -97,12 +97,7 @@ module TruffleInteropSpecs
 
     def polyglot_array_remove(index)
       @log << [__callee__, index]
-      if index == @storage.size - 1
-        @storage.pop
-      else
-        # TODO (pitr-ch 28-Jan-2020): what should be raised? there should be a protocol
-        raise
-      end
+      @storage.delete_at(index)
       nil
     end
 
@@ -124,7 +119,7 @@ module TruffleInteropSpecs
 
     def polyglot_array_removable?(index)
       @log << [__callee__, index]
-      index == @storage.size - 1
+      index >= 0 && index < @storage.size
     end
   end
 
