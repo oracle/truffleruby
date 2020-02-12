@@ -30,9 +30,7 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
     @Specialization(guards = "args.length == cachedArgsLength", limit = "getLimit()")
     protected Object[] convertCached(Object[] args,
             @Cached("args.length") int cachedArgsLength,
-            @Cached(
-                    value = "foreignToRubyNodes(true, cachedArgsLength)",
-                    uncached = "foreignToRubyNodes(false, cachedArgsLength)") ForeignToRubyNode[] foreignToRubyNodes) {
+            @Cached("foreignToRubyNodes(cachedArgsLength)") ForeignToRubyNode[] foreignToRubyNodes) {
         final Object[] convertedArgs = new Object[cachedArgsLength];
 
         for (int n = 0; n < cachedArgsLength; n++) {
@@ -54,10 +52,10 @@ public abstract class ForeignToRubyArgumentsNode extends RubyBaseNode {
         return convertedArgs;
     }
 
-    protected static ForeignToRubyNode[] foreignToRubyNodes(boolean cached, int size) {
+    protected static ForeignToRubyNode[] foreignToRubyNodes(int size) {
         ForeignToRubyNode[] foreignToRubyNodes = new ForeignToRubyNode[size];
         for (int i = 0; i < foreignToRubyNodes.length; i++) {
-            foreignToRubyNodes[i] = cached ? ForeignToRubyNode.create() : ForeignToRubyNodeGen.getUncached();
+            foreignToRubyNodes[i] = ForeignToRubyNode.create();
         }
         return foreignToRubyNodes;
     }
