@@ -53,11 +53,8 @@ describe "Thread#backtrace" do
   end
 
   it "can be called with a range whose end is negative" do
-    locations1 = Thread.current.backtrace
-    locations2 = Thread.current.backtrace(2..-1)
-    locations3 = Thread.current.backtrace(2..-2)
-    locations1[2..-1].map(&:to_s).should == locations2.map(&:to_s)
-    locations1[2..-2].map(&:to_s).should == locations3.map(&:to_s)
+    Thread.current.backtrace[2..-1].should == Thread.current.backtrace(2..-1)
+    Thread.current.backtrace[2..-2].should == Thread.current.backtrace(2..-2)
   end
 
   it "returns nil if omitting more locations than available" do
