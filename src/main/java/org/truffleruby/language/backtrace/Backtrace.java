@@ -54,8 +54,8 @@ import com.oracle.truffle.api.source.SourceSection;
  * {@code Exception#backtrace} in Ruby, because the user may have set a custom backtrace (an array of strings).
  *
  * <p>
- * In general, there isn't any guarantee that the getters will return non-null values, excepted
- * {@link #getStackTrace()} and {@link #getBacktraceLocations(int, Node)}.
+ * In general, there isn't any guarantee that the getters will return non-null values, excepted {@link #getStackTrace()}
+ * and {@link #getBacktraceLocations(int, Node)}.
  *
  * <p>
  * NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions on the backtrace object
@@ -75,7 +75,6 @@ public class Backtrace {
     private final int omitted;
     private RaiseException raiseException;
     private final Throwable javaThrowable;
-    private Activation[] activations;
     private TruffleStackTraceElement[] stackTrace;
     private int totalUnderlyingElements;
 
@@ -99,7 +98,7 @@ public class Backtrace {
         this.sourceLocation = exception.getSourceLocation();
         this.omitted = 0;
         this.javaThrowable = null;
-        this.activations = getActivations((Throwable) exception);
+        this.stackTrace = getStackTrace((Throwable) exception);
     }
 
     /** Creates a backtrace for the given throwable, in which only the activations and the backtrace locations may be
@@ -109,7 +108,7 @@ public class Backtrace {
         this.sourceLocation = null;
         this.omitted = 0;
         this.javaThrowable = null;
-        this.activations = getActivations(exception);
+        this.stackTrace = getStackTrace(exception);
     }
 
     // endregion
@@ -187,9 +186,9 @@ public class Backtrace {
     }
 
     @TruffleBoundary
-    private Activation[] getActivations(Throwable truffleException) {
-        if (this.activations != null) {
-            return this.activations;
+    private TruffleStackTraceElement[] getStackTrace(Throwable truffleException) {
+        if (this.stackTrace != null) {
+            return this.stackTrace;
         }
 
         if (truffleException == null) {
@@ -239,22 +238,11 @@ public class Backtrace {
         }
 
         this.totalUnderlyingElements = retainedCount;
-        this.stackTrace = stackTraceList.toArray(new TruffleStackTraceElement[stackTraceList.size()]);
-
-        this.activations = new Activation[stackTrace.length];
-        for (int i = 0; i < stackTrace.length; ++i) {
-            this.activations[i] = new Activation(stackTrace[i].getLocation(), methodNameFor(stackTrace[i]));
-        }
-        return this.activations;
-    }
-
-    private Activation[] getActivations() {
-        return getActivations(this.raiseException);
+        return this.stackTrace = stackTraceList.toArray(new TruffleStackTraceElement[stackTraceList.size()]);
     }
 
     public TruffleStackTraceElement[] getStackTrace() {
-        getActivations();
-        return stackTrace;
+        return getStackTrace(this.raiseException);
     }
 
     /** Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code length}, and omitting
@@ -287,7 +275,7 @@ public class Backtrace {
                     ? GetBacktraceException.UNLIMITED
                     : omitted + length;
             final Throwable e = new GetBacktraceException(node, stackTraceElementsLimit);
-            stackTraceLength = getActivations(e).length;
+            stackTraceLength = getStackTrace(e).length;
         }
 
         // Omitting more locations than available should return nil.
