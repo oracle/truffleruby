@@ -15,7 +15,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
-    public static final boolean IGNORING = true;
+    public static final boolean PRIVATE = true;
     public static final boolean PUBLIC = false;
 
     public static DoesRespondDispatchHeadNode create(boolean ignoreVisibility) {
@@ -23,7 +23,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
     }
 
     public static DoesRespondDispatchHeadNode createIgnoring() {
-        return create(IGNORING);
+        return create(PRIVATE);
     }
 
     public static DoesRespondDispatchHeadNode createPublic() {

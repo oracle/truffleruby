@@ -50,7 +50,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached IsANode isANode,
-            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode) {
+            @Exclusive @Cached(parameters = "PRIVATE") DoesRespondDispatchHeadNode respondNode) {
         // FIXME (pitr 18-Mar-2019): where is respond_to? :size tested
         //   rather have more explicit check then just presence of a [] method, marker module with abstract methods
         return (respondNode.doesRespondTo(null, "[]", receiver) &&
@@ -70,7 +70,7 @@ public class RubyObjectMessages {
     @ExportMessage()
     public static long getArraySize(
             DynamicObject receiver,
-            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(parameters = "PRIVATE") DoesRespondDispatchHeadNode respondNode,
             @Cached IntegerCastNode integerCastNode,
             @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
@@ -88,7 +88,7 @@ public class RubyObjectMessages {
     public static boolean isPointer(
             DynamicObject receiver,
             // TODO (pitr-ch 29-May-2019): it should share the dispatch nodes for respond to and call
-            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(parameters = "PRIVATE") DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
@@ -108,7 +108,7 @@ public class RubyObjectMessages {
     @ExportMessage
     public static long asPointer(
             DynamicObject receiver,
-            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(parameters = "PRIVATE") DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
@@ -123,7 +123,7 @@ public class RubyObjectMessages {
     @ExportMessage
     public static void toNative(
             DynamicObject receiver,
-            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode respondNode,
+            @Exclusive @Cached(parameters = "PRIVATE") DoesRespondDispatchHeadNode respondNode,
             @Exclusive @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
         if (respondNode.doesRespondTo(null, "polyglot_to_native", receiver)) {
             dispatchNode.call(receiver, "polyglot_to_native");
@@ -416,7 +416,7 @@ public class RubyObjectMessages {
     @ExportMessage
     public static boolean isInstantiable(
             DynamicObject receiver,
-            @Exclusive @Cached(parameters = "IGNORING") DoesRespondDispatchHeadNode doesRespond) {
+            @Exclusive @Cached(parameters = "PRIVATE") DoesRespondDispatchHeadNode doesRespond) {
         return doesRespond.doesRespondTo(null, "new", receiver);
     }
 
