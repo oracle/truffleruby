@@ -1,7 +1,6 @@
 exclude :test_format_string_modified, "needs investigation"
 exclude :test_length_too_big, "needs investigation"
 exclude :test_pack_resize, "needs investigation"
-exclude :test_pack_unpack_M, "needs investigation"
 exclude :test_pack_unpack_P2, "needs investigation"
 exclude :test_pack_unpack_U, "needs investigation"
 exclude :test_pack_unpack_m, "needs investigation"
