@@ -132,6 +132,7 @@ public abstract class BucketsStrategy {
                 Layouts.HASH.build(newEntries, actualSize, firstInSequence, lastInSequence, nil, nil, false));
     }
 
+    @TruffleBoundary
     public static int capacityGreaterThan(int size) {
         for (int capacity : CAPACITIES) {
             if (capacity > size) {
