@@ -233,7 +233,6 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-
     public static void removeArrayElement(DynamicObject receiver, long index) throws UnsupportedMessageException {
         throw UnsupportedMessageException.create();
     }
