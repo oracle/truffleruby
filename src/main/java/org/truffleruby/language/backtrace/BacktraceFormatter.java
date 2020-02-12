@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -171,8 +172,8 @@ public class BacktraceFormatter {
             backtrace = context.getCallStack().getBacktrace(null);
         }
 
-        final Activation[] activations = backtrace.getActivations();
-        length = Math.min(length, activations.length);
+        final TruffleStackTraceElement[] stackTrace = backtrace.getStackTrace();
+        length = Math.min(length, stackTrace.length);
         final ArrayList<String> lines = new ArrayList<>(length);
 
         if (length == 0 && !flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null) {
@@ -181,7 +182,7 @@ public class BacktraceFormatter {
         }
 
         for (int n = 0; n < length; n++) {
-            lines.add(formatLine(activations, n, exception));
+            lines.add(formatLine(stackTrace, n, exception));
         }
 
         if (backtrace.getJavaThrowable() != null && flags.contains(FormattingFlags.INTERLEAVE_JAVA)) {
@@ -194,9 +195,9 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public String formatLine(Activation[] activations, int n, DynamicObject exception) {
+    public String formatLine(TruffleStackTraceElement[] stackTrace, int n, DynamicObject exception) {
         try {
-            return formatLineInternal(activations, n, exception);
+            return formatLineInternal(stackTrace, n, exception);
         } catch (Exception e) {
             TranslateExceptionNode.logJavaException(context, null, e);
 
@@ -205,8 +206,8 @@ public class BacktraceFormatter {
         }
     }
 
-    private String formatLineInternal(Activation[] activations, int n, DynamicObject exception) {
-        final Activation activation = activations[n];
+    private String formatLineInternal(TruffleStackTraceElement[] stackTrace, int n, DynamicObject exception) {
+        final TruffleStackTraceElement element = stackTrace[n];
 
         final StringBuilder builder = new StringBuilder();
 
@@ -214,7 +215,7 @@ public class BacktraceFormatter {
             builder.append("\tfrom ");
         }
 
-        final Node callNode = activation.getCallNode();
+        final Node callNode = element.getLocation();
 
         if (callNode == null || callNode.getRootNode() instanceof RubyRootNode) { // A Ruby frame
             final SourceSection sourceSection = callNode == null ? null : callNode.getEncapsulatingSourceSection();
@@ -230,10 +231,10 @@ public class BacktraceFormatter {
                 final RootNode rootNode = callNode.getRootNode();
                 reportedName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
             } else {
-                final SourceSection nextUserSourceSection = nextUserSourceSection(activations, n);
+                final SourceSection nextUserSourceSection = nextUserSourceSection(stackTrace, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
-                reportedName = activation.getMethodName();
+                reportedName = Backtrace.methodNameFor(element);
             }
 
             if (reportedSourceSection == null) {
@@ -247,7 +248,7 @@ public class BacktraceFormatter {
             builder.append(reportedName);
             builder.append("'");
         } else { // A foreign frame
-            builder.append(formatForeign(callNode, activation.getMethodName()));
+            builder.append(formatForeign(callNode, Backtrace.methodNameFor(element)));
         }
 
         if (!flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null && n == 0) {
@@ -320,9 +321,9 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
-    public SourceSection nextUserSourceSection(Activation[] activations, int n) {
-        while (n < activations.length) {
-            final Node callNode = activations[n].getCallNode();
+    public SourceSection nextUserSourceSection(TruffleStackTraceElement[] stackTrace, int n) {
+        while (n < stackTrace.length) {
+            final Node callNode = stackTrace[n].getLocation();
 
             if (callNode != null) {
                 final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();

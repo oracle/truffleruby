@@ -11,6 +11,7 @@ package org.truffleruby.core.thread;
 
 import java.io.File;
 
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -36,7 +37,7 @@ public class ThreadBacktraceLocationNodes {
         final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
         final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
 
-        return context.getUserBacktraceFormatter().nextUserSourceSection(backtrace.getActivations(), activationIndex);
+        return context.getUserBacktraceFormatter().nextUserSourceSection(backtrace.getStackTrace(), activationIndex);
     }
 
     @CoreMethod(names = "absolute_path")
@@ -92,11 +93,11 @@ public class ThreadBacktraceLocationNodes {
         @Specialization
         protected DynamicObject label(DynamicObject threadBacktraceLocation) {
             final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
-            final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
-            final Activation activation = backtrace.getActivations()[activationIndex];
+            final int index = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
+            final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
 
             // TODO eregon 8 Nov. 2016 This does not handle blocks
-            final String methodName = activation.getMethodName();
+            final String methodName = Backtrace.methodNameFor(element);
 
             return makeStringNode.executeMake(methodName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -124,11 +125,11 @@ public class ThreadBacktraceLocationNodes {
         @Specialization
         protected DynamicObject toS(DynamicObject threadBacktraceLocation) {
             final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
-            final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
+            final int index = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
 
             final String description = getContext()
                     .getUserBacktraceFormatter()
-                    .formatLine(backtrace.getActivations(), activationIndex, null);
+                    .formatLine(backtrace.getStackTrace(), index, null);
             return makeStringNode.executeMake(description, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 

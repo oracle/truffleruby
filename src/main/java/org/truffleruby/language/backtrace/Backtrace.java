@@ -55,7 +55,7 @@ import com.oracle.truffle.api.source.SourceSection;
  *
  * <p>
  * In general, there isn't any guarantee that the getters will return non-null values, excepted
- * {@link #getActivations()}, {@link #getActivations(Throwable)} and {@link #getBacktraceLocations(int, Node)}.
+ * {@link #getStackTrace()} and {@link #getBacktraceLocations(int, Node)}.
  *
  * <p>
  * NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions on the backtrace object
@@ -150,7 +150,7 @@ public class Backtrace {
 
     /** How many stack trace elements would there be if omitted was 0? Forces the computation of the stack trace. */
     public int getTotalUnderlyingElements() {
-        getActivations();
+        getStackTrace();
         return totalUnderlyingElements;
     }
 
@@ -248,8 +248,13 @@ public class Backtrace {
         return this.activations;
     }
 
-    public Activation[] getActivations() {
+    private Activation[] getActivations() {
         return getActivations(this.raiseException);
+    }
+
+    public TruffleStackTraceElement[] getStackTrace() {
+        getActivations();
+        return stackTrace;
     }
 
     /** Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code length}, and omitting
@@ -271,32 +276,32 @@ public class Backtrace {
 
         final RubyContext context = RubyLanguage.getCurrentContext();
 
-        final int activationsLength;
+        final int stackTraceLength;
         if (this.raiseException != null) {
             // When dealing with the backtrace of a Ruby exception, we use the wrapping
             // exception and we don't set a limit on the retrieved activations.
-            activationsLength = getActivations().length;
+            stackTraceLength = getStackTrace().length;
         } else {
             // We can't set an effective limit when dealing with negative range endings.
             final int stackTraceElementsLimit = length < 0
                     ? GetBacktraceException.UNLIMITED
                     : omitted + length;
             final Throwable e = new GetBacktraceException(node, stackTraceElementsLimit);
-            activationsLength = getActivations(e).length;
+            stackTraceLength = getActivations(e).length;
         }
 
         // Omitting more locations than available should return nil.
-        if (activationsLength == 0) {
+        if (stackTraceLength == 0) {
             return omitted > totalUnderlyingElements
                     ? context.getCoreLibrary().nil
                     : ArrayHelpers.createEmptyArray(context);
         }
 
         final int locationsLength = length < 0
-                ? activationsLength + 1 + length
+                ? stackTraceLength + 1 + length
                 // We use Math.min because length > activationsLength is possible and
                 // activationsLength > length is too whenever there is a #raiseException set.
-                : Math.min(activationsLength, length);
+                : Math.min(stackTraceLength, length);
 
         final Object[] locations = new Object[locationsLength];
         final DynamicObjectFactory factory = context.getCoreLibrary().threadBacktraceLocationFactory;
