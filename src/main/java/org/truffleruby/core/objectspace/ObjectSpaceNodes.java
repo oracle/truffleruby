@@ -171,7 +171,7 @@ public abstract class ObjectSpaceNodes {
 
         // MRI would do a dynamic call to #respond_to? but it seems better to warn the user earlier.
         // Wanting #method_missing(:call) to be called for a finalizer seems highly unlikely.
-        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.createIgnoring();
+        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.create();
 
         @Child private ReadObjectFieldNode getFinaliserNode = ReadObjectFieldNode.create();
         @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();

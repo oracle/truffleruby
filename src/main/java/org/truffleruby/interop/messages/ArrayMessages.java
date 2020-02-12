@@ -45,7 +45,7 @@ public class ArrayMessages extends RubyObjectMessages {
             @Cached @Shared("error") BranchProfile errorProfile,
             // FIXME (pitr 11-Feb-2020): use ArrayReadNormalizedNode
             // @Cached ArrayReadNormalizedNode readNode)
-            @Cached(parameters = "PRIVATE") @Exclusive CallDispatchHeadNode dispatch)
+            @Cached @Exclusive CallDispatchHeadNode dispatch)
             throws InvalidArrayIndexException, UnsupportedMessageException {
         if (inBounds(array, index)) {
             // return readNode.executeRead(array, (int) index);
@@ -68,7 +68,7 @@ public class ArrayMessages extends RubyObjectMessages {
             @Cached @Shared("error") BranchProfile errorProfile,
             // FIXME (pitr 11-Feb-2020): use ArrayWriteNormalizedNode
             // @Cached ArrayWriteNormalizedNode writeNode)
-            @Cached(parameters = "PRIVATE") @Exclusive CallDispatchHeadNode dispatch)
+            @Cached @Exclusive CallDispatchHeadNode dispatch)
             throws UnsupportedMessageException {
         if (validIndex(index)) {
             // writeNode.executeWrite(array, (int) index, value);
@@ -86,7 +86,7 @@ public class ArrayMessages extends RubyObjectMessages {
             long index,
             // FIXME (pitr 11-Feb-2020): use delete-at node directly
             // @Cached ArrayNodes.DeleteAtNode deleteAtNode,
-            @Cached(parameters = "PRIVATE") @Exclusive CallDispatchHeadNode dispatch,
+            @Cached @Exclusive CallDispatchHeadNode dispatch,
             @Cached @Shared("error") BranchProfile errorProfile)
             throws UnsupportedMessageException, InvalidArrayIndexException {
 

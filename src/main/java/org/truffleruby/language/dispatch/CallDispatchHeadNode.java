@@ -21,6 +21,10 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
     public static final byte RETURN_MISSING = 0b11;
     public static final byte PUBLIC_RETURN_MISSING = 0b01;
 
+    public static CallDispatchHeadNode create() {
+        return create(PRIVATE);
+    }
+
     public static CallDispatchHeadNode create(byte configuration) {
         switch (configuration) {
             case PRIVATE:
@@ -135,13 +139,10 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
             true,
             MissingBehavior.RETURN_MISSING);
 
-    public static CallDispatchHeadNode getUncachedPrivate() {
-        return UNCACHED_PRIVATE;
+    public static CallDispatchHeadNode getUncached() {
+        return getUncached(PRIVATE);
     }
 
-    public static CallDispatchHeadNode getUncachedReturnMissing() {
-        return UNCACHED_RETURN_MISSING;
-    }
 
     public static CallDispatchHeadNode getUncached(byte configuration) {
         switch (configuration) {

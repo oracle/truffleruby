@@ -18,16 +18,12 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
     public static final boolean PRIVATE = true;
     public static final boolean PUBLIC = false;
 
-    public static DoesRespondDispatchHeadNode create(boolean ignoreVisibility) {
-        return new DoesRespondDispatchHeadNode(ignoreVisibility);
-    }
-
-    public static DoesRespondDispatchHeadNode createIgnoring() {
+    public static DoesRespondDispatchHeadNode create() {
         return create(PRIVATE);
     }
 
-    public static DoesRespondDispatchHeadNode createPublic() {
-        return create(PUBLIC);
+    public static DoesRespondDispatchHeadNode create(boolean ignoreVisibility) {
+        return new DoesRespondDispatchHeadNode(ignoreVisibility);
     }
 
     private DoesRespondDispatchHeadNode(boolean ignoreVisibility) {
@@ -98,19 +94,15 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
         }
     }
 
-    private static final Uncached UNCACHED_IGNORING_VISIBILITY = new Uncached(true);
-    private static final Uncached UNCACHED_PUBLIC_VISIBILITY = new Uncached(false);
+    private static final Uncached UNCACHED_PRIVATE = new Uncached(true);
+    private static final Uncached UNCACHED_PUBLIC = new Uncached(false);
 
-    public static DoesRespondDispatchHeadNode getIgnoringUncached() {
-        return UNCACHED_IGNORING_VISIBILITY;
-    }
-
-    public static DoesRespondDispatchHeadNode getPublicUncached() {
-        return UNCACHED_PUBLIC_VISIBILITY;
+    public static DoesRespondDispatchHeadNode getUncached() {
+        return getUncached(PRIVATE);
     }
 
     public static DoesRespondDispatchHeadNode getUncached(boolean ignoreVisibility) {
-        return ignoreVisibility ? UNCACHED_IGNORING_VISIBILITY : UNCACHED_PUBLIC_VISIBILITY;
+        return ignoreVisibility ? UNCACHED_PRIVATE : UNCACHED_PUBLIC;
     }
 
 }

@@ -68,7 +68,7 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
     private boolean respondToToHash(VirtualFrame frame, Object lastArgument) {
         if (respondToToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToHashNode = insert(DoesRespondDispatchHeadNode.createIgnoring());
+            respondToToHashNode = insert(DoesRespondDispatchHeadNode.create());
         }
         return respondToToHashNode.doesRespondTo(frame, "to_hash", lastArgument);
     }

@@ -1501,9 +1501,9 @@ public abstract class KernelNodes {
         private final ConditionProfile respondToMissingProfile = ConditionProfile.createBinaryProfile();
 
         public RespondToNode() {
-            dispatch = DoesRespondDispatchHeadNode.createPublic();
-            dispatchIgnoreVisibility = DoesRespondDispatchHeadNode.createIgnoring();
-            dispatchRespondToMissing = DoesRespondDispatchHeadNode.createIgnoring();
+            dispatch = DoesRespondDispatchHeadNode.create(DoesRespondDispatchHeadNode.PUBLIC);
+            dispatchIgnoreVisibility = DoesRespondDispatchHeadNode.create();
+            dispatchRespondToMissing = DoesRespondDispatchHeadNode.create();
         }
 
         public abstract boolean executeDoesRespondTo(VirtualFrame frame, Object object, Object name,

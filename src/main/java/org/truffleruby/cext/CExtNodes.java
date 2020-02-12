@@ -1476,8 +1476,7 @@ public class CExtNodes {
     @CoreMethod(names = "define_marker", onSingleton = true, required = 2)
     public abstract static class CreateMarkerNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode
-                .getIgnoringUncached();
+        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.getUncached();
 
         @Specialization
         protected DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,

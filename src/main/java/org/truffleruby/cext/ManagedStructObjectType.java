@@ -86,7 +86,7 @@ public class ManagedStructObjectType extends ObjectType {
     public static Object getMembers(
             DynamicObject receiver,
             boolean includeInternal,
-            @Cached(parameters = "PRIVATE") CallDispatchHeadNode dispatchNode) {
+            @Cached CallDispatchHeadNode dispatchNode) {
         return dispatchNode.call(receiver, "instance_variables");
     }
 
