@@ -139,9 +139,12 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
     public static class GenericHashLiteralNode extends HashLiteralNode {
 
         @Child SetNode setNode;
+        private final int bucketsCount;
 
         public GenericHashLiteralNode(RubyNode[] keyValues) {
             super(keyValues);
+            bucketsCount = BucketsStrategy.capacityGreaterThan(keyValues.length / 2) *
+                    BucketsStrategy.OVERALLOCATE_FACTOR;
         }
 
         @ExplodeLoop
@@ -152,10 +155,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
                 setNode = insert(SetNode.create());
             }
 
-            final int bucketsCount = BucketsStrategy.capacityGreaterThan(keyValues.length / 2) *
-                    BucketsStrategy.OVERALLOCATE_FACTOR;
             final Entry[] newEntries = new Entry[bucketsCount];
-
             final DynamicObject hash = coreLibrary().hashFactory
                     .newInstance(Layouts.HASH.build(newEntries, 0, null, null, nil(), nil(), false));
 
