@@ -136,7 +136,7 @@ public abstract class ThreadNodes {
 
             // If the thread is dead or aborting the SafepointAction will not run.
             // Must return nil if omitting more entries than available.
-            if (backtrace == null || omit > backtrace.getTotalUnderlyingActivations()) {
+            if (backtrace == null || omit > backtrace.getTotalUnderlyingElements()) {
                 return nil();
             }
 

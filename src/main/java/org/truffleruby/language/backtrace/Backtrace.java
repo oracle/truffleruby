@@ -76,7 +76,8 @@ public class Backtrace {
     private RaiseException raiseException;
     private final Throwable javaThrowable;
     private Activation[] activations;
-    private int totalUnderlyingActivations;
+    private TruffleStackTraceElement[] stackTrace;
+    private int totalUnderlyingElements;
 
     // endregion
     // region Constructors
@@ -147,14 +148,25 @@ public class Backtrace {
         return javaThrowable;
     }
 
-    /** How many activations would there be if omitted was 0? Forces the computation of the activations. */
-    public int getTotalUnderlyingActivations() {
+    /** How many stack trace elements would there be if omitted was 0? Forces the computation of the stack trace. */
+    public int getTotalUnderlyingElements() {
         getActivations();
-        return totalUnderlyingActivations;
+        return totalUnderlyingElements;
     }
 
     // endregion
-    // region Methods
+    // region Static Methods
+
+    public static String methodNameFor(TruffleStackTraceElement e) {
+        RootNode root = e.getTarget().getRootNode();
+        return root instanceof RubyRootNode
+                // Ruby backtraces do not include the class name for MRI compatibility.
+                ? ((RubyRootNode) root).getSharedMethodInfo().getName()
+                : root.getName();
+    }
+
+    // endregion
+    // region Instance Methods
     /** Used to copy the backtrace when copying {@code exception}. */
     public Backtrace copy(RubyContext context, DynamicObject exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
@@ -175,7 +187,7 @@ public class Backtrace {
     }
 
     @TruffleBoundary
-    public Activation[] getActivations(Throwable truffleException) {
+    private Activation[] getActivations(Throwable truffleException) {
         if (this.activations != null) {
             return this.activations;
         }
@@ -186,56 +198,54 @@ public class Backtrace {
 
         // The stacktrace is computed here if it was not already computed and stored in the
         // TruffleException with TruffleStackTraceElement.fillIn().
-        final List<TruffleStackTraceElement> stackTrace = TruffleStackTrace.getStackTrace(truffleException);
-        assert stackTrace != null;
+        final List<TruffleStackTraceElement> fullStackTrace = TruffleStackTrace.getStackTrace(truffleException);
+        assert fullStackTrace != null;
 
-        final List<Activation> activations = new ArrayList<>();
+        final List<TruffleStackTraceElement> stackTraceList = new ArrayList<>();
         final RubyContext context = RubyLanguage.getCurrentContext();
         final CallStackManager callStackManager = context.getCallStack();
 
-        int elementCount = 0;
-        int activationCount = 0;
-        for (TruffleStackTraceElement stackTraceElement : stackTrace) {
-            assert elementCount != 0 || stackTraceElement.getLocation() == location;
+        int processedCount = 0;
+        int retainedCount = 0;
+        for (TruffleStackTraceElement stackTraceElement : fullStackTrace) {
+            assert processedCount != 0 || stackTraceElement.getLocation() == location;
             final Node callNode = stackTraceElement.getLocation();
-            ++elementCount;
+            ++processedCount;
 
             if (callStackManager.ignoreFrame(callNode, stackTraceElement.getTarget())) {
                 continue;
             }
 
-            if (activationCount < omitted) {
-                ++activationCount;
+            if (retainedCount < omitted) {
+                ++retainedCount;
                 continue;
-            }
-
-            final RootNode rootNode = stackTraceElement.getTarget().getRootNode();
-            final String methodName;
-            if (rootNode instanceof RubyRootNode) {
-                // Ruby backtraces do not include the class name for MRI compatibility.
-                methodName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
-            } else {
-                methodName = rootNode.getName();
             }
 
             // TODO (eregon, 4 Feb 2019): we should not ignore foreign frames without a
             //  call node, but print info based on the methodName and CallTarget.
+            final RootNode rootNode = stackTraceElement.getTarget().getRootNode();
             if (rootNode instanceof RubyRootNode || callNode != null) {
-                activations.add(new Activation(callNode, methodName));
+                stackTraceList.add(stackTraceElement);
             }
 
-            ++activationCount;
+            ++retainedCount;
         }
 
         // If there are activations with a InternalMethod but no caller information above in the
         // stack, then all of these activations are internal as they are not called from user code.
-        while (!activations.isEmpty() && activations.get(activations.size() - 1).getCallNode() == null) {
-            activations.remove(activations.size() - 1);
-            --activationCount;
+        while (!stackTraceList.isEmpty() && stackTraceList.get(stackTraceList.size() - 1).getLocation() == null) {
+            stackTraceList.remove(stackTraceList.size() - 1);
+            --retainedCount;
         }
 
-        this.totalUnderlyingActivations = activationCount;
-        return this.activations = activations.toArray(new Activation[activations.size()]);
+        this.totalUnderlyingElements = retainedCount;
+        this.stackTrace = stackTraceList.toArray(new TruffleStackTraceElement[stackTraceList.size()]);
+
+        this.activations = new Activation[stackTrace.length];
+        for (int i = 0; i < stackTrace.length; ++i) {
+            this.activations[i] = new Activation(stackTrace[i].getLocation(), methodNameFor(stackTrace[i]));
+        }
+        return this.activations;
     }
 
     public Activation[] getActivations() {
@@ -277,7 +287,7 @@ public class Backtrace {
 
         // Omitting more locations than available should return nil.
         if (activationsLength == 0) {
-            return omitted > totalUnderlyingActivations
+            return omitted > totalUnderlyingElements
                     ? context.getCoreLibrary().nil
                     : ArrayHelpers.createEmptyArray(context);
         }
