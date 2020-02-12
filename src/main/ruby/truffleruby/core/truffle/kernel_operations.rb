@@ -163,5 +163,26 @@ module Truffle
       end
       line
     end
+
+    # Will throw an exception if the arguments are invalid, and potentially convert a range to [omit, length] format.
+    def self.normalize_backtrace_args(omit, length)
+      if Integer === length && length < 0
+        raise ArgumentError, "negative size (#{length})"
+      end
+      if Range === omit
+        range = omit
+        omit = Truffle::Type.coerce_to_int(range.begin)
+        unless range.end.nil?
+          end_index = Truffle::Type.coerce_to_int(range.end)
+          if end_index < 0
+            length = end_index
+          else
+            end_index += (range.exclude_end? ? 0 : 1)
+            length = omit > end_index ? 0 : end_index - omit
+          end
+        end
+      end
+      [omit, length]
+    end
   end
 end

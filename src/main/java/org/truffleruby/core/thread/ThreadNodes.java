@@ -112,27 +112,43 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "backtrace")
+    @Primitive(name = "thread_backtrace", lowerFixnum = { 1, 2 })
     public abstract static class BacktraceNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject backtrace(
+                DynamicObject rubyThread, int omit, NotProvided length) {
+            return backtrace(rubyThread, omit, Integer.MAX_VALUE);
+        }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject backtrace(DynamicObject rubyThread) {
-            final Memo<DynamicObject> result = new Memo<>(null);
+        protected DynamicObject backtrace(DynamicObject rubyThread, int omit, int length) {
+            final Memo<Backtrace> backtraceMemo = new Memo<>(null);
 
             getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread1, currentNode) -> {
-                final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode);
-                result.set(getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(null, backtrace));
+                final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
+                backtrace.getActivations(); // must be done on the thread
+                backtraceMemo.set(backtrace);
             });
 
-            // If the thread is dead or aborting the SafepointAction will not run
-            if (result.get() != null) {
-                return result.get();
-            } else {
+            final Backtrace backtrace = backtraceMemo.get();
+
+            // If the thread is dead or aborting the SafepointAction will not run.
+            // Must return nil if omitting more entries than available.
+            if (backtrace == null || omit > backtrace.getTotalUnderlyingActivations()) {
                 return nil();
             }
-        }
 
+            if (length < 0) {
+                length = backtrace.getActivations().length + 1 + length;
+            }
+
+            return getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
+                    null,
+                    backtrace,
+                    length);
+        }
     }
 
     @Primitive(name = "thread_backtrace_locations", lowerFixnum = { 1, 2 })

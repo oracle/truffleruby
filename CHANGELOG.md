@@ -46,6 +46,7 @@ Compatibility:
 * `StringIO#inspect` should not include the contents of the `StringIO` (#1898).
 * Implemented `rb_fd_*` functions (#1623).
 * Fixed uninitialized variable warnings in core and lib (#1897).
+* Make `Thread#backtrace` support omit, length and range arguments.
 
 Changes:
 

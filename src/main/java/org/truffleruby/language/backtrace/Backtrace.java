@@ -67,7 +67,7 @@ import com.oracle.truffle.api.source.SourceSection;
  * specified otherwise in the constructor. The activations will match the state of the Truffle call stack whenever the
  * activations are recorded (so, during the constructor call or first method call). */
 public class Backtrace {
-
+    // region Fields
     // See accessors for info on most undocumented fields.
 
     private final Node location;
@@ -76,10 +76,9 @@ public class Backtrace {
     private RaiseException raiseException;
     private final Throwable javaThrowable;
     private Activation[] activations;
-
-    /** How many activations would there be if omitted was 0? */
     private int totalUnderlyingActivations;
 
+    // endregion
     // region Constructors
 
     /** Fully explicit constructor. */
@@ -148,8 +147,14 @@ public class Backtrace {
         return javaThrowable;
     }
 
-    // endregion
+    /** How many activations would there be if omitted was 0? Forces the computation of the activations. */
+    public int getTotalUnderlyingActivations() {
+        getActivations();
+        return totalUnderlyingActivations;
+    }
 
+    // endregion
+    // region Methods
     /** Used to copy the backtrace when copying {@code exception}. */
     public Backtrace copy(RubyContext context, DynamicObject exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
@@ -290,4 +295,6 @@ public class Backtrace {
         }
         return ArrayHelpers.createArray(context, locations, locations.length);
     }
+
+    // endregion
 }
