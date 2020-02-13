@@ -149,7 +149,7 @@ public abstract class ArrayStoreLibrary extends Library {
         /** Return whether {@code value} is the default value for stores returned by this allocator. For primitive
          * stores the default value will normally be 0, or its numerical equivalent, while stores that hold Objects will
          * usually default to {@code null}, this may not be true for those interacting with native memory where their
-         * default value will be whatever is represented by a zero valuein their implementation. */
+         * default value will be whatever is represented by a zero value in their implementation. */
         public abstract boolean isDefaultValue(Object value);
 
     }
