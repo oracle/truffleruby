@@ -50,6 +50,7 @@ Compatibility:
 * Fixed uninitialized variable warnings in core and lib (#1897).
 * Make `Thread#backtrace` support omit, length and range arguments.
 * Implemented `Range#%`.
+* Implemented `rb_obj_is_proc` (#1908, @kipply, @XrXr). 
 
 Changes:
 

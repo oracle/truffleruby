@@ -3885,7 +3885,7 @@ VALUE rb_require_safe(VALUE fname, int safe) {
 }
 
 VALUE rb_obj_is_proc(VALUE proc) {
-  rb_tr_error("rb_obj_is_proc not implemented");
+  return rb_obj_is_kind_of(proc, rb_cProc);
 }
 
 VALUE rb_proc_call_with_block(VALUE self, int argc, const VALUE *argv, VALUE pass_procval) {
