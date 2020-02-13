@@ -70,6 +70,7 @@ public class ZeroLengthArrayStore {
 
     @ExportMessage
     public ZeroLengthArrayStore copyStore(int length) {
+        assert length == 0;
         return this;
     }
 
