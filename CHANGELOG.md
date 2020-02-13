@@ -57,6 +57,7 @@ Changes:
 Performance:
 
 * Optimized `RSTRING_PTR()` accesses by going to native directly, optimized various core methods, use Mode=latency and tune GC heap size for Bundler. This speeds up `bundle install` from 84s to 19s for a small Gemfile with 6 gems (#1398).
+* Fixed memory footprint issue due to large compilation on Native Image, notably during `bundle install` (#1893).
 
 # 20.0.0
 
