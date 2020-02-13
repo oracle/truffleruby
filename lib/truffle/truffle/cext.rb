@@ -344,6 +344,7 @@ module Truffle::CExt
       false
     end
 
+    # To check if it was already converted to native or not in rb_str_new
     def native?
       polyglot_pointer?
     end
