@@ -1000,6 +1000,4 @@ class Array
   alias_method :take_while, :take_while
   alias_method :frozen?, :frozen?
   alias_method :sum, :sum
-  alias_method :min, :min
-  alias_method :max, :max
 end

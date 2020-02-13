@@ -735,6 +735,14 @@ class Array
     self
   end
 
+  def max(n=undefined)
+    super(n)
+  end
+
+  def min(n=undefined)
+    super(n)
+  end
+
   def permutation_size(num)
     n = self.size
     if Primitive.undefined? num
