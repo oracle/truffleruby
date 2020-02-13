@@ -82,7 +82,7 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Return the capacity of {@code store}. */
     public abstract int capacity(Object store);
 
-    /** Return a copy of {@store} expanded to the requested capacity. */
+    /** Return a copy of {@code store} expanded to the requested capacity. */
     public abstract Object expand(Object store, int capacity);
 
     /** Return a store representing the range from {@code start} (inclusive) to {@code end} (exclusive) of {@code store}
