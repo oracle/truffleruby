@@ -145,7 +145,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public Object[] copyStore(int size,
+    public Object[] toJavaArrayCopy(int size,
             @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
         Object[] newStore = new Object[size];
         assert size >= length;

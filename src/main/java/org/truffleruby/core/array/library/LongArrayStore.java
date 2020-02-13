@@ -133,8 +133,8 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    public static long[] copyStore(long[] store, int length) {
-        return ArrayUtils.grow(store, length);
+    public static long[] toJavaArrayCopy(long[] store, int length) {
+        return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage

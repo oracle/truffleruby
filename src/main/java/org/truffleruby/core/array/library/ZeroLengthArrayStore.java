@@ -69,9 +69,9 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    public ZeroLengthArrayStore copyStore(int length) {
+    public Object[] toJavaArrayCopy(int length) {
         assert length == 0;
-        return this;
+        return new Object[length];
     }
 
     @ExportMessage

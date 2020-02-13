@@ -120,8 +120,8 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    public static int[] copyStore(int[] store, int length) {
-        return ArrayUtils.grow(store, length);
+    public static int[] toJavaArrayCopy(int[] store, int length) {
+        return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage

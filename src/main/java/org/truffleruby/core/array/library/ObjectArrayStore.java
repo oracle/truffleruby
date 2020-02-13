@@ -92,8 +92,8 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    public static Object[] copyStore(Object[] store, int length) {
-        return ArrayUtils.grow(store, length);
+    public static Object[] toJavaArrayCopy(Object[] store, int length) {
+        return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage

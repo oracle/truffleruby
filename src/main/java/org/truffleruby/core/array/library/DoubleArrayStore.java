@@ -121,8 +121,8 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    public static double[] copyStore(double[] store, int length) {
-        return ArrayUtils.grow(store, length);
+    public static double[] toJavaArrayCopy(double[] store, int length) {
+        return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage

@@ -97,7 +97,7 @@ public abstract class ArrayStoreLibrary extends Library {
     public abstract void copyContents(Object store, int srcStart, Object dest, int destStart, int length);
 
     /** Create a mutable copy of {@code store} of length {@code length}. */
-    public abstract Object copyStore(Object store, int length);
+    public abstract Object toJavaArrayCopy(Object store, int length);
 
     /** Sort the first {@code size} elements of {@code store} in place. */
     @Abstract(ifExported = "isPrimitive")
