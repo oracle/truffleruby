@@ -220,7 +220,7 @@ public class RubyObjectMessages {
 
         return dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
-                "object_keys",
+                "get_members",
                 receiver,
                 internal);
     }

@@ -32,22 +32,22 @@ describe "Truffle::Interop.keys" do
   end
 
   it "returns an empty array for a big integer" do
-    Truffle::Interop.keys(bignum_value).should include(*bignum_value.methods.map!(&:to_s))
+    Truffle::Interop.keys(bignum_value).should include(*bignum_value.public_methods.map!(&:to_s))
   end
 
   it "returns an empty array for a proc" do
     proc = proc {}
-    Truffle::Interop.keys(proc).should include(*proc.methods.map!(&:to_s))
+    Truffle::Interop.keys(proc).should include(*proc.public_methods.map!(&:to_s))
   end
 
   it "returns an empty array for a lambda" do
     lambda = -> {}
-    Truffle::Interop.keys(lambda).should include(*lambda.methods.map!(&:to_s))
+    Truffle::Interop.keys(lambda).should include(*lambda.public_methods.map!(&:to_s))
   end
 
   it "returns methods of a method" do
     method = Object.new.method :to_s
-    Truffle::Interop.keys(method).should include(*method.methods.map!(&:to_s))
+    Truffle::Interop.keys(method).should include(*method.public_methods.map!(&:to_s))
   end
 
   it "returns an empty array for an object with a custom #[] method" do
@@ -61,12 +61,12 @@ describe "Truffle::Interop.keys" do
 
   it "returns the methods of an object" do
     object = Object.new
-    Truffle::Interop.keys(object).should include(*object.methods.map(&:to_s))
+    Truffle::Interop.keys(object).should include(*object.public_methods.map(&:to_s))
   end
 
   it "returns the methods of a user-defined method" do
     object = TruffleInteropSpecs::InteropKeysClass.new
-    Truffle::Interop.keys(object).should include(*object.methods.map(&:to_s))
+    Truffle::Interop.keys(object).should include(*object.public_methods.map(&:to_s))
   end
 
   it "returns a user-defined method" do
