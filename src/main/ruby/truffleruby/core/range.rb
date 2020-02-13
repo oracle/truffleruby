@@ -383,6 +383,10 @@ class Range
     self.begin
   end
 
+  def %(n)
+    step(n)
+  end
+
   private def step_internal(step_size=1, &block) # :yields: object
 
     if !block_given? && Primitive.object_kind_of?(self.begin, Numeric) && (self.end.nil? || Primitive.object_kind_of?(self.end, Numeric))

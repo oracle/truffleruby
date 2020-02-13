@@ -48,6 +48,7 @@ Compatibility:
 * Implemented `rb_fd_*` functions (#1623).
 * Fixed uninitialized variable warnings in core and lib (#1897).
 * Make `Thread#backtrace` support omit, length and range arguments.
+* Implemented `Range#%`.
 
 Changes:
 
