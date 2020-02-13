@@ -16,6 +16,7 @@ import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -216,6 +217,7 @@ public class RubyObjectMessages {
             boolean internal,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Exclusive @Cached CallDispatchHeadNode dispatchNode) {
+
         return dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
                 "object_keys",
@@ -286,18 +288,24 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
         Object dynamic = dispatchNode.call(receiver, "polyglot_member_remove", rubyName);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             if (!isIVar(name)) {
                 errorProfile.enter();
-                // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
-                throw UnknownIdentifierException.create(name);
+                throw UnsupportedMessageException.create();
             }
-            removeInstanceVariableNode
-                    .call(receiver, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
+            try {
+                removeInstanceVariableNode.call(receiver, "remove_instance_variable", rubyName);
+            } catch (RaiseException e) { // raises only if the name is missing
+                errorProfile.enter();
+                UnknownIdentifierException unknownIdentifier = UnknownIdentifierException.create(name);
+                unknownIdentifier.initCause(e);
+                throw unknownIdentifier;
+            }
         }
     }
 

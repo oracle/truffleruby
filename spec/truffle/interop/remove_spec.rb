@@ -29,7 +29,7 @@ describe "Truffle::Interop.remove" do
     it "raises a NameError when the index is not an integer" do
       -> {
         Truffle::Interop.remove(@array, :b)
-      }.should raise_error(NameError, /Unknown identifier: b/) { |e|
+      }.should raise_error(NameError, /Message not supported./) { |e|
         e.receiver.should equal @array
         e.name.should == :b
       }
