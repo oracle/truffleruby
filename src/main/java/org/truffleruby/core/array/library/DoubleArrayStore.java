@@ -94,9 +94,7 @@ public class DoubleArrayStore {
 
     @ExportMessage
     public static double[] expand(double[] store, int newCapacity) {
-        double[] newStore = new double[newCapacity];
-        System.arraycopy(store, 0, newStore, 0, store.length);
-        return newStore;
+        return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage

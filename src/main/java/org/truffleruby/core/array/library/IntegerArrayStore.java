@@ -94,9 +94,7 @@ public class IntegerArrayStore {
 
     @ExportMessage
     public static int[] expand(int[] store, int newCapacity) {
-        int[] newStore = new int[newCapacity];
-        System.arraycopy(store, 0, newStore, 0, store.length);
-        return newStore;
+        return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage

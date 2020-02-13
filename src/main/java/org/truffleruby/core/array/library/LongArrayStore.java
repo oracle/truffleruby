@@ -107,9 +107,7 @@ public class LongArrayStore {
 
     @ExportMessage
     public static long[] expand(long[] store, int newCapacity) {
-        long[] newStore = new long[newCapacity];
-        System.arraycopy(store, 0, newStore, 0, store.length);
-        return newStore;
+        return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage

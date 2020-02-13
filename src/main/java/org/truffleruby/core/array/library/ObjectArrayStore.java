@@ -65,9 +65,7 @@ public class ObjectArrayStore {
 
     @ExportMessage
     public static Object[] expand(Object[] store, int newCapacity) {
-        Object[] newStore = new Object[newCapacity];
-        System.arraycopy(store, 0, newStore, 0, store.length);
-        return newStore;
+        return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage

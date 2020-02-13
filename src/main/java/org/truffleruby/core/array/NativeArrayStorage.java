@@ -122,10 +122,9 @@ public final class NativeArrayStorage implements ObjectGraphNode {
             Pointer newPointer = Pointer.malloc(storage.capacity());
             newPointer.writeBytes(0, storage.pointer, 0, storage.capacity());
             newPointer.writeBytes(storage.capacity(), newCapacity - storage.capacity(), (byte) 0);
-            Object[] newMarkedObjects = new Object[newCapacity];
             /* We copy the contents of the marked objects to ensure the references will be kept alive even if the old
              * store becomes unreachable. */
-            System.arraycopy(storage.markedObjects, 0, newMarkedObjects, 0, storage.length);
+            Object[] newMarkedObjects = ArrayUtils.grow(storage.markedObjects, newCapacity);
             return new NativeArrayStorage(newPointer, newCapacity, newMarkedObjects);
         }
     }
