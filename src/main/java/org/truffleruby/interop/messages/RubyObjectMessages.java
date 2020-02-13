@@ -314,20 +314,26 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             Object[] arguments,
-            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchDynamic,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchMember,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
-            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
 
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_member_invoke", rubyName, convertedArguments);
+        Object dynamic = dispatchDynamic.call(receiver, "polyglot_member_invoke", rubyName, convertedArguments);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            // FIXME (pitr 06-Feb-2020): proper exception if member is missing
-            return dispatchNode.call(receiver, name, convertedArguments);
-        } else {
-            return dynamic;
+            Object result = dispatchMember.call(receiver, name, convertedArguments);
+            if (result == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name);
+            }
+            return result;
         }
+
+        return dynamic;
     }
 
     @ExportMessage
