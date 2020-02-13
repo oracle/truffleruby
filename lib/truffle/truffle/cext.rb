@@ -126,8 +126,6 @@ module Truffle::CExt
       @address = nil
     end
 
-    # FIXME (pitr-ch 04-Feb-2020): special class allowing to define dynamic members
-
     private
 
     def polyglot_members?
