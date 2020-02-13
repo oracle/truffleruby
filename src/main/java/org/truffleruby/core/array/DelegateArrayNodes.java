@@ -20,6 +20,7 @@ import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayExtract
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayGetNodeGen;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayNewStoreNodeGen;
 import org.truffleruby.core.array.DelegateArrayNodesFactory.DelegateArrayUnshareStoreNodeGen;
+import org.truffleruby.core.array.library.DelegatedArrayStorage;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;

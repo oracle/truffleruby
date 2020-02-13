@@ -28,6 +28,9 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArraySortNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayUnshareStorageNode;
 import org.truffleruby.core.array.DelegateArrayNodes.DelegateArrayExtractRangeCopyOnWriteNode;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.DelegatedArrayStorage;
+import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -35,7 +38,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ArrayStrategy {
 
-    public static final Object NULL_ARRAY_STORE = new Object();
+    public static final Object NULL_ARRAY_STORE = ArrayStoreLibrary.INITIAL_STORE;
 
     // ArrayStrategy interface
 

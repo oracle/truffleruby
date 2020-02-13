@@ -21,6 +21,7 @@ import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArrayGetNodeGen;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArrayNewStoreNodeGen;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArraySetNodeGen;
 import org.truffleruby.core.array.NativeArrayNodesFactory.NativeArraySortNodeGen;
+import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.control.RaiseException;
 

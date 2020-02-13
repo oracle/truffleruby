@@ -13,6 +13,9 @@ import java.lang.reflect.Array;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.DelegatedArrayStorage;
+import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -97,7 +100,10 @@ public abstract class ArrayOperations {
 
     @TruffleBoundary
     public static Iterable<Object> toIterable(DynamicObject array) {
-        return ArrayStrategy.of(array).getIterable(array, Layouts.ARRAY.getSize(array));
+        return ArrayStoreLibrary
+                .getFactory()
+                .getUncached()
+                .getIterable(Layouts.ARRAY.getStore(array), 0, Layouts.ARRAY.getSize(array));
     }
 
     @TruffleBoundary

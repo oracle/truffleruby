@@ -13,7 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.core.array.DelegatedArrayStorage;
+import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
