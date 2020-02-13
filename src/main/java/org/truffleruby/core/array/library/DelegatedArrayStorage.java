@@ -7,12 +7,12 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.array;
+package org.truffleruby.core.array.library;
 
 import java.util.Set;
 
+import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

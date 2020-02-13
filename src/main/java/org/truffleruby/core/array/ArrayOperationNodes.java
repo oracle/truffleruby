@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayBoxedCopyNodeGen;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCommonExtractRangeCopyOnWriteNodeGen;
 import org.truffleruby.core.array.ArrayOperationNodesFactory.ArrayCommonUnshareStorageNodeGen;
+import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;

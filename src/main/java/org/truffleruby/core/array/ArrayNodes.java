@@ -28,6 +28,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode;
+import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToAryNodeGen;

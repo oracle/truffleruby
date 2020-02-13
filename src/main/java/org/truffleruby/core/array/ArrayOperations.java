@@ -14,6 +14,8 @@ import java.lang.reflect.Array;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.DelegatedArrayStorage;
+import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives;

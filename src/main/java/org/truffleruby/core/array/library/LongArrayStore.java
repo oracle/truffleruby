@@ -25,7 +25,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.array.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = long[].class)

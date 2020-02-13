@@ -29,6 +29,8 @@ import org.truffleruby.core.array.ArrayOperationNodes.ArraySortNode;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayUnshareStorageNode;
 import org.truffleruby.core.array.DelegateArrayNodes.DelegateArrayExtractRangeCopyOnWriteNode;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.DelegatedArrayStorage;
+import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

@@ -16,8 +16,6 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.library.GenerateLibrary.Abstract;
 import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 
-import org.truffleruby.core.array.DelegatedArrayStorage;
-
 /** Library for accessing and manipulating the storage used for representing arrays. This includes reading, modifying,
  * and copy the storage. */
 @GenerateLibrary
