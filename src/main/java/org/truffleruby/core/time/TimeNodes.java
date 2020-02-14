@@ -23,6 +23,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -407,6 +408,7 @@ public abstract class TimeNodes {
     public static abstract class TimeStrftimePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization(
                 guards = { "isRubyString(format)", "equalNode.execute(rope(format), cachedFormat)" },
@@ -435,7 +437,8 @@ public abstract class TimeNodes {
                     Layouts.TIME.getDateTime(time),
                     Layouts.TIME.getZone(time),
                     getContext(),
-                    this);
+                    this,
+                    errnoErrorNode);
         }
 
     }

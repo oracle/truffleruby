@@ -29,7 +29,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
-import org.truffleruby.platform.ErrnoDescriptions;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropException;
@@ -365,22 +364,6 @@ public class CoreExceptions {
                         errorMessage,
                         context.getCoreLibrary().getErrnoValue("EDOM"),
                         backtrace);
-    }
-
-    @TruffleBoundary
-    public DynamicObject errnoError(int errno, String extraMessage, Backtrace backtrace) {
-        final String errnoName = context.getCoreLibrary().getErrnoName(errno);
-        if (errnoName == null) {
-            return systemCallError(StringUtils.format("Unknown Error (%s)%s", errno, extraMessage), errno, backtrace);
-        }
-
-        final DynamicObject errnoClass = context.getCoreLibrary().getErrnoClass(errnoName);
-        final String fullMessage = ErrnoDescriptions.getDescription(errnoName) + extraMessage;
-        final DynamicObject errorMessage = StringOperations
-                .createString(context, StringOperations.encodeRope(fullMessage, UTF8Encoding.INSTANCE));
-
-        return ExceptionOperations
-                .createSystemCallError(context, errnoClass, errorMessage, errno, backtrace);
     }
 
     // IndexError

@@ -57,7 +57,9 @@ import java.util.Locale;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
@@ -347,7 +349,7 @@ public abstract class RubyDateFormatter {
 
     @TruffleBoundary
     public static RopeBuilder formatToRopeBuilder(List<Token> compiledPattern, ZonedDateTime dt, Object zone,
-            RubyContext context, Node currentNode) {
+            RubyContext context, Node currentNode, ErrnoErrorNode errnoErrorNode) {
         RubyTimeOutputFormatter formatter = RubyTimeOutputFormatter.DEFAULT_FORMATTER;
         RopeBuilder toAppendTo = new RopeBuilder();
 
@@ -522,12 +524,11 @@ public abstract class RubyDateFormatter {
                 output = formatter.format(output, value, type);
             } catch (IndexOutOfBoundsException ioobe) {
                 final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
+                final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
+                final DynamicObject message = StringOperations.createString(context, messageRope);
                 throw new RaiseException(
                         context,
-                        context.getCoreExceptions().errnoError(
-                                context.getCoreLibrary().getErrnoValue("ERANGE"),
-                                "strftime",
-                                backtrace));
+                        errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
             }
 
             // reset formatter

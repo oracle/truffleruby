@@ -38,6 +38,7 @@ import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
@@ -925,10 +926,12 @@ public class CExtNodes {
     @CoreMethod(names = "rb_syserr_fail", onSingleton = true, required = 2, lowerFixnum = 1)
     public abstract static class RbSysErrFail extends CoreMethodArrayArgumentsNode {
 
+        @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
+
         @Specialization(guards = "isNil(message)")
         protected Object rbSysErrFailNoMessage(int errno, DynamicObject message) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
-            throw new RaiseException(getContext(), coreExceptions().errnoError(errno, "", backtrace));
+            throw new RaiseException(getContext(), errnoError(errno, nil(), backtrace));
         }
 
         @Specialization(guards = "isRubyString(message)")
@@ -936,8 +939,13 @@ public class CExtNodes {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
             throw new RaiseException(
                     getContext(),
-                    coreExceptions().errnoError(errno, StringOperations.getString(message), backtrace));
+                    errnoError(errno, message, backtrace));
         }
+
+        private DynamicObject errnoError(int errno, DynamicObject extraMessage, Backtrace backtrace) {
+            return errnoErrorNode.execute(errno, extraMessage, backtrace);
+        }
+
 
     }
 

@@ -118,6 +118,14 @@ module Truffle
       format("super: no superclass method `%s'", exception.name)
     end
 
+    def self.format_errno_error_message(errno_description, errno, extra_message)
+      if errno_description.nil?
+        "unknown error: #{errno} - #{extra_message}"
+      else
+        "#{errno_description}#{extra_message}"
+      end
+    end
+
     def self.original_std_err_tty?
       $stderr.equal?(STDERR) && !STDERR.closed? && STDERR.tty?
     end
