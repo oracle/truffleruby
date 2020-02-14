@@ -54,7 +54,7 @@ describe "Truffle::Interop.keys" do
     Truffle::Interop.keys(object).should == []
   end
 
-  it "doe snot returns the keys of a hash" do
+  it "does not return the keys of a hash" do
     Truffle::Interop.keys({'a' => 1, 'b' => 2, 'c' => 3}).should_not include('a', 'b', 'c')
   end
 
