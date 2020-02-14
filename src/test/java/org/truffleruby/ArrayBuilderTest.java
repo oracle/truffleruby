@@ -10,7 +10,6 @@
 package org.truffleruby;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,7 +28,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.truffleruby.core.array.ArrayBuilderNode;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 

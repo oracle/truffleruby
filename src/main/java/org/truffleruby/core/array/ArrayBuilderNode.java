@@ -125,10 +125,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         private static ArrayAllocator getInitialAllocator() {
             if (INITIAL_ALLOCATOR == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                INITIAL_ALLOCATOR = ArrayStoreLibrary
-                        .getFactory()
-                        .getUncached()
-                        .allocatorForValue(0);
+                INITIAL_ALLOCATOR = ArrayStoreLibrary.allocatorForValue(0);
             }
             return INITIAL_ALLOCATOR;
         }
