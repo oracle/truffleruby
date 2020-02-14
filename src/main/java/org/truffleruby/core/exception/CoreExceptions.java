@@ -70,8 +70,8 @@ public class CoreExceptions {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
             final String exceptionClass = Layouts.MODULE.getFields(rubyClass).getName();
             String from = "";
-            if (backtrace != null && backtrace.getActivations().length > 0) {
-                from = " at " + debugBacktraceFormatter.formatLine(backtrace.getActivations(), 0, null);
+            if (backtrace != null && backtrace.getStackTrace().length > 0) {
+                from = " at " + debugBacktraceFormatter.formatLine(backtrace.getStackTrace(), 0, null);
             }
             Object stderr = context.getCoreLibrary().getStderr();
             String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";

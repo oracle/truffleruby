@@ -128,7 +128,7 @@ public abstract class ThreadNodes {
 
             getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(currentNode, omit);
-                backtrace.getActivations(); // must be done on the thread
+                backtrace.getStackTrace(); // must be done on the thread
                 backtraceMemo.set(backtrace);
             });
 
@@ -136,12 +136,12 @@ public abstract class ThreadNodes {
 
             // If the thread is dead or aborting the SafepointAction will not run.
             // Must return nil if omitting more entries than available.
-            if (backtrace == null || omit > backtrace.getTotalUnderlyingActivations()) {
+            if (backtrace == null || omit > backtrace.getTotalUnderlyingElements()) {
                 return nil();
             }
 
             if (length < 0) {
-                length = backtrace.getActivations().length + 1 + length;
+                length = backtrace.getStackTrace().length + 1 + length;
             }
 
             return getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
