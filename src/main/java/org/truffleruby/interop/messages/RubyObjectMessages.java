@@ -308,11 +308,7 @@ public class RubyObjectMessages {
                 String name,
                 DoesRespondDispatchHeadNode definedNode) {
 
-            if (name == null) {
-                return false;
-            } else {
-                return definedNode.doesRespondTo(null, name, receiver);
-            }
+            return definedNode.doesRespondTo(null, name, receiver);
         }
     }
 
@@ -350,11 +346,7 @@ public class RubyObjectMessages {
 
         protected static boolean methodDefined(DynamicObject receiver, Object stringName,
                 DoesRespondDispatchHeadNode definedNode) {
-            if (stringName == null) {
-                return false;
-            } else {
-                return definedNode.doesRespondTo(null, stringName, receiver);
-            }
+            return definedNode.doesRespondTo(null, stringName, receiver);
         }
     }
 
