@@ -15,7 +15,6 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
@@ -26,7 +25,6 @@ import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -287,12 +285,7 @@ public class RubyObjectMessages {
         protected static Object unknownIdentifier(DynamicObject receiver, String name,
                 @Cached DoesRespondDispatchHeadNode definedIndexNode,
                 @Cached DoesRespondDispatchHeadNode definedNode) throws UnknownIdentifierException {
-            throw UnknownIdentifierException.create(toString(name));
-        }
-
-        @TruffleBoundary
-        private static String toString(Object name) {
-            return name.toString();
+            throw UnknownIdentifierException.create(name);
         }
 
         protected static boolean indexMethod(DoesRespondDispatchHeadNode definedIndexNode, DynamicObject receiver) {
@@ -335,7 +328,7 @@ public class RubyObjectMessages {
         @Specialization(guards = { "!isIVar(name)", "!indexSetMethod(receiver, doesRespond)" })
         protected static void unknownIdentifier(DynamicObject receiver, String name, Object value,
                 @Cached DoesRespondDispatchHeadNode doesRespond) throws UnknownIdentifierException {
-            throw UnknownIdentifierException.create(StringUtils.toString(name));
+            throw UnknownIdentifierException.create(name);
         }
 
         protected static boolean indexSetMethod(DynamicObject receiver, DoesRespondDispatchHeadNode doesRespond) {
