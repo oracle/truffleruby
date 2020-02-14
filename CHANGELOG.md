@@ -54,6 +54,7 @@ Changes:
 
 * `TRUFFLERUBY_RESILIENT_GEM_HOME` has been removed. Unset `GEM_HOME` and `GEM_PATH` instead if you need to.
 * Implemented `Enumerator::ArithmeticSequence`.
+* `ArrayBuilderNode` now uses a new Truffle library for manipulating array stores.
 
 Performance:
 
