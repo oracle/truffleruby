@@ -7,47 +7,37 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  *
- * Some logic copied from jruby.util.Pack
+ * Some logic copied from pack.c
  *
- *  * Version: EPL 2.0/GPL 2.0/LGPL 2.1
+ * Copyright (C) 1993-2013 Yukihiro Matsumoto. All rights reserved.
  *
- * The contents of this file are subject to the Eclipse Public
- * License Version 1.0 (the "License"); you may not use this file
- * except in compliance with the License. You may obtain a copy of
- * the License at http://www.eclipse.org/legal/epl-v10.html
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
  *
- * Software distributed under the License is distributed on an "AS
- * IS" basis, WITHOUT WARRANTY OF ANY KIND, either express or
- * implied. See the License for the specific language governing
- * rights and limitations under the License.
- *
- * Copyright (C) 2002-2004 Jan Arne Petersen <jpetersen@uni-bonn.de>
- * Copyright (C) 2002-2004 Anders Bengtsson <ndrsbngtssn@yahoo.se>
- * Copyright (C) 2003-2004 Thomas E Enebo <enebo@acm.org>
- * Copyright (C) 2004 Charles O Nutter <headius@headius.com>
- * Copyright (C) 2004 Stefan Matthias Aust <sma@3plus4.de>
- * Copyright (C) 2005 Derek Berner <derek.berner@state.nm.us>
- * Copyright (C) 2006 Evan Buswell <ebuswell@gmail.com>
- * Copyright (C) 2007 Nick Sieger <nicksieger@gmail.com>
- * Copyright (C) 2009 Joseph LaFata <joe@quibb.org>
- *
- * Alternatively, the contents of this file may be used under the terms of
- * either of the GNU General Public License Version 2 or later (the "GPL"),
- * or the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
- * in which case the provisions of the GPL or the LGPL are applicable instead
- * of those above. If you wish to allow use of your version of this file only
- * under the terms of either the GPL or the LGPL, and not to allow others to
- * use your version of this file under the terms of the EPL, indicate your
- * decision by deleting the provisions above and replace them with the notice
- * and other provisions required by the GPL or the LGPL. If you do not delete
- * the provisions above, a recipient may use your version of this file under
- * the terms of any one of the EPL, the GPL or the LGPL.
  */
 package org.truffleruby.core.format.read.bytes;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
@@ -66,62 +56,81 @@ public abstract class ReadMIMEStringNode extends FormatNode {
     @Specialization
     protected Object read(VirtualFrame frame, byte[] source) {
         final int position = getSourcePosition(frame);
-        final int length = getSourceLength(frame);
+        final int sourceLength = getSourceLength(frame);
 
-        final ByteBuffer encode = ByteBuffer.wrap(source, position, length - position);
+        final byte[] store = new byte[sourceLength - position];
 
-        final byte[] lElem = new byte[Math.max(encode.remaining(), 0)];
+        final int storeIndex = parseSource(source, position, sourceLength, store);
 
-        int index = 0;
+        setSourcePosition(frame, sourceLength);
 
-        while (encode.hasRemaining()) {
-            int c = safeGet(encode);
+        return makeStringNode
+                .executeMake(Arrays.copyOfRange(store, 0, storeIndex), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+    }
 
-            if (c != '=') {
-                lElem[index++] = (byte) c;
-            } else {
-                if (!encode.hasRemaining()) {
-                    break;
+    // Logic from MRI pack.c pack_unpack_internal
+    // https://github.com/ruby/ruby/blob/37c2cd3fa47c709570e22ec4dac723ca211f423a/pack.c#L1639
+    @TruffleBoundary
+    private int parseSource(byte[] source, int position, int sourceLength, byte[] store) {
+        System.arraycopy(source, position, store, 0, sourceLength - position);
+
+        int storeIndex = 0;
+        int loopIndex = 0;
+        if (source.length > 0) {
+            int c = source[0] & 0xff;
+            int i = position;
+            while (i < sourceLength) {
+
+                if (c == '=') {
+                    if (++i == sourceLength) {
+                        break;
+                    }
+                    c = source[i] & 0xff;
+
+                    if (i + 1 < sourceLength && c == '\r' && (source[i + 1] & 0xff) == '\n') {
+                        i++;
+                        c = source[i] & 0xff;
+                    }
+
+                    if (c != '\n') {
+                        final int c1 = Character.digit(c, 16);
+                        if (c1 == -1) {
+                            break;
+                        }
+
+                        if (++i == sourceLength) {
+                            break;
+                        }
+                        c = source[i] & 0xff;
+
+                        final int c2 = Character.digit(c, 16);
+                        if (c2 == -1) {
+                            break;
+                        }
+
+                        final byte value = (byte) (c1 << 4 | c2);
+                        store[storeIndex] = value;
+                        storeIndex++;
+                    }
+
+                } else {
+                    store[storeIndex] = (byte) c;
+                    storeIndex++;
                 }
-
-                encode.mark();
-
-                final int c1 = safeGet(encode);
-
-                if (c1 == '\n' || c1 == '\r') {
-                    continue;
+                i++;
+                if (i < sourceLength) {
+                    c = source[i] & 0xff;
                 }
-
-                final int d1 = Character.digit(c1, 16);
-
-                if (d1 == -1) {
-                    encode.reset();
-                    break;
-                }
-
-                encode.mark();
-
-                if (!encode.hasRemaining()) {
-                    break;
-                }
-
-                final int c2 = safeGet(encode);
-                final int d2 = Character.digit(c2, 16);
-
-                if (d2 == -1) {
-                    encode.reset();
-                    break;
-                }
-
-                byte value = (byte) (d1 << 4 | d2);
-                lElem[index++] = value;
+                loopIndex = i;
             }
         }
 
-        setSourcePosition(frame, encode.position());
-
-        return makeStringNode
-                .executeMake(Arrays.copyOfRange(lElem, 0, index), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        final int storeLength = store.length;
+        if (loopIndex < storeLength) {
+            System.arraycopy(source, loopIndex, store, storeIndex, storeLength - loopIndex);
+            storeIndex += storeLength - loopIndex;
+        }
+        return storeIndex;
     }
 
 }
