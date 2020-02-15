@@ -45,6 +45,7 @@ Compatibility:
 * `StringIO#inspect` should not include the contents of the `StringIO` (#1898).
 * Implemented `rb_fd_*` functions (#1623).
 * Fixed uninitialized variable warnings in core and lib (#1897).
+* Fixed the type of the `flags` field of `rb_data_type_t` (#1911).
 
 Changes:
 
