@@ -38,8 +38,8 @@
 
 void* rb_tr_cext;
 void* (*rb_tr_unwrap)(VALUE obj);
-void* (*rb_tr_wrap)(VALUE obj);
-void* (*rb_tr_longwrap)(long obj);
+VALUE (*rb_tr_wrap)(void *obj);
+VALUE (*rb_tr_longwrap)(long obj);
 
 #ifdef __APPLE__
 static printf_domain_t printf_domain;
@@ -429,7 +429,7 @@ int RB_FIXNUM_P(VALUE value) {
 }
 
 int RTEST(VALUE value) {
-  return value != NULL && polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RTEST", value));
+  return value != Qfalse && polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RTEST", value));
 }
 
 // Kernel
@@ -1758,7 +1758,7 @@ const char* rb_class2name(VALUE ruby_class) {
 }
 
 VALUE rb_class_real(VALUE ruby_class) {
-  if (ruby_class == NULL) {
+  if (!ruby_class) {
     return NULL;
   }
   return RUBY_CEXT_INVOKE("rb_class_real", ruby_class);
@@ -2163,11 +2163,11 @@ VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS)
   VALUE rescued = rb_ary_new();
   int n = 4;
   while (true) {
-    VALUE arg = polyglot_get_arg(n);
+    void* arg = polyglot_get_arg(n);
     if (arg == NULL) {
       break;
     }
-    rb_ary_push(rescued, arg);
+    rb_ary_push(rescued, (VALUE) arg);
     n++;
   }
   return polyglot_invoke(RUBY_CEXT, "rb_rescue2", b_proc, data1, r_proc, data2, rb_tr_unwrap(rescued));
@@ -2182,7 +2182,7 @@ void rb_throw(const char *tag, VALUE val) {
 }
 
 void rb_throw_obj(VALUE tag, VALUE value) {
-  RUBY_INVOKE_NO_WRAP(rb_mKernel, "throw", tag, value == NULL ? Qnil : value);
+  RUBY_INVOKE_NO_WRAP(rb_mKernel, "throw", tag, value ? value : Qnil);
   rb_tr_error("rb_throw_obj should not return");
 }
 
@@ -2218,7 +2218,7 @@ VALUE rb_define_class_under(VALUE module, const char *name, VALUE superclass) {
 }
 
 VALUE rb_define_class_id_under(VALUE module, ID name, VALUE superclass) {
-  if (superclass == NULL) {
+  if (!superclass) {
     // Handle the horrid semantics of what 0 means in this case.
     return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_define_class_under", rb_tr_unwrap(module), rb_tr_unwrap(name), superclass));
   }
@@ -2946,7 +2946,7 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 }
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
-  if (rb_tr_object_hidden_var_get(value, "data_type") != data_type) {
+  if ((rb_data_type_t*) rb_tr_object_hidden_var_get(value, "data_type") != data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
   }
   return RTYPEDDATA_DATA(value);
@@ -3557,7 +3557,7 @@ VALUE rb_class_inherited(VALUE super, VALUE klass) {
 
 VALUE rb_define_class_id(ID id, VALUE super) {
   // id is deliberately ignored - see MRI
-  if (super == NULL) {
+  if (!super) {
     super = rb_cObject;
   }
   return rb_class_new(super);
