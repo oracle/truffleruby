@@ -36,8 +36,8 @@ extern "C" {
 
 // Value types
 
-typedef void *VALUE;
-typedef VALUE ID;
+typedef unsigned long VALUE;
+typedef unsigned long ID;
 
 // Support
 
