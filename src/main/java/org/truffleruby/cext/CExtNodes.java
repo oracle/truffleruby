@@ -1541,46 +1541,6 @@ public class CExtNodes {
         }
     }
 
-    @CoreMethod(names = "RB_NIL_P", onSingleton = true, required = 1)
-    @ImportStatic({ ValueWrapperManager.class })
-    public abstract static class NilPNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean nilPWrapper(ValueWrapper value) {
-            return value.getObject() == nil;
-        }
-
-        @Specialization(
-                guards = { "!isWrapper(value)", "values.isPointer(value)" },
-                limit = "getCacheLimit()",
-                rewriteOn = UnsupportedMessageException.class)
-        protected boolean nilPPointer(Object value,
-                @CachedLibrary("value") InteropLibrary values) throws UnsupportedMessageException {
-            return values.asPointer(value) == ValueWrapperManager.NIL_HANDLE;
-        }
-
-        @Specialization(
-                guards = { "!isWrapper(value)", "values.isPointer(value)" },
-                limit = "getCacheLimit()",
-                replaces = "nilPPointer")
-        protected boolean nilPGeneric(Object value,
-                @CachedLibrary("value") InteropLibrary values,
-                @Cached BranchProfile unsupportedProfile) {
-            long handle = 0;
-            try {
-                handle = values.asPointer(value);
-            } catch (UnsupportedMessageException e) {
-                unsupportedProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
-            }
-            return handle == ValueWrapperManager.NIL_HANDLE;
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().DISPATCH_CACHE;
-        }
-    }
-
     @CoreMethod(names = "rb_tr_unwrap_function", onSingleton = true, required = 0)
     public abstract static class UnwrapperFunctionNode extends CoreMethodArrayArgumentsNode {
 
