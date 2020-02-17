@@ -25,6 +25,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode;
@@ -347,19 +348,19 @@ public abstract class ArrayNodes {
                 @Cached ArrayBuilderNode arrayBuilder) {
             final int size = strategy.getSize(array);
             final Object store = Layouts.ARRAY.getStore(array);
-            Object newStore = arrayBuilder.start(size);
+            BuilderState state = arrayBuilder.start(size);
 
             int m = 0;
 
             for (int n = 0; n < size; n++) {
                 Object v = getNode.execute(store, n);
                 if (v != nil) {
-                    newStore = arrayBuilder.appendValue(newStore, m, v);
+                    arrayBuilder.appendValue(state, m, v);
                     m++;
                 }
             }
 
-            return createArray(arrayBuilder.finish(newStore, m), m);
+            return createArray(arrayBuilder.finish(state, m), m);
         }
 
     }
@@ -1026,20 +1027,20 @@ public abstract class ArrayNodes {
         protected Object initializeBlock(DynamicObject array, int size, Object unusedFillingValue, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            Object store = arrayBuilder.start(size);
+            BuilderState state = arrayBuilder.start(size);
 
             int n = 0;
             try {
                 for (; n < size; n++) {
                     final Object value = yield(block, n);
                     propagateSharingNode.executePropagate(array, value);
-                    store = arrayBuilder.appendValue(store, n, value);
+                    arrayBuilder.appendValue(state, n, value);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
                     LoopNode.reportLoopCount(this, n);
                 }
-                setStoreAndSize(array, arrayBuilder.finish(store, n), n);
+                setStoreAndSize(array, arrayBuilder.finish(state, n), n);
             }
 
             return array;
@@ -1271,13 +1272,13 @@ public abstract class ArrayNodes {
                 @Cached ArrayBuilderNode arrayBuilder) {
             final Object store = Layouts.ARRAY.getStore(array);
             final int size = strategy.getSize(array);
-            Object mappedStore = arrayBuilder.start(size);
+            BuilderState state = arrayBuilder.start(size);
 
             int n = 0;
             try {
                 for (; n < strategy.getSize(array); n++) {
                     final Object mappedValue = yield(block, getNode.execute(store, n));
-                    mappedStore = arrayBuilder.appendValue(mappedStore, n, mappedValue);
+                    arrayBuilder.appendValue(state, n, mappedValue);
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -1285,7 +1286,7 @@ public abstract class ArrayNodes {
                 }
             }
 
-            return createArray(arrayBuilder.finish(mappedStore, size), size);
+            return createArray(arrayBuilder.finish(state, size), size);
         }
 
     }
@@ -1572,8 +1573,9 @@ public abstract class ArrayNodes {
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
                 @Cached ArrayBuilderNode arrayBuilder) {
             final Object store = Layouts.ARRAY.getStore(array);
+            final int size = Layouts.ARRAY.getSize(array);
 
-            Object selectedStore = arrayBuilder.start(strategy.getSize(array));
+            BuilderState state = arrayBuilder.start(size);
             int selectedSize = 0;
 
             int n = 0;
@@ -1582,7 +1584,7 @@ public abstract class ArrayNodes {
                     final Object value = getNode.execute(store, n);
 
                     if (!yieldIsTruthy(block, value)) {
-                        selectedStore = arrayBuilder.appendValue(selectedStore, selectedSize, value);
+                        arrayBuilder.appendValue(state, selectedSize, value);
                         selectedSize++;
                     }
                 }
@@ -1592,7 +1594,7 @@ public abstract class ArrayNodes {
                 }
             }
 
-            return createArray(arrayBuilder.finish(selectedStore, selectedSize), selectedSize);
+            return createArray(arrayBuilder.finish(state, selectedSize), selectedSize);
         }
 
     }
@@ -1837,7 +1839,7 @@ public abstract class ArrayNodes {
                 @Cached ArrayBuilderNode arrayBuilder) {
             final Object store = Layouts.ARRAY.getStore(array);
 
-            Object selectedStore = arrayBuilder.start(strategy.getSize(array));
+            BuilderState state = arrayBuilder.start(Layouts.ARRAY.getSize(array));
             int selectedSize = 0;
 
             int n = 0;
@@ -1846,7 +1848,7 @@ public abstract class ArrayNodes {
                     final Object value = getNode.execute(store, n);
 
                     if (yieldIsTruthy(block, value)) {
-                        selectedStore = arrayBuilder.appendValue(selectedStore, selectedSize, value);
+                        arrayBuilder.appendValue(state, selectedSize, value);
                         selectedSize++;
                     }
                 }
@@ -1856,7 +1858,7 @@ public abstract class ArrayNodes {
                 }
             }
 
-            return createArray(arrayBuilder.finish(selectedStore, selectedSize), selectedSize);
+            return createArray(arrayBuilder.finish(state, selectedSize), selectedSize);
         }
 
     }

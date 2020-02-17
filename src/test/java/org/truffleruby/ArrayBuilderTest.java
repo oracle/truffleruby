@@ -28,6 +28,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
 
@@ -43,10 +45,8 @@ public class ArrayBuilderTest {
     public void emptyBuilderTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start();
-            store = builder.finish(store, 0);
-            assertEquals(int[].class, store.getClass());
-            assertEquals(((int[]) store).length, 0);
+            BuilderState state = builder.start();
+            assertEquals(ArrayStoreLibrary.INITIAL_STORE, builder.finish(state, 0));
         });
     }
 
@@ -54,9 +54,8 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendNothingTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
-            store = builder.finish(store, 0);
-            assertEquals(int[].class, store.getClass());
+            BuilderState state = builder.start(10);
+            assertEquals(ArrayStoreLibrary.INITIAL_STORE, builder.finish(state, 0));
         });
     }
 
@@ -64,12 +63,11 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendIntTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
+            BuilderState state = builder.start(10);
             for (int i = 0; i < 10; i++) {
-                store = builder.appendValue(store, i, i);
+                builder.appendValue(state, i, i);
             }
-            store = builder.finish(store, 10);
-            assertEquals(int[].class, store.getClass());
+            assertEquals(int[].class, builder.finish(state, 10).getClass());
         });
     }
 
@@ -77,12 +75,11 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendLongTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
+            BuilderState state = builder.start(10);
             for (int i = 0; i < 10; i++) {
-                store = builder.appendValue(store, i, ((long) i) << 33);
+                builder.appendValue(state, i, ((long) i) << 33);
             }
-            store = builder.finish(store, 10);
-            assertEquals(long[].class, store.getClass());
+            assertEquals(long[].class, builder.finish(state, 10).getClass());
         });
     }
 
@@ -90,12 +87,11 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendDoubleTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
+            BuilderState state = builder.start(10);
             for (int i = 0; i < 10; i++) {
-                store = builder.appendValue(store, i, i * 0.0d);
+                builder.appendValue(state, i, i * 0.0d);
             }
-            // This should be double[], but we don't manage this yet.
-            assertEquals(Object[].class, store.getClass());
+            assertEquals(double[].class, builder.finish(state, 10).getClass());
         });
     }
 
@@ -103,12 +99,11 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendObjectTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
+            BuilderState state = builder.start(10);
             for (int i = 0; i < 10; i++) {
-                store = builder.appendValue(store, i, new Object());
+                builder.appendValue(state, i, new Object());
             }
-            store = builder.finish(store, 10);
-            assertEquals(Object[].class, store.getClass());
+            assertEquals(Object[].class, builder.finish(state, 10).getClass());
         });
     }
 
@@ -116,12 +111,11 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendIntArrayTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
+            BuilderState state = builder.start(10);
             DynamicObject otherStore = Layouts.ARRAY
                     .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new int[10], 10);
-            store = builder.appendArray(store, 0, otherStore);
-            store = builder.finish(store, 10);
-            assertEquals(int[].class, store.getClass());
+            builder.appendArray(state, 0, otherStore);
+            assertEquals(int[].class, builder.finish(state, 10).getClass());
         });
     }
 
@@ -129,12 +123,11 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendLongArrayTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
+            BuilderState state = builder.start(10);
             DynamicObject otherStore = Layouts.ARRAY
                     .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new long[10], 10);
-            store = builder.appendArray(store, 0, otherStore);
-            store = builder.finish(store, 10);
-            assertEquals(long[].class, store.getClass());
+            builder.appendArray(state, 0, otherStore);
+            assertEquals(long[].class, builder.finish(state, 10).getClass());
         });
     }
 
@@ -142,13 +135,11 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendDoubleArrayTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
+            BuilderState state = builder.start(10);
             DynamicObject otherStore = Layouts.ARRAY
                     .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new double[10], 10);
-            store = builder.appendArray(store, 0, otherStore);
-            store = builder.finish(store, 10);
-            // This should be double[], but we don't manage this yet.
-            assertEquals(Object[].class, store.getClass());
+            builder.appendArray(state, 0, otherStore);
+            assertEquals(double[].class, builder.finish(state, 10).getClass());
         });
     }
 
@@ -156,12 +147,11 @@ public class ArrayBuilderTest {
     public void arrayBuilderAppendObjectArrayTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
-            Object store = builder.start(10);
+            BuilderState state = builder.start(10);
             DynamicObject otherStore = Layouts.ARRAY
                     .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new Object[10], 10);
-            store = builder.appendArray(store, 0, otherStore);
-            store = builder.finish(store, 10);
-            assertEquals(Object[].class, store.getClass());
+            builder.appendArray(state, 0, otherStore);
+            assertEquals(Object[].class, builder.finish(state, 10).getClass());
         });
     }
 
