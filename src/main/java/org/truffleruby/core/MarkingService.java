@@ -17,7 +17,6 @@ import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Class to provide GC marking and other facilities to keep objects alive for native extensions.
  *

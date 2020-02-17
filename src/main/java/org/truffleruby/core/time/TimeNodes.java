@@ -89,7 +89,7 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
 
         @Specialization(guards = "isNil(offset)")
-        protected DynamicObject localtime(DynamicObject time, DynamicObject offset,
+        protected DynamicObject localtime(DynamicObject time, Object offset,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime newDateTime = withZone(Layouts.TIME.getDateTime(time), timeZoneAndName.getZone());

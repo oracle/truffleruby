@@ -50,7 +50,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             argumentsObjects[i] = arguments[i].execute(frame);
         }
 
-        DynamicObject block = (DynamicObject) readBlockNode.execute(frame);
+        Object block = readBlockNode.execute(frame);
 
         if (block == nil()) {
             useCapturedBlock.enter();
@@ -67,7 +67,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
             argumentsObjects = unsplat(argumentsObjects);
         }
 
-        return getYieldNode().executeDispatch(block, argumentsObjects);
+        return getYieldNode().executeDispatch((DynamicObject) block, argumentsObjects);
     }
 
     private Object[] unsplat(Object[] argumentsObjects) {

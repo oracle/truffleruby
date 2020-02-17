@@ -51,7 +51,10 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
-import org.truffleruby.language.*;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -1195,14 +1198,14 @@ public abstract class ArrayNodes {
                         "wasProvided(initialOrSymbol)",
                         "isNil(block)" })
         protected Object injectSymbolEmptyArray(DynamicObject array, Object initialOrSymbol, DynamicObject symbol,
-                DynamicObject block) {
+                Object block) {
             return initialOrSymbol;
         }
 
-        @Specialization(guards = { "isRubySymbol(initialOrSymbol)", "isEmptyArray(array)" })
+        @Specialization(guards = { "isRubySymbol(initialOrSymbol)", "isEmptyArray(array)", "isNil(block)" })
         protected Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject initialOrSymbol,
                 NotProvided symbol,
-                DynamicObject block) {
+                Object block) {
             return nil();
         }
 
@@ -1215,7 +1218,7 @@ public abstract class ArrayNodes {
                         "isNil(block)" },
                 limit = "STORAGE_STRATEGIES")
         protected Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initialOrSymbol,
-                DynamicObject symbol, DynamicObject block,
+                DynamicObject symbol, Object block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);
@@ -1230,7 +1233,7 @@ public abstract class ArrayNodes {
                         "isNil(block)" },
                 limit = "STORAGE_STRATEGIES")
         protected Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject initialOrSymbol,
-                NotProvided symbol, DynamicObject block,
+                NotProvided symbol, Object block,
                 @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
             final Object store = Layouts.ARRAY.getStore(array);

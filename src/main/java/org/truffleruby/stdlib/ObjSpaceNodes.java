@@ -32,7 +32,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(object)")
-        protected int memsizeOfNil(DynamicObject object) {
+        protected int memsizeOfNil(Object object) {
             return 0;
         }
 

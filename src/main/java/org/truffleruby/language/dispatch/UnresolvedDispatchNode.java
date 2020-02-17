@@ -161,7 +161,6 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                     argumentsObjects);
         }
 
-        // REVIEW Maybe Nil?
         if (receiverObject instanceof Boolean) {
             final MethodLookupResult falseMethodLookup = lookup(
                     frame,

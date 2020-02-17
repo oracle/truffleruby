@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -47,8 +48,8 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
         return coreLibrary().falseClass;
     }
 
-    @Specialization(guards = "isNil(value)")
-    protected DynamicObject singletonClassNil(DynamicObject value) {
+    @Specialization
+    protected DynamicObject singletonClassNil(Nil value) {
         return coreLibrary().nilClass;
     }
 

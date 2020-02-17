@@ -447,8 +447,6 @@ public class CoreLibrary {
         final DynamicObject mutexClass = defineClass("Mutex");
         Layouts.CLASS.setInstanceFactoryUnsafe(mutexClass, Layouts.MUTEX.createMutexShape(mutexClass, mutexClass));
         nilClass = defineClass("NilClass");
-        DynamicObjectFactory nilFactory = alwaysShared(alwaysFrozen(Layouts.NIL.createNilShape(nilClass, nilClass)));
-        Layouts.CLASS.setInstanceFactoryUnsafe(nilClass, nilFactory);
         procClass = defineClass("Proc");
         procFactory = Layouts.PROC.createProcShape(procClass, procClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(procClass, procFactory);

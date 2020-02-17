@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.threadlocal;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 public class ThreadLocalGlobals {
 
     public Object exception; // $!

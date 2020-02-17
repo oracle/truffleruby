@@ -623,7 +623,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadSetNamePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyThread(thread)")
-        protected DynamicObject setName(DynamicObject thread, DynamicObject name) {
+        protected Object setName(DynamicObject thread, Object name) {
             Layouts.THREAD.setName(thread, name);
             return name;
         }
@@ -702,7 +702,7 @@ public abstract class ThreadNodes {
     public static abstract class SetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setException(VirtualFrame frame, DynamicObject exception,
+        protected Object setException(VirtualFrame frame, Object exception,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
             return Layouts.THREAD
                     .getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception = exception;

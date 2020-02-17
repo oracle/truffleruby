@@ -1023,17 +1023,17 @@ public abstract class StringNodes {
             return DeleteBangNodeFactory.create(null);
         }
 
-        public abstract DynamicObject executeDeleteBang(VirtualFrame frame, DynamicObject string, Object[] args);
+        public abstract Object executeDeleteBang(VirtualFrame frame, DynamicObject string, Object[] args);
 
         @Specialization(guards = "args.length == size", limit = "getDefaultCacheLimit()")
-        protected DynamicObject deleteBang(VirtualFrame frame, DynamicObject string, Object[] args,
+        protected Object deleteBang(VirtualFrame frame, DynamicObject string, Object[] args,
                 @Cached("args.length") int size) {
             final Rope[] ropes = argRopes(frame, args, size);
             return deleteBangRopesNode.executeDeleteBang(string, ropes);
         }
 
         @Specialization(replaces = "deleteBang")
-        protected DynamicObject deleteBangSlow(VirtualFrame frame, DynamicObject string, Object[] args) {
+        protected Object deleteBangSlow(VirtualFrame frame, DynamicObject string, Object[] args) {
             final Rope[] ropes = argRopesSlow(frame, args);
             return deleteBangRopesNode.executeDeleteBang(string, ropes);
         }
@@ -1063,7 +1063,7 @@ public abstract class StringNodes {
             return DeleteBangRopesNodeFactory.create(null);
         }
 
-        public abstract DynamicObject executeDeleteBang(DynamicObject string, Rope[] ropes);
+        public abstract Object executeDeleteBang(DynamicObject string, Rope[] ropes);
 
         @Specialization(guards = "isEmpty(string)")
         protected Object deleteBangEmpty(DynamicObject string, Object[] args) {
@@ -1384,7 +1384,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isNil(encoding)")
         protected DynamicObject initializeJavaStringNoEncoding(DynamicObject string, String from,
-                DynamicObject encoding) {
+                Object encoding) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError(
@@ -1393,14 +1393,14 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isRubyString(from)")
-        protected DynamicObject initialize(DynamicObject string, DynamicObject from, DynamicObject encoding) {
+        protected DynamicObject initialize(DynamicObject string, DynamicObject from, Object encoding) {
             StringOperations.setRope(string, rope(from));
             return string;
         }
 
         @Specialization(guards = { "!isRubyString(from)", "!isString(from)" })
         protected DynamicObject initialize(VirtualFrame frame, DynamicObject string, Object from,
-                DynamicObject encoding,
+                Object encoding,
                 @Cached ToStrNode toStrNode) {
             StringOperations.setRope(string, rope(toStrNode.executeToStr(frame, from)));
             return string;
@@ -3335,7 +3335,7 @@ public abstract class StringNodes {
                 @Cached("createBinaryProfile()") ConditionProfile lengthTooLongProfile,
                 @Cached("createBinaryProfile()") ConditionProfile nilSubstringProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptySubstringProfile) {
-            final DynamicObject subString = (DynamicObject) stringByteSubstring(
+            final Object subString = stringByteSubstring(
                     string,
                     index,
                     1,
@@ -3347,7 +3347,7 @@ public abstract class StringNodes {
                 return subString;
             }
 
-            if (emptySubstringProfile.profile(rope(subString).isEmpty())) {
+            if (emptySubstringProfile.profile(rope((DynamicObject) subString).isEmpty())) {
                 return nil();
             }
 
@@ -5067,7 +5067,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isNil(string)")
-        protected Object emptyString(DynamicObject string) {
+        protected Object emptyString(Object string) {
             return getContext().getEnv().asGuestValue(null);
         }
 

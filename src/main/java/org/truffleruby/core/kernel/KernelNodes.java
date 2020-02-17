@@ -73,6 +73,7 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -821,6 +822,14 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
+        @Specialization(guards = "isNil(self)")
+        protected int hash(Object self) {
+            // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
+            // own @CoreMethod hash
+            return System.identityHashCode(self);
+        }
+
+        @TruffleBoundary
         @Specialization(guards = "!isRubyBignum(self)")
         protected int hash(DynamicObject self) {
             // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
@@ -904,7 +913,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubySymbol(object) || isNil(object)")
-        protected boolean isInstanceVariableDefinedSymbolOrNil(DynamicObject object, String name) {
+        protected boolean isInstanceVariableDefinedSymbolOrNil(Object object, String name) {
             return false;
         }
 
@@ -1039,7 +1048,7 @@ public abstract class KernelNodes {
                     .getCallStack()
                     .getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE)
                     .materialize();
-            DynamicObject parentBlock = (DynamicObject) readNode
+            Object parentBlock = readNode
                     .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
             if (parentBlock == nil()) {
@@ -1052,9 +1061,9 @@ public abstract class KernelNodes {
 
             Node callNode = getContext().getCallStack().getCallerNode(2, true);
             if (isLiteralBlock(callNode)) {
-                return lambdaFromBlock(parentBlock);
+                return lambdaFromBlock((DynamicObject) parentBlock);
             } else {
-                return parentBlock;
+                return (DynamicObject) parentBlock;
             }
         }
 
@@ -1981,6 +1990,11 @@ public abstract class KernelNodes {
         @Specialization
         protected boolean untaint(boolean bool) {
             return bool;
+        }
+
+        @Specialization
+        protected Object untaint(Nil nil) {
+            return nil;
         }
 
         @Specialization

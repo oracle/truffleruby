@@ -53,7 +53,7 @@ public abstract class HashCastNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "isNil(nil)")
-    protected Object castNil(DynamicObject nil) {
+    protected Object castNil(Object nil) {
         return nil();
     }
 

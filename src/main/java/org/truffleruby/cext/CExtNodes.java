@@ -171,7 +171,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray,
-                DynamicObject block,
+                Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
             extensionStack.push(block);
@@ -929,7 +929,7 @@ public class CExtNodes {
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization(guards = "isNil(message)")
-        protected Object rbSysErrFailNoMessage(int errno, DynamicObject message) {
+        protected Object rbSysErrFailNoMessage(int errno, Object message) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
             throw new RaiseException(getContext(), errnoError(errno, nil(), backtrace));
         }

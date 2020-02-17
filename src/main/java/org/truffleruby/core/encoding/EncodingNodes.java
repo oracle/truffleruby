@@ -591,7 +591,7 @@ public abstract class EncodingNodes {
         }
 
         @Specialization(guards = "isNil(encoding)")
-        protected DynamicObject noDefaultExternal(DynamicObject encoding) {
+        protected DynamicObject noDefaultExternal(Object encoding) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError("default external can not be nil", this));
@@ -609,7 +609,7 @@ public abstract class EncodingNodes {
         }
 
         @Specialization(guards = "isNil(encoding)")
-        protected Object noDefaultInternal(DynamicObject encoding) {
+        protected Object noDefaultInternal(Object encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(null);
             return nil();
         }

@@ -33,6 +33,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -344,6 +345,11 @@ public abstract class TruffleDebugNodes {
         @Specialization(replaces = "isSharedCached")
         protected boolean isShared(DynamicObject object) {
             return SharedObjects.isShared(getContext(), object);
+        }
+
+        @Specialization
+        protected boolean isSharedNil(Nil object) {
+            return true;
         }
 
         protected int getCacheLimit() {

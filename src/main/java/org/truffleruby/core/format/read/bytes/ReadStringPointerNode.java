@@ -40,7 +40,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
     }
 
     @Specialization(guards = "isNil(nil)")
-    protected MissingValue decode(DynamicObject nil) {
+    protected MissingValue decode(Object nil) {
         return MissingValue.INSTANCE;
     }
 

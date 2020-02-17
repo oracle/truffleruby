@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -51,6 +52,11 @@ public abstract class LogicalClassNode extends RubyContextNode {
     @Specialization
     protected DynamicObject logicalClassDouble(double value) {
         return coreLibrary().floatClass;
+    }
+
+    @Specialization
+    protected DynamicObject logicalClassNil(Nil value) {
+        return coreLibrary().nilClass;
     }
 
     @Specialization(

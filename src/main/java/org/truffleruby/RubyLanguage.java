@@ -16,7 +16,11 @@ import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.debug.LexicalScope;
-import org.truffleruby.language.*;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyInlineParsingRequestNode;
+import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.BuildInformationImpl;
 import org.truffleruby.shared.Metrics;
@@ -192,7 +196,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     protected String toString(RubyContext context, Object value) {
         if (value == null) {
             return "<null>";
-        } else if (RubyGuards.isBoxedPrimitive(value) || RubyGuards.isRubyBasicObject(value)) {
+        } else if (RubyGuards.isBoxedPrimitive(value) || RubyGuards.isRubyBasicObject(value) || value instanceof Nil) {
             return context.send(value, "inspect").toString();
         } else if (value instanceof NotProvided) {
             return "<undefined>";

@@ -26,10 +26,6 @@ describe "Truffle::Interop.keys?" do
     Truffle::Interop.keys?(Object.new.freeze).should be_true
   end
 
-  it "returns true for nil" do
-    Truffle::Interop.keys?(nil).should be_true
-  end
-
   it "returns true for true" do
     Truffle::Interop.keys?(true).should be_true
   end

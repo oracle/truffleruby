@@ -194,7 +194,7 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization(guards = { "isNil(source)", "isRubyString(target)" })
-        protected Object primitiveConvertNilSource(DynamicObject encodingConverter, DynamicObject source,
+        protected Object primitiveConvertNilSource(DynamicObject encodingConverter, Object source,
                 DynamicObject target, int offset, int size, int options) {
             return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
         }
@@ -209,12 +209,12 @@ public abstract class EncodingConverterNodes {
         }
 
         @TruffleBoundary
-        private Object primitiveConvertHelper(DynamicObject encodingConverter, DynamicObject source,
+        private Object primitiveConvertHelper(DynamicObject encodingConverter, Object source,
                 DynamicObject target, int offset, int size, int options) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
             final boolean nonNullSource = source != nil();
-            Rope sourceRope = nonNullSource ? rope(source) : RopeConstants.EMPTY_UTF8_ROPE;
+            Rope sourceRope = nonNullSource ? rope((DynamicObject) source) : RopeConstants.EMPTY_UTF8_ROPE;
             final Rope targetRope = rope(target);
             final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
 
@@ -276,7 +276,7 @@ public abstract class EncodingConverterNodes {
 
                 if (nonNullSource) {
                     sourceRope = substringNode.executeSubstring(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
-                    StringOperations.setRope(source, sourceRope);
+                    StringOperations.setRope((DynamicObject) source, sourceRope);
                 }
 
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {

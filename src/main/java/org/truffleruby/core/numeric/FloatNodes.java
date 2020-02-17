@@ -424,6 +424,12 @@ public abstract class FloatNodes {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
 
+        @Specialization(guards = { "!isNaN(a)", "isNil(b)" })
+        protected Object compare(double a, Object b,
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
+        }
+
     }
 
     @CoreMethod(names = ">=", required = 1)

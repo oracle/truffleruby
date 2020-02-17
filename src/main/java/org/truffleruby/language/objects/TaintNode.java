@@ -51,7 +51,7 @@ public abstract class TaintNode extends RubyContextNode {
     }
 
     @Specialization(guards = "isRubySymbol(object) || isNil(object)")
-    protected Object taintNilOrSymbol(DynamicObject object) {
+    protected Object taintNilOrSymbol(Object object) {
         return object;
     }
 

@@ -56,7 +56,7 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "isNil(duration)")
-    protected long durationNil(DynamicObject duration) {
+    protected long durationNil(Object duration) {
         if (acceptsNil) {
             return noDuration(NotProvided.INSTANCE);
         } else {

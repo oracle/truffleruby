@@ -17,7 +17,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
@@ -86,7 +85,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
         @Override
         public Object execute(VirtualFrame frame) {
             final Object matchResult = matchDataNode.execute(frame);
-            DynamicObject match = (DynamicObject) readMatchNode.execute(frame);
+            Object match = readMatchNode.execute(frame);
             if (matchNilProfile.profile(match == nil())) {
                 setNamedForNil(frame);
             } else {

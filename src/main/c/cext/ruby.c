@@ -610,7 +610,7 @@ bool rb_tr_obj_taintable_p(VALUE object) {
 }
 
 bool rb_tr_obj_tainted_p(VALUE object) {
-  return polyglot_as_boolean(RUBY_INVOKE_NO_WRAP(object, "tainted?"));
+  return RTEST(rb_obj_tainted(object));
 }
 
 void rb_tr_obj_infect(VALUE a, VALUE b) {

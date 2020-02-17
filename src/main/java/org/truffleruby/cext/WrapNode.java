@@ -83,7 +83,7 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isNil(context, value)")
-    protected ValueWrapper wrapNil(DynamicObject value,
+    protected ValueWrapper wrapNil(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getValueWrapperManager().nilWrapper;
     }

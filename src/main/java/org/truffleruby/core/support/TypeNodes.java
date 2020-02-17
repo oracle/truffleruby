@@ -151,7 +151,7 @@ public abstract class TypeNodes {
         }
 
         @Specialization(guards = "isNil(object)")
-        protected DynamicObject instanceVariablesNil(DynamicObject object) {
+        protected DynamicObject instanceVariablesNil(Object object) {
             return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 

@@ -28,7 +28,7 @@ public abstract class ToStringObjectNode extends FormatNode {
     public abstract Object executeToStringObject(VirtualFrame frame, Object object);
 
     @Specialization(guards = "isNil(nil)")
-    protected Object toStringString(DynamicObject nil) {
+    protected Object toStringString(Object nil) {
         return nil();
     }
 
