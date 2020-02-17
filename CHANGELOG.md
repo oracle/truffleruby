@@ -52,6 +52,7 @@ Compatibility:
 * Fixed uninitialized variable warnings in core and lib (#1897).
 * Make `Thread#backtrace` support omit, length and range arguments.
 * Implemented `Range#%`.
+* Fixed the type of the `flags` field of `rb_data_type_t` (#1911).
 
 Changes:
 
