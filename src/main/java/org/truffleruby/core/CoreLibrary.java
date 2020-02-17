@@ -39,6 +39,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
@@ -602,7 +603,7 @@ public class CoreLibrary {
         // Create some key objects
 
         mainObject = objectFactory.newInstance();
-        nil = nilFactory.newInstance();
+        nil = Nil.INSTANCE;
         emptyDescriptor = new FrameDescriptor(nil);
         argv = Layouts.ARRAY.createArray(arrayFactory, ArrayStrategy.NULL_ARRAY_STORE, 0);
 
@@ -913,6 +914,8 @@ public class CoreLibrary {
     public DynamicObject getLogicalClass(Object object) {
         if (RubyGuards.isRubyBasicObject(object)) {
             return Layouts.BASIC_OBJECT.getLogicalClass((DynamicObject) object);
+        } else if (object instanceof Nil) {
+            return nilClass;
         } else if (object instanceof Boolean) {
             if ((boolean) object) {
                 return trueClass;

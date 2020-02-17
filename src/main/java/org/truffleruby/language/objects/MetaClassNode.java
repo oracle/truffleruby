@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -65,6 +66,14 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return context.getCoreLibrary().floatClass;
     }
 
+    // nil
+
+    @Specialization
+    protected DynamicObject metaClassNil(Nil value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().nilClass;
+    }
+
     // Cover all DynamicObject cases with cached and uncached
 
     @Specialization(
@@ -97,7 +106,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     // Cover remaining non objects which are not primitives nor DynamicObject
 
-    @Specialization(guards = { "!isPrimitive(object)", "!isDynamicObject(object)" })
+    @Specialization(guards = { "!isPrimitive(object)", "!isNil(context, object)", "!isDynamicObject(object)" })
     protected DynamicObject metaClassFallback(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().truffleInteropForeignClass;

@@ -296,7 +296,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isForeignObject(Object object) {
-        return !isRubyBasicObject(object) && !isPrimitive(object);
+        return !isRubyBasicObject(object) && !isPrimitive(object) && !(object instanceof Nil);
     }
 
     public static boolean isBoxedPrimitive(Object object) {

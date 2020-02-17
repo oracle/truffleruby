@@ -12,6 +12,7 @@ package org.truffleruby.core.kernel;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 
@@ -43,8 +44,8 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
     }
 
 
-    @Specialization(guards = "isNil(nil)")
-    protected boolean isImmutableNilObject(DynamicObject nil) {
+    @Specialization //(guards = "isNil(nil)")
+    protected boolean isImmutableNilObject(Nil nil) {
         return true;
     }
 

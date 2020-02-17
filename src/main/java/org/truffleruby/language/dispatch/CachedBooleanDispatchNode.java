@@ -74,6 +74,7 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
 
     @Override
     protected boolean guard(Object methodName, Object receiver) {
+        // REVIEW Maybe Nil?
         return guardName(methodName) && (receiver instanceof Boolean);
     }
 

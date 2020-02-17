@@ -311,7 +311,7 @@ public abstract class ExceptionNodes {
     public abstract static class ExceptionSetCauseNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setCause(DynamicObject exception, DynamicObject cause) {
+        protected DynamicObject setCause(DynamicObject exception, Object cause) {
             Layouts.EXCEPTION.setCause(exception, cause);
             return exception;
         }

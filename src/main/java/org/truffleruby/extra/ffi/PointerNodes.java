@@ -251,7 +251,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "isNil(limit)")
-        protected DynamicObject readStringToNull(long address, DynamicObject limit,
+        protected DynamicObject readStringToNull(long address, Object limit,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
