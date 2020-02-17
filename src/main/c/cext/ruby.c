@@ -2218,10 +2218,6 @@ VALUE rb_define_class_under(VALUE module, const char *name, VALUE superclass) {
 }
 
 VALUE rb_define_class_id_under(VALUE module, ID name, VALUE superclass) {
-  if (!superclass) {
-    // Handle the horrid semantics of what 0 means in this case.
-    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_define_class_under", rb_tr_unwrap(module), rb_tr_unwrap(name), superclass));
-  }
   return RUBY_CEXT_INVOKE("rb_define_class_under", module, name, superclass);
 }
 

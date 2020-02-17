@@ -1309,8 +1309,8 @@ module Truffle::CExt
   end
 
   def rb_define_class_under(mod, name, superclass)
-    # nil is TypeError (checked below), NULL is ArgumentError
-    if !nil.equal?(superclass) and superclass.nil?
+    # nil is TypeError (checked below), false is ArgumentError
+    if false.equal?(superclass)
       raise ArgumentError, "no super class for `#{name}'"
     end
 
