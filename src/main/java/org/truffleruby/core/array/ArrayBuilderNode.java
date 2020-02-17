@@ -237,27 +237,8 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
         public abstract Object executeAppend(Object array, int index, DynamicObject value);
 
-        @Specialization(guards = "arrays.accepts(getStore(other))", limit = "STORAGE_STRATEGIES")
-        protected Object appendSameStrategy(Object array, int index, DynamicObject other,
-                @CachedLibrary("array") ArrayStoreLibrary arrays) {
-            final int otherSize = Layouts.ARRAY.getSize(other);
-            final int neededSize = index + otherSize;
-
-            int length = arrays.capacity(array);
-            if (neededSize > length) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                replaceNodes(arrays.allocator(array), neededSize);
-                final int capacity = ArrayUtils.capacity(context, length, neededSize);
-                array = arrays.expand(array, capacity);
-            }
-
-            final Object otherStore = Layouts.ARRAY.getStore(other);
-            arrays.copyContents(otherStore, 0, array, index, otherSize);
-            return array;
-        }
-
         @Specialization(
-                guards = { "!arrays.accepts(getStore(other))", "arrays.acceptsAllValues(array, getStore(other))" },
+                guards = { "arrays.acceptsAllValues(array, getStore(other))" },
                 limit = "STORAGE_STRATEGIES")
         protected Object appendCompatibleStrategy(Object array, int index, DynamicObject other,
                 @CachedLibrary("array") ArrayStoreLibrary arrays,
