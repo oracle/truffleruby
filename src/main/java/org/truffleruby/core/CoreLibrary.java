@@ -937,7 +937,7 @@ public class CoreLibrary {
     }
 
     /** Convert a value to a {@code Float}, without doing any lookup. */
-    public static double toDouble(Object value, DynamicObject nil) {
+    public static double toDouble(Object value, Object nil) {
         assert value != null;
 
         if (value == nil) {

@@ -70,7 +70,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject debugPrint(Object string) {
+        protected Object debugPrint(Object string) {
             System.err.println(string.toString());
             return nil();
         }
@@ -122,7 +122,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isHandle(handle)")
-        protected DynamicObject remove(DynamicObject handle) {
+        protected Object remove(DynamicObject handle) {
             EventBinding.class.cast(Layouts.HANDLE.getObject(handle)).dispose();
             return nil();
         }
@@ -148,7 +148,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject printBacktrace() {
+        protected Object printBacktrace() {
             getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
             return nil();
         }
@@ -165,41 +165,41 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(method)")
-        protected DynamicObject astMethod(DynamicObject method, NotProvided block) {
+        protected Object astMethod(DynamicObject method, NotProvided block) {
             ast(Layouts.METHOD.getMethod(method));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(method)")
-        protected DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
+        protected Object astUnboundMethod(DynamicObject method, NotProvided block) {
             ast(Layouts.UNBOUND_METHOD.getMethod(method));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
-        protected DynamicObject astProc(DynamicObject proc, NotProvided block) {
+        protected Object astProc(DynamicObject proc, NotProvided block) {
             ast(Layouts.PROC.getCallTargetForType(proc));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject astBlock(NotProvided proc, DynamicObject block) {
+        protected Object astBlock(NotProvided proc, DynamicObject block) {
             ast(Layouts.PROC.getCallTargetForType(block));
             return nil();
         }
 
-        private DynamicObject ast(InternalMethod method) {
+        private Object ast(InternalMethod method) {
             return ast(method.getCallTarget());
         }
 
-        private DynamicObject ast(RootCallTarget rootCallTarget) {
+        private Object ast(RootCallTarget rootCallTarget) {
             return ast(rootCallTarget.getRootNode());
         }
 
-        private DynamicObject ast(Node node) {
+        private Object ast(Node node) {
             if (node == null) {
                 return nil();
             }
@@ -227,28 +227,28 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(method)")
-        protected DynamicObject astMethod(DynamicObject method, NotProvided block) {
+        protected Object astMethod(DynamicObject method, NotProvided block) {
             printAst(Layouts.METHOD.getMethod(method));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(method)")
-        protected DynamicObject astUnboundMethod(DynamicObject method, NotProvided block) {
+        protected Object astUnboundMethod(DynamicObject method, NotProvided block) {
             printAst(Layouts.UNBOUND_METHOD.getMethod(method));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
-        protected DynamicObject astProc(DynamicObject proc, NotProvided block) {
+        protected Object astProc(DynamicObject proc, NotProvided block) {
             printAst(Layouts.PROC.getCallTargetForType(proc));
             return nil();
         }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject astBlock(NotProvided proc, DynamicObject block) {
+        protected Object astBlock(NotProvided proc, DynamicObject block) {
             printAst(Layouts.PROC.getCallTargetForType(block));
             return nil();
         }
@@ -356,7 +356,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class LogConfigNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject logConfig(Object value,
+        protected Object logConfig(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             config(toJavaStringNode.executeToJavaString(value));
             return nil();
@@ -373,7 +373,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class LogWarningNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject logWarning(Object value,
+        protected Object logWarning(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             warning(toJavaStringNode.executeToJavaString(value));
             return nil();
@@ -391,7 +391,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject throwJavaException(Object message) {
+        protected Object throwJavaException(Object message) {
             callingMethod(message.toString());
             return nil();
         }
@@ -426,7 +426,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject throwJavaException(boolean condition) {
+        protected Object throwJavaException(boolean condition) {
             assert condition;
             return nil();
         }
@@ -849,7 +849,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject drainFinalizationQueue() {
+        protected Object drainFinalizationQueue() {
             getContext().getFinalizationService().drainFinalizationQueue();
             return nil();
         }

@@ -51,10 +51,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
-import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.Visibility;
+import org.truffleruby.language.*;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -370,7 +367,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "strategy.matches(array)", "strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
         @ReportPolymorphism.Exclude
-        protected DynamicObject compactNotObjects(DynamicObject array,
+        protected Object compactNotObjects(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy) {
             return nil();
         }
@@ -1131,14 +1128,14 @@ public abstract class ArrayNodes {
 
         // With block
 
-        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)", "block != nil()" })
+        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)", "!isNil(block)" })
         @ReportPolymorphism.Exclude
         protected Object injectEmptyArray(DynamicObject array, Object initialOrSymbol, NotProvided symbol,
                 DynamicObject block) {
             return initialOrSymbol;
         }
 
-        @Specialization(guards = { "isEmptyArray(array)", "block != nil()" })
+        @Specialization(guards = { "isEmptyArray(array)", "!isNil(block)" })
         @ReportPolymorphism.Exclude
         protected Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initialOrSymbol,
                 NotProvided symbol,
@@ -1151,7 +1148,7 @@ public abstract class ArrayNodes {
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)",
-                        "block != nil()" },
+                        "!isNil(block)" },
                 limit = "STORAGE_STRATEGIES")
         protected Object injectWithInitial(DynamicObject array, Object initialOrSymbol, NotProvided symbol,
                 DynamicObject block,
@@ -1162,7 +1159,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "strategy.matches(array)", "!isEmptyArray(array)", "block != nil()" },
+                guards = { "strategy.matches(array)", "!isEmptyArray(array)", "!isNil(block)" },
                 limit = "STORAGE_STRATEGIES")
         protected Object injectNoInitial(DynamicObject array, NotProvided initialOrSymbol, NotProvided symbol,
                 DynamicObject block,
@@ -1196,13 +1193,13 @@ public abstract class ArrayNodes {
                         "isRubySymbol(symbol)",
                         "isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)",
-                        "block == nil()" })
+                        "isNil(block)" })
         protected Object injectSymbolEmptyArray(DynamicObject array, Object initialOrSymbol, DynamicObject symbol,
                 DynamicObject block) {
             return initialOrSymbol;
         }
 
-        @Specialization(guards = { "isRubySymbol(initialOrSymbol)", "isEmptyArray(array)", "block == nil()" })
+        @Specialization(guards = { "isRubySymbol(initialOrSymbol)", "isEmptyArray(array)" })
         protected Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject initialOrSymbol,
                 NotProvided symbol,
                 DynamicObject block) {
@@ -1215,7 +1212,7 @@ public abstract class ArrayNodes {
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)",
-                        "block == nil()" },
+                        "isNil(block)" },
                 limit = "STORAGE_STRATEGIES")
         protected Object injectSymbolWithInitial(VirtualFrame frame, DynamicObject array, Object initialOrSymbol,
                 DynamicObject symbol, DynamicObject block,
@@ -1230,7 +1227,7 @@ public abstract class ArrayNodes {
                         "isRubySymbol(initialOrSymbol)",
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
-                        "block == nil()" },
+                        "isNil(block)" },
                 limit = "STORAGE_STRATEGIES")
         protected Object injectSymbolNoInitial(VirtualFrame frame, DynamicObject array, DynamicObject initialOrSymbol,
                 NotProvided symbol, DynamicObject block,

@@ -723,7 +723,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isNil(defaultProc)")
-        protected DynamicObject setDefaultProc(DynamicObject hash, Object defaultProc) {
+        protected Object setDefaultProc(DynamicObject hash, Object defaultProc) {
             Layouts.HASH.setDefaultValue(hash, nil());
             Layouts.HASH.setDefaultBlock(hash, nil());
             return nil();

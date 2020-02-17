@@ -74,7 +74,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyEncoding(source)", "isRubyEncoding(destination)" })
-        protected DynamicObject initialize(DynamicObject self, DynamicObject source, DynamicObject destination,
+        protected Object initialize(DynamicObject self, DynamicObject source, DynamicObject destination,
                 int options) {
             // Adapted from RubyConverter - see attribution there
             //
@@ -163,7 +163,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(source)")
-        protected DynamicObject search(DynamicObject source) {
+        protected Object search(DynamicObject source) {
             final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths
                     .get(Layouts.SYMBOL.getString(source));
             if (transcoders == null) {

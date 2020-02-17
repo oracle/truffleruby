@@ -62,7 +62,7 @@ public abstract class MainNodes {
         @Child private UsingNode usingNode = UsingNodeGen.create();
 
         @Specialization(guards = "isRubyModule(refinementModule)")
-        protected DynamicObject mainUsing(DynamicObject refinementModule,
+        protected Object mainUsing(DynamicObject refinementModule,
                 @Cached BranchProfile errorProfile) {
             if (!isCalledFromTopLevel()) {
                 errorProfile.enter();

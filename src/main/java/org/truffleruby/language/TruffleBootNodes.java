@@ -55,7 +55,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject rubyHome() {
+        protected Object rubyHome() {
             if (getContext().getRubyHome() == null) {
                 return nil();
             } else {
@@ -70,7 +70,7 @@ public abstract class TruffleBootNodes {
     public abstract static class ForceContextNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject forceContext() {
+        protected Object forceContext() {
             return nil();
         }
     }
@@ -267,7 +267,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject sourceOfCaller() {
+        protected Object sourceOfCaller() {
             final Memo<Integer> frameCount = new Memo<>(0);
 
             final Source source = Truffle.getRuntime().iterateFrames(frameInstance -> {
@@ -294,7 +294,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject innerCheckSyntax(RubySource source) {
+        protected Object innerCheckSyntax(RubySource source) {
             getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, null, true, null);
 
             return nil();
@@ -380,7 +380,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(toolName)")
-        protected DynamicObject toolPath(DynamicObject toolName,
+        protected Object toolPath(DynamicObject toolName,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final LanguageInfo llvmInfo = getContext().getEnv().getInternalLanguages().get("llvm");
             if (llvmInfo == null) {

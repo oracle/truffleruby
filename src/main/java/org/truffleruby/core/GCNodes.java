@@ -12,7 +12,6 @@ package org.truffleruby.core;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -30,7 +29,7 @@ public abstract class GCNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject vmGCStart() {
+        protected Object vmGCStart() {
             getContext().getMarkingService().queueMarking();
             System.gc();
             return nil();

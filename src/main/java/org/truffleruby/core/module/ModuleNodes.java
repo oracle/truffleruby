@@ -364,7 +364,7 @@ public abstract class ModuleNodes {
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         @Specialization(guards = "isRubyModule(target)")
-        protected DynamicObject appendFeatures(DynamicObject features, DynamicObject target,
+        protected Object appendFeatures(DynamicObject features, DynamicObject target,
                 @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(features)) {
                 errorProfile.enter();
@@ -386,10 +386,10 @@ public abstract class ModuleNodes {
             this.isGetter = isGetter;
         }
 
-        public abstract DynamicObject executeGenerateAccessor(VirtualFrame frame, DynamicObject module, Object name);
+        public abstract Object executeGenerateAccessor(VirtualFrame frame, DynamicObject module, Object name);
 
         @Specialization
-        protected DynamicObject generateAccessor(VirtualFrame frame, DynamicObject module, Object nameObject,
+        protected Object generateAccessor(VirtualFrame frame, DynamicObject module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached ReadCallerFrameNode readCallerFrame) {
             final String name = nameToJavaStringNode.executeToJavaString(nameObject);
@@ -461,7 +461,7 @@ public abstract class ModuleNodes {
         @Child private WarningNode warnNode;
 
         @Specialization
-        protected DynamicObject attr(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected Object attr(VirtualFrame frame, DynamicObject module, Object[] names) {
             final boolean setter;
             if (names.length == 2 && names[1] instanceof Boolean) {
                 warnObsoletedBooleanArgument();
@@ -498,7 +498,7 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
 
         @Specialization
-        protected DynamicObject attrAccessor(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected Object attrAccessor(VirtualFrame frame, DynamicObject module, Object[] names) {
             for (Object name : names) {
                 generateGetterNode.executeGenerateAccessor(frame, module, name);
                 generateSetterNode.executeGenerateAccessor(frame, module, name);
@@ -514,7 +514,7 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateGetterNode = GenerateAccessorNodeGen.create(true);
 
         @Specialization
-        protected DynamicObject attrReader(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected Object attrReader(VirtualFrame frame, DynamicObject module, Object[] names) {
             for (Object name : names) {
                 generateGetterNode.executeGenerateAccessor(frame, module, name);
             }
@@ -529,7 +529,7 @@ public abstract class ModuleNodes {
         @Child private GenerateAccessorNode generateSetterNode = GenerateAccessorNodeGen.create(false);
 
         @Specialization
-        protected DynamicObject attrWriter(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected Object attrWriter(VirtualFrame frame, DynamicObject module, Object[] names) {
             for (Object name : names) {
                 generateSetterNode.executeGenerateAccessor(frame, module, name);
             }
@@ -556,7 +556,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(filename)")
-        protected DynamicObject autoload(DynamicObject module, String name, DynamicObject filename) {
+        protected Object autoload(DynamicObject module, String name, DynamicObject filename) {
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
                         getContext(),
@@ -584,16 +584,16 @@ public abstract class ModuleNodes {
     public abstract static class IsAutoloadNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(name)")
-        protected DynamicObject isAutoloadSymbol(DynamicObject module, DynamicObject name) {
+        protected Object isAutoloadSymbol(DynamicObject module, DynamicObject name) {
             return isAutoload(module, Layouts.SYMBOL.getString(name));
         }
 
         @Specialization(guards = "isRubyString(name)")
-        protected DynamicObject isAutoloadString(DynamicObject module, DynamicObject name) {
+        protected Object isAutoloadString(DynamicObject module, DynamicObject name) {
             return isAutoload(module, StringOperations.getString(name));
         }
 
-        private DynamicObject isAutoload(DynamicObject module, String name) {
+        private Object isAutoload(DynamicObject module, String name) {
             final ConstantLookupResult constant = ModuleOperations.lookupConstant(getContext(), module, name);
 
             if (constant.isAutoload() && !constant.getConstant().getAutoloadConstant().isAutoloadingThread()) {
@@ -1325,7 +1325,7 @@ public abstract class ModuleNodes {
     public abstract static class IncludedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject included(Object subclass) {
+        protected Object included(Object subclass) {
             return nil();
         }
 
@@ -1498,7 +1498,7 @@ public abstract class ModuleNodes {
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
 
         @Specialization(guards = "isRubyModule(target)")
-        protected DynamicObject prependFeatures(DynamicObject features, DynamicObject target,
+        protected Object prependFeatures(DynamicObject features, DynamicObject target,
                 @Cached BranchProfile errorProfile) {
             if (RubyGuards.isRubyClass(features)) {
                 errorProfile.enter();

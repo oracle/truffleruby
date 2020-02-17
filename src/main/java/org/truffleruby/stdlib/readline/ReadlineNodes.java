@@ -274,7 +274,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject refreshLine() {
+        protected Object refreshLine() {
             try {
                 getContext().getConsoleHolder().getReadline().redrawLine();
             } catch (IOException e) {

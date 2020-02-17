@@ -375,7 +375,7 @@ public abstract class EncodingNodes {
         public abstract DynamicObject executeCompatibleQuery(Object first, Object second);
 
         @Specialization
-        protected DynamicObject isCompatible(Object first, Object second,
+        protected Object isCompatible(Object first, Object second,
                 @Cached("createBinaryProfile()") ConditionProfile noNegotiatedEncodingProfile) {
             final Encoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
 
@@ -458,7 +458,7 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject eachAlias(DynamicObject block) {
+        protected Object eachAlias(DynamicObject block) {
             for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
                 final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
                 final DynamicObject aliasName = makeStringNode.executeMake(
@@ -556,7 +556,7 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(name)")
-        protected DynamicObject getDefaultEncoding(DynamicObject name) {
+        protected Object getDefaultEncoding(DynamicObject name) {
             final Encoding encoding = getEncoding(StringOperations.getString(name));
             if (encoding == null) {
                 return nil();
@@ -609,7 +609,7 @@ public abstract class EncodingNodes {
         }
 
         @Specialization(guards = "isNil(encoding)")
-        protected DynamicObject noDefaultInternal(DynamicObject encoding) {
+        protected Object noDefaultInternal(DynamicObject encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(null);
             return nil();
         }
@@ -649,7 +649,7 @@ public abstract class EncodingNodes {
         }
 
         @Specialization(guards = "isRubyRegexp(object)")
-        protected DynamicObject encodingGetObjectEncodingRegexp(DynamicObject object,
+        protected Object encodingGetObjectEncodingRegexp(DynamicObject object,
                 @Cached("createBinaryProfile()") ConditionProfile hasRegexpSource) {
             final Rope regexpSource = Layouts.REGEXP.getSource(object);
 
@@ -666,7 +666,7 @@ public abstract class EncodingNodes {
                         "!isRubySymbol(object)",
                         "!isRubyEncoding(object)",
                         "!isRubyRegexp(object)" })
-        protected DynamicObject encodingGetObjectEncodingNil(DynamicObject object) {
+        protected Object encodingGetObjectEncodingNil(DynamicObject object) {
             // TODO(CS, 26 Jan 15) something to do with __encoding__ here?
             return nil();
         }

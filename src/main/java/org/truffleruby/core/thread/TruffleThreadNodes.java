@@ -35,7 +35,7 @@ public class TruffleThreadNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyArray(modules)", "strategy.matches(modules)" })
-        protected DynamicObject findRubyCaller(DynamicObject modules,
+        protected Object findRubyCaller(DynamicObject modules,
                 @Cached("of(modules)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
             Object[] moduleArray = boxedCopyNode

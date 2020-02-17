@@ -28,7 +28,7 @@ public interface ExceptionLayout extends BasicObjectLayout {
             @Nullable Object message,
             @Nullable DynamicObject formatter,
             @Nullable Backtrace backtrace,
-            DynamicObject cause,
+            Object cause,
             @Nullable DynamicObject backtraceStringArray,
             @Nullable DynamicObject backtraceLocations);
 
@@ -46,9 +46,9 @@ public interface ExceptionLayout extends BasicObjectLayout {
 
     void setBacktrace(DynamicObject object, Backtrace value);
 
-    DynamicObject getCause(DynamicObject object);
+    Object getCause(DynamicObject object);
 
-    void setCause(DynamicObject object, DynamicObject value);
+    void setCause(DynamicObject object, Object value);
 
     DynamicObject getBacktraceStringArray(DynamicObject object);
 

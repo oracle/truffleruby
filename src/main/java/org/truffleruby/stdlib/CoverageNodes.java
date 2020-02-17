@@ -33,7 +33,7 @@ public abstract class CoverageNodes {
     public abstract static class CoverageEnableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject enable() {
+        protected Object enable() {
             getContext().getCoverageManager().enable();
             return nil();
         }
@@ -44,7 +44,7 @@ public abstract class CoverageNodes {
     public abstract static class CoverageDisableNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject disable() {
+        protected Object disable() {
             getContext().getCoverageManager().disable();
             return nil();
         }
@@ -58,7 +58,7 @@ public abstract class CoverageNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject resultArray() {
+        protected Object resultArray() {
             final List<DynamicObject> results = new ArrayList<>();
 
             final Map<Source, long[]> counts = getContext().getCoverageManager().getCounts();

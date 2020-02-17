@@ -1170,7 +1170,7 @@ public class CExtNodes {
     public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected TruffleObject executeWithProtect(DynamicObject block,
+        protected Object executeWithProtect(DynamicObject block,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
@@ -1421,7 +1421,7 @@ public class CExtNodes {
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject createNewMarkList(DynamicObject obj,
+        protected Object createNewMarkList(DynamicObject obj,
                 @Cached ReadObjectFieldNode readMarkedNode) {
             getContext().getMarkingService().startMarking(
                     (Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
@@ -1433,7 +1433,7 @@ public class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject addToMarkList(Object markedObject,
+        protected Object addToMarkList(Object markedObject,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
@@ -1453,7 +1453,7 @@ public class CExtNodes {
     public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject addToMarkList(Object guardedObject,
+        protected Object addToMarkList(Object guardedObject,
                 @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1471,7 +1471,7 @@ public class CExtNodes {
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setMarkList(DynamicObject structOwner,
+        protected Object setMarkList(DynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
             writeMarkedNode.write(
                     structOwner,
@@ -1487,7 +1487,7 @@ public class CExtNodes {
         @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.getUncached();
 
         @Specialization
-        protected DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
+        protected Object createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
                 @Cached BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", marker)) {
                 addObjectToMarkingService(object, marker);
@@ -1515,7 +1515,7 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject pushFrame(DynamicObject block,
+        protected Object pushFrame(DynamicObject block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().push(block);
             return nil();
@@ -1526,7 +1526,7 @@ public class CExtNodes {
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject popFrame(
+        protected Object popFrame(
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().pop();
             return nil();
@@ -1595,7 +1595,7 @@ public class CExtNodes {
     public abstract static class RbCheckSymbolCStrNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject checkSymbolCStr(DynamicObject str) {
+        protected Object checkSymbolCStr(DynamicObject str) {
             final DynamicObject sym = getContext().getSymbolTable().getSymbolIfExists(rope(str));
             return sym == null ? nil() : sym;
         }

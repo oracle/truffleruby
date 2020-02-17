@@ -485,7 +485,7 @@ public abstract class TimeNodes {
 
             final ZoneId zone;
             final boolean relativeOffset;
-            DynamicObject zoneToStore = nil();
+            Object zoneToStore = nil();
             TimeZoneAndName envZone = null;
 
             if (isutc) {

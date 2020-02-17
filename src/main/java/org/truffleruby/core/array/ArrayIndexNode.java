@@ -38,7 +38,7 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
     }
 
     @Specialization
-    protected DynamicObject slice(DynamicObject array, int start, int length) {
+    protected Object slice(DynamicObject array, int start, int length) {
         if (length < 0) {
             return nil();
         }
@@ -52,7 +52,7 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
     }
 
     @Specialization(guards = "isIntRange(range)")
-    protected DynamicObject slice(DynamicObject array, DynamicObject range, NotProvided len,
+    protected Object slice(DynamicObject array, DynamicObject range, NotProvided len,
             @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
             @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
             @Cached ArrayReadSliceNormalizedNode readNormalizedSliceNode) {

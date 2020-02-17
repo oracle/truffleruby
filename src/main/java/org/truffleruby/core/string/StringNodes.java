@@ -715,7 +715,7 @@ public abstract class StringNodes {
         // endregion
         // region Helpers
 
-        private DynamicObject outOfBoundsNil() {
+        private Object outOfBoundsNil() {
             outOfBounds.enter();
             return nil();
         }
@@ -1066,7 +1066,7 @@ public abstract class StringNodes {
         public abstract DynamicObject executeDeleteBang(DynamicObject string, Rope[] ropes);
 
         @Specialization(guards = "isEmpty(string)")
-        protected DynamicObject deleteBangEmpty(DynamicObject string, Object[] args) {
+        protected Object deleteBangEmpty(DynamicObject string, Object[] args) {
             return nil();
         }
 
@@ -1076,7 +1076,7 @@ public abstract class StringNodes {
                         "cachedArgs.length == args.length",
                         "argsMatch(cachedArgs, args)",
                         "encodingsMatch(string, cachedEncoding)" })
-        protected DynamicObject deleteBangFast(DynamicObject string, Rope[] args,
+        protected Object deleteBangFast(DynamicObject string, Rope[] args,
                 @Cached(value = "args", dimensions = 1) Rope[] cachedArgs,
                 @Cached("encoding(string)") Encoding cachedEncoding,
                 @Cached(value = "squeeze()", dimensions = 1) boolean[] squeeze,
@@ -1095,7 +1095,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "!isEmpty(string)")
-        protected DynamicObject deleteBang(DynamicObject string, Rope[] args,
+        protected Object deleteBang(DynamicObject string, Rope[] args,
                 @Cached BranchProfile errorProfile) {
             if (args.length == 0) {
                 errorProfile.enter();
@@ -1108,7 +1108,7 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject deleteBangSlow(DynamicObject string, Rope[] ropes, Encoding enc) {
+        private Object deleteBangSlow(DynamicObject string, Rope[] ropes, Encoding enc) {
             assert RubyGuards.isRubyString(string);
 
             final boolean[] squeeze = new boolean[StringSupport.TRANS_SIZE + 1];
@@ -1139,13 +1139,13 @@ public abstract class StringNodes {
                 .create();
 
         @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected DynamicObject downcaseSingleByte(DynamicObject string, int caseMappingOptions,
+        protected Object downcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createUpperToLower()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected DynamicObject downcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
+        protected Object downcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -1176,7 +1176,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected DynamicObject downcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
+        protected Object downcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
@@ -1479,7 +1479,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @Specialization(guards = "isEmpty(string)")
-        protected DynamicObject lstripBangEmptyString(DynamicObject string) {
+        protected Object lstripBangEmptyString(DynamicObject string) {
             return nil();
         }
 
@@ -1596,7 +1596,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @Specialization(guards = "isEmpty(string)")
-        protected DynamicObject rstripBangEmptyString(DynamicObject string) {
+        protected Object rstripBangEmptyString(DynamicObject string) {
             return nil();
         }
 
@@ -1840,13 +1840,13 @@ public abstract class StringNodes {
                 .create();
 
         @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected DynamicObject swapcaseSingleByte(DynamicObject string, int caseMappingOptions,
+        protected Object swapcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createSwapCase()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected DynamicObject swapcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
+        protected Object swapcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -1879,7 +1879,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected DynamicObject swapcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
+        protected Object swapcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
@@ -2228,7 +2228,7 @@ public abstract class StringNodes {
         private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.createBinaryProfile();
 
         @Specialization(guards = "isEmpty(string)")
-        protected DynamicObject squeezeBangEmptyString(DynamicObject string, Object[] args) {
+        protected Object squeezeBangEmptyString(DynamicObject string, Object[] args) {
             return nil();
         }
 
@@ -2637,7 +2637,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isEmpty(self)")
-        protected DynamicObject trSBangEmpty(DynamicObject self, DynamicObject fromStr, DynamicObject toStr) {
+        protected Object trSBangEmpty(DynamicObject self, DynamicObject fromStr, DynamicObject toStr) {
             return nil();
         }
 
@@ -2844,10 +2844,10 @@ public abstract class StringNodes {
             return ret;
         }
 
-        public abstract DynamicObject executeInvert(DynamicObject string);
+        public abstract Object executeInvert(DynamicObject string);
 
         @Specialization
-        protected DynamicObject invert(DynamicObject string,
+        protected Object invert(DynamicObject string,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -2882,13 +2882,13 @@ public abstract class StringNodes {
                 .create();
 
         @Specialization(guards = { "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected DynamicObject upcaseSingleByte(DynamicObject string, int caseMappingOptions,
+        protected Object upcaseSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createLowerToUpper()") InvertAsciiCaseNode invertAsciiCaseNode) {
             return invertAsciiCaseNode.executeInvert(string);
         }
 
         @Specialization(guards = { "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected DynamicObject upcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
+        protected Object upcaseMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -2919,7 +2919,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)" })
-        protected DynamicObject upcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
+        protected Object upcaseMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
@@ -2976,7 +2976,7 @@ public abstract class StringNodes {
                 .create();
 
         @Specialization(guards = "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected DynamicObject capitalizeSingleByte(DynamicObject string, int caseMappingOptions,
+        protected Object capitalizeSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                 @Cached("createBinaryProfile()") ConditionProfile firstCharIsLowerProfile,
@@ -3025,7 +3025,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected DynamicObject capitalizeMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
+        protected Object capitalizeMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
                 @Cached BranchProfile dummyEncodingProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
@@ -3064,7 +3064,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
-        protected DynamicObject capitalizeMultiByteComplex(DynamicObject string, int caseMappingOptions,
+        protected Object capitalizeMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached BranchProfile dummyEncodingProfile,
                 @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
                 @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {

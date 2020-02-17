@@ -33,37 +33,37 @@ public abstract class HashCastNode extends RubyContextSourceNode {
     protected abstract RubyNode getChild();
 
     @Specialization
-    protected DynamicObject cast(boolean value) {
+    protected Object cast(boolean value) {
         return nil();
     }
 
     @Specialization
-    protected DynamicObject cast(int value) {
+    protected Object cast(int value) {
         return nil();
     }
 
     @Specialization
-    protected DynamicObject cast(long value) {
+    protected Object cast(long value) {
         return nil();
     }
 
     @Specialization
-    protected DynamicObject cast(double value) {
+    protected Object cast(double value) {
         return nil();
     }
 
     @Specialization(guards = "isNil(nil)")
-    protected DynamicObject castNil(DynamicObject nil) {
+    protected Object castNil(DynamicObject nil) {
         return nil();
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    protected DynamicObject castBignum(DynamicObject value) {
+    protected Object castBignum(DynamicObject value) {
         return nil();
     }
 
     @Specialization(guards = "isRubyHash(hash)")
-    protected DynamicObject castHash(DynamicObject hash) {
+    protected Object castHash(DynamicObject hash) {
         return hash;
     }
 

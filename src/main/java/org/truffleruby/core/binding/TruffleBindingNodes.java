@@ -19,7 +19,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule("Truffle::Binding")
@@ -30,7 +29,7 @@ public abstract class TruffleBindingNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject ofCaller() {
+        protected Object ofCaller() {
             /* When you use this method you're asking for the binding of the caller at the call site. When we get into
              * this method, that is then the binding of the caller of the caller. */
 

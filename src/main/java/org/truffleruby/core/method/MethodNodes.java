@@ -201,7 +201,7 @@ public abstract class MethodNodes {
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
-        protected DynamicObject superMethod(DynamicObject method) {
+        protected Object superMethod(DynamicObject method) {
             Object receiver = Layouts.METHOD.getReceiver(method);
             InternalMethod internalMethod = Layouts.METHOD.getMethod(method);
             DynamicObject selfMetaClass = metaClassNode.executeMetaClass(receiver);
@@ -310,7 +310,7 @@ public abstract class MethodNodes {
     public abstract static class MethodUnimplementNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject methodUnimplement(DynamicObject rubyMethod) {
+        protected Object methodUnimplement(DynamicObject rubyMethod) {
             final InternalMethod method = Layouts.METHOD.getMethod(rubyMethod);
             Layouts.MODULE.getFields(method.getDeclaringModule()).addMethod(
                     getContext(),

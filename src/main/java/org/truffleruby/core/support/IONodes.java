@@ -396,7 +396,7 @@ public abstract class IONodes {
     public static abstract class IOEnsureOpenPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject ensureOpen(DynamicObject file,
+        protected Object ensureOpen(DynamicObject file,
                 @Cached BranchProfile errorProfile) {
             final int fd = Layouts.IO.getDescriptor(file);
             if (fd == CLOSED_FD) {
@@ -415,7 +415,7 @@ public abstract class IONodes {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
-        protected DynamicObject read(int length,
+        protected Object read(int length,
                 @Cached MakeStringNode makeStringNode) {
             final InputStream stream = getContext().getEnv().in();
             final byte[] buffer = new byte[length];

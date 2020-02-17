@@ -28,7 +28,7 @@ public interface HashLayout extends BasicObjectLayout {
             int size,
             @Nullable Entry firstInSequence,
             @Nullable Entry lastInSequence,
-            DynamicObject defaultBlock,
+            Object defaultBlock,
             Object defaultValue,
             boolean compareByIdentity);
 
@@ -38,9 +38,9 @@ public interface HashLayout extends BasicObjectLayout {
 
     boolean isHash(Object object);
 
-    DynamicObject getDefaultBlock(DynamicObject object);
+    Object getDefaultBlock(DynamicObject object);
 
-    void setDefaultBlock(DynamicObject object, DynamicObject value);
+    void setDefaultBlock(DynamicObject object, Object value);
 
     Object getDefaultValue(DynamicObject object);
 

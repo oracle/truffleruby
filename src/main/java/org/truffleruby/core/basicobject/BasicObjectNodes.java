@@ -243,7 +243,7 @@ public abstract class BasicObjectNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize() {
+        protected Object initialize() {
             return nil();
         }
 

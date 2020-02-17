@@ -147,7 +147,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
+        protected Object vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached LookupMethodNode lookupMethodNode) {
             // TODO BJF Sep 14, 2016 Handle private
@@ -371,7 +371,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
-        protected DynamicObject getSection(DynamicObject section, DynamicObject block,
+        protected Object getSection(DynamicObject section, DynamicObject block,
                 @Cached MakeStringNode makeStringNode,
                 @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()

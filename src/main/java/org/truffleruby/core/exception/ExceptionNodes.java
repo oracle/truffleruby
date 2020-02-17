@@ -243,12 +243,12 @@ public abstract class ExceptionNodes {
     public abstract static class CaptureBacktraceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject captureBacktrace(DynamicObject exception, NotProvided offset) {
+        protected Object captureBacktrace(DynamicObject exception, NotProvided offset) {
             return captureBacktrace(exception, 1);
         }
 
         @Specialization
-        protected DynamicObject captureBacktrace(DynamicObject exception, int offset) {
+        protected Object captureBacktrace(DynamicObject exception, int offset) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, offset);
             Layouts.EXCEPTION.setBacktrace(exception, backtrace);
             return nil();
@@ -286,7 +286,7 @@ public abstract class ExceptionNodes {
     public abstract static class FormatterPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject formatter(DynamicObject exception) {
+        protected Object formatter(DynamicObject exception) {
             final DynamicObject formatter = Layouts.EXCEPTION.getFormatter(exception);
             if (formatter == null) {
                 return nil();
@@ -301,7 +301,7 @@ public abstract class ExceptionNodes {
     public abstract static class CauseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject cause(DynamicObject exception) {
+        protected Object cause(DynamicObject exception) {
             return Layouts.EXCEPTION.getCause(exception);
         }
 

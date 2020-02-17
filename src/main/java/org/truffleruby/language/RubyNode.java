@@ -234,7 +234,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
         // Helpers methods for terseness, keep in sync
 
-        default DynamicObject nil() {
+        default Object nil() {
             return coreLibrary().nil;
         }
 

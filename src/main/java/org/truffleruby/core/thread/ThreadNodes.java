@@ -116,14 +116,14 @@ public abstract class ThreadNodes {
     public abstract static class BacktraceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject backtrace(
+        protected Object backtrace(
                 DynamicObject rubyThread, int omit, NotProvided length) {
             return backtrace(rubyThread, omit, Integer.MAX_VALUE);
         }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject backtrace(DynamicObject rubyThread, int omit, int length) {
+        protected Object backtrace(DynamicObject rubyThread, int omit, int length) {
             final Memo<Backtrace> backtraceMemo = new Memo<>(null);
 
             getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread1, currentNode) -> {
@@ -155,19 +155,19 @@ public abstract class ThreadNodes {
     public abstract static class BacktraceLocationsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject backtraceLocations(
+        protected Object backtraceLocations(
                 DynamicObject rubyThread, int first, NotProvided second) {
             return backtraceLocationsInternal(rubyThread, first, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization
-        protected DynamicObject backtraceLocations(
+        protected Object backtraceLocations(
                 DynamicObject rubyThread, int first, int second) {
             return backtraceLocationsInternal(rubyThread, first, second);
         }
 
         @TruffleBoundary
-        private DynamicObject backtraceLocationsInternal(DynamicObject rubyThread, int omit, int length) {
+        private Object backtraceLocationsInternal(DynamicObject rubyThread, int omit, int length) {
             final Memo<DynamicObject> backtraceLocationsMemo = new Memo<>(null);
 
             final SafepointAction safepointAction = (thread1, currentNode) -> {
@@ -326,7 +326,7 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block,
+        protected Object initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block,
                 @Cached("of(arguments)") ArrayStrategy strategy,
                 @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
@@ -439,7 +439,7 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject pass() {
+        protected Object pass() {
             Thread.yield();
             return nil();
         }
@@ -551,7 +551,7 @@ public abstract class ThreadNodes {
     public abstract static class SetAbortOnExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setAbortOnException(DynamicObject self, boolean abortOnException) {
+        protected Object setAbortOnException(DynamicObject self, boolean abortOnException) {
             Layouts.THREAD.setAbortOnException(self, abortOnException);
             return nil();
         }
@@ -572,7 +572,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadRaisePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyThread(thread)", "isRubyException(exception)" })
-        protected DynamicObject raise(DynamicObject thread, DynamicObject exception) {
+        protected Object raise(DynamicObject thread, DynamicObject exception) {
             raiseInThread(getContext(), thread, exception, this);
             return nil();
         }

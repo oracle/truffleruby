@@ -163,7 +163,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class AssertNotCompilationConstantNode extends PrimitiveNode {
 
         @Specialization
-        protected DynamicObject assertNotCompiled() {
+        protected Object assertNotCompiled() {
             if (CompilerDirectives.inCompiledCode()) {
                 compiledBoundary();
             }
@@ -182,7 +182,7 @@ public abstract class TruffleGraalNodes {
     public abstract static class BailoutNode extends PrimitiveNode {
 
         @Specialization(guards = "isRubyString(message)")
-        protected DynamicObject bailout(DynamicObject message,
+        protected Object bailout(DynamicObject message,
                 @Cached ToJavaStringNode toJavaStringNode) {
             CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
             return nil();

@@ -55,13 +55,13 @@ public abstract class TruffleRopesNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject debugPrintDefault(DynamicObject string, NotProvided printString) {
+        protected Object debugPrintDefault(DynamicObject string, NotProvided printString) {
             return debugPrint(string, true);
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject debugPrint(DynamicObject string, boolean printString) {
+        protected Object debugPrint(DynamicObject string, boolean printString) {
             System.err.println("Legend: ");
             System.err.println("BN = Bytes Null? (byte[] not yet populated)");
             System.err.println("BL = Byte Length");

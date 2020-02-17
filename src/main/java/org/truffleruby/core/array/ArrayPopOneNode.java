@@ -27,7 +27,7 @@ public abstract class ArrayPopOneNode extends RubyContextNode {
     // Pop from an empty array
 
     @Specialization(guards = "isEmptyArray(array)")
-    protected DynamicObject popOneEmpty(DynamicObject array) {
+    protected Object popOneEmpty(DynamicObject array) {
         return nil();
     }
 

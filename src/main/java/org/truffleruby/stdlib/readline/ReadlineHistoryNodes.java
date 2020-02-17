@@ -151,7 +151,7 @@ public abstract class ReadlineHistoryNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject clear() {
+        protected Object clear() {
             getContext().getConsoleHolder().getHistory().clear();
 
             return nil();

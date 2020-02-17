@@ -318,7 +318,7 @@ public abstract class ClassNodes {
     public abstract static class InheritedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject inherited(Object subclass) {
+        protected Object inherited(Object subclass) {
             return nil();
         }
 

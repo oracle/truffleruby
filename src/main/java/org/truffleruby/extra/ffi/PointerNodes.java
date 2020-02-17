@@ -216,7 +216,7 @@ public abstract class PointerNodes {
     public static abstract class PointerCopyMemoryNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject copyMemory(long to, long from, long size) {
+        protected Object copyMemory(long to, long from, long size) {
             final Pointer ptr = new Pointer(to);
             checkNull(ptr);
             ptr.writeBytes(0, new Pointer(from), 0, size);
@@ -469,7 +469,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
-        protected DynamicObject writeChar(long address, int value) {
+        protected Object writeChar(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             byte byteValue = (byte) value;
@@ -484,7 +484,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteUCharNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
-        protected DynamicObject writeChar(long address, int value) {
+        protected Object writeChar(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             byte byteValue = (byte) value;
@@ -493,7 +493,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 256" })
-        protected DynamicObject writeUnsignedChar(long address, int value) {
+        protected Object writeUnsignedChar(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             byte signed = (byte) value; // Same as value - 2^8
@@ -508,7 +508,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "MIN_VALUE <= value", "value <= MAX_VALUE" })
-        protected DynamicObject writeShort(long address, int value) {
+        protected Object writeShort(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             short shortValue = (short) value;
@@ -523,7 +523,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteUShortNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "0 <= value", "value <= MAX_VALUE" })
-        protected DynamicObject writeShort(long address, int value) {
+        protected Object writeShort(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             short shortValue = (short) value;
@@ -532,7 +532,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 65536" })
-        protected DynamicObject writeUnsignedSort(long address, int value) {
+        protected Object writeUnsignedSort(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             short signed = (short) value; // Same as value - 2^16
@@ -546,7 +546,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteIntNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject writeInt(long address, int value) {
+        protected Object writeInt(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeInt(0, value);
@@ -562,7 +562,7 @@ public abstract class PointerNodes {
         static final long MAX_UNSIGNED_INT_PLUS_ONE = 1L << Integer.SIZE;
 
         @Specialization(guards = "value >= 0")
-        protected DynamicObject writeInt(long address, int value) {
+        protected Object writeInt(long address, int value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeInt(0, value);
@@ -570,7 +570,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < MAX_UNSIGNED_INT_PLUS_ONE" })
-        protected DynamicObject writeUnsignedInt(long address, long value) {
+        protected Object writeUnsignedInt(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             int signed = (int) value; // Same as value - 2^32
@@ -584,7 +584,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteLongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject writeLong(long address, long value) {
+        protected Object writeLong(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeLong(0, value);
@@ -597,7 +597,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteULongNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "value >= 0")
-        protected DynamicObject writeLong(long address, long value) {
+        protected Object writeLong(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeLong(0, value);
@@ -605,7 +605,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "isRubyBignum(value)")
-        protected DynamicObject writeUnsignedLong(long address, DynamicObject value) {
+        protected Object writeUnsignedLong(long address, DynamicObject value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             writeUnsignedLong(ptr, 0, value);
@@ -627,7 +627,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteFloatNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject writeFloat(long address, double value) {
+        protected Object writeFloat(long address, double value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeFloat(0, (float) value);
@@ -640,7 +640,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteDoubleNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject writeDouble(long address, double value) {
+        protected Object writeDouble(long address, double value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeDouble(0, value);
@@ -653,7 +653,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWritePointerNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject writePointer(long address, long value) {
+        protected Object writePointer(long address, long value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writePointer(0, value);

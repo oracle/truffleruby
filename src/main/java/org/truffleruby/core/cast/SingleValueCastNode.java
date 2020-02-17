@@ -23,7 +23,7 @@ public abstract class SingleValueCastNode extends RubyContextNode {
     public abstract Object executeSingleValue(VirtualFrame frame, Object[] args);
 
     @Specialization(guards = "noArguments(args)")
-    protected DynamicObject castNil(Object[] args) {
+    protected Object castNil(Object[] args) {
         return nil();
     }
 

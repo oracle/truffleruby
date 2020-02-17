@@ -175,7 +175,7 @@ public class TruffleRegexpNodes {
             return MatchNodeGen.create();
         }
 
-        public abstract DynamicObject execute(DynamicObject regexp, DynamicObject string, Matcher matcher,
+        public abstract Object execute(DynamicObject regexp, DynamicObject string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart);
 
         // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
@@ -190,7 +190,7 @@ public class TruffleRegexpNodes {
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
         @Specialization
-        protected DynamicObject executeMatch(DynamicObject regexp, DynamicObject string, Matcher matcher,
+        protected Object executeMatch(DynamicObject regexp, DynamicObject string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart,
                 @Cached("createBinaryProfile()") ConditionProfile matchesProfile) {
             assert RubyGuards.isRubyRegexp(regexp);
@@ -215,7 +215,7 @@ public class TruffleRegexpNodes {
                     regexp,
                     region,
                     null));
-            return (DynamicObject) taintResultNode.maybeTaint(string, result);
+            return taintResultNode.maybeTaint(string, result);
         }
 
         @TruffleBoundary

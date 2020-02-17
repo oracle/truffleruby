@@ -1597,7 +1597,7 @@ public abstract class KernelNodes {
     public abstract static class SetTraceFuncNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(traceFunc)")
-        protected DynamicObject setTraceFunc(Object traceFunc) {
+        protected Object setTraceFunc(Object traceFunc) {
             getContext().getTraceManager().setTraceFunc(null);
             return nil();
         }

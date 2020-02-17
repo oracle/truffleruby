@@ -27,7 +27,7 @@ public interface NameErrorLayout extends ExceptionLayout {
             @Nullable Object message,
             @Nullable DynamicObject formatter,
             @Nullable Backtrace backtrace,
-            DynamicObject cause,
+            Object cause,
             @Nullable DynamicObject backtraceStringArray,
             @Nullable DynamicObject backtraceLocations,
             @Nullable Object receiver,

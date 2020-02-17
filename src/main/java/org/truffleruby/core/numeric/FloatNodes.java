@@ -385,12 +385,12 @@ public abstract class FloatNodes {
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNaN(a)")
-        protected DynamicObject compareFirstNaN(double a, Object b) {
+        protected Object compareFirstNaN(double a, Object b) {
             return nil();
         }
 
         @Specialization(guards = "isNaN(b)")
-        protected DynamicObject compareSecondNaN(Object a, double b) {
+        protected Object compareSecondNaN(Object a, double b) {
             return nil();
         }
 
