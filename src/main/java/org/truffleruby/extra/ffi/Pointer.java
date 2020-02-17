@@ -119,13 +119,11 @@ public class Pointer implements AutoCloseable {
         UNSAFE.copyMemory(buffer, Unsafe.ARRAY_BYTE_BASE_OFFSET + bufferPos, null, address + offset, length);
     }
 
-    @TruffleBoundary
     public byte readByte(long offset) {
         assert address + offset != 0;
         return UNSAFE.getByte(address + offset);
     }
 
-    @TruffleBoundary
     public byte[] readBytes(long offset, int length) {
         final byte[] bytes = new byte[length];
         readBytes(offset, bytes, 0, length);
