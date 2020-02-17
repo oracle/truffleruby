@@ -259,10 +259,6 @@ public abstract class BucketsStrategy {
         };
     }
 
-    public static Iterable<KeyValue> iterableKeyValues(final Entry firstInSequence) {
-        return () -> iterateKeyValues(firstInSequence);
-    }
-
     public static void copyInto(RubyContext context, DynamicObject from, DynamicObject to) {
         assert RubyGuards.isRubyHash(from);
         assert HashGuards.isBucketHash(from);

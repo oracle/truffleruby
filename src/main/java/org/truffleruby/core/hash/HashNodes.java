@@ -474,8 +474,10 @@ public abstract class HashNodes {
         protected DynamicObject eachBuckets(DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
-                yieldPair(block, keyValue.getKey(), keyValue.getValue());
+            Entry entry = Layouts.HASH.getFirstInSequence(hash);
+            while (entry != null) {
+                yieldPair(block, entry.getKey(), entry.getValue());
+                entry = entry.getNextInSequence();
             }
 
             return hash;
@@ -689,10 +691,12 @@ public abstract class HashNodes {
             int index = 0;
 
             try {
-                for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
+                Entry entry = Layouts.HASH.getFirstInSequence(hash);
+                while (entry != null) {
                     store = arrayBuilderNode
-                            .appendValue(store, index, yieldPair(block, keyValue.getKey(), keyValue.getValue()));
+                            .appendValue(store, index, yieldPair(block, entry.getKey(), entry.getValue()));
                     index++;
+                    entry = entry.getNextInSequence();
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -958,8 +962,10 @@ public abstract class HashNodes {
                 Object state) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            for (KeyValue keyValue : BucketsStrategy.iterableKeyValues(Layouts.HASH.getFirstInSequence(hash))) {
-                callbackNode.accept(frame, keyValue.getKey(), keyValue.getValue(), state);
+            Entry entry = Layouts.HASH.getFirstInSequence(hash);
+            while (entry != null) {
+                callbackNode.accept(frame, entry.getKey(), entry.getValue(), state);
+                entry = entry.getNextInSequence();
             }
 
             return state;
