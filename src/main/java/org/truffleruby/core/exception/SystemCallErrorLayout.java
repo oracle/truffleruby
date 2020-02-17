@@ -29,7 +29,7 @@ public interface SystemCallErrorLayout extends ExceptionLayout {
             @Nullable Backtrace backtrace,
             Object cause,
             @Nullable DynamicObject backtraceStringArray,
-            @Nullable DynamicObject backtraceLocations,
+            @Nullable Object backtraceLocations,
             Object errno);
 
     boolean isSystemCallError(DynamicObject object);

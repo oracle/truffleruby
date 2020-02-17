@@ -304,16 +304,16 @@ public abstract class KernelNodes {
     public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject callerLocations(int omit, NotProvided length) {
+        protected Object callerLocations(int omit, NotProvided length) {
             return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization
-        protected DynamicObject callerLocations(int omit, int length) {
+        protected Object callerLocations(int omit, int length) {
             return innerCallerLocations(omit, length);
         }
 
-        private DynamicObject innerCallerLocations(int omit, int length) {
+        private Object innerCallerLocations(int omit, int length) {
             // Always skip #caller_locations.
             final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);

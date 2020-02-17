@@ -632,7 +632,7 @@ public class CExtNodes {
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject block(VirtualFrame frame,
+        protected Object block(VirtualFrame frame,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             return getDataNode.execute(frame).getExtensionCallStack().getBlock();
         }

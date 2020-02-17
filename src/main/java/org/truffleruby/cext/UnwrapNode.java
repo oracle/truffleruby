@@ -67,7 +67,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected DynamicObject unwrapNil(long handle,
+        protected Object unwrapNil(long handle,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             return context.getCoreLibrary().nil;
         }

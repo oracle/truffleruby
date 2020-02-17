@@ -171,7 +171,7 @@ public class ThreadManager {
     }
 
     public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode) {
-        final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
+        final Object currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
         assert currentGroup != null;
         final DynamicObject thread = allocateObjectNode.allocate(
                 rubyClass,
@@ -181,7 +181,7 @@ public class ThreadManager {
     }
 
     public DynamicObject createForeignThread() {
-        final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(rootThread);
+        final Object currentGroup = Layouts.THREAD.getThreadGroup(rootThread);
         assert currentGroup != null;
         final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(
                 packThreadFields(currentGroup, "<foreign thread>"));
@@ -194,7 +194,7 @@ public class ThreadManager {
         Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread));
     }
 
-    private Object[] packThreadFields(DynamicObject currentGroup, String info) {
+    private Object[] packThreadFields(Object currentGroup, String info) {
         return Layouts.THREAD.build(
                 createThreadLocals(),
                 InterruptMode.IMMEDIATE,
@@ -703,7 +703,7 @@ public class ThreadManager {
         }
     }
 
-    private DynamicObject nil() {
+    private Object nil() {
         return context.getCoreLibrary().nil;
     }
 

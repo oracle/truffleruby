@@ -168,7 +168,7 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         private Object backtraceLocationsInternal(DynamicObject rubyThread, int omit, int length) {
-            final Memo<DynamicObject> backtraceLocationsMemo = new Memo<>(null);
+            final Memo<Object> backtraceLocationsMemo = new Memo<>(null);
 
             final SafepointAction safepointAction = (thread1, currentNode) -> {
                 final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omit);
@@ -201,7 +201,7 @@ public abstract class ThreadNodes {
     public abstract static class GroupNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject group(DynamicObject thread) {
+        protected Object group(DynamicObject thread) {
             return Layouts.THREAD.getThreadGroup(thread);
         }
 
@@ -614,7 +614,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyThread(thread)")
-        protected DynamicObject getName(DynamicObject thread) {
+        protected Object getName(DynamicObject thread) {
             return Layouts.THREAD.getName(thread);
         }
     }
@@ -673,16 +673,16 @@ public abstract class ThreadNodes {
     public static abstract class ThreadGetExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getException(VirtualFrame frame,
+        protected Object getException(VirtualFrame frame,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
             return getLastException(getThreadNode.executeGetRubyThread(frame));
         }
 
-        private static DynamicObject getLastException(DynamicObject currentThread) {
+        private static Object getLastException(DynamicObject currentThread) {
             return Layouts.THREAD.getThreadLocalGlobals(currentThread).exception;
         }
 
-        public static DynamicObject getLastException(RubyContext context) {
+        public static Object getLastException(RubyContext context) {
             return getLastException(context.getThreadManager().getCurrentThread());
         }
 
@@ -692,7 +692,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadGetReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getExitCode(VirtualFrame frame,
+        protected Object getExitCode(VirtualFrame frame,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
             return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus;
         }
@@ -702,7 +702,7 @@ public abstract class ThreadNodes {
     public static abstract class SetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setException(VirtualFrame frame, DynamicObject exception,
+        protected Object setException(VirtualFrame frame, DynamicObject exception,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
             return Layouts.THREAD
                     .getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception = exception;
@@ -713,7 +713,7 @@ public abstract class ThreadNodes {
     public static abstract class SetThreadLocalReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getException(VirtualFrame frame, DynamicObject returnCode,
+        protected Object getException(VirtualFrame frame, DynamicObject returnCode,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
             return Layouts.THREAD
                     .getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus = returnCode;

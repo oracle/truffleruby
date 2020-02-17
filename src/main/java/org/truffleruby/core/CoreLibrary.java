@@ -197,7 +197,7 @@ public class CoreLibrary {
 
     public final DynamicObject argv;
     public final DynamicObject mainObject;
-    public final DynamicObject nil;
+    public final Object nil;
 
     public final GlobalVariables globalVariables;
 

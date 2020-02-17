@@ -73,7 +73,7 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
             Backtrace backtrace) {
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.CLASS
                 .getInstanceFactory(rubyClass)
@@ -85,7 +85,7 @@ public abstract class ExceptionOperations {
     public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass,
             Object message,
             int errno, Backtrace backtrace) {
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(
                 Layouts.SYSTEM_CALL_ERROR.build(message, null, backtrace, cause, null, null, errno));

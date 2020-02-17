@@ -28,7 +28,7 @@ public interface ClassLayout extends ModuleLayout {
             boolean isSingleton,
             @Nullable DynamicObject attached,
             @Nullable DynamicObjectFactory instanceFactory,
-            @Nullable DynamicObject superclass);
+            @Nullable Object superclass);
 
     boolean isClass(DynamicObject object);
 
@@ -42,8 +42,8 @@ public interface ClassLayout extends ModuleLayout {
 
     void setInstanceFactoryUnsafe(DynamicObject object, DynamicObjectFactory value);
 
-    DynamicObject getSuperclass(DynamicObject object);
+    Object getSuperclass(DynamicObject object);
 
-    void setSuperclass(DynamicObject object, DynamicObject value);
+    void setSuperclass(DynamicObject object, Object value);
 
 }

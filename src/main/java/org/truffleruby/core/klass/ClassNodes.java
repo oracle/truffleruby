@@ -332,15 +332,15 @@ public abstract class ClassNodes {
                 limit = "getCacheLimit()")
         protected Object getSuperClass(DynamicObject rubyClass,
                 @Cached("rubyClass") DynamicObject cachedRubyClass,
-                @Cached("fastLookUp(cachedRubyClass)") DynamicObject cachedSuperclass) {
+                @Cached("fastLookUp(cachedRubyClass)") Object cachedSuperclass) {
             // caches only initialized classes, just allocated will go through slow look up
             return cachedSuperclass;
         }
 
         @Specialization(replaces = "getSuperClass")
-        protected DynamicObject getSuperClassUncached(DynamicObject rubyClass,
+        protected Object getSuperClassUncached(DynamicObject rubyClass,
                 @Cached BranchProfile errorProfile) {
-            final DynamicObject superclass = fastLookUp(rubyClass);
+            final Object superclass = fastLookUp(rubyClass);
             if (superclass != null) {
                 return superclass;
             } else {
@@ -351,7 +351,7 @@ public abstract class ClassNodes {
             }
         }
 
-        protected DynamicObject fastLookUp(DynamicObject rubyClass) {
+        protected Object fastLookUp(DynamicObject rubyClass) {
             return Layouts.CLASS.getSuperclass(rubyClass);
         }
 

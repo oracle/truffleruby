@@ -187,7 +187,7 @@ public abstract class ExceptionNodes {
                 @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile hasLocationsProfile) {
             if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
-                DynamicObject backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
+                Object backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
                 if (hasLocationsProfile.profile(backtraceLocations == null)) {
                     Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
                     backtraceLocations = backtrace.getBacktraceLocations(GetBacktraceException.UNLIMITED, null);

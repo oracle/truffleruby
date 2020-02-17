@@ -126,9 +126,9 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     protected static class ExtensionCallStackEntry {
         protected final ExtensionCallStackEntry previous;
         protected final ArrayList<Object> preservedObjects = new ArrayList<>();
-        protected final DynamicObject block;
+        protected final Object block;
 
-        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, DynamicObject block) {
+        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, Object block) {
             this.previous = previous;
             this.block = block;
         }
@@ -137,7 +137,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     public static class ExtensionCallStack {
         protected ExtensionCallStackEntry current;
 
-        public ExtensionCallStack(DynamicObject block) {
+        public ExtensionCallStack(Object block) {
             current = new ExtensionCallStackEntry(null, block);
         }
 
@@ -149,11 +149,11 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             current = current.previous;
         }
 
-        public void push(DynamicObject block) {
+        public void push(Object block) {
             current = new ExtensionCallStackEntry(current, block);
         }
 
-        public DynamicObject getBlock() {
+        public Object getBlock() {
             return current.block;
         }
     }

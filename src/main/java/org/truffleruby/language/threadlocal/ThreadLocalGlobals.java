@@ -13,10 +13,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class ThreadLocalGlobals {
 
-    public DynamicObject exception; // $!
-    public DynamicObject processStatus; // $?
+    public Object exception; // $!
+    public Object processStatus; // $?
 
-    public ThreadLocalGlobals(DynamicObject exception, DynamicObject processStatus) {
+    public ThreadLocalGlobals(Object exception, Object processStatus) {
         this.exception = exception;
         this.processStatus = processStatus;
     }

@@ -29,7 +29,7 @@ public interface NoMethodErrorLayout extends NameErrorLayout {
             @Nullable Backtrace backtrace,
             Object cause,
             @Nullable DynamicObject backtraceStringArray,
-            @Nullable DynamicObject backtraceLocations,
+            @Nullable Object backtraceLocations,
             @Nullable Object receiver,
             Object name,
             Object args);
