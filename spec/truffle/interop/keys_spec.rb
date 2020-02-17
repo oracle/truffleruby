@@ -54,12 +54,8 @@ describe "Truffle::Interop.keys" do
     Truffle::Interop.keys(object).should == []
   end
 
-  it "returns the keys of a hash" do
-    Truffle::Interop.keys({'a' => 1, 'b' => 2, 'c' => 3}).should == ['a', 'b', 'c']
-  end
-
-  it "returns the keys of a hash converted to strings" do
-    Truffle::Interop.keys({a: 1, b: 2, c: 3}).should == ['a', 'b', 'c']
+  it "does not return the keys of a hash" do
+    Truffle::Interop.keys({'a' => 1, 'b' => 2, 'c' => 3}).should_not include('a', 'b', 'c')
   end
 
   it "returns the methods of an object" do
@@ -79,10 +75,10 @@ describe "Truffle::Interop.keys" do
 
   describe "without internal set" do
 
-    it "does not return the instance variables of a hash" do
+    it "does return the instance variables of a hash" do
       hash = {a: 1, b: 2, c: 3}
       hash.instance_variable_set(:@foo, 14)
-      Truffle::Interop.keys(hash, true).should_not include('@foo')
+      Truffle::Interop.keys(hash, true).should include('@foo')
     end
 
     it "does not return instance variables of an object" do
@@ -93,10 +89,10 @@ describe "Truffle::Interop.keys" do
 
   describe "with internal set" do
 
-    it "does not return the instance variables of a hash" do
+    it "does return the instance variables of a hash" do
       hash = {a: 1, b: 2, c: 3}
       hash.instance_variable_set(:@foo, 14)
-      Truffle::Interop.keys(hash, true).should_not include('@foo')
+      Truffle::Interop.keys(hash, true).should include('@foo')
     end
 
     it "returns instance variables of an object" do

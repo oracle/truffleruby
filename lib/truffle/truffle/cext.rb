@@ -29,8 +29,6 @@ module Truffle::CExt
   end
 
   class RData
-    DATA_FIELD_INDEX = 2
-
     def initialize(object)
       @object = object
     end
@@ -81,6 +79,7 @@ module Truffle::CExt
 
     def initialize(encoding)
       @encoding = encoding
+      @address = nil
     end
 
     def [](index)
@@ -97,16 +96,16 @@ module Truffle::CExt
     end
 
     def polyglot_pointer?
-      true
+      !@address.nil?
     end
 
     # Every IS_POINTER object should also have TO_NATIVE
     def polyglot_to_native
+      @address ||= cache_address
     end
 
     def polyglot_address
-      # TODO (pitr-ch 27-Mar-2019): should be in to_native, and not return pointer? when address is nil
-      @address ||= cache_address
+      @address
     end
 
     def cache_address

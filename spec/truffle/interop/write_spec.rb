@@ -29,24 +29,6 @@ describe "Truffle::Interop.write" do
 
   end
 
-  describe "with a Hash" do
-
-    before :each do
-      @hash = {'a' => 1, 'b' => 2, 'c' => 3}
-    end
-
-    it "can overwrite a value" do
-      Truffle::Interop.write(@hash, 'b', 14)
-      @hash['b'].should == 14
-    end
-
-    it "can add a new a value" do
-      Truffle::Interop.write(@hash, 'x', 14)
-      @hash['x'].should == 14
-    end
-
-  end
-
   describe "with a name that starts with @" do
 
     before :each do

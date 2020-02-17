@@ -93,12 +93,16 @@ public class JSR223InteropTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testAccessingHashes() throws ScriptException {
+    public void testAccessingHashes() throws ScriptException, NoSuchMethodException {
         final ScriptEngineManager m = new ScriptEngineManager();
         try (TruffleRubyScriptEngine scriptEngine = (TruffleRubyScriptEngine) m
                 .getEngineByName(TruffleRuby.LANGUAGE_ID)) {
-            assertEquals(4, ((Map<String, Object>) scriptEngine.eval("{'a' => 3, 'b' => 4, 'c' => 5}")).get("b"));
-            //assertEquals("b", ((Map) scriptEngine.eval("{3 => 'a', 4 => 'b', 5 => 'c'}")).get(4));
+            assertEquals(
+                    4,
+                    (int) ((Invocable) scriptEngine).invokeMethod(
+                            scriptEngine.eval("{'a' => 3, 'b' => 4, 'c' => 5}"),
+                            "fetch",
+                            'b'));
         }
     }
 

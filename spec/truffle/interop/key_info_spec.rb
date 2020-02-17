@@ -142,20 +142,19 @@ describe "Truffle::Interop.key_info" do
 
       describe "set" do
 
-        it "if the key is found" do
-          Truffle::Interop.key_info(@hash, 'b').should include(:readable)
-        end
-
         it "for a method" do
           Truffle::Interop.key_info(@hash, :to_s).should include(:readable)
         end
 
+        it "for instance variables that exist" do
+          @hash.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@hash, :@foo).should include(:readable)
+        end
       end
 
       describe "not set" do
-        it "for instance variables that exist" do
-          @hash.instance_variable_set :@foo, 14
-          Truffle::Interop.key_info(@hash, :@foo).should_not include(:readable)
+        it "if the key is not found" do
+          Truffle::Interop.key_info(@hash, 'b').should_not include(:readable)
         end
 
         it "if the key is not found" do
@@ -173,22 +172,22 @@ describe "Truffle::Interop.key_info" do
 
       describe "set" do
 
-        it "if the key is not found" do
-          Truffle::Interop.key_info(@hash, 'foo').should include(:insertable)
-        end
-
-        it "for instance variables that exist" do
-          @hash.instance_variable_set :@foo, 14
-          # since the key is not there
-          Truffle::Interop.key_info(@hash, :@foo).should include(:insertable)
-        end
-
         it "for instance variables that don't exist" do
           Truffle::Interop.key_info(@hash, :@foo).should include(:insertable)
         end
       end
 
       describe "not set" do
+
+        it "for instance variables that exist" do
+          @hash.instance_variable_set :@foo, 14
+          # since the key is not there
+          Truffle::Interop.key_info(@hash, :@foo).should_not include(:insertable)
+        end
+
+        it "if the key is not found" do
+          Truffle::Interop.key_info(@hash, 'foo').should_not include(:insertable)
+        end
 
         it "if the key is found and the hash is frozen" do
           @hash.freeze
@@ -211,13 +210,17 @@ describe "Truffle::Interop.key_info" do
 
       describe "set" do
 
-        it "if the key is found" do
-          Truffle::Interop.key_info(@hash, 'b').should include(:modifiable, :removable)
+        it "for instance variables that exist" do
+          @hash.instance_variable_set :@foo, 14
+          Truffle::Interop.key_info(@hash, :@foo).should include_any_of(:modifiable, :removable)
         end
-
       end
 
       describe "not set" do
+
+        it "if the key not found" do
+          Truffle::Interop.key_info(@hash, 'b').should_not include(:modifiable, :removable)
+        end
 
         it "if the key is found and the hash is frozen" do
           @hash.freeze
@@ -226,11 +229,6 @@ describe "Truffle::Interop.key_info" do
 
         it "if the key is not found" do
           Truffle::Interop.key_info(@hash, 'foo').should_not include_any_of(:modifiable)
-        end
-
-        it "for instance variables that exist" do
-          @hash.instance_variable_set :@foo, 14
-          Truffle::Interop.key_info(@hash, :@foo).should_not include_any_of(:modifiable, :removable)
         end
 
         it "for instance variables that don't exist" do

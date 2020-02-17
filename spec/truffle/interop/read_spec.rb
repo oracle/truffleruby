@@ -31,22 +31,6 @@ describe "Truffle::Interop.read" do
 
   end
 
-  describe "with a Hash" do
-
-    before :each do
-      @hash = {'a' => 1, 'b' => 2, 'c' => 3}
-    end
-
-    it "reads a value of a key that exists" do
-      Truffle::Interop.read(@hash, 'b').should == 2
-    end
-
-    it "raises for a key that doesn't exist" do
-      -> { Truffle::Interop.read(@hash, 'foo') }.should raise_error NameError
-    end
-
-  end
-
   describe "with a name that starts with @" do
 
     before :each do
