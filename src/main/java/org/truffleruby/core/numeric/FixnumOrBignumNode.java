@@ -38,7 +38,7 @@ public class FixnumOrBignumNode extends RubyContextNode {
     }
 
     public Object fixnumOrBignum(BigInteger value) {
-        if (lowerProfile.profile(value.compareTo(LONG_MIN_BIGINT) >= 0 && value.compareTo(LONG_MAX_BIGINT) <= 0)) {
+        if (lowerProfile.profile(compare(value, LONG_MIN_BIGINT) >= 0 && compare(value, LONG_MAX_BIGINT) <= 0)) {
             final long longValue = value.longValue();
 
             if (intProfile.profile(CoreLibrary.fitsIntoInteger(longValue))) {
@@ -66,4 +66,8 @@ public class FixnumOrBignumNode extends RubyContextNode {
         return new BigDecimal(value).toBigInteger();
     }
 
+    @TruffleBoundary
+    private static int compare(BigInteger a, BigInteger b) {
+        return a.compareTo(b);
+    }
 }
