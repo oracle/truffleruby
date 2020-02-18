@@ -11,21 +11,18 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendArrayNodeGen;
 import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayCapacityNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyStoreNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayCopyToNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 /*
@@ -59,7 +56,9 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
-        @Child StartNode startNode = new StartNode(ArrayStrategy.forValue(0), 0);
+        @CompilationFinal private static ArrayAllocator INITIAL_ALLOCATOR = ArrayStoreLibrary.allocatorForValue(0);
+
+        @Child StartNode startNode = new StartNode(INITIAL_ALLOCATOR, 0);
         @Child AppendArrayNode appendArrayNode;
         @Child AppendOneNode appendOneNode;
 
@@ -91,7 +90,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         private AppendArrayNode getAppendArrayNode() {
             if (appendArrayNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                appendArrayNode = insert(AppendArrayNode.create(getContext(), startNode.strategy));
+                appendArrayNode = insert(AppendArrayNode.create(getContext(), startNode.allocator));
             }
             return appendArrayNode;
         }
@@ -99,19 +98,18 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         private AppendOneNode getAppendOneNode() {
             if (appendOneNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                appendOneNode = insert(AppendOneNode.create(getContext(), startNode.strategy));
+                appendOneNode = insert(AppendOneNode.create(getContext(), startNode.allocator));
             }
             return appendOneNode;
         }
 
-        public void updateStrategy(ArrayStrategy strategy, int newLength) {
-            final ArrayStrategy oldStrategy = startNode.strategy;
-            final ArrayStrategy newStrategy = oldStrategy.generalize(strategy);
+        public void updateStrategy(ArrayStoreLibrary.ArrayAllocator newStrategy, int newLength) {
+            final ArrayStoreLibrary.ArrayAllocator oldStrategy = startNode.allocator;
 
             final int oldLength = startNode.expectedLength;
             final int newExpectedLength = Math.max(oldLength, newLength);
             if (newStrategy != oldStrategy || newExpectedLength > oldLength) {
-                startNode.replace(new StartNode(strategy, newExpectedLength));
+                startNode.replace(new StartNode(newStrategy, newExpectedLength));
             }
 
             if (newStrategy != oldStrategy) {
@@ -125,9 +123,9 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         }
     }
 
-    public abstract static class ArrayBuilderBaseNode extends RubyBaseNode {
+    public abstract static class ArrayBuilderBaseNode extends RubyContextNode {
 
-        protected void replaceNodes(ArrayStrategy strategy, int size) {
+        protected void replaceNodes(ArrayStoreLibrary.ArrayAllocator strategy, int size) {
             final ArrayBuilderProxyNode parent = (ArrayBuilderProxyNode) getParent();
             parent.updateStrategy(strategy, size);
         }
@@ -135,26 +133,24 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
     public static class StartNode extends ArrayBuilderBaseNode {
 
-        private final ArrayStrategy strategy;
-        private final ArrayOperationNodes.ArrayNewStoreNode newStoreNode;
+        private final ArrayStoreLibrary.ArrayAllocator allocator;
         private final int expectedLength;
 
-        public StartNode(ArrayStrategy strategy, int expectedLength) {
-            this.strategy = strategy;
-            newStoreNode = strategy.newStoreNode();
+        public StartNode(ArrayStoreLibrary.ArrayAllocator allocator, int expectedLength) {
+            this.allocator = allocator;
             this.expectedLength = expectedLength;
         }
 
         public Object start() {
-            return newStoreNode.execute(expectedLength);
+            return allocator.allocate(expectedLength);
         }
 
         public Object start(int length) {
             if (length > expectedLength) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                replaceNodes(strategy, length);
+                replaceNodes(allocator, length);
             }
-            return newStoreNode.execute(length);
+            return allocator.allocate(length);
         }
 
     }
@@ -162,44 +158,43 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendOneNode extends ArrayBuilderBaseNode {
 
-        public static AppendOneNode create(RubyContext context, ArrayStrategy arrayStrategy) {
-            return AppendOneNodeGen.create(context, arrayStrategy);
+        public static AppendOneNode create(RubyContext context, ArrayStoreLibrary.ArrayAllocator allocator) {
+            return AppendOneNodeGen.create(context, allocator);
         }
 
         private final RubyContext context;
-        protected final ArrayStrategy arrayStrategy;
+        protected final ArrayStoreLibrary.ArrayAllocator allocator;
 
-        public AppendOneNode(RubyContext context, ArrayStrategy arrayStrategy) {
+        public AppendOneNode(RubyContext context, ArrayStoreLibrary.ArrayAllocator allocator) {
             this.context = context;
-            this.arrayStrategy = arrayStrategy;
+            this.allocator = allocator;
         }
 
         public abstract Object executeAppend(Object array, int index, Object value);
 
-        @Specialization(guards = { "arrayStrategy.matchesStore(array)", "arrayStrategy.accepts(value)" })
+        @Specialization(
+                guards = "arrays.acceptsValue(array, value)",
+                limit = "1")
         protected Object appendCompatibleType(Object array, int index, Object value,
-                @Cached("arrayStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
-                @Cached("arrayStrategy.copyStoreNode()") ArrayCopyStoreNode copyStoreNode,
-                @Cached("arrayStrategy.setNode()") ArraySetNode setNode) {
-            final int length = capacityNode.execute(array);
+                @CachedLibrary("array") ArrayStoreLibrary arrays) {
+            final int length = arrays.capacity(array);
             if (index >= length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 final int capacity = ArrayUtils.capacityForOneMore(context, length);
-                replaceNodes(arrayStrategy, capacity);
-                array = copyStoreNode.execute(array, capacity);
+                array = arrays.expand(array, capacity);
+                replaceNodes(arrays.allocator(array), capacity);
             }
-            setNode.execute(array, index, value);
+            arrays.write(array, index, value);
             return array;
         }
 
         @Fallback
         protected Object appendNewStrategy(Object store, int index, Object value) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            final ArrayStrategy currentStrategy = ArrayStrategy.ofStore(store);
-            final ArrayStrategy valueStrategy = ArrayStrategy.forValue(value);
-            final ArrayStrategy generalized = currentStrategy.generalize(valueStrategy);
+            final ArrayStoreLibrary stores = ArrayStoreLibrary.getFactory().getUncached();
+            final ArrayStoreLibrary.ArrayAllocator newAllocator = stores.generalizeForValue(store, value);
 
-            int currentCapacity = currentStrategy.capacityNode().execute(store);
+            final int currentCapacity = stores.capacity(store);
             final int neededCapacity;
             if (index >= currentCapacity) {
                 neededCapacity = ArrayUtils.capacityForOneMore(context, currentCapacity);
@@ -207,11 +202,11 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 neededCapacity = currentCapacity;
             }
 
-            replaceNodes(generalized, neededCapacity);
+            replaceNodes(newAllocator, neededCapacity);
 
-            final Object newStore = generalized.newStoreNode().execute(neededCapacity);
-            currentStrategy.copyToNode().execute(store, newStore, 0, 0, index);
-            generalized.setNode().execute(newStore, index, value);
+            final Object newStore = newAllocator.allocate(neededCapacity);
+            stores.copyContents(store, 0, newStore, 0, index);
+            stores.write(newStore, index, value);
             return newStore;
         }
 
@@ -220,107 +215,74 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
     @ImportStatic(ArrayGuards.class)
     public abstract static class AppendArrayNode extends ArrayBuilderBaseNode {
 
-        public static AppendArrayNode create(RubyContext context, ArrayStrategy arrayStrategy) {
-            return AppendArrayNodeGen.create(context, arrayStrategy);
+        public static AppendArrayNode create(RubyContext context, ArrayStoreLibrary.ArrayAllocator allocator) {
+            return AppendArrayNodeGen.create(context, allocator);
         }
 
         private final RubyContext context;
-        protected final ArrayStrategy arrayStrategy;
+        protected final ArrayStoreLibrary.ArrayAllocator allocator;
 
-        public AppendArrayNode(RubyContext context, ArrayStrategy arrayStrategy) {
+        public AppendArrayNode(RubyContext context, ArrayStoreLibrary.ArrayAllocator allocator) {
             this.context = context;
-            this.arrayStrategy = arrayStrategy;
+            this.allocator = allocator;
         }
 
         public abstract Object executeAppend(Object array, int index, DynamicObject value);
 
         @Specialization(
-                guards = {
-                        "arrayStrategy.matchesStore(array)",
-                        "otherStrategy.matches(other)",
-                        "arrayStrategy == generalized" },
-                limit = "STORAGE_STRATEGIES")
-        protected Object appendSameStrategy(Object array, int index, DynamicObject other,
-                @Cached("of(other)") ArrayStrategy otherStrategy,
-                @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
-                @Cached("arrayStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
-                @Cached("arrayStrategy.copyStoreNode()") ArrayCopyStoreNode copyStoreNode,
-                @Cached("otherStrategy.copyToNode()") ArrayCopyToNode copyToNode) {
+                guards = { "arrays.acceptsAllValues(array, getStore(other))" },
+                limit = "1")
+        protected Object appendCompatibleStrategy(Object array, int index, DynamicObject other,
+                @CachedLibrary("array") ArrayStoreLibrary arrays,
+                @CachedLibrary("getStore(other)") ArrayStoreLibrary others) {
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
 
-            int length = capacityNode.execute(array);
+            int length = arrays.capacity(array);
             if (neededSize > length) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                replaceNodes(arrayStrategy, neededSize);
+                replaceNodes(arrays.allocator(array), neededSize);
                 final int capacity = ArrayUtils.capacity(context, length, neededSize);
-                array = copyStoreNode.execute(array, capacity);
+                array = arrays.expand(array, capacity);
             }
 
             final Object otherStore = Layouts.ARRAY.getStore(other);
-            copyToNode.execute(otherStore, array, 0, index, otherSize);
+            others.copyContents(otherStore, 0, array, index, otherSize);
             return array;
         }
 
-        @Specialization(
-                guards = {
-                        "arrayStrategy.matchesStore(array)",
-                        "otherStrategy.matches(other)",
-                        "arrayStrategy != generalized" },
-                limit = "STORAGE_STRATEGIES")
-        protected Object appendNewStrategy(Object array, int index, DynamicObject other,
-                @Cached("of(other)") ArrayStrategy otherStrategy,
-                @Cached("arrayStrategy.generalize(otherStrategy)") ArrayStrategy generalized,
-                @Cached("arrayStrategy.capacityNode()") ArrayCapacityNode capacityNode,
-                @Cached("arrayStrategy.copyToNode()") ArrayCopyToNode copyToNode,
-                @Cached("otherStrategy.copyToNode()") ArrayCopyToNode otherCopyToNode,
-                @Cached("generalized.newStoreNode()") ArrayNewStoreNode newStoreNode) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            return fallback(array, index, other, capacityNode, copyToNode, otherCopyToNode, newStoreNode, generalized);
-        }
-
-        @Specialization(guards = "!arrayStrategy.matchesStore(array)")
+        @Fallback
         protected Object appendNewStrategy(Object array, int index, DynamicObject other) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            final ArrayStrategy currentStrategy = ArrayStrategy.ofStore(array);
-            final ArrayStrategy otherStrategy = ArrayStrategy.of(other);
-            final ArrayStrategy generalized = currentStrategy.generalize(otherStrategy);
 
-            final ArrayCapacityNode capacityNode = currentStrategy.capacityNode();
-            final ArrayCopyToNode copyToNode = currentStrategy.copyToNode();
-            final ArrayCopyToNode otherCopyToNode = otherStrategy.copyToNode();
-            final ArrayNewStoreNode newStoreNode = generalized.newStoreNode();
-
-            return fallback(array, index, other, capacityNode, copyToNode, otherCopyToNode, newStoreNode, generalized);
-        }
-
-        private Object fallback(Object store, int index, DynamicObject other, ArrayCapacityNode capacityNode,
-                ArrayCopyToNode copyToNode, ArrayCopyToNode otherCopyToNode,
-                ArrayNewStoreNode newStoreNode,
-                ArrayStrategy generalized) {
+            final ArrayStoreLibrary arrays = ArrayStoreLibrary.getFactory().getUncached();
             final int otherSize = Layouts.ARRAY.getSize(other);
             final int neededSize = index + otherSize;
 
             final Object newStore;
 
-            final int length = capacityNode.execute(store);
+            final int length = arrays.capacity(array);
+            ArrayAllocator allocator = arrays.generalizeForStore(array, Layouts.ARRAY.getStore(other));
             if (neededSize > length) {
-                replaceNodes(generalized, neededSize);
+                replaceNodes(allocator, neededSize);
                 final int capacity = ArrayUtils.capacity(context, length, neededSize);
-                newStore = newStoreNode.execute(capacity);
+                newStore = allocator.allocate(capacity);
             } else {
-                replaceNodes(generalized, length);
-                newStore = newStoreNode.execute(length);
+                replaceNodes(allocator, length);
+                newStore = allocator.allocate(length);
             }
 
-            copyToNode.execute(store, newStore, 0, 0, index);
+            arrays.copyContents(array, 0, newStore, 0, index);
 
             final Object otherStore = Layouts.ARRAY.getStore(other);
-            otherCopyToNode.execute(otherStore, newStore, 0, index, otherSize);
+            arrays.copyContents(otherStore, 0, newStore, index, otherSize);
 
             return newStore;
         }
 
+        protected static Object getStore(DynamicObject array) {
+            return Layouts.ARRAY.getStore(array);
+        }
     }
 
 }
