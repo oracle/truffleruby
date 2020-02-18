@@ -211,8 +211,9 @@ public class ArrayBuilderTest {
 
     static <T extends Node> T adopt(T node) {
         RootNode root = new RootNode(null) {
+            @Child Node childNode;
             {
-                insert(node);
+                childNode = insert(node);
             }
 
             @Override
