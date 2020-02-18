@@ -10,9 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayGetNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArrayNewStoreNode;
-import org.truffleruby.core.array.ArrayOperationNodes.ArraySetNode;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
@@ -21,6 +19,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -34,37 +33,32 @@ public abstract class ArrayDupNode extends RubyContextNode {
 
     @Specialization(
             guards = {
-                    "strategy.matches(from)",
-                    "strategy.getSize(from) == cachedSize",
+                    "getSize(from) == cachedSize",
                     "cachedSize <= ARRAY_MAX_EXPLODE_SIZE" },
             limit = "getCacheLimit()")
     protected DynamicObject dupProfiledSize(DynamicObject from,
-            @Cached("of(from)") ArrayStrategy strategy,
-            @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-            @Cached("strategy.getSize(from)") int cachedSize,
-            @Cached("strategy.getNode()") ArrayGetNode getNode,
-            @Cached("mutableStrategy.setNode()") ArraySetNode setNode,
-            @Cached("mutableStrategy.newStoreNode()") ArrayNewStoreNode newStoreNode) {
-        return copyArraySmall(newStoreNode, getNode, setNode, from, cachedSize);
+            @CachedLibrary("getStore(from)") ArrayStoreLibrary fromStores,
+            @Cached("getSize(from)") int cachedSize) {
+        return copyArraySmall(fromStores, from, cachedSize);
     }
 
     @ExplodeLoop
-    private DynamicObject copyArraySmall(ArrayNewStoreNode newStoreNode, ArrayGetNode getNode, ArraySetNode setNode,
+    private DynamicObject copyArraySmall(ArrayStoreLibrary stores,
             DynamicObject from, int cachedSize) {
         final Object original = Layouts.ARRAY.getStore(from);
-        final Object copy = newStoreNode.execute(cachedSize);
-        for (int i = 0; i < cachedSize; i++) {
-            setNode.execute(copy, i, getNode.execute(original, i));
-        }
+        final Object copy = stores.allocator(original).allocate(cachedSize);
+        stores.copyContents(original, 0, copy, 0, cachedSize);
         return allocateArray(coreLibrary().arrayClass, copy, cachedSize);
     }
 
-    @Specialization(guards = "strategy.matches(from)", replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
+    @Specialization(replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
     protected DynamicObject dup(DynamicObject from,
-            @Cached("of(from)") ArrayStrategy strategy,
-            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
-        final int size = strategy.getSize(from);
-        final Object copy = extractRangeCopyOnWriteNode.execute(from, 0, size);
+            @CachedLibrary("getStore(from)") ArrayStoreLibrary fromStores) {
+        final int size = Layouts.ARRAY.getSize(from);
+        final Object store = Layouts.ARRAY.getStore(from);
+        final Object cowStore = fromStores.extractRange(store, 0, Layouts.ARRAY.getSize(from));
+        Layouts.ARRAY.setStore(from, cowStore);
+        final Object copy = fromStores.extractRange(store, 0, Layouts.ARRAY.getSize(from));
         return allocateArray(coreLibrary().arrayClass, copy, size);
     }
 
