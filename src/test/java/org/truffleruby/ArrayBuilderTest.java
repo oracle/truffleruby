@@ -220,6 +220,7 @@ public class ArrayBuilderTest {
                 return null;
             }
         };
+        root.adoptChildren();
         return node;
     }
 
