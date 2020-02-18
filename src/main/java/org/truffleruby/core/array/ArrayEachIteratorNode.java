@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -17,6 +18,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.NodeInterface;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -40,15 +42,14 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
             ArrayElementConsumerNode consumerNode);
 
     @Specialization(
-            guards = { "strategy.matches(array)", "strategy.getSize(array) == 1", "startAt == 0" },
+            guards = { "getSize(array) == 1", "startAt == 0" },
             limit = "STORAGE_STRATEGIES")
     protected DynamicObject iterateOne(DynamicObject array, DynamicObject block, int startAt,
             ArrayElementConsumerNode consumerNode,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
         final Object store = Layouts.ARRAY.getStore(array);
 
-        consumerNode.accept(array, block, getNode.execute(store, 0), 0);
+        consumerNode.accept(array, block, arrays.read(store, 0), 0);
 
         if (Layouts.ARRAY.getSize(array) > 1) {
             // Implicitly profiles through lazy node creation
@@ -59,19 +60,18 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
     }
 
     @Specialization(
-            guards = { "strategy.matches(array)", "strategy.getSize(array) != 1" },
+            guards = { "getSize(array) != 1" },
             limit = "STORAGE_STRATEGIES")
     protected DynamicObject iterateMany(DynamicObject array, DynamicObject block, int startAt,
             ArrayElementConsumerNode consumerNode,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
             @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {
         int i = startAt;
         try {
-            for (; i < strategy.getSize(array); i++) {
-                if (strategyMatchProfile.profile(strategy.matches(array))) {
+            for (; i < Layouts.ARRAY.getSize(array); i++) {
+                if (strategyMatchProfile.profile(arrays.accepts(Layouts.ARRAY.getStore(array)))) {
                     final Object store = Layouts.ARRAY.getStore(array);
-                    consumerNode.accept(array, block, getNode.execute(store, i), i);
+                    consumerNode.accept(array, block, arrays.read(store, i), i);
                 } else {
                     return getRecurseNode().execute(array, block, i, consumerNode);
                 }
