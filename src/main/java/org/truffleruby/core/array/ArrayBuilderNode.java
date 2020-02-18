@@ -56,9 +56,9 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
-        @CompilationFinal private static ArrayAllocator INITIAL_ALLOCATOR = null;
+        @CompilationFinal private static ArrayAllocator INITIAL_ALLOCATOR = ArrayStoreLibrary.allocatorForValue(0);
 
-        @Child StartNode startNode = new StartNode(getInitialAllocator(), 0);
+        @Child StartNode startNode = new StartNode(INITIAL_ALLOCATOR, 0);
         @Child AppendArrayNode appendArrayNode;
         @Child AppendOneNode appendOneNode;
 
@@ -121,14 +121,6 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 }
             }
         }
-
-        private static ArrayAllocator getInitialAllocator() {
-            if (INITIAL_ALLOCATOR == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                INITIAL_ALLOCATOR = ArrayStoreLibrary.allocatorForValue(0);
-            }
-            return INITIAL_ALLOCATOR;
-        }
     }
 
     public abstract static class ArrayBuilderBaseNode extends RubyContextNode {
@@ -182,7 +174,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
         @Specialization(
                 guards = "arrays.acceptsValue(array, value)",
-                limit = "STORAGE_STRATEGIES")
+                limit = "1")
         protected Object appendCompatibleType(Object array, int index, Object value,
                 @CachedLibrary("array") ArrayStoreLibrary arrays) {
             final int length = arrays.capacity(array);
@@ -239,7 +231,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
         @Specialization(
                 guards = { "arrays.acceptsAllValues(array, getStore(other))" },
-                limit = "STORAGE_STRATEGIES")
+                limit = "1")
         protected Object appendCompatibleStrategy(Object array, int index, DynamicObject other,
                 @CachedLibrary("array") ArrayStoreLibrary arrays,
                 @CachedLibrary("getStore(other)") ArrayStoreLibrary others) {
