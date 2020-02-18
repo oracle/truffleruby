@@ -40,12 +40,13 @@ public class ArrayBuilderTest {
     private final ByteArrayOutputStream err = new ByteArrayOutputStream();
 
     @Test
-    public void emptyyBuilderTest() {
+    public void emptyBuilderTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             Object store = builder.start();
             store = builder.finish(store, 0);
             assertEquals(int[].class, store.getClass());
+            assertEquals(((int[]) store).length, 0);
         });
     }
 
@@ -93,6 +94,7 @@ public class ArrayBuilderTest {
             for (int i = 0; i < 10; i++) {
                 store = builder.appendValue(store, i, i * 0.0d);
             }
+            // This should be double[], but we don't manage this yet.
             assertEquals(Object[].class, store.getClass());
         });
     }
@@ -103,7 +105,7 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             Object store = builder.start(10);
             for (int i = 0; i < 10; i++) {
-                store = builder.appendValue(store, i, null);
+                store = builder.appendValue(store, i, new Object());
             }
             store = builder.finish(store, 10);
             assertEquals(Object[].class, store.getClass());
@@ -133,6 +135,20 @@ public class ArrayBuilderTest {
             store = builder.appendArray(store, 0, otherStore);
             store = builder.finish(store, 10);
             assertEquals(long[].class, store.getClass());
+        });
+    }
+
+    @Test
+    public void arrayBuilderAppendDoubleArrayTest() {
+        testInContext(() -> {
+            ArrayBuilderNode builder = createBuilder();
+            Object store = builder.start(10);
+            DynamicObject otherStore = Layouts.ARRAY
+                    .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new double[10], 10);
+            store = builder.appendArray(store, 0, otherStore);
+            store = builder.finish(store, 10);
+            // This should be double[], but we don't manage this yet.
+            assertEquals(Object[].class, store.getClass());
         });
     }
 
@@ -204,7 +220,6 @@ public class ArrayBuilderTest {
                 return null;
             }
         };
-        root.adoptChildren();
         return node;
     }
 
