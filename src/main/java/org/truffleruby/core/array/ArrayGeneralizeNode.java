@@ -10,11 +10,13 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -27,24 +29,22 @@ public abstract class ArrayGeneralizeNode extends RubyContextNode {
 
     public abstract Object[] executeGeneralize(DynamicObject array, int requiredCapacity);
 
-    @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "STORAGE_STRATEGIES")
     protected Object[] generalize(DynamicObject array, int requiredCapacity,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
-            @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         assert !ArrayGuards.isObjectArray(array);
         final Object store = Layouts.ARRAY.getStore(array);
         final int capacity;
-        final int length = capacityNode.execute(store);
+        final int length = stores.capacity(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             capacity = ArrayUtils.capacity(getContext(), length, requiredCapacity);
         } else {
             capacity = length;
         }
-        final Object[] newStore = boxedCopyNode.execute(store, capacity);
-        strategy.setStore(array, newStore);
+        final Object[] newStore = new Object[capacity];
+        stores.copyContents(store, 0, newStore, 0, length);
+        Layouts.ARRAY.setStore(array, newStore);
         return newStore;
     }
-
 }
