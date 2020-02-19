@@ -73,8 +73,7 @@ public abstract class IntegerNodes {
 
         @Specialization(rewriteOn = ArithmeticException.class)
         protected int doInt(int value) {
-            // TODO CS 13-Oct-16, use negateExact, but this isn't intrinsified by Graal yet
-            return Math.subtractExact(0, value);
+            return Math.negateExact(value);
         }
 
         @Specialization(replaces = "doInt")
@@ -1284,8 +1283,7 @@ public abstract class IntegerNodes {
 
         @Specialization(rewriteOn = ArithmeticException.class)
         protected int absIntInBounds(int n) {
-            // TODO CS 13-Oct-16, use negateExact, but this isn't intrinsified by Graal yet
-            return (n < 0) ? Math.subtractExact(0, n) : n;
+            return (n < 0) ? Math.negateExact(n) : n;
         }
 
         @Specialization(replaces = "absIntInBounds")
@@ -1723,7 +1721,9 @@ public abstract class IntegerNodes {
                 }
 
                 // TODO CS 15-Feb-15 what about this cast?
-                // TODO(norswap) fix
+                // NOTE(norswap, 19 Feb 20)
+                //      MRI returns Infinity and prints a warning for bignums but also many
+                //      integers (sizeof(MAX_INT ^ MAX_INT) > 1.5GB, and computationally expensive too)
                 return createBignum(BigIntegerOperations.pow(bigIntegerBase, (int) exponent));
             }
         }
