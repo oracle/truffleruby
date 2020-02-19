@@ -30,6 +30,7 @@ Bug fixes:
 * Fixed `Kernel#dup` to return self for `Complex` and `Rational` objects.
 * Updated `Kernel.Float()` to handle the `exception: false` parameter.
 * Fixed `String#unpack` `M` format (#1901).
+* Fixed error when `SystemCallError` message contained non-ASCII characters.
 
 Compatibility:
 

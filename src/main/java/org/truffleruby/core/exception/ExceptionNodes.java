@@ -17,7 +17,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -322,10 +321,11 @@ public abstract class ExceptionNodes {
     @Primitive(name = "exception_errno_error", lowerFixnum = 1)
     public static abstract class ExceptionErrnoErrorPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary
+        @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
+
         @Specialization
         protected DynamicObject exceptionErrnoError(DynamicObject message, int errno) {
-            return coreExceptions().errnoError(errno, StringOperations.getString(message), null);
+            return errnoErrorNode.execute(errno, message, null);
         }
 
     }
