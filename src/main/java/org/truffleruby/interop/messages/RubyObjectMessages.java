@@ -9,24 +9,27 @@
  */
 package org.truffleruby.interop.messages;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
-import org.truffleruby.interop.ForeignReadStringCachingHelperNode;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
-import org.truffleruby.interop.ForeignWriteStringCachingHelperNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -35,6 +38,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectMessages {
@@ -202,72 +206,6 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static Object readMember(
-            DynamicObject receiver,
-            String name,
-            @Cached ForeignReadStringCachingHelperNode helperNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
-        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
-        try {
-            return helperNode.executeStringCachingHelper(receiver, name);
-        } catch (InvalidArrayIndexException e) {
-            errorProfile.enter();
-            throw new IllegalStateException("never happens");
-        }
-    }
-
-    @ExportMessage
-    public static void writeMember(
-            DynamicObject receiver,
-            String name,
-            Object value,
-            @Cached ForeignWriteStringCachingHelperNode helperNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) throws UnknownIdentifierException {
-        // TODO (pitr-ch 19-Mar-2019): break down the helper nodes into type objects
-        helperNode.executeStringCachingHelper(receiver, name, foreignToRubyNode.executeConvert(value));
-    }
-
-    @ExportMessage
-    public static void removeMember(
-            DynamicObject receiver,
-            String name,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
-            @Exclusive @Cached CallDispatchHeadNode hashDeleteNode,
-            @Exclusive @Cached CallDispatchHeadNode hashKeyNode,
-            @Exclusive @Cached BooleanCastNode booleanCast,
-            @Exclusive @Cached CallDispatchHeadNode removeInstanceVariableNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
-
-        // TODO (pitr-ch 19-Mar-2019): profile
-        // TODO (pitr-ch 19-Mar-2019): break down
-        if (RubyGuards.isRubyHash(receiver)) {
-            // TODO (pitr-ch 13-May-2019): remove Hash member mapping
-            Object key = foreignToRubyNode.executeConvert(name);
-            if (booleanCast.executeToBoolean(hashKeyNode.call(receiver, "key?", key))) {
-                hashDeleteNode.call(receiver, "delete", key);
-            } else {
-                errorProfile.enter();
-                throw UnknownIdentifierException.create(name);
-            }
-            return;
-        }
-
-        // TODO (pitr-ch 19-Mar-2019): profile
-        if (!name.isEmpty() && name.charAt(0) == '@') {
-            removeInstanceVariableNode.call(
-                    receiver,
-                    "remove_instance_variable",
-                    foreignToRubyNode.executeConvert(name));
-            return;
-        }
-
-        // TODO (pitr-ch 19-Mar-2019): error or not defined ivar?
-        // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
-        errorProfile.enter();
-        throw UnknownIdentifierException.create(name);
-    }
-
-    @ExportMessage
     public static boolean hasMembers(DynamicObject receiver) {
         return true;
     }
@@ -283,6 +221,152 @@ public class RubyObjectMessages {
                 "object_keys",
                 receiver,
                 internal);
+    }
+
+    protected static boolean isIVar(String name) {
+        return !name.isEmpty() && name.charAt(0) == '@';
+    }
+
+    @ExportMessage
+    public static class ReadMember {
+
+        protected final static String INDEX_METHOD_NAME = "[]";
+        protected final static String METHOD_NAME = "method";
+
+        @Specialization(guards = { "isIVar(name)" })
+        protected static Object readInstanceVariable(DynamicObject receiver, String name,
+                @Cached ReadObjectFieldNode readObjectFieldNode) throws UnknownIdentifierException {
+
+            Object result = readObjectFieldNode.execute(receiver, name, null);
+            if (result != null) {
+                return result;
+            } else {
+                throw UnknownIdentifierException.create(name);
+            }
+        }
+
+        @Specialization(guards = { "!isIVar(name)", "indexMethod(definedIndexNode, receiver)" })
+        protected static Object callIndex(DynamicObject receiver, String name,
+                @Cached DoesRespondDispatchHeadNode definedIndexNode,
+                @Cached("createBinaryProfile()") ConditionProfile errorProfile,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached ForeignToRubyNode nameToRubyNode,
+                @Cached CallDispatchHeadNode dispatch)
+                throws UnknownIdentifierException {
+            try {
+                return dispatch.call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
+            } catch (RaiseException ex) {
+                // translate NameError to UnknownIdentifierException
+                DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
+                if (errorProfile.profile(logicalClass == context.getCoreLibrary().nameErrorClass)) {
+                    throw UnknownIdentifierException.create(name);
+                } else {
+                    throw ex;
+                }
+            }
+        }
+
+        @Specialization(guards = {
+                "!isIVar(name)",
+                "!indexMethod(definedIndexNode, receiver)",
+                "methodDefined(receiver, name, definedNode)" })
+        protected static Object getBoundMethod(DynamicObject receiver, String name,
+                @Cached DoesRespondDispatchHeadNode definedIndexNode,
+                @Cached DoesRespondDispatchHeadNode definedNode,
+                @Cached ForeignToRubyNode nameToRubyNode,
+                @Cached CallDispatchHeadNode dispatch) {
+            return dispatch.call(receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
+        }
+
+        @Specialization(guards = {
+                "!isIVar(name)",
+                "!indexMethod(definedIndexNode, receiver)",
+                "!methodDefined(receiver, name, definedNode)" })
+        protected static Object unknownIdentifier(DynamicObject receiver, String name,
+                @Cached DoesRespondDispatchHeadNode definedIndexNode,
+                @Cached DoesRespondDispatchHeadNode definedNode) throws UnknownIdentifierException {
+            throw UnknownIdentifierException.create(name);
+        }
+
+        protected static boolean indexMethod(DoesRespondDispatchHeadNode definedIndexNode, DynamicObject receiver) {
+            return methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode) &&
+                    !RubyGuards.isRubyArray(receiver) &&
+                    !RubyGuards.isRubyHash(receiver) &&
+                    !RubyGuards.isRubyProc(receiver) &&
+                    !RubyGuards.isRubyClass(receiver);
+        }
+
+        protected static boolean methodDefined(
+                DynamicObject receiver,
+                String name,
+                DoesRespondDispatchHeadNode definedNode) {
+
+            return definedNode.doesRespondTo(null, name, receiver);
+        }
+    }
+
+
+    @ExportMessage
+    public static class WriteMember {
+
+        protected final static String INDEX_SET_METHOD_NAME = "[]=";
+
+        @Specialization(guards = { "isIVar(name)" })
+        protected static void writeInstanceVariable(DynamicObject receiver, String name, Object value,
+                @Cached WriteObjectFieldNode writeObjectFieldNode) {
+            writeObjectFieldNode.write(receiver, name, value);
+        }
+
+        @Specialization(guards = { "!isIVar(name)", "indexSetMethod(receiver, doesRespond)" })
+        protected static void index(DynamicObject receiver, String name, Object value,
+                @Cached ForeignToRubyNode nameToRubyNode,
+                @Cached CallDispatchHeadNode dispatch,
+                @Cached DoesRespondDispatchHeadNode doesRespond) {
+            dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
+        }
+
+        @Specialization(guards = { "!isIVar(name)", "!indexSetMethod(receiver, doesRespond)" })
+        protected static void unknownIdentifier(DynamicObject receiver, String name, Object value,
+                @Cached DoesRespondDispatchHeadNode doesRespond) throws UnknownIdentifierException {
+            throw UnknownIdentifierException.create(name);
+        }
+
+        protected static boolean indexSetMethod(DynamicObject receiver, DoesRespondDispatchHeadNode doesRespond) {
+            return methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond) &&
+                    !RubyGuards.isRubyArray(receiver) &&
+                    !RubyGuards.isRubyHash(receiver);
+        }
+
+        protected static boolean methodDefined(DynamicObject receiver, Object stringName,
+                DoesRespondDispatchHeadNode definedNode) {
+            return definedNode.doesRespondTo(null, stringName, receiver);
+        }
+    }
+
+    @ExportMessage
+    public static void removeMember(
+            DynamicObject receiver,
+            String name,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
+            @Exclusive @Cached CallDispatchHeadNode hashDeleteNode,
+            @Exclusive @Cached CallDispatchHeadNode hashKeyNode,
+            @Exclusive @Cached BooleanCastNode booleanCast,
+            @Exclusive @Cached CallDispatchHeadNode removeInstanceVariableNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
+
+        // TODO (pitr-ch 19-Mar-2019): profile
+        if (!name.isEmpty() && name.charAt(0) == '@') {
+            removeInstanceVariableNode.call(
+                    receiver,
+                    "remove_instance_variable",
+                    foreignToRubyNode.executeConvert(name));
+            return;
+        }
+
+        // TODO (pitr-ch 19-Mar-2019): error or not defined ivar?
+        // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
+        errorProfile.enter();
+        throw UnknownIdentifierException.create(name);
     }
 
     @ExportMessage

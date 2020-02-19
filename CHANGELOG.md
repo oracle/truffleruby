@@ -4,6 +4,8 @@ New features:
 
 * `||=` will not compile the right-hand-side if it's only executed once, to match the idiomatic lazy-initialisation use-case (#1887, @kipply).
 * The implicit interface for allowing Ruby objects to behave as polyglot arrays with `#size`, `#[]` methods has been removed and replaced with an explicit interface where each method starts with `polyglot_*`.
+* Hash keys are no longer reported as polyglot members.
+* All `polyglot_*` methods for defining polyglot behaviour in Ruby match InteropLibrary names.
 
 Bug fixes:
 
@@ -51,6 +53,7 @@ Compatibility:
 * Make `Thread#backtrace` support omit, length and range arguments.
 * Implemented `Range#%`.
 * Implemented `rb_obj_is_proc` (#1908, @kipply, @XrXr). 
+* Fixed the type of the `flags` field of `rb_data_type_t` (#1911).
 
 Changes:
 
@@ -61,6 +64,7 @@ Performance:
 
 * Optimized `RSTRING_PTR()` accesses by going to native directly, optimized various core methods, use Mode=latency and tune GC heap size for Bundler. This speeds up `bundle install` from 84s to 19s for a small Gemfile with 6 gems (#1398).
 * Fixed memory footprint issue due to large compilation on Native Image, notably during `bundle install` (#1893).
+* `ArrayBuilderNode` now uses a new Truffle library for manipulating array stores.
 
 # 20.0.0
 
