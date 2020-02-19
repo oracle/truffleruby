@@ -53,6 +53,7 @@ Compatibility:
 * Make `Thread#backtrace` support omit, length and range arguments.
 * Implemented `Range#%`.
 * Fixed the type of the `flags` field of `rb_data_type_t` (#1911).
+* Implemented `rb_obj_is_proc` (#1908, @kipply, @XrXr). 
 
 Changes:
 
