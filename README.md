@@ -6,7 +6,7 @@ of the [Ruby programming language](https://www.ruby-lang.org/en/) built by
 
 ## Getting started
 
-There are three ways to install TruffleRuby:
+There are three ways to install TruffleRuby releases and nightly builds:
 
 * Via [GraalVM](doc/user/installing-graalvm.md), which includes support for
   other languages such as JavaScript, R and Python and supports both the

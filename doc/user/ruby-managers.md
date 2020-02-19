@@ -17,10 +17,16 @@ Upgrade RVM to let RVM know about the latest TruffleRuby release:
 $ rvm get head
 ```
 
-Install TruffleRuby with:
+Install the latest TruffleRuby release with:
 
 ```bash
 $ rvm install truffleruby
+```
+
+You can also install the latest nightly build of TruffleRuby with:
+
+```bash
+$ rvm install truffleruby-head
 ```
 
 ### ruby-build and rbenv
@@ -45,10 +51,16 @@ Check the latest available version of TruffleRuby with:
 $ rbenv install --list | grep truffleruby
 ```
 
-Then install the latest TruffleRuby with:
+Then install the latest TruffleRuby release with:
 
 ```bash
 $ rbenv install truffleruby-[LATEST_VERSION]
+```
+
+You can also install the latest nightly build of TruffleRuby with:
+
+```bash
+$ rbenv install truffleruby-dev
 ```
 
 ### ruby-install and chruby
@@ -65,12 +77,15 @@ Follow the [installation instructions](https://github.com/postmodern/ruby-instal
 since the steps for upgrading `ruby-install` are the same as the steps for
 installing it.
 
-Then install TruffleRuby with:
+Then install the latest TruffleRuby release with:
 
 ```bash
 $ ruby-install --latest
 $ ruby-install truffleruby
 ```
+
+`ruby-install` does not support installing nightly builds.
+Please use `ruby-build` (which also works with `chruby`) if you want to install nightly builds.
 
 There are also instructions on the
 [chruby wiki](https://github.com/postmodern/chruby/wiki/TruffleRuby)

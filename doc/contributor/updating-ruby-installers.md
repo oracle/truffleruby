@@ -6,20 +6,18 @@ We support 3 Ruby installers:
 * [ruby-build](https://github.com/rbenv/ruby-build), used by `rbenv`
 * [rvm](https://github.com/rvm/rvm)
 
-To add a release to Ruby installers, we need to make a Pull Request to each of those.
+To add a release to Ruby installers, we need to update each of those.
 We assume `$VERSION` is replaced by the release version below (e.g. `1.0.0-rc12`).
 
 In general, you can just follow the PRs of a previous release.
 But there are some extra details below to make it easier.
 
+Benoit has push rights to all 3 repositories, so that can speed up the process by not needing PRs.
+
 ## Git Branches and Naming
 
 For each repository below, I create a branch named `truffleruby-$VERSION`.
 This is of course not required, but makes it easier to track.
-
-I then usually look with `git log -p` at the branch of the previous release.
-I keep all such branches on my forks, so you can easily look at it as well.
-
 For commit messages, I use `Add TruffleRuby $VERSION`.
 
 ## ruby-install
@@ -33,8 +31,6 @@ There is a handy script in the repo that does everything needed:
 $ ./update.sh truffleruby $VERSION
 ```
 
-Example PR for `1.0.0-rc12`: https://github.com/postmodern/ruby-versions/pull/39
-
 cc `@havenwood` in the PR description.
 
 ## ruby-build
@@ -44,8 +40,6 @@ There is a script in the repo that does everything needed:
 ```bash
 $ script/update-truffleruby $VERSION ../ruby-versions/pkg
 ```
-
-Example PR for `1.0.0-rc12`: https://github.com/rbenv/ruby-build/pull/1282
 
 cc `@hsbt` in the PR description.
 
@@ -72,8 +66,6 @@ $ ruby update-truffleruby.rb $VERSION ../ruby-versions/pkg
 ```
 
 The script must be run after running the `ruby-versions` script above.
-
-Example PR for `1.0.0-rc12`: https://github.com/rvm/rvm/pull/4605
 
 cc `@havenwood` in the PR description.
 

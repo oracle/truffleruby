@@ -11,13 +11,7 @@ for TruffleRuby to run correctly.
 
 GraalVM is available in a Community Edition, which is open-source, and an
 Enterprise Edition which has better performance and scalability.
-
-The Community Edition is free for production use. The Enterprise Edition is free
-for evaluation but not production use. Commercial support is available for the
-Enterprise Edition. Both editions are available for Linux, macOS and Windows on
-x86 64-bit systems (note that TruffleRuby does not support Windows yet).
-
-To get the best performance you want to use the Enterprise Edition.
+See https://www.graalvm.org/downloads for a comparison.
 
 ## Installing the Base Image
 
@@ -26,13 +20,13 @@ high-performance language runtimes.
 
 The Community Edition base image can be installed from GitHub, under an open
 source licence.
-
-https://github.com/oracle/graal/releases
-
 The Enterprise Edition base image can only be installed from the Oracle
 Technology Network using the OTN licence.
 
-http://www.oracle.com/technetwork/oracle-labs/program-languages/
+See https://www.graalvm.org/downloads for download links.
+
+Nightly builds of the GraalVM Community Edition are
+[also available](https://github.com/graalvm/graalvm-ce-dev-builds/releases).
 
 Whichever edition you get you will get a tarball which you can extract. There
 will be a `bin` directory (`Contents/Home/bin` on macOS) which you can add to
