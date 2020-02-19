@@ -43,6 +43,7 @@ Bug fixes:
 * Fixed incorrect comparisons between bignums and doubles. 
 * Prevented some internal uses of `Kernel#caller_locations` to be overridden by user code (#1934). 
 * Fixed an issue caused by recursing inlining within `Regexp#quote` (#1927).
+* Fixed `Digest::SHA2.hexdigest` error with long messages (#1922).
 
 Compatibility:
 

@@ -104,10 +104,5 @@ module Digest
       '#<%s:%d %s>' % [self.class.name, @bitlen, hexdigest]
     end
 
-    # Added by CS 7-Nov-15 I'm not sure how this is usually forwarded?
-
-    def digest(message)
-      @sha2.digest(message)
-    end
   end
 end

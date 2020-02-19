@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.constants;
 
-
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
