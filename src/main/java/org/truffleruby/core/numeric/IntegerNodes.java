@@ -706,8 +706,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean lessEqual(DynamicObject a, double b) {
-            // TODO ???
-            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), BigIntegerOperations.valueOf((long) b)) <= 0;
+            return Double.compare(BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)), b) <= 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
