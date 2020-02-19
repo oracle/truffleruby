@@ -45,14 +45,11 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyContextNode {
             guards = {
                     "indexInBounds(array, index)",
                     "lengthPositive(length)",
-                    "endInBounds(array, index, length)",
-                    "strategy.matches(array)" },
-            limit = "STORAGE_STRATEGIES")
+                    "endInBounds(array, index, length)" })
     protected DynamicObject readInBounds(DynamicObject array, int index, int length,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
-        final Object store = extractRangeCopyOnWriteNode.execute(array, index, index + length);
-        return createArrayOfSameClass(array, store, length);
+            @Cached ArrayExtractRangeNode extractRangeNOde) {
+        final Object slice = extractRangeNOde.execute(array, index, length);
+        return createArrayOfSameClass(array, slice, length);
     }
 
     // Reading beyond upper bounds on an array with actual storage needs clamping
@@ -61,15 +58,12 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyContextNode {
             guards = {
                     "indexInBounds(array, index)",
                     "lengthPositive(length)",
-                    "!endInBounds(array, index, length)",
-                    "strategy.matches(array)" },
-            limit = "STORAGE_STRATEGIES")
+                    "!endInBounds(array, index, length)" })
     protected DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode) {
-        final int end = strategy.getSize(array);
-        final Object store = extractRangeCopyOnWriteNode.execute(array, index, end);
-        return createArrayOfSameClass(array, store, end - index);
+            @Cached ArrayExtractRangeNode extractRangeNOde) {
+        final int end = Layouts.ARRAY.getSize(array);
+        final Object slice = extractRangeNOde.execute(array, index, end - index);
+        return createArrayOfSameClass(array, slice, end - index);
     }
 
     // Guards
