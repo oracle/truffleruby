@@ -23,7 +23,7 @@ public class EncodingCache {
 
     @TruffleBoundary
     public EncodingCache() {
-        this.encodings =  new ConcurrentHashMap<>();
+        this.encodings = new ConcurrentHashMap<>();
     }
 
     public Regex getOrCreate(Encoding encoding, Function<Encoding, Regex> function) {

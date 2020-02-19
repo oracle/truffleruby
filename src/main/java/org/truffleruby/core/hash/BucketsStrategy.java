@@ -11,7 +11,6 @@ package org.truffleruby.core.hash;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -233,21 +232,11 @@ public abstract class BucketsStrategy {
                 return entry != null;
             }
 
-            @TruffleBoundary // because of SVM-substituted Throwable#fillInStackTrace
-            private void throwNoSuchElementException() {
-                throw new NoSuchElementException();
-            }
-
             @Override
             public KeyValue next() {
-                if (!hasNext()) {
-                    throwNoSuchElementException();
-                }
-
+                assert hasNext();
                 final KeyValue entryResult = new KeyValue(entry.getKey(), entry.getValue());
-
                 entry = entry.getNextInSequence();
-
                 return entryResult;
             }
 
