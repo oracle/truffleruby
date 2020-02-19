@@ -10,8 +10,7 @@
 package org.truffleruby.core.format.read.array;
 
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.format.FormatGuards;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.convert.ToLongNode;
@@ -19,11 +18,11 @@ import org.truffleruby.core.format.convert.ToLongNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "source", type = SourceNode.class)
@@ -34,27 +33,10 @@ public abstract class ReadLongOrBigIntegerNode extends FormatNode {
 
     private final ConditionProfile bignumProfile = ConditionProfile.createBinaryProfile();
 
-    @Specialization(guards = "isNull(source)")
-    protected void read(VirtualFrame frame, Object source) {
-        advanceSourcePosition(frame);
-        throw new IllegalStateException();
-    }
-
-    @Specialization
-    protected int read(VirtualFrame frame, int[] source) {
-        return source[advanceSourcePosition(frame)];
-    }
-
-    @Specialization
-    protected long read(VirtualFrame frame, long[] source) {
-        return source[advanceSourcePosition(frame)];
-    }
-
-    @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "STORAGE_STRATEGIES")
     protected Object read(VirtualFrame frame, Object source,
-            @Cached("ofStore(source)") ArrayStrategy strategy,
-            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-        final Object value = getNode.execute(source, advanceSourcePosition(frame));
+            @CachedLibrary("source") ArrayStoreLibrary sources) {
+        final Object value = sources.read(source, advanceSourcePosition(frame));
 
         if (bignumProfile.profile(FormatGuards.isRubyBignum(value))) {
             return value;
