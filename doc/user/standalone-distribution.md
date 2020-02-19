@@ -8,6 +8,7 @@ either via your Ruby manager/installer, or as a simple binary tarball.
 
 Releases of the standalone distribution are
 [available on GitHub](https://github.com/oracle/truffleruby/releases).
+Nightly builds are [also available](https://github.com/ruby/truffleruby-dev-builder/releases).
 
 The standalone distributions are the files:
 
@@ -26,6 +27,7 @@ language: ruby
 rvm:
   - 2.6.1
   - truffleruby
+  - truffleruby-head
 ```
 
 See https://docs.travis-ci.com/user/languages/ruby#truffleruby for details.
@@ -43,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ruby: [ 2.6, truffleruby ]
+        ruby: [ 2.6, truffleruby, truffleruby-head ]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -63,6 +65,8 @@ instructions to run TruffleRuby in CI.
 In short, one only needs to download and extract the archive, add it to `PATH`
 and run the post-install script.
 
+### Latest Release
+
 Set `TRUFFLERUBY_VERSION` to the latest TruffleRuby version from
 [GitHub releases](https://github.com/oracle/truffleruby/releases).
 
@@ -71,8 +75,21 @@ $ export TRUFFLERUBY_VERSION=<desired_version>
 $ curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
 $ export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
 $ $PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/lib/truffle/post_install_hook.sh
-$ ruby -v # => truffleruby 1.0.0, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
+$ ruby -v # => truffleruby 20.0.0, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
 ```
+
+### Latest Nightly Build
+
+Here are the instructions for installing the latest nightly build manually:
+
+```bash
+$ curl -L https://github.com/ruby/truffleruby-dev-builder/releases/latest/download/truffleruby-head-ubuntu-18.04.tar.gz | tar xz
+$ export PATH="$PWD/truffleruby-head/bin:$PATH"
+$ $PWD/truffleruby-head/lib/truffle/post_install_hook.sh
+$ ruby -v # => truffleruby 20.1.0-dev-e8ccba87, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
+```
+
+### RubyGems Configuration
 
 Note that you also need to ensure `GEM_HOME` and `GEM_PATH` are not set, so
 TruffleRuby uses the correct `GEM_HOME` and `GEM_PATH`.
