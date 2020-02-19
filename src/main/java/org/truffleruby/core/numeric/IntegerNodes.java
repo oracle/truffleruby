@@ -92,12 +92,12 @@ public abstract class IntegerNodes {
 
         @Specialization(replaces = "doLong")
         protected Object doLongWihtOverflow(long value) {
-            return fixnumOrBignum(BigInteger.valueOf(value).negate());
+            return fixnumOrBignum(BigIntegerOperations.negate(value));
         }
 
         @Specialization
         protected Object doObject(DynamicObject value) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(value).negate());
+            return fixnumOrBignum(BigIntegerOperations.negate(Layouts.BIGNUM.getValue(value)));
         }
 
     }
@@ -124,7 +124,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object addWithOverflow(long a, long b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).add(BigInteger.valueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.add(a, b));
         }
 
         @Specialization
@@ -134,38 +134,28 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object add(long a, DynamicObject b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).add(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.add(Layouts.BIGNUM.getValue(b), a));
         }
 
         @Specialization
         protected Object add(DynamicObject a, long b) {
-            return fixnumOrBignum(bigIntegerAdd(Layouts.BIGNUM.getValue(a), bigIntegerValueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.add(Layouts.BIGNUM.getValue(a), b));
         }
 
         @Specialization
         protected double add(DynamicObject a, double b) {
-            return Layouts.BIGNUM.getValue(a).doubleValue() + b;
+            return BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)) + b;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object add(DynamicObject a, DynamicObject b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).add(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.add(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object addCoerced(Object a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
-        }
-
-        @TruffleBoundary
-        private static BigInteger bigIntegerValueOf(long integer) {
-            return BigInteger.valueOf(integer);
-        }
-
-        @TruffleBoundary
-        private static BigInteger bigIntegerAdd(BigInteger a, BigInteger b) {
-            return a.add(b);
         }
     }
 
@@ -191,7 +181,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object subWithOverflow(long a, long b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).subtract(BigInteger.valueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.subtract(a, b));
         }
 
         @Specialization
@@ -201,22 +191,24 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object sub(long a, DynamicObject b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).subtract(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.subtract(a, Layouts.BIGNUM.getValue(b)));
         }
 
         @Specialization
         protected Object sub(DynamicObject a, long b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).subtract(BigInteger.valueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.subtract(Layouts.BIGNUM.getValue(a), b));
         }
 
         @Specialization
         protected double sub(DynamicObject a, double b) {
-            return Layouts.BIGNUM.getValue(a).doubleValue() - b;
+            return BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)) - b;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object sub(DynamicObject a, DynamicObject b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).subtract(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.subtract(
+                    Layouts.BIGNUM.getValue(a),
+                    Layouts.BIGNUM.getValue(b)));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -251,10 +243,9 @@ public abstract class IntegerNodes {
             return Math.multiplyExact(a, b);
         }
 
-        @TruffleBoundary
         @Specialization
         protected Object mulWithOverflow(long a, long b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).multiply(BigInteger.valueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.multiply(a, b));
         }
 
         @Specialization
@@ -262,27 +253,26 @@ public abstract class IntegerNodes {
             return a * b;
         }
 
-        @TruffleBoundary
         @Specialization(guards = "isRubyBignum(b)")
         protected Object mul(long a, DynamicObject b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).multiply(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.multiply(Layouts.BIGNUM.getValue(b), a));
         }
 
-        @TruffleBoundary
         @Specialization
         protected Object mul(DynamicObject a, long b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).multiply(BigInteger.valueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.multiply(Layouts.BIGNUM.getValue(a), b));
         }
 
         @Specialization
         protected double mul(DynamicObject a, double b) {
-            return Layouts.BIGNUM.getValue(a).doubleValue() * b;
+            return BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)) * b;
         }
 
-        @TruffleBoundary
         @Specialization(guards = "isRubyBignum(b)")
         protected Object mul(DynamicObject a, DynamicObject b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).multiply(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.multiply(
+                    Layouts.BIGNUM.getValue(a),
+                    Layouts.BIGNUM.getValue(b)));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -368,7 +358,7 @@ public abstract class IntegerNodes {
                 bMinusOne.enter();
                 if (a == Long.MIN_VALUE) {
                     bMinusOneAMinimum.enter();
-                    return createBignum(BigInteger.valueOf(a).negate());
+                    return createBignum(BigIntegerOperations.negate(a));
                 } else {
                     bMinusOneANotMinimum.enter();
                     return -a;
@@ -401,7 +391,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = { "isRubyBignum(b)", "isLongMinValue(a)" })
         protected int divBignumEdgeCase(long a, DynamicObject b) {
-            return -Layouts.BIGNUM.getValue(b).signum();
+            return -BigIntegerOperations.signum(Layouts.BIGNUM.getValue(b));
         }
 
         // Bignum
@@ -651,7 +641,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean less(int a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) < 0;
+            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b)) < 0;
         }
 
         @Specialization
@@ -666,22 +656,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean less(long a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) < 0;
+            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b)) < 0;
         }
 
         @Specialization
         protected boolean less(DynamicObject a, long b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b)) < 0;
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), b) < 0;
         }
 
         @Specialization
         protected boolean less(DynamicObject a, double b) {
-            return Double.compare(Layouts.BIGNUM.getValue(a).doubleValue(), b) < 0;
+            return Double.compare(BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)), b) < 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean less(DynamicObject a, DynamicObject b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) < 0;
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)) < 0;
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -716,22 +706,23 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean lessEqual(long a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) <= 0;
+            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b)) <= 0;
         }
 
         @Specialization
         protected boolean lessEqual(DynamicObject a, long b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b)) <= 0;
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), b) <= 0;
         }
 
         @Specialization
         protected boolean lessEqual(DynamicObject a, double b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf((long) b)) <= 0;
+            // TODO ???
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), BigIntegerOperations.valueOf((long) b)) <= 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean lessEqual(DynamicObject a, DynamicObject b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) <= 0;
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)) <= 0;
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -782,12 +773,12 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean equal(DynamicObject a, double b) {
-            return Layouts.BIGNUM.getValue(a).doubleValue() == b;
+            return BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)) == b;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean equal(DynamicObject a, DynamicObject b) {
-            return Layouts.BIGNUM.getValue(a).equals(Layouts.BIGNUM.getValue(b));
+            return BigIntegerOperations.equals(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -841,17 +832,17 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected int compare(long a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b));
+            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b));
         }
 
         @Specialization
         protected int compare(DynamicObject a, long b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b));
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), b);
         }
 
         @Specialization(guards = "!isInfinity(b)")
         protected int compare(DynamicObject a, double b) {
-            return Double.compare(Layouts.BIGNUM.getValue(a).doubleValue(), b);
+            return Double.compare(BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)), b);
         }
 
         @Specialization(guards = "isInfinity(b)")
@@ -865,7 +856,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected int compare(DynamicObject a, DynamicObject b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b));
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -886,7 +877,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greaterEqual(int a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) >= 0;
+            return BigIntegerOperations.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) >= 0;
         }
 
         @Specialization
@@ -901,22 +892,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greaterEqual(long a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) >= 0;
+            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b)) >= 0;
         }
 
         @Specialization
         protected boolean greaterEqual(DynamicObject a, long b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b)) >= 0;
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), b) >= 0;
         }
 
         @Specialization
         protected boolean greaterEqual(DynamicObject a, double b) {
-            return Double.compare(Layouts.BIGNUM.getValue(a).doubleValue(), b) >= 0;
+            return Double.compare(BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)), b) >= 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greaterEqual(DynamicObject a, DynamicObject b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) >= 0;
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)) >= 0;
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -937,7 +928,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greater(int a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) > 0;
+            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b)) > 0;
         }
 
         @Specialization
@@ -952,22 +943,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greater(long a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) > 0;
+            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b)) > 0;
         }
 
         @Specialization
         protected boolean greater(DynamicObject a, long b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(BigInteger.valueOf(b)) > 0;
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), b) > 0;
         }
 
         @Specialization
         protected boolean greater(DynamicObject a, double b) {
-            return Double.compare(Layouts.BIGNUM.getValue(a).doubleValue(), b) > 0;
+            return Double.compare(BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(a)), b) > 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greater(DynamicObject a, DynamicObject b) {
-            return Layouts.BIGNUM.getValue(a).compareTo(Layouts.BIGNUM.getValue(b)) > 0;
+            return BigIntegerOperations.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)) > 0;
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -993,7 +984,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object complement(DynamicObject value) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(value).not());
+            return fixnumOrBignum(BigIntegerOperations.not(Layouts.BIGNUM.getValue(value)));
         }
 
     }
@@ -1025,22 +1016,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object bitAndBignum(int a, DynamicObject b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).and(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.and(Layouts.BIGNUM.getValue(b), a));
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object bitAndBignum(long a, DynamicObject b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).and(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.and(Layouts.BIGNUM.getValue(b), a));
         }
 
         @Specialization
         protected Object bitAnd(DynamicObject a, long b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).and(BigInteger.valueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.and(Layouts.BIGNUM.getValue(a), b));
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object bitAnd(DynamicObject a, DynamicObject b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).and(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.and(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)));
         }
 
         @Specialization(guards = "!isRubyInteger(b)")
@@ -1068,17 +1059,17 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object bitOr(long a, DynamicObject b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).or(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.or(Layouts.BIGNUM.getValue(b), a));
         }
 
         @Specialization
         protected Object bitOr(DynamicObject a, long b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).or(BigInteger.valueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.or(Layouts.BIGNUM.getValue(a), b));
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object bitOr(DynamicObject a, DynamicObject b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).or(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.or(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)));
         }
 
         @Specialization(guards = "!isRubyInteger(b)")
@@ -1104,17 +1095,17 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object bitXOr(long a, DynamicObject b) {
-            return fixnumOrBignum(BigInteger.valueOf(a).xor(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.xor(Layouts.BIGNUM.getValue(b), a));
         }
 
         @Specialization
         protected Object bitXOr(DynamicObject a, long b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).xor(BigInteger.valueOf(b)));
+            return fixnumOrBignum(BigIntegerOperations.xor(Layouts.BIGNUM.getValue(a), b));
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object bitXOr(DynamicObject a, DynamicObject b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).xor(Layouts.BIGNUM.getValue(b)));
+            return fixnumOrBignum(BigIntegerOperations.xor(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)));
         }
 
         @Specialization(guards = "!isRubyInteger(b)")
@@ -1154,7 +1145,7 @@ public abstract class IntegerNodes {
             if (canShiftIntoLong(a, b)) {
                 return leftShiftToLong(a, b);
             } else {
-                return fixnumOrBignum(BigInteger.valueOf(a).shiftLeft(b));
+                return fixnumOrBignum(BigIntegerOperations.shiftLeft(a, b));
             }
         }
 
@@ -1176,14 +1167,13 @@ public abstract class IntegerNodes {
             return rightShiftNode.executeRightShift(a, absoluteValue(b));
         }
 
-        @TruffleBoundary
         @Specialization
         protected Object leftShift(DynamicObject a, int b,
                 @Cached("createBinaryProfile()") ConditionProfile bPositive) {
             if (bPositive.profile(b >= 0)) {
-                return fixnumOrBignum(Layouts.BIGNUM.getValue(a).shiftLeft(b));
+                return fixnumOrBignum(BigIntegerOperations.shiftLeft(Layouts.BIGNUM.getValue(a), b));
             } else {
-                return fixnumOrBignum(Layouts.BIGNUM.getValue(a).shiftRight(-b));
+                return fixnumOrBignum(BigIntegerOperations.shiftRight(Layouts.BIGNUM.getValue(a), -b));
             }
         }
 
@@ -1191,7 +1181,7 @@ public abstract class IntegerNodes {
         protected Object leftShift(DynamicObject a, DynamicObject b,
                 @Cached ToIntNode toIntNode) {
             final BigInteger bBigInt = Layouts.BIGNUM.getValue(b);
-            if (bBigInt.signum() == -1) {
+            if (BigIntegerOperations.signum(bBigInt) == -1) {
                 return 0;
             } else {
                 // MRI would raise a NoMemoryError; JRuby would raise a coercion error.
@@ -1282,16 +1272,16 @@ public abstract class IntegerNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 leftShiftNode = insert(LeftShiftNodeFactory.create(null));
             }
-            return leftShiftNode.executeLeftShift(a, Layouts.BIGNUM.getValue(b).negate());
+            return leftShiftNode.executeLeftShift(a, BigIntegerOperations.negate(Layouts.BIGNUM.getValue(b)));
         }
 
         @Specialization
         protected Object rightShift(DynamicObject a, int b,
                 @Cached("createBinaryProfile()") ConditionProfile bPositive) {
             if (bPositive.profile(b >= 0)) {
-                return fixnumOrBignum(Layouts.BIGNUM.getValue(a).shiftRight(b));
+                return fixnumOrBignum(BigIntegerOperations.shiftRight(Layouts.BIGNUM.getValue(a), b));
             } else {
-                return fixnumOrBignum(Layouts.BIGNUM.getValue(a).shiftLeft(-b));
+                return fixnumOrBignum(BigIntegerOperations.shiftLeft(Layouts.BIGNUM.getValue(a), -b));
             }
         }
 
@@ -1313,7 +1303,7 @@ public abstract class IntegerNodes {
         }
 
         protected static boolean isPositive(DynamicObject b) {
-            return Layouts.BIGNUM.getValue(b).signum() >= 0;
+            return BigIntegerOperations.signum(Layouts.BIGNUM.getValue(b)) >= 0;
         }
 
     }
@@ -1345,14 +1335,14 @@ public abstract class IntegerNodes {
         @Specialization(replaces = "absInBounds")
         protected Object abs(long n) {
             if (n == Long.MIN_VALUE) {
-                return createBignum(BigInteger.valueOf(n).abs());
+                return createBignum(BigIntegerOperations.abs(n));
             }
             return (n < 0) ? -n : n;
         }
 
         @Specialization
         protected Object abs(DynamicObject value) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(value).abs());
+            return fixnumOrBignum(BigIntegerOperations.abs(Layouts.BIGNUM.getValue(value)));
         }
 
     }
@@ -1380,7 +1370,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected int bitLength(DynamicObject value) {
-            return Layouts.BIGNUM.getValue(value).bitLength();
+            return BigIntegerOperations.bitLength(Layouts.BIGNUM.getValue(value));
         }
 
     }
@@ -1395,7 +1385,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected int size(DynamicObject value) {
-            return (Layouts.BIGNUM.getValue(value).bitLength() + 7) / 8;
+            return (BigIntegerOperations.bitLength(Layouts.BIGNUM.getValue(value)) + 7) / 8;
         }
 
     }
@@ -1415,7 +1405,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected double toF(DynamicObject value) {
-            return Layouts.BIGNUM.getValue(value).doubleValue();
+            return BigIntegerOperations.doubleValue(Layouts.BIGNUM.getValue(value));
         }
 
     }
@@ -1444,7 +1434,7 @@ public abstract class IntegerNodes {
         @Specialization
         protected DynamicObject toS(DynamicObject value, NotProvided base) {
             return makeStringNode.executeMake(
-                    Layouts.BIGNUM.getValue(value).toString(),
+                    BigIntegerOperations.toString(Layouts.BIGNUM.getValue(value)),
                     USASCIIEncoding.INSTANCE,
                     CodeRange.CR_7BIT);
         }
@@ -1471,7 +1461,7 @@ public abstract class IntegerNodes {
             }
 
             return makeStringNode.executeMake(
-                    Layouts.BIGNUM.getValue(value).toString(base),
+                    BigIntegerOperations.toString(Layouts.BIGNUM.getValue(value), base),
                     USASCIIEncoding.INSTANCE,
                     CodeRange.CR_7BIT);
         }
@@ -1551,11 +1541,12 @@ public abstract class IntegerNodes {
             return true;
         }
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyBignum(a)")
         protected boolean fitsIntoULongBignum(DynamicObject a) {
-            BigInteger bi = Layouts.BIGNUM.getValue(a);
-            if (bi.signum() >= 0) {
-                return bi.bitLength() <= 64;
+            BigInteger bigInt = Layouts.BIGNUM.getValue(a);
+            if (bigInt.signum() >= 0) {
+                return bigInt.bitLength() <= 64;
             } else {
                 return false;
             }
@@ -1590,9 +1581,10 @@ public abstract class IntegerNodes {
     @Primitive(name = "integer_ulong_from_bignum")
     public static abstract class IntegerULongFromBigNumNode extends PrimitiveArrayArgumentsNode {
 
-        private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
-        private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
+        private static final BigInteger TWO_POW_64 = BigIntegerOperations.valueOf(1).shiftLeft(64);
+        private static final BigInteger LONG_MAX = BigIntegerOperations.valueOf(Long.MAX_VALUE);
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyBignum(b)")
         protected long uLongFromBignum(DynamicObject b,
                 @Cached("createBinaryProfile()") ConditionProfile doesNotNeedsConversion) {
@@ -1720,14 +1712,14 @@ public abstract class IntegerNodes {
             }
 
             if (base == -1) {
-                if (testBit(Layouts.BIGNUM.getValue(exponent), 0)) {
+                if (BigIntegerOperations.testBit(Layouts.BIGNUM.getValue(exponent), 0)) {
                     return -1;
                 } else {
                     return 1;
                 }
             }
 
-            if (compareTo(Layouts.BIGNUM.getValue(exponent), BigInteger.ZERO) < 0) {
+            if (BigIntegerOperations.compare(Layouts.BIGNUM.getValue(exponent), BigInteger.ZERO) < 0) {
                 return FAILURE;
             }
 
@@ -1758,17 +1750,18 @@ public abstract class IntegerNodes {
                     warnNode.warningMessage(
                             getContext().getCallStack().getTopMostUserSourceSection(),
                             "in a**b, b may be too big");
-                    return powBigIntegerDouble(bigIntegerBase, exponent);
+                    return BigIntegerOperations.pow(bigIntegerBase, exponent);
                 }
 
                 // TODO CS 15-Feb-15 what about this cast?
-                return createBignum(pow(bigIntegerBase, (int) exponent));
+                // TODO(norswap) fix
+                return createBignum(BigIntegerOperations.pow(bigIntegerBase, (int) exponent));
             }
         }
 
         @Specialization
         protected Object pow(DynamicObject base, double exponent) {
-            double doublePow = powBigIntegerDouble(Layouts.BIGNUM.getValue(base), exponent);
+            double doublePow = BigIntegerOperations.pow(Layouts.BIGNUM.getValue(base), exponent);
             if (Double.isNaN(doublePow)) {
                 // Instead of returning NaN, run the fallback code which can create a complex result
                 return FAILURE;
@@ -1794,26 +1787,6 @@ public abstract class IntegerNodes {
 
         protected static boolean isIntOrLong(Object value) {
             return value instanceof Integer || value instanceof Long;
-        }
-
-        @TruffleBoundary
-        private boolean testBit(BigInteger bigInteger, int n) {
-            return bigInteger.testBit(n);
-        }
-
-        @TruffleBoundary
-        private int compareTo(BigInteger a, BigInteger b) {
-            return a.compareTo(b);
-        }
-
-        @TruffleBoundary
-        private static BigInteger pow(BigInteger bigInteger, int exponent) {
-            return bigInteger.pow(exponent);
-        }
-
-        @TruffleBoundary
-        private static double powBigIntegerDouble(BigInteger bigInteger, double exponent) {
-            return Math.pow(bigInteger.doubleValue(), exponent);
         }
 
         protected int getLimit() {

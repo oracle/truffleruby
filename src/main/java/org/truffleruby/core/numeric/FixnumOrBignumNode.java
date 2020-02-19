@@ -38,8 +38,8 @@ public class FixnumOrBignumNode extends RubyContextNode {
     }
 
     public Object fixnumOrBignum(BigInteger value) {
-        if (lowerProfile.profile(compare(value, LONG_MIN_BIGINT) >= 0 && compare(value, LONG_MAX_BIGINT) <= 0)) {
-            final long longValue = value.longValue();
+        if (lowerProfile.profile(fitsIntoLong(value))) {
+            final long longValue = BigIntegerOperations.longValue(value);
 
             if (intProfile.profile(CoreLibrary.fitsIntoInteger(longValue))) {
                 return (int) longValue;
@@ -51,23 +51,18 @@ public class FixnumOrBignumNode extends RubyContextNode {
         }
     }
 
+    @TruffleBoundary
+    private static boolean fitsIntoLong(BigInteger value) {
+        return value.compareTo(LONG_MIN_BIGINT) >= 0 && value.compareTo(LONG_MAX_BIGINT) <= 0;
+    }
+
     public Object fixnumOrBignum(double value) {
         if (integerFromDoubleProfile.profile(value > Integer.MIN_VALUE && value < Integer.MAX_VALUE)) {
             return (int) value;
         } else if (longFromDoubleProfile.profile(value > Long.MIN_VALUE && value < Long.MAX_VALUE)) {
             return (long) value;
         } else {
-            return fixnumOrBignum(doubleToBigInteger(value));
+            return fixnumOrBignum(BigIntegerOperations.fromDouble(value));
         }
-    }
-
-    @TruffleBoundary
-    private static BigInteger doubleToBigInteger(double value) {
-        return new BigDecimal(value).toBigInteger();
-    }
-
-    @TruffleBoundary
-    private static int compare(BigInteger a, BigInteger b) {
-        return a.compareTo(b);
     }
 }
