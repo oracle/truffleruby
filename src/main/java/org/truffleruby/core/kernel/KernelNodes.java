@@ -839,8 +839,8 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private static int bigIntegerHashCode(BigInteger bi) {
-            return bi.hashCode();
+        private static int bigIntegerHashCode(BigInteger value) {
+            return value.hashCode();
         }
     }
 
