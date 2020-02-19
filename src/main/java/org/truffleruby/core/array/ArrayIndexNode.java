@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -70,7 +71,7 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
 
             if (exclusiveEnd <= normalizedBegin) {
                 return allocateObjectNode
-                        .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStrategy.NULL_ARRAY_STORE, 0);
+                        .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStoreLibrary.INITIAL_STORE, 0);
             }
 
             return readNormalizedSliceNode.executeReadSlice(array, normalizedBegin, exclusiveEnd - normalizedBegin);

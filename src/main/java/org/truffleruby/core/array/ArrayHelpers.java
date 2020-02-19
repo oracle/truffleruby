@@ -11,6 +11,7 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -50,7 +51,7 @@ public abstract class ArrayHelpers {
     }
 
     public static DynamicObject createEmptyArray(RubyContext context) {
-        return Layouts.ARRAY.createArray(context.getCoreLibrary().arrayFactory, ArrayStrategy.NULL_ARRAY_STORE, 0);
+        return Layouts.ARRAY.createArray(context.getCoreLibrary().arrayFactory, ArrayStoreLibrary.INITIAL_STORE, 0);
     }
 
 }

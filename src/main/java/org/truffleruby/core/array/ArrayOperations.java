@@ -27,13 +27,13 @@ public abstract class ArrayOperations {
 
     public static boolean isPrimitiveStorage(DynamicObject array) {
         Object store = getBackingStore(array);
-        return store == ArrayStrategy.NULL_ARRAY_STORE || store instanceof int[] || store instanceof long[] ||
+        return store == ArrayStoreLibrary.INITIAL_STORE || store instanceof int[] || store instanceof long[] ||
                 store instanceof double[];
     }
 
     public static boolean verifyStore(DynamicObject array) {
         final Object backingStore = getBackingStore(array);
-        assert backingStore == ArrayStrategy.NULL_ARRAY_STORE ||
+        assert backingStore == ArrayStoreLibrary.INITIAL_STORE ||
                 backingStore instanceof NativeArrayStorage ||
                 backingStore instanceof int[] || backingStore instanceof long[] || backingStore instanceof double[] ||
                 backingStore.getClass() == Object[].class : backingStore;
@@ -119,7 +119,7 @@ public abstract class ArrayOperations {
     @TruffleBoundary
     public static int getStoreCapacity(DynamicObject array) {
         Object store = Layouts.ARRAY.getStore(array);
-        if (store == ArrayStrategy.NULL_ARRAY_STORE) {
+        if (store == ArrayStoreLibrary.INITIAL_STORE) {
             return 0;
         } else {
             if (store instanceof DelegatedArrayStorage) {

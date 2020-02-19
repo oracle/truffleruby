@@ -11,7 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayAppendOneNode;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -79,7 +79,7 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
         } else {
             if (startIndex >= endIndex) {
                 noArgumentsLeftProfile.enter();
-                resultStore = ArrayStrategy.NULL_ARRAY_STORE;
+                resultStore = ArrayStoreLibrary.INITIAL_STORE;
                 resultLength = 0;
             } else {
                 subsetOfArgumentsProfile.enter();
