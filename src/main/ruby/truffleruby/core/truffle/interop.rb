@@ -41,122 +41,31 @@ module Truffle
     end
 
     def self.object_keys(object, internal)
-      # TODO (pitr-ch 23-May-2019): add assert that called methods are in members list
-      if object.respond_to?(:[]) && !object.is_a?(Array) && !object.is_a?(String) && !object.is_a?(Symbol) && !object.is_a?(Hash)
-        # FIXME (pitr-ch 11-May-2019): remove the branch
-        keys = []
+      # TODO (pitr-ch 28-Nov-2019): make sure protected methods are not listed unless internal
+      # TODO (pitr-ch 05-Feb-2020): write in Java?
+      keys = []
+
+      if object.respond_to? :polyglot_members
+        keys = object.polyglot_members internal
       else
-        # TODO (pitr-ch 28-Nov-2019): make sure protected methods are not listed unless internal
-        keys = []
         object.methods.each do |method|
           keys << method.to_s if Primitive.object_respond_to? object, method, true
         end
+
         if internal
           object.instance_variables.each do |ivar|
             ivar_string = ivar.to_s
             keys << ivar_string if ivar_string.start_with?('@')
           end
+
           object.private_methods.each do |method|
             # do not list methods which cannot be read using interop
             keys << method.to_s if Primitive.object_respond_to? object, method, true
           end
         end
       end
+
       keys.map { |s| Truffle::Interop.to_java_string(s) }
-    end
-
-    # FIXME (pitr-ch 01-Apr-2019): remove
-    def self.key_info(object, name)
-      flags = []
-
-      [:existing, :readable, :writable, :removable, :modifiable, :insertable].each do |info_name|
-        add = begin
-          send "is_member_#{info_name}?", object, name
-        rescue TypeError # rubocop:disable Lint/HandleExceptions
-          # ignore
-        end
-
-        add ||= begin
-          send "is_array_element_#{info_name}?", object, name
-        rescue TypeError # rubocop:disable Lint/HandleExceptions
-          # ignore
-        end
-
-        flags << info_name if add
-      end
-
-      [:invocable, :internal].each do |info_name|
-        add = begin
-          send "is_member_#{info_name}?", object, name
-        rescue TypeError # rubocop:disable Lint/HandleExceptions
-          # ignore
-        end
-
-        flags << info_name if add
-      end
-
-      flags
-    end
-
-    # FIXME (pitr-ch 11-May-2019): breakdown
-    def self.object_key_info(object, name)
-      readable, invocable, internal, insertable, modifiable, removable = false, false, false, false, false, false
-
-      if object.is_a?(Array) && name.is_a?(Integer)
-        raise 'should be unreachable'
-      elsif name.is_a?(String) && name.start_with?('@')
-        frozen = object.frozen?
-        exists = object.instance_variable_defined?(name)
-        readable = exists
-        insertable = !exists && !frozen
-        modifiable = exists && !frozen
-        removable = modifiable
-        internal = true
-      else
-        # TODO (pitr-ch 11-May-2019): method should be removable?
-        if name.is_a?(String) && object.respond_to?(name)
-          invocable = readable = true
-          modifiable = insertable = false
-        elsif name.is_a?(String) && object.private_methods.include?(name.to_sym)
-          invocable = readable = true
-          modifiable = insertable = false
-          internal = true
-        else
-          unless object.is_a?(Hash) || object.is_a?(Array) || object.is_a?(Class) # exclude #[] constructors
-            # FIXME (pitr-ch 11-May-2019): remove [] mapping to members
-            readable = object.respond_to?(:[])
-            modifiable = object.respond_to?(:[]=)
-            insertable = false
-            invocable = false
-          end
-        end
-      end
-
-      [readable, invocable, internal, insertable, modifiable, removable]
-    end
-
-    def self.object_key_readable?(object, name)
-      object_key_info(object, name)[0]
-    end
-
-    def self.object_key_invocable?(object, name)
-      object_key_info(object, name)[1]
-    end
-
-    def self.object_key_internal?(object, name)
-      object_key_info(object, name)[2]
-    end
-
-    def self.object_key_insertable?(object, name)
-      object_key_info(object, name)[3]
-    end
-
-    def self.object_key_modifiable?(object, name)
-      object_key_info(object, name)[4]
-    end
-
-    def self.object_key_removable?(object, name)
-      object_key_info(object, name)[5]
     end
 
     def self.lookup_symbol(name)

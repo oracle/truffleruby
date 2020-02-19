@@ -114,7 +114,7 @@ public abstract class InteropNodes {
 
         @Specialization(limit = "getCacheLimit()")
         protected boolean isExecutable(
-                TruffleObject receiver,
+                Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isExecutable(receiver);
         }

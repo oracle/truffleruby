@@ -33,22 +33,66 @@ module Truffle::CExt
       @object = object
     end
 
-    def [](index)
-      case index
-      when 'data'
-        data_holder.data
-      else
-        raise "Unknown index: #{index}"
-      end
+    private
+
+    def polyglot_members?
+      true
     end
 
-    def []=(index, value)
-      case index
-      when 'data'
-        data_holder.data = value
-      else
-        raise "Unknown index: #{index}"
-      end
+    def polyglot_members(internal)
+      ['data']
+    end
+
+    def polyglot_member_read(name)
+      data_holder.data
+    ensure
+      name == 'data' or raise "Unknown identifier: #{name}"
+    end
+
+    def polyglot_member_write(name, value)
+      data_holder.data = value
+    ensure
+      name == 'data' or raise "Unknown identifier: #{name}"
+    end
+
+    def polyglot_member_remove(name)
+      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+    end
+
+    def polyglot_member_invoke(name, *args)
+      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+    end
+
+    def polyglot_member_readable?(name)
+      name == 'data'
+    end
+
+    def polyglot_member_modifiable?(name)
+      name == 'data'
+    end
+
+    def polyglot_member_removable?(name)
+      false
+    end
+
+    def polyglot_member_insertable?(name)
+      false
+    end
+
+    def polyglot_member_invocable?(name)
+      false
+    end
+
+    def polyglot_member_internal?(name)
+      false
+    end
+
+    def polyglot_member_read_side_effects?(name)
+      false
+    end
+
+    def polyglot_member_write_side_effects?(name)
+      false
     end
 
     def data_holder
@@ -82,13 +126,66 @@ module Truffle::CExt
       @address = nil
     end
 
-    def [](index)
-      case index
-      when 'name'
-        name
-      else
-        raise "Unknown index: #{index}"
-      end
+    # FIXME (pitr-ch 04-Feb-2020): special class allowing to define dynamic members
+
+    private
+
+    def polyglot_members?
+      true
+    end
+
+    def polyglot_members(internal)
+      ['name']
+    end
+
+    def polyglot_member_read(name)
+      name()
+    ensure
+      name == 'name' or raise "Unknown identifier: #{name}"
+    end
+
+    def polyglot_member_write(name, value)
+      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+    end
+
+    def polyglot_member_remove(name)
+      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+    end
+
+    def polyglot_member_invoke(name, *args)
+      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+    end
+
+    def polyglot_member_readable?(name)
+      name == 'name'
+    end
+
+    def polyglot_member_modifiable?(name)
+      false
+    end
+
+    def polyglot_member_removable?(name)
+      false
+    end
+
+    def polyglot_member_insertable?(name)
+      false
+    end
+
+    def polyglot_member_invocable?(name)
+      false
+    end
+
+    def polyglot_member_internal?(name)
+      false
+    end
+
+    def polyglot_member_read_side_effects?(name)
+      false
+    end
+
+    def polyglot_member_write_side_effects?(name)
+      false
     end
 
     def name
@@ -122,15 +219,69 @@ module Truffle::CExt
       @io = io
     end
 
-    def [](index)
-      case index
+    private
+
+    def polyglot_members?
+      true
+    end
+
+    def polyglot_members(internal)
+      ['fd', 'mode']
+    end
+
+    def polyglot_member_read(name)
+      case name
       when 'mode'
         mode
       when 'fd'
         fd
       else
-        raise "Unknown index: #{index}"
+        raise "Unknown identifier: #{name}"
       end
+    end
+
+    def polyglot_member_write(name, value)
+      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+    end
+
+    def polyglot_member_remove(name)
+      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+    end
+
+    def polyglot_member_invoke(name, *args)
+      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+    end
+
+    def polyglot_member_readable?(name)
+      name == 'mode' || name == 'fd'
+    end
+
+    def polyglot_member_modifiable?(name)
+      false
+    end
+
+    def polyglot_member_removable?(name)
+      false
+    end
+
+    def polyglot_member_insertable?(name)
+      false
+    end
+
+    def polyglot_member_invocable?(name)
+      false
+    end
+
+    def polyglot_member_internal?(name)
+      false
+    end
+
+    def polyglot_member_read_side_effects?(name)
+      false
+    end
+
+    def polyglot_member_write_side_effects?(name)
+      false
     end
 
     def mode

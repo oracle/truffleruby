@@ -9,7 +9,6 @@
  */
 package org.truffleruby.interop.messages;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -17,11 +16,10 @@ import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
@@ -29,7 +27,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -50,7 +47,7 @@ public class RubyObjectMessages {
     // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly
 
     @ExportMessage
-    public static boolean hasArrayElements(
+    protected static boolean hasArrayElements(
             DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
@@ -60,8 +57,8 @@ public class RubyObjectMessages {
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
-    @ExportMessage()
-    public static long getArraySize(
+    @ExportMessage
+    protected static long getArraySize(
             DynamicObject receiver,
             @Cached IntegerCastNode integerCastNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
@@ -79,7 +76,7 @@ public class RubyObjectMessages {
 
     @ExportMessage
     @SuppressWarnings("unused") // has to throw here-unused InvalidArrayIndexException because of ArrayMessages
-    public static Object readArrayElement(
+    protected static Object readArrayElement(
             DynamicObject receiver, long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
@@ -94,7 +91,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static void writeArrayElement(
+    protected static void writeArrayElement(
             DynamicObject receiver, long index, Object value,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
@@ -108,7 +105,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static void removeArrayElement(
+    protected static void removeArrayElement(
             DynamicObject receiver, long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
@@ -122,7 +119,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static boolean isArrayElementReadable(
+    protected static boolean isArrayElementReadable(
             DynamicObject receiver, long index,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
@@ -132,7 +129,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static boolean isArrayElementModifiable(
+    protected static boolean isArrayElementModifiable(
             DynamicObject receiver, long index,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
@@ -142,7 +139,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static boolean isArrayElementInsertable(
+    protected static boolean isArrayElementInsertable(
             DynamicObject receiver, long index,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
@@ -152,7 +149,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static boolean isArrayElementRemovable(
+    protected static boolean isArrayElementRemovable(
             DynamicObject receiver, long index,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
@@ -165,7 +162,7 @@ public class RubyObjectMessages {
     //   since if an object had un-box method it could be have been un-boxed
 
     @ExportMessage
-    public static boolean isPointer(
+    protected static boolean isPointer(
             DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
@@ -180,7 +177,7 @@ public class RubyObjectMessages {
     // TODO (pitr-ch 18-Mar-2019): assert #pointer? #address invariant - both has to be defined
 
     @ExportMessage
-    public static long asPointer(
+    protected static long asPointer(
             DynamicObject receiver,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
@@ -196,7 +193,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static void toNative(
+    protected static void toNative(
             DynamicObject receiver,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode) {
@@ -206,12 +203,15 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static boolean hasMembers(DynamicObject receiver) {
-        return true;
+    protected static boolean hasMembers(DynamicObject receiver,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object dynamic = dispatchNode.call(receiver, "polyglot_members?");
+        return dynamic == DispatchNode.MISSING || booleanCastNode.executeToBoolean(dynamic);
     }
 
     @ExportMessage
-    public static Object getMembers(
+    protected static Object getMembers(
             DynamicObject receiver,
             boolean internal,
             @CachedContext(RubyLanguage.class) RubyContext context,
@@ -228,274 +228,296 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    public static class ReadMember {
+    protected static Object readMember(DynamicObject receiver, String name,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Cached @Exclusive CallDispatchHeadNode dispatch,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnknownIdentifierException {
 
-        protected final static String INDEX_METHOD_NAME = "[]";
-        protected final static String METHOD_NAME = "method";
-
-        @Specialization(guards = { "isIVar(name)" })
-        protected static Object readInstanceVariable(DynamicObject receiver, String name,
-                @Cached ReadObjectFieldNode readObjectFieldNode) throws UnknownIdentifierException {
-
-            Object result = readObjectFieldNode.execute(receiver, name, null);
-            if (result != null) {
-                return result;
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_read", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object iVar = readObjectFieldNode.execute(receiver, name, null);
+            if (ivarFoundProfile.profile(iVar != null)) {
+                return iVar;
+            } else if (definedNode.doesRespondTo(null, name, receiver)) {
+                return dispatch.call(receiver, "method", rubyName);
             } else {
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name);
+            }
+        } else {
+            return dynamic;
+        }
+    }
+
+    @ExportMessage
+    protected static void writeMember(DynamicObject receiver, String name, Object value,
+            @Cached WriteObjectFieldNode writeObjectFieldNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnknownIdentifierException {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_write", rubyName, value);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (isIVar(name)) {
+                writeObjectFieldNode.write(receiver, name, value);
+            } else {
+                errorProfile.enter();
                 throw UnknownIdentifierException.create(name);
             }
         }
-
-        @Specialization(guards = { "!isIVar(name)", "indexMethod(definedIndexNode, receiver)" })
-        protected static Object callIndex(DynamicObject receiver, String name,
-                @Cached DoesRespondDispatchHeadNode definedIndexNode,
-                @Cached("createBinaryProfile()") ConditionProfile errorProfile,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @Cached ForeignToRubyNode nameToRubyNode,
-                @Cached CallDispatchHeadNode dispatch)
-                throws UnknownIdentifierException {
-            try {
-                return dispatch.call(receiver, INDEX_METHOD_NAME, nameToRubyNode.executeConvert(name));
-            } catch (RaiseException ex) {
-                // translate NameError to UnknownIdentifierException
-                DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(ex.getException());
-                if (errorProfile.profile(logicalClass == context.getCoreLibrary().nameErrorClass)) {
-                    throw UnknownIdentifierException.create(name);
-                } else {
-                    throw ex;
-                }
-            }
-        }
-
-        @Specialization(guards = {
-                "!isIVar(name)",
-                "!indexMethod(definedIndexNode, receiver)",
-                "methodDefined(receiver, name, definedNode)" })
-        protected static Object getBoundMethod(DynamicObject receiver, String name,
-                @Cached DoesRespondDispatchHeadNode definedIndexNode,
-                @Cached DoesRespondDispatchHeadNode definedNode,
-                @Cached ForeignToRubyNode nameToRubyNode,
-                @Cached CallDispatchHeadNode dispatch) {
-            return dispatch.call(receiver, METHOD_NAME, nameToRubyNode.executeConvert(name));
-        }
-
-        @Specialization(guards = {
-                "!isIVar(name)",
-                "!indexMethod(definedIndexNode, receiver)",
-                "!methodDefined(receiver, name, definedNode)" })
-        protected static Object unknownIdentifier(DynamicObject receiver, String name,
-                @Cached DoesRespondDispatchHeadNode definedIndexNode,
-                @Cached DoesRespondDispatchHeadNode definedNode) throws UnknownIdentifierException {
-            throw UnknownIdentifierException.create(name);
-        }
-
-        protected static boolean indexMethod(DoesRespondDispatchHeadNode definedIndexNode, DynamicObject receiver) {
-            return methodDefined(receiver, INDEX_METHOD_NAME, definedIndexNode) &&
-                    !RubyGuards.isRubyArray(receiver) &&
-                    !RubyGuards.isRubyHash(receiver) &&
-                    !RubyGuards.isRubyProc(receiver) &&
-                    !RubyGuards.isRubyClass(receiver);
-        }
-
-        protected static boolean methodDefined(
-                DynamicObject receiver,
-                String name,
-                DoesRespondDispatchHeadNode definedNode) {
-
-            return definedNode.doesRespondTo(null, name, receiver);
-        }
-    }
-
-
-    @ExportMessage
-    public static class WriteMember {
-
-        protected final static String INDEX_SET_METHOD_NAME = "[]=";
-
-        @Specialization(guards = { "isIVar(name)" })
-        protected static void writeInstanceVariable(DynamicObject receiver, String name, Object value,
-                @Cached WriteObjectFieldNode writeObjectFieldNode) {
-            writeObjectFieldNode.write(receiver, name, value);
-        }
-
-        @Specialization(guards = { "!isIVar(name)", "indexSetMethod(receiver, doesRespond)" })
-        protected static void index(DynamicObject receiver, String name, Object value,
-                @Cached ForeignToRubyNode nameToRubyNode,
-                @Cached CallDispatchHeadNode dispatch,
-                @Cached DoesRespondDispatchHeadNode doesRespond) {
-            dispatch.call(receiver, INDEX_SET_METHOD_NAME, nameToRubyNode.executeConvert(name), value);
-        }
-
-        @Specialization(guards = { "!isIVar(name)", "!indexSetMethod(receiver, doesRespond)" })
-        protected static void unknownIdentifier(DynamicObject receiver, String name, Object value,
-                @Cached DoesRespondDispatchHeadNode doesRespond) throws UnknownIdentifierException {
-            throw UnknownIdentifierException.create(name);
-        }
-
-        protected static boolean indexSetMethod(DynamicObject receiver, DoesRespondDispatchHeadNode doesRespond) {
-            return methodDefined(receiver, INDEX_SET_METHOD_NAME, doesRespond) &&
-                    !RubyGuards.isRubyArray(receiver) &&
-                    !RubyGuards.isRubyHash(receiver);
-        }
-
-        protected static boolean methodDefined(DynamicObject receiver, Object stringName,
-                DoesRespondDispatchHeadNode definedNode) {
-            return definedNode.doesRespondTo(null, stringName, receiver);
-        }
     }
 
     @ExportMessage
-    public static void removeMember(
+    protected static void removeMember(
             DynamicObject receiver,
             String name,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
-            @Exclusive @Cached CallDispatchHeadNode hashDeleteNode,
-            @Exclusive @Cached CallDispatchHeadNode hashKeyNode,
-            @Exclusive @Cached BooleanCastNode booleanCast,
             @Exclusive @Cached CallDispatchHeadNode removeInstanceVariableNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
 
-        // TODO (pitr-ch 19-Mar-2019): profile
-        if (!name.isEmpty() && name.charAt(0) == '@') {
-            removeInstanceVariableNode.call(
-                    receiver,
-                    "remove_instance_variable",
-                    foreignToRubyNode.executeConvert(name));
-            return;
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_remove", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (!isIVar(name)) {
+                errorProfile.enter();
+                // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
+                throw UnknownIdentifierException.create(name);
+            }
+            removeInstanceVariableNode
+                    .call(receiver, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
         }
-
-        // TODO (pitr-ch 19-Mar-2019): error or not defined ivar?
-        // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
-        errorProfile.enter();
-        throw UnknownIdentifierException.create(name);
     }
 
     @ExportMessage
-    public static boolean isMemberReadable(
-            DynamicObject receiver,
-            String name,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
-        // TODO (pitr-ch 19-Mar-2019): breakdown
-        final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_readable?",
-                receiver,
-                convertedName);
-    }
-
-    @ExportMessage
-    public static boolean isMemberModifiable(
-            DynamicObject receiver,
-            String name,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
-        // TODO (pitr-ch 19-Mar-2019): breakdown
-        final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_modifiable?",
-                receiver,
-                convertedName);
-    }
-
-    @ExportMessage
-    public static boolean isMemberInsertable(
-            DynamicObject receiver,
-            String name,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
-        // TODO (pitr-ch 19-Mar-2019): breakdown
-        final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_insertable?",
-                receiver,
-                convertedName);
-    }
-
-    @ExportMessage
-    public static boolean isMemberRemovable(
-            DynamicObject receiver,
-            String name,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
-        // TODO (pitr-ch 19-Mar-2019): breakdown
-        final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_removable?",
-                receiver,
-                convertedName);
-    }
-
-    @ExportMessage
-    public static boolean isMemberInvocable(
-            DynamicObject receiver,
-            String name,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
-        // TODO (pitr-ch 19-Mar-2019): breakdown
-        final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_invocable?",
-                receiver,
-                convertedName);
-    }
-
-    @ExportMessage
-    public static boolean isMemberInternal(
-            DynamicObject receiver,
-            String name,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode) {
-        // TODO (pitr-ch 19-Mar-2019): breakdown
-        final Object convertedName = foreignToRubyNode.executeConvert(name);
-        return (boolean) dispatchNode.call(
-                context.getCoreLibrary().truffleInteropModule,
-                "object_key_internal?",
-                receiver,
-                convertedName);
-    }
-
-    @ExportMessage
-    public static boolean hasMemberReadSideEffects(DynamicObject receiver, String name) {
-        // TODO (pitr-ch 29-May-2019): is that always true?
-        return false;
-    }
-
-    @ExportMessage
-    public static boolean hasMemberWriteSideEffects(DynamicObject receiver, String name) {
-        // TODO (pitr-ch 29-May-2019): is that always true?
-        return false;
-    }
-
-    @ExportMessage
-    public static Object invokeMember(
+    protected static Object invokeMember(
             DynamicObject receiver,
             String name,
             Object[] arguments,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
-            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        return dispatchNode.call(receiver, name, foreignToRubyArgumentsNode.executeConvert(arguments));
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+
+        Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_invoke", rubyName, convertedArguments);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            // FIXME (pitr 06-Feb-2020): proper exception if member is missing
+            return dispatchNode.call(receiver, name, convertedArguments);
+        } else {
+            return dynamic;
+        }
     }
 
     @ExportMessage
-    public static boolean isInstantiable(
+    protected static boolean isMemberReadable(DynamicObject receiver, String name,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile) {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_readable?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object iVar = readObjectFieldNode.execute(receiver, name, null);
+            if (ivarFoundProfile.profile(iVar != null)) {
+                return true;
+            } else {
+                return definedNode.doesRespondTo(null, name, receiver);
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean isMemberModifiable(DynamicObject receiver, String name,
+            @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_modifiable?", rubyName);
+        return isMemberModifiableRemovable(
+                dynamic,
+                receiver,
+                name,
+                isFrozenNode,
+                readObjectFieldNode,
+                booleanCastNode,
+                dynamicProfile);
+    }
+
+    @ExportMessage
+    protected static boolean isMemberRemovable(DynamicObject receiver, String name,
+            @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_removable?", rubyName);
+        return isMemberModifiableRemovable(
+                dynamic,
+                receiver,
+                name,
+                isFrozenNode,
+                readObjectFieldNode,
+                booleanCastNode,
+                dynamicProfile);
+    }
+
+    private static boolean isMemberModifiableRemovable(Object dynamic, DynamicObject receiver, String name,
+            IsFrozenNode isFrozenNode,
+            ReadObjectFieldNode readObjectFieldNode,
+            BooleanCastNode booleanCastNode,
+            ConditionProfile dynamicProfile) {
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (isFrozenNode.execute(receiver)) {
+                return false;
+            } else {
+                return readObjectFieldNode.execute(receiver, name, null) != null;
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean isMemberInsertable(DynamicObject receiver, String name,
+            @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_insertable?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (isFrozenNode.execute(receiver) || !isIVar(name)) {
+                return false;
+            } else {
+                return readObjectFieldNode.execute(receiver, name, null) == null;
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean isMemberInvocable(DynamicObject receiver, String name,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile) {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_invocable?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object iVar = readObjectFieldNode.execute(receiver, name, null);
+            if (ivarFoundProfile.profile(iVar != null)) {
+                return false;
+            } else {
+                return definedNode.doesRespondTo(null, name, receiver);
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean isMemberInternal(DynamicObject receiver, String name,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Exclusive @Cached(parameters = "PUBLIC") DoesRespondDispatchHeadNode definedPublicNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile) {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_internal?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object result = readObjectFieldNode.execute(receiver, name, null);
+            if (ivarFoundProfile.profile(result != null)) {
+                return true;
+            } else {
+                // defined but not publicly
+                return definedNode.doesRespondTo(null, name, receiver) &&
+                        !definedPublicNode.doesRespondTo(null, name, receiver);
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean hasMemberReadSideEffects(DynamicObject receiver, String name,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_read_side_effects?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            return false;
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean hasMemberWriteSideEffects(DynamicObject receiver, String name,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_member_write_side_effects?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            return false;
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    protected static boolean isInstantiable(
             DynamicObject receiver,
             @Exclusive @Cached DoesRespondDispatchHeadNode doesRespond) {
         return doesRespond.doesRespondTo(null, "new", receiver);
     }
 
     @ExportMessage
-    public static Object instantiate(
+    protected static Object instantiate(
             DynamicObject receiver, Object[] arguments,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,

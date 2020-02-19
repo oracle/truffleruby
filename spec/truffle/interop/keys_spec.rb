@@ -32,25 +32,26 @@ describe "Truffle::Interop.keys" do
   end
 
   it "returns an empty array for a big integer" do
-    Truffle::Interop.keys(bignum_value).should == []
+    Truffle::Interop.keys(bignum_value).should include(*bignum_value.methods.map!(&:to_s))
   end
 
   it "returns an empty array for a proc" do
-    Truffle::Interop.keys(proc {}).should == []
+    proc = proc {}
+    Truffle::Interop.keys(proc).should include(*proc.methods.map!(&:to_s))
   end
 
   it "returns an empty array for a lambda" do
-    Truffle::Interop.keys(-> {}).should == []
+    lambda = -> {}
+    Truffle::Interop.keys(lambda).should include(*lambda.methods.map!(&:to_s))
   end
 
-  it "returns an empty array for a method" do
-    object = TruffleInteropSpecs::ReadHasMethod.new
-    method = object.method(:foo)
-    Truffle::Interop.keys(method).should == []
+  it "returns methods of a method" do
+    method = Object.new.method :to_s
+    Truffle::Interop.keys(method).should include(*method.methods.map!(&:to_s))
   end
 
   it "returns an empty array for an object with a custom #[] method" do
-    object = TruffleInteropSpecs::ReadHasIndex.new
+    object = TruffleInteropSpecs::PolyglotMember.new
     Truffle::Interop.keys(object).should == []
   end
 

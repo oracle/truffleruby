@@ -71,9 +71,11 @@ describe "Truffle::Interop.read" do
   describe "with both an object with a method of the same name and an index method" do
 
     it "calls the index method" do
-      object = TruffleInteropSpecs::ReadHasIndex.new
+      object = TruffleInteropSpecs::PolyglotMember.new
+      Truffle::Interop.write(object, :bob,  14)
       Truffle::Interop.read(object, :bob).should == 14
-      object.key.should == 'bob'
+      Truffle::Interop.keys(object).should include 'bob'
+      object.log.should include [:polyglot_member_read, 'bob']
     end
 
   end
