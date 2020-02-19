@@ -19,13 +19,12 @@ import org.joni.Regex;
 import org.truffleruby.collections.ConcurrentOperations;
 
 public class EncodingCache {
+    private final Map<Encoding, Regex> encodings;
 
     @TruffleBoundary
-    private static ConcurrentHashMap<Encoding, Regex> newConcurrentHashMap() {
-        return new ConcurrentHashMap<>();
+    public EncodingCache() {
+        this.encodings =  new ConcurrentHashMap<>();
     }
-
-    private final Map<Encoding, Regex> encodings = newConcurrentHashMap();
 
     public Regex getOrCreate(Encoding encoding, Function<Encoding, Regex> function) {
         return ConcurrentOperations.getOrCompute(encodings, encoding, function);
