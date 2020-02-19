@@ -55,6 +55,7 @@ Compatibility:
 * Fixed the type of the `flags` field of `rb_data_type_t` (#1911).
 * Implemented `rb_obj_is_proc` (#1908, @kipply, @XrXr). 
 
+* Implemented `num2short` (#1910, @kipply).
 Changes:
 
 * `TRUFFLERUBY_RESILIENT_GEM_HOME` has been removed. Unset `GEM_HOME` and `GEM_PATH` instead if you need to.
