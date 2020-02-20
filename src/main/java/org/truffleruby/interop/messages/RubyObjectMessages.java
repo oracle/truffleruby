@@ -45,15 +45,12 @@ public class RubyObjectMessages {
         return null;
     }
 
-    // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly
-
     @ExportMessage
     protected static boolean hasArrayElements(
             DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-        // FIXME (pitr 26-Mar-2019): the method should have a marker module
         Object value = dispatchNode.call(receiver, "polyglot_array?");
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
@@ -159,9 +156,6 @@ public class RubyObjectMessages {
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
-    // FIXME (pitr 18-Mar-2019): replace #unbox support with testing #to_int etc.
-    //   since if an object had un-box method it could be have been un-boxed
-
     @ExportMessage
     protected static boolean isPointer(
             DynamicObject receiver,
@@ -172,11 +166,6 @@ public class RubyObjectMessages {
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
-    // FIXME (pitr 11-May-2019): allow Ruby objects to implement interop subProtocols, e.g. for array, or numbers. Not for members though.
-
-    // FIXME (pitr 21-Mar-2019): "if-and-only-if" relation between isPointer == true and "asPointer does not throw an UnsupportedMessageException"
-    // TODO (pitr-ch 18-Mar-2019): assert #pointer? #address invariant - both has to be defined
-
     @ExportMessage
     protected static long asPointer(
             DynamicObject receiver,
@@ -184,7 +173,6 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
-        // FIXME (pitr 26-Mar-2019): the method should have a marker module
         Object value = dispatchNode.call(receiver, "polyglot_address");
         if (value == DispatchNode.MISSING) {
             errorProfile.enter();
