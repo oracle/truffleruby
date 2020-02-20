@@ -766,7 +766,7 @@ public abstract class InteropNodes {
                 unknownIdentifierProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+                        coreExceptions().nameErrorUnsuportedMessage(receiver, identifier, e, this));
             }
 
             return true;

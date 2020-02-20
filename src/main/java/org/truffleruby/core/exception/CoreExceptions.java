@@ -701,7 +701,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUnknownIdentifier(Object receiver, Object name, UnsupportedMessageException exception,
+    public DynamicObject nameErrorUnsuportedMessage(Object receiver, Object name, UnsupportedMessageException exception,
             Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }

@@ -2178,11 +2178,11 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class IsStoreNativeNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "oldStrategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = { "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
         protected boolean IsStoreNative(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy oldStrategy,
+                @Cached("of(array)") ArrayStrategy strategy,
                 @Cached("nativeStrategy()") ArrayStrategy nativeStrategy) {
-            return oldStrategy == nativeStrategy;
+            return strategy == nativeStrategy;
         }
     }
 }

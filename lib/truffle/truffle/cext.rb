@@ -367,7 +367,7 @@ module Truffle::CExt
     def polyglot_address
       @address
     ensure
-      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
+      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be raised so it is translated to UnsupportedMessageException
     end
 
     def polyglot_to_native
