@@ -47,7 +47,7 @@ public class LexicalScope {
         }
 
         final Scope topScope = Scope
-                .newBuilder(root.getName(), getVariables(context, root, frame))
+                .newBuilder(root.getName(), getVariables(root, frame))
                 .node(root)
                 .receiver("self", receiver)
                 .arguments(getArguments(frame))
@@ -58,7 +58,7 @@ public class LexicalScope {
         return Collections.singletonList(topScope);
     }
 
-    private static Object getVariables(RubyContext context, RootNode root, Frame frame) {
+    private static Object getVariables(RootNode root, Frame frame) {
         final FrameDescriptor frameDescriptor;
 
         if (frame == null) {
@@ -75,7 +75,7 @@ public class LexicalScope {
             }
         }
 
-        return new LocalVariablesObject(context, slots, frame);
+        return new LocalVariablesObject(slots, frame);
     }
 
     private static Object getArguments(Frame frame) {
@@ -97,12 +97,10 @@ public class LexicalScope {
     @ExportLibrary(InteropLibrary.class)
     public static class LocalVariablesObject implements TruffleObject {
 
-        private final RubyContext context;
         private final Map<String, ? extends FrameSlot> slots;
         private final Frame frame;
 
-        private LocalVariablesObject(RubyContext context, Map<String, ? extends FrameSlot> slots, Frame frame) {
-            this.context = context;
+        private LocalVariablesObject(Map<String, ? extends FrameSlot> slots, Frame frame) {
             this.slots = slots;
             this.frame = frame;
         }
