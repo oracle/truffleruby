@@ -39,7 +39,7 @@ public class FixnumOrBignumNode extends RubyContextNode {
 
     public Object fixnumOrBignum(BigInteger value) {
         if (lowerProfile.profile(fitsIntoLong(value))) {
-            final long longValue = BigIntegerOperations.longValue(value);
+            final long longValue = BigIntegerOps.longValue(value);
 
             if (intProfile.profile(CoreLibrary.fitsIntoInteger(longValue))) {
                 return (int) longValue;
@@ -62,7 +62,7 @@ public class FixnumOrBignumNode extends RubyContextNode {
         } else if (longFromDoubleProfile.profile(value > Long.MIN_VALUE && value < Long.MAX_VALUE)) {
             return (long) value;
         } else {
-            return fixnumOrBignum(BigIntegerOperations.fromDouble(value));
+            return fixnumOrBignum(BigIntegerOps.fromDouble(value));
         }
     }
 }

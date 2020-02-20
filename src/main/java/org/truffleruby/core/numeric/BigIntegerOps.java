@@ -5,8 +5,8 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 
 /** Wrapper for methods of {@link BigInteger} decorated with a {@link TruffleBoundary} annotation, as these methods are
- * substituted by SVM. */
-public final class BigIntegerOperations {
+ * blacklisted by SVM. */
+public final class BigIntegerOps {
     @TruffleBoundary
     public static BigInteger valueOf(long value) {
         return BigInteger.valueOf(value);
