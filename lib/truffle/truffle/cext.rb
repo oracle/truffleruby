@@ -359,7 +359,6 @@ module Truffle::CExt
       @address = 0
     end
 
-
     def polyglot_pointer?
       @address != 0
     end
@@ -372,6 +371,39 @@ module Truffle::CExt
 
     def polyglot_to_native
       @address = Primitive.string_pointer_to_native(@string) + @string.bytesize
+    end
+
+    def polyglot_array?
+      true
+    end
+
+    # this is called by Sulong for strlen() which calls getArraySize() in Sulong string.c
+    def polyglot_array_size
+      0
+    end
+
+    def polyglot_array_read(index)
+      raise
+    end
+
+    def polyglot_array_write(index, value)
+      raise
+    end
+
+    def polyglot_array_readable?(index)
+      false
+    end
+
+    def polyglot_array_modifiable?(index)
+      false
+    end
+
+    def polyglot_array_insertable?(index)
+      false
+    end
+
+    def polyglot_array_removable?
+      false
     end
   end
 
