@@ -1,8 +1,12 @@
 package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+
+import static org.truffleruby.Layouts.BIGNUM;
+import static org.truffleruby.language.RubyGuards.isRubyBignum;
 
 /** Wrapper for methods of {@link BigInteger} decorated with a {@link TruffleBoundary} annotation, as these methods are
  * blacklisted by SVM. */
@@ -160,6 +164,28 @@ public final class BigIntegerOps {
     @TruffleBoundary
     public static int compare(long a, BigInteger b) {
         return valueOf(a).compareTo(b);
+    }
+
+    // We add these DynamicObject overloads for compare because it is used relatively often,
+    // and it helps readability.
+
+    public static int compare(long a, DynamicObject b) {
+        assert isRubyBignum(b);
+        return compare(a, BIGNUM.getValue(b));
+    }
+
+    public static int compare(DynamicObject a, long b) {
+        assert isRubyBignum(a);
+        return compare(BIGNUM.getValue(a), b);
+    }
+
+    public static int compare(DynamicObject a, DynamicObject b) {
+        assert isRubyBignum(a) && isRubyBignum(b);
+        return compare(BIGNUM.getValue(a), BIGNUM.getValue(b));
+    }
+
+    public static int compare(DynamicObject a, double b) {
+        return Double.compare(doubleValue(BIGNUM.getValue(a)), b);
     }
 
     @TruffleBoundary

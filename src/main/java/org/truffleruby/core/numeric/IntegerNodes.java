@@ -649,22 +649,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean less(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, Layouts.BIGNUM.getValue(b)) < 0;
+            return BigIntegerOps.compare(a, b) < 0;
         }
 
         @Specialization
         protected boolean less(DynamicObject a, long b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), b) < 0;
+            return BigIntegerOps.compare(a, b) < 0;
         }
 
         @Specialization
         protected boolean less(DynamicObject a, double b) {
-            return Double.compare(BigIntegerOps.doubleValue(Layouts.BIGNUM.getValue(a)), b) < 0;
+            return BigIntegerOps.compare(a, b) < 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean less(DynamicObject a, DynamicObject b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)) < 0;
+            return BigIntegerOps.compare(a, b) < 0;
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -694,22 +694,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean lessEqual(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, Layouts.BIGNUM.getValue(b)) <= 0;
+            return BigIntegerOps.compare(a, b) <= 0;
         }
 
         @Specialization
         protected boolean lessEqual(DynamicObject a, long b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), b) <= 0;
+            return BigIntegerOps.compare(a, b) <= 0;
         }
 
         @Specialization
         protected boolean lessEqual(DynamicObject a, double b) {
-            return Double.compare(BigIntegerOps.doubleValue(Layouts.BIGNUM.getValue(a)), b) <= 0;
+            return BigIntegerOps.compare(a, b) <= 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean lessEqual(DynamicObject a, DynamicObject b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)) <= 0;
+            return BigIntegerOps.compare(a, b) <= 0;
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -814,17 +814,17 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected int compare(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, Layouts.BIGNUM.getValue(b));
+            return BigIntegerOps.compare(a, b);
         }
 
         @Specialization
         protected int compare(DynamicObject a, long b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), b);
+            return BigIntegerOps.compare(a, b);
         }
 
         @Specialization(guards = "!isInfinity(b)")
         protected int compare(DynamicObject a, double b) {
-            return Double.compare(BigIntegerOps.doubleValue(Layouts.BIGNUM.getValue(a)), b);
+            return BigIntegerOps.compare(a, b);
         }
 
         @Specialization(guards = "isInfinity(b)")
@@ -838,7 +838,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected int compare(DynamicObject a, DynamicObject b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b));
+            return BigIntegerOps.compare(a, b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -869,22 +869,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greaterEqual(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, Layouts.BIGNUM.getValue(b)) >= 0;
+            return BigIntegerOps.compare(a, b) >= 0;
         }
 
         @Specialization
         protected boolean greaterEqual(DynamicObject a, long b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), b) >= 0;
+            return BigIntegerOps.compare(a, b) >= 0;
         }
 
         @Specialization
         protected boolean greaterEqual(DynamicObject a, double b) {
-            return Double.compare(BigIntegerOps.doubleValue(Layouts.BIGNUM.getValue(a)), b) >= 0;
+            return BigIntegerOps.compare(a, b) >= 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greaterEqual(DynamicObject a, DynamicObject b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)) >= 0;
+            return BigIntegerOps.compare(a, b) >= 0;
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -902,7 +902,6 @@ public abstract class IntegerNodes {
         protected boolean greater(int a, int b) {
             return a > b;
         }
-
         @Specialization
         protected boolean greater(long a, long b) {
             return a > b;
@@ -915,22 +914,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greater(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, Layouts.BIGNUM.getValue(b)) > 0;
+            return BigIntegerOps.compare(a, b) > 0;
         }
 
         @Specialization
         protected boolean greater(DynamicObject a, long b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), b) > 0;
+            return BigIntegerOps.compare(a, b) > 0;
         }
 
         @Specialization
         protected boolean greater(DynamicObject a, double b) {
-            return Double.compare(BigIntegerOps.doubleValue(Layouts.BIGNUM.getValue(a)), b) > 0;
+            return BigIntegerOps.compare(a, b) > 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greater(DynamicObject a, DynamicObject b) {
-            return BigIntegerOps.compare(Layouts.BIGNUM.getValue(a), Layouts.BIGNUM.getValue(b)) > 0;
+            return BigIntegerOps.compare(a, b) > 0;
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
