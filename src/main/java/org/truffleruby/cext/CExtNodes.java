@@ -59,6 +59,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
@@ -928,8 +929,8 @@ public class CExtNodes {
 
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
-        @Specialization(guards = "isNil(message)")
-        protected Object rbSysErrFailNoMessage(int errno, Object message) {
+        @Specialization
+        protected Object rbSysErrFailNoMessage(int errno, Nil message) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
             throw new RaiseException(getContext(), errnoError(errno, nil(), backtrace));
         }
@@ -942,10 +943,9 @@ public class CExtNodes {
                     errnoError(errno, message, backtrace));
         }
 
-        private DynamicObject errnoError(int errno, DynamicObject extraMessage, Backtrace backtrace) {
+        private DynamicObject errnoError(int errno, Object extraMessage, Backtrace backtrace) {
             return errnoErrorNode.execute(errno, extraMessage, backtrace);
         }
-
 
     }
 

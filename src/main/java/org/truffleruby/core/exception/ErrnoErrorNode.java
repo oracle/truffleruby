@@ -27,13 +27,13 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode formatMessageNode;
 
-    public abstract DynamicObject execute(int errno, DynamicObject extraMessage, Backtrace backtrace);
+    public abstract DynamicObject execute(int errno, Object extraMessage, Backtrace backtrace);
 
     @Specialization
-    protected DynamicObject errnoError(int errno, DynamicObject extraMessage, Backtrace backtrace) {
+    protected DynamicObject errnoError(int errno, Object extraMessage, Backtrace backtrace) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
-        final DynamicObject errnoDescription;
+        final Object errnoDescription;
         final DynamicObject errnoClass;
         if (errnoName == null) {
             errnoClass = getContext().getCoreLibrary().systemCallErrorClass;
@@ -52,7 +52,7 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
                 .createSystemCallError(getContext(), errnoClass, errorMessage, errno, backtrace);
     }
 
-    private DynamicObject formatMessage(DynamicObject errnoDescription, int errno, DynamicObject extraMessage) {
+    private DynamicObject formatMessage(Object errnoDescription, int errno, Object extraMessage) {
         if (formatMessageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             formatMessageNode = insert(CallDispatchHeadNode.createPrivate());
