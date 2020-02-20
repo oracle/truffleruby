@@ -301,9 +301,9 @@ module Truffle::CExt
     end
 
     def polyglot_address
-      @address
+      address = @address
     ensure
-      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
+      raise if address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
     end
 
     # Every isPointer object should also have TO_NATIVE
