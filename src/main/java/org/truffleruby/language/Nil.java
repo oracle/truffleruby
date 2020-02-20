@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -7,18 +7,24 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.interop.messages;
+package org.truffleruby.language;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
 
-@ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
-public class NilMessages extends RubyObjectMessages {
+/** The Ruby {@code nil}, the single instance of NilClass. */
+@ExportLibrary(InteropLibrary.class)
+public final class Nil implements TruffleObject {
+
+    public static final Nil INSTANCE = new Nil();
+
+    private Nil() {
+    }
 
     @ExportMessage
-    public static boolean isNull(DynamicObject receiver) {
+    public boolean isNull() {
         return true;
     }
 

@@ -33,7 +33,7 @@ details.
 All interop message implementations of different Ruby object types are defined 
 in package `org.truffleruby.interop.messages`. 
 `RubyObjectMessages` defines the common behaviour for all Ruby objects. 
-Other Ruby core classes like `NilMessages`, `StringMessages`, etc. then 
+Other Ruby core classes like `StringMessages`, `ArrayMessages`, etc. then
 inherit from it.   
 
 More details to be added.  

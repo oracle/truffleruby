@@ -21,10 +21,10 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class GlobalVariables {
 
-    private final DynamicObject defaultValue;
+    private final Object defaultValue;
     private final ConcurrentMap<String, GlobalVariableStorage> variables = new ConcurrentHashMap<>();
 
-    public GlobalVariables(DynamicObject defaultValue) {
+    public GlobalVariables(Object defaultValue) {
         this.defaultValue = defaultValue;
     }
 

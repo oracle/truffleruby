@@ -59,6 +59,7 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
@@ -171,7 +172,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray,
-                DynamicObject block,
+                Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
             extensionStack.push(block);
@@ -632,7 +633,7 @@ public class CExtNodes {
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject block(VirtualFrame frame,
+        protected Object block(VirtualFrame frame,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             return getDataNode.execute(frame).getExtensionCallStack().getBlock();
         }
@@ -928,10 +929,10 @@ public class CExtNodes {
 
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
-        @Specialization(guards = "isNil(message)")
-        protected Object rbSysErrFailNoMessage(int errno, DynamicObject message) {
+        @Specialization
+        protected Object rbSysErrFailNoMessage(int errno, Nil message) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
-            throw new RaiseException(getContext(), errnoError(errno, nil(), backtrace));
+            throw new RaiseException(getContext(), errnoError(errno, nil, backtrace));
         }
 
         @Specialization(guards = "isRubyString(message)")
@@ -942,10 +943,9 @@ public class CExtNodes {
                     errnoError(errno, message, backtrace));
         }
 
-        private DynamicObject errnoError(int errno, DynamicObject extraMessage, Backtrace backtrace) {
+        private DynamicObject errnoError(int errno, Object extraMessage, Backtrace backtrace) {
             return errnoErrorNode.execute(errno, extraMessage, backtrace);
         }
-
 
     }
 
@@ -1152,7 +1152,7 @@ public class CExtNodes {
 
                 System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), representation);
             }
-            return nil();
+            return nil;
         }
 
         private DynamicObject callToS(Object object) {
@@ -1170,13 +1170,13 @@ public class CExtNodes {
     public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected TruffleObject executeWithProtect(DynamicObject block,
+        protected Object executeWithProtect(DynamicObject block,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
                 yield(block);
                 noExceptionProfile.enter();
-                return nil();
+                return nil;
             } catch (Throwable e) {
                 exceptionProfile.enter();
                 return new CapturedException(e);
@@ -1421,11 +1421,11 @@ public class CExtNodes {
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject createNewMarkList(DynamicObject obj,
+        protected Object createNewMarkList(DynamicObject obj,
                 @Cached ReadObjectFieldNode readMarkedNode) {
             getContext().getMarkingService().startMarking(
                     (Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
-            return nil();
+            return nil;
         }
     }
 
@@ -1433,7 +1433,7 @@ public class CExtNodes {
     public abstract static class AddToMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject addToMarkList(Object markedObject,
+        protected Object addToMarkList(Object markedObject,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
             ValueWrapper wrappedValue = toWrapperNode.execute(markedObject);
@@ -1444,7 +1444,7 @@ public class CExtNodes {
             // We do nothing here if the handle cannot be resolved. If we are marking an object
             // which is only reachable via weak refs then the handles of objects it is iteself
             // marking may have already been removed from the handle map. }
-            return nil();
+            return nil;
         }
 
     }
@@ -1453,7 +1453,7 @@ public class CExtNodes {
     public abstract static class GCGuardNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject addToMarkList(Object guardedObject,
+        protected Object addToMarkList(Object guardedObject,
                 @Cached MarkingServiceNodes.KeepAliveNode keepAliveNode,
                 @Cached BranchProfile noExceptionProfile,
                 @Cached UnwrapNode.ToWrapperNode toWrapperNode) {
@@ -1462,7 +1462,7 @@ public class CExtNodes {
                 noExceptionProfile.enter();
                 keepAliveNode.execute(wrappedValue);
             }
-            return nil();
+            return nil;
         }
 
     }
@@ -1471,13 +1471,13 @@ public class CExtNodes {
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setMarkList(DynamicObject structOwner,
+        protected Object setMarkList(DynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
             writeMarkedNode.write(
                     structOwner,
                     Layouts.MARKED_OBJECTS_IDENTIFIER,
                     getContext().getMarkingService().finishMarking());
-            return nil();
+            return nil;
         }
     }
 
@@ -1487,11 +1487,11 @@ public class CExtNodes {
         @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.getUncached();
 
         @Specialization
-        protected DynamicObject createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
+        protected Object createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
                 @Cached BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", marker)) {
                 addObjectToMarkingService(object, marker);
-                return nil();
+                return nil;
             } else {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -1515,10 +1515,10 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject pushFrame(DynamicObject block,
+        protected Object pushFrame(DynamicObject block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().push(block);
-            return nil();
+            return nil;
         }
     }
 
@@ -1526,10 +1526,10 @@ public class CExtNodes {
     public abstract static class PopPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject popFrame(
+        protected Object popFrame(
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().pop();
-            return nil();
+            return nil;
         }
     }
 
@@ -1539,7 +1539,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean nilPWrapper(ValueWrapper value) {
-            return value.getObject() == nil();
+            return value.getObject() == nil;
         }
 
         @Specialization(
@@ -1595,9 +1595,9 @@ public class CExtNodes {
     public abstract static class RbCheckSymbolCStrNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject checkSymbolCStr(DynamicObject str) {
+        protected Object checkSymbolCStr(DynamicObject str) {
             final DynamicObject sym = getContext().getSymbolTable().getSymbolIfExists(rope(str));
-            return sym == null ? nil() : sym;
+            return sym == null ? nil : sym;
         }
 
     }

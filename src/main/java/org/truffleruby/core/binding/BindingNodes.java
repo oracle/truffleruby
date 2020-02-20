@@ -25,6 +25,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -68,13 +69,13 @@ public abstract class BindingNodes {
     }
 
     @TruffleBoundary
-    public static FrameDescriptor newFrameDescriptor(RubyContext context) {
-        return new FrameDescriptor(context.getCoreLibrary().nil);
+    public static FrameDescriptor newFrameDescriptor() {
+        return new FrameDescriptor(Nil.INSTANCE);
     }
 
     @TruffleBoundary
-    public static FrameDescriptor newFrameDescriptor(RubyContext context, String name) {
-        final FrameDescriptor frameDescriptor = new FrameDescriptor(context.getCoreLibrary().nil);
+    public static FrameDescriptor newFrameDescriptor(String name) {
+        final FrameDescriptor frameDescriptor = new FrameDescriptor(Nil.INSTANCE);
         assert name != null && !name.isEmpty();
         frameDescriptor.addFrameSlot(name);
         return frameDescriptor;
@@ -95,8 +96,8 @@ public abstract class BindingNodes {
         return newFrame;
     }
 
-    public static MaterializedFrame newFrame(RubyContext context, MaterializedFrame parent) {
-        final FrameDescriptor descriptor = newFrameDescriptor(context);
+    public static MaterializedFrame newFrame(MaterializedFrame parent) {
+        final FrameDescriptor descriptor = newFrameDescriptor();
         return newFrame(parent, descriptor);
     }
 
@@ -114,8 +115,7 @@ public abstract class BindingNodes {
                 descriptor).materialize();
     }
 
-    public static void insertAncestorFrame(RubyContext context, DynamicObject binding,
-            MaterializedFrame ancestorFrame) {
+    public static void insertAncestorFrame(DynamicObject binding, MaterializedFrame ancestorFrame) {
         assert RubyGuards.isRubyBinding(binding);
         MaterializedFrame frame = Layouts.BINDING.getFrame(binding);
         while (RubyArguments.getDeclarationFrame(frame) != null) {
@@ -124,7 +124,7 @@ public abstract class BindingNodes {
         RubyArguments.setDeclarationFrame(frame, ancestorFrame);
 
         // We need to invalidate caches depending on the top frame, so create a new empty frame
-        newFrame(binding, newFrameDescriptor(context));
+        newFrame(binding, newFrameDescriptor());
     }
 
     public static boolean isHiddenVariable(Object name) {
@@ -278,7 +278,7 @@ public abstract class BindingNodes {
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("findFrameSlotOrNull(name, getFrame(binding))") FrameSlotAndDepth cachedFrameSlot,
-                @Cached("newFrameDescriptor(getContext(), name)") FrameDescriptor newDescriptor,
+                @Cached("newFrameDescriptor(name)") FrameDescriptor newDescriptor,
                 @Cached("findFrameSlot(name, newDescriptor)") FrameSlotAndDepth newFrameSlot,
                 @Cached("createWriteNode(newFrameSlot)") WriteFrameSlotNode writeLocalVariableNode) {
             final MaterializedFrame frame = newFrame(binding, newDescriptor);
@@ -295,7 +295,7 @@ public abstract class BindingNodes {
                 frame = RubyArguments.getDeclarationFrame(frame, frameSlot.depth);
                 slot = frameSlot.slot;
             } else {
-                frame = newFrame(binding, newFrameDescriptor(getContext(), name));
+                frame = newFrame(binding, newFrameDescriptor(name));
                 slot = frame.getFrameDescriptor().findFrameSlot(name);
             }
             frame.setObject(slot, value);
@@ -379,7 +379,7 @@ public abstract class BindingNodes {
             final SourceSection sourceSection = Layouts.BINDING.getSourceSection(binding);
 
             if (sourceSection == null) {
-                return nil();
+                return nil;
             } else {
                 final DynamicObject file = makeStringNode.executeMake(
                         getContext().getPath(sourceSection.getSource()),

@@ -19,7 +19,6 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild("value")
 public abstract class ReinterpretAsUnsignedNode extends FormatNode {
@@ -32,7 +31,7 @@ public abstract class ReinterpretAsUnsignedNode extends FormatNode {
     }
 
     @Specialization(guards = "isNil(nil)")
-    protected DynamicObject asUnsigned(DynamicObject nil) {
+    protected Object asUnsigned(Object nil) {
         return nil;
     }
 

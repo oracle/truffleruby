@@ -14,6 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.JavaException;
@@ -34,7 +35,7 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     private static String messageFieldToString(RubyContext context, DynamicObject exception) {
         Object message = Layouts.EXCEPTION.getMessage(exception);
-        if (message == null || message == context.getCoreLibrary().nil) {
+        if (message == null || message == Nil.INSTANCE) {
             final ModuleFields exceptionClass = Layouts.MODULE
                     .getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
             return exceptionClass.getName(); // What Exception#message would return if no message is set
@@ -73,7 +74,7 @@ public abstract class ExceptionOperations {
     @TruffleBoundary
     public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
             Backtrace backtrace) {
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.CLASS
                 .getInstanceFactory(rubyClass)
@@ -85,7 +86,7 @@ public abstract class ExceptionOperations {
     public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass,
             Object message,
             int errno, Backtrace backtrace) {
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
         return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(
                 Layouts.SYSTEM_CALL_ERROR.build(message, null, backtrace, cause, null, null, errno));

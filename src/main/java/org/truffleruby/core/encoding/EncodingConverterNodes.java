@@ -74,7 +74,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyEncoding(source)", "isRubyEncoding(destination)" })
-        protected DynamicObject initialize(DynamicObject self, DynamicObject source, DynamicObject destination,
+        protected Object initialize(DynamicObject self, DynamicObject source, DynamicObject destination,
                 int options) {
             // Adapted from RubyConverter - see attribution there
             //
@@ -89,7 +89,7 @@ public abstract class EncodingConverterNodes {
                     .open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
 
             if (econv == null) {
-                return nil();
+                return nil;
             }
 
             econv.sourceEncoding = sourceEncoding;
@@ -163,11 +163,11 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubySymbol(source)")
-        protected DynamicObject search(DynamicObject source) {
+        protected Object search(DynamicObject source) {
             final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths
                     .get(Layouts.SYMBOL.getString(source));
             if (transcoders == null) {
-                return nil();
+                return nil;
             }
 
             final Object[] destinations = new Object[transcoders.size()];
@@ -194,7 +194,7 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization(guards = { "isNil(source)", "isRubyString(target)" })
-        protected Object primitiveConvertNilSource(DynamicObject encodingConverter, DynamicObject source,
+        protected Object primitiveConvertNilSource(DynamicObject encodingConverter, Object source,
                 DynamicObject target, int offset, int size, int options) {
             return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
         }
@@ -209,12 +209,12 @@ public abstract class EncodingConverterNodes {
         }
 
         @TruffleBoundary
-        private Object primitiveConvertHelper(DynamicObject encodingConverter, DynamicObject source,
+        private Object primitiveConvertHelper(DynamicObject encodingConverter, Object source,
                 DynamicObject target, int offset, int size, int options) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
-            final boolean nonNullSource = source != nil();
-            Rope sourceRope = nonNullSource ? rope(source) : RopeConstants.EMPTY_UTF8_ROPE;
+            final boolean nonNullSource = source != nil;
+            Rope sourceRope = nonNullSource ? rope((DynamicObject) source) : RopeConstants.EMPTY_UTF8_ROPE;
             final Rope targetRope = rope(target);
             final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
 
@@ -276,7 +276,7 @@ public abstract class EncodingConverterNodes {
 
                 if (nonNullSource) {
                     sourceRope = substringNode.executeSubstring(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
-                    StringOperations.setRope(source, sourceRope);
+                    StringOperations.setRope((DynamicObject) source, sourceRope);
                 }
 
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {
@@ -360,7 +360,7 @@ public abstract class EncodingConverterNodes {
             if (lastError.getResult() != EConvResult.InvalidByteSequence &&
                     lastError.getResult() != EConvResult.IncompleteInput &&
                     lastError.getResult() != EConvResult.UndefinedConversion) {
-                return nil();
+                return nil;
             }
 
             final boolean readAgain = lastError.getReadAgainLength() != 0;
@@ -417,7 +417,7 @@ public abstract class EncodingConverterNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
-            final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil(), nil(), nil(), nil() };
+            final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil, nil, nil, nil };
 
             if (ec.lastError.getSource() != null) {
                 ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);

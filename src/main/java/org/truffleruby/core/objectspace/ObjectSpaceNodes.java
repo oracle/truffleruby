@@ -45,7 +45,7 @@ public abstract class ObjectSpaceNodes {
 
         @Specialization(guards = "id == NIL")
         protected Object id2RefNil(long id) {
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "id == TRUE")

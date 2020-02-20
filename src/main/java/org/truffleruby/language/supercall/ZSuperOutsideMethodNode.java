@@ -46,7 +46,7 @@ public class ZSuperOutsideMethodNode extends RubyContextSourceNode {
         final InternalMethod superMethod = lookupSuperMethodNode.executeLookupSuperMethod(frame, self);
 
         if (superMethod == null) {
-            return nil();
+            return nil;
         } else {
             return coreStrings().SUPER.createInstance();
         }

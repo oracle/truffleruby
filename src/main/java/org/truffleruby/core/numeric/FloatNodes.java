@@ -385,13 +385,13 @@ public abstract class FloatNodes {
     public abstract static class CompareNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNaN(a)")
-        protected DynamicObject compareFirstNaN(double a, Object b) {
-            return nil();
+        protected Object compareFirstNaN(double a, Object b) {
+            return nil;
         }
 
         @Specialization(guards = "isNaN(b)")
-        protected DynamicObject compareSecondNaN(Object a, double b) {
-            return nil();
+        protected Object compareSecondNaN(Object a, double b) {
+            return nil;
         }
 
         @Specialization(guards = { "!isNaN(a)" })
@@ -420,6 +420,12 @@ public abstract class FloatNodes {
 
         @Specialization(guards = { "!isNaN(a)", "!isRubyBignum(b)" })
         protected Object compare(double a, DynamicObject b,
+                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+            return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
+        }
+
+        @Specialization(guards = { "!isNaN(a)", "isNil(b)" })
+        protected Object compare(double a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
@@ -499,7 +505,7 @@ public abstract class FloatNodes {
                     return 1;
                 }
             } else {
-                return nil();
+                return nil;
             }
         }
 

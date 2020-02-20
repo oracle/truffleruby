@@ -73,6 +73,7 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -249,7 +250,7 @@ public abstract class KernelNodes {
             if (sameOrEqualNode.executeSameOrEqual(frame, self, other)) {
                 return 0;
             } else {
-                return nil();
+                return nil;
             }
         }
 
@@ -282,11 +283,11 @@ public abstract class KernelNodes {
 
         @Specialization
         protected boolean blockGiven(VirtualFrame frame,
-                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
+                @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
             MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             return blockProfile
-                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil());
+                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil);
         }
     }
 
@@ -304,16 +305,16 @@ public abstract class KernelNodes {
     public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject callerLocations(int omit, NotProvided length) {
+        protected Object callerLocations(int omit, NotProvided length) {
             return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization
-        protected DynamicObject callerLocations(int omit, int length) {
+        protected Object callerLocations(int omit, int length) {
             return innerCallerLocations(omit, length);
         }
 
-        private DynamicObject innerCallerLocations(int omit, int length) {
+        private Object innerCallerLocations(int omit, int length) {
             // Always skip #caller_locations.
             final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
@@ -355,7 +356,7 @@ public abstract class KernelNodes {
             final DynamicObject newObject = (DynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
-                final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil());
+                final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil);
                 writeFieldNodes[i].write(newObject, properties[i].getKey(), value);
             }
 
@@ -439,7 +440,7 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
-        @Specialization(guards = { "!isNil(self)", "!isRubyBignum(self)", "!isRubySymbol(self)" })
+        @Specialization(guards = { "!isRubyBignum(self)", "!isRubySymbol(self)" })
         protected DynamicObject clone(DynamicObject self, boolean freeze,
                 @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile,
                 @Cached("createBinaryProfile()") ConditionProfile freezeProfile,
@@ -697,7 +698,7 @@ public abstract class KernelNodes {
                 Rope file,
                 int line,
                 boolean ownScopeForAssignments) {
-            final MaterializedFrame frame = BindingNodes.newFrame(getContext(), BindingNodes.getFrame(binding));
+            final MaterializedFrame frame = BindingNodes.newFrame(BindingNodes.getFrame(binding));
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
@@ -821,6 +822,14 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
+        @Specialization(guards = "isNil(self)")
+        protected int hash(Object self) {
+            // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
+            // own @CoreMethod hash
+            return System.identityHashCode(self);
+        }
+
+        @TruffleBoundary
         @Specialization(guards = "!isRubyBignum(self)")
         protected int hash(DynamicObject self) {
             // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
@@ -903,13 +912,18 @@ public abstract class KernelNodes {
             return false;
         }
 
-        @Specialization(guards = "isRubySymbol(object) || isNil(object)")
+        @Specialization
+        protected boolean isInstanceVariableDefinedNil(Nil object, String name) {
+            return false;
+        }
+
+        @Specialization(guards = "isRubySymbol(object)")
         protected boolean isInstanceVariableDefinedSymbolOrNil(DynamicObject object, String name) {
             return false;
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
+        @Specialization(guards = "!isRubySymbol(object)")
         protected boolean isInstanceVariableDefined(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Property property = object.getShape().getProperty(ivar);
@@ -967,7 +981,7 @@ public abstract class KernelNodes {
         @Specialization
         protected Object removeInstanceVariable(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil());
+            final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil);
 
             if (SharedObjects.isShared(getContext(), object)) {
                 synchronized (object) {
@@ -1034,15 +1048,15 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject lambda(NotProvided block,
-                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
+                @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext()
                     .getCallStack()
                     .getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE)
                     .materialize();
-            DynamicObject parentBlock = (DynamicObject) readNode
+            Object parentBlock = readNode
                     .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
-            if (parentBlock == nil()) {
+            if (parentBlock == nil) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().argumentError("tried to create Proc object without a block", this));
@@ -1052,9 +1066,9 @@ public abstract class KernelNodes {
 
             Node callNode = getContext().getCallStack().getCallerNode(2, true);
             if (isLiteralBlock(callNode)) {
-                return lambdaFromBlock(parentBlock);
+                return lambdaFromBlock((DynamicObject) parentBlock);
             } else {
-                return parentBlock;
+                return (DynamicObject) parentBlock;
             }
         }
 
@@ -1183,7 +1197,7 @@ public abstract class KernelNodes {
             final RubyRootNode newRootNode = new RubyRootNode(
                     getContext(),
                     info.getSourceSection(),
-                    new FrameDescriptor(nil()),
+                    new FrameDescriptor(nil),
                     info,
                     newBody,
                     true);
@@ -1597,9 +1611,9 @@ public abstract class KernelNodes {
     public abstract static class SetTraceFuncNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(traceFunc)")
-        protected DynamicObject setTraceFunc(Object traceFunc) {
+        protected Object setTraceFunc(Object traceFunc) {
             getContext().getTraceManager().setTraceFunc(null);
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "isRubyProc(traceFunc)")
@@ -1981,6 +1995,11 @@ public abstract class KernelNodes {
         @Specialization
         protected boolean untaint(boolean bool) {
             return bool;
+        }
+
+        @Specialization
+        protected Object untaint(Nil nil) {
+            return nil;
         }
 
         @Specialization

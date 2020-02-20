@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -47,8 +48,8 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
         return coreLibrary().falseClass;
     }
 
-    @Specialization(guards = "isNil(value)")
-    protected DynamicObject singletonClassNil(DynamicObject value) {
+    @Specialization
+    protected DynamicObject singletonClassNil(Nil value) {
         return coreLibrary().nilClass;
     }
 
@@ -99,20 +100,18 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
     @Specialization(
             guards = {
                     "object == cachedObject",
-                    "!isNil(cachedObject)",
                     "!isRubyBignum(cachedObject)",
                     "!isRubySymbol(cachedObject)",
                     "!isRubyClass(cachedObject)" },
             limit = "getIdentityCacheLimit()")
-    protected DynamicObject singletonClassInstanceCached(
-            DynamicObject object,
+    protected DynamicObject singletonClassInstanceCached(DynamicObject object,
             @Cached("object") DynamicObject cachedObject,
             @Cached("getSingletonClassForInstance(object)") DynamicObject cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(
-            guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubySymbol(object)", "!isRubyClass(object)" },
+            guards = { "!isRubyBignum(object)", "!isRubySymbol(object)", "!isRubyClass(object)" },
             replaces = "singletonClassInstanceCached")
     protected DynamicObject singletonClassInstanceUncached(DynamicObject object) {
         return getSingletonClassForInstance(object);

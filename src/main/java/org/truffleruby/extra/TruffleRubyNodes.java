@@ -86,7 +86,7 @@ public abstract class TruffleRubyNodes {
         protected Object fullMemoryBarrier() {
             Pointer.UNSAFE.fullFence();
 
-            return nil();
+            return nil;
         }
 
     }

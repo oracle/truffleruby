@@ -119,7 +119,7 @@ public abstract class TruffleGraalNodes {
             }
 
             final Object[] args = RubyArguments
-                    .pack(null, null, RubyArguments.getMethod(declarationFrame), null, nil(), null, EMPTY_ARGUMENTS);
+                    .pack(null, null, RubyArguments.getMethod(declarationFrame), null, nil, null, EMPTY_ARGUMENTS);
             // The Proc no longer needs the original declaration frame. However, all procs must have a
             // declaration frame (to allow Proc#binding) so we shall create an empty one.
             final MaterializedFrame newDeclarationFrame = Truffle
@@ -163,12 +163,12 @@ public abstract class TruffleGraalNodes {
     public abstract static class AssertNotCompilationConstantNode extends PrimitiveNode {
 
         @Specialization
-        protected DynamicObject assertNotCompiled() {
+        protected Object assertNotCompiled() {
             if (CompilerDirectives.inCompiledCode()) {
                 compiledBoundary();
             }
 
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
@@ -182,10 +182,10 @@ public abstract class TruffleGraalNodes {
     public abstract static class BailoutNode extends PrimitiveNode {
 
         @Specialization(guards = "isRubyString(message)")
-        protected DynamicObject bailout(DynamicObject message,
+        protected Object bailout(DynamicObject message,
                 @Cached ToJavaStringNode toJavaStringNode) {
             CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
-            return nil();
+            return nil;
         }
     }
 

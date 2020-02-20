@@ -19,6 +19,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 
@@ -67,7 +68,7 @@ public class ValueWrapperManager {
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
         this.threadBlocks = ThreadLocal.withInitial((this::makeThreadData));
-        nilWrapper = new ValueWrapper(context.getCoreLibrary().nil, NIL_HANDLE, null);
+        nilWrapper = new ValueWrapper(Nil.INSTANCE, NIL_HANDLE, null);
     }
 
     public HandleThreadData makeThreadData() {

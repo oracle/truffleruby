@@ -58,7 +58,7 @@ public abstract class ConditionVariableNodes {
 
         @Specialization(guards = "isNil(timeout)")
         protected DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject conditionVariable, DynamicObject mutex,
-                DynamicObject timeout,
+                Object timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);

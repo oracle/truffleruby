@@ -17,7 +17,6 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -32,8 +31,6 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
     public DurationToMillisecondsNode(boolean acceptsNil) {
         this.acceptsNil = acceptsNil;
     }
-
-    public abstract long executeDurationToMillis(VirtualFrame frame, Object duration);
 
     @Specialization
     protected long noDuration(NotProvided duration) {
@@ -56,7 +53,7 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "isNil(duration)")
-    protected long durationNil(DynamicObject duration) {
+    protected long durationNil(Object duration) {
         if (acceptsNil) {
             return noDuration(NotProvided.INSTANCE);
         } else {
@@ -66,13 +63,13 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
         }
     }
 
-    @Specialization(guards = "!isNil(duration)")
-    protected long duration(VirtualFrame frame, DynamicObject duration) {
+    @Specialization
+    protected long duration(DynamicObject duration) {
         if (floatCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             floatCastNode = insert(NumericToFloatNodeGen.create());
         }
-        return duration(floatCastNode.executeDouble(frame, duration));
+        return duration(floatCastNode.executeDouble(duration));
     }
 
     private long validate(long durationInMillis) {

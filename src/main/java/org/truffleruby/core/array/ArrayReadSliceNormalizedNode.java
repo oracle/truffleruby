@@ -25,18 +25,18 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyContextNode {
 
     @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-    public abstract DynamicObject executeReadSlice(DynamicObject array, int index, int length);
+    public abstract Object executeReadSlice(DynamicObject array, int index, int length);
 
     // Index out of bounds or negative length always gives you nil
 
     @Specialization(guards = "!indexInBounds(array, index)")
-    protected DynamicObject readIndexOutOfBounds(DynamicObject array, int index, int length) {
-        return nil();
+    protected Object readIndexOutOfBounds(DynamicObject array, int index, int length) {
+        return nil;
     }
 
     @Specialization(guards = "!lengthPositive(length)")
-    protected DynamicObject readNegativeLength(DynamicObject array, int index, int length) {
-        return nil();
+    protected Object readNegativeLength(DynamicObject array, int index, int length) {
+        return nil;
     }
 
     // Reading within bounds on an array with actual storage

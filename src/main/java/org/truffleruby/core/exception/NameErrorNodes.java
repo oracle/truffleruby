@@ -35,7 +35,7 @@ public abstract class NameErrorNodes {
             return allocateObjectNode
                     .allocate(
                             rubyClass,
-                            Layouts.NAME_ERROR.build(nil(), null, null, nil(), null, null, null, nil()));
+                            Layouts.NAME_ERROR.build(nil, null, null, nil, null, null, null, nil));
         }
 
     }

@@ -14,6 +14,7 @@ import java.io.InputStream;
 import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.Nil;
 
 public class InputStreamAdapter extends InputStream {
 
@@ -29,7 +30,7 @@ public class InputStreamAdapter extends InputStream {
     public int read() {
         final Object result = context.send(object, "getbyte");
 
-        if (result == context.getCoreLibrary().nil) {
+        if (result == Nil.INSTANCE) {
             return -1;
         }
 

@@ -63,7 +63,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
                 return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
 
             case ARRAY_WITH_NIL:
-                return createArray(new Object[]{ nil() }, 1);
+                return createArray(new Object[]{ nil }, 1);
 
             case CONVERT:
                 return callToA(frame, nil);
@@ -98,7 +98,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
                 object,
                 coreLibrary().arrayClass,
                 conversionMethod);
-        if (array == nil()) {
+        if (array == nil) {
             return createArray(new Object[]{ object }, 1);
         } else {
             assert RubyGuards.isRubyArray(array);

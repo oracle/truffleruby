@@ -35,7 +35,7 @@ public class LoadRequiredLibrariesNode extends RubyContextSourceNode {
                     makeStringNode.executeMake(requiredLibrary, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
-        return nil();
+        return nil;
     }
 
 }

@@ -111,7 +111,7 @@ public abstract class TypeNodes {
         public abstract DynamicObject executeGetIVars(Object self);
 
         @TruffleBoundary
-        @Specialization(guards = { "!isNil(object)", "!isRubySymbol(object)" })
+        @Specialization(guards = "!isRubySymbol(object)")
         protected DynamicObject instanceVariables(DynamicObject object) {
             Shape shape = object.getShape();
             List<String> names = new ArrayList<>();
@@ -151,7 +151,7 @@ public abstract class TypeNodes {
         }
 
         @Specialization(guards = "isNil(object)")
-        protected DynamicObject instanceVariablesNil(DynamicObject object) {
+        protected DynamicObject instanceVariablesNil(Object object) {
             return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
         }
 
@@ -214,7 +214,7 @@ public abstract class TypeNodes {
 
         @Specialization(guards = "!isDynamicObject(object)")
         protected Object hiddenVariableGetPrimitive(Object object, Object identifier) {
-            return nil();
+            return nil;
         }
     }
 

@@ -30,7 +30,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class StringToPointerNode extends FormatNode {
 
     @Specialization(guards = "isNil(nil)")
-    protected long toPointer(DynamicObject nil) {
+    protected long toPointer(Object nil) {
         return 0;
     }
 

@@ -25,6 +25,7 @@ import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -705,7 +706,7 @@ public class CoreExceptions {
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return context.getCoreLibrary().nameErrorFactory.newInstance(Layouts.NAME_ERROR.build(
                 messageString,
@@ -722,7 +723,7 @@ public class CoreExceptions {
             Node currentNode) {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         final DynamicObject exception = context.getCoreLibrary().nameErrorFactory.newInstance(
                 Layouts.NAME_ERROR.build(
                         null,
@@ -745,7 +746,7 @@ public class CoreExceptions {
         final DynamicObject argsArray = createArray(context, args);
         final DynamicObject exceptionClass = context.getCoreLibrary().noMethodErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         return context.getCoreLibrary().noMethodErrorFactory.newInstance(
                 Layouts.NO_METHOD_ERROR.build(
@@ -766,7 +767,7 @@ public class CoreExceptions {
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         final DynamicObject exception = context.getCoreLibrary().noMethodErrorFactory.newInstance(
                 Layouts.NO_METHOD_ERROR.build(
                         null,
@@ -789,7 +790,7 @@ public class CoreExceptions {
                 StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
         final DynamicObject exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final DynamicObject cause = ThreadGetExceptionNode.getLastException(context);
+        final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
         return context.getCoreLibrary().noMethodErrorFactory.newInstance(Layouts.NAME_ERROR.build(
@@ -1081,9 +1082,9 @@ public class CoreExceptions {
     @TruffleBoundary
     public DynamicObject systemCallError(String message, int errno, Backtrace backtrace) {
         DynamicObject exceptionClass = context.getCoreLibrary().systemCallErrorClass;
-        DynamicObject errorMessage;
+        Object errorMessage;
         if (message == null) {
-            errorMessage = context.getCoreLibrary().nil;
+            errorMessage = Nil.INSTANCE;
         } else {
             errorMessage = StringOperations
                     .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));

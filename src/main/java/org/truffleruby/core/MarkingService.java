@@ -17,7 +17,7 @@ import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.Nil;
 
 /** Class to provide GC marking and other facilities to keep objects alive for native extensions.
  *
@@ -115,7 +115,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         private final ExtensionCallStack extensionCallStack;
 
         public MarkerThreadLocalData(MarkingService service) {
-            this.extensionCallStack = new ExtensionCallStack(service.context.getCoreLibrary().nil);
+            this.extensionCallStack = new ExtensionCallStack(Nil.INSTANCE);
         }
 
         public ExtensionCallStack getExtensionCallStack() {
@@ -126,9 +126,9 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     protected static class ExtensionCallStackEntry {
         protected final ExtensionCallStackEntry previous;
         protected final ArrayList<Object> preservedObjects = new ArrayList<>();
-        protected final DynamicObject block;
+        protected final Object block;
 
-        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, DynamicObject block) {
+        protected ExtensionCallStackEntry(ExtensionCallStackEntry previous, Object block) {
             this.previous = previous;
             this.block = block;
         }
@@ -137,7 +137,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
     public static class ExtensionCallStack {
         protected ExtensionCallStackEntry current;
 
-        public ExtensionCallStack(DynamicObject block) {
+        public ExtensionCallStack(Object block) {
             current = new ExtensionCallStackEntry(null, block);
         }
 
@@ -149,11 +149,11 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
             current = current.previous;
         }
 
-        public void push(DynamicObject block) {
+        public void push(Object block) {
             current = new ExtensionCallStackEntry(current, block);
         }
 
-        public DynamicObject getBlock() {
+        public Object getBlock() {
             return current.block;
         }
     }

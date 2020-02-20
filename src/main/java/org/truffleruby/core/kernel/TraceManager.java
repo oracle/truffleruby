@@ -16,6 +16,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.tracepoint.TraceBaseEventNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -153,12 +154,12 @@ public class TraceManager {
                         event,
                         getFile(),
                         getLine(),
-                        context.getCoreLibrary().nil,
+                        Nil.INSTANCE,
                         BindingNodes.createBinding(
                                 context,
                                 frame.materialize(),
                                 eventContext.getInstrumentedSourceSection()),
-                        context.getCoreLibrary().nil);
+                        Nil.INSTANCE);
             } finally {
                 isInTraceFunc = false;
             }

@@ -182,7 +182,7 @@ public abstract class MethodNodes {
             SourceSection sourceSection = Layouts.METHOD.getMethod(method).getSharedMethodInfo().getSourceSection();
 
             if (!sourceSection.isAvailable()) {
-                return nil();
+                return nil;
             } else {
                 DynamicObject file = makeStringNode.executeMake(
                         getContext().getPath(sourceSection.getSource()),
@@ -201,13 +201,13 @@ public abstract class MethodNodes {
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @Specialization
-        protected DynamicObject superMethod(DynamicObject method) {
+        protected Object superMethod(DynamicObject method) {
             Object receiver = Layouts.METHOD.getReceiver(method);
             InternalMethod internalMethod = Layouts.METHOD.getMethod(method);
             DynamicObject selfMetaClass = metaClassNode.executeMetaClass(receiver);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
             if (!superMethod.isDefined()) {
-                return nil();
+                return nil;
             } else {
                 return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, superMethod.getMethod());
             }
@@ -310,13 +310,13 @@ public abstract class MethodNodes {
     public abstract static class MethodUnimplementNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject methodUnimplement(DynamicObject rubyMethod) {
+        protected Object methodUnimplement(DynamicObject rubyMethod) {
             final InternalMethod method = Layouts.METHOD.getMethod(rubyMethod);
             Layouts.MODULE.getFields(method.getDeclaringModule()).addMethod(
                     getContext(),
                     this,
                     method.unimplemented());
-            return nil();
+            return nil;
         }
 
     }

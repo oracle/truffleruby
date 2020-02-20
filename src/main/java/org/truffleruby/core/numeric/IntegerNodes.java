@@ -1841,7 +1841,7 @@ public abstract class IntegerNodes {
                 }
             }
 
-            return nil();
+            return nil;
         }
 
         @Specialization
@@ -1868,7 +1868,7 @@ public abstract class IntegerNodes {
                 }
             }
 
-            return nil();
+            return nil;
         }
 
         @Specialization
@@ -1936,7 +1936,7 @@ public abstract class IntegerNodes {
                 }
             }
 
-            return nil();
+            return nil;
         }
 
         @Specialization
@@ -1962,7 +1962,7 @@ public abstract class IntegerNodes {
                 }
             }
 
-            return nil();
+            return nil;
         }
 
         @Specialization

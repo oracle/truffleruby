@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -50,14 +51,18 @@ public abstract class TaintNode extends RubyContextNode {
         return object;
     }
 
-    @Specialization(guards = "isRubySymbol(object) || isNil(object)")
-    protected Object taintNilOrSymbol(DynamicObject object) {
+    @Specialization
+    protected Object taintNil(Nil object) {
         return object;
     }
 
-    @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
-    protected Object taint(
-            DynamicObject object,
+    @Specialization(guards = "isRubySymbol(object)")
+    protected Object taintSymbol(DynamicObject object) {
+        return object;
+    }
+
+    @Specialization(guards = "!isRubySymbol(object)")
+    protected Object taint(DynamicObject object,
             @Cached WriteObjectFieldNode writeTaintNode,
             @Cached BranchProfile errorProfile) {
 

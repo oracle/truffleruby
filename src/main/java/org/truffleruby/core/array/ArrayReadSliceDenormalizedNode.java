@@ -21,10 +21,10 @@ public abstract class ArrayReadSliceDenormalizedNode extends RubyContextNode {
 
     @Child private ArrayReadSliceNormalizedNode readNode = ArrayReadSliceNormalizedNodeGen.create();
 
-    public abstract DynamicObject executeReadSlice(DynamicObject array, int index, int length);
+    public abstract Object executeReadSlice(DynamicObject array, int index, int length);
 
     @Specialization
-    protected DynamicObject read(DynamicObject array, int index, int length,
+    protected Object read(DynamicObject array, int index, int length,
             @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
         final int normalizedIndex = ArrayOperations
                 .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);

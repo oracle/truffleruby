@@ -34,7 +34,7 @@ public class IfNode extends RubyContextSourceNode {
         if (conditionProfile.profile(condition.executeBoolean(frame))) {
             return thenBody.execute(frame);
         } else {
-            return nil();
+            return nil;
         }
     }
 

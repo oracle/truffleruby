@@ -18,6 +18,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
@@ -28,7 +29,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -82,13 +82,13 @@ public abstract class WrapNode extends RubyBaseNode {
                         this));
     }
 
-    @Specialization(guards = "isNil(context, value)")
-    protected ValueWrapper wrapNil(DynamicObject value,
+    @Specialization
+    protected ValueWrapper wrapNil(Nil value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getValueWrapperManager().nilWrapper;
     }
 
-    @Specialization(guards = { "isRubyBasicObject(value)", "!isNil(context, value)" })
+    @Specialization(guards = "isRubyBasicObject(value)")
     protected ValueWrapper wrapValue(DynamicObject value,
             @Cached ReadObjectFieldNode readWrapperNode,
             @Cached WriteObjectFieldNode writeWrapperNode,
@@ -111,8 +111,8 @@ public abstract class WrapNode extends RubyBaseNode {
         return wrapper;
     }
 
-    @Specialization(guards = "!isRubyBasicObject(value)")
-    protected ValueWrapper wrapNonRubyObject(TruffleObject value,
+    @Specialization(guards = "isForeignObject(value)")
+    protected ValueWrapper wrapNonRubyObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
                 context,

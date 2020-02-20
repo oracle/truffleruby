@@ -20,6 +20,7 @@ import org.truffleruby.core.format.convert.ToStringNodeGen;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.format.write.bytes.WriteByteNodeGen;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -74,7 +75,7 @@ public abstract class FormatCharacterNode extends FormatNode {
         }
 
         final String charString;
-        if (toStrResult == null || isNil(toStrResult)) {
+        if (toStrResult == null || RubyGuards.isNil(toStrResult)) {
             if (toIntegerNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntegerNode = insert(ToIntegerNodeGen.create(null));

@@ -28,8 +28,8 @@ public abstract class ToStringObjectNode extends FormatNode {
     public abstract Object executeToStringObject(VirtualFrame frame, Object object);
 
     @Specialization(guards = "isNil(nil)")
-    protected DynamicObject toStringString(DynamicObject nil) {
-        return nil();
+    protected Object toStringString(Object nil) {
+        return nil;
     }
 
     @Specialization(guards = "isRubyString(string)")

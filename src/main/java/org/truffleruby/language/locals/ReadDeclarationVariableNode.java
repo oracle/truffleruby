@@ -56,10 +56,10 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
                 return coreStrings().LOCAL_VARIABLE.createInstance();
 
             case FRAME_LOCAL_GLOBAL:
-                if (readFrameSlot(frame) != nil()) {
+                if (readFrameSlot(frame) != nil) {
                     return coreStrings().GLOBAL_VARIABLE.createInstance();
                 } else {
-                    return nil();
+                    return nil;
                 }
 
             default:

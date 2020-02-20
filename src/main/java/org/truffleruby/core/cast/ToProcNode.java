@@ -28,8 +28,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public abstract class ToProcNode extends RubyContextSourceNode {
 
     @Specialization(guards = "isNil(nil)")
-    protected DynamicObject doNil(Object nil) {
-        return nil();
+    protected Object doNil(Object nil) {
+        return nil;
     }
 
     @Specialization(guards = "isRubyProc(proc)")

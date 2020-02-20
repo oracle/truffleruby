@@ -213,7 +213,7 @@ public abstract class BasicObjectNodes {
             return ObjectIDOperations.floatToID(getContext(), value);
         }
 
-        @Specialization(guards = "!isNil(object)")
+        @Specialization
         protected long objectID(DynamicObject object,
                 @Cached ReadObjectFieldNode readObjectIdNode,
                 @Cached WriteObjectFieldNode writeObjectIdNode) {
@@ -243,8 +243,8 @@ public abstract class BasicObjectNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize() {
-            return nil();
+        protected Object initialize() {
+            return nil;
         }
 
     }

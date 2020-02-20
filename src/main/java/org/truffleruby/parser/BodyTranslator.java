@@ -62,6 +62,7 @@ import org.truffleruby.core.string.InterpolatedStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -713,7 +714,7 @@ public class BodyTranslator extends Translator {
             }
 
             if (blockTranslated instanceof ObjectLiteralNode &&
-                    ((ObjectLiteralNode) blockTranslated).getObject() == context.getCoreLibrary().nil) {
+                    ((ObjectLiteralNode) blockTranslated).getObject() == Nil.INSTANCE) {
                 blockTranslated = null;
             }
         } else {
@@ -851,7 +852,7 @@ public class BodyTranslator extends Translator {
                     name,
                     0,
                     null,
-                    TranslatorEnvironment.newFrameDescriptor(context));
+                    TranslatorEnvironment.newFrameDescriptor());
 
             final BodyTranslator moduleTranslator = new BodyTranslator(
                     context,
@@ -1261,7 +1262,7 @@ public class BodyTranslator extends Translator {
                 methodName,
                 0,
                 null,
-                TranslatorEnvironment.newFrameDescriptor(context));
+                TranslatorEnvironment.newFrameDescriptor());
 
         // ownScopeForAssignments is the same for the defined method as the current one.
 
@@ -1752,7 +1753,7 @@ public class BodyTranslator extends Translator {
                 environment.getNamedMethodName(),
                 blockDepth,
                 parseEnvironment.allocateBreakID(),
-                TranslatorEnvironment.newFrameDescriptor(context));
+                TranslatorEnvironment.newFrameDescriptor());
         final MethodTranslator methodCompiler = new MethodTranslator(
                 context,
                 this,

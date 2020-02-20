@@ -109,7 +109,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
         final int replacementSize = getSize(replacement);
 
         if (recursiveProfile.profile(array == replacement)) {
-            replacement = readSlice(array, 0, arraySize); // Make a copy
+            replacement = (DynamicObject) readSlice(array, 0, arraySize); // Make a copy
         }
 
         if (moveElementsProfile.profile(start + length <= arraySize)) {
@@ -164,7 +164,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
                 // We need to append nil from index arraySize to index (start - 1).
                 // a = [1,2,3]; a [5,1] = [] # => a == [1,2,3,nil,nil]
                 if (growProfile.profile(start > arraySize)) {
-                    write(array, newSize - 1, nil());
+                    write(array, newSize - 1, nil);
                 }
             } else {
                 // Write last element first to grow only once
@@ -270,7 +270,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
         return writeNode.executeWrite(array, index, value);
     }
 
-    private DynamicObject readSlice(DynamicObject array, int start, int length) {
+    private Object readSlice(DynamicObject array, int start, int length) {
         if (readSliceNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             readSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());

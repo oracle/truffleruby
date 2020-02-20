@@ -48,9 +48,9 @@ public abstract class ArrayReadNormalizedNode extends RubyContextSourceNode {
     @Specialization(
             guards = { "strategy.matches(array)", "!isInBounds(array, index, strategy)" },
             limit = "STORAGE_STRATEGIES")
-    protected DynamicObject readOutOfBounds(DynamicObject array, int index,
+    protected Object readOutOfBounds(DynamicObject array, int index,
             @Cached("of(array)") ArrayStrategy strategy) {
-        return nil();
+        return nil;
     }
 
     // Guards

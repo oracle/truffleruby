@@ -46,28 +46,28 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
     protected abstract RubyNode getChild();
 
     @Specialization
-    protected DynamicObject cast(boolean value) {
-        return nil();
+    protected Object cast(boolean value) {
+        return nil;
     }
 
     @Specialization
-    protected DynamicObject cast(int value) {
-        return nil();
+    protected Object cast(int value) {
+        return nil;
     }
 
     @Specialization
-    protected DynamicObject cast(long value) {
-        return nil();
+    protected Object cast(long value) {
+        return nil;
     }
 
     @Specialization
-    protected DynamicObject cast(double value) {
-        return nil();
+    protected Object cast(double value) {
+        return nil;
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    protected DynamicObject castBignum(DynamicObject value) {
-        return nil();
+    protected Object castBignum(DynamicObject value) {
+        return nil;
     }
 
     @Specialization(guards = "isRubyArray(array)")
@@ -82,7 +82,7 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
                 return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
 
             case ARRAY_WITH_NIL:
-                return createArray(new Object[]{ nil() }, 1);
+                return createArray(new Object[]{ nil }, 1);
 
             case NIL:
                 return nil;
@@ -94,17 +94,17 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
         }
     }
 
-    @Specialization(guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubyArray(object)" })
-    protected Object cast(VirtualFrame frame, DynamicObject object,
+    @Specialization(guards = { "!isRubyBignum(object)", "!isRubyArray(object)" })
+    protected Object cast(DynamicObject object,
             @Cached BranchProfile errorProfile) {
         final Object result = toArrayNode.call(object, "to_ary");
 
-        if (result == nil()) {
-            return nil();
+        if (result == nil) {
+            return nil;
         }
 
         if (result == DispatchNode.MISSING) {
-            return nil();
+            return nil;
         }
 
         if (!RubyGuards.isRubyArray(result)) {

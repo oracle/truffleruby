@@ -16,6 +16,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -848,6 +849,8 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = "<=>", required = 1)
     public abstract static class CompareNode extends BigDecimalOpNode {
 
+        @Child private CallDispatchHeadNode redoCompare;
+
         @TruffleBoundary
         private int compareBigDecimal(DynamicObject a, BigDecimal b) {
             return Layouts.BIG_DECIMAL.getValue(a).compareTo(b);
@@ -866,7 +869,7 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = { "isNormal(a)", "!isFinite(b)" })
         protected Object compareNotFinite(DynamicObject a, double b) {
             if (Double.isNaN(b)) {
-                return nil();
+                return nil;
             } else {
                 assert Double.isInfinite(b);
                 return b < 0 ? +1 : -1;
@@ -898,7 +901,7 @@ public abstract class BigDecimalNodes {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(a);
 
             if (type == BigDecimalType.NAN || Double.isNaN(b)) {
-                return nil();
+                return nil;
             } else {
                 return b < 0 ? +1 : -1;
             }
@@ -911,7 +914,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "!isNormal(a)", "isNan(a)" })
         protected Object compareSpecialNan(DynamicObject a, DynamicObject b) {
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
@@ -921,7 +924,7 @@ public abstract class BigDecimalNodes {
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
             if (aType == BigDecimalType.NAN || bType == BigDecimalType.NAN) {
-                return nil();
+                return nil;
             }
             if (aType == bType) {
                 return 0;
@@ -953,8 +956,20 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
-        protected Object compareCoerced(DynamicObject a, DynamicObject b,
-                @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
+        protected Object compareCoerced(DynamicObject a, DynamicObject b) {
+            return redoCompare(a, b);
+        }
+
+        @Fallback
+        protected Object compareCoercedFallback(Object a, Object b) {
+            return redoCompare(a, b);
+        }
+
+        private Object redoCompare(Object a, Object b) {
+            if (redoCompare == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                redoCompare = insert(CallDispatchHeadNode.createPrivate());
+            }
             return redoCompare.call(a, "redo_compare_no_error", b);
         }
 
@@ -1232,7 +1247,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "isNormal(value)")
         protected Object infiniteNormal(DynamicObject value) {
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "!isNormal(value)")
@@ -1243,7 +1258,7 @@ public abstract class BigDecimalNodes {
                 case NEGATIVE_INFINITY:
                     return -1;
                 default:
-                    return nil();
+                    return nil;
             }
         }
 

@@ -93,7 +93,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
         final int newSize = index + 1;
         final Object[] objectStore = generalizeNode.executeGeneralize(array, newSize);
         for (int n = strategy.getSize(array); n < index; n++) {
-            objectStore[n] = nil();
+            objectStore[n] = nil;
         }
         propagateSharingNode.executePropagate(array, value);
         objectStore[index] = value;
@@ -116,7 +116,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
         final Object store = Layouts.ARRAY.getStore(array);
         for (int n = strategy.getSize(array); n < index; n++) {
-            setNode.execute(store, n, nil());
+            setNode.execute(store, n, nil);
         }
         propagateSharingNode.executePropagate(array, value);
         setNode.execute(store, index, value);

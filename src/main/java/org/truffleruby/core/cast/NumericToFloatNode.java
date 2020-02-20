@@ -18,7 +18,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -28,7 +27,7 @@ public abstract class NumericToFloatNode extends RubyContextNode {
     @Child private IsANode isANode = IsANode.create();
     @Child private CallDispatchHeadNode toFloatCallNode;
 
-    public abstract double executeDouble(VirtualFrame frame, DynamicObject value);
+    public abstract double executeDouble(DynamicObject value);
 
     private Object callToFloat(DynamicObject value) {
         if (toFloatCallNode == null) {
@@ -38,8 +37,8 @@ public abstract class NumericToFloatNode extends RubyContextNode {
         return toFloatCallNode.call(value, "to_f");
     }
 
-    @Specialization(guards = "isNumeric(frame, value)")
-    protected double castNumeric(VirtualFrame frame, DynamicObject value,
+    @Specialization(guards = "isNumeric(value)")
+    protected double castNumeric(DynamicObject value,
             @Cached BranchProfile errorProfile) {
         final Object result = callToFloat(value);
 
@@ -58,7 +57,7 @@ public abstract class NumericToFloatNode extends RubyContextNode {
         throw new RaiseException(getContext(), coreExceptions().typeErrorCantConvertInto(value, "Float", this));
     }
 
-    protected boolean isNumeric(VirtualFrame frame, Object value) {
+    protected boolean isNumeric(Object value) {
         return isANode.executeIsA(value, coreLibrary().numericClass);
     }
 

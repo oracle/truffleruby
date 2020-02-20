@@ -51,7 +51,7 @@ public class ReadConstantWithDynamicScopeNode extends RubyContextSourceNode {
         } catch (RaiseException e) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().nameErrorClass) {
                 // private constant
-                return nil();
+                return nil;
             }
             throw e;
         }
@@ -59,7 +59,7 @@ public class ReadConstantWithDynamicScopeNode extends RubyContextSourceNode {
         if (ModuleOperations.isConstantDefined(constant)) {
             return coreStrings().CONSTANT.createInstance();
         } else {
-            return nil();
+            return nil;
         }
     }
 

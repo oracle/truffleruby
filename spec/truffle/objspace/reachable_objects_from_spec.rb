@@ -14,10 +14,6 @@ describe "ObjectSpace.reachable_objects_from" do
 
   # This is a standard method, but our implementation returns more objects so we add extra specs here
 
-  it "returns [NilClass] for nil" do
-    ObjectSpace.reachable_objects_from(nil).should == [NilClass]
-  end
-
   it "finds the superclass and included/prepended modules of a class" do
     superclass = Class.new
     klass = Class.new(superclass)

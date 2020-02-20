@@ -100,7 +100,7 @@ public abstract class TruffleSystemNodes {
     public abstract static class JavaGetEnv extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(name)")
-        protected DynamicObject javaGetEnv(DynamicObject name,
+        protected Object javaGetEnv(DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
@@ -108,7 +108,7 @@ public abstract class TruffleSystemNodes {
             final String value = getEnv(javaName);
 
             if (nullValueProfile.profile(value == null)) {
-                return nil();
+                return nil;
             } else {
                 return fromJavaStringNode.executeFromJavaString(value);
             }
@@ -126,13 +126,14 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(dir)")
-        protected DynamicObject setTruffleWorkingDir(DynamicObject dir) {
+        protected Object setTruffleWorkingDir(DynamicObject dir) {
             TruffleFile truffleFile = getContext().getEnv().getPublicTruffleFile(StringOperations.getString(dir));
             final TruffleFile canonicalFile;
             try {
                 canonicalFile = truffleFile.getCanonicalFile();
             } catch (NoSuchFileException e) {
-                return nil(); // Let the following chdir() fail
+                // Let the following chdir() fail
+                return nil;
             } catch (IOException e) {
                 throw new JavaException(e);
             }
@@ -148,10 +149,10 @@ public abstract class TruffleSystemNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization(guards = "isRubyString(property)")
-        protected DynamicObject getJavaProperty(DynamicObject property) {
+        protected Object getJavaProperty(DynamicObject property) {
             String value = System.getProperty(StringOperations.getString(property));
             if (value == null) {
-                return nil();
+                return nil;
             } else {
                 return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             }
@@ -203,13 +204,13 @@ public abstract class TruffleSystemNodes {
                 @Cached("level") DynamicObject cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, StringOperations.getString(message));
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)" }, replaces = "logCached")
         protected Object log(DynamicObject level, DynamicObject message) {
             log(getLevel(level), StringOperations.getString(message));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary

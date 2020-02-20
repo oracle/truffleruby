@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -45,14 +46,18 @@ public abstract class IsTaintedNode extends RubyContextNode {
         return false;
     }
 
-    @Specialization(guards = "isRubySymbol(object) || isNil(object)")
-    protected boolean isTaintedNilOrSymbol(DynamicObject object) {
+    @Specialization
+    protected boolean isTainted(Nil object) {
         return false;
     }
 
-    @Specialization(guards = { "!isRubySymbol(object)", "!isNil(object)" })
-    protected boolean isTainted(
-            DynamicObject object,
+    @Specialization(guards = "isRubySymbol(object)")
+    protected boolean isTaintedSymbol(DynamicObject object) {
+        return false;
+    }
+
+    @Specialization(guards = "!isRubySymbol(object)")
+    protected boolean isTainted(DynamicObject object,
             @Cached ReadObjectFieldNode readTaintedNode) {
         return (boolean) readTaintedNode.execute(object, Layouts.TAINTED_IDENTIFIER, false);
     }

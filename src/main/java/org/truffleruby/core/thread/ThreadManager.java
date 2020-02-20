@@ -28,6 +28,7 @@ import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
@@ -165,13 +166,14 @@ public class ThreadManager {
     }
 
     public DynamicObject createBootThread(String info) {
-        final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(packThreadFields(nil(), info));
+        final DynamicObject thread = context.getCoreLibrary().threadFactory
+                .newInstance(packThreadFields(Nil.INSTANCE, info));
         setFiberManager(thread);
         return thread;
     }
 
     public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode) {
-        final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
+        final Object currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
         assert currentGroup != null;
         final DynamicObject thread = allocateObjectNode.allocate(
                 rubyClass,
@@ -181,7 +183,7 @@ public class ThreadManager {
     }
 
     public DynamicObject createForeignThread() {
-        final DynamicObject currentGroup = Layouts.THREAD.getThreadGroup(rootThread);
+        final Object currentGroup = Layouts.THREAD.getThreadGroup(rootThread);
         assert currentGroup != null;
         final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(
                 packThreadFields(currentGroup, "<foreign thread>"));
@@ -194,7 +196,7 @@ public class ThreadManager {
         Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread));
     }
 
-    private Object[] packThreadFields(DynamicObject currentGroup, String info) {
+    private Object[] packThreadFields(Object currentGroup, String info) {
         return Layouts.THREAD.build(
                 createThreadLocals(),
                 InterruptMode.IMMEDIATE,
@@ -211,7 +213,7 @@ public class ThreadManager {
                 Pointer.NULL,
                 currentGroup,
                 info,
-                nil());
+                Nil.INSTANCE);
     }
 
     private boolean getGlobalAbortOnException() {
@@ -220,7 +222,7 @@ public class ThreadManager {
     }
 
     private ThreadLocalGlobals createThreadLocals() {
-        return new ThreadLocalGlobals(nil(), nil());
+        return new ThreadLocalGlobals(Nil.INSTANCE, Nil.INSTANCE);
     }
 
     private void setupSignalHandler(TruffleNFIPlatform nfi, NativeConfiguration config) {
@@ -277,10 +279,10 @@ public class ThreadManager {
             setThreadValue(context, thread, result);
             // Handlers in the same order as in FiberManager
         } catch (KillException e) {
-            setThreadValue(context, thread, nil());
+            setThreadValue(context, thread, Nil.INSTANCE);
         } catch (ExitException e) {
             rethrowOnMainThread(currentNode, e);
-            setThreadValue(context, thread, nil());
+            setThreadValue(context, thread, Nil.INSTANCE);
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
         } catch (DynamicReturnException e) {
@@ -701,10 +703,6 @@ public class ThreadManager {
         } else {
             return builder.toString();
         }
-    }
-
-    private DynamicObject nil() {
-        return context.getCoreLibrary().nil;
     }
 
 }

@@ -72,19 +72,19 @@ public abstract class ProcNodes {
                 Object block);
 
         @Specialization
-        protected DynamicObject proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
-                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
+        protected Object proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
+                @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode,
                 @Cached ReadCallerFrameNode readCaller) {
             final MaterializedFrame parentFrame = readCaller.execute(frame);
 
-            DynamicObject parentBlock = (DynamicObject) readNode
+            Object parentBlock = readNode
                     .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
-            if (parentBlock == nil()) {
+            if (parentBlock == nil) {
                 parentBlock = tryParentBlockForCExts();
             }
 
-            if (parentBlock == nil()) {
+            if (parentBlock == nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorProcWithoutBlock(this));
             }
 
@@ -97,12 +97,12 @@ public abstract class ProcNodes {
         }
 
         @TruffleBoundary
-        protected DynamicObject tryParentBlockForCExts() {
+        protected Object tryParentBlockForCExts() {
             /* TODO CS 11-Mar-17 to pass the remaining cext proc specs we need to determine here if Proc.new has been
              * called from a cext from rb_funcall, and then reach down the stack to the Ruby method that originally went
              * into C and get the block from there. */
 
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "procClass == getProcClass()", "block.getShape() == getProcShape()" })
@@ -284,7 +284,7 @@ public abstract class ProcNodes {
 
             if (!sourceSection.isAvailable() ||
                     sourceSection.getSource().getName().endsWith("/lib/truffle/truffle/cext.rb")) {
-                return nil();
+                return nil;
             } else {
                 final DynamicObject file = makeStringNode.executeMake(
                         getContext().getPath(sourceSection.getSource()),
@@ -302,11 +302,11 @@ public abstract class ProcNodes {
     public abstract static class ProcSymbolToProcSymbolNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject symbolToProcSymbol(DynamicObject proc) {
+        protected Object symbolToProcSymbol(DynamicObject proc) {
             if (Layouts.PROC.getSharedMethodInfo(proc).getArity() == SymbolNodes.ToProcNode.ARITY) {
                 return getSymbol(Layouts.PROC.getSharedMethodInfo(proc).getName());
             } else {
-                return nil();
+                return nil;
             }
         }
 
@@ -330,7 +330,7 @@ public abstract class ProcNodes {
             int userArgumentCount = RubyArguments.getArgumentsCount(frame);
 
             if (emptyArgsProfile.profile(userArgumentCount == 0)) {
-                return nil();
+                return nil;
             } else {
                 if (singleArgProfile.profile(userArgumentCount == 1)) {
                     return RubyArguments.getArgument(frame, 0);

@@ -15,16 +15,15 @@ import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.Nil;
 
 public class ThreadAndFrameLocalStorage {
 
-    private final RubyContext context;
     private final WeakReference<Thread> originalThread;
     private Object originalThreadValue;
     private volatile ThreadLocal<Object> otherThreadValues = null;
 
     public ThreadAndFrameLocalStorage(RubyContext context) {
-        this.context = context;
         // Cannot store a Thread instance while pre-initializing
         originalThread = new WeakReference<>(context.isPreInitializing() ? null : Thread.currentThread());
         originalThreadValue = initialValue();
@@ -72,7 +71,7 @@ public class ThreadAndFrameLocalStorage {
     }
 
     protected Object initialValue() {
-        return context.getCoreLibrary().nil;
+        return Nil.INSTANCE;
     }
 
 }

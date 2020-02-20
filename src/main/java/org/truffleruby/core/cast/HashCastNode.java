@@ -33,47 +33,47 @@ public abstract class HashCastNode extends RubyContextSourceNode {
     protected abstract RubyNode getChild();
 
     @Specialization
-    protected DynamicObject cast(boolean value) {
-        return nil();
+    protected Object cast(boolean value) {
+        return nil;
     }
 
     @Specialization
-    protected DynamicObject cast(int value) {
-        return nil();
+    protected Object cast(int value) {
+        return nil;
     }
 
     @Specialization
-    protected DynamicObject cast(long value) {
-        return nil();
+    protected Object cast(long value) {
+        return nil;
     }
 
     @Specialization
-    protected DynamicObject cast(double value) {
-        return nil();
+    protected Object cast(double value) {
+        return nil;
     }
 
     @Specialization(guards = "isNil(nil)")
-    protected DynamicObject castNil(DynamicObject nil) {
-        return nil();
+    protected Object castNil(Object nil) {
+        return nil;
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    protected DynamicObject castBignum(DynamicObject value) {
-        return nil();
+    protected Object castBignum(DynamicObject value) {
+        return nil;
     }
 
     @Specialization(guards = "isRubyHash(hash)")
-    protected DynamicObject castHash(DynamicObject hash) {
+    protected Object castHash(DynamicObject hash) {
         return hash;
     }
 
-    @Specialization(guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubyHash(object)" })
-    protected Object cast(VirtualFrame frame, DynamicObject object,
+    @Specialization(guards = { "!isRubyBignum(object)", "!isRubyHash(object)" })
+    protected Object cast(DynamicObject object,
             @Cached BranchProfile errorProfile) {
         final Object result = toHashNode.call(object, "to_hash");
 
         if (result == DispatchNode.MISSING) {
-            return nil();
+            return nil;
         }
 
         if (!RubyGuards.isRubyHash(result)) {

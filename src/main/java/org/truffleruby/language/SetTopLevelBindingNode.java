@@ -24,14 +24,14 @@ public class SetTopLevelBindingNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final MaterializedFrame mainScriptFrame = frame.materialize();
         updateTopLevelBindingFrame(mainScriptFrame);
-        return nil();
+        return nil;
     }
 
     @TruffleBoundary
     private void updateTopLevelBindingFrame(MaterializedFrame mainScriptFrame) {
         final ModuleFields fields = Layouts.MODULE.getFields(coreLibrary().objectClass);
         final DynamicObject toplevelBinding = (DynamicObject) fields.getConstant("TOPLEVEL_BINDING").getValue();
-        BindingNodes.insertAncestorFrame(getContext(), toplevelBinding, mainScriptFrame);
+        BindingNodes.insertAncestorFrame(toplevelBinding, mainScriptFrame);
     }
 
 }

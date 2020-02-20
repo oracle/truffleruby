@@ -68,7 +68,7 @@ public class TaintResultNode extends RubyContextSourceNode {
             return e.getResult();
         }
 
-        if (result != nil()) {
+        if (result != nil) {
             if (taintFromSelf) {
                 maybeTaint(RubyArguments.getSelf(frame), result);
             }

@@ -48,6 +48,7 @@ import org.truffleruby.core.format.write.bytes.WriteHexStringNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteMIMEStringNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteUTF8CharacterNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteUUStringNodeGen;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.nodes.Node;
@@ -156,7 +157,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         false,
                         "to_str",
                         false,
-                        context.getCoreLibrary().nil,
+                        Nil.INSTANCE,
                         new SourceNode())));
     }
 
@@ -182,7 +183,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_s",
                         true,
-                        context.getCoreLibrary().nil,
+                        Nil.INSTANCE,
                         new SourceNode())));
     }
 
@@ -199,7 +200,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         false,
                         "to_str",
                         false,
-                        context.getCoreLibrary().nil,
+                        Nil.INSTANCE,
                         new SourceNode())));
     }
 
@@ -383,7 +384,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_str",
                         false,
-                        context.getCoreLibrary().nil,
+                        Nil.INSTANCE,
                         new SourceNode())));
 
     }
@@ -399,7 +400,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_str",
                         false,
-                        context.getCoreLibrary().nil,
+                        Nil.INSTANCE,
                         new SourceNode())));
     }
 
@@ -421,7 +422,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
                         true,
                         "to_str",
                         false,
-                        context.getCoreLibrary().nil,
+                        Nil.INSTANCE,
                         new SourceNode())));
 
     }

@@ -18,6 +18,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.language.CallStackManager;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -260,7 +261,7 @@ public class Backtrace {
      *
      * @param node the node at which we're requiring the backtrace. Can be null if the backtrace is associated with a
      *            ruby exception or if we are sure the activations have already been computed. */
-    public DynamicObject getBacktraceLocations(int length, Node node) {
+    public Object getBacktraceLocations(int length, Node node) {
 
         final RubyContext context = RubyLanguage.getCurrentContext();
 
@@ -281,7 +282,7 @@ public class Backtrace {
         // Omitting more locations than available should return nil.
         if (stackTraceLength == 0) {
             return omitted > totalUnderlyingElements
-                    ? context.getCoreLibrary().nil
+                    ? Nil.INSTANCE
                     : ArrayHelpers.createEmptyArray(context);
         }
 

@@ -226,17 +226,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     public interface WithContext {
         RubyContext getContext();
 
-        // Guards which use the context and so can't be static
-
-        default boolean isNil(Object value) {
-            return value == nil();
-        }
-
         // Helpers methods for terseness, keep in sync
-
-        default DynamicObject nil() {
-            return coreLibrary().nil;
-        }
 
         default DynamicObject getSymbol(String name) {
             return getContext().getSymbolTable().getSymbol(name);

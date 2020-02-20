@@ -49,7 +49,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.SlowPathException;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -900,11 +899,11 @@ public abstract class RopeNodes {
 
     public abstract static class DebugPrintRopeNode extends RubyContextNode {
 
-        public abstract DynamicObject executeDebugPrint(Rope rope, int currentLevel, boolean printString);
+        public abstract Object executeDebugPrint(Rope rope, int currentLevel, boolean printString);
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject debugPrintLeafRope(LeafRope rope, int currentLevel, boolean printString) {
+        protected Object debugPrintLeafRope(LeafRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -921,12 +920,12 @@ public abstract class RopeNodes {
                     rope.depth(),
                     rope.getEncoding()));
 
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject debugPrintSubstringRope(SubstringRope rope, int currentLevel, boolean printString) {
+        protected Object debugPrintSubstringRope(SubstringRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -946,12 +945,12 @@ public abstract class RopeNodes {
 
             executeDebugPrint(rope.getChild(), currentLevel + 1, printString);
 
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject debugPrintConcatRope(ConcatRope rope, int currentLevel, boolean printString) {
+        protected Object debugPrintConcatRope(ConcatRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -974,12 +973,12 @@ public abstract class RopeNodes {
             executeDebugPrint(rope.getLeft(), currentLevel + 1, printString);
             executeDebugPrint(rope.getRight(), currentLevel + 1, printString);
 
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject debugPrintRepeatingRope(RepeatingRope rope, int currentLevel, boolean printString) {
+        protected Object debugPrintRepeatingRope(RepeatingRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -999,12 +998,12 @@ public abstract class RopeNodes {
 
             executeDebugPrint(rope.getChild(), currentLevel + 1, printString);
 
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject debugPrintLazyInt(LazyIntRope rope, int currentLevel, boolean printString) {
+        protected Object debugPrintLazyInt(LazyIntRope rope, int currentLevel, boolean printString) {
             printPreamble(currentLevel);
 
             // Converting a rope to a java.lang.String may populate the byte[], so we need to query for the array status beforehand.
@@ -1022,7 +1021,7 @@ public abstract class RopeNodes {
                     rope.depth(),
                     rope.getEncoding()));
 
-            return nil();
+            return nil;
         }
 
         private void printPreamble(int level) {

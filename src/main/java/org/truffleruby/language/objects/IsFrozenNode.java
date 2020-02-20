@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -43,6 +44,11 @@ public abstract class IsFrozenNode extends RubyBaseNode {
 
     @Specialization
     protected boolean isFrozen(double object) {
+        return true;
+    }
+
+    @Specialization
+    protected boolean isFrozen(Nil object) {
         return true;
     }
 

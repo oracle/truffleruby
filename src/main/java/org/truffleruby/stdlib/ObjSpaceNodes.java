@@ -32,7 +32,7 @@ public abstract class ObjSpaceNodes {
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNil(object)")
-        protected int memsizeOfNil(DynamicObject object) {
+        protected int memsizeOfNil(Object object) {
             return 0;
         }
 
@@ -59,7 +59,6 @@ public abstract class ObjSpaceNodes {
 
         @Specialization(
                 guards = {
-                        "!isNil(object)",
                         "!isRubyArray(object)",
                         "!isRubyHash(object)",
                         "!isRubyString(object)",
@@ -85,8 +84,8 @@ public abstract class ObjSpaceNodes {
         }
 
         @Fallback
-        protected DynamicObject adjacentObjectsPrimitive(Object object) {
-            return nil();
+        protected Object adjacentObjectsPrimitive(Object object) {
+            return nil;
         }
 
     }
@@ -108,9 +107,9 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject traceAllocationsStart() {
+        protected Object traceAllocationsStart() {
             getContext().getObjectSpaceManager().traceAllocationsStart(getContext().getLanguage());
-            return nil();
+            return nil;
         }
 
     }
@@ -120,9 +119,9 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject traceAllocationsStop() {
+        protected Object traceAllocationsStop() {
             getContext().getObjectSpaceManager().traceAllocationsStop(getContext().getLanguage());
-            return nil();
+            return nil;
         }
 
     }

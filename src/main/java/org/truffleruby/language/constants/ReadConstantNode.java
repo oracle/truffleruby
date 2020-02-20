@@ -68,8 +68,8 @@ public class ReadConstantNode extends RubyContextSourceNode {
         // TODO (eregon, 17 May 2016): We execute moduleNode twice here but we both want to make sure the LHS is defined and get the result value.
         // Possible solution: have a isDefinedAndReturnValue()?
         final Object isModuleDefined = moduleNode.isDefined(frame, context);
-        if (isModuleDefined == nil()) {
-            return nil();
+        if (isModuleDefined == nil) {
+            return nil;
         }
 
         final Object moduleObject;
@@ -78,7 +78,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
         } catch (RaiseException e) {
             // If reading the module raised an exception, it must have been an autoloaded module that failed while
             // loading. MRI dictates that in this case we should swallow the exception and return `nil`.
-            return nil();
+            return nil;
         }
 
         final DynamicObject module = checkModuleNode.executeCheckModule(moduleObject);
@@ -88,7 +88,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
         } catch (RaiseException e) {
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().nameErrorClass) {
                 // private constant
-                return nil();
+                return nil;
             }
             throw e;
         }
@@ -96,7 +96,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
         if (ModuleOperations.isConstantDefined(constant)) {
             return coreStrings().CONSTANT.createInstance();
         } else {
-            return nil();
+            return nil;
         }
     }
 

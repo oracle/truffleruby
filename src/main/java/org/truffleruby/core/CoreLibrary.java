@@ -39,6 +39,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
@@ -197,7 +198,6 @@ public class CoreLibrary {
 
     public final DynamicObject argv;
     public final DynamicObject mainObject;
-    public final DynamicObject nil;
 
     public final GlobalVariables globalVariables;
 
@@ -446,8 +446,6 @@ public class CoreLibrary {
         final DynamicObject mutexClass = defineClass("Mutex");
         Layouts.CLASS.setInstanceFactoryUnsafe(mutexClass, Layouts.MUTEX.createMutexShape(mutexClass, mutexClass));
         nilClass = defineClass("NilClass");
-        DynamicObjectFactory nilFactory = alwaysShared(alwaysFrozen(Layouts.NIL.createNilShape(nilClass, nilClass)));
-        Layouts.CLASS.setInstanceFactoryUnsafe(nilClass, nilFactory);
         procClass = defineClass("Proc");
         procFactory = Layouts.PROC.createProcShape(procClass, procClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(procClass, procFactory);
@@ -602,15 +600,14 @@ public class CoreLibrary {
         // Create some key objects
 
         mainObject = objectFactory.newInstance();
-        nil = nilFactory.newInstance();
-        emptyDescriptor = new FrameDescriptor(nil);
+        emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
         argv = Layouts.ARRAY.createArray(arrayFactory, ArrayStrategy.NULL_ARRAY_STORE, 0);
 
-        globalVariables = new GlobalVariables(nil);
+        globalVariables = new GlobalVariables(Nil.INSTANCE);
 
         // No need for new version since it's null before which is not cached
         assert Layouts.CLASS.getSuperclass(basicObjectClass) == null;
-        Layouts.CLASS.setSuperclass(basicObjectClass, nil);
+        Layouts.CLASS.setSuperclass(basicObjectClass, Nil.INSTANCE);
 
         patchFiles = initializePatching(context);
     }
@@ -691,7 +688,7 @@ public class CoreLibrary {
     private Object verbosityOption() {
         switch (context.getOptions().VERBOSITY) {
             case NIL:
-                return nil;
+                return Nil.INSTANCE;
             case FALSE:
                 return false;
             case TRUE:
@@ -913,6 +910,8 @@ public class CoreLibrary {
     public DynamicObject getLogicalClass(Object object) {
         if (RubyGuards.isRubyBasicObject(object)) {
             return Layouts.BASIC_OBJECT.getLogicalClass((DynamicObject) object);
+        } else if (object instanceof Nil) {
+            return nilClass;
         } else if (object instanceof Boolean) {
             if ((boolean) object) {
                 return trueClass;
@@ -937,7 +936,7 @@ public class CoreLibrary {
     }
 
     /** Convert a value to a {@code Float}, without doing any lookup. */
-    public static double toDouble(Object value, DynamicObject nil) {
+    public static double toDouble(Object value, Object nil) {
         assert value != null;
 
         if (value == nil) {
@@ -998,7 +997,7 @@ public class CoreLibrary {
 
     /** true if $VERBOSE is true or false, but not nil */
     public boolean warningsEnabled() {
-        return verbosity() != nil;
+        return verbosity() != Nil.INSTANCE;
     }
 
     /** true only if $VERBOSE is true */

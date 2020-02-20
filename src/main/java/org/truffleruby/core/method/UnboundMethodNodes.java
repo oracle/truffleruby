@@ -179,7 +179,7 @@ public abstract class UnboundMethodNodes {
                     .getSourceSection();
 
             if (!sourceSection.isAvailable()) {
-                return nil();
+                return nil;
             } else {
                 DynamicObject file = makeStringNode.executeMake(
                         getContext().getPath(sourceSection.getSource()),
@@ -196,12 +196,12 @@ public abstract class UnboundMethodNodes {
     public abstract static class SuperMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject superMethod(DynamicObject unboundMethod) {
+        protected Object superMethod(DynamicObject unboundMethod) {
             InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(unboundMethod);
             DynamicObject origin = Layouts.UNBOUND_METHOD.getOrigin(unboundMethod);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
             if (!superMethod.isDefined()) {
-                return nil();
+                return nil;
             } else {
                 return Layouts.UNBOUND_METHOD.createUnboundMethod(
                         coreLibrary().unboundMethodFactory,
