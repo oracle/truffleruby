@@ -24,6 +24,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -632,7 +633,7 @@ public abstract class BigDecimalNodes {
             final BigDecimal aBigDecimal = Layouts.BIG_DECIMAL.getValue(a);
             final boolean positiveExponent = positiveExponentProfile.profile(exponent >= 0);
 
-            if (zeroProfile.profile(aBigDecimal.compareTo(BigDecimal.ZERO) == 0)) {
+            if (zeroProfile.profile(BigDecimalOps.compare(aBigDecimal, BigDecimal.ZERO) == 0)) {
                 final Object value;
 
                 if (positiveExponent) {
@@ -853,7 +854,7 @@ public abstract class BigDecimalNodes {
 
         @TruffleBoundary
         private int compareBigDecimal(DynamicObject a, BigDecimal b) {
-            return Layouts.BIG_DECIMAL.getValue(a).compareTo(b);
+            return BigDecimalOps.compare(Layouts.BIG_DECIMAL.getValue(a), b);
         }
 
         @Specialization(guards = "isNormal(a)")
@@ -917,7 +918,7 @@ public abstract class BigDecimalNodes {
             return nil;
         }
 
-        @TruffleBoundary
+        // TODO(norswap) review: was it right to remove TruffleBoundary here? seems like this could be easy to PE
         @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)", "isNormal(a) || !isNan(a)" })
         protected Object compareSpecial(DynamicObject a, DynamicObject b) {
             final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
@@ -952,7 +953,7 @@ public abstract class BigDecimalNodes {
                 bCompare = Layouts.BIG_DECIMAL.getValue(b);
             }
 
-            return aCompare.compareTo(bCompare);
+            return BigDecimalOps.compare(aCompare, bCompare);
         }
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
@@ -987,7 +988,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "isNormal(value)")
         protected boolean zeroNormal(DynamicObject value) {
-            return Layouts.BIG_DECIMAL.getValue(value).compareTo(BigDecimal.ZERO) == 0;
+            return BigDecimalOps.compare(Layouts.BIG_DECIMAL.getValue(value), BigDecimal.ZERO) == 0;
         }
 
         @Specialization(guards = "!isNormal(value)")
