@@ -369,9 +369,9 @@ describe "C-API Kernel function" do
       proc_caller { break :value }.should == :value
     end
 
-    it "does not raise an exception if the rescue is null" do
-      @s.rb_rescue(@std_error_proc, nil, nil, nil).class.should == StandardError
-    end 
+    it "returns nil if the 'rescue function' is null" do
+      @s.rb_rescue(@std_error_proc, nil, nil, nil).should == nil
+    end
   end
 
   describe "rb_rescue2" do
