@@ -362,6 +362,28 @@ module Truffle::CExt
     alias_method :to_s, :string
   end
 
+  class RStringEndPtr
+    def initialize(string)
+      @string = string
+      @address = 0
+    end
+
+
+    def polyglot_pointer?
+      @address != 0
+    end
+
+    def polyglot_address
+      @address
+    ensure
+      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
+    end
+
+    def polyglot_to_native
+      @address = Primitive.string_pointer_to_native(@string) + @string.bytesize
+    end
+  end
+
   class RArrayPtr
     attr_reader :array
 
@@ -415,28 +437,6 @@ module Truffle::CExt
 
     def native?
       false
-    end
-  end
-
-  class RStringEndPtr
-    def initialize(string)
-      @string = string
-      @address = 0
-    end
-
-
-    def polyglot_pointer?
-      @address != 0
-    end
-
-    def polyglot_address
-      @address
-    ensure
-      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
-    end
-
-    def polyglot_to_native
-      @address = Primitive.string_pointer_to_native(@string) + @string.bytesize
     end
   end
 
