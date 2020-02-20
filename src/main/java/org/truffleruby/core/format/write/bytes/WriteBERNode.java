@@ -59,6 +59,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.numeric.BigIntegerOps;
 
 @NodeChild("value")
 public abstract class WriteBERNode extends FormatNode {
@@ -89,7 +90,7 @@ public abstract class WriteBERNode extends FormatNode {
 
     @Specialization(guards = "isRubyBignum(value)")
     protected Object doWrite(VirtualFrame frame, DynamicObject value) {
-        if (cantCompressProfile.profile(Layouts.BIGNUM.getValue(value).signum() < 0)) {
+        if (cantCompressProfile.profile(BigIntegerOps.signum(Layouts.BIGNUM.getValue(value)) < 0)) {
             throw new CantCompressNegativeException();
         }
 

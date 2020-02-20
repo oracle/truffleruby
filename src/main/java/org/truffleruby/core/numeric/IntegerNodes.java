@@ -1706,7 +1706,7 @@ public abstract class IntegerNodes {
                 return FAILURE;
             } else {
                 final BigInteger bigIntegerBase = Layouts.BIGNUM.getValue(base);
-                final int baseBitLength = bigIntegerBase.bitLength();
+                final int baseBitLength = BigIntegerOps.bitLength(bigIntegerBase);
 
                 // Logic for promoting integer exponentiation into doubles taken from MRI.
                 // We replicate the logic exactly so we match MRI's ranges.

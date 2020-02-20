@@ -58,6 +58,7 @@ import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.ToHexStringNodeFactory;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
 import org.truffleruby.core.proc.ProcOperations;
@@ -819,7 +820,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isRubyBignum(value)")
         protected long hashBignum(DynamicObject value) {
-            return getContext().getHashing(this).hash(CLASS_SALT, bigIntegerHashCode(Layouts.BIGNUM.getValue(value)));
+            return getContext().getHashing(this).hash(CLASS_SALT, BigIntegerOps.hashCode(value));
         }
 
         @TruffleBoundary
@@ -836,11 +837,6 @@ public abstract class KernelNodes {
             // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
             // own @CoreMethod hash
             return System.identityHashCode(self);
-        }
-
-        @TruffleBoundary
-        private static int bigIntegerHashCode(BigInteger value) {
-            return value.hashCode();
         }
     }
 
@@ -1941,7 +1937,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isRubyBignum(value)")
         protected String toHexString(DynamicObject value) {
-            return Layouts.BIGNUM.getValue(value).toString(16);
+            return BigIntegerOps.toString(Layouts.BIGNUM.getValue(value), 16);
         }
 
     }

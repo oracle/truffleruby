@@ -11,6 +11,12 @@ import static org.truffleruby.language.RubyGuards.isRubyBignum;
 /** Wrapper for methods of {@link BigInteger} decorated with a {@link TruffleBoundary} annotation, as these methods are
  * blacklisted by SVM. */
 public final class BigIntegerOps {
+
+    @TruffleBoundary
+    public static BigInteger create(byte[] value) {
+        return new BigInteger(value);
+    }
+
     @TruffleBoundary
     public static BigInteger valueOf(long value) {
         return BigInteger.valueOf(value);
@@ -221,6 +227,22 @@ public final class BigIntegerOps {
     @TruffleBoundary
     public static boolean equals(BigInteger a, BigInteger b) {
         return a.equals(b);
+    }
+
+    @TruffleBoundary
+    public static int hashCode(BigInteger value) {
+        return value.hashCode();
+    }
+
+    public static int hashCode(DynamicObject value) {
+        assert isRubyBignum(value);
+        return hashCode(BIGNUM.getValue(value));
+    }
+
+    public static int hashCode(Object value) {
+        assert value instanceof DynamicObject;
+        assert isRubyBignum(value);
+        return hashCode(BIGNUM.getValue((DynamicObject) value));
     }
 
     @TruffleBoundary

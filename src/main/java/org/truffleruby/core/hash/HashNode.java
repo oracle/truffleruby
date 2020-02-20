@@ -12,6 +12,7 @@ package org.truffleruby.core.hash;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -45,7 +46,7 @@ public class HashNode extends RubyContextNode {
         } else if (isLongProfile1.profile(hashedObject instanceof Long)) {
             return (int) (long) hashedObject;
         } else if (isBignumProfile1.profile(Layouts.BIGNUM.isBignum(hashedObject))) {
-            return Layouts.BIGNUM.getValue((DynamicObject) hashedObject).hashCode();
+            return BigIntegerOps.hashCode(hashedObject);
         } else {
             if (coerceToIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -60,7 +61,7 @@ public class HashNode extends RubyContextNode {
             } else if (isLongProfile2.profile(coercedHashedObject instanceof Long)) {
                 return (int) (long) coercedHashedObject;
             } else if (isBignumProfile2.profile(Layouts.BIGNUM.isBignum(coercedHashedObject))) {
-                return Layouts.BIGNUM.getValue((DynamicObject) coercedHashedObject).hashCode();
+                return BigIntegerOps.hashCode(coercedHashedObject);
             } else {
                 throw new UnsupportedOperationException();
             }

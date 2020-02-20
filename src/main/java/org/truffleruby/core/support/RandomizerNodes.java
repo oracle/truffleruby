@@ -45,6 +45,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -233,7 +234,7 @@ public abstract class RandomizerNodes {
                 }
                 break;
             }
-            return new BigInteger(bytes);
+            return BigIntegerOps.create(bytes);
         }
 
         private static int getIntBigIntegerBuffer(byte[] src, int loc) {

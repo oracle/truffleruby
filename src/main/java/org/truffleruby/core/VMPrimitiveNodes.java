@@ -51,6 +51,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -434,7 +435,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "isRubyBignum(salt)")
         protected long startHashBigNum(DynamicObject salt) {
-            return getContext().getHashing(this).start(Layouts.BIGNUM.getValue(salt).hashCode());
+            return getContext().getHashing(this).start(BigIntegerOps.hashCode(salt));
         }
 
         @Specialization(guards = "!isRubyNumber(salt)")
@@ -449,7 +450,7 @@ public abstract class VMPrimitiveNodes {
             } else if (isLongProfile.profile(result instanceof Long)) {
                 return getContext().getHashing(this).start((long) result);
             } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
-                return getContext().getHashing(this).start(Layouts.BIGNUM.getValue((DynamicObject) result).hashCode());
+                return getContext().getHashing(this).start(BigIntegerOps.hashCode(result));
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -467,7 +468,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "isRubyBignum(value)")
         protected long updateHash(long hash, DynamicObject value) {
-            return Hashing.update(hash, Layouts.BIGNUM.getValue(value).hashCode());
+            return Hashing.update(hash, BigIntegerOps.hashCode(value));
         }
 
         @Specialization(guards = "!isRubyNumber(value)")
@@ -482,7 +483,7 @@ public abstract class VMPrimitiveNodes {
             } else if (isLongProfile.profile(result instanceof Long)) {
                 return Hashing.update(hash, (long) result);
             } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
-                return Hashing.update(hash, Layouts.BIGNUM.getValue((DynamicObject) result).hashCode());
+                return Hashing.update(hash, BigIntegerOps.hashCode(result));
             } else {
                 throw new UnsupportedOperationException();
             }

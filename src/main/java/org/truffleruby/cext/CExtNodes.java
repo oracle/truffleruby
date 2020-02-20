@@ -46,6 +46,7 @@ import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
 import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.mutex.MutexOperations;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
@@ -249,9 +250,8 @@ public class CExtNodes {
             }
         }
 
-        @TruffleBoundary
         private BigInteger toUnsigned(long num) {
-            return BigInteger.valueOf(num).add(TWO_POW_64);
+            return BigIntegerOps.add(TWO_POW_64, num);
         }
 
     }
