@@ -14,6 +14,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
+/** The Ruby {@code nil}, the single instance of NilClass. */
 @ExportLibrary(InteropLibrary.class)
 public final class Nil implements TruffleObject {
 
