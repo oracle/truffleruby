@@ -36,9 +36,9 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class ArrayBuilderNode extends RubyContextNode {
 
     public static class BuilderState {
-        public int capacity;
-        public int nextIndex = 0;
-        public Object store;
+        protected int capacity;
+        protected int nextIndex = 0;
+        protected Object store;
 
         private BuilderState(Object store, int capacity) {
             this.capacity = capacity;
