@@ -6,7 +6,8 @@ New features:
 * `||=` will not compile the right-hand-side if it's only executed once, to match the idiomatic lazy-initialisation use-case (#1887, @kipply).
 * The implicit interface for allowing Ruby objects to behave as polyglot arrays with `#size`, `#[]` methods has been removed and replaced with an explicit interface where each method starts with `polyglot_*`.
 * Hash keys are no longer reported as polyglot members.
-* All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods. 
+* All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods.
+* Rename dynamic API to match InteropLibrary. All the methods keep the name as it is in InteropLibrary with following changes: use snake_case, add `polyglot_` prefix, drop `get` and `is` prefix, append `?` on all predicates.  
 
 Bug fixes:
 

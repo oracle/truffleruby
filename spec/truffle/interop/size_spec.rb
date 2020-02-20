@@ -37,7 +37,7 @@ describe "Truffle::Interop.size" do
 
   it "returns the size of any object with a size method" do
     obj = TruffleInteropSpecs::PolyglotArray.new
-    obj.polyglot_array_write 1, true
+    obj.polyglot_write_array_element 1, true
     Truffle::Interop.size(obj).should == 2
   end
 
