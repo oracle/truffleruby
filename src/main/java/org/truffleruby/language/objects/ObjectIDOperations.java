@@ -77,6 +77,7 @@ public abstract class ObjectIDOperations {
         return BignumOperations.createBignum(context, big.or(LARGE_FIXNUM_FLAG));
     }
 
+    @TruffleBoundary // BigInteger
     public static DynamicObject floatToID(RubyContext context, double value) {
         long bits = Double.doubleToRawLongBits(value);
         BigInteger big = unsignedBigInteger(bits);
@@ -105,6 +106,7 @@ public abstract class ObjectIDOperations {
         return id != 0 && (id & ValueWrapperManager.TAG_MASK) == 0;
     }
 
+    @TruffleBoundary // BigInteger
     private static BigInteger unsignedBigInteger(long value) {
         BigInteger big = BigInteger.valueOf(value);
         if (value < 0) {

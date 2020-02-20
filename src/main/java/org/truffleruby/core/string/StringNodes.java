@@ -4841,7 +4841,8 @@ public abstract class StringNodes {
                     leafBaseProfile,
                     slowSearchProfile);
 
-            if (foundSingleByteOptimizableDescendentProfile.profile(searchResult.rope.isSingleByteOptimizable())) {
+            if (foundSingleByteOptimizableDescendentProfile
+                    .profile(singleByteOptimizableNode.execute(searchResult.rope))) {
                 return makeRope(string, searchResult.rope, searchResult.index, characterLength);
             }
 
@@ -4858,7 +4859,7 @@ public abstract class StringNodes {
                 BranchProfile leafBaseProfile,
                 BranchProfile slowSearchProfile) {
 
-            if (base.isSingleByteOptimizable()) {
+            if (singleByteOptimizableNode.execute(base)) {
                 singleByteOptimizableBaseProfile.enter();
                 return new SearchResult(index, base);
             }

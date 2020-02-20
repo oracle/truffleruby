@@ -11,7 +11,6 @@ package org.truffleruby.core.hash;
 
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -235,14 +234,9 @@ public abstract class BucketsStrategy {
 
             @Override
             public KeyValue next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
-                }
-
+                assert hasNext();
                 final KeyValue entryResult = new KeyValue(entry.getKey(), entry.getValue());
-
                 entry = entry.getNextInSequence();
-
                 return entryResult;
             }
 
@@ -252,10 +246,6 @@ public abstract class BucketsStrategy {
             }
 
         };
-    }
-
-    public static Iterable<KeyValue> iterableKeyValues(final Entry firstInSequence) {
-        return () -> iterateKeyValues(firstInSequence);
     }
 
     public static void copyInto(RubyContext context, DynamicObject from, DynamicObject to) {

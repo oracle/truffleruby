@@ -13,6 +13,7 @@ import static org.truffleruby.core.string.StringOperations.rope;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -818,7 +819,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isRubyBignum(value)")
         protected long hashBignum(DynamicObject value) {
-            return getContext().getHashing(this).hash(CLASS_SALT, Layouts.BIGNUM.getValue(value).hashCode());
+            return getContext().getHashing(this).hash(CLASS_SALT, bigIntegerHashCode(Layouts.BIGNUM.getValue(value)));
         }
 
         @TruffleBoundary
@@ -837,6 +838,10 @@ public abstract class KernelNodes {
             return System.identityHashCode(self);
         }
 
+        @TruffleBoundary
+        private static int bigIntegerHashCode(BigInteger value) {
+            return value.hashCode();
+        }
     }
 
     @CoreMethod(names = "initialize_copy", required = 1)

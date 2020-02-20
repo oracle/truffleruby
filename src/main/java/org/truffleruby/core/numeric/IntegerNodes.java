@@ -139,7 +139,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object add(DynamicObject a, long b) {
-            return fixnumOrBignum(Layouts.BIGNUM.getValue(a).add(BigInteger.valueOf(b)));
+            return fixnumOrBignum(bigIntegerAdd(Layouts.BIGNUM.getValue(a), bigIntegerValueOf(b)));
         }
 
         @Specialization
@@ -158,6 +158,15 @@ public abstract class IntegerNodes {
             return redoCoerced.call(a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
         }
 
+        @TruffleBoundary
+        private static BigInteger bigIntegerValueOf(long integer) {
+            return BigInteger.valueOf(integer);
+        }
+
+        @TruffleBoundary
+        private static BigInteger bigIntegerAdd(BigInteger a, BigInteger b) {
+            return a.add(b);
+        }
     }
 
     @CoreMethod(names = "-", required = 1)
