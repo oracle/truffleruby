@@ -54,7 +54,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
 
         @Override
         public Object isDefined(VirtualFrame frame, RubyContext context) {
-            if (isNil(execute(frame))) {
+            if (execute(frame) == nil()) {
                 return nil();
             } else {
                 return coreStrings().GLOBAL_VARIABLE.createInstance();
