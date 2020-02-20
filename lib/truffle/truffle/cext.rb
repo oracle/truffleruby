@@ -340,7 +340,7 @@ module Truffle::CExt
       false
     end
 
-    def polyglot_array_removable?
+    def polyglot_array_removable?(index)
       false
     end
 
@@ -402,7 +402,7 @@ module Truffle::CExt
       false
     end
 
-    def polyglot_array_removable?
+    def polyglot_array_removable?(index)
       false
     end
   end
@@ -454,7 +454,7 @@ module Truffle::CExt
       false
     end
 
-    def polyglot_array_removable?
+    def polyglot_array_removable?(index)
       false
     end
   end
