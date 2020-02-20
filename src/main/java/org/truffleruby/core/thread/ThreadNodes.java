@@ -520,13 +520,14 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(runner)")
-        protected Object unblock(DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
+        protected Object unblock(DynamicObject thread, Object unblocker, DynamicObject runner) {
             final UnblockingAction unblockingAction;
             if (unblocker == nil) {
                 unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
             } else {
                 assert RubyGuards.isRubyProc(unblocker);
-                unblockingAction = () -> yield(unblocker);
+                final DynamicObject unblockerProc = (DynamicObject) unblocker;
+                unblockingAction = () -> yield(unblockerProc);
             }
 
             return getContext().getThreadManager().runUntilResult(
