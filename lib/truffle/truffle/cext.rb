@@ -1789,7 +1789,11 @@ module Truffle::CExt
     begin
       Primitive.call_with_c_mutex(b_proc, [data1])
     rescue StandardError => e
-      Primitive.call_with_c_mutex(r_proc, [data2, Primitive.cext_wrap(e)])
+      if Truffle::Interop.null?(r_proc)
+        Primitive.cext_wrap(nil)
+      else
+        Primitive.call_with_c_mutex(r_proc, [data2, Primitive.cext_wrap(e)])
+      end
     end
   end
 
