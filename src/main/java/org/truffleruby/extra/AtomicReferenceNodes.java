@@ -35,7 +35,7 @@ public abstract class AtomicReferenceNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, new AtomicReference<>(nil()));
+            return allocateNode.allocate(rubyClass, new AtomicReference<>(nil));
         }
 
     }

@@ -167,7 +167,7 @@ public abstract class ModuleNodes {
                 return false;
             }
 
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "!isRubyModule(other)")
@@ -193,7 +193,7 @@ public abstract class ModuleNodes {
                 return false;
             }
 
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "!isRubyModule(other)")
@@ -223,7 +223,7 @@ public abstract class ModuleNodes {
                 return false;
             }
 
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "!isRubyModule(other)")
@@ -250,7 +250,7 @@ public abstract class ModuleNodes {
                 return false;
             }
 
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "!isRubyModule(other)")
@@ -281,8 +281,8 @@ public abstract class ModuleNodes {
 
             final Object isSubclass = isSubclass(self, other);
 
-            if (isSubclass == nil()) {
-                return nil();
+            if (isSubclass == nil) {
+                return nil;
             } else {
                 return (boolean) isSubclass ? -1 : 1;
             }
@@ -290,7 +290,7 @@ public abstract class ModuleNodes {
 
         @Specialization(guards = "!isRubyModule(other)")
         protected Object compareOther(DynamicObject self, DynamicObject other) {
-            return nil();
+            return nil;
         }
 
     }
@@ -374,7 +374,7 @@ public abstract class ModuleNodes {
             }
             Layouts.MODULE.getFields(target).include(getContext(), this, features);
             taintResultNode.maybeTaint(features, target);
-            return nil();
+            return nil;
         }
     }
 
@@ -394,7 +394,7 @@ public abstract class ModuleNodes {
                 @Cached ReadCallerFrameNode readCallerFrame) {
             final String name = nameToJavaStringNode.executeToJavaString(nameObject);
             createAccessor(module, name, readCallerFrame.execute(frame));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
@@ -477,7 +477,7 @@ public abstract class ModuleNodes {
                     generateSetterNode.executeGenerateAccessor(frame, module, name);
                 }
             }
-            return nil();
+            return nil;
         }
 
         private void warnObsoletedBooleanArgument() {
@@ -503,7 +503,7 @@ public abstract class ModuleNodes {
                 generateGetterNode.executeGenerateAccessor(frame, module, name);
                 generateSetterNode.executeGenerateAccessor(frame, module, name);
             }
-            return nil();
+            return nil;
         }
 
     }
@@ -518,7 +518,7 @@ public abstract class ModuleNodes {
             for (Object name : names) {
                 generateGetterNode.executeGenerateAccessor(frame, module, name);
             }
-            return nil();
+            return nil;
         }
 
     }
@@ -533,7 +533,7 @@ public abstract class ModuleNodes {
             for (Object name : names) {
                 generateSetterNode.executeGenerateAccessor(frame, module, name);
             }
-            return nil();
+            return nil;
         }
 
     }
@@ -576,7 +576,7 @@ public abstract class ModuleNodes {
                 Layouts.MODULE.getFields(module).setAutoloadConstant(getContext(), this, name, filename);
             }
 
-            return nil();
+            return nil;
         }
     }
 
@@ -599,7 +599,7 @@ public abstract class ModuleNodes {
             if (constant.isAutoload() && !constant.getConstant().getAutoloadConstant().isAutoloadingThread()) {
                 return constant.getConstant().getAutoloadConstant().getFeature();
             } else {
-                return nil();
+                return nil;
             }
         }
     }
@@ -1283,7 +1283,7 @@ public abstract class ModuleNodes {
             final DynamicObject fromMetaClass = getSingletonClass(from);
             Layouts.MODULE.getFields(selfMetaClass).initCopy(fromMetaClass);
 
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "isRubyClass(self)", "isRubyClass(from)" })
@@ -1307,7 +1307,7 @@ public abstract class ModuleNodes {
 
             Layouts.MODULE.getFields(selfMetaClass).initCopy(fromMetaClass); // copy class methods
 
-            return nil();
+            return nil;
         }
 
         protected DynamicObject getSingletonClass(DynamicObject object) {
@@ -1326,7 +1326,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         protected Object included(Object subclass) {
-            return nil();
+            return nil;
         }
 
     }
@@ -1412,7 +1412,7 @@ public abstract class ModuleNodes {
             final ModuleFields fields = fieldsProfile.profile(Layouts.MODULE.getFields(module));
 
             if (!fields.hasPartialName()) {
-                return nil();
+                return nil;
             }
 
             return makeStringNode.executeMake(fields.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -1508,7 +1508,7 @@ public abstract class ModuleNodes {
             }
             Layouts.MODULE.getFields(target).prepend(getContext(), this, features);
             taintResultNode.maybeTaint(features, target);
-            return nil();
+            return nil;
         }
     }
 
@@ -1807,7 +1807,7 @@ public abstract class ModuleNodes {
                         coreExceptions().nameErrorConstantNotDefined(module, name, this));
             } else {
                 if (oldConstant.isAutoload() || oldConstant.isUndefined()) {
-                    return nil();
+                    return nil;
                 } else {
                     return oldConstant.getValue();
                 }

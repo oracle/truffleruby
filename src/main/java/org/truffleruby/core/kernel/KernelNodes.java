@@ -250,7 +250,7 @@ public abstract class KernelNodes {
             if (sameOrEqualNode.executeSameOrEqual(frame, self, other)) {
                 return 0;
             } else {
-                return nil();
+                return nil;
             }
         }
 
@@ -283,11 +283,11 @@ public abstract class KernelNodes {
 
         @Specialization
         protected boolean blockGiven(VirtualFrame frame,
-                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode,
+                @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode,
                 @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
             MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             return blockProfile
-                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil());
+                    .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil);
         }
     }
 
@@ -356,7 +356,7 @@ public abstract class KernelNodes {
             final DynamicObject newObject = (DynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
-                final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil());
+                final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil);
                 writeFieldNodes[i].write(newObject, properties[i].getKey(), value);
             }
 
@@ -976,7 +976,7 @@ public abstract class KernelNodes {
         @Specialization
         protected Object removeInstanceVariable(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil());
+            final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil);
 
             if (SharedObjects.isShared(getContext(), object)) {
                 synchronized (object) {
@@ -1043,7 +1043,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject lambda(NotProvided block,
-                @Cached("create(nil())") FindAndReadDeclarationVariableNode readNode) {
+                @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext()
                     .getCallStack()
                     .getCallerFrameIgnoringSend(FrameAccess.MATERIALIZE)
@@ -1051,7 +1051,7 @@ public abstract class KernelNodes {
             Object parentBlock = readNode
                     .execute(parentFrame, TranslatorEnvironment.METHOD_BLOCK_NAME);
 
-            if (parentBlock == nil()) {
+            if (parentBlock == nil) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().argumentError("tried to create Proc object without a block", this));
@@ -1192,7 +1192,7 @@ public abstract class KernelNodes {
             final RubyRootNode newRootNode = new RubyRootNode(
                     getContext(),
                     info.getSourceSection(),
-                    new FrameDescriptor(nil()),
+                    new FrameDescriptor(nil),
                     info,
                     newBody,
                     true);
@@ -1608,7 +1608,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "isNil(traceFunc)")
         protected Object setTraceFunc(Object traceFunc) {
             getContext().getTraceManager().setTraceFunc(null);
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "isRubyProc(traceFunc)")

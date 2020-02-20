@@ -35,7 +35,7 @@ public final class WhileNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         loopNode.execute(frame);
-        return nil();
+        return nil;
     }
 
     private static abstract class WhileRepeatingBaseNode extends Node implements RepeatingNode {

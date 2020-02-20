@@ -128,7 +128,7 @@ public abstract class VMPrimitiveNodes {
                 }
             }
 
-            return nil();
+            return nil;
         }
 
     }
@@ -154,7 +154,7 @@ public abstract class VMPrimitiveNodes {
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode.lookupIgnoringVisibility(frame, receiver, normalizedName);
             if (method == null) {
-                return nil();
+                return nil;
             }
             return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, method);
         }
@@ -358,7 +358,7 @@ public abstract class VMPrimitiveNodes {
             final Object value = getContext().getNativeConfiguration().get(StringOperations.getString(key));
 
             if (value == null) {
-                return nil();
+                return nil;
             } else {
                 return value;
             }
@@ -382,7 +382,7 @@ public abstract class VMPrimitiveNodes {
                 yieldNode.executeDispatch(block, key, entry.getValue());
             }
 
-            return nil();
+            return nil;
         }
 
     }

@@ -57,7 +57,7 @@ public abstract class TruffleBootNodes {
         @Specialization
         protected Object rubyHome() {
             if (getContext().getRubyHome() == null) {
-                return nil();
+                return nil;
             } else {
                 return makeStringNode
                         .executeMake(getContext().getRubyHome(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
@@ -71,7 +71,7 @@ public abstract class TruffleBootNodes {
 
         @Specialization
         protected Object forceContext() {
-            return nil();
+            return nil;
         }
     }
 
@@ -280,7 +280,7 @@ public abstract class TruffleBootNodes {
             });
 
             if (source == null) {
-                return nil();
+                return nil;
             }
 
             return makeStringNode
@@ -297,7 +297,7 @@ public abstract class TruffleBootNodes {
         protected Object innerCheckSyntax(RubySource source) {
             getContext().getCodeLoader().parse(source, ParserContext.TOP_LEVEL, null, null, true, null);
 
-            return nil();
+            return nil;
         }
 
     }
@@ -325,7 +325,7 @@ public abstract class TruffleBootNodes {
             if (descriptor == null) {
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().nameError("option not defined", nil(), optionNameString, this));
+                        coreExceptions().nameError("option not defined", nil, optionNameString, this));
             }
 
             final Object value = getContext().getOptions().fromDescriptor(descriptor);
@@ -360,7 +360,7 @@ public abstract class TruffleBootNodes {
         @Specialization(guards = "isRubySymbol(name)")
         protected Object printTimeMetric(DynamicObject name) {
             Metrics.printTime(Layouts.SYMBOL.getString(name));
-            return nil();
+            return nil;
         }
 
     }
@@ -398,7 +398,7 @@ public abstract class TruffleBootNodes {
             if (path != null) {
                 return makeStringNode.executeMake(path.getPath(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             } else {
-                return nil();
+                return nil;
             }
         }
 

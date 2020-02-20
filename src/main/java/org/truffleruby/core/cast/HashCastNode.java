@@ -34,32 +34,32 @@ public abstract class HashCastNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object cast(boolean value) {
-        return nil();
+        return nil;
     }
 
     @Specialization
     protected Object cast(int value) {
-        return nil();
+        return nil;
     }
 
     @Specialization
     protected Object cast(long value) {
-        return nil();
+        return nil;
     }
 
     @Specialization
     protected Object cast(double value) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "isNil(nil)")
     protected Object castNil(Object nil) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "isRubyBignum(value)")
     protected Object castBignum(DynamicObject value) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "isRubyHash(hash)")
@@ -73,7 +73,7 @@ public abstract class HashCastNode extends RubyContextSourceNode {
         final Object result = toHashNode.call(object, "to_hash");
 
         if (result == DispatchNode.MISSING) {
-            return nil();
+            return nil;
         }
 
         if (!RubyGuards.isRubyHash(result)) {

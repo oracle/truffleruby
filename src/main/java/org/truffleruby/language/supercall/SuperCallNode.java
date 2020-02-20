@@ -55,7 +55,7 @@ public class SuperCallNode extends RubyContextSourceNode {
         final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
         if (superMethod == null) {
-            return nil();
+            return nil;
         } else {
             return coreStrings().SUPER.createInstance();
         }

@@ -102,7 +102,7 @@ public abstract class FiberNodes {
         protected Object initialize(DynamicObject fiber, DynamicObject block) {
             final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
             Layouts.THREAD.getFiberManager(thread).initialize(fiber, block, this);
-            return nil();
+            return nil;
         }
 
     }

@@ -47,27 +47,27 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object cast(boolean value) {
-        return nil();
+        return nil;
     }
 
     @Specialization
     protected Object cast(int value) {
-        return nil();
+        return nil;
     }
 
     @Specialization
     protected Object cast(long value) {
-        return nil();
+        return nil;
     }
 
     @Specialization
     protected Object cast(double value) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "isRubyBignum(value)")
     protected Object castBignum(DynamicObject value) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "isRubyArray(array)")
@@ -82,7 +82,7 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
                 return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
 
             case ARRAY_WITH_NIL:
-                return createArray(new Object[]{ nil() }, 1);
+                return createArray(new Object[]{ nil }, 1);
 
             case NIL:
                 return nil;
@@ -99,12 +99,12 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
             @Cached BranchProfile errorProfile) {
         final Object result = toArrayNode.call(object, "to_ary");
 
-        if (result == nil()) {
-            return nil();
+        if (result == nil) {
+            return nil;
         }
 
         if (result == DispatchNode.MISSING) {
-            return nil();
+            return nil;
         }
 
         if (!RubyGuards.isRubyArray(result)) {

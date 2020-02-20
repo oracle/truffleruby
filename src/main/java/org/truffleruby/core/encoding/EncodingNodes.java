@@ -380,7 +380,7 @@ public abstract class EncodingNodes {
             final Encoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
 
             if (noNegotiatedEncodingProfile.profile(negotiatedEncoding == null)) {
-                return nil();
+                return nil;
             }
 
             return getRubyEncodingNode.executeGetRubyEncoding(negotiatedEncoding);
@@ -467,7 +467,7 @@ public abstract class EncodingNodes {
                         CodeRange.CR_7BIT);
                 yieldNode.executeDispatch(block, aliasName, entry.value.getEncoding().getIndex());
             }
-            return nil();
+            return nil;
         }
     }
 
@@ -559,7 +559,7 @@ public abstract class EncodingNodes {
         protected Object getDefaultEncoding(DynamicObject name) {
             final Encoding encoding = getEncoding(StringOperations.getString(name));
             if (encoding == null) {
-                return nil();
+                return nil;
             } else {
                 return getContext().getEncodingManager().getRubyEncoding(encoding);
             }
@@ -611,7 +611,7 @@ public abstract class EncodingNodes {
         @Specialization(guards = "isNil(encoding)")
         protected Object noDefaultInternal(Object encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(null);
-            return nil();
+            return nil;
         }
 
     }
@@ -668,7 +668,7 @@ public abstract class EncodingNodes {
                         "!isRubyRegexp(object)" })
         protected Object encodingGetObjectEncodingNil(DynamicObject object) {
             // TODO(CS, 26 Jan 15) something to do with __encoding__ here?
-            return nil();
+            return nil;
         }
 
     }

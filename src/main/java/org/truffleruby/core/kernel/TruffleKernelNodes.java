@@ -54,7 +54,7 @@ public abstract class TruffleKernelNodes {
         @Specialization
         protected Object atExit(boolean always, DynamicObject block) {
             getContext().getAtExitManager().add(block, always);
-            return nil();
+            return nil;
         }
     }
 
@@ -158,7 +158,7 @@ public abstract class TruffleKernelNodes {
                     getter,
                     setter,
                     isDefined);
-            return nil();
+            return nil;
         }
 
     }

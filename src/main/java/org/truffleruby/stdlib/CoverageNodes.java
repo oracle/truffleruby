@@ -35,7 +35,7 @@ public abstract class CoverageNodes {
         @Specialization
         protected Object enable() {
             getContext().getCoverageManager().enable();
-            return nil();
+            return nil;
         }
 
     }
@@ -46,7 +46,7 @@ public abstract class CoverageNodes {
         @Specialization
         protected Object disable() {
             getContext().getCoverageManager().disable();
-            return nil();
+            return nil;
         }
 
     }
@@ -74,7 +74,7 @@ public abstract class CoverageNodes {
 
                 for (int n = 0; n < countsArray.length; n++) {
                     if (countsArray[n] == CoverageManager.NO_CODE) {
-                        countsStore[n] = nil();
+                        countsStore[n] = nil;
                     } else {
                         countsStore[n] = countsArray[n];
                     }

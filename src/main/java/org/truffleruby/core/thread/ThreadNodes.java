@@ -137,7 +137,7 @@ public abstract class ThreadNodes {
             // If the thread is dead or aborting the SafepointAction will not run.
             // Must return nil if omitting more entries than available.
             if (backtrace == null || omit > backtrace.getTotalUnderlyingElements()) {
-                return nil();
+                return nil;
             }
 
             if (length < 0) {
@@ -181,7 +181,7 @@ public abstract class ThreadNodes {
 
             // If the thread is dead or aborting the SafepointAction will not run.
             return backtraceLocationsMemo.get() == null
-                    ? nil()
+                    ? nil
                     : backtraceLocationsMemo.get();
         }
     }
@@ -346,7 +346,7 @@ public abstract class ThreadNodes {
                     info,
                     sharingReason,
                     () -> ProcOperations.rootCall(block, args));
-            return nil();
+            return nil;
         }
 
     }
@@ -379,7 +379,7 @@ public abstract class ThreadNodes {
             if (doJoinMillis(self, timeoutInMillis)) {
                 return self;
             } else {
-                return nil();
+                return nil;
             }
         }
 
@@ -441,7 +441,7 @@ public abstract class ThreadNodes {
         @Specialization
         protected Object pass() {
             Thread.yield();
-            return nil();
+            return nil;
         }
 
     }
@@ -457,7 +457,7 @@ public abstract class ThreadNodes {
             final ThreadStatus status = Layouts.THREAD.getStatus(self);
             if (status == ThreadStatus.DEAD) {
                 if (Layouts.THREAD.getException(self) != null) {
-                    return nil();
+                    return nil;
                 } else {
                     return false;
                 }
@@ -522,7 +522,7 @@ public abstract class ThreadNodes {
         @Specialization(guards = "isRubyProc(runner)")
         protected Object unblock(DynamicObject thread, DynamicObject unblocker, DynamicObject runner) {
             final UnblockingAction unblockingAction;
-            if (unblocker == nil()) {
+            if (unblocker == nil) {
                 unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
             } else {
                 assert RubyGuards.isRubyProc(unblocker);
@@ -553,7 +553,7 @@ public abstract class ThreadNodes {
         @Specialization
         protected Object setAbortOnException(DynamicObject self, boolean abortOnException) {
             Layouts.THREAD.setAbortOnException(self, abortOnException);
-            return nil();
+            return nil;
         }
 
     }
@@ -574,7 +574,7 @@ public abstract class ThreadNodes {
         @Specialization(guards = { "isRubyThread(thread)", "isRubyException(exception)" })
         protected Object raise(DynamicObject thread, DynamicObject exception) {
             raiseInThread(getContext(), thread, exception, this);
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary

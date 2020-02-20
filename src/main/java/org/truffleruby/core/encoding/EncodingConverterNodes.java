@@ -89,7 +89,7 @@ public abstract class EncodingConverterNodes {
                     .open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
 
             if (econv == null) {
-                return nil();
+                return nil;
             }
 
             econv.sourceEncoding = sourceEncoding;
@@ -167,7 +167,7 @@ public abstract class EncodingConverterNodes {
             final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths
                     .get(Layouts.SYMBOL.getString(source));
             if (transcoders == null) {
-                return nil();
+                return nil;
             }
 
             final Object[] destinations = new Object[transcoders.size()];
@@ -213,7 +213,7 @@ public abstract class EncodingConverterNodes {
                 DynamicObject target, int offset, int size, int options) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
-            final boolean nonNullSource = source != nil();
+            final boolean nonNullSource = source != nil;
             Rope sourceRope = nonNullSource ? rope((DynamicObject) source) : RopeConstants.EMPTY_UTF8_ROPE;
             final Rope targetRope = rope(target);
             final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
@@ -360,7 +360,7 @@ public abstract class EncodingConverterNodes {
             if (lastError.getResult() != EConvResult.InvalidByteSequence &&
                     lastError.getResult() != EConvResult.IncompleteInput &&
                     lastError.getResult() != EConvResult.UndefinedConversion) {
-                return nil();
+                return nil;
             }
 
             final boolean readAgain = lastError.getReadAgainLength() != 0;
@@ -417,7 +417,7 @@ public abstract class EncodingConverterNodes {
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = Layouts.ENCODING_CONVERTER.getEconv(encodingConverter);
 
-            final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil(), nil(), nil(), nil() };
+            final Object[] ret = { getSymbol(ec.lastError.getResult().symbolicName()), nil, nil, nil, nil };
 
             if (ec.lastError.getSource() != null) {
                 ret[1] = makeStringNode.executeMake(ec.lastError.getSource(), ASCIIEncoding.INSTANCE, CR_UNKNOWN);

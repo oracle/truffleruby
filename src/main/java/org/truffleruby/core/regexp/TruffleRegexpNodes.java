@@ -203,7 +203,7 @@ public class TruffleRegexpNodes {
             int match = runMatch(matcher, startPos, range, onlyMatchAtStart);
 
             if (matchesProfile.profile(match == -1)) {
-                return nil();
+                return nil;
             }
 
             assert match >= 0;

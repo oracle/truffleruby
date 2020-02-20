@@ -512,7 +512,7 @@ public abstract class RangeNodes {
                 allocateNode = insert(AllocateObjectNode.create());
             }
 
-            if (cmpNode.call(begin, "<=>", end) == nil() && end != nil()) {
+            if (cmpNode.call(begin, "<=>", end) == nil && end != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
@@ -536,7 +536,7 @@ public abstract class RangeNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, false, nil(), nil());
+            return allocateNode.allocate(rubyClass, false, nil, nil);
         }
 
     }

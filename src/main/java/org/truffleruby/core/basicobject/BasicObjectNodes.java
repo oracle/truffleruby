@@ -244,7 +244,7 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected Object initialize() {
-            return nil();
+            return nil;
         }
 
     }

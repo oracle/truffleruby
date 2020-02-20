@@ -49,7 +49,7 @@ public abstract class WeakRefNodes {
             @SuppressWarnings("unchecked")
             final Object object = ((WeakReference<Object>) fieldNode.execute(weakRef, fieldName, EMPTY_WEAK_REF)).get();
             if (object == null) {
-                return nil();
+                return nil;
             } else {
                 return object;
             }

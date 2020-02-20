@@ -192,7 +192,7 @@ public abstract class RegexpNodes {
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, startPos);
             int range = rope.byteLength();
             Object result = matchNode.execute(regexp, string, matcher, startPos, range, atStart);
-            if (result != nil()) {
+            if (result != nil) {
                 fixupMatchDataForStart((DynamicObject) result, startPos);
             }
             return result;
@@ -267,7 +267,7 @@ public abstract class RegexpNodes {
             final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), false, startPos);
             final int endPos = rope.byteLength();
             Object result = matchNode.execute(regexp, string, matcher, startPos, endPos, false);
-            if (result != nil()) {
+            if (result != nil) {
                 fixupMatchDataForStart((DynamicObject) result, startPos);
             }
             return result;

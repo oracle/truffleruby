@@ -92,7 +92,7 @@ public abstract class InteropNodes {
                 throw new JavaException(e);
             }
 
-            return nil();
+            return nil;
         }
 
     }

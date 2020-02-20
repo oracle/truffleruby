@@ -214,7 +214,7 @@ public abstract class TypeNodes {
 
         @Specialization(guards = "!isDynamicObject(object)")
         protected Object hiddenVariableGetPrimitive(Object object, Object identifier) {
-            return nil();
+            return nil;
         }
     }
 

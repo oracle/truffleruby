@@ -35,7 +35,7 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
             limit = "1")
     protected boolean blockGiven(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode) {
-        return readMethodBlockNode.execute(frame) != nil();
+        return readMethodBlockNode.execute(frame) != nil;
     }
 
     @Specialization

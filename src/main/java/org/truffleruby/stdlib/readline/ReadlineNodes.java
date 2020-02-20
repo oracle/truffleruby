@@ -184,7 +184,7 @@ public abstract class ReadlineNodes {
 
             final String value = result.get();
             if (value == null) { // EOF
-                return nil();
+                return nil;
             } else {
                 if (addToHistory) {
                     readline.getHistory().add(value);
@@ -281,7 +281,7 @@ public abstract class ReadlineNodes {
                 throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
 
-            return nil();
+            return nil;
         }
 
     }

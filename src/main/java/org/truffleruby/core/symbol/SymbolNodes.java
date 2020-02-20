@@ -135,7 +135,7 @@ public abstract class SymbolNodes {
                     ArgumentDescriptor.ANON_REST,
                     false);
             final Object[] args = RubyArguments
-                    .pack(null, null, method, declarationContext, null, nil(), null, EMPTY_ARGUMENTS);
+                    .pack(null, null, method, declarationContext, null, nil, null, EMPTY_ARGUMENTS);
             // MRI raises an error on Proc#binding if you attempt to access the binding of a procedure generated
             // by Symbol#to_proc. We generate a declaration frame here so that all procedures will have a
             // binding as this simplifies the logic elsewhere in the runtime.
@@ -145,7 +145,7 @@ public abstract class SymbolNodes {
             final RubyRootNode rootNode = new RubyRootNode(
                     getContext(),
                     sourceSection,
-                    new FrameDescriptor(nil()),
+                    new FrameDescriptor(nil),
                     sharedMethodInfo,
                     new SymbolProcNode(Layouts.SYMBOL.getString(symbol)),
                     true);

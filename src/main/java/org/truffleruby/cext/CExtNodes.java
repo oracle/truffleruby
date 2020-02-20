@@ -932,7 +932,7 @@ public class CExtNodes {
         @Specialization
         protected Object rbSysErrFailNoMessage(int errno, Nil message) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
-            throw new RaiseException(getContext(), errnoError(errno, nil(), backtrace));
+            throw new RaiseException(getContext(), errnoError(errno, nil, backtrace));
         }
 
         @Specialization(guards = "isRubyString(message)")
@@ -1152,7 +1152,7 @@ public class CExtNodes {
 
                 System.err.printf("%s @ %s: %s%n", object.getClass(), System.identityHashCode(object), representation);
             }
-            return nil();
+            return nil;
         }
 
         private DynamicObject callToS(Object object) {
@@ -1176,7 +1176,7 @@ public class CExtNodes {
             try {
                 yield(block);
                 noExceptionProfile.enter();
-                return nil();
+                return nil;
             } catch (Throwable e) {
                 exceptionProfile.enter();
                 return new CapturedException(e);
@@ -1425,7 +1425,7 @@ public class CExtNodes {
                 @Cached ReadObjectFieldNode readMarkedNode) {
             getContext().getMarkingService().startMarking(
                     (Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
-            return nil();
+            return nil;
         }
     }
 
@@ -1444,7 +1444,7 @@ public class CExtNodes {
             // We do nothing here if the handle cannot be resolved. If we are marking an object
             // which is only reachable via weak refs then the handles of objects it is iteself
             // marking may have already been removed from the handle map. }
-            return nil();
+            return nil;
         }
 
     }
@@ -1462,7 +1462,7 @@ public class CExtNodes {
                 noExceptionProfile.enter();
                 keepAliveNode.execute(wrappedValue);
             }
-            return nil();
+            return nil;
         }
 
     }
@@ -1477,7 +1477,7 @@ public class CExtNodes {
                     structOwner,
                     Layouts.MARKED_OBJECTS_IDENTIFIER,
                     getContext().getMarkingService().finishMarking());
-            return nil();
+            return nil;
         }
     }
 
@@ -1491,7 +1491,7 @@ public class CExtNodes {
                 @Cached BranchProfile errorProfile) {
             if (respondToCallNode.doesRespondTo(frame, "call", marker)) {
                 addObjectToMarkingService(object, marker);
-                return nil();
+                return nil;
             } else {
                 errorProfile.enter();
                 throw new RaiseException(
@@ -1518,7 +1518,7 @@ public class CExtNodes {
         protected Object pushFrame(DynamicObject block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().push(block);
-            return nil();
+            return nil;
         }
     }
 
@@ -1529,7 +1529,7 @@ public class CExtNodes {
         protected Object popFrame(
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().pop();
-            return nil();
+            return nil;
         }
     }
 
@@ -1539,7 +1539,7 @@ public class CExtNodes {
 
         @Specialization
         protected boolean nilPWrapper(ValueWrapper value) {
-            return value.getObject() == nil();
+            return value.getObject() == nil;
         }
 
         @Specialization(
@@ -1597,7 +1597,7 @@ public class CExtNodes {
         @Specialization
         protected Object checkSymbolCStr(DynamicObject str) {
             final DynamicObject sym = getContext().getSymbolTable().getSymbolIfExists(rope(str));
-            return sym == null ? nil() : sym;
+            return sym == null ? nil : sym;
         }
 
     }

@@ -182,7 +182,7 @@ public abstract class MethodNodes {
             SourceSection sourceSection = Layouts.METHOD.getMethod(method).getSharedMethodInfo().getSourceSection();
 
             if (!sourceSection.isAvailable()) {
-                return nil();
+                return nil;
             } else {
                 DynamicObject file = makeStringNode.executeMake(
                         getContext().getPath(sourceSection.getSource()),
@@ -207,7 +207,7 @@ public abstract class MethodNodes {
             DynamicObject selfMetaClass = metaClassNode.executeMetaClass(receiver);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
             if (!superMethod.isDefined()) {
-                return nil();
+                return nil;
             } else {
                 return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, superMethod.getMethod());
             }
@@ -316,7 +316,7 @@ public abstract class MethodNodes {
                     getContext(),
                     this,
                     method.unimplemented());
-            return nil();
+            return nil;
         }
 
     }

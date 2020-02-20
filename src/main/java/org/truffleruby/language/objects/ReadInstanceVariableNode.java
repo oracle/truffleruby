@@ -52,9 +52,9 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
             if (warnIfUndefined && !hasFieldNode((DynamicObject) receiverObject)) {
                 warnNotInitialized();
             }
-            return getReadNode().execute((DynamicObject) receiverObject, name, nil());
+            return getReadNode().execute((DynamicObject) receiverObject, name, nil);
         } else {
-            return nil();
+            return nil;
         }
     }
 
@@ -85,7 +85,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
 
         if (objectProfile.profile(receiverObject instanceof DynamicObject)) {
             if (getReadOrNullNode().execute((DynamicObject) receiverObject, name, null) == null) {
-                return nil();
+                return nil;
             } else {
                 return coreStrings().INSTANCE_VARIABLE.createInstance();
             }

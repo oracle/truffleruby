@@ -29,7 +29,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
 
     @Specialization(guards = "isNil(nil)")
     protected Object doNil(Object nil) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "isRubyProc(proc)")

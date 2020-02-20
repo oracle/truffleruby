@@ -73,7 +73,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object debugPrint(Object string) {
             System.err.println(string.toString());
-            return nil();
+            return nil;
         }
 
     }
@@ -125,7 +125,7 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "isHandle(handle)")
         protected Object remove(DynamicObject handle) {
             EventBinding.class.cast(Layouts.HANDLE.getObject(handle)).dispose();
-            return nil();
+            return nil;
         }
 
     }
@@ -151,7 +151,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object printBacktrace() {
             getContext().getDefaultBacktraceFormatter().printBacktraceOnEnvStderr(this);
-            return nil();
+            return nil;
         }
 
     }
@@ -168,28 +168,28 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "isRubyMethod(method)")
         protected Object astMethod(DynamicObject method, NotProvided block) {
             ast(Layouts.METHOD.getMethod(method));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(method)")
         protected Object astUnboundMethod(DynamicObject method, NotProvided block) {
             ast(Layouts.UNBOUND_METHOD.getMethod(method));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
         protected Object astProc(DynamicObject proc, NotProvided block) {
             ast(Layouts.PROC.getCallTargetForType(proc));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization
         protected Object astBlock(NotProvided proc, DynamicObject block) {
             ast(Layouts.PROC.getCallTargetForType(block));
-            return nil();
+            return nil;
         }
 
         private Object ast(InternalMethod method) {
@@ -202,7 +202,7 @@ public abstract class TruffleDebugNodes {
 
         private Object ast(Node node) {
             if (node == null) {
-                return nil();
+                return nil;
             }
 
             final List<Object> array = new ArrayList<>();
@@ -230,28 +230,28 @@ public abstract class TruffleDebugNodes {
         @Specialization(guards = "isRubyMethod(method)")
         protected Object astMethod(DynamicObject method, NotProvided block) {
             printAst(Layouts.METHOD.getMethod(method));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyUnboundMethod(method)")
         protected Object astUnboundMethod(DynamicObject method, NotProvided block) {
             printAst(Layouts.UNBOUND_METHOD.getMethod(method));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyProc(proc)")
         protected Object astProc(DynamicObject proc, NotProvided block) {
             printAst(Layouts.PROC.getCallTargetForType(proc));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
         @Specialization
         protected Object astBlock(NotProvided proc, DynamicObject block) {
             printAst(Layouts.PROC.getCallTargetForType(block));
-            return nil();
+            return nil;
         }
 
         private void printAst(InternalMethod method) {
@@ -365,7 +365,7 @@ public abstract class TruffleDebugNodes {
         protected Object logConfig(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             config(toJavaStringNode.executeToJavaString(value));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
@@ -382,7 +382,7 @@ public abstract class TruffleDebugNodes {
         protected Object logWarning(Object value,
                 @Cached ToJavaStringNode toJavaStringNode) {
             warning(toJavaStringNode.executeToJavaString(value));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
@@ -399,7 +399,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object throwJavaException(Object message) {
             callingMethod(message.toString());
-            return nil();
+            return nil;
         }
 
         // These two named methods makes it easy to test that the backtrace for a Java exception is what we expect
@@ -434,7 +434,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object throwJavaException(boolean condition) {
             assert condition;
-            return nil();
+            return nil;
         }
 
     }
@@ -857,7 +857,7 @@ public abstract class TruffleDebugNodes {
         @Specialization
         protected Object drainFinalizationQueue() {
             getContext().getFinalizationService().drainFinalizationQueue();
-            return nil();
+            return nil;
         }
 
     }

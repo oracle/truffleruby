@@ -869,7 +869,7 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = { "isNormal(a)", "!isFinite(b)" })
         protected Object compareNotFinite(DynamicObject a, double b) {
             if (Double.isNaN(b)) {
-                return nil();
+                return nil;
             } else {
                 assert Double.isInfinite(b);
                 return b < 0 ? +1 : -1;
@@ -901,7 +901,7 @@ public abstract class BigDecimalNodes {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(a);
 
             if (type == BigDecimalType.NAN || Double.isNaN(b)) {
-                return nil();
+                return nil;
             } else {
                 return b < 0 ? +1 : -1;
             }
@@ -914,7 +914,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "!isNormal(a)", "isNan(a)" })
         protected Object compareSpecialNan(DynamicObject a, DynamicObject b) {
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
@@ -924,7 +924,7 @@ public abstract class BigDecimalNodes {
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
             if (aType == BigDecimalType.NAN || bType == BigDecimalType.NAN) {
-                return nil();
+                return nil;
             }
             if (aType == bType) {
                 return 0;
@@ -1247,7 +1247,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "isNormal(value)")
         protected Object infiniteNormal(DynamicObject value) {
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "!isNormal(value)")
@@ -1258,7 +1258,7 @@ public abstract class BigDecimalNodes {
                 case NEGATIVE_INFINITY:
                     return -1;
                 default:
-                    return nil();
+                    return nil;
             }
         }
 

@@ -379,7 +379,7 @@ public abstract class BindingNodes {
             final SourceSection sourceSection = Layouts.BINDING.getSourceSection(binding);
 
             if (sourceSection == null) {
-                return nil();
+                return nil;
             } else {
                 final DynamicObject file = makeStringNode.executeMake(
                         getContext().getPath(sourceSection.getSource()),

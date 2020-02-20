@@ -244,7 +244,7 @@ public abstract class MatchDataNodes {
                     .normalizeIndex(region.beg.length, index, normalizedIndexProfile);
 
             if (indexOutOfBoundsProfile.profile((normalizedIndex < 0) || (normalizedIndex >= region.beg.length))) {
-                return nil();
+                return nil;
             } else {
                 final int start = region.beg[normalizedIndex];
                 final int end = region.end[normalizedIndex];
@@ -254,7 +254,7 @@ public abstract class MatchDataNodes {
                             Layouts.BASIC_OBJECT.getLogicalClass(source),
                             Layouts.STRING.build(false, false, rope));
                 } else {
-                    return nil();
+                    return nil;
                 }
             }
         }
@@ -461,7 +461,7 @@ public abstract class MatchDataNodes {
                             Layouts.STRING.build(false, isTainted, rope));
                     values[n] = string;
                 } else {
-                    values[n] = nil();
+                    values[n] = nil;
                 }
             }
 
@@ -515,7 +515,7 @@ public abstract class MatchDataNodes {
         protected Object byteBegin(DynamicObject matchData, int index) {
             int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
             if (b < 0) {
-                return nil();
+                return nil;
             } else {
                 return b;
             }
@@ -534,7 +534,7 @@ public abstract class MatchDataNodes {
         protected Object byteEnd(DynamicObject matchData, int index) {
             int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
             if (e < 0) {
-                return nil();
+                return nil;
             } else {
                 return e;
             }

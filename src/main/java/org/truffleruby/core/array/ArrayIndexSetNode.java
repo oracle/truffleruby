@@ -164,7 +164,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
                 // We need to append nil from index arraySize to index (start - 1).
                 // a = [1,2,3]; a [5,1] = [] # => a == [1,2,3,nil,nil]
                 if (growProfile.profile(start > arraySize)) {
-                    write(array, newSize - 1, nil());
+                    write(array, newSize - 1, nil);
                 }
             } else {
                 // Write last element first to grow only once

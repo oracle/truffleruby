@@ -85,8 +85,8 @@ public class RubyCallNode extends RubyContextSourceNode {
         final Object receiverObject = receiver.execute(frame);
 
         if (isSafeNavigation) {
-            if (nilProfile.profile(receiverObject == nil())) {
-                return nil();
+            if (nilProfile.profile(receiverObject == nil)) {
+                return nil;
             }
         }
 
@@ -192,14 +192,14 @@ public class RubyCallNode extends RubyContextSourceNode {
 
         @ExplodeLoop
         public Object isDefined(VirtualFrame frame, RubyContext context) {
-            if (receiverDefinedProfile.profile(receiver.isDefined(frame, context) == nil())) {
-                return nil();
+            if (receiverDefinedProfile.profile(receiver.isDefined(frame, context) == nil)) {
+                return nil;
             }
 
             for (RubyNode argument : arguments) {
-                if (argument.isDefined(frame, context) == nil()) {
+                if (argument.isDefined(frame, context) == nil) {
                     argumentNotDefinedProfile.enter();
-                    return nil();
+                    return nil;
                 }
             }
 
@@ -211,7 +211,7 @@ public class RubyCallNode extends RubyContextSourceNode {
                 receiverObject = receiver.execute(frame);
             } catch (Exception e) {
                 receiverExceptionProfile.enter();
-                return nil();
+                return nil;
             }
 
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
@@ -222,12 +222,12 @@ public class RubyCallNode extends RubyContextSourceNode {
                 final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
 
                 if (r != DispatchNode.MISSING && !respondToMissingCast.executeToBoolean(r)) {
-                    return nil();
+                    return nil;
                 }
             } else if (methodUndefinedProfile.profile(method.isUndefined())) {
-                return nil();
+                return nil;
             } else if (methodNotVisibleProfile.profile(!ignoreVisibility && !isVisibleTo(method, self))) {
-                return nil();
+                return nil;
             }
 
             return coreStrings().METHOD.createInstance();

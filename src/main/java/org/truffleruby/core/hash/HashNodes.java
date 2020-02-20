@@ -59,7 +59,7 @@ public abstract class HashNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, Layouts.HASH.build(null, 0, null, null, nil(), nil(), false));
+            return allocateObjectNode.allocate(rubyClass, Layouts.HASH.build(null, 0, null, null, nil, nil, false));
         }
 
     }
@@ -110,7 +110,7 @@ public abstract class HashNodes {
             }
 
             return allocateObjectNode
-                    .allocate(hashClass, Layouts.HASH.build(newStore, size, null, null, nil(), nil(), false));
+                    .allocate(hashClass, Layouts.HASH.build(newStore, size, null, null, nil, nil, false));
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args)")
@@ -327,7 +327,7 @@ public abstract class HashNodes {
         protected Object deleteNull(DynamicObject hash, Object key, NotProvided block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "isNullHash(hash)")
@@ -365,7 +365,7 @@ public abstract class HashNodes {
             assert HashOperations.verifyStore(getContext(), hash);
 
             if (maybeBlock == NotProvided.INSTANCE) {
-                return nil();
+                return nil;
             } else {
                 return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
             }
@@ -379,7 +379,7 @@ public abstract class HashNodes {
 
             if (hashLookupResult.getEntry() == null) {
                 if (maybeBlock == NotProvided.INSTANCE) {
-                    return nil();
+                    return nil;
                 } else {
                     return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
                 }
@@ -515,8 +515,8 @@ public abstract class HashNodes {
         @Specialization
         protected DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, NotProvided block) {
             assert HashOperations.verifyStore(getContext(), hash);
-            Layouts.HASH.setDefaultValue(hash, nil());
-            Layouts.HASH.setDefaultBlock(hash, nil());
+            Layouts.HASH.setDefaultValue(hash, nil);
+            Layouts.HASH.setDefaultBlock(hash, nil);
             return hash;
         }
 
@@ -524,7 +524,7 @@ public abstract class HashNodes {
         protected DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
-            Layouts.HASH.setDefaultValue(hash, nil());
+            Layouts.HASH.setDefaultValue(hash, nil);
             propagateSharingNode.executePropagate(hash, block);
             Layouts.HASH.setDefaultBlock(hash, block);
             return hash;
@@ -536,7 +536,7 @@ public abstract class HashNodes {
             assert HashOperations.verifyStore(getContext(), hash);
             propagateSharingNode.executePropagate(hash, defaultValue);
             Layouts.HASH.setDefaultValue(hash, defaultValue);
-            Layouts.HASH.setDefaultBlock(hash, nil());
+            Layouts.HASH.setDefaultBlock(hash, nil);
             return hash;
         }
 
@@ -717,16 +717,16 @@ public abstract class HashNodes {
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.executePropagate(hash, defaultProc);
 
-            Layouts.HASH.setDefaultValue(hash, nil());
+            Layouts.HASH.setDefaultValue(hash, nil);
             Layouts.HASH.setDefaultBlock(hash, defaultProc);
             return defaultProc;
         }
 
         @Specialization(guards = "isNil(defaultProc)")
         protected Object setDefaultProc(DynamicObject hash, Object defaultProc) {
-            Layouts.HASH.setDefaultValue(hash, nil());
-            Layouts.HASH.setDefaultBlock(hash, nil());
-            return nil();
+            Layouts.HASH.setDefaultValue(hash, nil);
+            Layouts.HASH.setDefaultBlock(hash, nil);
+            return nil;
         }
 
     }
@@ -740,7 +740,7 @@ public abstract class HashNodes {
             propagateSharingNode.executePropagate(hash, defaultValue);
 
             Layouts.HASH.setDefaultValue(hash, defaultValue);
-            Layouts.HASH.setDefaultBlock(hash, nil());
+            Layouts.HASH.setDefaultBlock(hash, nil);
             return defaultValue;
         }
     }
@@ -753,7 +753,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isEmptyHash(hash)")
         protected Object shiftEmpty(DynamicObject hash) {
-            return callDefaultNode.call(hash, "default", nil());
+            return callDefaultNode.call(hash, "default", nil);
         }
 
         @Specialization(guards = { "!isEmptyHash(hash)", "isPackedHash(hash)" })

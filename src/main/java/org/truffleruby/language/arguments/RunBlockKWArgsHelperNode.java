@@ -55,7 +55,7 @@ public class RunBlockKWArgsHelperNode extends RubyContextSourceNode {
 
         writeArrayNode.executeWrite(frame, remainingArray);
 
-        return nil();
+        return nil;
     }
 
 }

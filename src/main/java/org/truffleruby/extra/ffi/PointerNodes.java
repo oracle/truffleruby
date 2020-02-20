@@ -220,7 +220,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(to);
             checkNull(ptr);
             ptr.writeBytes(0, new Pointer(from), 0, size);
-            return nil();
+            return nil;
         }
 
     }
@@ -474,7 +474,7 @@ public abstract class PointerNodes {
             checkNull(ptr);
             byte byteValue = (byte) value;
             ptr.writeByte(0, byteValue);
-            return nil();
+            return nil;
         }
 
     }
@@ -489,7 +489,7 @@ public abstract class PointerNodes {
             checkNull(ptr);
             byte byteValue = (byte) value;
             ptr.writeByte(0, byteValue);
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 256" })
@@ -498,7 +498,7 @@ public abstract class PointerNodes {
             checkNull(ptr);
             byte signed = (byte) value; // Same as value - 2^8
             ptr.writeByte(0, signed);
-            return nil();
+            return nil;
         }
 
     }
@@ -513,7 +513,7 @@ public abstract class PointerNodes {
             checkNull(ptr);
             short shortValue = (short) value;
             ptr.writeShort(0, shortValue);
-            return nil();
+            return nil;
         }
 
     }
@@ -528,7 +528,7 @@ public abstract class PointerNodes {
             checkNull(ptr);
             short shortValue = (short) value;
             ptr.writeShort(0, shortValue);
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < 65536" })
@@ -537,7 +537,7 @@ public abstract class PointerNodes {
             checkNull(ptr);
             short signed = (short) value; // Same as value - 2^16
             ptr.writeShort(0, signed);
-            return nil();
+            return nil;
         }
 
     }
@@ -550,7 +550,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeInt(0, value);
-            return nil();
+            return nil;
         }
 
     }
@@ -566,7 +566,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeInt(0, value);
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "value > MAX_VALUE", "value < MAX_UNSIGNED_INT_PLUS_ONE" })
@@ -575,7 +575,7 @@ public abstract class PointerNodes {
             checkNull(ptr);
             int signed = (int) value; // Same as value - 2^32
             ptr.writeInt(0, signed);
-            return nil();
+            return nil;
         }
 
     }
@@ -588,7 +588,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeLong(0, value);
-            return nil();
+            return nil;
         }
 
     }
@@ -601,7 +601,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeLong(0, value);
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = "isRubyBignum(value)")
@@ -609,7 +609,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             writeUnsignedLong(ptr, 0, value);
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary
@@ -631,7 +631,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeFloat(0, (float) value);
-            return nil();
+            return nil;
         }
 
     }
@@ -644,7 +644,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writeDouble(0, value);
-            return nil();
+            return nil;
         }
 
     }
@@ -657,7 +657,7 @@ public abstract class PointerNodes {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             ptr.writePointer(0, value);
-            return nil();
+            return nil;
         }
 
     }

@@ -108,7 +108,7 @@ public abstract class TruffleSystemNodes {
             final String value = getEnv(javaName);
 
             if (nullValueProfile.profile(value == null)) {
-                return nil();
+                return nil;
             } else {
                 return fromJavaStringNode.executeFromJavaString(value);
             }
@@ -132,7 +132,8 @@ public abstract class TruffleSystemNodes {
             try {
                 canonicalFile = truffleFile.getCanonicalFile();
             } catch (NoSuchFileException e) {
-                return nil(); // Let the following chdir() fail
+                // Let the following chdir() fail
+                return nil;
             } catch (IOException e) {
                 throw new JavaException(e);
             }
@@ -151,7 +152,7 @@ public abstract class TruffleSystemNodes {
         protected Object getJavaProperty(DynamicObject property) {
             String value = System.getProperty(StringOperations.getString(property));
             if (value == null) {
-                return nil();
+                return nil;
             } else {
                 return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             }
@@ -203,13 +204,13 @@ public abstract class TruffleSystemNodes {
                 @Cached("level") DynamicObject cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, StringOperations.getString(message));
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)" }, replaces = "logCached")
         protected Object log(DynamicObject level, DynamicObject message) {
             log(getLevel(level), StringOperations.getString(message));
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary

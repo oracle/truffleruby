@@ -179,7 +179,7 @@ public abstract class UnboundMethodNodes {
                     .getSourceSection();
 
             if (!sourceSection.isAvailable()) {
-                return nil();
+                return nil;
             } else {
                 DynamicObject file = makeStringNode.executeMake(
                         getContext().getPath(sourceSection.getSource()),
@@ -201,7 +201,7 @@ public abstract class UnboundMethodNodes {
             DynamicObject origin = Layouts.UNBOUND_METHOD.getOrigin(unboundMethod);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
             if (!superMethod.isDefined()) {
-                return nil();
+                return nil;
             } else {
                 return Layouts.UNBOUND_METHOD.createUnboundMethod(
                         coreLibrary().unboundMethodFactory,

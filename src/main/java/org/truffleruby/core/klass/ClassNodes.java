@@ -319,7 +319,7 @@ public abstract class ClassNodes {
 
         @Specialization
         protected Object inherited(Object subclass) {
-            return nil();
+            return nil;
         }
 
     }

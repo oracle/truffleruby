@@ -32,7 +32,7 @@ public abstract class GCNodes {
         protected Object vmGCStart() {
             getContext().getMarkingService().queueMarking();
             System.gc();
-            return nil();
+            return nil;
         }
 
     }

@@ -44,10 +44,10 @@ public class ReadLocalVariableNode extends ReadLocalNode {
             case FRAME_LOCAL_GLOBAL:
                 checkReadFrameSlotNode();
 
-                if (readFrameSlotNode.executeRead(frame) != nil()) {
+                if (readFrameSlotNode.executeRead(frame) != nil) {
                     return coreStrings().GLOBAL_VARIABLE.createInstance();
                 } else {
-                    return nil();
+                    return nil;
                 }
 
             default:

@@ -47,7 +47,7 @@ public abstract class FreezeNode extends RubyContextNode {
 
     @Specialization(guards = "isNil(nil)")
     protected Object freeze(Object nil) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "isRubyBignum(object)")

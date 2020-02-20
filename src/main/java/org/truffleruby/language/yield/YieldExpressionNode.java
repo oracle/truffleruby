@@ -52,7 +52,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
 
         Object block = readBlockNode.execute(frame);
 
-        if (block == nil()) {
+        if (block == nil) {
             useCapturedBlock.enter();
 
             block = RubyArguments.getMethod(frame).getCapturedBlock();
@@ -81,7 +81,7 @@ public class YieldExpressionNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
         if (RubyArguments.getBlock(frame) == null) {
-            return nil();
+            return nil;
         } else {
             return coreStrings().YIELD.createInstance();
         }

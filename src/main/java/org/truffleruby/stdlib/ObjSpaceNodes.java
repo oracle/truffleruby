@@ -86,7 +86,7 @@ public abstract class ObjSpaceNodes {
 
         @Fallback
         protected Object adjacentObjectsPrimitive(Object object) {
-            return nil();
+            return nil;
         }
 
     }
@@ -110,7 +110,7 @@ public abstract class ObjSpaceNodes {
         @Specialization
         protected Object traceAllocationsStart() {
             getContext().getObjectSpaceManager().traceAllocationsStart(getContext().getLanguage());
-            return nil();
+            return nil;
         }
 
     }
@@ -122,7 +122,7 @@ public abstract class ObjSpaceNodes {
         @Specialization
         protected Object traceAllocationsStop() {
             getContext().getObjectSpaceManager().traceAllocationsStop(getContext().getLanguage());
-            return nil();
+            return nil;
         }
 
     }

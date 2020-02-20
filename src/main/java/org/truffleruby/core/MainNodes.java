@@ -71,7 +71,7 @@ public abstract class MainNodes {
                         coreExceptions().runtimeError("main.using is permitted only at toplevel", this));
             }
             usingNode.executeUsing(refinementModule);
-            return nil();
+            return nil;
         }
 
         @TruffleBoundary

@@ -51,7 +51,7 @@ public class DataNode extends RubyContextSourceNode {
 
         Layouts.MODULE.getFields(coreLibrary().objectClass).setConstant(getContext(), null, "DATA", data);
 
-        return nil();
+        return nil;
     }
 
     @TruffleBoundary

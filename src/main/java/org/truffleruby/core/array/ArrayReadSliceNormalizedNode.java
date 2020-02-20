@@ -31,12 +31,12 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyContextNode {
 
     @Specialization(guards = "!indexInBounds(array, index)")
     protected Object readIndexOutOfBounds(DynamicObject array, int index, int length) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "!lengthPositive(length)")
     protected Object readNegativeLength(DynamicObject array, int index, int length) {
-        return nil();
+        return nil;
     }
 
     // Reading within bounds on an array with actual storage

@@ -353,7 +353,7 @@ public abstract class ArrayNodes {
 
             for (int n = 0; n < size; n++) {
                 Object v = getNode.execute(store, n);
-                if (v != nil()) {
+                if (v != nil) {
                     newStore = arrayBuilder.appendValue(newStore, m, v);
                     m++;
                 }
@@ -372,7 +372,7 @@ public abstract class ArrayNodes {
         @ReportPolymorphism.Exclude
         protected Object compactNotObjects(DynamicObject array,
                 @Cached("of(array)") ArrayStrategy strategy) {
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "strategy.matches(array)", "!strategy.isPrimitive()" }, limit = "STORAGE_STRATEGIES")
@@ -395,7 +395,7 @@ public abstract class ArrayNodes {
 
             for (int n = 0; n < size; n++) {
                 Object v = getNode.execute(oldStore, n);
-                if (v != nil()) {
+                if (v != nil) {
                     setNode.execute(newStore, m, v);
                     m++;
                 }
@@ -404,7 +404,7 @@ public abstract class ArrayNodes {
             strategy.setStoreAndSize(array, newStore, m);
 
             if (m == size) {
-                return nil();
+                return nil;
             } else {
                 return array;
             }
@@ -498,7 +498,7 @@ public abstract class ArrayNodes {
                 @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
-            Object found = nil();
+            Object found = nil;
 
             int i = 0;
             int n = 0;
@@ -524,7 +524,7 @@ public abstract class ArrayNodes {
                 return found;
             } else {
                 if (maybeBlock == NotProvided.INSTANCE) {
-                    return nil();
+                    return nil;
                 } else {
                     return yield((DynamicObject) maybeBlock, value);
                 }
@@ -544,7 +544,7 @@ public abstract class ArrayNodes {
             final Object oldStore = Layouts.ARRAY.getStore(array);
             final Object newStore = newStoreNode.execute(size);
 
-            Object found = nil();
+            Object found = nil;
 
             int i = 0;
             int n = 0;
@@ -568,7 +568,7 @@ public abstract class ArrayNodes {
                 return found;
             } else {
                 if (maybeBlock == NotProvided.INSTANCE) {
-                    return nil();
+                    return nil;
                 } else {
                     return yield((DynamicObject) maybeBlock, value);
                 }
@@ -610,7 +610,7 @@ public abstract class ArrayNodes {
             final int i = ArrayOperations.normalizeIndex(size, index, negativeIndexProfile);
 
             if (notInBoundsProfile.profile(i < 0 || i >= size)) {
-                return nil();
+                return nil;
             } else {
                 final Object store = Layouts.ARRAY.getStore(array);
                 final Object value = getNode.execute(store, i);
@@ -635,7 +635,7 @@ public abstract class ArrayNodes {
             final int i = ArrayOperations.normalizeIndex(size, index, negativeIndexProfile);
 
             if (notInBoundsProfile.profile(i < 0 || i >= size)) {
-                return nil();
+                return nil;
             } else {
                 final Object store = Layouts.ARRAY.getStore(array);
                 final Object mutableStore = newStoreNode.execute(size);
@@ -986,7 +986,7 @@ public abstract class ArrayNodes {
         protected DynamicObject initializeWithSizeNoValue(DynamicObject array, int size, NotProvided fillingValue,
                 NotProvided block) {
             final Object[] store = new Object[size];
-            Arrays.fill(store, nil());
+            Arrays.fill(store, nil);
             setStoreAndSize(array, store, size);
             return array;
         }
@@ -1143,7 +1143,7 @@ public abstract class ArrayNodes {
         protected Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initialOrSymbol,
                 NotProvided symbol,
                 DynamicObject block) {
-            return nil();
+            return nil;
         }
 
         @Specialization(
@@ -1206,7 +1206,7 @@ public abstract class ArrayNodes {
         protected Object injectSymbolEmptyArrayNoInitial(DynamicObject array, DynamicObject initialOrSymbol,
                 NotProvided symbol,
                 Object block) {
-            return nil();
+            return nil;
         }
 
         @Specialization(
@@ -1657,7 +1657,7 @@ public abstract class ArrayNodes {
             if (i != n) {
                 return array;
             } else {
-                return nil();
+                return nil;
             }
         }
 
@@ -1878,7 +1878,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
         protected Object shiftEmpty(DynamicObject array, NotProvided n) {
-            return nil();
+            return nil;
         }
 
         @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
@@ -2114,7 +2114,7 @@ public abstract class ArrayNodes {
                     setNode.execute(pair, 1, bGetNode.execute(b, n));
                     zipped[n] = createArray(pair, 2);
                 } else {
-                    zipped[n] = createArray(new Object[]{ aGetNode.execute(a, n), nil() }, 2);
+                    zipped[n] = createArray(new Object[]{ aGetNode.execute(a, n), nil }, 2);
                 }
             }
 

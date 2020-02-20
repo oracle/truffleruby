@@ -44,7 +44,7 @@ public class TruffleThreadNodes {
                     .getCallStack()
                     .getCallerFrameNotInModules(FrameAccess.MATERIALIZE, moduleArray);
             if (rubyCaller == null) {
-                return nil();
+                return nil;
             } else {
                 return BindingNodes.createBinding(getContext(), rubyCaller.materialize());
             }

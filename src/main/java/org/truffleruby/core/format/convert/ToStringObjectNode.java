@@ -29,7 +29,7 @@ public abstract class ToStringObjectNode extends FormatNode {
 
     @Specialization(guards = "isNil(nil)")
     protected Object toStringString(Object nil) {
-        return nil();
+        return nil;
     }
 
     @Specialization(guards = "isRubyString(string)")

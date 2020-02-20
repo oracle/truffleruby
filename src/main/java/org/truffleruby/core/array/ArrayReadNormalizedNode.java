@@ -50,7 +50,7 @@ public abstract class ArrayReadNormalizedNode extends RubyContextSourceNode {
             limit = "STORAGE_STRATEGIES")
     protected Object readOutOfBounds(DynamicObject array, int index,
             @Cached("of(array)") ArrayStrategy strategy) {
-        return nil();
+        return nil;
     }
 
     // Guards
