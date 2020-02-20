@@ -62,7 +62,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
     private static class ArrayBuilderProxyNode extends ArrayBuilderNode {
 
-        @Child StartNode startNode = new StartNode(getInitialAllocator(), 0);
+        @Child StartNode startNode = new StartNode(ArrayStoreLibrary.INITIAL_ALLOCATOR, 0);
         @Child AppendArrayNode appendArrayNode;
         @Child AppendOneNode appendOneNode;
 
@@ -123,7 +123,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
             final int newExpectedLength = Math.max(oldLength, newLength);
 
             if (updatedAllocator != oldStrategy || newExpectedLength > oldLength) {
-                startNode.replace(new StartNode(newStrategy, newExpectedLength));
+                startNode.replace(new StartNode(updatedAllocator, newExpectedLength));
             }
 
             if (newStrategy != oldStrategy) {
