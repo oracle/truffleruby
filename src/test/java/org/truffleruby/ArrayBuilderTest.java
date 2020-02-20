@@ -108,6 +108,18 @@ public class ArrayBuilderTest {
     }
 
     @Test
+    public void arrayBuilderAppendEmptyArrayTest() {
+        testInContext(() -> {
+            ArrayBuilderNode builder = createBuilder();
+            BuilderState state = builder.start(10);
+            DynamicObject otherStore = Layouts.ARRAY
+                .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, ArrayStoreLibrary.INITIAL_STORE, 0);
+            builder.appendArray(state, 0, otherStore);
+            assertEquals(ArrayStoreLibrary.INITIAL_STORE, builder.finish(state, 0));
+        });
+    }
+
+    @Test
     public void arrayBuilderAppendIntArrayTest() {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();

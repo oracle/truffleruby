@@ -299,35 +299,37 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         @Fallback
         protected void appendNewStrategy(BuilderState state, int index, DynamicObject other) {
             assert state.nextIndex == index;
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-
-            final ArrayStoreLibrary arrays = ArrayStoreLibrary.getFactory().getUncached();
             final int otherSize = Layouts.ARRAY.getSize(other);
-            final int neededSize = index + otherSize;
+            if (otherSize != 0) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
 
-            final Object newStore;
+                final ArrayStoreLibrary arrays = ArrayStoreLibrary.getFactory().getUncached();
+                final int neededSize = index + otherSize;
 
-            final int currentCapacity = state.capacity;
-            final int neededCapacity;
-            if (neededSize > currentCapacity) {
-                neededCapacity = ArrayUtils.capacity(context, currentCapacity, neededSize);
-            } else {
-                neededCapacity = currentCapacity;
+                final Object newStore;
+
+                final int currentCapacity = state.capacity;
+                final int neededCapacity;
+                if (neededSize > currentCapacity) {
+                    neededCapacity = ArrayUtils.capacity(context, currentCapacity, neededSize);
+                } else {
+                    neededCapacity = currentCapacity;
+                }
+
+                ArrayAllocator allocator = replaceNodes(
+                                                        arrays.generalizeForStore(state.store, Layouts.ARRAY.getStore(other)),
+                                                        neededCapacity);
+                newStore = allocator.allocate(neededCapacity);
+
+                arrays.copyContents(state.store, 0, newStore, 0, index);
+
+                final Object otherStore = Layouts.ARRAY.getStore(other);
+                arrays.copyContents(otherStore, 0, newStore, index, otherSize);
+
+                state.store = newStore;
+                state.capacity = neededCapacity;
+                state.nextIndex = state.nextIndex + otherSize;
             }
-
-            ArrayAllocator allocator = replaceNodes(
-                    arrays.generalizeForStore(state.store, Layouts.ARRAY.getStore(other)),
-                    neededCapacity);
-            newStore = allocator.allocate(neededCapacity);
-
-            arrays.copyContents(state.store, 0, newStore, 0, index);
-
-            final Object otherStore = Layouts.ARRAY.getStore(other);
-            arrays.copyContents(otherStore, 0, newStore, index, otherSize);
-
-            state.store = newStore;
-            state.capacity = neededCapacity;
-            state.nextIndex = state.nextIndex + otherSize;
         }
 
         protected static Object getStore(DynamicObject array) {
