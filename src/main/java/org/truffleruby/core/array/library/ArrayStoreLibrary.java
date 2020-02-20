@@ -27,6 +27,7 @@ public abstract class ArrayStoreLibrary extends Library {
 
     /** An initial immutable empty array store. This is what should be assigned initially to an array of zero size. */
     public static final Object INITIAL_STORE = ZeroLengthArrayStore.ZERO_LENGTH_STORE;
+    public static final ArrayAllocator INITIAL_ALLOCATOR = ZeroLengthArrayStore.ZERO_LENGTH_ALLOCATOR;
 
     private static final LibraryFactory<ArrayStoreLibrary> FACTORY = LibraryFactory.resolve(ArrayStoreLibrary.class);
 

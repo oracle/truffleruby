@@ -46,19 +46,6 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         }
     }
 
-    @CompilationFinal private static ArrayAllocator INITIAL_ALLOCATOR = null;
-
-    protected static ArrayAllocator getInitialAllocator() {
-        if (INITIAL_ALLOCATOR == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            INITIAL_ALLOCATOR = ArrayStoreLibrary
-                    .getFactory()
-                    .getUncached()
-                    .allocator(ArrayStoreLibrary.INITIAL_STORE);
-        }
-        return INITIAL_ALLOCATOR;
-    }
-
     public static ArrayBuilderNode create() {
         return new ArrayBuilderProxyNode();
     }
@@ -172,7 +159,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         }
 
         public BuilderState start() {
-            if (allocator == getInitialAllocator()) {
+            if (allocator == ArrayStoreLibrary.INITIAL_ALLOCATOR) {
                 return new BuilderState(allocator.allocate(0), expectedLength);
             } else {
                 return new BuilderState(allocator.allocate(expectedLength), expectedLength);
@@ -184,7 +171,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 replaceNodes(allocator, length);
             }
-            if (allocator == getInitialAllocator()) {
+            if (allocator == ArrayStoreLibrary.INITIAL_ALLOCATOR) {
                 return new BuilderState(allocator.allocate(0), length);
             } else {
                 return new BuilderState(allocator.allocate(length), length);
