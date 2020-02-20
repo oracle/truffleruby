@@ -18,7 +18,6 @@ import org.truffleruby.core.array.ArrayBuilderNodeFactory.AppendOneNodeGen;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -111,6 +110,11 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         public synchronized ArrayAllocator updateStrategy(ArrayStoreLibrary.ArrayAllocator newStrategy, int newLength) {
             final ArrayStoreLibrary.ArrayAllocator oldStrategy = startNode.allocator;
             final ArrayStoreLibrary.ArrayAllocator updatedAllocator;
+            // If two threads have raced to update the strategy then
+            // oldStrategy may have been updated while waiting for to
+            // claim the lock. We handle this by calculating the new
+            // strategy explicitly here and returning it from this
+            // function.
             if (oldStrategy != newStrategy) {
                 updatedAllocator = ArrayStoreLibrary.getFactory().getUncached().generalizeForStore(
                         oldStrategy.allocate(0),
@@ -304,8 +308,8 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 }
 
                 ArrayAllocator allocator = replaceNodes(
-                                                        arrays.generalizeForStore(state.store, Layouts.ARRAY.getStore(other)),
-                                                        neededCapacity);
+                        arrays.generalizeForStore(state.store, Layouts.ARRAY.getStore(other)),
+                        neededCapacity);
                 newStore = allocator.allocate(neededCapacity);
 
                 arrays.copyContents(state.store, 0, newStore, 0, index);

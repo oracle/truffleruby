@@ -113,7 +113,10 @@ public class ArrayBuilderTest {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
             DynamicObject otherStore = Layouts.ARRAY
-                .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, ArrayStoreLibrary.INITIAL_STORE, 0);
+                    .createArray(
+                            RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory,
+                            ArrayStoreLibrary.INITIAL_STORE,
+                            0);
             builder.appendArray(state, 0, otherStore);
             assertEquals(ArrayStoreLibrary.INITIAL_STORE, builder.finish(state, 0));
         });
