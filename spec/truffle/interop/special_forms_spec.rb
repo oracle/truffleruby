@@ -30,8 +30,8 @@ describe "Interop special form" do
 
   # FIXME (pitr-ch 18-Mar-2019): break down
   it "#delete(name) sends removeMember(*) or removeArrayElement(*)" do
-    -> { @object.delete :foo }.should raise_error(RuntimeError, /UnsupportedMessageException/)
-    -> { @object.delete 14 }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object.delete :foo }.should raise_error(NameError)
+    -> { @object.delete 14 }.should raise_error(RuntimeError)
     @object.to_s.should include("removeMember(foo)")
     @object.to_s.should include("removeArrayElement(14)")
   end

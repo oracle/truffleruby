@@ -40,17 +40,18 @@ module Truffle
       enumerable(keys).map { |key| from_java_string(key) }
     end
 
-    def self.object_keys(object, internal)
-      # TODO (pitr-ch 28-Nov-2019): make sure protected methods are not listed unless internal
-      # TODO (pitr-ch 05-Feb-2020): write in Java?
+    def self.get_members(object, internal)
       keys = []
 
       if object.respond_to? :polyglot_members
         keys = object.polyglot_members internal
       else
-        object.methods.each do |method|
+        add_method_key = proc do |method|
+          # do not list methods which cannot be read using interop
           keys << method.to_s if Primitive.object_respond_to? object, method, true
         end
+
+        object.public_methods.each(&add_method_key)
 
         if internal
           object.instance_variables.each do |ivar|
@@ -58,15 +59,15 @@ module Truffle
             keys << ivar_string if ivar_string.start_with?('@')
           end
 
-          object.private_methods.each do |method|
-            # do not list methods which cannot be read using interop
-            keys << method.to_s if Primitive.object_respond_to? object, method, true
-          end
+          object.protected_methods.each(&add_method_key)
+          object.private_methods.each(&add_method_key)
         end
       end
 
       keys.map { |s| Truffle::Interop.to_java_string(s) }
     end
+
+    private_class_method :get_members
 
     def self.lookup_symbol(name)
       if MAIN.respond_to?(name, true)

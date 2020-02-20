@@ -763,8 +763,10 @@ public abstract class InteropNodes {
                         getContext(),
                         coreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
             } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
+                unknownIdentifierProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().nameErrorUnsuportedMessage(receiver, identifier, e, this));
             }
 
             return true;

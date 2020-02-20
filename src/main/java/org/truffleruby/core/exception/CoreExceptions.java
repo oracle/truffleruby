@@ -35,6 +35,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -696,6 +697,12 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public DynamicObject nameErrorUnknownIdentifier(Object receiver, Object name, InvalidArrayIndexException exception,
+            Node currentNode) {
+        return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
+    }
+
+    @TruffleBoundary
+    public DynamicObject nameErrorUnsuportedMessage(Object receiver, Object name, UnsupportedMessageException exception,
             Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }

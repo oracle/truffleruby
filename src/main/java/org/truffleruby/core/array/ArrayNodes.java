@@ -2172,4 +2172,16 @@ public abstract class ArrayNodes {
             return storage.getAddress();
         }
     }
+
+    @Primitive(name = "array_store_native?")
+    @ImportStatic(ArrayGuards.class)
+    public abstract static class IsStoreNativeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization(guards = { "strategy.matches(array)" }, limit = "ARRAY_STRATEGIES")
+        protected boolean IsStoreNative(DynamicObject array,
+                @Cached("of(array)") ArrayStrategy strategy,
+                @Cached("nativeStrategy()") ArrayStrategy nativeStrategy) {
+            return strategy == nativeStrategy;
+        }
+    }
 }

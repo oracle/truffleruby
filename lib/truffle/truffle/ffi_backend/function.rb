@@ -195,7 +195,7 @@ module FFI
       elsif nil.equal?(value)
         Truffle::FFI::Pointer::NULL
       elsif String === value
-        Truffle::CExt.string_to_pointer(value)
+        Truffle::CExt.string_to_ffi_pointer(value)
       elsif value.respond_to?(:to_ptr)
         Truffle::Type.coerce_to value, Truffle::FFI::Pointer, :to_ptr
       else

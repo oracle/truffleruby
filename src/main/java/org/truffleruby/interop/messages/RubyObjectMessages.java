@@ -16,6 +16,7 @@ import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -44,15 +45,12 @@ public class RubyObjectMessages {
         return null;
     }
 
-    // TODO (pitr-ch 19-Mar-2019): return exceptions like UnsupportedMessageException correctly
-
     @ExportMessage
     protected static boolean hasArrayElements(
             DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-        // FIXME (pitr 26-Mar-2019): the method should have a marker module
         Object value = dispatchNode.call(receiver, "polyglot_array?");
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
@@ -158,9 +156,6 @@ public class RubyObjectMessages {
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
-    // FIXME (pitr 18-Mar-2019): replace #unbox support with testing #to_int etc.
-    //   since if an object had un-box method it could be have been un-boxed
-
     @ExportMessage
     protected static boolean isPointer(
             DynamicObject receiver,
@@ -171,11 +166,6 @@ public class RubyObjectMessages {
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
-    // FIXME (pitr 11-May-2019): allow Ruby objects to implement interop subProtocols, e.g. for array, or numbers. Not for members though.
-
-    // FIXME (pitr 21-Mar-2019): "if-and-only-if" relation between isPointer == true and "asPointer does not throw an UnsupportedMessageException"
-    // TODO (pitr-ch 18-Mar-2019): assert #pointer? #address invariant - both has to be defined
-
     @ExportMessage
     protected static long asPointer(
             DynamicObject receiver,
@@ -183,7 +173,6 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
-        // FIXME (pitr 26-Mar-2019): the method should have a marker module
         Object value = dispatchNode.call(receiver, "polyglot_address");
         if (value == DispatchNode.MISSING) {
             errorProfile.enter();
@@ -216,9 +205,10 @@ public class RubyObjectMessages {
             boolean internal,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Exclusive @Cached CallDispatchHeadNode dispatchNode) {
+
         return dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
-                "object_keys",
+                "get_members",
                 receiver,
                 internal);
     }
@@ -286,18 +276,24 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
         Object dynamic = dispatchNode.call(receiver, "polyglot_member_remove", rubyName);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             if (!isIVar(name)) {
                 errorProfile.enter();
-                // TODO (pitr-ch 19-Mar-2019): use UnsupportedMessageException on name not starting with @?
-                throw UnknownIdentifierException.create(name);
+                throw UnsupportedMessageException.create();
             }
-            removeInstanceVariableNode
-                    .call(receiver, "remove_instance_variable", foreignToRubyNode.executeConvert(name));
+            try {
+                removeInstanceVariableNode.call(receiver, "remove_instance_variable", rubyName);
+            } catch (RaiseException e) { // raises only if the name is missing
+                errorProfile.enter();
+                UnknownIdentifierException unknownIdentifier = UnknownIdentifierException.create(name);
+                unknownIdentifier.initCause(e);
+                throw unknownIdentifier;
+            }
         }
     }
 
@@ -306,20 +302,26 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             String name,
             Object[] arguments,
-            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchDynamic,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchMember,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
-            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
 
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_member_invoke", rubyName, convertedArguments);
+        Object dynamic = dispatchDynamic.call(receiver, "polyglot_member_invoke", rubyName, convertedArguments);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            // FIXME (pitr 06-Feb-2020): proper exception if member is missing
-            return dispatchNode.call(receiver, name, convertedArguments);
-        } else {
-            return dynamic;
+            Object result = dispatchMember.call(receiver, name, convertedArguments);
+            if (result == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name);
+            }
+            return result;
         }
+
+        return dynamic;
     }
 
     @ExportMessage
@@ -510,17 +512,15 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean isInstantiable(
-            DynamicObject receiver,
-            @Exclusive @Cached DoesRespondDispatchHeadNode doesRespond) {
+    protected static boolean isInstantiable(DynamicObject receiver,
+            @Exclusive @Cached(parameters = "PUBLIC") DoesRespondDispatchHeadNode doesRespond) {
         return doesRespond.doesRespondTo(null, "new", receiver);
     }
 
     @ExportMessage
-    protected static Object instantiate(
-            DynamicObject receiver, Object[] arguments,
+    protected static Object instantiate(DynamicObject receiver, Object[] arguments,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached(parameters = "PUBLIC_RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode)
             throws UnsupportedMessageException {
 

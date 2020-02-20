@@ -126,8 +126,6 @@ module Truffle::CExt
       @address = nil
     end
 
-    # FIXME (pitr-ch 04-Feb-2020): special class allowing to define dynamic members
-
     private
 
     def polyglot_members?
@@ -206,6 +204,11 @@ module Truffle::CExt
     end
 
     def cache_address
+      unless name.polyglot_pointer?
+        name.polyglot_to_native
+        raise unless name.polyglot_pointer?
+      end
+
       addr = name.polyglot_address
       ENCODING_CACHE_MUTEX.synchronize do
         NATIVE_CACHE[addr] = self
@@ -232,9 +235,9 @@ module Truffle::CExt
     def polyglot_member_read(name)
       case name
       when 'mode'
-        mode
+        @io.instance_variable_get(:@mode)
       when 'fd'
-        fd
+        @io.instance_variable_get(:@descriptor)
       else
         raise "Unknown identifier: #{name}"
       end
@@ -283,14 +286,6 @@ module Truffle::CExt
     def polyglot_member_write_side_effects?(name)
       false
     end
-
-    def mode
-      @io.instance_variable_get(:@mode)
-    end
-
-    def fd
-      @io.instance_variable_get(:@descriptor)
-    end
   end
 
   class RStringPtr
@@ -298,18 +293,22 @@ module Truffle::CExt
 
     def initialize(string)
       @string = string
+      @address = 0
     end
 
     def polyglot_pointer?
-      true
+      @address != 0
     end
 
     def polyglot_address
-      @address ||= Primitive.string_pointer_to_native(@string)
+      address = @address
+    ensure
+      raise if address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
     end
 
     # Every isPointer object should also have TO_NATIVE
     def polyglot_to_native
+      @address = Primitive.string_pointer_to_native(@string)
     end
 
     def polyglot_array?
@@ -341,16 +340,71 @@ module Truffle::CExt
       false
     end
 
-    def polyglot_array_removable?
+    def polyglot_array_removable?(index)
       false
     end
 
+    # To check if it was already converted to native or not in rb_str_new
     def native?
-      Primitive.string_pointer_is_native?(@string)
+      polyglot_pointer?
     end
 
     alias_method :to_str, :string
     alias_method :to_s, :string
+  end
+
+  class RStringEndPtr
+    def initialize(string)
+      @string = string
+      @address = 0
+    end
+
+    def polyglot_pointer?
+      @address != 0
+    end
+
+    def polyglot_address
+      @address
+    ensure
+      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be raised so it is translated to UnsupportedMessageException
+    end
+
+    def polyglot_to_native
+      @address = Primitive.string_pointer_to_native(@string) + @string.bytesize
+    end
+
+    def polyglot_array?
+      true
+    end
+
+    # this is called by Sulong for strlen() which calls getArraySize() in Sulong string.c
+    def polyglot_array_size
+      0
+    end
+
+    def polyglot_array_read(index)
+      raise
+    end
+
+    def polyglot_array_write(index, value)
+      raise
+    end
+
+    def polyglot_array_readable?(index)
+      false
+    end
+
+    def polyglot_array_modifiable?(index)
+      false
+    end
+
+    def polyglot_array_insertable?(index)
+      false
+    end
+
+    def polyglot_array_removable?(index)
+      false
+    end
   end
 
   class RArrayPtr
@@ -361,16 +415,15 @@ module Truffle::CExt
     end
 
     def polyglot_pointer?
-      true
+      Primitive.array_store_native?(@array)
     end
 
     def polyglot_address
-      Primitive.array_store_to_native(@array)
       Primitive.array_store_address(@array)
     end
 
-    # Every IS_POINTER object should also have TO_NATIVE
     def polyglot_to_native
+      Primitive.array_store_to_native(@array)
     end
 
     def polyglot_array?
@@ -401,34 +454,8 @@ module Truffle::CExt
       false
     end
 
-    def polyglot_array_removable?
+    def polyglot_array_removable?(index)
       false
-    end
-
-    def native?
-      false
-    end
-  end
-
-  class RStringEndPtr
-    def initialize(string)
-      @string = string
-    end
-
-    def size
-      0
-    end
-
-    def polyglot_pointer?
-      true
-    end
-
-    def polyglot_address
-      @address ||= Primitive.string_pointer_to_native(@string) + @string.bytesize
-    end
-
-    # Every IS_POINTER object should also have TO_NATIVE
-    def polyglot_to_native
     end
   end
 
@@ -2045,7 +2072,7 @@ module Truffle::CExt
   end
 
   def native_string?(string)
-    Primitive.string_pointer_is_native?(string)
+    Primitive.string_is_native?(string)
   end
 
   def RSTRING_PTR(string)
