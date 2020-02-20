@@ -9,13 +9,11 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -39,9 +37,8 @@ public abstract class ProcOrNullNode extends RubyBaseNode {
         return null;
     }
 
-    @Specialization(guards = "isNil(context, nil)")
-    protected DynamicObject doNil(Object nil,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    @Specialization
+    protected DynamicObject doNil(Nil nil) {
         return null;
     }
 

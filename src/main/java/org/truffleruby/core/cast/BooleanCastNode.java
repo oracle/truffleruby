@@ -9,13 +9,12 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -43,9 +42,8 @@ public abstract class BooleanCastNode extends RubyBaseNode {
     /** Execute with given value */
     public abstract boolean executeToBoolean(Object value);
 
-    @Specialization(guards = "isNil(context, nil)")
-    protected boolean doNil(Object nil,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    @Specialization
+    protected boolean doNil(Nil nil) {
         return false;
     }
 
@@ -69,15 +67,13 @@ public abstract class BooleanCastNode extends RubyBaseNode {
         return true;
     }
 
-    @Specialization(guards = "!isNil(context, object)")
-    protected boolean doBasicObject(DynamicObject object,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+    @Specialization
+    protected boolean doBasicObject(DynamicObject object) {
         return true;
     }
 
     @Specialization(guards = "isForeignObject(object)", limit = "getCacheLimit()")
-    protected boolean doForeignObject(
-            TruffleObject object,
+    protected boolean doForeignObject(TruffleObject object,
             @CachedLibrary("object") InteropLibrary objects,
             @Cached("createBinaryProfile()") ConditionProfile profile,
             @Cached BranchProfile failed) {

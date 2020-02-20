@@ -106,7 +106,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     // Cover remaining non objects which are not primitives nor DynamicObject
 
-    @Specialization(guards = { "!isPrimitive(object)", "!isNil(context, object)", "!isDynamicObject(object)" })
+    @Specialization(guards = { "!isPrimitive(object)", "!isNil(object)", "!isDynamicObject(object)" })
     protected DynamicObject metaClassFallback(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().truffleInteropForeignClass;

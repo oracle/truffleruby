@@ -386,7 +386,7 @@ public abstract class RangeNodes {
             }
         }
 
-        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(getContext(), range)" })
+        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(range)" })
         protected Object boundedToA(VirtualFrame frame, DynamicObject range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -396,7 +396,7 @@ public abstract class RangeNodes {
             return toAInternalCall.call(range, "to_a_internal");
         }
 
-        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(getContext(), range)" })
+        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(range)" })
         protected Object endlessToA(VirtualFrame frame, DynamicObject range) {
             throw new RaiseException(getContext(), coreExceptions().rangeError(
                     "cannot convert endless range to an array",
@@ -425,7 +425,7 @@ public abstract class RangeNodes {
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }
 
-        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(getContext(), range)" })
+        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(range)" })
         protected DynamicObject boundedObjectRange(DynamicObject range, DynamicObject array) {
             int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
             int end = toInt(Layouts.OBJECT_RANGE.getEnd(range));
@@ -433,7 +433,7 @@ public abstract class RangeNodes {
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }
 
-        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(getContext(), range)" })
+        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(range)" })
         protected DynamicObject endlessObjectRange(DynamicObject range, DynamicObject array) {
             int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
             int end = Layouts.ARRAY.getSize(array);

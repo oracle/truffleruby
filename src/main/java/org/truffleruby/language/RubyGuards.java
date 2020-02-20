@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -127,9 +126,9 @@ public abstract class RubyGuards {
         return Layouts.OBJECT_RANGE.isObjectRange(object);
     }
 
-    public static boolean isEndlessRange(RubyContext context, DynamicObject object) {
+    public static boolean isEndlessRange(DynamicObject object) {
         assert isObjectRange(object);
-        return isNil(context, Layouts.OBJECT_RANGE.getEnd(object));
+        return Layouts.OBJECT_RANGE.getEnd(object) == Nil.INSTANCE;
     }
 
     public static boolean isRubyRange(Object value) {
@@ -285,8 +284,8 @@ public abstract class RubyGuards {
         return isBasicNumber(object) || isRubyBignum(object);
     }
 
-    public static boolean isNil(RubyContext context, Object object) {
-        return object == context.getCoreLibrary().nil;
+    public static boolean isNil(Object object) {
+        return object == Nil.INSTANCE;
     }
 
     // Internal types
