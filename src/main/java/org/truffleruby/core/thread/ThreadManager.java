@@ -28,6 +28,7 @@ import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
@@ -165,7 +166,7 @@ public class ThreadManager {
     }
 
     public DynamicObject createBootThread(String info) {
-        final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(packThreadFields(nil(), info));
+        final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(packThreadFields(Nil.INSTANCE, info));
         setFiberManager(thread);
         return thread;
     }
@@ -211,7 +212,7 @@ public class ThreadManager {
                 Pointer.NULL,
                 currentGroup,
                 info,
-                nil());
+                Nil.INSTANCE);
     }
 
     private boolean getGlobalAbortOnException() {
@@ -220,7 +221,7 @@ public class ThreadManager {
     }
 
     private ThreadLocalGlobals createThreadLocals() {
-        return new ThreadLocalGlobals(nil(), nil());
+        return new ThreadLocalGlobals(Nil.INSTANCE, Nil.INSTANCE);
     }
 
     private void setupSignalHandler(TruffleNFIPlatform nfi, NativeConfiguration config) {
@@ -277,10 +278,10 @@ public class ThreadManager {
             setThreadValue(context, thread, result);
             // Handlers in the same order as in FiberManager
         } catch (KillException e) {
-            setThreadValue(context, thread, nil());
+            setThreadValue(context, thread, Nil.INSTANCE);
         } catch (ExitException e) {
             rethrowOnMainThread(currentNode, e);
-            setThreadValue(context, thread, nil());
+            setThreadValue(context, thread, Nil.INSTANCE);
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
         } catch (DynamicReturnException e) {
@@ -701,10 +702,6 @@ public class ThreadManager {
         } else {
             return builder.toString();
         }
-    }
-
-    private Object nil() {
-        return context.getCoreLibrary().nil;
     }
 
 }

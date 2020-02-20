@@ -25,6 +25,7 @@ import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -1083,7 +1084,7 @@ public class CoreExceptions {
         DynamicObject exceptionClass = context.getCoreLibrary().systemCallErrorClass;
         Object errorMessage;
         if (message == null) {
-            errorMessage = context.getCoreLibrary().nil;
+            errorMessage = Nil.INSTANCE;
         } else {
             errorMessage = StringOperations
                     .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));

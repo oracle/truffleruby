@@ -198,7 +198,6 @@ public class CoreLibrary {
 
     public final DynamicObject argv;
     public final DynamicObject mainObject;
-    public final Object nil;
 
     public final GlobalVariables globalVariables;
 
@@ -601,15 +600,14 @@ public class CoreLibrary {
         // Create some key objects
 
         mainObject = objectFactory.newInstance();
-        nil = Nil.INSTANCE;
-        emptyDescriptor = new FrameDescriptor(nil);
+        emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
         argv = Layouts.ARRAY.createArray(arrayFactory, ArrayStrategy.NULL_ARRAY_STORE, 0);
 
-        globalVariables = new GlobalVariables(nil);
+        globalVariables = new GlobalVariables(Nil.INSTANCE);
 
         // No need for new version since it's null before which is not cached
         assert Layouts.CLASS.getSuperclass(basicObjectClass) == null;
-        Layouts.CLASS.setSuperclass(basicObjectClass, nil);
+        Layouts.CLASS.setSuperclass(basicObjectClass, Nil.INSTANCE);
 
         patchFiles = initializePatching(context);
     }
@@ -690,7 +688,7 @@ public class CoreLibrary {
     private Object verbosityOption() {
         switch (context.getOptions().VERBOSITY) {
             case NIL:
-                return nil;
+                return Nil.INSTANCE;
             case FALSE:
                 return false;
             case TRUE:
@@ -999,7 +997,7 @@ public class CoreLibrary {
 
     /** true if $VERBOSE is true or false, but not nil */
     public boolean warningsEnabled() {
-        return verbosity() != nil;
+        return verbosity() != Nil.INSTANCE;
     }
 
     /** true only if $VERBOSE is true */

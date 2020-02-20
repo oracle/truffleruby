@@ -31,7 +31,7 @@ public class SetTopLevelBindingNode extends RubyContextSourceNode {
     private void updateTopLevelBindingFrame(MaterializedFrame mainScriptFrame) {
         final ModuleFields fields = Layouts.MODULE.getFields(coreLibrary().objectClass);
         final DynamicObject toplevelBinding = (DynamicObject) fields.getConstant("TOPLEVEL_BINDING").getValue();
-        BindingNodes.insertAncestorFrame(getContext(), toplevelBinding, mainScriptFrame);
+        BindingNodes.insertAncestorFrame(toplevelBinding, mainScriptFrame);
     }
 
 }

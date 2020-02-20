@@ -16,6 +16,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
@@ -25,7 +26,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class HashOperations {
 
     public static DynamicObject newEmptyHash(RubyContext context) {
-        final Object nil = context.getCoreLibrary().nil;
+        final Object nil = Nil.INSTANCE;
         return context.getCoreLibrary().hashFactory.newInstance(
                 Layouts.HASH.build(null, 0, null, null, nil, nil, false));
     }

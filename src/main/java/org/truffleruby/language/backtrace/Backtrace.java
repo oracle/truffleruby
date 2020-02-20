@@ -18,6 +18,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.language.CallStackManager;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -281,7 +282,7 @@ public class Backtrace {
         // Omitting more locations than available should return nil.
         if (stackTraceLength == 0) {
             return omitted > totalUnderlyingElements
-                    ? context.getCoreLibrary().nil
+                    ? Nil.INSTANCE
                     : ArrayHelpers.createEmptyArray(context);
         }
 

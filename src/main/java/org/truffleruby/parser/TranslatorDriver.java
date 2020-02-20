@@ -219,7 +219,7 @@ public class TranslatorDriver {
                 sharedMethodInfo.getName(),
                 0,
                 null,
-                TranslatorEnvironment.newFrameDescriptor(context));
+                TranslatorEnvironment.newFrameDescriptor());
 
         // Declare arguments as local variables in the top-level environment - we'll put the values there in a prelude
 

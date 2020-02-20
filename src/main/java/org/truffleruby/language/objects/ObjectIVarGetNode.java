@@ -43,7 +43,7 @@ public abstract class ObjectIVarGetNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("checkName(context, object, name, cachedCheckName)") Object cachedName,
             @Cached ReadObjectFieldNode readObjectFieldNode) {
-        return readObjectFieldNode.execute(object, cachedName, context.getCoreLibrary().nil);
+        return readObjectFieldNode.execute(object, cachedName, nil);
     }
 
     @TruffleBoundary
@@ -53,7 +53,7 @@ public abstract class ObjectIVarGetNode extends RubyBaseNode {
         return ReadObjectFieldNodeGen.getUncached().execute(
                 object,
                 checkName(context, object, name, checkName),
-                context.getCoreLibrary().nil);
+                nil);
     }
 
     protected Object checkName(RubyContext context, DynamicObject object, Object name, boolean checkName) {

@@ -15,6 +15,7 @@ import java.util.NoSuchElementException;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -127,7 +128,7 @@ public abstract class BucketsStrategy {
             }
         }
 
-        final Object nil = context.getCoreLibrary().nil;
+        final Object nil = Nil.INSTANCE;
         return context.getCoreLibrary().hashFactory.newInstance(
                 Layouts.HASH.build(newEntries, actualSize, firstInSequence, lastInSequence, nil, nil, false));
     }

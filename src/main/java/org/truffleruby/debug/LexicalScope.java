@@ -15,6 +15,7 @@ import java.util.Map;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -40,7 +41,7 @@ public class LexicalScope {
         final Object receiver;
 
         if (frame == null) {
-            receiver = context.getCoreLibrary().nil;
+            receiver = Nil.INSTANCE;
         } else {
             receiver = RubyArguments.getSelf(frame);
         }
@@ -116,7 +117,7 @@ public class LexicalScope {
         @TruffleBoundary
         protected Object readMember(String member) throws UnknownIdentifierException {
             if (frame == null) {
-                return context.getCoreLibrary().nil;
+                return Nil.INSTANCE;
             } else {
                 final FrameSlot slot = slots.get(member);
                 if (slot == null) {

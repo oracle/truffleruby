@@ -37,7 +37,7 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
         final DynamicObject errnoClass;
         if (errnoName == null) {
             errnoClass = getContext().getCoreLibrary().systemCallErrorClass;
-            errnoDescription = getContext().getCoreLibrary().nil;
+            errnoDescription = nil;
         } else {
             errnoClass = getContext().getCoreLibrary().getErrnoClass(errnoName);
             errnoDescription = StringOperations.createString(

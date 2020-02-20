@@ -698,7 +698,7 @@ public abstract class KernelNodes {
                 Rope file,
                 int line,
                 boolean ownScopeForAssignments) {
-            final MaterializedFrame frame = BindingNodes.newFrame(getContext(), BindingNodes.getFrame(binding));
+            final MaterializedFrame frame = BindingNodes.newFrame(BindingNodes.getFrame(binding));
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);

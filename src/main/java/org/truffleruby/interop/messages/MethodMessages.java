@@ -12,6 +12,7 @@ package org.truffleruby.interop.messages;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.methods.CallBoundMethodNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -39,6 +40,6 @@ public class MethodMessages extends RubyObjectMessages {
         return callBoundMethodNode.executeCallBoundMethod(
                 method,
                 foreignToRubyArgumentsNode.executeConvert(arguments),
-                context.getCoreLibrary().nil);
+                Nil.INSTANCE);
     }
 }

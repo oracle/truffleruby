@@ -22,6 +22,7 @@ import org.truffleruby.core.array.ArraySliceNodeGen;
 import org.truffleruby.core.array.PrimitiveArrayNodeFactory;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
@@ -147,7 +148,7 @@ public class LoadArgumentsTranslator extends Translator {
                 methodBodyTranslator.getEnvironment().declareVar(name);
                 keyRestNameOrNil = context.getSymbolTable().getSymbol(name);
             } else {
-                keyRestNameOrNil = context.getCoreLibrary().nil;
+                keyRestNameOrNil = Nil.INSTANCE;
             }
 
             sequence.add(new IfNode(
@@ -355,7 +356,7 @@ public class LoadArgumentsTranslator extends Translator {
     }
 
     public RubyNode saveMethodBlockArg() {
-        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().nil);
+        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(Nil.INSTANCE);
         final FrameSlot slot = methodBodyTranslator
                 .getEnvironment()
                 .getFrameDescriptor()
@@ -365,7 +366,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitBlockArgNode(BlockArgParseNode node) {
-        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(context.getCoreLibrary().nil);
+        final RubyNode readNode = new ReadBlockFromCurrentFrameArgumentsNode(Nil.INSTANCE);
         final FrameSlot slot = methodBodyTranslator.getEnvironment().getFrameDescriptor().findFrameSlot(node.getName());
         return new WriteLocalVariableNode(slot, readNode);
     }

@@ -18,7 +18,6 @@ import org.joni.Regex;
 import org.joni.Region;
 import org.joni.exception.ValueException;
 import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -38,6 +37,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -59,12 +59,12 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class MatchDataNodes {
 
     @TruffleBoundary
-    public static Object begin(RubyContext context, DynamicObject matchData, int index) {
+    public static Object begin(DynamicObject matchData, int index) {
         // Taken from org.jruby.RubyMatchData
         int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
 
         if (b < 0) {
-            return context.getCoreLibrary().nil;
+            return Nil.INSTANCE;
         }
 
         final Rope rope = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
@@ -76,12 +76,12 @@ public abstract class MatchDataNodes {
     }
 
     @TruffleBoundary
-    public static Object end(RubyContext context, DynamicObject matchData, int index) {
+    public static Object end(DynamicObject matchData, int index) {
         // Taken from org.jruby.RubyMatchData
         int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
 
         if (e < 0) {
-            return context.getCoreLibrary().nil;
+            return Nil.INSTANCE;
         }
 
         final Rope rope = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
@@ -412,7 +412,7 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object begin(DynamicObject matchData, int index) {
-            return MatchDataNodes.begin(getContext(), matchData, index);
+            return MatchDataNodes.begin(matchData, index);
         }
 
         @TruffleBoundary
@@ -491,7 +491,7 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = "inBounds(matchData, index)")
         protected Object end(DynamicObject matchData, int index) {
-            return MatchDataNodes.end(getContext(), matchData, index);
+            return MatchDataNodes.end(matchData, index);
         }
 
         @TruffleBoundary

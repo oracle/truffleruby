@@ -17,6 +17,7 @@ import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.language.Nil;
 
 /** Class to provide GC marking and other facilities to keep objects alive for native extensions.
  *
@@ -114,7 +115,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         private final ExtensionCallStack extensionCallStack;
 
         public MarkerThreadLocalData(MarkingService service) {
-            this.extensionCallStack = new ExtensionCallStack(service.context.getCoreLibrary().nil);
+            this.extensionCallStack = new ExtensionCallStack(Nil.INSTANCE);
         }
 
         public ExtensionCallStack getExtensionCallStack() {

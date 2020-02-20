@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.control.BreakID;
@@ -81,8 +81,8 @@ public class TranslatorEnvironment {
         this.breakID = breakID;
     }
 
-    public static FrameDescriptor newFrameDescriptor(RubyContext context) {
-        return new FrameDescriptor(context.getCoreLibrary().nil);
+    public static FrameDescriptor newFrameDescriptor() {
+        return new FrameDescriptor(Nil.INSTANCE);
     }
 
     public boolean isDynamicConstantLookup() {
