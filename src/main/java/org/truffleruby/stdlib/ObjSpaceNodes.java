@@ -59,7 +59,6 @@ public abstract class ObjSpaceNodes {
 
         @Specialization(
                 guards = {
-                        "!isNil(object)",
                         "!isRubyArray(object)",
                         "!isRubyHash(object)",
                         "!isRubyString(object)",

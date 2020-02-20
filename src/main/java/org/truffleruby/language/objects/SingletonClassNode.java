@@ -100,20 +100,18 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
     @Specialization(
             guards = {
                     "object == cachedObject",
-                    "!isNil(cachedObject)",
                     "!isRubyBignum(cachedObject)",
                     "!isRubySymbol(cachedObject)",
                     "!isRubyClass(cachedObject)" },
             limit = "getIdentityCacheLimit()")
-    protected DynamicObject singletonClassInstanceCached(
-            DynamicObject object,
+    protected DynamicObject singletonClassInstanceCached(DynamicObject object,
             @Cached("object") DynamicObject cachedObject,
             @Cached("getSingletonClassForInstance(object)") DynamicObject cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(
-            guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubySymbol(object)", "!isRubyClass(object)" },
+            guards = { "!isRubyBignum(object)", "!isRubySymbol(object)", "!isRubyClass(object)" },
             replaces = "singletonClassInstanceCached")
     protected DynamicObject singletonClassInstanceUncached(DynamicObject object) {
         return getSingletonClassForInstance(object);

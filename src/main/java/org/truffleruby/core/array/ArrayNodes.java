@@ -1131,14 +1131,14 @@ public abstract class ArrayNodes {
 
         // With block
 
-        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)", "!isNil(block)" })
+        @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
         @ReportPolymorphism.Exclude
         protected Object injectEmptyArray(DynamicObject array, Object initialOrSymbol, NotProvided symbol,
                 DynamicObject block) {
             return initialOrSymbol;
         }
 
-        @Specialization(guards = { "isEmptyArray(array)", "!isNil(block)" })
+        @Specialization(guards = { "isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
         protected Object injectEmptyArrayNoInitial(DynamicObject array, NotProvided initialOrSymbol,
                 NotProvided symbol,
@@ -1150,8 +1150,7 @@ public abstract class ArrayNodes {
                 guards = {
                         "strategy.matches(array)",
                         "!isEmptyArray(array)",
-                        "wasProvided(initialOrSymbol)",
-                        "!isNil(block)" },
+                        "wasProvided(initialOrSymbol)" },
                 limit = "STORAGE_STRATEGIES")
         protected Object injectWithInitial(DynamicObject array, Object initialOrSymbol, NotProvided symbol,
                 DynamicObject block,
@@ -1162,7 +1161,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "strategy.matches(array)", "!isEmptyArray(array)", "!isNil(block)" },
+                guards = { "strategy.matches(array)", "!isEmptyArray(array)" },
                 limit = "STORAGE_STRATEGIES")
         protected Object injectNoInitial(DynamicObject array, NotProvided initialOrSymbol, NotProvided symbol,
                 DynamicObject block,

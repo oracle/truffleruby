@@ -94,8 +94,8 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
         }
     }
 
-    @Specialization(guards = { "!isNil(object)", "!isRubyBignum(object)", "!isRubyArray(object)" })
-    protected Object cast(VirtualFrame frame, DynamicObject object,
+    @Specialization(guards = { "!isRubyBignum(object)", "!isRubyArray(object)" })
+    protected Object cast(DynamicObject object,
             @Cached BranchProfile errorProfile) {
         final Object result = toArrayNode.call(object, "to_ary");
 

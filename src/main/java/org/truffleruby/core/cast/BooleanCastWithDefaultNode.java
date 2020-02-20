@@ -57,7 +57,7 @@ public abstract class BooleanCastWithDefaultNode extends RubyContextSourceNode {
         return true;
     }
 
-    @Specialization(guards = "!isNil(object)")
+    @Specialization
     protected boolean doBasicObject(DynamicObject object) {
         return true;
     }
