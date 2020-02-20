@@ -639,11 +639,6 @@ public abstract class IntegerNodes {
             return a < b;
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected boolean less(int a, DynamicObject b) {
-            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b)) < 0;
-        }
-
         @Specialization
         protected boolean less(long a, long b) {
             return a < b;
@@ -687,11 +682,6 @@ public abstract class IntegerNodes {
         @Specialization
         protected boolean lessEqual(int a, int b) {
             return a <= b;
-        }
-
-        @Specialization(guards = "isRubyBignum(b)")
-        protected boolean lessEqual(int a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) <= 0;
         }
 
         @Specialization
@@ -807,11 +797,6 @@ public abstract class IntegerNodes {
             }
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected int compare(int a, DynamicObject b) {
-            return BigInteger.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b));
-        }
-
         @Specialization
         protected int compare(long a, long b,
                 @Cached("createBinaryProfile()") ConditionProfile smallerProfile,
@@ -875,11 +860,6 @@ public abstract class IntegerNodes {
             return a >= b;
         }
 
-        @Specialization(guards = "isRubyBignum(b)")
-        protected boolean greaterEqual(int a, DynamicObject b) {
-            return BigIntegerOperations.valueOf(a).compareTo(Layouts.BIGNUM.getValue(b)) >= 0;
-        }
-
         @Specialization
         protected boolean greaterEqual(long a, long b) {
             return a >= b;
@@ -924,11 +904,6 @@ public abstract class IntegerNodes {
         @Specialization
         protected boolean greater(int a, int b) {
             return a > b;
-        }
-
-        @Specialization(guards = "isRubyBignum(b)")
-        protected boolean greater(int a, DynamicObject b) {
-            return BigIntegerOperations.compare(a, Layouts.BIGNUM.getValue(b)) > 0;
         }
 
         @Specialization
@@ -1012,11 +987,6 @@ public abstract class IntegerNodes {
         @Specialization
         protected long bitAndLongLong(long a, long b) {
             return a & b;
-        }
-
-        @Specialization(guards = "isRubyBignum(b)")
-        protected Object bitAndBignum(int a, DynamicObject b) {
-            return fixnumOrBignum(BigIntegerOperations.and(Layouts.BIGNUM.getValue(b), a));
         }
 
         @Specialization(guards = "isRubyBignum(b)")
