@@ -124,6 +124,7 @@ module Truffle::CExt
     def initialize(encoding)
       @encoding = encoding
       @address = nil
+      @name = nil
     end
 
     private
@@ -137,13 +138,13 @@ module Truffle::CExt
     end
 
     def polyglot_read_member(name)
-      name()
-    ensure
-      name == 'name' or raise "Unknown identifier: #{name}"
+      raise "Unknown identifier: #{name}" unless name == 'name'
+      @name or raise '@name not set'
     end
 
     def polyglot_write_member(name, value)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise "Unknown identifier: #{name}" unless name == 'name'
+      @name = value
     end
 
     def polyglot_remove_member(name)
@@ -159,7 +160,7 @@ module Truffle::CExt
     end
 
     def polyglot_member_modifiable?(name)
-      false
+      name == 'name'
     end
 
     def polyglot_member_removable?(name)
@@ -186,10 +187,6 @@ module Truffle::CExt
       false
     end
 
-    def name
-      @strpointer ||= RStringPtr.new(@encoding.name)
-    end
-
     def polyglot_pointer?
       !@address.nil?
     end
@@ -204,12 +201,13 @@ module Truffle::CExt
     end
 
     def cache_address
-      unless name.polyglot_pointer?
-        name.polyglot_to_native
-        raise unless name.polyglot_pointer?
+      name = @name or raise '@name not set'
+      unless Truffle::Interop.pointer?(name)
+        Truffle::Interop.to_native(name)
+        raise unless Truffle::Interop.pointer?(name)
       end
 
-      addr = name.polyglot_as_pointer
+      addr = Truffle::Interop.as_pointer(name)
       ENCODING_CACHE_MUTEX.synchronize do
         NATIVE_CACHE[addr] = self
       end
@@ -2004,8 +2002,15 @@ module Truffle::CExt
     RData.new(object)
   end
 
+  def rb_convert_to_encoding(encoding)
+    if Encoding === encoding
+      encoding
+    else
+      Encoding.find(encoding.to_str)
+    end
+  end
+
   def rb_to_encoding(encoding)
-    encoding = Encoding.find(encoding.to_str) unless encoding.is_a?(Encoding)
     RbEncoding.get(encoding)
   end
 
