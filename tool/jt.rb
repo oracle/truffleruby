@@ -928,7 +928,7 @@ module Commands
       # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
       # The home needs to be set, otherwise TruffleFile does not allow access to files in the TruffleRuby home,
       # because it cannot find the correct home.
-      home = "-Druby.home=#{ruby_home}"
+      home = "-Dorg.graalvm.language.ruby.home=#{ruby_home}"
       mx 'unittest', home, *tests
     when 'tck' then mx 'tck', *rest
     else
