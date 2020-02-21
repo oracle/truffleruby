@@ -286,71 +286,6 @@ module Truffle::CExt
     end
   end
 
-  class RStringPtr
-    attr_reader :string
-
-    def initialize(string)
-      @string = string
-      @address = 0
-    end
-
-    def polyglot_pointer?
-      @address != 0
-    end
-
-    def polyglot_as_pointer
-      address = @address
-    ensure
-      raise if address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
-    end
-
-    # Every isPointer object should also have TO_NATIVE
-    def polyglot_to_native
-      @address = Primitive.string_pointer_to_native(@string)
-    end
-
-    def polyglot_has_array_elements?
-      true
-    end
-
-    # this is called by Sulong for strlen() which calls getArraySize() in Sulong string.c
-    def polyglot_array_size
-      Primitive.string_pointer_size(@string)
-    end
-
-    def polyglot_read_array_element(index)
-      Primitive.string_pointer_read(@string, index)
-    end
-
-    def polyglot_write_array_element(index, value)
-      Primitive.string_pointer_write(@string, index, value)
-    end
-
-    def polyglot_array_element_readable?(index)
-      index >= 0 && index < polyglot_array_size
-    end
-
-    def polyglot_array_element_modifiable?(index)
-      index >= 0 && index < polyglot_array_size
-    end
-
-    def polyglot_array_element_insertable?(index)
-      false
-    end
-
-    def polyglot_array_element_removable?(index)
-      false
-    end
-
-    # To check if it was already converted to native or not in rb_str_new
-    def native?
-      polyglot_pointer?
-    end
-
-    alias_method :to_str, :string
-    alias_method :to_s, :string
-  end
-
   class RArrayPtr
     attr_reader :array
 
@@ -955,11 +890,6 @@ module Truffle::CExt
     else
       result
     end
-  end
-
-  def rb_str_new_rstring_ptr(rstring_ptr, length)
-    raise "#{rstring_ptr} not a RStringPtr" unless RStringPtr === rstring_ptr
-    rstring_ptr.string.byteslice(0, length).force_encoding(Encoding::BINARY)
   end
 
   def rb_str_new_native(pointer, length)
@@ -2028,10 +1958,6 @@ module Truffle::CExt
 
   def native_string?(string)
     Primitive.string_is_native?(string)
-  end
-
-  def RSTRING_PTR(string)
-    RStringPtr.new(string)
   end
 
   def NATIVE_RSTRING_PTR(string)

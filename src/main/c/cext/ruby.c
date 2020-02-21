@@ -848,15 +848,6 @@ int rb_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap((void *)string), "bytesize"));
 }
 
-bool is_rstring_ptr(VALUE ptr) {
-  return polyglot_is_value(ptr);
-}
-
-bool is_managed_rstring_ptr(VALUE ptr) {
-  return is_rstring_ptr(ptr) &&
-    !polyglot_as_boolean(polyglot_invoke(ptr, "native?"));
-}
-
 VALUE rb_str_new(const char *string, long length) {
   if (length < 0) {
     rb_raise(rb_eArgError, "negative string size (or size too big)");
@@ -864,8 +855,6 @@ VALUE rb_str_new(const char *string, long length) {
 
   if (string == NULL) {
     return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_new_nul", length));
-  } else if (is_managed_rstring_ptr((VALUE) string)) {
-    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_new_rstring_ptr", string, length));
   } else {
     return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_new_native", string, length));
   }
