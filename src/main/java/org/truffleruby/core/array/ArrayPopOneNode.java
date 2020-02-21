@@ -12,11 +12,12 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
@@ -33,12 +34,11 @@ public abstract class ArrayPopOneNode extends RubyContextNode {
 
     // Pop from a non-empty array
 
-    @Specialization(guards = { "strategy.matches(array)", "!isEmptyArray(array)" }, limit = "STORAGE_STRATEGIES")
+    @Specialization(guards = "!isEmptyArray(array)", limit = "STORAGE_STRATEGIES")
     protected Object popOne(DynamicObject array,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
         final int size = Layouts.ARRAY.getSize(array);
-        final Object value = getNode.execute(Layouts.ARRAY.getStore(array), size - 1);
+        final Object value = stores.read(Layouts.ARRAY.getStore(array), size - 1);
         setSize(array, size - 1);
         return value;
     }

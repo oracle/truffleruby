@@ -24,8 +24,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -1317,11 +1316,10 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "isRubyArray(array)", "stores.accepts(getStore(array))" })
         protected Object toJavaArray(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode) {
-            return getContext().getEnv().asGuestValue(copyStoreNode.execute(
+                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            return getContext().getEnv().asGuestValue(stores.toJavaArrayCopy(
                     Layouts.ARRAY.getStore(array),
                     Layouts.ARRAY.getSize(array)));
         }
@@ -1337,13 +1335,13 @@ public abstract class InteropNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyArray(array)", "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = { "isRubyArray(array)", "stores.accepts(getStore(array))" })
         protected Object toJavaList(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
-            return getContext().getEnv().asGuestValue(Arrays.asList(boxedCopyNode.execute(
-                    Layouts.ARRAY.getStore(array),
-                    Layouts.ARRAY.getSize(array))));
+                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            int size = Layouts.ARRAY.getSize(array);
+            Object[] copy = new Object[size];
+            stores.copyContents(Layouts.ARRAY.getStore(array), 0, copy, 0, size);
+            return getContext().getEnv().asGuestValue(Arrays.asList(copy));
         }
 
         @Specialization(guards = "!isRubyArray(array)")

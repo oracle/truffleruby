@@ -9,6 +9,8 @@
  */
 package org.truffleruby.cext;
 
+import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import static org.truffleruby.core.array.ArrayHelpers.getStore;
 import static org.truffleruby.core.string.StringOperations.rope;
 
 import java.io.IOException;
@@ -33,9 +35,9 @@ import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
+import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.exception.ErrnoErrorNode;
@@ -1203,6 +1205,7 @@ public class CExtNodes {
     }
 
     @CoreMethod(names = "linker", onSingleton = true, required = 3)
+    @ImportStatic(ArrayGuards.class)
     public abstract static class LinkerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -1210,24 +1213,20 @@ public class CExtNodes {
                 guards = {
                         "isRubyString(outputFileName)",
                         "isRubyArray(libraries)",
-                        "isRubyArray(bitcodeFiles)",
-                        "libraryStrategy.matches(libraries)",
-                        "fileStrategy.matches(bitcodeFiles)" })
+                        "isRubyArray(bitcodeFiles)" },
+                limit = "STORAGE_STRATEGIES")
         protected Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles,
-                @Cached("of(libraries)") ArrayStrategy libraryStrategy,
-                @Cached("of(bitcodeFiles)") ArrayStrategy fileStrategy,
-                @Cached("libraryStrategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode libBoxCopyNode,
-                @Cached("fileStrategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode fileBoxCopyNode) {
+                @CachedLibrary("getStore(libraries)") ArrayStoreLibrary libStores,
+                @CachedLibrary("getStore(bitcodeFiles)") ArrayStoreLibrary fileStores) {
             try {
+                final Object[] boxedLibs = new Object[getSize(libraries)];
+                final Object[] boxedFiles = new Object[getSize(bitcodeFiles)];
+                libStores.copyContents(getStore(libraries), 0, boxedLibs, 0, getSize(libraries));
+                fileStores.copyContents(getStore(bitcodeFiles), 0, boxedFiles, 0, getSize(bitcodeFiles));
                 Linker.link(
                         StringOperations.getString(outputFileName),
-                        array2StringList(
-                                libBoxCopyNode
-                                        .execute(Layouts.ARRAY.getStore(libraries), Layouts.ARRAY.getSize(libraries))),
-                        array2StringList(
-                                fileBoxCopyNode.execute(
-                                        Layouts.ARRAY.getStore(bitcodeFiles),
-                                        Layouts.ARRAY.getSize(bitcodeFiles))));
+                        array2StringList(boxedLibs),
+                        array2StringList(boxedFiles));
             } catch (IOException e) {
                 throw new JavaException(e);
             }

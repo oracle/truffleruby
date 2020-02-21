@@ -58,8 +58,8 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
-import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
@@ -81,8 +81,10 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -322,17 +324,18 @@ public abstract class ThreadNodes {
     }
 
     @Primitive(name = "thread_initialize")
+    @ImportStatic(ArrayGuards.class)
     public abstract static class ThreadInitializeNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
+        @Specialization(limit = "STORAGE_STRATEGIES")
         protected Object initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block,
-                @Cached("of(arguments)") ArrayStrategy strategy,
-                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
+                @CachedLibrary("getStore(arguments)") ArrayStoreLibrary stores) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             final String info = getContext().fileLine(sourceSection);
-            final Object[] args = boxedCopyNode
-                    .execute(Layouts.ARRAY.getStore(arguments), Layouts.ARRAY.getSize(arguments));
+            final int argSize = Layouts.ARRAY.getSize(arguments);
+            final Object[] args = new Object[argSize];
+            stores.copyContents(Layouts.ARRAY.getStore(arguments), 0, args, 0, argSize);
             final String sharingReason = "creating Ruby Thread " + info;
 
             if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {

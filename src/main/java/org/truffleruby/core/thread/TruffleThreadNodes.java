@@ -14,16 +14,15 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreModule("Truffle::ThreadOperations")
@@ -34,12 +33,12 @@ public class TruffleThreadNodes {
     public abstract static class FindRubyCaller extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyArray(modules)", "strategy.matches(modules)" })
+        @Specialization(guards = "isRubyArray(modules)", limit = "STORAGE_STRATEGIES")
         protected Object findRubyCaller(DynamicObject modules,
-                @Cached("of(modules)") ArrayStrategy strategy,
-                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
-            Object[] moduleArray = boxedCopyNode
-                    .execute(Layouts.ARRAY.getStore(modules), Layouts.ARRAY.getSize(modules));
+                @CachedLibrary("getStore(modules)") ArrayStoreLibrary stores) {
+            final int modulesSize = Layouts.ARRAY.getSize(modules);
+            Object[] moduleArray = new Object[modulesSize];
+            stores.copyContents(Layouts.ARRAY.getStore(modules), 0, moduleArray, 0, modulesSize);
             Frame rubyCaller = getContext()
                     .getCallStack()
                     .getCallerFrameNotInModules(FrameAccess.MATERIALIZE, moduleArray);
