@@ -89,8 +89,4 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         setStoreAndSize(array, newStore, newSize);
         return array;
     }
-
-    protected static ArrayAllocator valueAllocator(Object value) {
-        return ArrayStoreLibrary.allocatorForValue(value);
-    }
 }
