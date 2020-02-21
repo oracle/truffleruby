@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
+import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -58,8 +59,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
             final int capacity = ArrayUtils.capacityForOneMore(getContext(), length);
             final Object newStore = stores.expand(store, capacity);
             stores.write(newStore, oldSize, value);
-            Layouts.ARRAY.setStore(array, newStore);
-            Layouts.ARRAY.setSize(array, newSize);
+            setStoreAndSize(array, newStore, newSize);
         } else {
             stores.write(store, oldSize, value);
             setSize(array, newSize);
@@ -86,8 +86,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         currentStores.copyContents(currentStore, 0, newStore, 0, oldSize);
         propagateSharingNode.executePropagate(array, value);
         newStores.write(newStore, oldSize, value);
-        Layouts.ARRAY.setStore(array, newStore);
-        setSize(array, newSize);
+        setStoreAndSize(array, newStore, newSize);
         return array;
     }
 

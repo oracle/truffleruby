@@ -10,7 +10,9 @@
 package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import static org.truffleruby.core.array.ArrayHelpers.getStore;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
+import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -40,7 +42,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
     protected Object writeWithin(DynamicObject array, int index, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
         propagateSharingNode.executePropagate(array, value);
-        arrays.write(Layouts.ARRAY.getStore(array), index, value);
+        arrays.write(getStore(array), index, value);
         return value;
     }
 
@@ -56,7 +58,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
         final int size = getSize(array);
-        final Object store = Layouts.ARRAY.getStore(array);
+        final Object store = getStore(array);
         final Object newStore = arrays.generalizeForValue(store, value).allocate(size);
         arrays.copyContents(store, 0, newStore, 0, size);
         propagateSharingNode.executePropagate(array, value);
@@ -85,17 +87,16 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
         final int newSize = index + 1;
-        Object store = Layouts.ARRAY.getStore(array);
+        Object store = getStore(array);
         final Object objectStore = arrays.generalizeForValue(store, nil).allocate(newSize);
-        int oldSize = Layouts.ARRAY.getSize(array);
+        int oldSize = getSize(array);
         arrays.copyContents(store, 0, objectStore, 0, oldSize);
         for (int n = oldSize; n < index; n++) {
             newArrays.write(objectStore, n, nil);
         }
         propagateSharingNode.executePropagate(array, value);
         newArrays.write(objectStore, index, value);
-        Layouts.ARRAY.setStore(array, objectStore);
-        Layouts.ARRAY.setSize(array, newSize);
+        setStoreAndSize(array, objectStore, newSize);
         return value;
     }
 
@@ -110,8 +111,8 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
-        final Object store = Layouts.ARRAY.getStore(array);
-        for (int n = Layouts.ARRAY.getSize(array); n < index; n++) {
+        final Object store = getStore(array);
+        for (int n = getSize(array); n < index; n++) {
             newArrays.write(store, n, nil);
         }
         propagateSharingNode.executePropagate(array, value);

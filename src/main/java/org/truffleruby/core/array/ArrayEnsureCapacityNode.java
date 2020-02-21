@@ -33,7 +33,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyContextNode {
     protected boolean ensureCapacityAndMakeMutable(DynamicObject array, int requiredCapacity,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final Object store = getStore(array);
+        final Object store = Layouts.ARRAY.getStore(array);
 
         final int currentCapacity = stores.capacity(store);
         final int capacity;
@@ -63,9 +63,5 @@ public abstract class ArrayEnsureCapacityNode extends RubyContextNode {
         } else {
             return false;
         }
-    }
-
-    protected static Object getStore(DynamicObject array) {
-        return Layouts.ARRAY.getStore(array);
     }
 }
