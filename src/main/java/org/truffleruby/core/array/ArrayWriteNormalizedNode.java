@@ -81,7 +81,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             guards = {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
-                    "!arrays.allocator(getStore(array)).accepts(nil)" },
+                    "arrays.isPrimitive(getStore(array))" },
             limit = "STORAGE_STRATEGIES")
     protected Object writeBeyondPrimitive(DynamicObject array, int index, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
@@ -104,7 +104,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             guards = {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
-                    "arrays.allocator(getStore(array)).accepts(nil)" },
+                    "!arrays.isPrimitive(getStore(array))" },
             limit = "STORAGE_STRATEGIES")
     protected Object writeBeyondObject(DynamicObject array, int index, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
