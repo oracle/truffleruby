@@ -22,6 +22,7 @@ import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
@@ -661,14 +662,14 @@ public abstract class HashNodes {
             final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
 
             final int length = Layouts.HASH.getSize(hash);
-            Object resultStore = arrayBuilderNode.start(length);
+            BuilderState state = arrayBuilderNode.start(length);
 
             try {
                 for (int n = 0; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
                     if (n < length) {
                         final Object key = PackedArrayStrategy.getKey(store, n);
                         final Object value = PackedArrayStrategy.getValue(store, n);
-                        resultStore = arrayBuilderNode.appendValue(resultStore, n, yieldPair(block, key, value));
+                        arrayBuilderNode.appendValue(state, n, yieldPair(block, key, value));
                     }
                 }
             } finally {
@@ -677,7 +678,7 @@ public abstract class HashNodes {
                 }
             }
 
-            return createArray(arrayBuilderNode.finish(resultStore, length), length);
+            return createArray(arrayBuilderNode.finish(state, length), length);
         }
 
         @Specialization(guards = "isBucketHash(hash)")
@@ -686,15 +687,15 @@ public abstract class HashNodes {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final int length = Layouts.HASH.getSize(hash);
-            Object store = arrayBuilderNode.start(length);
+            BuilderState state = arrayBuilderNode.start(length);
 
             int index = 0;
 
             try {
                 Entry entry = Layouts.HASH.getFirstInSequence(hash);
                 while (entry != null) {
-                    store = arrayBuilderNode
-                            .appendValue(store, index, yieldPair(block, entry.getKey(), entry.getValue()));
+                    arrayBuilderNode
+                            .appendValue(state, index, yieldPair(block, entry.getKey(), entry.getValue()));
                     index++;
                     entry = entry.getNextInSequence();
                 }
@@ -704,7 +705,7 @@ public abstract class HashNodes {
                 }
             }
 
-            return createArray(arrayBuilderNode.finish(store, length), length);
+            return createArray(arrayBuilderNode.finish(state, length), length);
         }
 
         private Object yieldPair(DynamicObject block, Object key, Object value) {

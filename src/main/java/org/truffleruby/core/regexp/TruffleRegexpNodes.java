@@ -32,6 +32,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
@@ -135,15 +136,14 @@ public class TruffleRegexpNodes {
         @TruffleBoundary
         protected <T> DynamicObject fillinInstrumentData(Map<T, AtomicInteger> map, ArrayBuilderNode arrayBuilderNode,
                 RubyContext context) {
-            Object store = arrayBuilderNode.start(compiledRegexps.size() * 2);
+            BuilderState state = arrayBuilderNode.start(compiledRegexps.size() * 2);
             int n = 0;
             for (Entry<T, AtomicInteger> e : map.entrySet()) {
                 Rope key = StringOperations.encodeRope(e.getKey().toString(), UTF8Encoding.INSTANCE);
-                store = arrayBuilderNode.appendValue(store, n++, StringOperations.createString(context, key));
-                store = arrayBuilderNode.appendValue(store, n++, e.getValue().get());
+                arrayBuilderNode.appendValue(state, n++, StringOperations.createString(context, key));
+                arrayBuilderNode.appendValue(state, n++, e.getValue().get());
             }
-            store = arrayBuilderNode.finish(store, n);
-            return createArray(store, n);
+            return createArray(arrayBuilderNode.finish(state, n), n);
         }
     }
 

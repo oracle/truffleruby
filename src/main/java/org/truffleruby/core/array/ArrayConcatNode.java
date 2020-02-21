@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -48,24 +49,24 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
     }
 
     private DynamicObject executeSingle(VirtualFrame frame) {
-        Object store = arrayBuilderNode.start();
+        BuilderState state = arrayBuilderNode.start();
         final Object childObject = children[0].execute(frame);
 
         final int size;
         if (isArrayProfile.profile(RubyGuards.isRubyArray(childObject))) {
             final DynamicObject childArray = (DynamicObject) childObject;
             size = Layouts.ARRAY.getSize(childArray);
-            store = arrayBuilderNode.appendArray(store, 0, childArray);
+            arrayBuilderNode.appendArray(state, 0, childArray);
         } else {
             size = 1;
-            store = arrayBuilderNode.appendValue(store, 0, childObject);
+            arrayBuilderNode.appendValue(state, 0, childObject);
         }
-        return createArray(arrayBuilderNode.finish(store, size), size);
+        return createArray(arrayBuilderNode.finish(state, size), size);
     }
 
     @ExplodeLoop
     private DynamicObject executeMultiple(VirtualFrame frame) {
-        Object store = arrayBuilderNode.start();
+        BuilderState state = arrayBuilderNode.start();
         int length = 0;
 
         for (int n = 0; n < children.length; n++) {
@@ -74,15 +75,15 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
             if (isArrayProfile.profile(RubyGuards.isRubyArray(childObject))) {
                 final DynamicObject childArray = (DynamicObject) childObject;
                 final int size = Layouts.ARRAY.getSize(childArray);
-                store = arrayBuilderNode.appendArray(store, length, childArray);
+                arrayBuilderNode.appendArray(state, length, childArray);
                 length += size;
             } else {
-                store = arrayBuilderNode.appendValue(store, length, childObject);
+                arrayBuilderNode.appendValue(state, length, childObject);
                 length++;
             }
         }
 
-        return createArray(arrayBuilderNode.finish(store, length), length);
+        return createArray(arrayBuilderNode.finish(state, length), length);
     }
 
     @ExplodeLoop

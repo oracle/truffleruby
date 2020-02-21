@@ -21,6 +21,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.NotProvided;
@@ -64,7 +65,7 @@ public abstract class RangeNodes {
             }
 
             final int length = exclusiveEnd - begin;
-            Object store = arrayBuilder.start(length);
+            BuilderState state = arrayBuilder.start(length);
             int count = 0;
 
             try {
@@ -73,7 +74,7 @@ public abstract class RangeNodes {
                         count++;
                     }
 
-                    store = arrayBuilder.appendValue(store, n, yieldNode.executeDispatch(block, begin + n));
+                    arrayBuilder.appendValue(state, n, yieldNode.executeDispatch(block, begin + n));
                 }
             } finally {
                 if (CompilerDirectives.inInterpreter()) {
@@ -81,7 +82,7 @@ public abstract class RangeNodes {
                 }
             }
 
-            return createArray(arrayBuilder.finish(store, length), length);
+            return createArray(arrayBuilder.finish(state, length), length);
         }
 
         @Fallback
