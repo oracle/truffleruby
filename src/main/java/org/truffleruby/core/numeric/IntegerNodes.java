@@ -636,6 +636,7 @@ public abstract class IntegerNodes {
         protected boolean less(int a, int b) {
             return a < b;
         }
+
         @Specialization
         protected boolean less(long a, long b) {
             return a < b;
@@ -703,7 +704,8 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean lessEqual(DynamicObject a, double b) {
-            return BigIntegerOps.compare(a, b) <= 0;
+            // TODO(norswap, 21 Feb 2020): GR-20773
+            return BigIntegerOps.compare(a, (long) b) <= 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
@@ -896,6 +898,7 @@ public abstract class IntegerNodes {
         protected boolean greater(int a, int b) {
             return a > b;
         }
+
         @Specialization
         protected boolean greater(long a, long b) {
             return a > b;
