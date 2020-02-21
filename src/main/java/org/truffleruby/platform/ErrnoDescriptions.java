@@ -9,6 +9,7 @@
  */
 package org.truffleruby.platform;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +18,7 @@ public class ErrnoDescriptions {
 
     private static final Map<String, String> DESCRIPTIONS;
 
+    @TruffleBoundary // Map
     public static String getDescription(String errnoName) {
         final String description = DESCRIPTIONS.get(errnoName);
         assert description != null;
