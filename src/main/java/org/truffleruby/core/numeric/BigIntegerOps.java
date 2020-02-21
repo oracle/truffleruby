@@ -8,8 +8,9 @@ import java.math.BigInteger;
 import static org.truffleruby.Layouts.BIGNUM;
 import static org.truffleruby.language.RubyGuards.isRubyBignum;
 
-/** Wrapper for methods of {@link BigInteger} decorated with a {@link TruffleBoundary} annotation, as these methods are
- * blacklisted by SVM. */
+/** Wrapper for methods of {@link BigInteger} decorated with a {@link TruffleBoundary} annotation, as these methods
+ * should not be called in PE code (non-trivial JDK code with no Truffle-level profiling and might make things like
+ * Throwable methods reachable) and are therefore blacklisted by SVM. */
 public final class BigIntegerOps {
 
     @TruffleBoundary
@@ -197,6 +198,18 @@ public final class BigIntegerOps {
     @TruffleBoundary
     public static int signum(BigInteger value) {
         return value.signum();
+    }
+
+    public static boolean isPositive(DynamicObject value) {
+        assert isRubyBignum(value);
+        // The distinction between x > 0 and x >= 0 is moot because bignums are never long-valued.
+        return signum(BIGNUM.getValue(value)) > 0;
+    }
+
+    public static boolean isNegative(DynamicObject value) {
+        assert isRubyBignum(value);
+        // The distinction between x < 0 and x <= 0 is moot because bignums are never long-valued.
+        return signum(BIGNUM.getValue(value)) < 0;
     }
 
     @TruffleBoundary

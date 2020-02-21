@@ -918,7 +918,6 @@ public abstract class BigDecimalNodes {
             return nil;
         }
 
-        // TODO(norswap) review: was it right to remove TruffleBoundary here? seems like this could be easy to PE
         @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)", "isNormal(a) || !isNan(a)" })
         protected Object compareSpecial(DynamicObject a, DynamicObject b) {
             final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);

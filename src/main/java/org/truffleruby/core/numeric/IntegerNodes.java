@@ -648,12 +648,12 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean less(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, b) < 0;
+            return BigIntegerOps.isPositive(b); // Bignums are never long-valued.
         }
 
         @Specialization
         protected boolean less(DynamicObject a, long b) {
-            return BigIntegerOps.compare(a, b) < 0;
+            return BigIntegerOps.isNegative(a); // Bignums are never long-valued.
         }
 
         @Specialization
@@ -693,12 +693,12 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean lessEqual(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, b) <= 0;
+            return BigIntegerOps.isPositive(b); // Bignums are never long-valued.
         }
 
         @Specialization
         protected boolean lessEqual(DynamicObject a, long b) {
-            return BigIntegerOps.compare(a, b) <= 0;
+            return BigIntegerOps.isNegative(a); // Bignums are never long-valued.
         }
 
         @Specialization
@@ -744,11 +744,6 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean equal(long a, DynamicObject b) {
-            return false;
-        }
-
-        @Specialization
-        protected boolean equal(DynamicObject a, int b) {
             return false;
         }
 
@@ -868,12 +863,12 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greaterEqual(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, b) >= 0;
+            return BigIntegerOps.isNegative(b); // Bignums are never long-valued.
         }
 
         @Specialization
         protected boolean greaterEqual(DynamicObject a, long b) {
-            return BigIntegerOps.compare(a, b) >= 0;
+            return BigIntegerOps.isPositive(a); // Bignums are never long-valued.
         }
 
         @Specialization
@@ -913,12 +908,12 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greater(long a, DynamicObject b) {
-            return BigIntegerOps.compare(a, b) > 0;
+            return BigIntegerOps.isNegative(b); // Bignums are never long-valued.
         }
 
         @Specialization
         protected boolean greater(DynamicObject a, long b) {
-            return BigIntegerOps.compare(a, b) > 0;
+            return BigIntegerOps.isPositive(a); // Bignums are never long-valued.
         }
 
         @Specialization
@@ -1545,8 +1540,8 @@ public abstract class IntegerNodes {
     @Primitive(name = "integer_ulong_from_bignum")
     public static abstract class IntegerULongFromBigNumNode extends PrimitiveArrayArgumentsNode {
 
-        private static final BigInteger TWO_POW_64 = BigIntegerOps.valueOf(1).shiftLeft(64);
-        private static final BigInteger LONG_MAX = BigIntegerOps.valueOf(Long.MAX_VALUE);
+        private static final BigInteger TWO_POW_64 = BigInteger.valueOf(1).shiftLeft(64);
+        private static final BigInteger LONG_MAX = BigInteger.valueOf(Long.MAX_VALUE);
 
         @TruffleBoundary
         @Specialization(guards = "isRubyBignum(b)")
@@ -1714,13 +1709,10 @@ public abstract class IntegerNodes {
                     warnNode.warningMessage(
                             getContext().getCallStack().getTopMostUserSourceSection(),
                             "in a**b, b may be too big");
-                    return BigIntegerOps.pow(bigIntegerBase, exponent);
+                    return BigIntegerOps.pow(bigIntegerBase, (double) exponent);
                 }
 
-                // TODO CS 15-Feb-15 what about this cast?
-                // NOTE(norswap, 19 Feb 20)
-                //      MRI returns Infinity and prints a warning for bignums but also many
-                //      integers (sizeof(MAX_INT ^ MAX_INT) > 1.5GB, and computationally expensive too)
+                // The cast is safe because of the check above.
                 return createBignum(BigIntegerOps.pow(bigIntegerBase, (int) exponent));
             }
         }
