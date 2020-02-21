@@ -824,8 +824,8 @@ char *RSTRING_PTR_IMPL(VALUE string) {
   return NATIVE_RSTRING_PTR(string);
 }
 
-char *RSTRING_END(VALUE string) {
-  return RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_END", string);
+char *RSTRING_END_IMPL(VALUE string) {
+  return NATIVE_RSTRING_PTR(string) + RSTRING_LEN(string);
 }
 
 int MBCLEN_NEEDMORE_P(int r) {
