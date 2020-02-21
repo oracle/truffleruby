@@ -206,7 +206,7 @@ public abstract class RandomizerNodes {
         }
 
         private static BigInteger randLimitedBignum(Randomizer randomizer, BigInteger limit) {
-            byte[] buf = limit.toByteArray();
+            byte[] buf = BigIntegerOps.toByteArray(limit);
             byte[] bytes = new byte[buf.length];
             int len = (buf.length + 3) / 4;
             // take care before code cleanup; it might break random sequence compatibility

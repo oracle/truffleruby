@@ -35,6 +35,7 @@ import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
@@ -952,7 +953,7 @@ public class CoreLibrary {
         }
 
         if (RubyGuards.isRubyBignum(value)) {
-            return Layouts.BIGNUM.getValue((DynamicObject) value).doubleValue();
+            return BigIntegerOps.doubleValue((DynamicObject) value);
         }
 
         if (value instanceof Double) {

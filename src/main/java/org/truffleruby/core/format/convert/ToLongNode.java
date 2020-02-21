@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantConvertException;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -53,7 +54,7 @@ public abstract class ToLongNode extends FormatNode {
     @Specialization(guards = "isRubyBignum(object)")
     protected long toLong(DynamicObject object) {
         // A truncated value is exactly what we want
-        return Layouts.BIGNUM.getValue(object).longValue();
+        return BigIntegerOps.longValue(object);
     }
 
     @Specialization(guards = "isNil(nil)")

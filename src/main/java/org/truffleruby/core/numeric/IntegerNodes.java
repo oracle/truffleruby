@@ -411,10 +411,9 @@ public abstract class IntegerNodes {
             }
         }
 
-        @TruffleBoundary
         @Specialization
         protected double div(DynamicObject a, double b) {
-            return Layouts.BIGNUM.getValue(a).doubleValue() / b;
+            return BigIntegerOps.doubleValue(a) / b;
         }
 
         @TruffleBoundary
@@ -550,7 +549,7 @@ public abstract class IntegerNodes {
             return fixnumOrBignum(Layouts.BIGNUM.getValue(a).mod(BigInteger.valueOf(b)));
         }
 
-        @TruffleBoundary
+        @TruffleBoundary // exception throw + BigInteger
         @Specialization
         protected double mod(DynamicObject a, double b) {
             if (b == 0) {

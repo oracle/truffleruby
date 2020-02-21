@@ -214,14 +214,29 @@ public final class BigIntegerOps {
         return value.doubleValue();
     }
 
+    public static double doubleValue(DynamicObject value) {
+        assert isRubyBignum(value);
+        return doubleValue(BIGNUM.getValue(value));
+    }
+
     @TruffleBoundary
     public static long longValue(BigInteger value) {
         return value.longValue();
     }
 
+    public static long longValue(DynamicObject value) {
+        assert isRubyBignum(value);
+        return longValue(BIGNUM.getValue(value));
+    }
+
     @TruffleBoundary
     public static BigInteger fromDouble(double value) {
         return new BigDecimal(value).toBigInteger();
+    }
+
+    @TruffleBoundary
+    public static byte[] toByteArray(BigInteger value) {
+        return value.toByteArray();
     }
 
     @TruffleBoundary

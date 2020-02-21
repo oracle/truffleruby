@@ -16,6 +16,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.FinalizerReference;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -82,12 +83,12 @@ public abstract class ObjectSpaceNodes {
 
         @Specialization(guards = { "isRubyBignum(id)", "isLargeFixnumID(id)" })
         protected Object id2RefLargeFixnum(DynamicObject id) {
-            return Layouts.BIGNUM.getValue(id).longValue();
+            return BigIntegerOps.longValue(id);
         }
 
         @Specialization(guards = { "isRubyBignum(id)", "isFloatID(id)" })
         protected double id2RefFloat(DynamicObject id) {
-            return Double.longBitsToDouble(Layouts.BIGNUM.getValue(id).longValue());
+            return Double.longBitsToDouble(BigIntegerOps.longValue(id));
         }
 
         protected boolean isLargeFixnumID(DynamicObject id) {

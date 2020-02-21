@@ -27,6 +27,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.ArrayOperationNodes;
 import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -772,10 +773,9 @@ public abstract class TruffleDebugNodes {
             return value;
         }
 
-        @TruffleBoundary
         @Specialization(guards = "isRubyBignum(value)")
         protected float foreignBoxedNumber(DynamicObject value) {
-            return (float) Layouts.BIGNUM.getValue(value).doubleValue();
+            return (float) BigIntegerOps.doubleValue(value);
         }
 
         @Specialization
