@@ -18,6 +18,9 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
+/** This node will convert the array to a copy on write version and return a second view representing the requested
+ * portion. If you are going to immediately mutate the resulting stores then this node is probably not an appropriate
+ * way to it. */
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
 
