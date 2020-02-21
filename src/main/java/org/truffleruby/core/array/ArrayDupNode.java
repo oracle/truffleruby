@@ -51,14 +51,11 @@ public abstract class ArrayDupNode extends RubyContextNode {
         return allocateArray(coreLibrary().arrayClass, copy, cachedSize);
     }
 
-    @Specialization(replaces = "dupProfiledSize", limit = "STORAGE_STRATEGIES")
+    @Specialization(replaces = "dupProfiledSize")
     protected DynamicObject dup(DynamicObject from,
-            @CachedLibrary("getStore(from)") ArrayStoreLibrary fromStores) {
+            @Cached ArrayCopyOnWriteNode cowNode) {
         final int size = Layouts.ARRAY.getSize(from);
-        final Object store = Layouts.ARRAY.getStore(from);
-        final Object cowStore = fromStores.extractRange(store, 0, Layouts.ARRAY.getSize(from));
-        Layouts.ARRAY.setStore(from, cowStore);
-        final Object copy = fromStores.extractRange(store, 0, Layouts.ARRAY.getSize(from));
+        final Object copy = cowNode.execute(from, 0, Layouts.ARRAY.getSize(from));
         return allocateArray(coreLibrary().arrayClass, copy, size);
     }
 

@@ -37,14 +37,14 @@ public abstract class ArraySliceNode extends RubyContextSourceNode {
 
     @Specialization
     protected DynamicObject readInBounds(DynamicObject array,
-            @Cached ArrayExtractRangeNode extractRangeNode,
+            @Cached ArrayCopyOnWriteNode cowNode,
             @Cached("createBinaryProfile()") ConditionProfile emptyArray) {
         final int length = Layouts.ARRAY.getSize(array) + to - from;
 
         if (emptyArray.profile(length <= 0)) {
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         } else {
-            final Object slice = extractRangeNode.execute(array, from, length);
+            final Object slice = cowNode.execute(array, from, length);
             return createArray(slice, length);
         }
 

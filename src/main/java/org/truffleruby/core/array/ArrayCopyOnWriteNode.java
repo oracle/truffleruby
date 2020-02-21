@@ -19,13 +19,13 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayExtractRangeNode extends RubyBaseNode {
+public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
 
-    public static ArrayExtractRangeNode craete() {
-        return ArrayExtractRangeNodeGen.create();
+    public static ArrayCopyOnWriteNode create() {
+        return ArrayCopyOnWriteNodeGen.create();
     }
 
-    public abstract Object execute(DynamicObject array, int start, int laegth);
+    public abstract Object execute(DynamicObject array, int start, int length);
 
     @Specialization(guards = "stores.isMutable(getStore(array))", limit = "STORAGE_STRATEGIES")
     protected Object extractFromMutableArray(DynamicObject array, int start, int length,

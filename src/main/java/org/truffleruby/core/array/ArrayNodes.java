@@ -445,9 +445,9 @@ public abstract class ArrayNodes {
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached("createBinaryProfile()") ConditionProfile selfArgProfile,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeNode) {
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode cowNode) {
             int size = Layouts.ARRAY.getSize(array);
-            Object store = extractRangeNode.execute(array, 0, size);
+            Object store = cowNode.execute(array, 0, size);
             DynamicObject copy = createArray(store, size);
             DynamicObject result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
             for (int i = 0; i < cachedLength; ++i) {
@@ -466,9 +466,9 @@ public abstract class ArrayNodes {
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached("createBinaryProfile()") ConditionProfile selfArgProfile,
                 @Cached("of(array)") ArrayStrategy strategy,
-                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode extractRangeNode) {
+                @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayExtractRangeCopyOnWriteNode cowNode) {
             int size = Layouts.ARRAY.getSize(array);
-            Object store = extractRangeNode.execute(array, 0, size);
+            Object store = cowNode.execute(array, 0, size);
 
             DynamicObject result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
             for (Object arg : rest) {

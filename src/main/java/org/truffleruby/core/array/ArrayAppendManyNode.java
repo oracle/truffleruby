@@ -70,7 +70,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
     @Specialization(
             guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(getStore(array), getStore(other))" },
             limit = "STORAGE_STRATEGIES")
-    protected DynamicObject appendToImmutable(DynamicObject array, DynamicObject other,
+    protected DynamicObject appendManyGeneralize(DynamicObject array, DynamicObject other,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores) {
         final int oldSize = Layouts.ARRAY.getSize(array);

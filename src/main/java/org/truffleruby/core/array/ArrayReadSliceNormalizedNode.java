@@ -47,8 +47,8 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyContextNode {
                     "lengthPositive(length)",
                     "endInBounds(array, index, length)" })
     protected DynamicObject readInBounds(DynamicObject array, int index, int length,
-            @Cached ArrayExtractRangeNode extractRangeNOde) {
-        final Object slice = extractRangeNOde.execute(array, index, length);
+            @Cached ArrayCopyOnWriteNode cowNode) {
+        final Object slice = cowNode.execute(array, index, length);
         return createArrayOfSameClass(array, slice, length);
     }
 
@@ -60,9 +60,9 @@ public abstract class ArrayReadSliceNormalizedNode extends RubyContextNode {
                     "lengthPositive(length)",
                     "!endInBounds(array, index, length)" })
     protected DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
-            @Cached ArrayExtractRangeNode extractRangeNOde) {
+            @Cached ArrayCopyOnWriteNode cowNode) {
         final int end = Layouts.ARRAY.getSize(array);
-        final Object slice = extractRangeNOde.execute(array, index, end - index);
+        final Object slice = cowNode.execute(array, index, end - index);
         return createArrayOfSameClass(array, slice, end - index);
     }
 
