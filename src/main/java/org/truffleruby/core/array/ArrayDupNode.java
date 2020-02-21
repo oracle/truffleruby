@@ -38,16 +38,19 @@ public abstract class ArrayDupNode extends RubyContextNode {
             limit = "getCacheLimit()")
     protected DynamicObject dupProfiledSize(DynamicObject from,
             @CachedLibrary("getStore(from)") ArrayStoreLibrary fromStores,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary toStores,
             @Cached("getSize(from)") int cachedSize) {
-        return copyArraySmall(fromStores, from, cachedSize);
+        return copyArraySmall(fromStores, toStores, from, cachedSize);
     }
 
     @ExplodeLoop
-    private DynamicObject copyArraySmall(ArrayStoreLibrary stores,
+    private DynamicObject copyArraySmall(ArrayStoreLibrary fromStores, ArrayStoreLibrary toStores,
             DynamicObject from, int cachedSize) {
         final Object original = Layouts.ARRAY.getStore(from);
-        final Object copy = stores.allocator(original).allocate(cachedSize);
-        stores.copyContents(original, 0, copy, 0, cachedSize);
+        final Object copy = fromStores.allocator(original).allocate(cachedSize);
+        for (int i = 0; i < cachedSize; i++) {
+            toStores.write(copy, i, fromStores.read(original, i));
+        }
         return allocateArray(coreLibrary().arrayClass, copy, cachedSize);
     }
 
