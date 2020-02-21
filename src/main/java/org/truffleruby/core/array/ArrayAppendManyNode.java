@@ -33,6 +33,8 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
 
     // Append of a compatible type
 
+    /** Appending an empty array is a no-op, and shouldn't cause an immutable array store to be converted into a mutable
+     * one unnecessarily. */
     @Specialization(guards = "isEmptyArray(other)")
     protected DynamicObject appendZero(DynamicObject array, DynamicObject other) {
         return array;
