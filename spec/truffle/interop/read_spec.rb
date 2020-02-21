@@ -63,7 +63,7 @@ describe "Truffle::Interop.read" do
       value = Object.new
       Truffle::Interop.write(object, 2, value)
       Truffle::Interop.read(object, 2).should == value
-      object.log.should include([:polyglot_array_read, 2])
+      object.log.should include([:polyglot_read_array_element, 2])
     end
 
   end
@@ -75,7 +75,7 @@ describe "Truffle::Interop.read" do
       Truffle::Interop.write(object, :bob,  14)
       Truffle::Interop.read(object, :bob).should == 14
       Truffle::Interop.keys(object).should include 'bob'
-      object.log.should include [:polyglot_member_read, 'bob']
+      object.log.should include [:polyglot_read_member, 'bob']
     end
 
   end

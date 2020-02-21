@@ -35,7 +35,7 @@ module Truffle::CExt
 
     private
 
-    def polyglot_members?
+    def polyglot_has_members?
       true
     end
 
@@ -43,23 +43,23 @@ module Truffle::CExt
       ['data']
     end
 
-    def polyglot_member_read(name)
+    def polyglot_read_member(name)
       data_holder.data
     ensure
       name == 'data' or raise "Unknown identifier: #{name}"
     end
 
-    def polyglot_member_write(name, value)
+    def polyglot_write_member(name, value)
       data_holder.data = value
     ensure
       name == 'data' or raise "Unknown identifier: #{name}"
     end
 
-    def polyglot_member_remove(name)
+    def polyglot_remove_member(name)
       raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
     end
 
-    def polyglot_member_invoke(name, *args)
+    def polyglot_invoke_member(name, *args)
       raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
     end
 
@@ -87,11 +87,11 @@ module Truffle::CExt
       false
     end
 
-    def polyglot_member_read_side_effects?(name)
+    def polyglot_has_member_read_side_effects?(name)
       false
     end
 
-    def polyglot_member_write_side_effects?(name)
+    def polyglot_has_member_write_side_effects?(name)
       false
     end
 
@@ -128,7 +128,7 @@ module Truffle::CExt
 
     private
 
-    def polyglot_members?
+    def polyglot_has_members?
       true
     end
 
@@ -136,21 +136,21 @@ module Truffle::CExt
       ['name']
     end
 
-    def polyglot_member_read(name)
+    def polyglot_read_member(name)
       name()
     ensure
       name == 'name' or raise "Unknown identifier: #{name}"
     end
 
-    def polyglot_member_write(name, value)
+    def polyglot_write_member(name, value)
       raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
     end
 
-    def polyglot_member_remove(name)
+    def polyglot_remove_member(name)
       raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
     end
 
-    def polyglot_member_invoke(name, *args)
+    def polyglot_invoke_member(name, *args)
       raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
     end
 
@@ -178,11 +178,11 @@ module Truffle::CExt
       false
     end
 
-    def polyglot_member_read_side_effects?(name)
+    def polyglot_has_member_read_side_effects?(name)
       false
     end
 
-    def polyglot_member_write_side_effects?(name)
+    def polyglot_has_member_write_side_effects?(name)
       false
     end
 
@@ -199,7 +199,7 @@ module Truffle::CExt
       @address ||= cache_address
     end
 
-    def polyglot_address
+    def polyglot_as_pointer
       @address
     end
 
@@ -209,7 +209,7 @@ module Truffle::CExt
         raise unless name.polyglot_pointer?
       end
 
-      addr = name.polyglot_address
+      addr = name.polyglot_as_pointer
       ENCODING_CACHE_MUTEX.synchronize do
         NATIVE_CACHE[addr] = self
       end
@@ -224,7 +224,7 @@ module Truffle::CExt
 
     private
 
-    def polyglot_members?
+    def polyglot_has_members?
       true
     end
 
@@ -232,7 +232,7 @@ module Truffle::CExt
       ['fd', 'mode']
     end
 
-    def polyglot_member_read(name)
+    def polyglot_read_member(name)
       case name
       when 'mode'
         @io.instance_variable_get(:@mode)
@@ -243,15 +243,15 @@ module Truffle::CExt
       end
     end
 
-    def polyglot_member_write(name, value)
+    def polyglot_write_member(name, value)
       raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
     end
 
-    def polyglot_member_remove(name)
+    def polyglot_remove_member(name)
       raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
     end
 
-    def polyglot_member_invoke(name, *args)
+    def polyglot_invoke_member(name, *args)
       raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
     end
 
@@ -279,11 +279,11 @@ module Truffle::CExt
       false
     end
 
-    def polyglot_member_read_side_effects?(name)
+    def polyglot_has_member_read_side_effects?(name)
       false
     end
 
-    def polyglot_member_write_side_effects?(name)
+    def polyglot_has_member_write_side_effects?(name)
       false
     end
   end
@@ -300,7 +300,7 @@ module Truffle::CExt
       @address != 0
     end
 
-    def polyglot_address
+    def polyglot_as_pointer
       address = @address
     ensure
       raise if address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
@@ -311,7 +311,7 @@ module Truffle::CExt
       @address = Primitive.string_pointer_to_native(@string)
     end
 
-    def polyglot_array?
+    def polyglot_has_array_elements?
       true
     end
 
@@ -320,27 +320,27 @@ module Truffle::CExt
       Primitive.string_pointer_size(@string)
     end
 
-    def polyglot_array_read(index)
+    def polyglot_read_array_element(index)
       Primitive.string_pointer_read(@string, index)
     end
 
-    def polyglot_array_write(index, value)
+    def polyglot_write_array_element(index, value)
       Primitive.string_pointer_write(@string, index, value)
     end
 
-    def polyglot_array_readable?(index)
+    def polyglot_array_element_readable?(index)
       index >= 0 && index < polyglot_array_size
     end
 
-    def polyglot_array_modifiable?(index)
+    def polyglot_array_element_modifiable?(index)
       index >= 0 && index < polyglot_array_size
     end
 
-    def polyglot_array_insertable?(index)
+    def polyglot_array_element_insertable?(index)
       false
     end
 
-    def polyglot_array_removable?(index)
+    def polyglot_array_element_removable?(index)
       false
     end
 
@@ -363,7 +363,7 @@ module Truffle::CExt
       @address != 0
     end
 
-    def polyglot_address
+    def polyglot_as_pointer
       @address
     ensure
       raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be raised so it is translated to UnsupportedMessageException
@@ -373,7 +373,7 @@ module Truffle::CExt
       @address = Primitive.string_pointer_to_native(@string) + @string.bytesize
     end
 
-    def polyglot_array?
+    def polyglot_has_array_elements?
       true
     end
 
@@ -382,27 +382,27 @@ module Truffle::CExt
       0
     end
 
-    def polyglot_array_read(index)
+    def polyglot_read_array_element(index)
       raise
     end
 
-    def polyglot_array_write(index, value)
+    def polyglot_write_array_element(index, value)
       raise
     end
 
-    def polyglot_array_readable?(index)
+    def polyglot_array_element_readable?(index)
       false
     end
 
-    def polyglot_array_modifiable?(index)
+    def polyglot_array_element_modifiable?(index)
       false
     end
 
-    def polyglot_array_insertable?(index)
+    def polyglot_array_element_insertable?(index)
       false
     end
 
-    def polyglot_array_removable?(index)
+    def polyglot_array_element_removable?(index)
       false
     end
   end
@@ -418,7 +418,7 @@ module Truffle::CExt
       Primitive.array_store_native?(@array)
     end
 
-    def polyglot_address
+    def polyglot_as_pointer
       Primitive.array_store_address(@array)
     end
 
@@ -426,7 +426,7 @@ module Truffle::CExt
       Primitive.array_store_to_native(@array)
     end
 
-    def polyglot_array?
+    def polyglot_has_array_elements?
       true
     end
 
@@ -434,27 +434,27 @@ module Truffle::CExt
       @array.size
     end
 
-    def polyglot_array_read(index)
+    def polyglot_read_array_element(index)
       Primitive.cext_wrap(@array[index])
     end
 
-    def polyglot_array_write(index, value)
+    def polyglot_write_array_element(index, value)
       @array[index] = Primitive.cext_unwrap(value)
     end
 
-    def polyglot_array_readable?(index)
+    def polyglot_array_element_readable?(index)
       index >= 0 && index < @array.size
     end
 
-    def polyglot_array_modifiable?(index)
+    def polyglot_array_element_modifiable?(index)
       index >= 0 && index < @array.size
     end
 
-    def polyglot_array_insertable?(index)
+    def polyglot_array_element_insertable?(index)
       false
     end
 
-    def polyglot_array_removable?(index)
+    def polyglot_array_element_removable?(index)
       false
     end
   end

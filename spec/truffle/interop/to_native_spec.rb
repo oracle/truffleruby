@@ -32,7 +32,7 @@ describe "Truffle::Interop.to_native" do
       !@pointer.nil?
     end
 
-    def obj.polyglot_address
+    def obj.polyglot_as_pointer
       @pointer.address
     end
 

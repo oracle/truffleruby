@@ -51,7 +51,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-        Object value = dispatchNode.call(receiver, "polyglot_array?");
+        Object value = dispatchNode.call(receiver, "polyglot_has_array_elements?");
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
@@ -80,7 +80,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws InvalidArrayIndexException, UnsupportedMessageException {
 
-        Object value = dispatchNode.call(receiver, "polyglot_array_read", index);
+        Object value = dispatchNode.call(receiver, "polyglot_read_array_element", index);
         if (value == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
@@ -95,7 +95,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
 
-        Object result = dispatchNode.call(receiver, "polyglot_array_write", index, value);
+        Object result = dispatchNode.call(receiver, "polyglot_write_array_element", index, value);
         if (result == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
@@ -109,7 +109,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
 
-        Object result = dispatchNode.call(receiver, "polyglot_array_remove", index);
+        Object result = dispatchNode.call(receiver, "polyglot_remove_array_element", index);
         if (result == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
@@ -122,7 +122,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-        Object value = dispatchNode.call(receiver, "polyglot_array_readable?", index);
+        Object value = dispatchNode.call(receiver, "polyglot_array_element_readable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
@@ -132,7 +132,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-        Object value = dispatchNode.call(receiver, "polyglot_array_modifiable?", index);
+        Object value = dispatchNode.call(receiver, "polyglot_array_element_modifiable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
@@ -142,7 +142,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-        Object value = dispatchNode.call(receiver, "polyglot_array_insertable?", index);
+        Object value = dispatchNode.call(receiver, "polyglot_array_element_insertable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
@@ -152,7 +152,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
-        Object value = dispatchNode.call(receiver, "polyglot_array_removable?", index);
+        Object value = dispatchNode.call(receiver, "polyglot_array_element_removable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
 
@@ -173,7 +173,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
-        Object value = dispatchNode.call(receiver, "polyglot_address");
+        Object value = dispatchNode.call(receiver, "polyglot_as_pointer");
         if (value == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
@@ -195,7 +195,7 @@ public class RubyObjectMessages {
     protected static boolean hasMembers(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
-        Object dynamic = dispatchNode.call(receiver, "polyglot_members?");
+        Object dynamic = dispatchNode.call(receiver, "polyglot_has_members?");
         return dynamic == DispatchNode.MISSING || booleanCastNode.executeToBoolean(dynamic);
     }
 
@@ -208,7 +208,7 @@ public class RubyObjectMessages {
 
         return dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
-                "get_members",
+                "get_members_implementation",
                 receiver,
                 internal);
     }
@@ -230,7 +230,7 @@ public class RubyObjectMessages {
             throws UnknownIdentifierException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_member_read", rubyName);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_read_member", rubyName);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             Object iVar = readObjectFieldNode.execute(receiver, name, null);
             if (ivarFoundProfile.profile(iVar != null)) {
@@ -256,7 +256,7 @@ public class RubyObjectMessages {
             throws UnknownIdentifierException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_member_write", rubyName, value);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_write_member", rubyName, value);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             if (isIVar(name)) {
                 writeObjectFieldNode.write(receiver, name, value);
@@ -280,7 +280,7 @@ public class RubyObjectMessages {
             throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_member_remove", rubyName);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_remove_member", rubyName);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             if (!isIVar(name)) {
                 errorProfile.enter();
@@ -311,7 +311,7 @@ public class RubyObjectMessages {
 
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchDynamic.call(receiver, "polyglot_member_invoke", rubyName, convertedArguments);
+        Object dynamic = dispatchDynamic.call(receiver, "polyglot_invoke_member", rubyName, convertedArguments);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             Object result = dispatchMember.call(receiver, name, convertedArguments);
             if (result == DispatchNode.MISSING) {
@@ -487,7 +487,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_member_read_side_effects?", rubyName);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_has_member_read_side_effects?", rubyName);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             return false;
         } else {
@@ -503,7 +503,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_member_write_side_effects?", rubyName);
+        Object dynamic = dispatchNode.call(receiver, "polyglot_has_member_write_side_effects?", rubyName);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             return false;
         } else {

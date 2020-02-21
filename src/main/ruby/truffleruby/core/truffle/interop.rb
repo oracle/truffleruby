@@ -40,7 +40,7 @@ module Truffle
       enumerable(keys).map { |key| from_java_string(key) }
     end
 
-    def self.get_members(object, internal)
+    def self.get_members_implementation(object, internal)
       keys = []
 
       if object.respond_to? :polyglot_members
@@ -67,7 +67,7 @@ module Truffle
       keys.map { |s| Truffle::Interop.to_java_string(s) }
     end
 
-    private_class_method :get_members
+    private_class_method :get_members_implementation
 
     def self.lookup_symbol(name)
       if MAIN.respond_to?(name, true)

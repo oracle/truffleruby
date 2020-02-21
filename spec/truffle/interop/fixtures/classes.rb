@@ -15,7 +15,7 @@ module TruffleInteropSpecs
       true
     end
 
-    def polyglot_address
+    def polyglot_as_pointer
       0x123
     end
   end
@@ -76,7 +76,7 @@ module TruffleInteropSpecs
       @storage = []
     end
 
-    def polyglot_array?
+    def polyglot_has_array_elements?
       @log << [__callee__]
       true
     end
@@ -86,39 +86,39 @@ module TruffleInteropSpecs
       @storage.size
     end
 
-    def polyglot_array_read(index)
+    def polyglot_read_array_element(index)
       @log << [__callee__, index]
       @storage[index]
     end
 
-    def polyglot_array_write(index, value)
+    def polyglot_write_array_element(index, value)
       @log << [__callee__, index, value]
       @storage[index] = value
       nil
     end
 
-    def polyglot_array_remove(index)
+    def polyglot_remove_array_element(index)
       @log << [__callee__, index]
       @storage.delete_at(index)
       nil
     end
 
-    def polyglot_array_readable?(index)
+    def polyglot_array_element_readable?(index)
       @log << [__callee__, index]
       index >= 0 && index < @storage.size
     end
 
-    def polyglot_array_modifiable?(index)
+    def polyglot_array_element_modifiable?(index)
       @log << [__callee__, index]
       index >= 0 && index < @storage.size
     end
 
-    def polyglot_array_insertable?(index)
+    def polyglot_array_element_insertable?(index)
       @log << [__callee__, index]
       index >= @storage.size && Primitive.integer_fits_into_int(index)
     end
 
-    def polyglot_array_removable?(index)
+    def polyglot_array_element_removable?(index)
       @log << [__callee__, index]
       index >= 0 && index < @storage.size
     end
@@ -132,7 +132,7 @@ module TruffleInteropSpecs
       @storage = {}
     end
 
-    def polyglot_members?
+    def polyglot_has_members?
       true
     end
 
@@ -141,22 +141,22 @@ module TruffleInteropSpecs
       internal ? [] : @storage.keys
     end
 
-    def polyglot_member_read(name)
+    def polyglot_read_member(name)
       @log << [__callee__, name]
       @storage.fetch name # TODO (pitr-ch 07-Feb-2020): error translation for missing keys?
     end
 
-    def polyglot_member_write(name, value)
+    def polyglot_write_member(name, value)
       @log << [__callee__, name, value]
       @storage[name] = value
     end
 
-    def polyglot_member_remove(name)
+    def polyglot_remove_member(name)
       @log << [__callee__, name]
       @storage.delete name # TODO (pitr-ch 07-Feb-2020): error translation for missing keys?
     end
 
-    def polyglot_member_invoke(name, *args)
+    def polyglot_invoke_member(name, *args)
       @log << [__callee__, name, *args]
       # TODO (pitr-ch 07-Feb-2020): error handling?
       @storage.fetch(name).call(*args)
@@ -191,11 +191,11 @@ module TruffleInteropSpecs
       false
     end
 
-    def polyglot_member_read_side_effects?(name)
+    def polyglot_has_member_read_side_effects?(name)
       false
     end
 
-    def polyglot_member_write_side_effects?(name)
+    def polyglot_has_member_write_side_effects?(name)
       false
     end
   end
