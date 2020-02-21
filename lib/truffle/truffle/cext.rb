@@ -353,60 +353,6 @@ module Truffle::CExt
     alias_method :to_s, :string
   end
 
-  class RStringEndPtr
-    def initialize(string)
-      @string = string
-      @address = 0
-    end
-
-    def polyglot_pointer?
-      @address != 0
-    end
-
-    def polyglot_as_pointer
-      @address
-    ensure
-      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be raised so it is translated to UnsupportedMessageException
-    end
-
-    def polyglot_to_native
-      @address = Primitive.string_pointer_to_native(@string) + @string.bytesize
-    end
-
-    def polyglot_has_array_elements?
-      true
-    end
-
-    # this is called by Sulong for strlen() which calls getArraySize() in Sulong string.c
-    def polyglot_array_size
-      0
-    end
-
-    def polyglot_read_array_element(index)
-      raise
-    end
-
-    def polyglot_write_array_element(index, value)
-      raise
-    end
-
-    def polyglot_array_element_readable?(index)
-      false
-    end
-
-    def polyglot_array_element_modifiable?(index)
-      false
-    end
-
-    def polyglot_array_element_insertable?(index)
-      false
-    end
-
-    def polyglot_array_element_removable?(index)
-      false
-    end
-  end
-
   class RArrayPtr
     attr_reader :array
 
@@ -2085,10 +2031,6 @@ module Truffle::CExt
 
   def NATIVE_RSTRING_PTR(string)
     Primitive.string_pointer_to_native(string)
-  end
-
-  def RSTRING_END(string)
-    RStringEndPtr.new(string)
   end
 
   def rb_tr_obj_id(object)
