@@ -14,7 +14,6 @@ import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
