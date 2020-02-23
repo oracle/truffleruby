@@ -1102,6 +1102,9 @@ int RARRAY_LENINT(VALUE array);
 } while (0)
 
 VALUE RARRAY_AREF(VALUE array, long index);
+#ifdef TRUFFLERUBY
+#define RARRAY_ASET(a, i, v) rb_ary_store(a, i, v)
+#else
 #define RARRAY_ASET(a, i, v) do { \
     const VALUE _ary = (a); \
     const VALUE _v = (v); \
@@ -1109,6 +1112,7 @@ VALUE RARRAY_AREF(VALUE array, long index);
     RB_OBJ_WRITE(_ary, &ptr[i], _v); \
     RARRAY_PTR_USE_END_TRANSIENT(_ary); \
 } while (0)
+#endif
 
 #define RARRAY_PTR(array) RARRAY_PTR_IMPL(array)
 VALUE *RARRAY_PTR_IMPL(VALUE array);

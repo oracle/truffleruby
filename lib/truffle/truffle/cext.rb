@@ -234,10 +234,10 @@ module Truffle::CExt
 
     def polyglot_read_member(name)
       case name
-      when 'mode'
-        @io.instance_variable_get(:@mode)
       when 'fd'
         @io.instance_variable_get(:@descriptor)
+      when 'mode'
+        @io.instance_variable_get(:@mode)
       else
         raise "Unknown identifier: #{name}"
       end
@@ -256,7 +256,7 @@ module Truffle::CExt
     end
 
     def polyglot_member_readable?(name)
-      name == 'mode' || name == 'fd'
+      name == 'fd' || name == 'mode'
     end
 
     def polyglot_member_modifiable?(name)
