@@ -50,7 +50,7 @@ public class ObjectArrayStore {
 
     @ExportMessage
     public static String toString(Object[] store) {
-        return "object[]";
+        return "Object[]";
     }
 
     @ExportMessage
