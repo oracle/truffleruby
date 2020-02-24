@@ -53,7 +53,7 @@ describe "Truffle::Interop.write" do
       object = TruffleInteropSpecs::PolyglotMember.new
       Truffle::Interop.write_member(object, :foo, 14)
       object.log.should include([:polyglot_write_member, "foo", 14])
-      Truffle::Interop.read(object, :foo).should == 14
+      Truffle::Interop.read_member(object, :foo).should == 14
     end
 
   end

@@ -196,7 +196,7 @@ module Truffle
 
     def self.foreign_class(receiver, *args)
       if Truffle::Interop.java_class?(receiver)
-        Truffle::Interop.read(receiver, :class)
+        Truffle::Interop.read_member(receiver, :class)
       else
         Truffle::Interop.invoke(receiver, :class, *args)
       end
@@ -244,7 +244,7 @@ module Truffle
       end
 
       Array.new(Truffle::Interop.array_size(object)) do |n|
-        Truffle::Interop.read(object, n)
+        Truffle::Interop.read_array_element(object, n)
       end
     end
 

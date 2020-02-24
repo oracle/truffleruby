@@ -546,23 +546,20 @@ public abstract class InteropNodes {
 
     }
 
-    // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "read", onSingleton = true, required = 2)
-    public abstract static class ReadNode extends RubySourceNode {
+    @CoreMethod(names = "read_member", onSingleton = true, required = 2)
+    public abstract static class ReadMemberNode extends RubySourceNode {
 
-        public static ReadNode create() {
-            return InteropNodesFactory.ReadNodeFactory.create(null);
+        public static ReadMemberNode create() {
+            return InteropNodesFactory.ReadMemberNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object identifier);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Object readMember(
-                Object receiver,
-                DynamicObject identifier,
+        protected Object readMember(Object receiver, DynamicObject identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile unknownIdentifierProfile,
@@ -586,10 +583,27 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+
+    }
+
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "read_array_element", onSingleton = true, required = 2)
+    public abstract static class ReadArrayElementNode extends RubySourceNode {
+
+
+        public static ReadArrayElementNode create() {
+            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
+        }
+
+        abstract Object execute(Object receiver, Object identifier);
+
         @Specialization(limit = "getCacheLimit()")
-        protected Object readArrayElement(
-                TruffleObject receiver,
-                long identifier,
+        protected Object readArrayElement(Object receiver, long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile unknownIdentifierProfile,

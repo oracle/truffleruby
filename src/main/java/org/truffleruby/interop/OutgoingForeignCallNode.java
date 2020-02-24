@@ -76,11 +76,31 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         return System.identityHashCode(receiver);
     }
 
-    @Specialization(guards = { "name == cachedName", "cachedName.equals(INDEX_READ)", "args.length == 1" }, limit = "1")
-    protected Object indexRead(
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "cachedName.equals(INDEX_READ)",
+                    "args.length == 1",
+                    "isBasicInteger(first(args))" },
+            limit = "1")
+    protected Object readArrayElement(
             Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.ReadNode readNode) {
+            @Cached InteropNodes.ReadArrayElementNode readNode) {
+        return readNode.execute(receiver, args[0]);
+    }
+
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "cachedName.equals(INDEX_READ)",
+                    "args.length == 1",
+                    "isRubySymbol(first(args)) || isRubyString(first(args))" },
+            limit = "1")
+    protected Object readMember(
+            Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @Cached InteropNodes.ReadMemberNode readNode) {
         return readNode.execute(receiver, args[0]);
     }
 
