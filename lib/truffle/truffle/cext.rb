@@ -201,6 +201,8 @@ module Truffle::CExt
     end
 
     def cache_address
+      # TODO (eregon, 24 Feb 2020), this returns the address of RSTRING_PTR(@name),
+      # not of a rb_encoding* which should have the name as first field
       name = @name or raise '@name not set'
       unless Truffle::Interop.pointer?(name)
         Truffle::Interop.to_native(name)
