@@ -368,7 +368,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_boolean?", onSingleton = true, required = 1)
+    @CoreMethod(names = "boolean?", onSingleton = true, required = 1)
     public abstract static class IsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isBoolean(

@@ -284,12 +284,12 @@ module Truffle
 
     # TODO (pitr-ch 01-Apr-2019): remove
     def self.boxed?(object)
-      is_boolean?(object) || is_string?(object) || is_number?(object)
+      boolean?(object) || is_string?(object) || is_number?(object)
     end
 
     # TODO (pitr-ch 01-Apr-2019): remove
     def self.unbox(object)
-      return as_boolean object if is_boolean? object
+      return as_boolean object if boolean? object
       return as_string object if is_string? object
 
       if is_number?(object)
@@ -303,7 +303,7 @@ module Truffle
 
     # TODO (pitr-ch 01-Apr-2019): remove
     def self.unbox_without_conversion(object)
-      return as_boolean object if is_boolean? object
+      return as_boolean object if boolean? object
       return as_string_without_conversion object if is_string? object
 
       if is_number?(object)
