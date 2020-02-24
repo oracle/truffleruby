@@ -234,7 +234,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case TO_ARY:
                 return "to_array";
             case SIZE:
-                return "size";
+                return "array_size";
             case KEYS:
                 return "keys";
             case RESPOND_TO:

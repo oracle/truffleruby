@@ -95,7 +95,7 @@ module Truffle
       end
 
       def size
-        Truffle::Interop.size(foreign)
+        Truffle::Interop.array_size(foreign)
       end
 
     end
@@ -243,7 +243,7 @@ module Truffle
         raise 'foreign object does not have a size to turn it into an array'
       end
 
-      Array.new(Truffle::Interop.size(object)) do |n|
+      Array.new(Truffle::Interop.array_size(object)) do |n|
         Truffle::Interop.read(object, n)
       end
     end

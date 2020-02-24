@@ -310,17 +310,11 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "size", onSingleton = true, required = 1)
-    public abstract static class SizeNode extends InteropCoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object size(String receiver) {
-            return receiver.length();
-        }
+    @CoreMethod(names = "array_size", onSingleton = true, required = 1)
+    public abstract static class ArraySizeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object size(
-                TruffleObject receiver,
+        protected Object arraySize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile) {
             try {

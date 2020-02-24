@@ -29,7 +29,7 @@ guard -> { !TruffleRuby.native? } do
       array[0].nil?.should be_true
       array[1].should == 14
       array[2].nil?.should be_true
-      Truffle::Interop.size(array).should == 3
+      Truffle::Interop.array_size(array).should == 3
     end
 
     it "creates arrays of arrays of objects" do
@@ -37,10 +37,10 @@ guard -> { !TruffleRuby.native? } do
       array[1] = Truffle::Interop.java_type("java.lang.Integer[]").new(1)
       array[1][0] = 14
       array[0].nil?.should be_true
-      Truffle::Interop.size(array[1]).should == 1
+      Truffle::Interop.array_size(array[1]).should == 1
       array[1][0].should == 14
       array[2].nil?.should be_true
-      Truffle::Interop.size(array).should == 3
+      Truffle::Interop.array_size(array).should == 3
     end
 
     it "creates arrays of primitives" do
@@ -49,7 +49,7 @@ guard -> { !TruffleRuby.native? } do
       array[0].should == 0
       array[1].should == 14
       array[2].should == 0
-      Truffle::Interop.size(array).should == 3
+      Truffle::Interop.array_size(array).should == 3
     end
 
   end

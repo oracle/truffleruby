@@ -70,7 +70,7 @@ More details to be added.
 
 ### `GET_SIZE`
 
-`Truffle::Interop.size(value)`
+`Truffle::Interop.array_size(value)`
 
 ### `IS_BOXED`
 
