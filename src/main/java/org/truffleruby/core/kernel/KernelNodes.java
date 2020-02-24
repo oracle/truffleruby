@@ -13,7 +13,6 @@ import static org.truffleruby.core.string.StringOperations.rope;
 
 import java.io.File;
 import java.io.PrintStream;
-import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;

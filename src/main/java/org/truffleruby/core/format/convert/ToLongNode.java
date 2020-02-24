@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.convert;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantConvertException;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;

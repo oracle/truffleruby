@@ -17,7 +17,6 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class HashNode extends RubyContextNode {

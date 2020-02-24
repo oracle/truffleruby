@@ -1712,7 +1712,7 @@ public abstract class IntegerNodes {
                     warnNode.warningMessage(
                             getContext().getCallStack().getTopMostUserSourceSection(),
                             "in a**b, b may be too big");
-                    return BigIntegerOps.pow(bigIntegerBase, (double) exponent);
+                    return BigIntegerOps.pow(bigIntegerBase, /* as double */ exponent);
                 }
 
                 // The cast is safe because of the check above.
