@@ -22,7 +22,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
@@ -49,6 +49,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
@@ -137,32 +138,32 @@ public abstract class TypeNodes {
 
         @Specialization
         protected DynamicObject instanceVariables(int object) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
         @Specialization
         protected DynamicObject instanceVariables(long object) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
         @Specialization
         protected DynamicObject instanceVariables(boolean object) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
         @Specialization(guards = "isNil(object)")
         protected DynamicObject instanceVariablesNil(Object object) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
         @Specialization(guards = "isRubySymbol(object)")
         protected DynamicObject instanceVariablesSymbol(DynamicObject object) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
         @Fallback
         protected DynamicObject instanceVariables(Object object) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
     }
@@ -233,18 +234,22 @@ public abstract class TypeNodes {
     public abstract static class CanContainObjectNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(
-                guards = { "isRubyArray(array)", "strategy.matches(array)", "strategy.isPrimitive()" },
-                limit = "STORAGE_STRATEGIES")
+                guards = {
+                        "isRubyArray(array)",
+                        "stores.accepts(getStore(array))",
+                        "stores.isPrimitive(getStore(array))" })
         protected boolean primitiveArray(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy) {
+                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
             return false;
         }
 
         @Specialization(
-                guards = { "isRubyArray(array)", "strategy.matches(array)", "!strategy.isPrimitive()" },
-                limit = "STORAGE_STRATEGIES")
+                guards = {
+                        "isRubyArray(array)",
+                        "stores.accepts(getStore(array))",
+                        "!stores.isPrimitive(getStore(array))" })
         protected boolean objectArray(DynamicObject array,
-                @Cached("of(array)") ArrayStrategy strategy) {
+                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
             return true;
         }
 

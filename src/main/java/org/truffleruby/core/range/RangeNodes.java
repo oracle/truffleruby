@@ -20,8 +20,8 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayBuilderNode;
-import org.truffleruby.core.array.ArrayStrategy;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.NotProvided;
@@ -61,7 +61,7 @@ public abstract class RangeNodes {
             final boolean excludedEnd = Layouts.INT_RANGE.getExcludedEnd(range);
             int exclusiveEnd = excludedEnd ? end : end + 1;
             if (noopProfile.profile(begin >= exclusiveEnd)) {
-                return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+                return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
             }
 
             final int length = exclusiveEnd - begin;
@@ -375,7 +375,7 @@ public abstract class RangeNodes {
             final int length = result - begin;
 
             if (length < 0) {
-                return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+                return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
             } else {
                 final int[] values = new int[length];
 

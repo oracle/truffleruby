@@ -41,6 +41,11 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
+    public boolean isPrimitive() {
+        return true;
+    }
+
+    @ExportMessage
     public static String toString(ZeroLengthArrayStore store) {
         return "empty";
     }
@@ -72,6 +77,11 @@ public class ZeroLengthArrayStore {
     public Object[] toJavaArrayCopy(int length) {
         assert length == 0;
         return new Object[length];
+    }
+
+    @ExportMessage
+    public void sort(int size) {
+        assert size == 0;
     }
 
     @ExportMessage

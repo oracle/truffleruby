@@ -10,9 +10,12 @@
 package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
+import static org.truffleruby.core.array.ArrayHelpers.getStore;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
+import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -20,6 +23,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
@@ -33,13 +37,12 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
     // Writing within an existing array with a compatible type
 
     @Specialization(
-            guards = { "isInBounds(array, index)", "strategy.matches(array)", "strategy.accepts(value)" },
+            guards = { "isInBounds(array, index)", "arrays.acceptsValue(getStore(array), value)" },
             limit = "STORAGE_STRATEGIES")
     protected Object writeWithin(DynamicObject array, int index, Object value,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
         propagateSharingNode.executePropagate(array, value);
-        setNode.execute(Layouts.ARRAY.getStore(array), index, value);
+        arrays.write(getStore(array), index, value);
         return value;
     }
 
@@ -48,24 +51,19 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
     @Specialization(
             guards = {
                     "isInBounds(array, index)",
-                    "currentStrategy.matches(array)",
-                    "valueStrategy.specializesFor(value)", },
-            limit = "ARRAY_STRATEGIES")
+                    "!arrays.acceptsValue(getStore(array), value)"
+            },
+            limit = "STORAGE_STRATEGIES")
     protected Object writeWithinGeneralizeNonMutable(DynamicObject array, int index, Object value,
-            @Cached("of(array)") ArrayStrategy currentStrategy,
-            @Cached("forValue(value)") ArrayStrategy valueStrategy,
-            @Cached("currentStrategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,
-            @Cached("currentStrategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
-            @Cached("currentStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
-            @Cached("generalizedStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
-            @Cached("generalizedStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode) {
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
         final int size = getSize(array);
-        final Object store = Layouts.ARRAY.getStore(array);
-        final Object newStore = newStoreNode.execute(capacityNode.execute(store));
-        copyToNode.execute(store, newStore, 0, 0, size);
+        final Object store = getStore(array);
+        final Object newStore = arrays.generalizeForValue(store, value).allocate(size);
+        arrays.copyContents(store, 0, newStore, 0, size);
         propagateSharingNode.executePropagate(array, value);
-        setNode.execute(newStore, index, value);
-        generalizedStrategy.setStore(array, newStore);
+        newArrays.write(newStore, index, value);
+        Layouts.ARRAY.setStore(array, newStore);
         return value;
     }
 
@@ -83,21 +81,22 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             guards = {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
-                    "strategy.matches(array)",
-                    "mutableStrategy.isPrimitive()" },
+                    "arrays.isPrimitive(getStore(array))" },
             limit = "STORAGE_STRATEGIES")
     protected Object writeBeyondPrimitive(DynamicObject array, int index, Object value,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-            @Cached ArrayGeneralizeNode generalizeNode) {
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
         final int newSize = index + 1;
-        final Object[] objectStore = generalizeNode.executeGeneralize(array, newSize);
-        for (int n = strategy.getSize(array); n < index; n++) {
-            objectStore[n] = nil;
+        Object store = getStore(array);
+        final Object objectStore = arrays.generalizeForValue(store, nil).allocate(newSize);
+        int oldSize = getSize(array);
+        arrays.copyContents(store, 0, objectStore, 0, oldSize);
+        for (int n = oldSize; n < index; n++) {
+            newArrays.write(objectStore, n, nil);
         }
         propagateSharingNode.executePropagate(array, value);
-        objectStore[index] = value;
-        strategy.setStoreAndSize(array, objectStore, newSize);
+        newArrays.write(objectStore, index, value);
+        setStoreAndSize(array, objectStore, newSize);
         return value;
     }
 
@@ -105,21 +104,19 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             guards = {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
-                    "strategy.matches(array)",
-                    "!mutableStrategy.isPrimitive()" },
+                    "!arrays.isPrimitive(getStore(array))" },
             limit = "STORAGE_STRATEGIES")
     protected Object writeBeyondObject(DynamicObject array, int index, Object value,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-            @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
-        final Object store = Layouts.ARRAY.getStore(array);
-        for (int n = strategy.getSize(array); n < index; n++) {
-            setNode.execute(store, n, nil);
+        final Object store = getStore(array);
+        for (int n = getSize(array); n < index; n++) {
+            newArrays.write(store, n, nil);
         }
         propagateSharingNode.executePropagate(array, value);
-        setNode.execute(store, index, value);
+        newArrays.write(store, index, value);
         setSize(array, index + 1);
         return value;
     }

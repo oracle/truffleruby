@@ -41,4 +41,11 @@ public class ArrayGuards {
         return Layouts.ARRAY.getSize(array) == 0;
     }
 
+    public static Object getStore(DynamicObject array) {
+        return Layouts.ARRAY.getStore(array);
+    }
+
+    public static int getSize(DynamicObject array) {
+        return Layouts.ARRAY.getSize(array);
+    }
 }

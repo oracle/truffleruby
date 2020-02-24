@@ -10,19 +10,18 @@
 package org.truffleruby.core.format.read.array;
 
 import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.convert.ToIntegerNode;
 import org.truffleruby.core.format.convert.ToIntegerNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "source", type = SourceNode.class)
@@ -33,38 +32,16 @@ public abstract class ReadIntegerNode extends FormatNode {
 
     private final ConditionProfile convertedTypeProfile = ConditionProfile.createBinaryProfile();
 
-    @Specialization(guards = "isNull(source)")
-    protected double read(VirtualFrame frame, Object source) {
-        advanceSourcePosition(frame);
-        throw new IllegalStateException();
-    }
-
-    @Specialization
-    protected int read(VirtualFrame frame, int[] source) {
-        return source[advanceSourcePosition(frame)];
-    }
-
-    @Specialization
-    protected int read(VirtualFrame frame, long[] source) {
-        return (int) source[advanceSourcePosition(frame)];
-    }
-
-    @Specialization
-    protected int read(VirtualFrame frame, double[] source) {
-        return (int) source[advanceSourcePosition(frame)];
-    }
-
-    @Specialization(guards = "strategy.matchesStore(source)", limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "STORAGE_STRATEGIES")
     protected Object read(VirtualFrame frame, Object source,
-            @Cached("ofStore(source)") ArrayStrategy strategy,
-            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
+            @CachedLibrary("source") ArrayStoreLibrary sources) {
         if (toIntegerNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             toIntegerNode = insert(ToIntegerNodeGen.create(null));
         }
 
         final Object value = toIntegerNode
-                .executeToInteger(frame, getNode.execute(source, advanceSourcePosition(frame)));
+                .executeToInteger(frame, sources.read(source, advanceSourcePosition(frame)));
 
         if (convertedTypeProfile.profile(value instanceof Long)) {
             return (int) (long) value;

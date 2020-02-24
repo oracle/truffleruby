@@ -10,14 +10,17 @@
 package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
+import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -30,32 +33,35 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
 
     // Append of a compatible type
 
+    /** Appending an empty array is a no-op, and shouldn't cause an immutable array store to be converted into a mutable
+     * one unnecessarily. */
+    @Specialization(guards = "isEmptyArray(other)")
+    protected DynamicObject appendZero(DynamicObject array, DynamicObject other) {
+        return array;
+    }
+
     @Specialization(
-            guards = { "strategy.matches(array)", "otherStrategy.matches(other)", "generalized.equals(strategy)" },
-            limit = "ARRAY_STRATEGIES")
+            guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(getStore(array), getStore(other))" },
+            limit = "STORAGE_STRATEGIES")
     protected DynamicObject appendManySameType(DynamicObject array, DynamicObject other,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("of(other)") ArrayStrategy otherStrategy,
-            @Cached("strategy.generalize(otherStrategy)") ArrayStrategy generalized,
-            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
-            @Cached("generalized.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
-            @Cached("otherStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
+            @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores,
             @Cached("createBinaryProfile()") ConditionProfile extendProfile) {
-        final int oldSize = strategy.getSize(array);
-        final int otherSize = otherStrategy.getSize(other);
+        final int oldSize = Layouts.ARRAY.getSize(array);
+        final int otherSize = Layouts.ARRAY.getSize(other);
         final int newSize = oldSize + otherSize;
         final Object store = Layouts.ARRAY.getStore(array);
         final Object otherStore = Layouts.ARRAY.getStore(other);
-        final int length = capacityNode.execute(store);
+        final int length = stores.capacity(store);
 
         propagateSharingNode.executePropagate(array, other);
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacity(getContext(), length, newSize);
-            Object newStore = copyStoreNode.execute(store, capacity);
-            copyToNode.execute(otherStore, newStore, 0, oldSize, otherSize);
-            strategy.setStoreAndSize(array, newStore, newSize);
+            Object newStore = stores.expand(store, capacity);
+            otherStores.copyContents(otherStore, 0, newStore, oldSize, otherSize);
+            setStoreAndSize(array, newStore, newSize);
         } else {
-            copyToNode.execute(otherStore, store, 0, oldSize, otherSize);
+            otherStores.copyContents(otherStore, 0, store, oldSize, otherSize);
             setSize(array, newSize);
         }
         return array;
@@ -64,27 +70,22 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
     // Generalizations
 
     @Specialization(
-            guards = { "strategy.matches(array)", "otherStrategy.matches(other)", "!generalized.equals(strategy)" },
-            limit = "ARRAY_STRATEGIES")
+            guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(getStore(array), getStore(other))" },
+            limit = "STORAGE_STRATEGIES")
     protected DynamicObject appendManyGeneralize(DynamicObject array, DynamicObject other,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("of(other)") ArrayStrategy otherStrategy,
-            @Cached("strategy.generalize(otherStrategy)") ArrayStrategy generalized,
-            @Cached("generalized.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode,
-            @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
-            @Cached("otherStrategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode otherCopyToNode) {
-        final int oldSize = strategy.getSize(array);
-        final int otherSize = otherStrategy.getSize(other);
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
+            @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores) {
+        final int oldSize = Layouts.ARRAY.getSize(array);
+        final int otherSize = Layouts.ARRAY.getSize(other);
         final int newSize = oldSize + otherSize;
         final Object store = Layouts.ARRAY.getStore(array);
         final Object otherStore = Layouts.ARRAY.getStore(other);
-        final Object newStore = newStoreNode.execute(newSize);
+        final Object newStore = stores.generalizeForStore(store, otherStore).allocate(newSize);
 
         propagateSharingNode.executePropagate(array, other);
-        copyToNode.execute(store, newStore, 0, 0, oldSize);
-        otherCopyToNode.execute(otherStore, newStore, 0, oldSize, otherSize);
-        generalized.setStoreAndSize(array, newStore, newSize);
+        stores.copyContents(store, 0, newStore, 0, oldSize);
+        otherStores.copyContents(otherStore, 0, newStore, oldSize, otherSize);
+        setStoreAndSize(array, newStore, newSize);
         return array;
     }
-
 }

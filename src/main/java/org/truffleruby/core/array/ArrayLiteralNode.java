@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
@@ -102,7 +103,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         @Override
         public Object execute(VirtualFrame frame) {
-            return cachedCreateArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return cachedCreateArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
     }
@@ -261,7 +262,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
             final RubyNode newNode;
 
-            if (store == ArrayStrategy.NULL_ARRAY_STORE) {
+            if (store == ArrayStoreLibrary.INITIAL_STORE) {
                 newNode = new EmptyArrayLiteralNode(values);
             } else if (store instanceof int[]) {
                 newNode = new IntegerArrayLiteralNode(values);
@@ -281,7 +282,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
         public Object storeSpecialisedFromObjects(Object... objects) {
             if (objects.length == 0) {
-                return ArrayStrategy.NULL_ARRAY_STORE;
+                return ArrayStoreLibrary.INITIAL_STORE;
             }
 
             boolean canUseInteger = true;

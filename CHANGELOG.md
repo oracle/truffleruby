@@ -8,6 +8,7 @@ New features:
 * Hash keys are no longer reported as polyglot members.
 * All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods.
 * Rename dynamic API to match InteropLibrary. All the methods keep the name as it is in InteropLibrary with following changes: use snake_case, add `polyglot_` prefix, drop `get` and `is` prefix, append `?` on all predicates.  
+* Many nodes that manipulate arrays have been converted to use `ArrayStoreLibrary`.
 
 Bug fixes:
 

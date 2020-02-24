@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -16,6 +18,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -29,16 +32,16 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
         this.index = index;
     }
 
-    @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "STORAGE_STRATEGIES")
     protected DynamicObject getTail(DynamicObject array,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
+            @Cached ArrayCopyOnWriteNode cowNode,
             @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {
-        final int size = strategy.getSize(array);
+        final int size = Layouts.ARRAY.getSize(array);
         if (indexLargerThanSize.profile(index >= size)) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         } else {
-            final Object newStore = extractRangeCopyOnWriteNode.execute(array, index, size);
+            final Object newStore = cowNode.execute(array, index, size - index);
             return createArray(newStore, size - index);
         }
     }

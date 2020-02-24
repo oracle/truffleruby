@@ -13,6 +13,7 @@ import static org.truffleruby.core.array.ArrayHelpers.getSize;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 
@@ -20,6 +21,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -83,14 +85,11 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     @Specialization(
             guards = {
                     "isRubyArray(replacement)",
-                    "length != getArraySize(replacement)",
-                    "strategy.matches(array)" },
+                    "length != getArraySize(replacement)" },
             limit = "STORAGE_STRATEGIES")
     protected Object setOtherArray(DynamicObject array, int rawStart, int length, DynamicObject replacement,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.generalizeForMutation()") ArrayStrategy mutableStrategy,
-            @Cached("mutableStrategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode,
-            @Cached("mutableStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
             @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
             @Cached("createBinaryProfile()") ConditionProfile recursiveProfile,
@@ -105,7 +104,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
         final int start = ArrayOperations.normalizeIndex(getSize(array), rawStart, negativeIndexProfile);
         checkIndex(array, rawStart, start);
 
-        final int arraySize = strategy.getSize(array);
+        final int arraySize = getSize(array);
         final int replacementSize = getSize(replacement);
 
         if (recursiveProfile.profile(array == replacement)) {
@@ -130,18 +129,18 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
                     if (moveLeftProfile.profile(replacementSize < length)) {
                         // Moving elements left
                         for (int i = 0; i < tailSize; i++) {
-                            setNode.execute(
+                            mutableStores.write(
                                     store,
                                     start + replacementSize + i,
-                                    getNode.execute(store, start + length + i));
+                                    mutableStores.read(store, start + length + i));
                         }
                     } else {
                         // Moving elements right
                         for (int i = tailSize - 1; i >= 0; i--) {
-                            setNode.execute(
+                            mutableStores.write(
                                     store,
                                     start + replacementSize + i,
-                                    getNode.execute(store, start + length + i));
+                                    mutableStores.read(store, start + length + i));
                         }
                     }
                 }

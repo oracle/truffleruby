@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -33,18 +35,17 @@ public abstract class ArraySliceNode extends RubyContextSourceNode {
         this.to = to;
     }
 
-    @Specialization(guards = { "strategy.matches(array)" }, limit = "STORAGE_STRATEGIES")
+    @Specialization
     protected DynamicObject readInBounds(DynamicObject array,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.extractRangeCopyOnWriteNode()") ArrayOperationNodes.ArrayExtractRangeCopyOnWriteNode extractRangeCopyOnWriteNode,
+            @Cached ArrayCopyOnWriteNode cowNode,
             @Cached("createBinaryProfile()") ConditionProfile emptyArray) {
-        final int to = strategy.getSize(array) + this.to;
+        final int length = Layouts.ARRAY.getSize(array) + to - from;
 
-        if (emptyArray.profile(from >= to)) {
-            return createArray(ArrayStrategy.NULL_ARRAY_STORE, 0);
+        if (emptyArray.profile(length <= 0)) {
+            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         } else {
-            final Object slice = extractRangeCopyOnWriteNode.execute(array, from, to);
-            return createArray(slice, to - from);
+            final Object slice = cowNode.execute(array, from, length);
+            return createArray(slice, length);
         }
 
     }

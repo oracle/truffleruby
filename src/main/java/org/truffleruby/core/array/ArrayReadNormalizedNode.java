@@ -10,14 +10,15 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild(value = "array", type = RubyNode.class)
@@ -35,27 +36,23 @@ public abstract class ArrayReadNormalizedNode extends RubyContextSourceNode {
     // Read within the bounds of an array with actual storage
 
     @Specialization(
-            guards = { "strategy.matches(array)", "isInBounds(array, index, strategy)" },
+            guards = "isInBounds(array, index)",
             limit = "STORAGE_STRATEGIES")
     protected Object readInBounds(DynamicObject array, int index,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.getNode()") ArrayOperationNodes.ArrayGetNode getNode) {
-        return getNode.execute(Layouts.ARRAY.getStore(array), index);
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
+        return arrays.read(Layouts.ARRAY.getStore(array), index);
     }
 
     // Reading out of bounds is nil for any array
 
-    @Specialization(
-            guards = { "strategy.matches(array)", "!isInBounds(array, index, strategy)" },
-            limit = "STORAGE_STRATEGIES")
-    protected Object readOutOfBounds(DynamicObject array, int index,
-            @Cached("of(array)") ArrayStrategy strategy) {
+    @Specialization(guards = "!isInBounds(array, index)")
+    protected Object readOutOfBounds(DynamicObject array, int index) {
         return nil;
     }
 
     // Guards
 
-    protected static boolean isInBounds(DynamicObject array, int index, ArrayStrategy strategy) {
-        return index >= 0 && index < strategy.getSize(array);
+    protected static boolean isInBounds(DynamicObject array, int index) {
+        return index >= 0 && index < Layouts.ARRAY.getSize(array);
     }
 }

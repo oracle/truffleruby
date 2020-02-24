@@ -10,16 +10,19 @@
 package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
+import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -38,28 +41,26 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
 
     // Append of the correct type
 
-    @Specialization(guards = { "strategy.matches(array)", "strategy.accepts(value)" }, limit = "STORAGE_STRATEGIES")
+    @Specialization(
+            guards = { "stores.acceptsValue(getStore(array), value)" },
+            limit = "STORAGE_STRATEGIES")
     protected DynamicObject appendOneSameType(DynamicObject array, Object value,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
-            @Cached("strategy.copyStoreNode()") ArrayOperationNodes.ArrayCopyStoreNode copyStoreNode,
-            @Cached("strategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final Object store = Layouts.ARRAY.getStore(array);
         final int oldSize = Layouts.ARRAY.getSize(array);
         final int newSize = oldSize + 1;
-        final int length = capacityNode.execute(store);
+        final int length = stores.capacity(store);
 
         propagateSharingNode.executePropagate(array, value);
 
         if (extendProfile.profile(newSize > length)) {
             final int capacity = ArrayUtils.capacityForOneMore(getContext(), length);
-            final Object newStore = copyStoreNode.execute(store, capacity);
-            setNode.execute(newStore, oldSize, value);
-            strategy.setStore(array, newStore);
-            setSize(array, newSize);
+            final Object newStore = stores.expand(store, capacity);
+            stores.write(newStore, oldSize, value);
+            setStoreAndSize(array, newStore, newSize);
         } else {
-            setNode.execute(store, oldSize, value);
+            stores.write(store, oldSize, value);
             setSize(array, newSize);
         }
         return array;
@@ -68,31 +69,23 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     // Append forcing a generalization
 
     @Specialization(
-            guards = { "strategy.matches(array)", "valueStrategy.specializesFor(value)", },
+            guards = "!currentStores.acceptsValue(getStore(array), value)",
             limit = "ARRAY_STRATEGIES")
     protected DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("forValue(value)") ArrayStrategy valueStrategy,
-            @Cached("strategy.generalize(valueStrategy)") ArrayStrategy generalizedStrategy,
-            @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode,
-            @Cached("strategy.copyToNode()") ArrayOperationNodes.ArrayCopyToNode copyToNode,
-            @Cached("generalizedStrategy.setNode()") ArrayOperationNodes.ArraySetNode setNode,
-            @Cached("generalizedStrategy.newStoreNode()") ArrayOperationNodes.ArrayNewStoreNode newStoreNode) {
-        assert strategy != valueStrategy;
-        final int oldSize = strategy.getSize(array);
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary currentStores,
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary newStores) {
+        final int oldSize = Layouts.ARRAY.getSize(array);
         final int newSize = oldSize + 1;
         final Object currentStore = Layouts.ARRAY.getStore(array);
-        final int oldCapacity = capacityNode.execute(currentStore);
+        final int oldCapacity = currentStores.capacity(currentStore);
         final int newCapacity = newSize > oldCapacity
                 ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity)
                 : oldCapacity;
-        final Object newStore = newStoreNode.execute(newCapacity);
-        copyToNode.execute(currentStore, newStore, 0, 0, oldSize);
+        final Object newStore = currentStores.generalizeForValue(currentStore, value).allocate(newCapacity);
+        currentStores.copyContents(currentStore, 0, newStore, 0, oldSize);
         propagateSharingNode.executePropagate(array, value);
-        setNode.execute(newStore, oldSize, value);
-        generalizedStrategy.setStore(array, newStore);
-        setSize(array, newSize);
+        newStores.write(newStore, oldSize, value);
+        setStoreAndSize(array, newStore, newSize);
         return array;
     }
-
 }
