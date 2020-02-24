@@ -127,7 +127,8 @@ in an undefined order.
 
 ### `WRITE`
 
-`Truffle::Interop.write(object, name/index, value)`
+`Truffle::Interop.write_member(object, name, value)`
+`Truffle::Interop.write_array_element(object, index, value)`
 
 ### `REMOVE`
 

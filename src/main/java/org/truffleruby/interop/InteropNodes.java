@@ -670,24 +670,22 @@ public abstract class InteropNodes {
         }
     }
 
-    // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "write", onSingleton = true, required = 3)
-    public abstract static class WriteNode extends RubySourceNode {
+    @CoreMethod(names = "write_member", onSingleton = true, required = 3)
+    public abstract static class WriteMemberNode extends RubySourceNode {
 
-        public static WriteNode create() {
-            return InteropNodesFactory.WriteNodeFactory.create(null);
+        public static WriteMemberNode create() {
+            return InteropNodesFactory.WriteMemberNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object identifier, Object value);
 
-        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Object write(
-                Object receiver,
-                DynamicObject identifier,
-                Object value,
+        @Specialization(
+                guards = "isRubySymbol(identifier) || isRubyString(identifier)",
+                limit = "getCacheLimit()")
+        protected Object write(Object receiver, DynamicObject identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -710,11 +708,25 @@ public abstract class InteropNodes {
             return value;
         }
 
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "write_array_element", onSingleton = true, required = 3)
+    public abstract static class WriteArrayElementNode extends RubySourceNode {
+
+        public static WriteArrayElementNode create() {
+            return InteropNodesFactory.WriteArrayElementNodeFactory.create(null);
+        }
+
+        abstract Object execute(Object receiver, Object identifier, Object value);
+
         @Specialization(limit = "getCacheLimit()")
-        protected Object write(
-                TruffleObject receiver,
-                long identifier, // TODO (pitr-ch 01-Apr-2019): allow only long? (unify other similar cases)
-                Object value,
+        protected Object write(TruffleObject receiver, long identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached RubyToForeignNode valueToForeignNode,

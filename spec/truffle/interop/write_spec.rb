@@ -18,12 +18,12 @@ describe "Truffle::Interop.write" do
     end
 
     it "writes a value to the array" do
-      Truffle::Interop.write(@array, 1, 14)
+      Truffle::Interop.write_array_element(@array, 1, 14)
       @array[1].should == 14
     end
 
     it "can extend the array" do
-      Truffle::Interop.write(@array, 3, 14)
+      Truffle::Interop.write_array_element(@array, 3, 14)
       @array[3].should == 14
     end
 
@@ -36,12 +36,12 @@ describe "Truffle::Interop.write" do
     end
 
     it "can overwrite an existing instance variable" do
-      Truffle::Interop.write(@object, :@b, 14)
+      Truffle::Interop.write_member(@object, :@b, 14)
       @object.instance_variable_get(:@b).should == 14
     end
 
     it "can add a new a instance variable" do
-      Truffle::Interop.write(@object, :@x, 14)
+      Truffle::Interop.write_member(@object, :@x, 14)
       @object.instance_variable_get(:@x).should == 14
     end
 
@@ -51,7 +51,7 @@ describe "Truffle::Interop.write" do
 
     it "calls the index set method" do
       object = TruffleInteropSpecs::PolyglotMember.new
-      Truffle::Interop.write(object, :foo, 14)
+      Truffle::Interop.write_member(object, :foo, 14)
       object.log.should include([:polyglot_write_member, "foo", 14])
       Truffle::Interop.read(object, :foo).should == 14
     end
@@ -63,7 +63,7 @@ describe "Truffle::Interop.write" do
     it "raises UnknownIdentifierException" do
       object = Object.new
       -> {
-        Truffle::Interop.write(object, :foo, 14)
+        Truffle::Interop.write_member(object, :foo, 14)
       }.should raise_error(NameError, /Unknown identifier: foo/)
     end
 

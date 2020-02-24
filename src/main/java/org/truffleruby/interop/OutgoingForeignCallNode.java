@@ -85,13 +85,34 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = { "name == cachedName", "cachedName.equals(INDEX_WRITE)", "args.length == 2" },
+            guards = {
+                    "name == cachedName",
+                    "cachedName.equals(INDEX_WRITE)",
+                    "args.length == 2",
+                    "isBasicInteger(first(args))" },
             limit = "1")
-    protected Object indexWrite(
-            Object receiver, String name, Object[] args,
+    protected Object writeArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached InteropNodes.WriteNode writeNode) {
+            @Cached InteropNodes.WriteArrayElementNode writeNode) {
+
         return writeNode.execute(receiver, args[0], args[1]);
+    }
+
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "cachedName.equals(INDEX_WRITE)",
+                    "args.length == 2",
+                    "isRubySymbol(first(args)) || isRubyString(first(args))" },
+            limit = "1")
+    protected Object writeMember(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @Cached InteropNodes.WriteMemberNode writeNode) {
+        return writeNode.execute(receiver, args[0], args[1]);
+    }
+
+    protected static Object first(Object[] args) {
+        return args[0];
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(CALL)" }, limit = "1")

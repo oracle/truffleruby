@@ -654,7 +654,7 @@ describe "key_info" do
 
         it "set" do
           @object = TruffleInteropSpecs::PolyglotMember.new
-          Truffle::Interop.write @object, :foo, :val
+          Truffle::Interop.write_member @object, :foo, :val
           key_info(@object, :foo).should include(:readable)
         end
 
@@ -666,7 +666,7 @@ describe "key_info" do
 
           it "if the object has a index set method" do
             @object = TruffleInteropSpecs::PolyglotMember.new
-            Truffle::Interop.write @object, :foo, :val
+            Truffle::Interop.write_member @object, :foo, :val
             key_info(@object, :foo).should include(:modifiable)
           end
 
