@@ -36,7 +36,7 @@ public class GeneralDivModNode extends RubyContextNode {
     }
 
     public DynamicObject execute(long a, BigInteger b) {
-        return divMod(BigInteger.valueOf(a), b);
+        return divMod(BigIntegerOps.valueOf(a), b);
     }
 
     public DynamicObject execute(long a, double b) {
@@ -44,7 +44,7 @@ public class GeneralDivModNode extends RubyContextNode {
     }
 
     public DynamicObject execute(BigInteger a, long b) {
-        return divMod(a, BigInteger.valueOf(b));
+        return divMod(a, BigIntegerOps.valueOf(b));
     }
 
     public DynamicObject execute(BigInteger a, BigInteger b) {
@@ -52,7 +52,7 @@ public class GeneralDivModNode extends RubyContextNode {
     }
 
     public DynamicObject execute(BigInteger a, double b) {
-        return divMod(a.doubleValue(), b);
+        return divMod(BigIntegerOps.doubleValue(a), b);
     }
 
     public DynamicObject execute(double a, long b) {
@@ -60,7 +60,7 @@ public class GeneralDivModNode extends RubyContextNode {
     }
 
     public DynamicObject execute(double a, BigInteger b) {
-        return divMod(a, b.doubleValue());
+        return divMod(a, BigIntegerOps.doubleValue(b));
     }
 
     public DynamicObject execute(double a, double b) {
@@ -83,7 +83,7 @@ public class GeneralDivModNode extends RubyContextNode {
             bMinusOneProfile.enter();
 
             if (a == Long.MIN_VALUE) {
-                integerDiv = BigInteger.valueOf(a).negate();
+                integerDiv = BigIntegerOps.negate(a);
             } else {
                 integerDiv = -a;
             }

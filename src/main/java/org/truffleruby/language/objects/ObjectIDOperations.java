@@ -71,6 +71,7 @@ public abstract class ObjectIDOperations {
         return fixnum * 2 + 1;
     }
 
+    @TruffleBoundary // BigInteger
     public static DynamicObject largeFixnumToID(RubyContext context, long fixnum) {
         assert !isSmallFixnum(fixnum);
         BigInteger big = unsignedBigInteger(fixnum);
@@ -94,10 +95,12 @@ public abstract class ObjectIDOperations {
         return (id - 1) / 2;
     }
 
+    @TruffleBoundary // BigInteger
     public static boolean isLargeFixnumID(BigInteger id) {
         return !id.and(LARGE_FIXNUM_FLAG).equals(BigInteger.ZERO);
     }
 
+    @TruffleBoundary // BigInteger
     public static boolean isFloatID(BigInteger id) {
         return !id.and(FLOAT_FLAG).equals(BigInteger.ZERO);
     }

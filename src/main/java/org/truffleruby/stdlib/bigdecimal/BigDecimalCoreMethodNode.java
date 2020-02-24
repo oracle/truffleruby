@@ -15,6 +15,7 @@ import java.math.RoundingMode;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -44,7 +45,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     }
 
     public static boolean isNormalZero(DynamicObject value) {
-        return Layouts.BIG_DECIMAL.getValue(value).compareTo(BigDecimal.ZERO) == 0;
+        return BigDecimalOps.compare(Layouts.BIG_DECIMAL.getValue(value), BigDecimal.ZERO) == 0;
     }
 
     public static boolean isNan(DynamicObject value) {

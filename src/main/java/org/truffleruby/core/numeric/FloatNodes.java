@@ -68,7 +68,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected double add(double a, DynamicObject b) {
-            return a + Layouts.BIGNUM.getValue(b).doubleValue();
+            return a + BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -93,7 +93,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected double sub(double a, DynamicObject b) {
-            return a - Layouts.BIGNUM.getValue(b).doubleValue();
+            return a - BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -119,7 +119,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected double mul(double a, DynamicObject b) {
-            return a * Layouts.BIGNUM.getValue(b).doubleValue();
+            return a * BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -175,7 +175,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(exponent)")
         protected double pow(double base, DynamicObject exponent) {
-            return Math.pow(base, Layouts.BIGNUM.getValue(exponent).doubleValue());
+            return Math.pow(base, BigIntegerOps.doubleValue(exponent));
         }
 
         @Specialization(guards = "!isRubyNumber(exponent)")
@@ -201,7 +201,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected double div(double a, DynamicObject b) {
-            return a / Layouts.BIGNUM.getValue(b).doubleValue();
+            return a / BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -247,7 +247,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected double mod(double a, DynamicObject b) {
-            return mod(a, Layouts.BIGNUM.getValue(b).doubleValue());
+            return mod(a, BigIntegerOps.doubleValue(b));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -301,7 +301,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean lessBignum(double a, DynamicObject b) {
-            return a < Layouts.BIGNUM.getValue(b).doubleValue();
+            return a < BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -326,7 +326,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean lessEqual(double a, DynamicObject b) {
-            return a <= Layouts.BIGNUM.getValue(b).doubleValue();
+            return a <= BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -367,7 +367,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean equal(double a, DynamicObject b) {
-            return a == Layouts.BIGNUM.getValue(b).doubleValue();
+            return a == BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -410,7 +410,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = { "!isNaN(a)", "!isInfinity(a)", "isRubyBignum(b)" })
         protected int compareBignum(double a, DynamicObject b) {
-            return Double.compare(a, Layouts.BIGNUM.getValue(b).doubleValue());
+            return Double.compare(a, BigIntegerOps.doubleValue(b));
         }
 
         @Specialization(guards = { "!isNaN(a)", "!isNaN(b)" })
@@ -447,7 +447,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greaterEqual(double a, DynamicObject b) {
-            return a >= Layouts.BIGNUM.getValue(b).doubleValue();
+            return a >= BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -473,7 +473,7 @@ public abstract class FloatNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected boolean greater(double a, DynamicObject b) {
-            return a > Layouts.BIGNUM.getValue(b).doubleValue();
+            return a > BigIntegerOps.doubleValue(b);
         }
 
         @Specialization(guards = "!isRubyNumber(b)")

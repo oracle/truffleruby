@@ -21,6 +21,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
@@ -60,7 +61,7 @@ public abstract class CmpIntNode extends RubyContextNode {
 
     @Specialization(guards = "isRubyBignum(value)")
     protected int cmpBignum(DynamicObject value, Object receiver, Object other) {
-        return Layouts.BIGNUM.getValue(value).signum();
+        return BigIntegerOps.signum(Layouts.BIGNUM.getValue(value));
     }
 
     @Specialization(guards = "isNil(nil)")
