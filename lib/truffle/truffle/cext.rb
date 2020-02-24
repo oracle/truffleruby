@@ -124,6 +124,7 @@ module Truffle::CExt
     def initialize(encoding)
       @encoding = encoding
       @address = nil
+      @name = nil
     end
 
     private
@@ -137,13 +138,13 @@ module Truffle::CExt
     end
 
     def polyglot_read_member(name)
-      name()
-    ensure
-      name == 'name' or raise "Unknown identifier: #{name}"
+      raise "Unknown identifier: #{name}" unless name == 'name'
+      @name or raise '@name not set'
     end
 
     def polyglot_write_member(name, value)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise "Unknown identifier: #{name}" unless name == 'name'
+      @name = value
     end
 
     def polyglot_remove_member(name)
@@ -159,7 +160,7 @@ module Truffle::CExt
     end
 
     def polyglot_member_modifiable?(name)
-      false
+      name == 'name'
     end
 
     def polyglot_member_removable?(name)
@@ -186,10 +187,6 @@ module Truffle::CExt
       false
     end
 
-    def name
-      @strpointer ||= RStringPtr.new(@encoding.name)
-    end
-
     def polyglot_pointer?
       !@address.nil?
     end
@@ -204,12 +201,15 @@ module Truffle::CExt
     end
 
     def cache_address
-      unless name.polyglot_pointer?
-        name.polyglot_to_native
-        raise unless name.polyglot_pointer?
+      # TODO (eregon, 24 Feb 2020), this returns the address of RSTRING_PTR(@name),
+      # not of a rb_encoding* which should have the name as first field
+      name = @name or raise '@name not set'
+      unless Truffle::Interop.pointer?(name)
+        Truffle::Interop.to_native(name)
+        raise unless Truffle::Interop.pointer?(name)
       end
 
-      addr = name.polyglot_as_pointer
+      addr = Truffle::Interop.as_pointer(name)
       ENCODING_CACHE_MUTEX.synchronize do
         NATIVE_CACHE[addr] = self
       end
@@ -284,125 +284,6 @@ module Truffle::CExt
     end
 
     def polyglot_has_member_write_side_effects?(name)
-      false
-    end
-  end
-
-  class RStringPtr
-    attr_reader :string
-
-    def initialize(string)
-      @string = string
-      @address = 0
-    end
-
-    def polyglot_pointer?
-      @address != 0
-    end
-
-    def polyglot_as_pointer
-      address = @address
-    ensure
-      raise if address == 0 # TODO (pitr-ch 08-Feb-2020): what should be risen so it is translated to UnsupportedMessageException
-    end
-
-    # Every isPointer object should also have TO_NATIVE
-    def polyglot_to_native
-      @address = Primitive.string_pointer_to_native(@string)
-    end
-
-    def polyglot_has_array_elements?
-      true
-    end
-
-    # this is called by Sulong for strlen() which calls getArraySize() in Sulong string.c
-    def polyglot_array_size
-      Primitive.string_pointer_size(@string)
-    end
-
-    def polyglot_read_array_element(index)
-      Primitive.string_pointer_read(@string, index)
-    end
-
-    def polyglot_write_array_element(index, value)
-      Primitive.string_pointer_write(@string, index, value)
-    end
-
-    def polyglot_array_element_readable?(index)
-      index >= 0 && index < polyglot_array_size
-    end
-
-    def polyglot_array_element_modifiable?(index)
-      index >= 0 && index < polyglot_array_size
-    end
-
-    def polyglot_array_element_insertable?(index)
-      false
-    end
-
-    def polyglot_array_element_removable?(index)
-      false
-    end
-
-    # To check if it was already converted to native or not in rb_str_new
-    def native?
-      polyglot_pointer?
-    end
-
-    alias_method :to_str, :string
-    alias_method :to_s, :string
-  end
-
-  class RStringEndPtr
-    def initialize(string)
-      @string = string
-      @address = 0
-    end
-
-    def polyglot_pointer?
-      @address != 0
-    end
-
-    def polyglot_as_pointer
-      @address
-    ensure
-      raise if @address == 0 # TODO (pitr-ch 08-Feb-2020): what should be raised so it is translated to UnsupportedMessageException
-    end
-
-    def polyglot_to_native
-      @address = Primitive.string_pointer_to_native(@string) + @string.bytesize
-    end
-
-    def polyglot_has_array_elements?
-      true
-    end
-
-    # this is called by Sulong for strlen() which calls getArraySize() in Sulong string.c
-    def polyglot_array_size
-      0
-    end
-
-    def polyglot_read_array_element(index)
-      raise
-    end
-
-    def polyglot_write_array_element(index, value)
-      raise
-    end
-
-    def polyglot_array_element_readable?(index)
-      false
-    end
-
-    def polyglot_array_element_modifiable?(index)
-      false
-    end
-
-    def polyglot_array_element_insertable?(index)
-      false
-    end
-
-    def polyglot_array_element_removable?(index)
       false
     end
   end
@@ -1011,11 +892,6 @@ module Truffle::CExt
     else
       result
     end
-  end
-
-  def rb_str_new_rstring_ptr(rstring_ptr, length)
-    raise "#{rstring_ptr} not a RStringPtr" unless RStringPtr === rstring_ptr
-    rstring_ptr.string.byteslice(0, length).force_encoding(Encoding::BINARY)
   end
 
   def rb_str_new_native(pointer, length)
@@ -2058,8 +1934,15 @@ module Truffle::CExt
     RData.new(object)
   end
 
+  def rb_convert_to_encoding(encoding)
+    if Encoding === encoding
+      encoding
+    else
+      Encoding.find(encoding.to_str)
+    end
+  end
+
   def rb_to_encoding(encoding)
-    encoding = Encoding.find(encoding.to_str) unless encoding.is_a?(Encoding)
     RbEncoding.get(encoding)
   end
 
@@ -2079,16 +1962,8 @@ module Truffle::CExt
     Primitive.string_is_native?(string)
   end
 
-  def RSTRING_PTR(string)
-    RStringPtr.new(string)
-  end
-
   def NATIVE_RSTRING_PTR(string)
     Primitive.string_pointer_to_native(string)
-  end
-
-  def RSTRING_END(string)
-    RStringEndPtr.new(string)
   end
 
   def rb_tr_obj_id(object)

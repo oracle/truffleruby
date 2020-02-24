@@ -76,20 +76,9 @@ as functions, where this makes sense.
 
 ### String pointers
 
-We implement Ruby strings with Truffle's `DynamicObject` and back the data with
-one of the TruffleRuby `Rope` subclasses. This is a much richer representation
-than what C extension API expects.
-
-In order to work with the C extension API, TruffleRuby uses a set of proxy
-objects. `RSTRING_PTR` will return an instance of `Truffle::CExt::RStringPtr`
-and `RSTRING_END` will return an instance of `Truffle::CExt::RStringEndPtr`.
-These proxy objects are transparent to C extension API calls, delegating
-to appropriate interop calls as necessary. When direct access to the backing
-string data is called for (i.e., when the proxy is expected to work like a
-`char *`), the rope representing the string is permanently converted to one
-that stores its data in native memory, rather than the Java heap, and the
-pointer to this native allocation is used.
-
+When a Ruby String is accessed via `RSTRING_PTR` or `RSTRING_END`, it is
+permanently converted to a rope representing the String in native memory,
+instead of storing the bytes in the Java heap.
 
 ### Data and typed data
 

@@ -1015,10 +1015,10 @@ struct RString {
 int rb_str_len(VALUE string);
 #define RSTRING_LEN(str) (long)rb_str_len(str)
 
-#define RSTRING_PTR(str) RSTRING_PTR_IMPL(str)
 char *RSTRING_PTR_IMPL(VALUE string);
-
-char *RSTRING_END(VALUE string);
+char *RSTRING_END_IMPL(VALUE string);
+#define RSTRING_PTR(str) RSTRING_PTR_IMPL(str)
+#define RSTRING_END(str) RSTRING_END_IMPL(str)
 #define RSTRING_LENINT(str) rb_str_len(str)
 #define RSTRING_GETMEM(string, data_pointer, length_pointer) ((data_pointer) = RSTRING_PTR(string), (length_pointer) = rb_str_len(string))
 

@@ -824,8 +824,8 @@ char *RSTRING_PTR_IMPL(VALUE string) {
   return NATIVE_RSTRING_PTR(string);
 }
 
-char *RSTRING_END(VALUE string) {
-  return RUBY_CEXT_INVOKE_NO_WRAP("RSTRING_END", string);
+char *RSTRING_END_IMPL(VALUE string) {
+  return NATIVE_RSTRING_PTR(string) + RSTRING_LEN(string);
 }
 
 int MBCLEN_NEEDMORE_P(int r) {
@@ -848,15 +848,6 @@ int rb_str_len(VALUE string) {
   return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap((void *)string), "bytesize"));
 }
 
-bool is_rstring_ptr(VALUE ptr) {
-  return polyglot_is_value(ptr);
-}
-
-bool is_managed_rstring_ptr(VALUE ptr) {
-  return is_rstring_ptr(ptr) &&
-    !polyglot_as_boolean(polyglot_invoke(ptr, "native?"));
-}
-
 VALUE rb_str_new(const char *string, long length) {
   if (length < 0) {
     rb_raise(rb_eArgError, "negative string size (or size too big)");
@@ -864,8 +855,6 @@ VALUE rb_str_new(const char *string, long length) {
 
   if (string == NULL) {
     return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_new_nul", length));
-  } else if (is_managed_rstring_ptr((VALUE) string)) {
-    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_new_rstring_ptr", string, length));
   } else {
     return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_str_new_native", string, length));
   }
@@ -1018,7 +1007,10 @@ POLYGLOT_DECLARE_STRUCT(rb_encoding)
 
 // returns Truffle::CExt::RbEncoding, takes Encoding or String
 rb_encoding *rb_to_encoding(VALUE encoding) {
-  return polyglot_as_rb_encoding(RUBY_CEXT_INVOKE_NO_WRAP("rb_to_encoding", encoding));
+  encoding = RUBY_CEXT_INVOKE("rb_convert_to_encoding", encoding); // Convert to Encoding
+  rb_encoding *enc = polyglot_as_rb_encoding(RUBY_CEXT_INVOKE_NO_WRAP("rb_to_encoding", encoding));
+  enc->name = RSTRING_PTR(RUBY_INVOKE(encoding, "name"));
+  return enc;
 }
 
 VALUE rb_str_conv_enc(VALUE string, rb_encoding *from, rb_encoding *to) {

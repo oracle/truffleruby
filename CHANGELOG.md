@@ -62,6 +62,8 @@ Compatibility:
 * Implemented C API macro `RARRAY_ASET()`
 
 * Implemented `num2short` (#1910, @kipply).
+* `RSTRING_END()` now always returns a native pointer.
+
 Changes:
 
 * `TRUFFLERUBY_RESILIENT_GEM_HOME` has been removed. Unset `GEM_HOME` and `GEM_PATH` instead if you need to.
