@@ -734,7 +734,7 @@ public abstract class InteropNodes {
         abstract Object execute(Object receiver, Object identifier, Object value);
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object write(TruffleObject receiver, long identifier, Object value,
+        protected Object write(Object receiver, long identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached RubyToForeignNode valueToForeignNode,
@@ -984,11 +984,11 @@ public abstract class InteropNodes {
     @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
 
-        public abstract boolean execute(TruffleObject receiver, long index);
+        public abstract boolean execute(Object receiver, long index);
 
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementReadable(
-                TruffleObject receiver,
+                Object receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementReadable(receiver, index);
@@ -1011,17 +1011,17 @@ public abstract class InteropNodes {
     public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementModifiable(
-                TruffleObject receiver,
+                Object receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementModifiable(receiver, index);
         }
 
-        public abstract boolean execute(TruffleObject receiver, long index);
+        public abstract boolean execute(Object receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
         protected boolean isArrayElementModifiable(
-                TruffleObject receiver,
+                Object receiver,
                 TruffleObject index,
                 @CachedLibrary("index") InteropLibrary indexes) {
             try {
@@ -1036,13 +1036,13 @@ public abstract class InteropNodes {
     public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementInsertable(
-                TruffleObject receiver,
+                Object receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementInsertable(receiver, index);
         }
 
-        public abstract boolean execute(TruffleObject receiver, long index);
+        public abstract boolean execute(Object receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
         protected boolean isArrayElementInsertable(
@@ -1061,13 +1061,13 @@ public abstract class InteropNodes {
     public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementRemovable(
-                TruffleObject receiver,
+                Object receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementRemovable(receiver, index);
         }
 
-        public abstract boolean execute(TruffleObject receiver, long index);
+        public abstract boolean execute(Object receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
         protected boolean isArrayElementRemovable(
@@ -1086,13 +1086,13 @@ public abstract class InteropNodes {
     public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementWritable(
-                TruffleObject receiver,
+                Object receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementWritable(receiver, index);
         }
 
-        public abstract boolean execute(TruffleObject receiver, long index);
+        public abstract boolean execute(Object receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
         protected boolean isArrayElementWritable(
@@ -1111,13 +1111,13 @@ public abstract class InteropNodes {
     public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementExisting(
-                TruffleObject receiver,
+                Object receiver,
                 long index,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementExisting(receiver, index);
         }
 
-        public abstract boolean execute(TruffleObject receiver, long index);
+        public abstract boolean execute(Object receiver, long index);
 
         @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
         protected boolean isArrayElementExisting(
