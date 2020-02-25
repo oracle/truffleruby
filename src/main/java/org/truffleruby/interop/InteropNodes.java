@@ -32,6 +32,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -628,7 +629,43 @@ public abstract class InteropNodes {
         protected static int getCacheLimit() {
             return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
         }
+    }
 
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "remove_array_element", onSingleton = true, required = 2)
+    public abstract static class RemoveArrayElementNode extends RubySourceNode {
+
+        public static ReadArrayElementNode create() {
+            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
+        }
+
+        abstract Nil execute(Object receiver, Object identifier);
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Nil readArrayElement(Object receiver, long identifier,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Cached BranchProfile exceptionProfile) {
+            try {
+                receivers.removeArrayElement(receiver, identifier);
+            } catch (InvalidArrayIndexException e) {
+                exceptionProfile.enter();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
+            } catch (UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+
+            return Nil.INSTANCE;
+        }
+
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
     }
 
     // TODO (pitr-ch 27-Mar-2019): break down
