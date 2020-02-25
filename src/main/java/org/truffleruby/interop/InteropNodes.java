@@ -596,7 +596,6 @@ public abstract class InteropNodes {
     @CoreMethod(names = "read_array_element", onSingleton = true, required = 2)
     public abstract static class ReadArrayElementNode extends RubySourceNode {
 
-
         public static ReadArrayElementNode create() {
             return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
         }
@@ -1030,22 +1029,13 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementReadable(receiver, index);
         }
-
-        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        protected boolean isArrayElementReadable(
-                TruffleObject receiver,
-                TruffleObject index,
-                @CachedLibrary("index") InteropLibrary indexes) {
-            try {
-                return execute(receiver, indexes.asLong(index));
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-        }
     }
 
     @CoreMethod(names = "array_element_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementModifiable(
                 Object receiver,
@@ -1053,24 +1043,13 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementModifiable(receiver, index);
         }
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        protected boolean isArrayElementModifiable(
-                Object receiver,
-                TruffleObject index,
-                @CachedLibrary("index") InteropLibrary indexes) {
-            try {
-                return execute(receiver, indexes.asLong(index));
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-        }
     }
 
     @CoreMethod(names = "array_element_insertable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementInsertable(
                 Object receiver,
@@ -1078,24 +1057,13 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementInsertable(receiver, index);
         }
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        protected boolean isArrayElementInsertable(
-                TruffleObject receiver,
-                TruffleObject index,
-                @CachedLibrary("index") InteropLibrary indexes) {
-            try {
-                return execute(receiver, indexes.asLong(index));
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-        }
     }
 
     @CoreMethod(names = "array_element_removable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementRemovable(
                 Object receiver,
@@ -1103,24 +1071,13 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementRemovable(receiver, index);
         }
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        protected boolean isArrayElementRemovable(
-                TruffleObject receiver,
-                TruffleObject index,
-                @CachedLibrary("index") InteropLibrary indexes) {
-            try {
-                return execute(receiver, indexes.asLong(index));
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-        }
     }
 
     @CoreMethod(names = "array_element_writable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementWritable(
                 Object receiver,
@@ -1128,24 +1085,13 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementWritable(receiver, index);
         }
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        protected boolean isArrayElementWritable(
-                TruffleObject receiver,
-                TruffleObject index,
-                @CachedLibrary("index") InteropLibrary indexes) {
-            try {
-                return execute(receiver, indexes.asLong(index));
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-        }
     }
 
     @CoreMethod(names = "array_element_existing?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
+
+        public abstract boolean execute(Object receiver, long index);
+
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementExisting(
                 Object receiver,
@@ -1153,21 +1099,6 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isArrayElementExisting(receiver, index);
         }
-
-        public abstract boolean execute(Object receiver, long index);
-
-        @Specialization(limit = "getCacheLimit()", guards = { "indexes.isNumber(index)", "indexes.fitsInLong(index)" })
-        protected boolean isArrayElementExisting(
-                TruffleObject receiver,
-                TruffleObject index,
-                @CachedLibrary("index") InteropLibrary indexes) {
-            try {
-                return execute(receiver, indexes.asLong(index));
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
-            }
-        }
-
     }
 
     @CoreMethod(names = "export_without_conversion", onSingleton = true, required = 2)
