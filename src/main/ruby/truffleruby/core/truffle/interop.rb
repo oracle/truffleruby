@@ -95,7 +95,7 @@ module Truffle
       end
 
       def size
-        Truffle::Interop.size(foreign)
+        Truffle::Interop.array_size(foreign)
       end
 
     end
@@ -196,7 +196,7 @@ module Truffle
 
     def self.foreign_class(receiver, *args)
       if Truffle::Interop.java_class?(receiver)
-        Truffle::Interop.read(receiver, :class)
+        Truffle::Interop.read_member(receiver, :class)
       else
         Truffle::Interop.invoke(receiver, :class, *args)
       end
@@ -243,8 +243,8 @@ module Truffle
         raise 'foreign object does not have a size to turn it into an array'
       end
 
-      Array.new(Truffle::Interop.size(object)) do |n|
-        Truffle::Interop.read(object, n)
+      Array.new(Truffle::Interop.array_size(object)) do |n|
+        Truffle::Interop.read_array_element(object, n)
       end
     end
 
@@ -284,12 +284,12 @@ module Truffle
 
     # TODO (pitr-ch 01-Apr-2019): remove
     def self.boxed?(object)
-      is_boolean?(object) || is_string?(object) || is_number?(object)
+      boolean?(object) || is_string?(object) || is_number?(object)
     end
 
     # TODO (pitr-ch 01-Apr-2019): remove
     def self.unbox(object)
-      return as_boolean object if is_boolean? object
+      return as_boolean object if boolean? object
       return as_string object if is_string? object
 
       if is_number?(object)
@@ -303,7 +303,7 @@ module Truffle
 
     # TODO (pitr-ch 01-Apr-2019): remove
     def self.unbox_without_conversion(object)
-      return as_boolean object if is_boolean? object
+      return as_boolean object if boolean? object
       return as_string_without_conversion object if is_string? object
 
       if is_number?(object)

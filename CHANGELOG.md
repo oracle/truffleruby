@@ -9,6 +9,11 @@ New features:
 * All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods.
 * Rename dynamic API to match InteropLibrary. All the methods keep the name as it is in InteropLibrary with following changes: use snake_case, add `polyglot_` prefix, drop `get` and `is` prefix, append `?` on all predicates.  
 * Many nodes that manipulate arrays have been converted to use `ArrayStoreLibrary`.
+* Split `Truffle::Interop.write` into `.write_array_element` and `.write_member` methods
+* Rename `Truffle::Interop.size` to `.array_size`
+* Rename `Truffle::Interop.is_boolean?` to `.boolean?`
+* Split `Truffle::Interop.read` into `.read_member` and `.read_array_element`
+* Drop `is_` prefix in `Truffle::Interop.is_array_element_*` predicates
 
 Bug fixes:
 

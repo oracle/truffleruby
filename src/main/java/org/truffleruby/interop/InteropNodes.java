@@ -310,17 +310,11 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "size", onSingleton = true, required = 1)
-    public abstract static class SizeNode extends InteropCoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object size(String receiver) {
-            return receiver.length();
-        }
+    @CoreMethod(names = "array_size", onSingleton = true, required = 1)
+    public abstract static class ArraySizeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object size(
-                TruffleObject receiver,
+        protected Object arraySize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile) {
             try {
@@ -374,7 +368,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_boolean?", onSingleton = true, required = 1)
+    @CoreMethod(names = "boolean?", onSingleton = true, required = 1)
     public abstract static class IsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isBoolean(
@@ -552,23 +546,20 @@ public abstract class InteropNodes {
 
     }
 
-    // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "read", onSingleton = true, required = 2)
-    public abstract static class ReadNode extends RubySourceNode {
+    @CoreMethod(names = "read_member", onSingleton = true, required = 2)
+    public abstract static class ReadMemberNode extends RubySourceNode {
 
-        public static ReadNode create() {
-            return InteropNodesFactory.ReadNodeFactory.create(null);
+        public static ReadMemberNode create() {
+            return InteropNodesFactory.ReadMemberNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object identifier);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Object readMember(
-                Object receiver,
-                DynamicObject identifier,
+        protected Object readMember(Object receiver, DynamicObject identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile unknownIdentifierProfile,
@@ -592,10 +583,27 @@ public abstract class InteropNodes {
             return foreignToRubyNode.executeConvert(foreign);
         }
 
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+
+    }
+
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "read_array_element", onSingleton = true, required = 2)
+    public abstract static class ReadArrayElementNode extends RubySourceNode {
+
+
+        public static ReadArrayElementNode create() {
+            return InteropNodesFactory.ReadArrayElementNodeFactory.create(null);
+        }
+
+        abstract Object execute(Object receiver, Object identifier);
+
         @Specialization(limit = "getCacheLimit()")
-        protected Object readArrayElement(
-                TruffleObject receiver,
-                long identifier,
+        protected Object readArrayElement(Object receiver, long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile unknownIdentifierProfile,
@@ -670,24 +678,22 @@ public abstract class InteropNodes {
         }
     }
 
-    // TODO (pitr-ch 27-Mar-2019): break down
     @GenerateUncached
     @GenerateNodeFactory
     @NodeChild(value = "arguments", type = RubyNode[].class)
-    @CoreMethod(names = "write", onSingleton = true, required = 3)
-    public abstract static class WriteNode extends RubySourceNode {
+    @CoreMethod(names = "write_member", onSingleton = true, required = 3)
+    public abstract static class WriteMemberNode extends RubySourceNode {
 
-        public static WriteNode create() {
-            return InteropNodesFactory.WriteNodeFactory.create(null);
+        public static WriteMemberNode create() {
+            return InteropNodesFactory.WriteMemberNodeFactory.create(null);
         }
 
         abstract Object execute(Object receiver, Object identifier, Object value);
 
-        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Object write(
-                Object receiver,
-                DynamicObject identifier,
-                Object value,
+        @Specialization(
+                guards = "isRubySymbol(identifier) || isRubyString(identifier)",
+                limit = "getCacheLimit()")
+        protected Object write(Object receiver, DynamicObject identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -710,11 +716,25 @@ public abstract class InteropNodes {
             return value;
         }
 
+        protected static int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "arguments", type = RubyNode[].class)
+    @CoreMethod(names = "write_array_element", onSingleton = true, required = 3)
+    public abstract static class WriteArrayElementNode extends RubySourceNode {
+
+        public static WriteArrayElementNode create() {
+            return InteropNodesFactory.WriteArrayElementNodeFactory.create(null);
+        }
+
+        abstract Object execute(Object receiver, Object identifier, Object value);
+
         @Specialization(limit = "getCacheLimit()")
-        protected Object write(
-                TruffleObject receiver,
-                long identifier, // TODO (pitr-ch 01-Apr-2019): allow only long? (unify other similar cases)
-                Object value,
+        protected Object write(TruffleObject receiver, long identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached RubyToForeignNode valueToForeignNode,
@@ -961,7 +981,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_readable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(TruffleObject receiver, long index);
@@ -987,7 +1007,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_modifiable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementModifiable(
@@ -1012,7 +1032,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_insertable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_insertable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementInsertable(
@@ -1037,7 +1057,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_removable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_removable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementRemovable(
@@ -1062,7 +1082,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_writable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_writable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementWritable(
@@ -1087,7 +1107,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_existing?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_existing?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementExisting(

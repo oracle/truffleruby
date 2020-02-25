@@ -70,7 +70,7 @@ More details to be added.
 
 ### `GET_SIZE`
 
-`Truffle::Interop.size(value)`
+`Truffle::Interop.array_size(value)`
 
 ### `IS_BOXED`
 
@@ -121,13 +121,15 @@ in an undefined order.
 
 ### `READ`
 
-`Truffle::Interop.read(object, name/index)`
+`Truffle::Interop.read_array_element(object, index)`
+`Truffle::Interop.read_member(object, name)`
 
 `Truffle::Interop.read_without_conversion(object, name/index)`
 
 ### `WRITE`
 
-`Truffle::Interop.write(object, name/index, value)`
+`Truffle::Interop.write_member(object, name, value)`
+`Truffle::Interop.write_array_element(object, index, value)`
 
 ### `REMOVE`
 

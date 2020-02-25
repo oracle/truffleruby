@@ -18,15 +18,15 @@ describe "Truffle::Interop.read" do
     end
 
     it "reads a value of an index that exists" do
-      Truffle::Interop.read(@array, 1).should == 2
+      Truffle::Interop.read_array_element(@array, 1).should == 2
     end
 
     it "reads a method of given name that exists" do
-      Truffle::Interop.read(@array, "[]").should == @array.method(:[])
+      Truffle::Interop.read_member(@array, "[]").should == @array.method(:[])
     end
 
     it "raises for an index that doesn't exist" do
-      -> { Truffle::Interop.read(@array, 100) }.should raise_error(NameError)
+      -> { Truffle::Interop.read_array_element(@array, 100) }.should raise_error(NameError)
     end
 
   end
@@ -38,11 +38,11 @@ describe "Truffle::Interop.read" do
     end
 
     it "that exists as an instance variable reads it" do
-      Truffle::Interop.read(@object, :@b).should == 2
+      Truffle::Interop.read_member(@object, :@b).should == 2
     end
 
     it "that does not exist as an instance variable raises" do
-      -> { Truffle::Interop.read(@object, :@foo) }.should raise_error NameError
+      -> { Truffle::Interop.read_member(@object, :@foo) }.should raise_error NameError
     end
 
   end
@@ -51,7 +51,7 @@ describe "Truffle::Interop.read" do
 
     it "produces a bound Method" do
       object = TruffleInteropSpecs::InteropKeysClass.new
-      Truffle::Interop.read(object, :foo).call.should == 14
+      Truffle::Interop.read_member(object, :foo).call.should == 14
     end
 
   end
@@ -61,8 +61,8 @@ describe "Truffle::Interop.read" do
     it "calls the index method" do
       object = TruffleInteropSpecs::PolyglotArray.new
       value = Object.new
-      Truffle::Interop.write(object, 2, value)
-      Truffle::Interop.read(object, 2).should == value
+      Truffle::Interop.write_array_element(object, 2, value)
+      Truffle::Interop.read_array_element(object, 2).should == value
       object.log.should include([:polyglot_read_array_element, 2])
     end
 
@@ -72,8 +72,8 @@ describe "Truffle::Interop.read" do
 
     it "calls the index method" do
       object = TruffleInteropSpecs::PolyglotMember.new
-      Truffle::Interop.write(object, :bob,  14)
-      Truffle::Interop.read(object, :bob).should == 14
+      Truffle::Interop.write_member(object, :bob,  14)
+      Truffle::Interop.read_member(object, :bob).should == 14
       Truffle::Interop.keys(object).should include 'bob'
       object.log.should include [:polyglot_read_member, 'bob']
     end
@@ -85,7 +85,7 @@ describe "Truffle::Interop.read" do
     it "raises UnknownIdentifierException" do
       object = Object.new
       -> {
-        Truffle::Interop.read(object, :foo)
+        Truffle::Interop.read_member(object, :foo)
       }.should raise_error(NameError, /Unknown identifier: foo/)
     end
 
@@ -95,9 +95,9 @@ describe "Truffle::Interop.read" do
 
     it "does not call the proc" do
       proc = -> { raise 'called' }
-      -> { Truffle::Interop.read(proc, :key) }.should raise_error NameError
-      -> { Truffle::Interop.read(proc, :@var) }.should raise_error NameError
-      Truffle::Interop.read(proc, 'call').should == proc.method(:call)
+      -> { Truffle::Interop.read_member(proc, :key) }.should raise_error NameError
+      -> { Truffle::Interop.read_member(proc, :@var) }.should raise_error NameError
+      Truffle::Interop.read_member(proc, 'call').should == proc.method(:call)
     end
 
   end
@@ -105,7 +105,7 @@ describe "Truffle::Interop.read" do
   describe "with a Hash class" do
 
     it "does not call the [] method" do
-      -> { Truffle::Interop.read(Hash, :nothing) }.should raise_error NameError
+      -> { Truffle::Interop.read_member(Hash, :nothing) }.should raise_error NameError
     end
 
   end
