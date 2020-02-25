@@ -208,6 +208,7 @@ public class RubyObjectMessages {
 
         return dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
+                // language=ruby prefix=Truffle::Interop.
                 "get_members_implementation",
                 receiver,
                 internal);
