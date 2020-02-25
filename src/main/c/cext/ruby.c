@@ -2478,9 +2478,14 @@ struct timespec rb_time_timespec(VALUE time_val) {
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
-  VALUE is_utc = rb_tr_unwrap(rb_boolean(offset == INT_MAX-1));
-  VALUE is_local = rb_tr_unwrap(rb_boolean(offset == INT_MAX));
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset, is_utc, is_local));
+  void* is_utc = rb_tr_unwrap(rb_boolean(offset == INT_MAX-1));
+  void* is_local = rb_tr_unwrap(rb_boolean(offset == INT_MAX));
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_time_timespec_new",
+    ts->tv_sec,
+    ts->tv_nsec,
+    offset,
+    is_utc,
+    is_local));
 }
 
 void rb_timespec_now(struct timespec *ts) {
