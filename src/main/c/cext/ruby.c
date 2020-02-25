@@ -2115,10 +2115,12 @@ void rb_exc_raise(VALUE exception) {
   rb_tr_error("rb_exc_raise should not return");
 }
 
+static void rb_protect_write_status(int *status, int value) {
+  *status = value;
+}
+
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
-  VALUE ary = polyglot_invoke(RUBY_CEXT, "rb_protect_with_block", function, data);
-  *status = NUM2INT(rb_tr_wrap(polyglot_get_array_element(ary, 1)));
-  return polyglot_get_array_element(ary, 0);
+  return polyglot_invoke(RUBY_CEXT, "rb_protect_with_block", function, data, rb_protect_write_status, status);
 }
 
 void rb_jump_tag(int status) {

@@ -1195,7 +1195,7 @@ module Truffle::CExt
   # exception out of the thread local and calls raise exception to
   # throw it and allow normal error handling to continue.
 
-  def rb_protect_with_block(function, arg)
+  def rb_protect_with_block(function, arg, write_status, status)
     # We wrap nil here to avoid wrapping any result returned, as the
     # function called will do that. In general we try not to touch the
     # values passed in or out of protected functions as C extensions
@@ -1205,11 +1205,14 @@ module Truffle::CExt
     e = capture_exception do
       res = Truffle::Interop.execute_without_conversion(function, arg)
     end
+
     unless Primitive.object_equal(nil, e)
       store = (Thread.current[:__stored_exceptions__] ||= [])
       pos = store.push(e).size
     end
-    [res, pos]
+
+    Truffle::Interop.execute_without_conversion(write_status, status, pos)
+    res
   end
 
   def rb_jump_tag(pos)
