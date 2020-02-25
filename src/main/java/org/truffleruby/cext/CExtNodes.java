@@ -1594,7 +1594,7 @@ public class CExtNodes {
     public abstract static class WrapperFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object unwrapFunction() {
+        protected Object wrapFunction() {
             return new ValueWrapperManager.WrapperFunction();
         }
     }
