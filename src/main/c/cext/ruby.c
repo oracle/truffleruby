@@ -2847,7 +2847,7 @@ VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
 }
 
 VALUE rb_struct_define(const char *name, ...) {
-  VALUE rb_name = name == NULL ? RUBY_CEXT_INVOKE("Qnil") : rb_str_new_cstr(name);
+  VALUE rb_name = name == NULL ? Qnil : rb_str_new_cstr(name);
   VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
@@ -2859,7 +2859,7 @@ VALUE rb_struct_define(const char *name, ...) {
 }
 
 VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
-  VALUE rb_name = name == NULL ? RUBY_CEXT_INVOKE("Qnil") : rb_str_new_cstr(name);
+  VALUE rb_name = name == NULL ? Qnil : rb_str_new_cstr(name);
   VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
