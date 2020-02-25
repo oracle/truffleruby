@@ -155,7 +155,12 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
             case PUBLIC_RETURN_MISSING:
                 return UNCACHED_PUBLIC_RETURN_MISSING;
             default:
-                throw new IllegalStateException("Unexpected value: " + configuration);
+                throw unexpectedConfiguration("Unexpected value: " + configuration);
         }
+    }
+
+    @TruffleBoundary
+    private static IllegalStateException unexpectedConfiguration(String msg) {
+        return new IllegalStateException(msg);
     }
 }

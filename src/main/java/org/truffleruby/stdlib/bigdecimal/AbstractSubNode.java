@@ -17,6 +17,7 @@ import org.truffleruby.Layouts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.numeric.BigDecimalOps;
 
 public abstract class AbstractSubNode extends BigDecimalOpNode {
 
@@ -57,7 +58,7 @@ public abstract class AbstractSubNode extends BigDecimalOpNode {
         if (normalProfile.profile(isNormal(a))) {
             return a;
         } else {
-            return createBigDecimal(Layouts.BIG_DECIMAL.getValue(b).negate());
+            return createBigDecimal(BigDecimalOps.negate(Layouts.BIG_DECIMAL.getValue(b)));
         }
     }
 

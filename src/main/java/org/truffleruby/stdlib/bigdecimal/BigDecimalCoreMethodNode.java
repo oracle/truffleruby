@@ -23,6 +23,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.Utils;
 
 public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
 
@@ -91,7 +92,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
             case 7:
                 return RoundingMode.HALF_EVEN;
             default:
-                throw new UnsupportedOperationException("unknown value: " + constValue);
+                throw Utils.unsupportedOperation("unknown value: " + constValue);
         }
     }
 

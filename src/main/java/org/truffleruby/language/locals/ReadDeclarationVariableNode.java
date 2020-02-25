@@ -18,6 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.utils.Utils;
 
 public class ReadDeclarationVariableNode extends ReadLocalNode {
 
@@ -63,7 +64,7 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
                 }
 
             default:
-                throw new UnsupportedOperationException("didn't expect local type " + type);
+                throw Utils.unsupportedOperation("didn't expect local type " + type);
         }
     }
 

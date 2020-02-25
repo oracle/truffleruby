@@ -310,6 +310,7 @@ public abstract class ExceptionNodes {
     @Primitive(name = "exception_set_cause")
     public abstract static class ExceptionSetCauseNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary // setCause calls Object#equals
         @Specialization
         protected DynamicObject setCause(DynamicObject exception, Object cause) {
             Layouts.EXCEPTION.setCause(exception, cause);

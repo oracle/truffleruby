@@ -18,6 +18,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.numeric.BigDecimalOps;
+import org.truffleruby.utils.Utils;
 
 public abstract class AbstractMultNode extends BigDecimalOpNode {
 
@@ -26,7 +28,7 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
     private Object multBigDecimalConsideringSignum(DynamicObject a, DynamicObject b, MathContext mathContext) {
         final BigDecimal bBigDecimal = Layouts.BIG_DECIMAL.getValue(b);
 
-        if (zeroNormal.profile(isNormalZero(a) && bBigDecimal.signum() == -1)) {
+        if (zeroNormal.profile(isNormalZero(a) && BigDecimalOps.signum(bBigDecimal) == -1)) {
             return BigDecimalType.NEGATIVE_ZERO;
         }
 
@@ -57,7 +59,7 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
                 value = BigDecimalType.NAN;
                 break;
             case NEGATIVE_ZERO:
-                switch (Layouts.BIG_DECIMAL.getValue(b).signum()) {
+                switch (BigDecimalOps.signum(b)) {
                     case 1:
                     case 0:
                         value = BigDecimalType.NEGATIVE_ZERO;
@@ -68,7 +70,7 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
                 }
                 break;
             case POSITIVE_INFINITY:
-                switch (Layouts.BIG_DECIMAL.getValue(b).signum()) {
+                switch (BigDecimalOps.signum(b)) {
                     case 1:
                         value = BigDecimalType.POSITIVE_INFINITY;
                         break;
@@ -81,7 +83,7 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
                 }
                 break;
             case NEGATIVE_INFINITY:
-                switch (Layouts.BIG_DECIMAL.getValue(b).signum()) {
+                switch (BigDecimalOps.signum(b)) {
                     case 1:
                         value = BigDecimalType.NEGATIVE_INFINITY;
                         break;
@@ -95,7 +97,7 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
                 break;
             default:
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnsupportedOperationException("unreachable code branch");
+                throw Utils.unsupportedOperation("unreachable code branch");
         }
 
         return createBigDecimal(value);

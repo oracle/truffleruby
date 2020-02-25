@@ -29,7 +29,12 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
         if (precision == 0) {
             precision = getLimit();
         }
-        return createBigDecimal(addBigDecimal(a, b, new MathContext(precision, getRoundMode())));
+        return createBigDecimal(addBigDecimal(a, b, newMathContext(precision)));
+    }
+
+    @TruffleBoundary
+    private MathContext newMathContext(int precision) {
+        return new MathContext(precision, getRoundMode());
     }
 
     protected Object addSpecial(DynamicObject a, DynamicObject b, int precision) {

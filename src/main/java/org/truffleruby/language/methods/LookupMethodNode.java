@@ -34,6 +34,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.Utils;
 
 /** Caches {@link ModuleOperations#lookupMethodCached(DynamicObject, String, DeclarationContext)} on an actual
  * instance. */
@@ -124,7 +125,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
 
         if (metaClass == context.getCoreLibrary().truffleInteropForeignClass) {
             foreignProfile.enter();
-            throw new UnsupportedOperationException("method lookup not supported on foreign objects");
+            throw Utils.unsupportedOperation("method lookup not supported on foreign objects");
         }
 
         final InternalMethod method;

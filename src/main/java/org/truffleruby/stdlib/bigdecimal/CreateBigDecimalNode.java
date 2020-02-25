@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -172,7 +173,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization(guards = "isRubyBignum(value)")
     protected DynamicObject createBignum(DynamicObject value, int digits, boolean strict) {
         return createNormalBigDecimal(
-                round(new BigDecimal(Layouts.BIGNUM.getValue(value)), new MathContext(digits, getRoundMode())));
+                round(BigDecimalOps.fromBigInteger(value), new MathContext(digits, getRoundMode())));
     }
 
     @Specialization(guards = "isRubyBigDecimal(value)")

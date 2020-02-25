@@ -14,6 +14,7 @@ import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.utils.Utils;
 
 public class ReadPreArgumentNode extends RubyContextSourceNode {
 
@@ -48,7 +49,7 @@ public class ReadPreArgumentNode extends RubyContextSourceNode {
                 return nil;
 
             default:
-                throw new UnsupportedOperationException("unknown missing argument behaviour");
+                throw Utils.unsupportedOperation("unknown missing argument behaviour");
         }
     }
 

@@ -18,6 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.numeric.BigDecimalOps;
 
 public abstract class AbstractDivNode extends BigDecimalOpNode {
 
@@ -27,8 +28,8 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
         final BigDecimal aBigDecimal = Layouts.BIG_DECIMAL.getValue(a);
         final BigDecimal bBigDecimal = Layouts.BIG_DECIMAL.getValue(b);
 
-        if (normalZero.profile(bBigDecimal.signum() == 0)) {
-            switch (aBigDecimal.signum()) {
+        if (normalZero.profile(BigDecimalOps.signum(bBigDecimal) == 0)) {
+            switch (BigDecimalOps.signum(aBigDecimal)) {
                 case 1:
                     return BigDecimalType.POSITIVE_INFINITY;
                 case 0:
@@ -65,7 +66,7 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 value = BigDecimalType.NAN;
                 break;
             case NEGATIVE_ZERO:
-                switch (Layouts.BIG_DECIMAL.getValue(a).signum()) {
+                switch (BigDecimalOps.signum(a)) {
                     case 1:
                         value = BigDecimalType.NEGATIVE_INFINITY;
                         break;
@@ -78,7 +79,7 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 }
                 break;
             case POSITIVE_INFINITY:
-                switch (Layouts.BIG_DECIMAL.getValue(a).signum()) {
+                switch (BigDecimalOps.signum(a)) {
                     case 1:
                     case 0:
                         value = BigDecimal.ZERO;
@@ -89,7 +90,7 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 }
                 break;
             case NEGATIVE_INFINITY:
-                switch (Layouts.BIG_DECIMAL.getValue(b).signum()) {
+                switch (BigDecimalOps.signum(b)) {
                     case 1:
                         value = BigDecimalType.NEGATIVE_ZERO;
                         break;
@@ -116,7 +117,7 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 value = BigDecimalType.NAN;
                 break;
             case NEGATIVE_ZERO:
-                switch (Layouts.BIG_DECIMAL.getValue(b).signum()) {
+                switch (BigDecimalOps.signum(b)) {
                     case 1:
                         value = BigDecimalType.NEGATIVE_ZERO;
                         break;
@@ -129,7 +130,7 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 }
                 break;
             case POSITIVE_INFINITY:
-                switch (Layouts.BIG_DECIMAL.getValue(b).signum()) {
+                switch (BigDecimalOps.signum(b)) {
                     case 1:
                     case 0:
                         value = BigDecimalType.POSITIVE_INFINITY;
@@ -140,7 +141,7 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 }
                 break;
             case NEGATIVE_INFINITY:
-                switch (Layouts.BIG_DECIMAL.getValue(b).signum()) {
+                switch (BigDecimalOps.signum(b)) {
                     case 1:
                     case 0:
                         value = BigDecimalType.NEGATIVE_INFINITY;

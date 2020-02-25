@@ -41,6 +41,7 @@ import java.math.MathContext;
 import java.math.RoundingMode;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -63,6 +64,7 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
 
     public abstract Object execute(Object value, int digits, RoundingMode roundingMode);
 
+    @TruffleBoundary
     @Specialization
     protected BigDecimal doInt(long value, int digits, RoundingMode roundingMode) {
         return BigDecimal.valueOf(value);
@@ -77,7 +79,7 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
 
     @Specialization(guards = "isRubyBignum(value)")
     protected BigDecimal doBignum(DynamicObject value, int digits, RoundingMode roundingMode) {
-        return new BigDecimal(Layouts.BIGNUM.getValue(value));
+        return BigDecimalOps.fromBigInteger(value);
     }
 
     @Specialization(guards = "isNormalRubyBigDecimal(value)")

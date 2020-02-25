@@ -10,6 +10,7 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
@@ -34,7 +35,7 @@ public class RescueSplatNode extends RescueNode {
     public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
         final DynamicObject handlingClasses = (DynamicObject) splatCastNode.execute(frame);
 
-        for (Object handlingClass : ArrayOperations.toIterable(handlingClasses)) {
+        for (Object handlingClass : new BoundaryIterable<>(ArrayOperations.toIterable(handlingClasses))) {
             if (matches(frame, exception, handlingClass)) {
                 return true;
             }
