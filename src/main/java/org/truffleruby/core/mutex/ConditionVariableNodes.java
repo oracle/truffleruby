@@ -47,10 +47,19 @@ public abstract class ConditionVariableNodes {
             // so there is no need to poll for safepoints while locking it.
             // It is an internal lock and so locking should be done with condLock.lock()
             // to avoid changing the Ruby Thread status and consume Java thread interrupts.
-            final ReentrantLock condLock = new ReentrantLock();
-            return allocateNode.allocate(rubyClass, condLock, condLock.newCondition(), 0, 0);
+            final ReentrantLock condLock = reentrantLock();
+            return allocateNode.allocate(
+                    rubyClass,
+                    condLock,
+                    MutexOperations.newCondition(condLock),
+                    0,
+                    0);
         }
 
+        @TruffleBoundary
+        private ReentrantLock reentrantLock() {
+            return new ReentrantLock();
+        }
     }
 
     @Primitive(name = "condition_variable_wait")

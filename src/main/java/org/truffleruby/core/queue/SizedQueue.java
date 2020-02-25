@@ -18,9 +18,9 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class SizedQueue {
 
-    private final ReentrantLock lock = new ReentrantLock();
-    private final Condition canAdd = lock.newCondition();
-    private final Condition canTake = lock.newCondition();
+    private final ReentrantLock lock;
+    private final Condition canAdd;
+    private final Condition canTake;
 
     private Object[] items;
     private int addEnd;
@@ -37,7 +37,11 @@ public class SizedQueue {
 
     public static final Object CLOSED = new Object();
 
+    @TruffleBoundary
     public SizedQueue(int capacity) {
+        this.lock = new ReentrantLock();
+        this.canAdd = lock.newCondition();
+        this.canTake = lock.newCondition();
         this.capacity = capacity;
         items = new Object[capacity];
     }

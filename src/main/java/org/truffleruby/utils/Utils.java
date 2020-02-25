@@ -10,10 +10,8 @@
 
 package org.truffleruby.utils;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import java.util.Objects;
-import java.util.concurrent.locks.ReentrantLock;
 
 /** General purpose utility functions that do not fit in other utility classes. */
 public final class Utils {

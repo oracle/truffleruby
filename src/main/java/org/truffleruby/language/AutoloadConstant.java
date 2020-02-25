@@ -55,10 +55,12 @@ public class AutoloadConstant {
         getAutoloadLock().unlock();
     }
 
+    @TruffleBoundary // TODO review
     public boolean isAutoloading() {
         return autoloadLock != null && autoloadLock.isLocked();
     }
 
+    @TruffleBoundary // TODO review
     public boolean isAutoloadingThread() {
         return autoloadLock != null && autoloadLock.isHeldByCurrentThread();
     }
