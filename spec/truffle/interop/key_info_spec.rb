@@ -13,10 +13,10 @@ describe "key_info" do
 
   def key_info(object, index)
     if Integer === index
-      [*(:readable if Truffle::Interop.is_array_element_readable?(object, index)),
-       *(:modifiable if Truffle::Interop.is_array_element_modifiable?(object, index)),
-       *(:insertable if Truffle::Interop.is_array_element_insertable?(object, index)),
-       *(:removable if Truffle::Interop.is_array_element_removable?(object, index))]
+      [*(:readable if Truffle::Interop.array_element_readable?(object, index)),
+       *(:modifiable if Truffle::Interop.array_element_modifiable?(object, index)),
+       *(:insertable if Truffle::Interop.array_element_insertable?(object, index)),
+       *(:removable if Truffle::Interop.array_element_removable?(object, index))]
     else
       [*(:readable if Truffle::Interop.is_member_readable?(object, index)),
        *(:modifiable if Truffle::Interop.is_member_modifiable?(object, index)),

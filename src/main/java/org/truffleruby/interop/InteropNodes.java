@@ -981,7 +981,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_readable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_readable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementReadableNode extends InteropCoreMethodArrayArgumentsNode {
 
         public abstract boolean execute(TruffleObject receiver, long index);
@@ -1007,7 +1007,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_modifiable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementModifiable(
@@ -1032,7 +1032,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_insertable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_insertable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementInsertable(
@@ -1057,7 +1057,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_removable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_removable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementRemovable(
@@ -1082,7 +1082,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_writable?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_writable?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementWritable(
@@ -1107,7 +1107,7 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "is_array_element_existing?", onSingleton = true, required = 2)
+    @CoreMethod(names = "array_element_existing?", onSingleton = true, required = 2)
     public abstract static class IsArrayElementExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
         protected boolean isArrayElementExisting(
