@@ -21,7 +21,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
@@ -416,13 +416,8 @@ public abstract class PointerNodes {
         @TruffleBoundary
         private static Object readUnsignedLong(RubyContext context, Pointer ptr, int offset) {
             long signedValue = ptr.readLong(offset);
-            if (signedValue >= 0) {
-                return signedValue;
-            } else {
-                return BignumOperations.createBignum(context, BigInteger.valueOf(signedValue).add(TWO_POW_64));
-            }
+            return BigIntegerOps.asUnsignedFixnumOrBignum(context, signedValue);
         }
-
     }
 
     @Primitive(name = "pointer_read_float")

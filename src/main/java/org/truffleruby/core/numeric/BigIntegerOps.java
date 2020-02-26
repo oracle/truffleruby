@@ -2,6 +2,7 @@ package org.truffleruby.core.numeric;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
@@ -267,6 +268,22 @@ public final class BigIntegerOps {
     @TruffleBoundary
     public static byte[] toByteArray(BigInteger value) {
         return value.toByteArray();
+    }
+
+    public static Object asUnsignedFixnumOrBignum(RubyContext context, long value) {
+        // Positive means the initial bit is clear.
+        return value >= 0 ? value : BignumOperations.createBignum(context, negativeValueAsUnsignedBigInteger(value));
+    }
+
+    public static Object asUnsignedPrimitiveOrBigInteger(long value) {
+        // Positive means the initial bit is clear.
+        return value >= 0 ? value : negativeValueAsUnsignedBigInteger(value);
+    }
+
+    @TruffleBoundary
+    private static BigInteger negativeValueAsUnsignedBigInteger(long value) {
+        assert value < 0;
+        return BigInteger.valueOf(value & 0x7fff_ffff_ffff_ffffL).setBit(Long.SIZE - 1);
     }
 
     @TruffleBoundary
