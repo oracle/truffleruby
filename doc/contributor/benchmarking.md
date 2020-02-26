@@ -5,13 +5,21 @@
 First build TruffleRuby and include the GraalVM Compiler:
 
 ```bash
-$ jt build --graal
+$ jt build --env native
+# or
+$ jt build --env jvm-ce
 ```
+
+See [The "Building" section of the Contributor Workflow document](workflow.md#Building) for details on the different
+types of builds environments. Beware that the default environemnt is `jvm`, which does not include the GraalVM compiler
+that performs JIT compilation for Ruby, though that can of course be benchmarked too.
 
 Then run the benchmark, for instance:
 
 ```bash
-$ jt benchmark bench/classic/mandelbrot.rb --simple
+$ jt --use native benchmark bench/classic/mandelbrot.rb --simple
+# or
+$ jt --use jvm-ce benchmark bench/classic/mandelbrot.rb --simple
 ```
 
 Output is iterations per second, printed roughly every second (more frequently
@@ -26,23 +34,12 @@ minimal dependencies, which can be useful to debug or tune performance.
 Run the fixed-workload harness with minimal dependencies with:
 
 ```bash
-$ jt ruby bench/optcarrot/fixed-workload.rb
+$ jt --use native ruby bench/optcarrot/fixed-workload.rb
+# or
+$ jt --use jvm-ce benchmark bench/classic/mandelbrot.rb --simple
 ```
 
-# Benchmarking without the GraalVM Compiler
-
-You can turn off the GraalVM Compiler if you want, by not including it in the
-GraalVM build:
-
-```bash
-$ jt build
-```
-
-It's the same command to run the benchmark, for instance:
-
-```bash
-$ jt benchmark bench/classic/mandelbrot.rb --simple
-```
+# Benchmarking Other Implementations
 
 You can benchmark an entirely different implementation using the `--use` option
 or with the `RUBY_BIN` environment variable.

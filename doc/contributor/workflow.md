@@ -8,6 +8,9 @@ Additionally, you will need:
 * Java JDK 8
 * Ruby >= 2.4
 
+The requirements include a [C compiler](../user/installing-llvm.md). Because it's a common issue, we remind macOS users
+they might need to add `export SDKROOT=$(xcrun --show-sdk-path)` to their shell profile.
+
 ## Workspace directory
 
 We recommend creating an extra directory for building TruffleRuby:
@@ -49,6 +52,19 @@ You can install it automatically with:
 
 ```bash
 $ jt mx version
+```
+
+## Compiler
+
+You will need a recent version of `gcc` or `clang` installed.
+
+On macOS, you can get `clang` through the XCode command line tools, which you
+can install via the command `xcode-select --install`. You might also need to set
+the `SDK_ROOT` environment variable, for instance by adding the following to
+your shell profile:
+
+```bash
+export SDKROOT=`xcrun --show-sdk-path`
 ```
 
 ## Building

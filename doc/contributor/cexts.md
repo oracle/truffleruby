@@ -8,6 +8,10 @@ Get the gem test pack.
 $ jt gem-test-pack
 ```
 
+Note: currently this only works for Oracle employees with access to Oracle's
+internal repositories. Please open an issue if you would like to perform C
+extension testing on your own.
+
 You can then test C extension support.
 
 ```bash
