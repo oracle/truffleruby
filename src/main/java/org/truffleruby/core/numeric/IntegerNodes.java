@@ -704,8 +704,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean lessEqual(DynamicObject a, double b) {
-            // TODO(norswap, 21 Feb 2020): GR-20773
-            return BigIntegerOps.compare(a, (long) b) <= 0;
+            return BigIntegerOps.compare(a, b) <= 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
@@ -756,7 +755,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected boolean equal(DynamicObject a, double b) {
-            return BigIntegerOps.doubleValue(Layouts.BIGNUM.getValue(a)) == b;
+            return BigIntegerOps.compare(a, b) == 0;
         }
 
         @Specialization(guards = "isRubyBignum(b)")
