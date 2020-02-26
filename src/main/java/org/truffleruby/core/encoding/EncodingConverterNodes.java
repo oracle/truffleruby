@@ -187,6 +187,7 @@ public abstract class EncodingConverterNodes {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
+        @TruffleBoundary
         @Specialization(guards = { "isRubyString(source)", "isRubyString(target)", "isRubyHash(options)" })
         protected Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
                 DynamicObject target, int offset, int size, DynamicObject options) {

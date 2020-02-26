@@ -4,6 +4,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 import static org.truffleruby.Layouts.BIGNUM;
 import static org.truffleruby.Layouts.BIG_DECIMAL;
@@ -62,5 +64,10 @@ public final class BigDecimalOps {
     @TruffleBoundary
     public static BigDecimal valueOf(double value) {
         return BigDecimal.valueOf(value);
+    }
+
+    @TruffleBoundary
+    public static MathContext newMathContext(int precision, RoundingMode roundingMode) {
+        return new MathContext(precision, roundingMode);
     }
 }

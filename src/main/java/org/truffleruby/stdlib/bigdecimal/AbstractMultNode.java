@@ -44,7 +44,9 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
         if (precision == 0) {
             precision = getLimit();
         }
-        return createBigDecimal(multBigDecimalConsideringSignum(a, b, new MathContext(precision, getRoundMode())));
+        return createBigDecimal(multBigDecimalConsideringSignum(a, b, BigDecimalOps.newMathContext(
+                precision,
+                getRoundMode())));
     }
 
     protected Object multNormalSpecial(DynamicObject a, DynamicObject b, int precision) {
@@ -131,6 +133,6 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
             }
         }
 
-        throw new UnsupportedOperationException("unreachable code branch");
+        throw Utils.unsupportedOperation("unreachable code branch");
     }
 }

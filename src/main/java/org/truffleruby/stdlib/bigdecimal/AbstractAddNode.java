@@ -17,6 +17,7 @@ import org.truffleruby.Layouts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.numeric.BigDecimalOps;
 
 public abstract class AbstractAddNode extends BigDecimalOpNode {
 
@@ -29,12 +30,7 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
         if (precision == 0) {
             precision = getLimit();
         }
-        return createBigDecimal(addBigDecimal(a, b, newMathContext(precision)));
-    }
-
-    @TruffleBoundary
-    private MathContext newMathContext(int precision) {
-        return new MathContext(precision, getRoundMode());
+        return createBigDecimal(addBigDecimal(a, b, BigDecimalOps.newMathContext(precision, getRoundMode())));
     }
 
     protected Object addSpecial(DynamicObject a, DynamicObject b, int precision) {

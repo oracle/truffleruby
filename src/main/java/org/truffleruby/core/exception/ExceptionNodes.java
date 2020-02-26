@@ -60,6 +60,7 @@ public abstract class ExceptionNodes {
             return exception;
         }
 
+        @TruffleBoundary // setMessage calls blacklisted Object#equals
         @Specialization(guards = "wasProvided(message)")
         protected DynamicObject initialize(DynamicObject exception, Object message) {
             Layouts.EXCEPTION.setMessage(exception, message);

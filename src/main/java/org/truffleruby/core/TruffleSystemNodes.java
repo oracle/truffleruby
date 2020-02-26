@@ -151,7 +151,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = "isRubyString(property)")
         protected Object getJavaProperty(DynamicObject property) {
-            String value = System.getProperty(StringOperations.getString(property));
+            String value = getProperty(StringOperations.getString(property));
             if (value == null) {
                 return nil;
             } else {
@@ -159,6 +159,10 @@ public abstract class TruffleSystemNodes {
             }
         }
 
+        @TruffleBoundary
+        private static String getProperty(String key) {
+            return System.getProperty(key);
+        }
     }
 
     @CoreMethod(names = "host_cpu", onSingleton = true)
