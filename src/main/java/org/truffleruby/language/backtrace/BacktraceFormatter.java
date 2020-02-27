@@ -234,7 +234,7 @@ public class BacktraceFormatter {
                 final SourceSection nextUserSourceSection = nextUserSourceSection(stackTrace, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
-                reportedName = Backtrace.methodNameFor(element);
+                reportedName = Backtrace.labelFor(element);
             }
 
             if (reportedSourceSection == null) {
@@ -248,7 +248,7 @@ public class BacktraceFormatter {
             builder.append(reportedName);
             builder.append("'");
         } else { // A foreign frame
-            builder.append(formatForeign(callNode, Backtrace.methodNameFor(element)));
+            builder.append(formatForeign(callNode, Backtrace.labelFor(element)));
         }
 
         if (!flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null && n == 0) {

@@ -71,6 +71,7 @@ Compatibility:
 * Implemented `num2short` (#1910, @kipply).
 * `RSTRING_END()` now always returns a native pointer.
 * Removed `register` specifier for `rb_mem_clear()` (#1924).
+* Implemented `Thread::Backtrace::Locations#base_label` (#1920).
 
 Changes:
 

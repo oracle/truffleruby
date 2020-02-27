@@ -157,11 +157,19 @@ public class Backtrace {
     // endregion
     // region Static Methods
 
-    public static String methodNameFor(TruffleStackTraceElement e) {
+    public static String labelFor(TruffleStackTraceElement e) {
         RootNode root = e.getTarget().getRootNode();
         return root instanceof RubyRootNode
                 // Ruby backtraces do not include the class name for MRI compatibility.
                 ? ((RubyRootNode) root).getSharedMethodInfo().getName()
+                : root.getName();
+    }
+
+    public static String baseLabelFor(TruffleStackTraceElement e) {
+        RootNode root = e.getTarget().getRootNode();
+        return root instanceof RubyRootNode
+                // Ruby backtraces do not include the class name for MRI compatibility.
+                ? ((RubyRootNode) root).getSharedMethodInfo().getMethodName()
                 : root.getName();
     }
 
