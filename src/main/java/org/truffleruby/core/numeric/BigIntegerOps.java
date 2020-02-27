@@ -173,6 +173,17 @@ public final class BigIntegerOps {
         return valueOf(a).compareTo(b);
     }
 
+    @TruffleBoundary
+    public static int compare(BigInteger a, double b) {
+        // Emulate MRI behaviour.
+        // This is also more precise than converting the BigInteger to a double.
+        int cmp = a.compareTo(fromDouble(b));
+        double fractional = b % 1;
+        return cmp != 0 || fractional == 0.0
+                ? cmp
+                : fractional < 0 ? -1 : 1;
+    }
+
     // We add these DynamicObject overloads for compare because it is used relatively often,
     // and it helps readability.
 
@@ -192,7 +203,13 @@ public final class BigIntegerOps {
     }
 
     public static int compare(DynamicObject a, double b) {
-        return Double.compare(doubleValue(BIGNUM.getValue(a)), b);
+        assert isRubyBignum(a);
+        return compare(BIGNUM.getValue(a), b);
+    }
+
+    public static int compare(double a, DynamicObject b) {
+        assert isRubyBignum(b);
+        return -compare(BIGNUM.getValue(b), a);
     }
 
     @TruffleBoundary

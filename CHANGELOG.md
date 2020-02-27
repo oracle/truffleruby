@@ -40,6 +40,7 @@ Bug fixes:
 * Fixed `String#unpack` `M` format (#1901).
 * Fixed error when `SystemCallError` message contained non-ASCII characters.
 * Fixed `rb_rescue` to allow null rescue methods. (#1909, @kipply)
+* Fixed incorrect comparisons between bignums and doubles. 
 
 Compatibility:
 
