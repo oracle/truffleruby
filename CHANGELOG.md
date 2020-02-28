@@ -42,6 +42,7 @@ Bug fixes:
 * Fixed `rb_rescue` to allow null rescue methods. (#1909, @kipply)
 * Fixed incorrect comparisons between bignums and doubles. 
 * Prevented some internal uses of `Kernel#caller_locations` to be overridden by user code (#1934). 
+* Fixed an issue caused by recursing inlining within `Regexp#quote` (#1927).
 
 Compatibility:
 

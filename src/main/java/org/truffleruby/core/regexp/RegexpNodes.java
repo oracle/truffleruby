@@ -205,8 +205,6 @@ public abstract class RegexpNodes {
         @Child private StringNodes.MakeStringNode makeStringNode;
         @Child private ToStrNode toStrNode;
 
-        abstract public DynamicObject executeQuote(VirtualFrame frame, Object raw);
-
         @TruffleBoundary
         @Specialization(guards = "isRubyString(raw)")
         protected DynamicObject quoteString(DynamicObject raw) {
@@ -228,7 +226,7 @@ public abstract class RegexpNodes {
                 toStrNode = insert(ToStrNode.create());
             }
 
-            return executeQuote(frame, toStrNode.executeToStr(frame, raw));
+            return quoteString(toStrNode.executeToStr(frame, raw));
         }
 
         private StringNodes.MakeStringNode getMakeStringNode() {
