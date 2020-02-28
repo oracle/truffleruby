@@ -5,8 +5,10 @@
 See the [Dependencies in the README](../../README.md#dependencies).
 Additionally, you will need:
 
-* Java JDK 8
 * Ruby >= 2.4
+
+The requirements include a [C compiler](../user/installing-llvm.md). Because it's a common issue, we remind macOS users
+they might need to add `export SDKROOT=$(xcrun --show-sdk-path)` to their shell profile.
 
 ## Workspace directory
 
@@ -40,15 +42,6 @@ $ echo 'alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb' >> ~/.ba
 
 ```bash
 $ jt --help
-```
-
-## Installing `mx`
-
-`mx` is the Python build tool used to build Graal-related projects.
-You can install it automatically with:
-
-```bash
-$ jt mx version
 ```
 
 ## Building

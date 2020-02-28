@@ -25,3 +25,5 @@ On macOS, make sure you have installed the command line developer tools from Xco
 ```bash
 $ xcode-select --install
 ```
+
+You might need to add `export SDKROOT=$(xcrun --show-sdk-path)` in your shell profile.
