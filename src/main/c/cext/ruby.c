@@ -869,7 +869,8 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 
 VALUE rb_str_new_cstr(const char *string) {
   // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
-  return rb_str_new(string, strlen(string));
+  size_t len = strlen(string);
+  return rb_str_new(string, len);
 }
 
 VALUE rb_str_new_shared(VALUE string) {
