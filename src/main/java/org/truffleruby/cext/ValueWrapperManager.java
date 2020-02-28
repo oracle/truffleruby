@@ -332,6 +332,10 @@ public class ValueWrapperManager {
         return value instanceof ValueWrapper;
     }
 
+    public static long untagTaggedLong(long handle) {
+        return handle >> 1;
+    }
+
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
     public static class UnwrapperFunction implements TruffleObject {

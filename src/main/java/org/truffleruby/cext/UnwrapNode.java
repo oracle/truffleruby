@@ -73,7 +73,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
         @Specialization(guards = "isTaggedLong(handle)")
         protected long unwrapTaggedLong(long handle) {
-            return handle >> 1;
+            return ValueWrapperManager.untagTaggedLong(handle);
         }
 
         @Specialization(guards = "isTaggedObject(handle)")
@@ -218,7 +218,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
 
     @Specialization(guards = "isTaggedLong(value.getHandle())")
     protected long unwrapValueTaggedLong(ValueWrapper value) {
-        return value.getHandle() >> 1;
+        return ValueWrapperManager.untagTaggedLong(value.getHandle());
     }
 
     @Specialization

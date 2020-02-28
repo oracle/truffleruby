@@ -78,7 +78,7 @@ public class ValueWrapper implements TruffleObject {
             return object.toString();
         } else {
             assert ValueWrapperManager.isTaggedLong(handle);
-            return Long.toString(handle >> 1);
+            return Long.toString(ValueWrapperManager.untagTaggedLong(handle));
         }
     }
 
