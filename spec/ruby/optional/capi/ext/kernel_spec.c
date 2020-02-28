@@ -68,7 +68,7 @@ VALUE rb_block_call_extra_data(VALUE self, VALUE object) {
 }
 
 VALUE kernel_spec_rb_block_call_no_func(VALUE self, VALUE ary) {
-  return rb_block_call(ary, rb_intern("map"), 0, NULL, NULL, Qnil);
+  return rb_block_call(ary, rb_intern("map"), 0, NULL, (rb_block_call_func_t)NULL, Qnil);
 }
 
 

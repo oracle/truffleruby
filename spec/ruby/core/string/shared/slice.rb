@@ -122,7 +122,7 @@ describe :string_slice_index_length, shared: true do
     "x".send(@method, -2,0).should == nil
     "x".send(@method, -2,1).should == nil
 
-    "x".send(@method, bignum_value - 1, 1).should == nil
+    "x".send(@method, fixnum_max, 1).should == nil
   end
 
   it "returns nil if the length is negative" do
@@ -307,10 +307,10 @@ describe :string_slice_range, shared: true do
 
   ruby_version_is "2.6" do
     it "works with endless ranges" do
-      "hello there".send(@method, eval("2..")).should == "llo there"
-      "hello there".send(@method, eval("2...")).should == "llo there"
-      "hello there".send(@method, eval("-4..")).should == "here"
-      "hello there".send(@method, eval("-4...")).should == "here"
+      "hello there".send(@method, eval("(2..)")).should == "llo there"
+      "hello there".send(@method, eval("(2...)")).should == "llo there"
+      "hello there".send(@method, eval("(-4..)")).should == "here"
+      "hello there".send(@method, eval("(-4...)")).should == "here"
     end
   end
 end
