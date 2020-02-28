@@ -1195,7 +1195,7 @@ module Truffle::CExt
   # exception out of the thread local and calls raise exception to
   # throw it and allow normal error handling to continue.
 
-  def rb_protect_with_block(function, arg, write_status, status)
+  def rb_protect(function, arg, write_status, status)
     # We wrap nil here to avoid wrapping any result returned, as the
     # function called will do that. In general we try not to touch the
     # values passed in or out of protected functions as C extensions

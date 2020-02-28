@@ -2120,7 +2120,7 @@ static void rb_protect_write_status(int *status, int value) {
 }
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
-  return polyglot_invoke(RUBY_CEXT, "rb_protect_with_block", function, (void*)data, rb_protect_write_status, status);
+  return polyglot_invoke(RUBY_CEXT, "rb_protect", function, (void*)data, rb_protect_write_status, status);
 }
 
 void rb_jump_tag(int status) {
