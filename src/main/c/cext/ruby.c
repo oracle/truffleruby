@@ -1926,7 +1926,7 @@ VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb
   } else if (block_call_func == NULL) {
     return rb_funcallv(object, name, args_count, args);
   } else {
-    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_block_call", rb_tr_unwrap(object), rb_tr_unwrap(ID2SYM(name)), rb_tr_unwrap(rb_ary_new4(args_count, args)), block_call_func, data));
+    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_block_call", rb_tr_unwrap(object), rb_tr_unwrap(ID2SYM(name)), rb_tr_unwrap(rb_ary_new4(args_count, args)), block_call_func, (void*)data));
   }
 }
 
@@ -2120,7 +2120,7 @@ static void rb_protect_write_status(int *status, int value) {
 }
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
-  return polyglot_invoke(RUBY_CEXT, "rb_protect_with_block", function, data, rb_protect_write_status, status);
+  return polyglot_invoke(RUBY_CEXT, "rb_protect_with_block", function, (void*)data, rb_protect_write_status, status);
 }
 
 void rb_jump_tag(int status) {
@@ -2154,11 +2154,11 @@ void rb_sys_fail(const char *message) {
 }
 
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ensure", b_proc, data1, e_proc, data2));
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ensure", b_proc, (void*)data1, e_proc, (void*)data2));
 }
 
 VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
-  return polyglot_invoke(RUBY_CEXT, "rb_rescue", b_proc, data1, r_proc, data2);
+  return polyglot_invoke(RUBY_CEXT, "rb_rescue", b_proc, (void*)data1, r_proc, (void*)data2);
 }
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
@@ -2172,7 +2172,7 @@ VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS)
     rb_ary_push(rescued, (VALUE) arg);
     n++;
   }
-  return polyglot_invoke(RUBY_CEXT, "rb_rescue2", b_proc, data1, r_proc, data2, rb_tr_unwrap(rescued));
+  return polyglot_invoke(RUBY_CEXT, "rb_rescue2", b_proc, (void*)data1, r_proc, (void*)data2, rb_tr_unwrap(rescued));
 }
 
 VALUE rb_make_backtrace(void) {
