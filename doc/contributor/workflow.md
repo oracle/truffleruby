@@ -54,19 +54,6 @@ You can install it automatically with:
 $ jt mx version
 ```
 
-## Compiler
-
-You will need a recent version of `gcc` or `clang` installed.
-
-On macOS, you can get `clang` through the XCode command line tools, which you
-can install via the command `xcode-select --install`. You might also need to set
-the `SDK_ROOT` environment variable, for instance by adding the following to
-your shell profile:
-
-```bash
-export SDKROOT=`xcrun --show-sdk-path`
-```
-
 ## Building
 
 ```bash
