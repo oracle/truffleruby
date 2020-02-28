@@ -14,6 +14,8 @@ import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.parser.ArgumentDescriptor;
 
+import java.util.Arrays;
+
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -91,12 +93,12 @@ public class SharedMethodInfo {
         return new SharedMethodInfo(
                 sourceSection,
                 lexicalScope,
-                arity,
+                arity.consumingFirstRequired(),
                 definitionModule,
                 newName,
                 blockDepth,
                 notes,
-                argumentDescriptors,
+                Arrays.copyOfRange(argumentDescriptors, 1, argumentDescriptors.length),
                 alwaysClone);
     }
 
