@@ -1542,7 +1542,7 @@ VALUE rb_ary_new_from_values(long n, const VALUE *values) {
 }
 
 VALUE rb_ary_push(VALUE array, VALUE value) {
-  polyglot_invoke(rb_tr_unwrap(array), "push", rb_tr_unwrap(value));
+  RUBY_INVOKE_NO_WRAP(array, "push", value);
   return array;
 }
 
@@ -1858,7 +1858,7 @@ VALUE rb_proc_call(VALUE self, VALUE args) {
 }
 
 int rb_proc_arity(VALUE self) {
-  return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(self), "arity"));
+  return polyglot_as_i32(RUBY_INVOKE_NO_WRAP(self, "arity"));
 }
 
 // Utilities
@@ -2263,7 +2263,7 @@ void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int
 }
 
 void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function)(ANYARGS), int argc) {
-  rb_define_method(rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(object), "singleton_class")), name, function, argc);
+  rb_define_method(RUBY_INVOKE(object, "singleton_class"), name, function, argc);
 }
 
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {
@@ -2642,7 +2642,7 @@ VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
 }
 
 void rb_thread_schedule(void) {
-  polyglot_invoke(rb_tr_unwrap(rb_cThread), "pass");
+  RUBY_INVOKE_NO_WRAP(rb_cThread, "pass");
 }
 
 rb_nativethread_id_t rb_nativethread_self() {
