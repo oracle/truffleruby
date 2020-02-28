@@ -2,36 +2,21 @@
 
 ## Testing
 
-Get the gem test pack.
-
-```bash
-$ jt gem-test-pack
-```
-
-Note: currently this only works for Oracle employees with access to Oracle's
-internal repositories. Please open an issue if you would like to perform C
-extension testing on your own.
-
-You can then test C extension support.
-
-```bash
-$ jt test cexts
-```
-
-You can also runs specs:
+There are various ways to test C extensions.
+Here is a list going from testing single functions to testing Bundler.
 
 ```bash
 $ jt test :capi
+$ jt test :truffle_capi
+$ jt test :library_cext
+$ jt test mri --all-sulong
+$ jt test cexts
+$ jt test bundle
 ```
 
-### OpenSSL
-
-The `openssl` specs and tests are currently segregated and are run separately.
-
-```bash
-$ jt test :openssl
-$ jt test mri --openssl
-```
+Note: the last 2 currently require the gem test pack.
+This only works for Oracle employees with access to Oracle's internal repositories.
+Please open an issue if you would like to run those tests on your own.
 
 ## Benchmarking
 
