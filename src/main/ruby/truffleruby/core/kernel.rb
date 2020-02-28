@@ -568,7 +568,7 @@ module Kernel
                  uplevel = Truffle::Type.coerce_to_int(uplevel)
                  raise ArgumentError, "negative level (#{uplevel})" unless uplevel >= 0
 
-                 caller, = caller_locations(uplevel + 1, 1)
+                 caller, = Kernel.caller_locations(uplevel + 1, 1)
                  if caller
                    "#{caller.path}:#{caller.lineno}: warning: "
                  else
@@ -593,7 +593,7 @@ module Kernel
   module_function :fail
 
   def __dir__
-    path = caller_locations(1, 1).first.absolute_path
+    path = Kernel.caller_locations(1, 1).first.absolute_path
     File.dirname(path)
   end
   module_function :__dir__

@@ -41,6 +41,7 @@ Bug fixes:
 * Fixed error when `SystemCallError` message contained non-ASCII characters.
 * Fixed `rb_rescue` to allow null rescue methods. (#1909, @kipply)
 * Fixed incorrect comparisons between bignums and doubles. 
+* Prevented some internal uses of `Kernel#caller_locations` to be overridden by user code (#1934). 
 
 Compatibility:
 
