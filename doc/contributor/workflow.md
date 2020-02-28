@@ -5,7 +5,6 @@
 See the [Dependencies in the README](../../README.md#dependencies).
 Additionally, you will need:
 
-* Java JDK 8
 * Ruby >= 2.4
 
 The requirements include a [C compiler](../user/installing-llvm.md). Because it's a common issue, we remind macOS users
