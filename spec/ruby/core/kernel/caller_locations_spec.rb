@@ -32,7 +32,7 @@ describe 'Kernel#caller_locations' do
     it "works with endless ranges" do
       locations1 = caller_locations(0)
       locations2 = caller_locations(eval("(2..)"))
-      locations1[2..].map(&:to_s).should == locations2.map(&:to_s)
+      locations2.map(&:to_s).should == locations1[2..-1].map(&:to_s)
     end
   end
 

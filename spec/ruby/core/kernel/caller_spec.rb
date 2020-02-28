@@ -47,8 +47,8 @@ describe 'Kernel#caller' do
   ruby_version_is "2.6" do
     it "works with endless ranges" do
       locations1 = KernelSpecs::CallerTest.locations(0)
-      locations2 = KernelSpecs::CallerTest.locations(2..)
-      locations1[2..].map(&:to_s).should == locations2.map(&:to_s)
+      locations2 = KernelSpecs::CallerTest.locations(eval("(2..)"))
+      locations2.map(&:to_s).should == locations1[2..-1].map(&:to_s)
     end
   end
 end

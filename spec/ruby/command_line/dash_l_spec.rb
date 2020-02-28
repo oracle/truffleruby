@@ -11,14 +11,16 @@ describe "The -l command line option" do
         "false\nfalse\nfalse\n"
   end
 
-  it "chomps last line based on $/" do
-    ruby_exe('BEGIN { $/ = "ones\n" }; puts $_', options: "-n -l", escape: true,
-             args: " < #{@names}").should ==
-        "alice j\nbob field\njames grey\n"
+  ruby_version_is "2.5" do
+    it "chomps last line based on $/" do
+      ruby_exe('BEGIN { $/ = "ones\n" }; puts $_', options: "-W0 -n -l", escape: true,
+               args: " < #{@names}").should ==
+          "alice j\nbob field\njames grey\n"
+    end
   end
 
   it "sets $\\ to the value of $/" do
-    ruby_exe("puts $\\ == $/", options: "-n -l", escape: true,
+    ruby_exe("puts $\\ == $/", options: "-W0 -n -l", escape: true,
              args: " < #{@names}").should ==
         "true\ntrue\ntrue\n"
   end
