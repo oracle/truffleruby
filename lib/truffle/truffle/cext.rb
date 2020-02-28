@@ -1677,9 +1677,9 @@ module Truffle::CExt
 
   def rb_ensure(b_proc, data1, e_proc, data2)
     begin
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex(b_proc, [data1]))
+      Primitive.call_with_c_mutex(b_proc, [data1])
     ensure
-      Primitive.cext_unwrap(Primitive.call_with_c_mutex(e_proc, [data2]))
+      Primitive.call_with_c_mutex(e_proc, [data2])
     end
   end
 

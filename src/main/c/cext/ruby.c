@@ -2154,7 +2154,7 @@ void rb_sys_fail(const char *message) {
 }
 
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ensure", b_proc, (void*)data1, e_proc, (void*)data2));
+  return polyglot_invoke(RUBY_CEXT, "rb_ensure", b_proc, (void*)data1, e_proc, (void*)data2);
 }
 
 VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
