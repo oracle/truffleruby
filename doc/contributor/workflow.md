@@ -44,15 +44,6 @@ $ echo 'alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb' >> ~/.ba
 $ jt --help
 ```
 
-## Installing `mx`
-
-`mx` is the Python build tool used to build Graal-related projects.
-You can install it automatically with:
-
-```bash
-$ jt mx version
-```
-
 ## Building
 
 ```bash
