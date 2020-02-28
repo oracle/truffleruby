@@ -1737,7 +1737,7 @@ VALUE rb_hash_delete_if(VALUE hash) {
 }
 
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
-  polyglot_invoke(RUBY_CEXT, "rb_hash_foreach", rb_tr_unwrap(hash), (void (*)(void *)) func, farg);
+  polyglot_invoke(RUBY_CEXT, "rb_hash_foreach", rb_tr_unwrap(hash), func, (void*)farg);
 }
 
 VALUE rb_hash_size(VALUE hash) {
@@ -1850,7 +1850,7 @@ VALUE rb_mod_ancestors(VALUE mod) {
 // Proc
 
 VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_proc_new", (void (*)(void *)) function, rb_tr_unwrap(value)));
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_proc_new", function, rb_tr_unwrap(value)));
 }
 
 VALUE rb_proc_call(VALUE self, VALUE args) {
@@ -1884,8 +1884,7 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
 }
 
 #undef rb_enumeratorize_with_size
-VALUE
-rb_enumeratorize_with_size(VALUE obj, VALUE meth, int argc, const VALUE *argv, rb_enumerator_size_func * size_fn) {
+VALUE rb_enumeratorize_with_size(VALUE obj, VALUE meth, int argc, const VALUE *argv, rb_enumerator_size_func *size_fn) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_enumeratorize_with_size", rb_tr_unwrap(obj), rb_tr_unwrap(meth), rb_tr_unwrap(rb_ary_new4(argc, argv)), size_fn));
 }
 
@@ -2240,7 +2239,7 @@ void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS)
   if (function == rb_f_notimplement) {
     RUBY_CEXT_INVOKE("rb_define_method_undefined", module, rb_str_new_cstr(name));
   } else {
-    rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_define_method", rb_tr_unwrap(module), rb_tr_unwrap(rb_str_new_cstr(name)), (void (*)(void *)) function, argc));
+    rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_define_method", rb_tr_unwrap(module), rb_tr_unwrap(rb_str_new_cstr(name)), function, argc));
   }
 }
 
@@ -2288,7 +2287,7 @@ void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex) {
 }
 
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
-  polyglot_invoke(RUBY_CEXT, "rb_define_alloc_func", rb_tr_unwrap(ruby_class), (void (*)(void *)) alloc_function);
+  polyglot_invoke(RUBY_CEXT, "rb_define_alloc_func", rb_tr_unwrap(ruby_class), alloc_function);
 }
 
 void rb_undef_alloc_func(VALUE ruby_class) {
