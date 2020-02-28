@@ -9,6 +9,7 @@
  */
 package org.truffleruby.cext;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
 import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
 import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
@@ -51,6 +52,7 @@ public class ValueWrapper implements TruffleObject {
         this.handleBlock = handleBlock;
     }
 
+    @TruffleBoundary
     @Override
     public boolean equals(Object other) {
         if (!(other instanceof ValueWrapper)) {
@@ -63,9 +65,21 @@ public class ValueWrapper implements TruffleObject {
         return (this.object.equals(otherWrapper.object));
     }
 
+    @TruffleBoundary
     @Override
     public int hashCode() {
-        return object.hashCode();
+        return object != null ? object.hashCode() : Long.hashCode(handle);
+    }
+
+    @TruffleBoundary
+    @Override
+    public String toString() {
+        if (object != null) {
+            return object.toString();
+        } else {
+            assert ValueWrapperManager.isTaggedLong(handle);
+            return Long.toString(handle >> 1);
+        }
     }
 
     @ExportMessage
