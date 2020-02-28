@@ -772,7 +772,7 @@ long rb_big2long(VALUE x) {
 }
 
 VALUE rb_big2str(VALUE x, int base) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap((void *)x), "to_s", base));
+  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(x), "to_s", base));
 }
 
 unsigned long rb_big2ulong(VALUE x) {
@@ -845,7 +845,7 @@ int MBCLEN_CHARFOUND_LEN(int r) {
 }
 
 int rb_str_len(VALUE string) {
-  return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap((void *)string), "bytesize"));
+  return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(string), "bytesize"));
 }
 
 VALUE rb_str_new(const char *string, long length) {
