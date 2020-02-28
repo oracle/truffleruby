@@ -54,25 +54,6 @@ public class ValueWrapper implements TruffleObject {
 
     @TruffleBoundary
     @Override
-    public boolean equals(Object other) {
-        if (!(other instanceof ValueWrapper)) {
-            return false;
-        }
-        ValueWrapper otherWrapper = (ValueWrapper) other;
-        if (handle != ValueWrapperManager.UNSET_HANDLE && otherWrapper.handle != ValueWrapperManager.UNSET_HANDLE) {
-            return handle == otherWrapper.handle;
-        }
-        return (this.object.equals(otherWrapper.object));
-    }
-
-    @TruffleBoundary
-    @Override
-    public int hashCode() {
-        return object != null ? object.hashCode() : Long.hashCode(handle);
-    }
-
-    @TruffleBoundary
-    @Override
     public String toString() {
         if (object != null) {
             return object.toString();
