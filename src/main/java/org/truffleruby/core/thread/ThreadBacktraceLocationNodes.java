@@ -87,20 +87,30 @@ public class ThreadBacktraceLocationNodes {
     @CoreMethod(names = "label")
     public abstract static class LabelNode extends UnaryCoreMethodNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
         @Specialization
-        protected DynamicObject label(DynamicObject threadBacktraceLocation) {
+        protected DynamicObject label(DynamicObject threadBacktraceLocation,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
             final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
             final int index = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
 
-            // TODO eregon 8 Nov. 2016 This does not handle blocks
-            final String methodName = Backtrace.methodNameFor(element);
-
-            return makeStringNode.executeMake(methodName, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            final String label = Backtrace.labelFor(element);
+            return makeStringNode.executeMake(label, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
+    }
 
+    @CoreMethod(names = "base_label")
+    public abstract static class BaseLabelNode extends UnaryCoreMethodNode {
+        @Specialization
+        protected DynamicObject label(DynamicObject threadBacktraceLocation,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
+            final int index = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
+            final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
+
+            final String baseLabel = Backtrace.baseLabelFor(element);
+            return makeStringNode.executeMake(baseLabel, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
     }
 
     @CoreMethod(names = "lineno")

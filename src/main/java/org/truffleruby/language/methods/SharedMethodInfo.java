@@ -113,6 +113,11 @@ public class SharedMethodInfo {
                 alwaysClone);
     }
 
+    /** Returns the method name on its own. */
+    public String getMethodName() {
+        return blockDepth == 0 ? name : notes;
+    }
+
     /** A more complete name than just <code>this.name</code>, for tooling, to easily identify what a RubyRootNode
      * corresponds to. */
     public String getModuleAndMethodName() {
