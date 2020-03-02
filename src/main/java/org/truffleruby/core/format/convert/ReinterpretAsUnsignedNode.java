@@ -9,21 +9,15 @@
  */
 package org.truffleruby.core.format.convert;
 
-import java.math.BigInteger;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
-import org.truffleruby.core.numeric.FixnumOrBignumNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.core.numeric.BigIntegerOps;
 
 @NodeChild("value")
 public abstract class ReinterpretAsUnsignedNode extends FormatNode {
-
-    @Child private FixnumOrBignumNode fixnumOrBignumNode;
 
     @Specialization
     protected MissingValue asUnsigned(MissingValue missingValue) {
@@ -47,27 +41,6 @@ public abstract class ReinterpretAsUnsignedNode extends FormatNode {
 
     @Specialization
     protected Object asUnsigned(long value) {
-        if (fixnumOrBignumNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            fixnumOrBignumNode = insert(new FixnumOrBignumNode());
-        }
-
-        return fixnumOrBignumNode.fixnumOrBignum(asUnsignedBigInteger(value));
+        return BigIntegerOps.asUnsignedFixnumOrBignum(getContext(), value);
     }
-
-    private static final long UNSIGNED_LONG_MASK = 0x7fffffffffffffffL;
-
-    @TruffleBoundary
-    private BigInteger asUnsignedBigInteger(long value) {
-        // TODO CS 28-Mar-16 can't we work out if it would fit into a long, and not create a BigInteger?
-
-        BigInteger bigIntegerValue = BigInteger.valueOf(value & UNSIGNED_LONG_MASK);
-
-        if (value < 0) {
-            bigIntegerValue = bigIntegerValue.setBit(Long.SIZE - 1);
-        }
-
-        return bigIntegerValue;
-    }
-
 }
