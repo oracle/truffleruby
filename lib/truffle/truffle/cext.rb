@@ -886,9 +886,13 @@ module Truffle::CExt
   end
 
   def rb_cstr_to_dbl(string, badcheck)
-    result = Primitive.string_to_f string, badcheck
-    if !badcheck && result.nil?
-      0.0
+    result = Primitive.string_to_f string
+    if result.nil?
+      if badcheck
+        raise ArgumentError, "invalid value for Float(): #{string.inspect}"
+      else
+        0.0
+      end
     else
       result
     end

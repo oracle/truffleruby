@@ -59,7 +59,12 @@ module Kernel
 
     case obj
     when String
-      Primitive.string_to_f obj, raise_exception
+      converted = Primitive.string_to_f obj
+      if converted.nil? && raise_exception
+        raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
+      else
+        converted
+      end
     when Float
       obj
     when nil
