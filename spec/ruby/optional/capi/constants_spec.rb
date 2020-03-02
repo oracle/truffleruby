@@ -57,6 +57,11 @@ describe "C-API constant" do
     @s.rb_mKernel.should == Kernel
   end
 
+  specify "rb_mProcess references the Process module" do
+    @s.rb_mProcess.should == Process
+  end
+
+
   specify "rb_cMatch references the MatchData class" do
     @s.rb_cMatch.should == MatchData
   end
