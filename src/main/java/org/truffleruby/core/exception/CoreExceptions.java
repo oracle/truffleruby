@@ -36,6 +36,7 @@ import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -400,6 +401,11 @@ public class CoreExceptions {
         return indexError("invalid index", currentNode);
     }
 
+    @TruffleBoundary
+    public DynamicObject indexErrorInvalidArrayIndexException(InvalidArrayIndexException exception, Node currentNode) {
+        return indexError("invalid array index " + exception.getInvalidIndex(), currentNode);
+    }
+
     // LocalJumpError
 
     @TruffleBoundary
@@ -565,6 +571,13 @@ public class CoreExceptions {
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
     }
 
+    @TruffleBoundary
+    public DynamicObject typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
+        DynamicObject rubyArray = createArray(context, exception.getSuppliedValues());
+        String formattedValues = StringOperations.getString((DynamicObject) context.send(rubyArray, "inspect"));
+        return typeError("unsupported type " + formattedValues, currentNode);
+    }
+
     // NameError
 
     @TruffleBoundary
@@ -705,6 +718,17 @@ public class CoreExceptions {
     public DynamicObject nameErrorUnsuportedMessage(Object receiver, Object name, UnsupportedMessageException exception,
             Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
+    }
+
+    @TruffleBoundary
+    public DynamicObject nameErrorUnknownIdentifierException(UnknownIdentifierException exception, Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().nameErrorClass;
+        DynamicObject errorMessage = StringOperations.createString(
+                context,
+                StringOperations.encodeRope(
+                        "unknown identifier " + exception.getUnknownIdentifier(),
+                        UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     @TruffleBoundary
@@ -1135,6 +1159,16 @@ public class CoreExceptions {
 
     public DynamicObject closedQueueError(Node currentNode) {
         return closedQueueError("queue closed", currentNode);
+    }
+
+    // TruffleRuby specific
+
+    @TruffleBoundary
+    public DynamicObject unsupportedMessageError(String message, Node currentNode) {
+        DynamicObject exceptionClass = context.getCoreLibrary().unsupportedMessageErrorClass;
+        DynamicObject errorMessage = StringOperations
+                .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
+        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     // Helpers

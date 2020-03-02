@@ -37,7 +37,7 @@ describe "Interop special form" do
   end
 
   it "#call sends execute(*)" do
-    -> { @object.call(1, 2, 3) }.should raise_error(TypeError, /Message not supported/)
+    -> { @object.call(1, 2, 3) }.should raise_error(Polyglot::UnsupportedMessageError)
     @object.to_s.should include("execute(1, 2, 3)")
   end
 
@@ -47,7 +47,7 @@ describe "Interop special form" do
   end
 
   it "#size sends getArraySize()" do
-    -> { @object.size }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object.size }.should raise_error(Polyglot::UnsupportedMessageError)
     @object.to_s.should include("getArraySize()")
   end
 

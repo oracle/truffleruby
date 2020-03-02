@@ -1,0 +1,161 @@
+
+### Detailed definition of polyglot behaviour is given for
+
+- `nil`
+- `false`
+- `true`
+- `:symbol`
+- a `String`
+- an `Integer`
+- a `Float`
+- a `BigDecimal`
+- an `Object`
+- a `Class`
+- a `Hash`
+- an `Array`
+- `proc {...}`
+- `lambda {...}`
+- a `Method`
+- polyglot object - An Object which implements `polyglot_*` methods for members, that are:
+  `polyglot_has_members?`,
+  `polyglot_members`,
+  `polyglot_read_member`,
+  `polyglot_write_member`,
+  `polyglot_remove_member`,
+  `polyglot_invoke_member`,
+  `polyglot_member_readable?`,
+  `polyglot_member_modifiable?`,
+  `polyglot_member_removable?`,
+  `polyglot_member_insertable?`,
+  `polyglot_member_invocable?`,
+  `polyglot_member_internal?`,
+  `polyglot_has_member_read_side_effects?`,
+  `polyglot_has_member_write_side_effects?`.
+  The methods correspond to messages defined in
+  [InteropLibrary](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html).
+- polyglot array - An Object which implements `polyglot_*` methods for Array, that are:
+  `polyglot_has_array_elements?`,
+  `polyglot_array_size`,
+  `polyglot_read_array_element`,
+  `polyglot_write_array_element`,
+  `polyglot_remove_array_element`,
+  `polyglot_array_element_readable?`,
+  `polyglot_array_element_modifiable?`,
+  `polyglot_array_element_insertable?`,
+  `polyglot_array_element_removable?`.
+  The methods correspond to messages defined in
+  [InteropLibrary](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html).
+- polyglot int array - An Object which implements `polyglot_*` methods for Array allowing only Integers to be stored
+
+
+### `null` related messages
+
+When interop message `isNUll` is send
+- to: `nil`
+  it returns true.
+- to all other objects not mentioned above
+  it returns false.
+
+### `boolean` related messages
+
+When interop message `isBoolean` is send
+- to: `true`, `false`
+  it returns true.
+- to all other objects not mentioned above
+  it returns false.
+
+When interop message `asBoolean` is send
+- to: `true`, `false`
+  it returns the receiver.
+- to all other objects not mentioned above
+  it fails with UnsupportedError.
+
+### Messages related to executable objects
+
+When interop message `isExecutable` is send
+- to: `proc {...}`, `lambda {...}`, a `Method`
+  it returns true.
+- to all other objects not mentioned above
+  it returns false.
+
+When interop message `execute` is send
+- to: `proc {...}`, `lambda {...}`, a `Method`
+  it returns the result of the execution.
+- to: `lambda {...}`, a `Method`
+  it fails with `ArgumentError` an error when the number of arguments is wrong.
+- to: `proc {...}`
+  it returns the result of the execution even though the number of arguments is wrong.
+- to all other objects not mentioned above
+  it fails with UnsupportedError.
+
+### Array related messages (incomplete)
+
+When interop message `hasArrayElements` is send
+- to: an `Array`, polyglot array, polyglot int array
+  it returns true.
+- to all other objects not mentioned above
+  it returns false.
+
+When interop message `getArraySize` is send
+- to: an `Array`, polyglot array
+  it returns size of the array.
+- to all other objects not mentioned above
+  it fails with UnsupportedError.
+
+When interop message `readArrayElement` is send
+- to: an `Array`, polyglot array
+  it returns stored value when it is present on the given valid index.
+- to: an `Array`, polyglot array
+  it fails with `IndexError` when a value is not present on the index or the index is invalid.
+- to all other objects not mentioned above
+  it fails with UnsupportedError.
+
+When interop message `writeArrayElement` is send
+- to: an `Array`, polyglot array
+  it stores a value at a given index.
+- to: an `Array`, polyglot array
+  it fails with `IndexError` when a index is invalid.
+- to: polyglot int array
+  it fails with `TypeError` when the value is invalid.
+- to all other objects not mentioned above
+  it fails with UnsupportedError.
+
+When interop message `removeArrayElement` is send
+- to: an `Array`, polyglot array
+  it removes a value when the value is present on a valid index.
+- to: an `Array`, polyglot array
+  it fails with IndexError when the value is not present on a valid index.
+- to all other objects not mentioned above
+  it fails with UnsupportedError.
+
+When interop message `isArrayElementReadable` is send
+- to: an `Array`, polyglot array
+  it returns true if there is a value on the given index.
+- to: an `Array`, polyglot array
+  it returns false if there is no value on the given index.
+- to all other objects not mentioned above
+  it returns false.
+
+When interop message `isArrayElementModifiable` is send
+- to: an `Array`, polyglot array
+  it returns true if there is a value on the given index.
+- to: an `Array`, polyglot array
+  it returns false if there is no value on the given index.
+- to all other objects not mentioned above
+  it returns false.
+
+When interop message `isArrayElementInsertable` is send
+- to: an `Array`, polyglot array
+  it returns true if there is no value on the given index.
+- to: an `Array`, polyglot array
+  it returns false if there is a value on the given index.
+- to all other objects not mentioned above
+  it returns false.
+
+When interop message `isArrayElementRemovable` is send
+- to: an `Array`, polyglot array
+  it returns true if there is a value on the given index.
+- to: an `Array`, polyglot array
+  it returns false if there is no value on the given index.
+- to all other objects not mentioned above
+  it returns false.

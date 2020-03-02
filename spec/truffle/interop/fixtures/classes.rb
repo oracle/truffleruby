@@ -71,9 +71,10 @@ module TruffleInteropSpecs
   class PolyglotArray
     attr_reader :log
 
-    def initialize
+    def initialize(&value_validator)
       @log = []
       @storage = []
+      @value_validator = value_validator
     end
 
     def polyglot_has_array_elements?
@@ -88,29 +89,32 @@ module TruffleInteropSpecs
 
     def polyglot_read_array_element(index)
       @log << [__callee__, index]
+      raise Truffle::Interop::InvalidArrayIndexException unless polyglot_array_element_readable? index
       @storage[index]
     end
 
     def polyglot_write_array_element(index, value)
       @log << [__callee__, index, value]
+      @value_validator.nil? || @value_validator.call(value) || raise(Truffle::Interop::UnsupportedTypeException)
       @storage[index] = value
       nil
     end
 
     def polyglot_remove_array_element(index)
       @log << [__callee__, index]
+      raise Truffle::Interop::InvalidArrayIndexException unless in_bounds?(index)
       @storage.delete_at(index)
       nil
     end
 
     def polyglot_array_element_readable?(index)
       @log << [__callee__, index]
-      index >= 0 && index < @storage.size
+      in_bounds?(index)
     end
 
     def polyglot_array_element_modifiable?(index)
       @log << [__callee__, index]
-      index >= 0 && index < @storage.size
+      in_bounds?(index)
     end
 
     def polyglot_array_element_insertable?(index)
@@ -120,6 +124,12 @@ module TruffleInteropSpecs
 
     def polyglot_array_element_removable?(index)
       @log << [__callee__, index]
+      in_bounds?(index)
+    end
+
+    private
+
+    def in_bounds?(index)
       index >= 0 && index < @storage.size
     end
   end
@@ -143,7 +153,9 @@ module TruffleInteropSpecs
 
     def polyglot_read_member(name)
       @log << [__callee__, name]
-      @storage.fetch name # TODO (pitr-ch 07-Feb-2020): error translation for missing keys?
+      @storage.fetch name
+    rescue KeyError
+      raise Truffle::Interop::UnknownIdentifierException
     end
 
     def polyglot_write_member(name, value)
@@ -153,13 +165,14 @@ module TruffleInteropSpecs
 
     def polyglot_remove_member(name)
       @log << [__callee__, name]
-      @storage.delete name # TODO (pitr-ch 07-Feb-2020): error translation for missing keys?
+      @storage.delete(name) { raise Truffle::Interop::UnknownIdentifierException }
     end
 
     def polyglot_invoke_member(name, *args)
       @log << [__callee__, name, *args]
-      # TODO (pitr-ch 07-Feb-2020): error handling?
       @storage.fetch(name).call(*args)
+    rescue KeyError
+      raise Truffle::Interop::UnknownIdentifierException
     end
 
     def polyglot_member_readable?(name)

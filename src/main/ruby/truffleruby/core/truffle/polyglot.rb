@@ -10,6 +10,10 @@
 
 module Polyglot
 
+  -> do # stubs, defined in CoreLibrary
+    UnsupportedMessageError = Class.new StandardError
+  end
+
   def self.export(name, value)
     Truffle::Interop.export name, value
   end
