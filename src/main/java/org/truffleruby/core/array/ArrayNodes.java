@@ -115,26 +115,7 @@ public abstract class ArrayNodes {
             return ToAryNodeGen.create(other);
         }
 
-        // Same storage
-
-        @Specialization(guards = { "stores.accepts(getStore(b))" }, limit = "STORAGE_STRATEGIES")
-        protected DynamicObject addSameType(DynamicObject a, DynamicObject b,
-                @CachedLibrary("getStore(a)") ArrayStoreLibrary stores) {
-            final int aSize = Layouts.ARRAY.getSize(a);
-            final int bSize = Layouts.ARRAY.getSize(b);
-            final int combinedSize = aSize + bSize;
-            Object aStore = Layouts.ARRAY.getStore(a);
-            Object bStore = Layouts.ARRAY.getStore(b);
-            Object newStore = stores.generalizeForStore(aStore, bStore).allocate(combinedSize);
-            stores.copyContents(aStore, 0, newStore, 0, aSize);
-            stores.copyContents(bStore, 0, newStore, aSize, bSize);
-            return createArray(newStore, combinedSize);
-        }
-
-        // Generalizations
-
         @Specialization(
-                guards = "!as.accepts(getStore(b))",
                 limit = "ARRAY_STRATEGIES")
         protected DynamicObject addGeneralize(DynamicObject a, DynamicObject b,
                 @CachedLibrary("getStore(a)") ArrayStoreLibrary as,
