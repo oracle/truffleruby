@@ -300,8 +300,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected DynamicObject clear(DynamicObject array) {
-            Layouts.ARRAY.setSize(array, 0);
-            Layouts.ARRAY.setStore(array, ArrayStoreLibrary.INITIAL_STORE);
+            setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
             return array;
         }
 
@@ -880,9 +879,8 @@ public abstract class ArrayNodes {
         protected boolean include(VirtualFrame frame, DynamicObject array, Object value,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
             final Object store = Layouts.ARRAY.getStore(array);
-            final int size = Layouts.ARRAY.getSize(array);
 
-            for (int n = 0; n < size; n++) {
+            for (int n = 0; n < getSize(array); n++) {
                 final Object stored = stores.read(store, n);
 
                 if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
@@ -1233,7 +1231,7 @@ public abstract class ArrayNodes {
 
             int n = 0;
             try {
-                for (; n < size; n++) {
+                for (; n < getSize(array); n++) {
                     final Object mappedValue = yield(block, stores.read(store, n));
                     arrayBuilder.appendValue(state, n, mappedValue);
                 }
@@ -1557,8 +1555,15 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class RejectInPlaceNode extends YieldingCoreMethodNode {
 
-        @Specialization(limit = "STORAGE_STRATEGIES")
-        protected Object rejectInPlace(DynamicObject array, DynamicObject block,
+        @Specialization(guards = "stores.isMutable(getStore(array))", limit = "STORAGE_STRATEGIES")
+        protected Object rejectInPlaceMutable(DynamicObject array, DynamicObject block,
+                @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores) {
+            return rejectInPlaceInternal(array, block, mutablestores, getStore(array));
+        }
+
+        @Specialization(guards = "!stores.isMutable(getStore(array))", limit = "STORAGE_STRATEGIES")
+        protected Object rejectInPlaceImmutable(DynamicObject array, DynamicObject block,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores) {
             final Object mutableStore = stores.allocator(getStore(array)).allocate(getSize(array));
@@ -1572,7 +1577,7 @@ public abstract class ArrayNodes {
             int i = 0;
             int n = 0;
             try {
-                for (; n < Layouts.ARRAY.getSize(array); n++) {
+                for (; n < getSize(array); n++) {
                     final Object value = stores.read(store, n);
                     if (yieldIsTruthy(block, value)) {
                         continue;
@@ -1632,17 +1637,14 @@ public abstract class ArrayNodes {
             return ToAryNodeGen.create(index);
         }
 
-        @Specialization(limit = "STORAGE_STRATEGIES")
+        @Specialization
         protected DynamicObject replace(DynamicObject array, DynamicObject other,
-                @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores) {
+                @Cached ArrayCopyOnWriteNode cowNode) {
             propagateSharingNode.executePropagate(array, other);
 
             final int size = getSize(other);
-            final Object store = Layouts.ARRAY.getStore(other);
-            final Object cowStore = otherStores.extractRange(store, 0, size);
-            Layouts.ARRAY.setStore(other, cowStore);
 
-            Layouts.ARRAY.setStore(array, cowStore);
+            Layouts.ARRAY.setStore(array, cowNode.execute(other, 0, size));
             Layouts.ARRAY.setSize(array, size);
             return array;
         }
@@ -1664,7 +1666,7 @@ public abstract class ArrayNodes {
             assert 0 < rotation && rotation < size;
 
             final Object original = Layouts.ARRAY.getStore(array);
-            final Object rotated = arrays.generalizeForStore(original, original).allocate(size);
+            final Object rotated = arrays.allocator(original).allocate(size);
             rotateArrayCopy(rotation, size, arrays, original, rotated);
             return createArray(rotated, size);
         }
@@ -1716,7 +1718,7 @@ public abstract class ArrayNodes {
             assert 0 < rotation && rotation < size;
 
             final Object original = Layouts.ARRAY.getStore(array);
-            final Object rotated = arrays.generalizeForStore(original, original).allocate(size);
+            final Object rotated = arrays.allocator(original).allocate(size);
             rotateArrayCopy(rotation, size, arrays, original, rotated);
             setStoreAndSize(array, rotated, size);
             return array;
