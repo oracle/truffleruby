@@ -1219,10 +1219,9 @@ public class CExtNodes {
                 @CachedLibrary("getStore(libraries)") ArrayStoreLibrary libStores,
                 @CachedLibrary("getStore(bitcodeFiles)") ArrayStoreLibrary fileStores) {
             try {
-                final Object[] boxedLibs = new Object[getSize(libraries)];
-                final Object[] boxedFiles = new Object[getSize(bitcodeFiles)];
-                libStores.copyContents(getStore(libraries), 0, boxedLibs, 0, getSize(libraries));
-                fileStores.copyContents(getStore(bitcodeFiles), 0, boxedFiles, 0, getSize(bitcodeFiles));
+                final Object[] boxedLibs = libStores.boxedCopyOfRange(getStore(libraries), 0, getSize(libraries));
+                final Object[] boxedFiles = fileStores
+                        .boxedCopyOfRange(getStore(bitcodeFiles), 0, getSize(bitcodeFiles));
                 Linker.link(
                         StringOperations.getString(outputFileName),
                         array2StringList(boxedLibs),

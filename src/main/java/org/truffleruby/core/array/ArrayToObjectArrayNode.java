@@ -39,9 +39,7 @@ public abstract class ArrayToObjectArrayNode extends RubyContextNode {
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
         final int size = Layouts.ARRAY.getSize(array);
         final Object store = Layouts.ARRAY.getStore(array);
-        final Object[] boxedCopy = new Object[size];
-        stores.copyContents(store, 0, boxedCopy, 0, size);
-        return boxedCopy;
+        return stores.boxedCopyOfRange(store, 0, size);
     }
 
 }

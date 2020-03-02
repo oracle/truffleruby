@@ -91,6 +91,9 @@ public abstract class ArrayStoreLibrary extends Library {
         return new DelegatedArrayStorage(store, start, (end - start));
     }
 
+    /** Copy a range from this array store into a plane Object[]. */
+    public abstract Object[] boxedCopyOfRange(Object store, int start, int length);
+
     /** Copy the contents of {@code store} from {@code srcStart} to the {@code dest} store starting from
      * {@code destStart}. {@code length} entries will be copied. */
     public abstract void copyContents(Object store, int srcStart, Object dest, int destStart, int length);

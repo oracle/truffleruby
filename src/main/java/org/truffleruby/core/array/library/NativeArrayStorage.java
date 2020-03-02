@@ -130,6 +130,16 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    public Object[] boxedCopyOfRange(int start, int length,
+            @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
+        Object[] newStore = new Object[length];
+        for (int i = 0; i < length; i++) {
+            newStore[i] = unwrapNode.execute(readElement(start + i));
+        }
+        return newStore;
+    }
+
+    @ExportMessage
     @ImportStatic(ArrayGuards.class)
     public static abstract class CopyContents {
 

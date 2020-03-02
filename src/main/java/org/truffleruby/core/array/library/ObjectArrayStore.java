@@ -69,6 +69,13 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
+    public static Object[] boxedCopyOfRange(Object[] store, int start, int length) {
+        Object[] result = new Object[length];
+        System.arraycopy(store, start, result, 0, length);
+        return result;
+    }
+
+    @ExportMessage
     @ImportStatic(ArrayGuards.class)
     static class CopyContents {
 

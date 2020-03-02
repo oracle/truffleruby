@@ -97,6 +97,15 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
+    public static Object[] boxedCopyOfRange(double[] store, int start, int length) {
+        Object[] result = new Object[length];
+        for (int i = 0; i < length; i++) {
+            result[i] = store[start + i];
+        }
+        return result;
+    }
+
+    @ExportMessage
     @ImportStatic(ArrayGuards.class)
     static class CopyContents {
 

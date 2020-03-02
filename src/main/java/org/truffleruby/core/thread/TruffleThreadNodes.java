@@ -37,8 +37,7 @@ public class TruffleThreadNodes {
         protected Object findRubyCaller(DynamicObject modules,
                 @CachedLibrary("getStore(modules)") ArrayStoreLibrary stores) {
             final int modulesSize = Layouts.ARRAY.getSize(modules);
-            Object[] moduleArray = new Object[modulesSize];
-            stores.copyContents(Layouts.ARRAY.getStore(modules), 0, moduleArray, 0, modulesSize);
+            Object[] moduleArray = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(modules), 0, modulesSize);
             Frame rubyCaller = getContext()
                     .getCallStack()
                     .getCallerFrameNotInModules(FrameAccess.MATERIALIZE, moduleArray);

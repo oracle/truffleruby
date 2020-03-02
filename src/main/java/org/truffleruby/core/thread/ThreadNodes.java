@@ -334,8 +334,7 @@ public abstract class ThreadNodes {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             final String info = getContext().fileLine(sourceSection);
             final int argSize = Layouts.ARRAY.getSize(arguments);
-            final Object[] args = new Object[argSize];
-            stores.copyContents(Layouts.ARRAY.getStore(arguments), 0, args, 0, argSize);
+            final Object[] args = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(arguments), 0, argSize);
             final String sharingReason = "creating Ruby Thread " + info;
 
             if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {

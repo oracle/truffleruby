@@ -1339,8 +1339,7 @@ public abstract class InteropNodes {
         protected Object toJavaList(DynamicObject array,
                 @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
             int size = Layouts.ARRAY.getSize(array);
-            Object[] copy = new Object[size];
-            stores.copyContents(Layouts.ARRAY.getStore(array), 0, copy, 0, size);
+            Object[] copy = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(array), 0, size);
             return getContext().getEnv().asGuestValue(Arrays.asList(copy));
         }
 

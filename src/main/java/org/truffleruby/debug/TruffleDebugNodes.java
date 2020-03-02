@@ -649,8 +649,7 @@ public abstract class TruffleDebugNodes {
                 @CachedLibrary("hostObject(array)") ArrayStoreLibrary hostObjects) {
             final Object hostObject = hostObject(array);
             final int size = hostObjects.capacity(hostObject);
-            final Object[] boxedArray = new Object[size];
-            hostObjects.copyContents(hostObject, 0, boxedArray, 0, size);
+            final Object[] boxedArray = hostObjects.boxedCopyOfRange(hostObject, 0, size);
             return new ForeignArrayFromJava(boxedArray);
         }
 
@@ -688,9 +687,7 @@ public abstract class TruffleDebugNodes {
                 @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
             final Object hostObject = getContext().getEnv().asHostObject(array);
             final int size = stores.capacity(hostObject);
-            final Object[] boxedCopy = new Object[size];
-            stores.copyContents(hostObject, 0, boxedCopy, 0, size);
-            return new ForeignPointerArrayFromJava(boxedCopy);
+            return new ForeignPointerArrayFromJava(stores.boxedCopyOfRange(hostObject, 0, size));
         }
     }
 
