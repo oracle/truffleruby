@@ -649,5 +649,10 @@ module Truffle
       end
       Primitive.thread_set_exception(error)
     end
+
+    def self.is_special_const?(object)
+      # Avoid calling methods on object since it might be a foreign object
+      NilClass === object || TrueClass === object || FalseClass === object || Symbol === object || Truffle::Type.fits_into_long?(object)
+    end
   end
 end
