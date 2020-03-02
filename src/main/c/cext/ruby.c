@@ -4083,7 +4083,7 @@ size_t rb_gc_stat(VALUE key) {
 }
 
 VALUE rb_gc_latest_gc_info(VALUE key) {
-  rb_tr_error("rb_gc_latest_gc_info not implemented");
+  return RUBY_CEXT_INVOKE("rb_gc_latest_gc_info", key);
 }
 
 VALUE rb_check_hash_type(VALUE hash) {
