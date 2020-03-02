@@ -140,9 +140,8 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
             MissingBehavior.RETURN_MISSING);
 
     public static CallDispatchHeadNode getUncached() {
-        return getUncached(PRIVATE);
+        return UNCACHED_PRIVATE;
     }
-
 
     public static CallDispatchHeadNode getUncached(byte configuration) {
         switch (configuration) {

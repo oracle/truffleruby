@@ -221,7 +221,7 @@ public abstract class ArrayUtils {
     }
 
     @TruffleBoundary
-    public static void sort(Object[] elements, int to) {
-        Arrays.sort(elements, 0, to);
+    public static void sort(Object[] elements, int length) {
+        Arrays.sort(elements, 0, length);
     }
 }

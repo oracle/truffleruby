@@ -54,7 +54,6 @@ public class FiberManager {
     private final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
             .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
-    // TODO review: boundarize constructor instead?
     @TruffleBoundary
     private static Map<Thread, DynamicObject> createForeignMap() {
         return new ConcurrentHashMap<>();

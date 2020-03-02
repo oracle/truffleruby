@@ -100,12 +100,17 @@ public abstract class MutexOperations {
         lock.unlock();
     }
 
+    // TODO(norswap, eregen, 03 Mar 2020)
+    //  Should be removed from TruffleFeature.
+    //  Just a field read and ==.
     @TruffleBoundary
     public static boolean isHeldByCurrentThread(ReentrantLock lock) {
         return lock.isHeldByCurrentThread();
     }
 
-    @TruffleBoundary
+    // TODO(norswap, eregen, 03 Mar 2020)
+    //  Should be behind a @TruffleBoundary, but is on the fast path for C-exts!
+    //  So in fact, should be removed from TruffleFeature.
     public static boolean isLocked(ReentrantLock lock) {
         return lock.isLocked();
     }

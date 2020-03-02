@@ -192,17 +192,6 @@ public abstract class VMPrimitiveNodes {
 
     }
 
-    @Primitive(name = "vm_set_module_name")
-    public static abstract class VMSetModuleNameNode extends PrimitiveArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected Object vmSetModuleName(Object object) {
-            throw new UnsupportedOperationException("vm_set_module_name");
-        }
-
-    }
-
     @Primitive(name = "vm_throw")
     public abstract static class ThrowNode extends PrimitiveArrayArgumentsNode {
 

@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -55,14 +56,12 @@ public class AutoloadConstant {
         getAutoloadLock().unlock();
     }
 
-    @TruffleBoundary // TODO review
     public boolean isAutoloading() {
-        return autoloadLock != null && autoloadLock.isLocked();
+        return autoloadLock != null && MutexOperations.isLocked(autoloadLock);
     }
 
-    @TruffleBoundary // TODO review
     public boolean isAutoloadingThread() {
-        return autoloadLock != null && autoloadLock.isHeldByCurrentThread();
+        return autoloadLock != null && MutexOperations.isHeldByCurrentThread(autoloadLock);
     }
 
 }

@@ -35,6 +35,9 @@ public class RescueSplatNode extends RescueNode {
     public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
         final DynamicObject handlingClasses = (DynamicObject) splatCastNode.execute(frame);
 
+        // TODO (norswap, eregon, 02 Mar 2020)
+        //  This should use a node to iterate or we should move the logic to Ruby.
+        //  This is only for rescue *array which seems very rare.
         for (Object handlingClass : new BoundaryIterable<>(ArrayOperations.toIterable(handlingClasses))) {
             if (matches(frame, exception, handlingClass)) {
                 return true;

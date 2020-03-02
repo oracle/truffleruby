@@ -175,8 +175,9 @@ public class Backtrace {
 
     // endregion
     // region Instance Methods
+
     /** Used to copy the backtrace when copying {@code exception}. */
-    @TruffleBoundary // TODO REVIEW
+    @TruffleBoundary
     public Backtrace copy(RubyContext context, DynamicObject exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception.
