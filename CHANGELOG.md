@@ -14,6 +14,7 @@ New features:
 * Rename `Truffle::Interop.is_boolean?` to `.boolean?`
 * Split `Truffle::Interop.read` into `.read_member` and `.read_array_element`
 * Drop `is_` prefix in `Truffle::Interop.is_array_element_*` predicates
+* The old array strategy code has been removed and all remaining nodes converted to the new `ArrayStoreLibrary`.
 
 Bug fixes:
 

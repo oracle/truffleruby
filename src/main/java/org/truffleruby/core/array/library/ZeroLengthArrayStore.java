@@ -68,6 +68,14 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
+    public Object[] boxedCopyOfRange(int start, int length) {
+        assert start == 0;
+        assert length == 0;
+
+        return new Object[0];
+    }
+
+    @ExportMessage
     public void copyContents(int srcStart, Object destStore, int destStart, int length) {
         assert srcStart == 0;
         assert length == 0;

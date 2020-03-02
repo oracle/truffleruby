@@ -50,7 +50,7 @@ public class ObjectArrayStore {
 
     @ExportMessage
     public static String toString(Object[] store) {
-        return "object[]";
+        return "Object[]";
     }
 
     @ExportMessage
@@ -66,6 +66,13 @@ public class ObjectArrayStore {
     @ExportMessage
     public static Object[] expand(Object[] store, int newCapacity) {
         return ArrayUtils.grow(store, newCapacity);
+    }
+
+    @ExportMessage
+    public static Object[] boxedCopyOfRange(Object[] store, int start, int length) {
+        Object[] result = new Object[length];
+        System.arraycopy(store, start, result, 0, length);
+        return result;
     }
 
     @ExportMessage

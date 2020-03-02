@@ -110,6 +110,15 @@ public class LongArrayStore {
     }
 
     @ExportMessage
+    public static Object[] boxedCopyOfRange(long[] store, int start, int length) {
+        Object[] result = new Object[length];
+        for (int i = 0; i < length; i++) {
+            result[i] = store[start + i];
+        }
+        return result;
+    }
+
+    @ExportMessage
     @ImportStatic(ArrayGuards.class)
     static class CopyContents {
 

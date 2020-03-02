@@ -65,6 +65,12 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    public Object[] boxedCopyOfRange(int start, int length,
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+        return stores.boxedCopyOfRange(storage, offset + start, length);
+    }
+
+    @ExportMessage
     public void copyContents(int srcStart, Object destStore, int destStart, int length,
             @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary srcStores,
             @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary destStores) {

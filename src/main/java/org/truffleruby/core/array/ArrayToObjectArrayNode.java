@@ -10,12 +10,13 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
@@ -33,12 +34,12 @@ public abstract class ArrayToObjectArrayNode extends RubyContextNode {
 
     public abstract Object[] executeToObjectArray(DynamicObject array);
 
-    @Specialization(guards = "strategy.matches(array)", limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "STORAGE_STRATEGIES")
     protected Object[] toObjectArrayOther(DynamicObject array,
-            @Cached("of(array)") ArrayStrategy strategy,
-            @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode) {
-        final int size = strategy.getSize(array);
-        return boxedCopyNode.execute(Layouts.ARRAY.getStore(array), size);
+            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+        final int size = Layouts.ARRAY.getSize(array);
+        final Object store = Layouts.ARRAY.getStore(array);
+        return stores.boxedCopyOfRange(store, 0, size);
     }
 
 }

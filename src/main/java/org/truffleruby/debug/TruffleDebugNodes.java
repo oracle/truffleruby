@@ -24,8 +24,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.core.array.ArrayOperationNodes;
-import org.truffleruby.core.array.ArrayStrategy;
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
@@ -57,6 +57,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
@@ -297,19 +298,20 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyArray(array)")
         protected DynamicObject arrayStorage(DynamicObject array) {
-            String storage = ArrayStrategy.of(array).toString();
+            String storage = ArrayStoreLibrary.getFactory().getUncached().toString(Layouts.ARRAY.getStore(array));
             return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
 
     @CoreMethod(names = "array_capacity", onSingleton = true, required = 1)
+    @ImportStatic(ArrayGuards.class)
     public abstract static class ArrayCapacityNode extends CoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
-        @Specialization(guards = "isRubyArray(array)")
-        protected int arrayStorage(DynamicObject array) {
-            return ArrayStrategy.of(array).capacityNode().execute(Layouts.ARRAY.getStore(array));
+        @Specialization(guards = "isRubyArray(array)", limit = "STORAGE_STRATEGIES")
+        protected long arrayStorage(DynamicObject array,
+                @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+            return stores.capacity(Layouts.ARRAY.getStore(array));
         }
 
     }
@@ -589,6 +591,7 @@ public abstract class TruffleDebugNodes {
     }
 
     @CoreMethod(names = "foreign_array_from_java", required = 1, onSingleton = true)
+    @ImportStatic(ArrayGuards.class)
     public abstract static class ForeignArrayFromJavaNode extends CoreMethodArrayArgumentsNode {
 
         @ExportLibrary(InteropLibrary.class)
@@ -641,25 +644,22 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "strategyMatches(strategy, array)")
+        @Specialization(limit = "STORAGE_STRATEGIES")
         protected Object foreignArrayFromJava(TruffleObject array,
-                @Cached("strategy(array)") ArrayStrategy strategy,
-                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
-                @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode) {
-            Object hostObject = getContext().getEnv().asHostObject(array);
-            return new ForeignArrayFromJava(boxedCopyNode.execute(hostObject, capacityNode.execute(hostObject)));
+                @CachedLibrary("hostObject(array)") ArrayStoreLibrary hostObjects) {
+            final Object hostObject = hostObject(array);
+            final int size = hostObjects.capacity(hostObject);
+            final Object[] boxedArray = hostObjects.boxedCopyOfRange(hostObject, 0, size);
+            return new ForeignArrayFromJava(boxedArray);
         }
 
-        protected ArrayStrategy strategy(TruffleObject array) {
-            return ArrayStrategy.ofStore(getContext().getEnv().asHostObject(array));
-        }
-
-        protected boolean strategyMatches(ArrayStrategy strategy, TruffleObject array) {
-            return strategy.matchesStore(getContext().getEnv().asHostObject(array));
+        protected Object hostObject(TruffleObject array) {
+            return getContext().getEnv().asHostObject(array);
         }
     }
 
     @CoreMethod(names = "foreign_pointer_array_from_java", required = 1, onSingleton = true)
+    @ImportStatic(ArrayGuards.class)
     public abstract static class ForeignPointerArrayFromJavaNode extends ForeignArrayFromJavaNode {
 
         @ExportLibrary(InteropLibrary.class)
@@ -682,13 +682,12 @@ public abstract class TruffleDebugNodes {
 
         @Override
         @TruffleBoundary
-        @Specialization(guards = "strategyMatches(strategy, array)")
+        @Specialization
         protected Object foreignArrayFromJava(TruffleObject array,
-                @Cached("strategy(array)") ArrayStrategy strategy,
-                @Cached("strategy.boxedCopyNode()") ArrayOperationNodes.ArrayBoxedCopyNode boxedCopyNode,
-                @Cached("strategy.capacityNode()") ArrayOperationNodes.ArrayCapacityNode capacityNode) {
-            Object hostObject = getContext().getEnv().asHostObject(array);
-            return new ForeignPointerArrayFromJava(boxedCopyNode.execute(hostObject, capacityNode.execute(hostObject)));
+                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            final Object hostObject = getContext().getEnv().asHostObject(array);
+            final int size = stores.capacity(hostObject);
+            return new ForeignPointerArrayFromJava(stores.boxedCopyOfRange(hostObject, 0, size));
         }
     }
 
