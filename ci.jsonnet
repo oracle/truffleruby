@@ -288,7 +288,7 @@ local part_definitions = {
     lint: {
       is_after:: ["$.use.build_no_clean"],
       downloads+: {
-        JDT: { name: "ecj", version: "4.5.1", platformspecific: false },
+        JDT: { name: "ecj", version: "4.14.0", platformspecific: false },
         ECLIPSE: { version: "4.5.2", name: "eclipse", platformspecific: true },
       },
       environment+: { ECLIPSE_EXE: "$ECLIPSE/eclipse" },
