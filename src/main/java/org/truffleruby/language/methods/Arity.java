@@ -57,6 +57,16 @@ public class Arity {
         return new Arity(preRequired, optional, hasRest, postRequired, keywordArguments, hasKeywordsRest);
     }
 
+    public Arity consumingFirstRequired() {
+        return new Arity(
+                Integer.max(preRequired - 1, 0),
+                optional,
+                hasRest,
+                postRequired,
+                keywordArguments,
+                hasKeywordsRest);
+    }
+
     public int getPreRequired() {
         return preRequired;
     }

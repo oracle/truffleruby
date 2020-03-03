@@ -13,6 +13,9 @@ import org.truffleruby.Layouts;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.parser.ArgumentDescriptor;
+import org.truffleruby.parser.ArgumentType;
+
+import java.util.Arrays;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -87,16 +90,20 @@ public class SharedMethodInfo {
         this.alwaysClone = alwaysClone;
     }
 
-    public SharedMethodInfo withMethodName(String newName) {
+    public SharedMethodInfo convertMethodMissingToMethod(String newName) {
+        final ArgumentDescriptor[] oldArgs = getArgumentDescriptors();
+        final ArgumentDescriptor[] newArgs = Arrays.copyOfRange(oldArgs, 1, oldArgs.length);
+        newArgs[0] = new ArgumentDescriptor(ArgumentType.anonrest);
+
         return new SharedMethodInfo(
                 sourceSection,
                 lexicalScope,
-                arity,
+                arity.consumingFirstRequired(),
                 definitionModule,
                 newName,
                 blockDepth,
                 notes,
-                argumentDescriptors,
+                newArgs,
                 alwaysClone);
     }
 

@@ -45,6 +45,7 @@ Bug fixes:
 * Prevented some internal uses of `Kernel#caller_locations` to be overridden by user code (#1934). 
 * Fixed an issue caused by recursing inlining within `Regexp#quote` (#1927).
 * Updated `Kernel.Float()` to return given string in error message (#1945).
+* Parameters and arity of methods derived from `method_missing` should now match MRI (#1921).
 
 Compatibility:
 
