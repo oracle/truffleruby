@@ -76,6 +76,7 @@ Compatibility:
 * Removed `register` specifier for `rb_mem_clear()` (#1924).
 * Implemented `Thread::Backtrace::Locations#base_label` (#1920).
 * Implemented `rb_mProcess` (#1936).
+* Implemented `rb_gc_latest_gc_info` (#1937).
 
 Changes:
 

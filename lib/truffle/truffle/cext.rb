@@ -1547,6 +1547,22 @@ module Truffle::CExt
     GC_ROOTS.push obj
   end
 
+  def rb_gc_latest_gc_info(hash_or_key)
+    case hash_or_key
+    when Symbol
+      if hash_or_key == :state
+        :none
+      else
+        raise ArgumentError, "unknown key: #{hash_or_key}"
+      end
+    when Hash
+      hash_or_key[:state] = :none
+      hash_or_key
+    else
+      raise TypeError, 'non-hash or symbol given'
+    end
+  end
+
   def rb_nativethread_self
     Thread.current
   end
