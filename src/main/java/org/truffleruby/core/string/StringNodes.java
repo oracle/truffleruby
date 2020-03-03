@@ -3779,12 +3779,12 @@ public abstract class StringNodes {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
         @Specialization
-        protected Object stringToF(DynamicObject string, boolean strict,
+        protected Object stringToF(DynamicObject string,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = rope(string);
             if (rope.isEmpty()) {
-                return error(strict);
+                return nil;
             }
             if (string.toString().startsWith("0x")) {
                 try {
@@ -3800,24 +3800,15 @@ public abstract class StringNodes {
                     } else if (result instanceof Double) {
                         return result;
                     } else {
-                        return error(strict);
+                        return nil;
                     }
                 }
             }
             try {
                 return new DoubleConverter().parse(rope, true, true);
             } catch (NumberFormatException e) {
-                return error(strict);
+                return nil;
             }
-        }
-
-        private Object error(boolean strict) {
-            if (strict) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentError(coreStrings().INVALID_VALUE_FOR_FLOAT.getRope(), this));
-            }
-            return nil;
         }
 
     }
