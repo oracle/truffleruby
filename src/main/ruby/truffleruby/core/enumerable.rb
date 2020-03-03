@@ -97,12 +97,11 @@ module Enumerable
     end
   end
 
-  def collect
-    if block_given?
+  def collect(&block)
+    if block
       ary = []
-      each do |*o|
-        ary << yield(*o)
-      end
+      b = Primitive.proc_create_same_arity(block, -> *o { ary << yield(*o) })
+      each(&b)
       ary
     else
       to_enum(:collect) { enumerator_size }

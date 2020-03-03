@@ -171,6 +171,7 @@ Bug fixes:
 * Do not use gems precompiled for MRI on TruffleRuby (#1837).
 * Fixed printing foreign arrays that were also pointers (#1679).
 * Fixed `nil#=~` to not warn.
+* Fixed `Enumerable#collect` to give user block arity in the block passed to `Enumerable#each`.
 
 Compatibility:
 

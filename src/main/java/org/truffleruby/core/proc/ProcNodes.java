@@ -298,6 +298,29 @@ public abstract class ProcNodes {
 
     }
 
+
+    @Primitive(name = "proc_create_same_arity")
+    public abstract static class ProcCreateSameArityNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject createSameArityProc(DynamicObject userProc, DynamicObject block,
+                @Cached AllocateObjectNode allocateObjectNode) {
+            final DynamicObject composedProc = allocateObjectNode
+                    .allocate(coreLibrary().procClass, Layouts.PROC.build(
+                            Layouts.PROC.getType(block),
+                            Layouts.PROC.getSharedMethodInfo(userProc),
+                            Layouts.PROC.getCallTargetForType(block),
+                            Layouts.PROC.getCallTargetForLambdas(block),
+                            Layouts.PROC.getDeclarationFrame(block),
+                            Layouts.PROC.getMethod(block),
+                            Layouts.PROC.getBlock(block),
+                            Layouts.PROC.getFrameOnStackMarker(block),
+                            Layouts.PROC.getDeclarationContext(block)));
+            return composedProc;
+        }
+
+    }
+
     @Primitive(name = "proc_symbol_to_proc_symbol")
     public abstract static class ProcSymbolToProcSymbolNode extends PrimitiveArrayArgumentsNode {
 
