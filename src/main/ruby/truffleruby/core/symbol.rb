@@ -85,19 +85,8 @@ class Symbol
 
   alias_method :size, :length
 
-  def match(pattern)
-    str = to_s
-
-    case pattern
-    when Regexp
-      match_data = pattern.search_region(str, 0, str.bytesize, true)
-      Truffle::RegexpOperations.set_last_match(match_data, Primitive.caller_binding)
-      match_data
-    when String
-      raise TypeError, 'type mismatch: String given'
-    else
-      pattern =~ str
-    end
+  def match(*args, &block)
+    to_s.match(*args, &block)
   end
 
   def =~(pattern)
