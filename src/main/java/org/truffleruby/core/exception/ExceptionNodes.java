@@ -60,7 +60,6 @@ public abstract class ExceptionNodes {
             return exception;
         }
 
-        @TruffleBoundary // setMessage calls blacklisted Object#equals
         @Specialization(guards = "wasProvided(message)")
         protected DynamicObject initialize(DynamicObject exception, Object message) {
             Layouts.EXCEPTION.setMessage(exception, message);
@@ -311,7 +310,6 @@ public abstract class ExceptionNodes {
     @Primitive(name = "exception_set_cause")
     public abstract static class ExceptionSetCauseNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary // setCause calls Object#equals
         @Specialization
         protected DynamicObject setCause(DynamicObject exception, Object cause) {
             Layouts.EXCEPTION.setCause(exception, cause);

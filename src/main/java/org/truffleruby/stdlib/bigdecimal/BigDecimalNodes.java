@@ -660,7 +660,7 @@ public abstract class BigDecimalNodes {
                 return createBigDecimal(power(
                         Layouts.BIG_DECIMAL.getValue(a),
                         exponent,
-                        new MathContext(newPrecision, getRoundMode())));
+                        BigDecimalOps.newMathContext(newPrecision, getRoundMode())));
             }
         }
 
