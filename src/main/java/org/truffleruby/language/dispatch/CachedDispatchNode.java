@@ -26,7 +26,6 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.utils.Utils;
 
 public abstract class CachedDispatchNode extends DispatchNode {
 
@@ -76,7 +75,9 @@ public abstract class CachedDispatchNode extends DispatchNode {
         moreThanReferenceCompare.enter();
 
         if (cachedName instanceof String) {
-            return Utils.equals(cachedName, methodName);
+            // Cast needed because Object#equals is SVM-blacklisted, but String#equals isn't.
+            //noinspection RedundantCast
+            return ((String) cachedName).equals(methodName);
         } else if (ropeEqualsNode != null) { // cachedName is a Ruby String
             return RubyGuards.isRubyString(methodName) && ropeEqualsNode.execute(
                     StringOperations.rope((DynamicObject) cachedName),
