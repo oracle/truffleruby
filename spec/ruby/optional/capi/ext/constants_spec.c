@@ -129,6 +129,10 @@ static VALUE constants_spec_rb_mKernel(VALUE self) {
   return rb_mKernel;
 }
 
+static VALUE constants_spec_rb_mProcess(VALUE self) {
+    return rb_mProcess;
+}
+
 static VALUE constants_spec_rb_eArgError(VALUE self) {
   return rb_eArgError;
 }
@@ -299,6 +303,7 @@ void Init_constants_spec(void) {
   rb_define_method(cls, "rb_mComparable", constants_spec_rb_mComparable, 0);
   rb_define_method(cls, "rb_mEnumerable", constants_spec_rb_mEnumerable, 0);
   rb_define_method(cls, "rb_mKernel", constants_spec_rb_mKernel, 0);
+  rb_define_method(cls, "rb_mProcess", constants_spec_rb_mProcess, 0);
   rb_define_method(cls, "rb_eArgError", constants_spec_rb_eArgError, 0);
   rb_define_method(cls, "rb_eEOFError", constants_spec_rb_eEOFError, 0);
   rb_define_method(cls, "rb_mErrno", constants_spec_rb_mErrno, 0);

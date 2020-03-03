@@ -1,4 +1,4 @@
-# Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
+# Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
 #
@@ -103,6 +103,10 @@ module Truffle::CExt
 
   def rb_cObject
     Object
+  end
+
+  def rb_mProcess
+    Process
   end
 
   def rb_cRange

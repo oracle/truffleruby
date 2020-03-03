@@ -33,6 +33,7 @@ constants = [
     NilClass,
     Numeric,
     Object,
+    Process,
     Range,
     Regexp,
     String,

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -34,6 +34,7 @@ VALUE rb_tr_get_Module(void);
 VALUE rb_tr_get_NilClass(void);
 VALUE rb_tr_get_Numeric(void);
 VALUE rb_tr_get_Object(void);
+VALUE rb_tr_get_Process(void);
 VALUE rb_tr_get_Range(void);
 VALUE rb_tr_get_Regexp(void);
 VALUE rb_tr_get_String(void);
@@ -107,6 +108,7 @@ VALUE rb_tr_get_default_rs(void);
 #define rb_cNilClass rb_tr_get_NilClass()
 #define rb_cNumeric rb_tr_get_Numeric()
 #define rb_cObject rb_tr_get_Object()
+#define rb_mProcess rb_tr_get_Process()
 #define rb_cRange rb_tr_get_Range()
 #define rb_cRegexp rb_tr_get_Regexp()
 #define rb_cString rb_tr_get_String()
