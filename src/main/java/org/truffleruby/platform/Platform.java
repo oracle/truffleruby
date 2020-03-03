@@ -36,6 +36,8 @@ public abstract class Platform extends BasicPlatform {
 
     public static final boolean IS_WINDOWS = OS == OS_TYPE.WINDOWS;
 
+    public static final String ARCHITECTURE = getArchitecture();
+
     private static String determineLibSuffix() {
         switch (OS) {
             case WINDOWS:

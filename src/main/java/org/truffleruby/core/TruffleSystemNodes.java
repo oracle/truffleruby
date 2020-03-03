@@ -172,7 +172,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         protected DynamicObject hostCPU() {
-            return makeStringNode.executeMake(Platform.getArchitecture(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(Platform.ARCHITECTURE, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

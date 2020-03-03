@@ -35,7 +35,6 @@
  */
 package org.truffleruby.shared;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import java.util.Locale;
 
 public abstract class BasicPlatform {
@@ -84,7 +83,6 @@ public abstract class BasicPlatform {
         throw new UnsupportedOperationException("Unknown platform: " + osName);
     }
 
-    @TruffleBoundary
     public static String getArchitecture() {
         String architecture = System.getProperty("os.arch");
 
