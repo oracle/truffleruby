@@ -43,6 +43,7 @@ import java.nio.file.NoSuchFileException;
 import java.util.Set;
 import java.util.logging.Level;
 
+import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -240,10 +241,7 @@ public abstract class TruffleSystemNodes {
         @Specialization(guards = "isRubyString(name)")
         protected DynamicObject setProcessTitle(DynamicObject name) {
             if (TruffleOptions.AOT) {
-                Compiler.command(
-                        new Object[]{
-                                "com.oracle.svm.core.JavaMainWrapper.setCRuntimeArgument0(String)boolean",
-                                StringOperations.getString(name) });
+                ProcessProperties.setArgumentVectorProgramName(StringOperations.getString(name));
             } else {
                 throw new UnsupportedOperationException();
             }
