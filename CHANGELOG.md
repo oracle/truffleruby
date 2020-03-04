@@ -47,6 +47,7 @@ Bug fixes:
 * Updated `Kernel.Float()` to return given string in error message (#1945).
 * Parameters and arity of methods derived from `method_missing` should now match MRI (#1921).
 * Fixed compile error in `RB_FLOAT_TYPE_P` macro (#1928).
+* Fixed `Symbol#match` to call block with match data (#1933).
 
 Compatibility:
 
