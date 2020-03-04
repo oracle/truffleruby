@@ -48,6 +48,7 @@ Bug fixes:
 * Parameters and arity of methods derived from `method_missing` should now match MRI (#1921).
 * Fixed compile error in `RB_FLOAT_TYPE_P` macro (#1928).
 * Fixed `Symbol#match` to call block with match data (#1933).
+* Fixed `Digest::SHA2.hexdigest` error with long messages (#1922).
 
 Compatibility:
 
