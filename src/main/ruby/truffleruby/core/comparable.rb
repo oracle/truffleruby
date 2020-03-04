@@ -41,7 +41,7 @@ module Comparable
 
   def >(other)
     unless comp = (self <=> other)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+      raise ArgumentError, Truffle::ExceptionOperations.comparison_error_message(self, other)
     end
 
     Comparable.compare_int(comp) > 0
@@ -49,7 +49,7 @@ module Comparable
 
   def >=(other)
     unless comp = (self <=> other)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+      raise ArgumentError, Truffle::ExceptionOperations.comparison_error_message(self, other)
     end
 
     Comparable.compare_int(comp) >= 0
@@ -57,7 +57,7 @@ module Comparable
 
   def <(other)
     unless comp = (self <=> other)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+      raise ArgumentError, Truffle::ExceptionOperations.comparison_error_message(self, other)
     end
 
     Comparable.compare_int(comp) < 0
@@ -65,7 +65,7 @@ module Comparable
 
   def <=(other)
     unless comp = (self <=> other)
-      raise ArgumentError, "comparison of #{self.class} with #{other.class}"
+      raise ArgumentError, Truffle::ExceptionOperations.comparison_error_message(self, other)
     end
 
     Comparable.compare_int(comp) <= 0

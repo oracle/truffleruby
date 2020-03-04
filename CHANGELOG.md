@@ -50,6 +50,7 @@ Bug fixes:
 * Fixed `Symbol#match` to call block with match data (#1933).
 * Fixed `Digest::SHA2.hexdigest` error with long messages (#1922).
 * Fixed `Date.parse` to dup the coerced string to not modify original (#1946).
+* Update `Comparable` error messages for special constant values (#1941).
 
 Compatibility:
 

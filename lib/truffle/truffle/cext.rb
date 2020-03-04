@@ -1301,8 +1301,7 @@ module Truffle::CExt
   end
 
   def rb_special_const_p(object)
-    # Avoid calling methods on object since it might be a foreign object
-    NilClass === object || TrueClass === object || FalseClass === object || Symbol === object || Truffle::Type.fits_into_long?(object)
+    Truffle::Type.is_special_const?(object)
   end
 
   def rb_id2str(sym)

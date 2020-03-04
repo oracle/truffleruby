@@ -98,6 +98,15 @@ module Truffle
       end
     end
 
+    def self.comparison_error_message(x, y)
+      y_classname = if Truffle::Type.is_special_const?(y)
+                      y.inspect
+                    else
+                      y.class
+                    end
+      "comparison of #{x.class} with #{y_classname} failed"
+    end
+
     NO_METHOD_ERROR = Proc.new do |exception|
       format("undefined method `%s' for %s", exception.name, receiver_string(exception))
     end
