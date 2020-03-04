@@ -60,9 +60,8 @@ public class LongArrayStore {
         }
 
         @Specialization
-        protected static boolean acceptsDelegateValues(long[] store, DelegatedArrayStorage otherStore,
-                @CachedLibrary("store") ArrayStoreLibrary stores) {
-            return stores.acceptsAllValues(store, otherStore.storage);
+        protected static boolean acceptsDelegateValues(long[] store, DelegatedArrayStorage otherStore) {
+            return otherStore.storage instanceof int[] || otherStore.storage instanceof long[];
         }
 
         @Fallback

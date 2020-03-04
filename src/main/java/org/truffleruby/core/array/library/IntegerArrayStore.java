@@ -55,9 +55,8 @@ public class IntegerArrayStore {
         }
 
         @Specialization
-        protected static boolean acceptsDelegateValues(int[] store, DelegatedArrayStorage otherStore,
-                @CachedLibrary("store") ArrayStoreLibrary stores) {
-            return stores.acceptsAllValues(store, otherStore.storage);
+        protected static boolean acceptsDelegateValues(int[] store, DelegatedArrayStorage otherStore) {
+            return otherStore.storage instanceof int[];
         }
 
         @Fallback

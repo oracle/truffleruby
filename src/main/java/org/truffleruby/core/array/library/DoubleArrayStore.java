@@ -55,9 +55,8 @@ public class DoubleArrayStore {
         }
 
         @Specialization
-        protected static boolean acceptsDelegateValues(double[] store, DelegatedArrayStorage otherStore,
-                @CachedLibrary("store") ArrayStoreLibrary stores) {
-            return stores.acceptsAllValues(store, otherStore.storage);
+        protected static boolean acceptsDelegateValues(double[] store, DelegatedArrayStorage otherStore) {
+            return otherStore.storage instanceof double[];
         }
 
         @Fallback
