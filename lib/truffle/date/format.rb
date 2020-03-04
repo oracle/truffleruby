@@ -1043,7 +1043,8 @@ class Date
         :_parse_year, :_parse_mon, :_parse_mday, :_parse_ddd
 
   def self._parse(str, comp=true)
-    str = String === str ? str.dup : StringValue(str)
+    str = StringValue(str)
+    str = str.dup
 
     e = Format::Bag.new
 

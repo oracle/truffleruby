@@ -49,6 +49,7 @@ Bug fixes:
 * Fixed compile error in `RB_FLOAT_TYPE_P` macro (#1928).
 * Fixed `Symbol#match` to call block with match data (#1933).
 * Fixed `Digest::SHA2.hexdigest` error with long messages (#1922).
+* Fixed `Date.parse` to dup the coerced string to not modify original (#1946).
 
 Compatibility:
 
