@@ -286,4 +286,9 @@ describe "Ruby String interpolation" do
 
     -> { "#{a} #{b}" }.should raise_error(Encoding::CompatibilityError)
   end
+
+  it "returns a String and not a subclass" do
+    class MyString < String; end
+    "#{MyString.new}xx".class.should == String
+  end
 end

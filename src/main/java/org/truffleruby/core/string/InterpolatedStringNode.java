@@ -9,7 +9,12 @@
  */
 package org.truffleruby.core.string;
 
+import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.ToSNode;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -41,39 +46,25 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     @ExplodeLoop
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object[] strings = new Object[children.length];
-
+        assert children.length > 0;
+        DynamicObject builder = null;
         boolean tainted = false;
 
+        // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
         for (int n = 0; n < children.length; n++) {
             final Object toInterpolate = children[n].execute(frame);
-            strings[n] = toInterpolate;
+            assert RubyGuards.isRubyString(toInterpolate);
+            if (n == 0) {
+                // Start with an empty string, in the case the initial string is of a subclass of String.
+                Encoding encoding = Layouts.STRING.getRope((DynamicObject) toInterpolate).getEncoding();
+                builder = StringOperations.createString(getContext(), RopeOperations.emptyRope(encoding));
+            }
+            builder = executeStringAppend(builder, (DynamicObject) toInterpolate);
             tainted |= executeIsTainted(toInterpolate);
         }
 
-        final Object string = concat(strings);
-
         if (taintProfile.profile(tainted)) {
-            executeTaint(string);
-        }
-
-        return string;
-    }
-
-    private Object concat(Object[] strings) {
-        // TODO(CS): there is a lot of copying going on here - and I think this is sometimes inner loop stuff
-
-        DynamicObject builder = null;
-
-        // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
-        for (Object string : strings) {
-            assert RubyGuards.isRubyString(string);
-
-            if (builder == null) {
-                builder = (DynamicObject) callDup(string);
-            } else {
-                builder = executeStringAppend(builder, (DynamicObject) string);
-            }
+            executeTaint(builder);
         }
 
         return builder;
@@ -110,5 +101,4 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
         }
         return isTaintedNode.executeIsTainted(object);
     }
-
 }
