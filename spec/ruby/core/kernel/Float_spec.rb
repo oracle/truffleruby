@@ -56,7 +56,7 @@ describe :kernel_float, shared: true do
 
   it "raises an ArgumentError for a String with string in error message" do
     -> { @object.send(:Float, "foo") }.should raise_error(ArgumentError) { |e|
-      e.message.should include("foo")
+      e.message.should == 'invalid value for Float(): "foo"'
     }
   end
 
