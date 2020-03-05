@@ -308,6 +308,14 @@ public abstract class ModuleOperations {
             }
         }
 
+        if (Layouts.MODULE.getFields(module).isRefinement()) {
+            for (DynamicObject ancestor : Layouts.MODULE.getFields(Layouts.MODULE.getFields(module).getRefinedClass()).ancestors()) {
+                for (InternalMethod method : Layouts.MODULE.getFields(ancestor).getMethods()) {
+                    methods.putIfAbsent(method.getName(), method);
+                }
+            }
+        }
+
         return methods;
     }
 
