@@ -51,6 +51,7 @@ Bug fixes:
 * Fixed `Digest::SHA2.hexdigest` error with long messages (#1922).
 * Fixed `Date.parse` to dup the coerced string to not modify original (#1946).
 * Update `Comparable` error messages for special constant values (#1941).
+* `alias_method` and `instance_methods` should now work correctly inside a refinement (#1942).
 
 Compatibility:
 
