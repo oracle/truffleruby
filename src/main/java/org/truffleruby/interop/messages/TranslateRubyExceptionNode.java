@@ -6,7 +6,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -20,7 +20,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 @GenerateUncached
 public abstract class TranslateRubyExceptionNode extends RubyBaseNode {
 
-    public final AssertionError executeArray(RaiseException exception)
+    public final AssertionError execute(RaiseException exception)
             throws UnsupportedMessageException {
 
         try {
@@ -96,7 +96,7 @@ public abstract class TranslateRubyExceptionNode extends RubyBaseNode {
         throw exception;
     }
 
-    @CompilerDirectives.TruffleBoundary
+    @TruffleBoundary
     protected AssertionError handleBadErrorType(InteropException e) {
         RubyContext context = RubyLanguage.getCurrentContext();
         RaiseException raiseException = new RaiseException(

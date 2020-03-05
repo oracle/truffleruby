@@ -198,6 +198,11 @@ describe 'Interop:' do
       polyglot_has_member_read_side_effects?
       polyglot_has_member_write_side_effects?]
 
+  pointer_polyglot_methods = %w[
+      polyglot_pointer?
+      polyglot_as_pointer
+      polyglot_to_native]
+
   interop_library_reference = "  The methods correspond to messages defined in\n" +
       "  [InteropLibrary](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html)."
 
@@ -221,40 +226,52 @@ describe 'Interop:' do
       #                          # TODO (pitr-ch 24-Feb-2020): mark this as foreign object and test it only in tests of Interop.* methods
       #                          doc: true, name: 'a ' + code('java.lang.String')],
 
-      zero:            Subject[0],
-      small_integer:   Subject[1, name: AN_INSTANCE, doc: true],
-      zero_float:      Subject[0.0],
-      small_float:     Subject[1.0, name: AN_INSTANCE, doc: true],
-      big_decimal:     Subject[BigDecimal('1e99'), name: AN_INSTANCE, doc: true],
+      zero:          Subject[0],
+      small_integer: Subject[1, name: AN_INSTANCE, doc: true],
+      zero_float:    Subject[0.0],
+      small_float:   Subject[1.0, name: AN_INSTANCE, doc: true],
+      big_decimal:   Subject[BigDecimal('1e99'), name: AN_INSTANCE, doc: true],
 
-      object:          Subject[-> { Object.new }, name: AN_INSTANCE, doc: true],
-      class:           Subject[-> { Class.new }, name: AN_INSTANCE, doc: true],
-      module:          Subject[-> { Module.new }, name: AN_INSTANCE],
-      hash:            Subject[-> { {} }, name: AN_INSTANCE, doc: true],
-      array:           Subject[-> { [] }, name: AN_INSTANCE, doc: true],
+      object:        Subject[-> { Object.new }, name: AN_INSTANCE, doc: true],
+      class:         Subject[-> { Class.new }, name: AN_INSTANCE, doc: true],
+      module:        Subject[-> { Module.new }, name: AN_INSTANCE],
+      hash:          Subject[-> { {} }, name: AN_INSTANCE, doc: true],
+      array:         Subject[-> { [] }, name: AN_INSTANCE, doc: true],
 
-      proc:            Subject[proc { |v| v }, name: code("proc {...}"), doc: true, frozen: true],
-      lambda:          Subject[-> v { v }, name: code("lambda {...}"), doc: true, frozen: true],
-      method:          Subject[
-                           Object.new.tap do |o|
-                             def o.foo(v)
-                               v
-                             end
-                           end.method(:foo),
-                           name: AN_INSTANCE, doc: true, frozen: true],
+      proc:          Subject[proc { |v| v }, name: code("proc {...}"), doc: true, frozen: true],
+      lambda:        Subject[-> v { v }, name: code("lambda {...}"), doc: true, frozen: true],
+      method:        Subject[
+                         Object.new.tap do |o|
+                           def o.foo(v)
+                             v
+                           end
+                         end.method(:foo),
+                         name: AN_INSTANCE, doc: true, frozen: true],
 
-      polyglot_object: Subject[-> { TruffleInteropSpecs::PolyglotMember.new },
-                               doc:         true,
-                               name:        "polyglot object",
-                               explanation: "An Object which implements `polyglot_*` methods for members, that are:\n  " +
-                                                member_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
-                                                interop_library_reference],
-      polyglot_array:  Subject[-> { TruffleInteropSpecs::PolyglotArray.new },
-                               doc:         true,
-                               name:        "polyglot array",
-                               explanation: "An Object which implements `polyglot_*` methods for Array, that are:\n  " +
-                                                array_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
-                                                interop_library_reference]
+      # TODO (pitr-ch 02-Mar-2020): better pointer for doc
+      pointer:          Subject[-> { Truffle::FFI::Pointer.new(0) },
+                                name:        AN_INSTANCE,
+                                doc:         true,
+                                explanation: "An Object implementing Polyglot pointer API."],
+      polyglot_pointer: Subject[-> { TruffleInteropSpecs::PolyglotPointer.new },
+                                name:        AN_INSTANCE,
+                                doc:         true,
+                                explanation: "An Object which implements `polyglot_*` methods for pointer, that are:\n  " +
+                                                 pointer_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
+                                                 interop_library_reference],
+
+      polyglot_object:  Subject[-> { TruffleInteropSpecs::PolyglotMember.new },
+                                doc:         true,
+                                name:        "polyglot object",
+                                explanation: "An Object which implements `polyglot_*` methods for members, that are:\n  " +
+                                                 member_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
+                                                 interop_library_reference],
+      polyglot_array:   Subject[-> { TruffleInteropSpecs::PolyglotArray.new },
+                                doc:         true,
+                                name:        "polyglot array",
+                                explanation: "An Object which implements `polyglot_*` methods for Array, that are:\n  " +
+                                                 array_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
+                                                 interop_library_reference]
   }.each { |key, subject| subject.key = key }
 
   # not part of the standard matrix, not considered in last rest case
@@ -328,6 +345,30 @@ describe 'Interop:' do
               end,
               unsupported_test { |subject| Truffle::Interop.execute(subject) }],
 
+      Delimiter["Messages related to pointers"],
+      Message[:isPointer,
+              Test.new("returns true", :pointer, &predicate(:pointer?, true)),
+              Test.new("returns false", &predicate(:pointer?, false))],
+      Message[:asPointer,
+              Test.new("returns pointer address", :pointer) do |subject|
+                Truffle::Interop.as_pointer(subject).should == 0
+              end,
+              unsupported_test { |subject| Truffle::Interop.as_pointer(subject) }],
+      Message[:toNative,
+              Test.new('converts receiver from object returning isPointer => false to object returning isPointer => true if possible',
+                       :pointer, :polyglot_pointer) do |subject|
+                case subject
+                when Truffle::FFI::Pointer
+                  Truffle::Interop.pointer?(subject).should be_true
+                when TruffleInteropSpecs::PolyglotPointer
+                  Truffle::Interop.pointer?(subject).should_not be_true
+                else
+                  raise "unsupported subject"
+                end
+                Truffle::Interop.to_native(subject)
+                Truffle::Interop.pointer?(subject).should be_true
+              end,
+              unsupported_test { |subject| Truffle::Interop.as_pointer(subject) }],
 
       Delimiter["Array related messages (incomplete)"],
       Message[:hasArrayElements,
@@ -390,7 +431,8 @@ describe 'Interop:' do
     # TODO (pitr-ch 25-Feb-2020): Can we write the md file always in all the environments?
     File.open(File.join(__dir__, '..', '..', '..', 'doc', 'contributor', 'interop_details.md'), 'w') do |out|
 
-      out.print "\n### Detailed definition of polyglot behaviour is given for\n\n"
+      out.print "<!-- Generated by spec/truffle/interop/matrix_spec.rb -->\n\n"
+      out.print "### Detailed definition of polyglot behaviour is given for\n\n"
 
       { **SUBJECTS, **EXTRA_SUBJECTS }.each do |_, subject|
         next unless subject.doc

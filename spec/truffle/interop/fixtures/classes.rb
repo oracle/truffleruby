@@ -68,6 +68,24 @@ module TruffleInteropSpecs
     end
   end
 
+  class PolyglotPointer
+    def initialize
+      @address = nil
+    end
+
+    def polyglot_pointer?
+      @address != nil
+    end
+
+    def polyglot_as_pointer
+      @address or raise Truffle::Interop::UnsupportedMessageException
+    end
+
+    def polyglot_to_native
+      @address = 42
+    end
+  end
+
   class PolyglotArray
     attr_reader :log
 

@@ -496,15 +496,9 @@ public abstract class InteropNodes {
     public abstract static class PointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isPointer(
-                TruffleObject receiver,
+        protected boolean isPointer(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isPointer(receiver);
-        }
-
-        @Fallback
-        protected boolean isPointer(Object receiver) {
-            return false;
         }
 
     }
@@ -513,15 +507,13 @@ public abstract class InteropNodes {
     public abstract static class AsPointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected long asPointer(
-                TruffleObject receiver,
+        protected long asPointer(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached BranchProfile exceptionProfile) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
                 return receivers.asPointer(receiver);
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
     }
@@ -530,12 +522,10 @@ public abstract class InteropNodes {
     public abstract static class ToNativeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object toNative(
-                TruffleObject receiver,
+        protected Nil toNative(TruffleObject receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             receivers.toNative(receiver);
-            // TODO (pitr-ch 27-Mar-2019): return nil instead?
-            return receiver;
+            return Nil.INSTANCE;
         }
 
     }

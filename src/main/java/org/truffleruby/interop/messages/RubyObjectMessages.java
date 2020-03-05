@@ -73,7 +73,7 @@ public class RubyObjectMessages {
             }
             return integerCastNode.executeCastInt(value);
         } catch (RaiseException e) {
-            throw translateRubyException.executeArray(e);
+            throw translateRubyException.execute(e);
         }
     }
 
@@ -193,14 +193,19 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("translateRubyException") @Cached TranslateRubyExceptionNode translateRubyException,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
-        Object value = dispatchNode.call(receiver, "polyglot_as_pointer");
-        if (value == DispatchNode.MISSING) {
-            errorProfile.enter();
-            throw UnsupportedMessageException.create();
+        try {
+            Object value = dispatchNode.call(receiver, "polyglot_as_pointer");
+            if (value == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
+            return longCastNode.executeCastLong(value);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e);
         }
-        return longCastNode.executeCastLong(value);
     }
 
     @ExportMessage
