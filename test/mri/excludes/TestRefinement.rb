@@ -1,6 +1,5 @@
 exclude :test_eval_with_binding_scoping, "needs investigation"
 exclude :test_include_refinement, "needs investigation"
-exclude :test_instance_methods, "needs investigation"
 exclude :test_instance_methods_not_include_superclass_method, "needs investigation"
 exclude :test_prepend_after_refine, "needs investigation"
 exclude :test_redefine_refined_method, "needs investigation"
