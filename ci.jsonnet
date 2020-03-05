@@ -666,7 +666,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   - The inter part dependencies should be kept to minimum.
   - Use name of the part (A) for the field in (O).
   - See `$.platform` parts for an example.
-  - If (A) is used without (O) an error is risen that a field
+  - If (A) is used without (O) an error is raised that a field
     (e.g. '$.run.deploy_and_spec') is missing which makes it easy to look up
     which inter dependency is broken.
 - Few parts depend on othering with other parts, in this case

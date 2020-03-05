@@ -102,7 +102,7 @@ public abstract class TranslateRubyExceptionNode extends RubyBaseNode {
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().runtimeError(
-                        "Wrong exception risen from a Ruby method implementing polyglot behavior: " + e.toString(),
+                        "Wrong exception raised from a Ruby method implementing polyglot behavior: " + e.toString(),
                         this));
         raiseException.initCause(e);
         throw raiseException;
