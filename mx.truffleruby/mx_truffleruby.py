@@ -139,6 +139,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     standalone_dependencies={
         'Sulong': ('lib/sulong', ['bin/<exe:lli>']),
         'LLVM.org toolchain': ('lib/llvm-toolchain', []),
+        'TruffleRuby license files': ('', []),
     },
     truffle_jars=[
         'truffleruby:TRUFFLERUBY',
