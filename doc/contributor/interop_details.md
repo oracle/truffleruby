@@ -114,7 +114,7 @@ When interop message `toNative` is sent
 - to a `Truffle::FFI::Pointer` or a `TruffleInteropSpecs::PolyglotPointer`
   it converts the receiver to native and changes the value of isPointer from false to true if possible.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it does nothing.
 
 ### Array related messages (incomplete)
 

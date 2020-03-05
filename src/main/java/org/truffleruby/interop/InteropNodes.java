@@ -522,7 +522,7 @@ public abstract class InteropNodes {
     public abstract static class ToNativeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Nil toNative(TruffleObject receiver,
+        protected Nil toNative(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             receivers.toNative(receiver);
             return Nil.INSTANCE;

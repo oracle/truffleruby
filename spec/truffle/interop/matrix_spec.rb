@@ -369,7 +369,11 @@ describe 'Interop:' do
                 Truffle::Interop.pointer?(subject).should be_true
                 Truffle::Interop.as_pointer(subject).should be_kind_of(Integer)
               end,
-              unsupported_test { |subject| Truffle::Interop.as_pointer(subject) }],
+              Test.new('does nothing') do |subject|
+                Truffle::Interop.pointer?(subject).should_not be_true
+                Truffle::Interop.to_native(subject)
+                Truffle::Interop.pointer?(subject).should_not be_true
+              end],
 
       Delimiter["Array related messages (incomplete)"],
       Message[:hasArrayElements,
