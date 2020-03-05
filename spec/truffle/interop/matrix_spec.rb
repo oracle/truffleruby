@@ -69,7 +69,7 @@ describe 'Interop:' do
   # * Interop.invoke_member should check arity explicitly and raise ArgumentError (<- ArityException).
   #   Other exceptions are allowed to bubble up, they are TruffleExceptions
   #
-  # == Exception risen by Interop methods <-
+  # == Exception raised by Interop methods <-
   # Polyglot::UnsupportedMessageError     <- UnsupportedMessageException
   #   inherits from StandardError
   # IndexError                            <- InvalidArrayIndexException
@@ -252,24 +252,24 @@ describe 'Interop:' do
       pointer:          Subject[-> { Truffle::FFI::Pointer.new(0) },
                                 name:        AN_INSTANCE,
                                 doc:         true,
-                                explanation: "An Object implementing Polyglot pointer API."],
+                                explanation: "an object implementing the polyglot pointer API."],
       polyglot_pointer: Subject[-> { TruffleInteropSpecs::PolyglotPointer.new },
                                 name:        AN_INSTANCE,
                                 doc:         true,
-                                explanation: "An Object which implements `polyglot_*` methods for pointer, that are:\n  " +
+                                explanation: "an object which implements the `polyglot_*` methods for pointer, which are:\n  " +
                                                  pointer_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
                                                  interop_library_reference],
 
       polyglot_object:  Subject[-> { TruffleInteropSpecs::PolyglotMember.new },
                                 doc:         true,
-                                name:        "polyglot object",
-                                explanation: "An Object which implements `polyglot_*` methods for members, that are:\n  " +
+                                name:        code("polyglot object"),
+                                explanation: "an object which implements the `polyglot_*` methods for members, which are:\n  " +
                                                  member_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
                                                  interop_library_reference],
       polyglot_array:   Subject[-> { TruffleInteropSpecs::PolyglotArray.new },
                                 doc:         true,
-                                name:        "polyglot array",
-                                explanation: "An Object which implements `polyglot_*` methods for Array, that are:\n  " +
+                                name:        code("polyglot array"),
+                                explanation: "an object which implements the `polyglot_*` methods for array elements, which are:\n  " +
                                                  array_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
                                                  interop_library_reference]
   }.each { |key, subject| subject.key = key }
@@ -278,8 +278,8 @@ describe 'Interop:' do
   EXTRA_SUBJECTS = {
       polyglot_int_array: Subject[-> { TruffleInteropSpecs::PolyglotArray.new { |v| Integer === v } },
                                   doc:         true,
-                                  name:        "polyglot int array",
-                                  explanation: "An Object which implements `polyglot_*` methods for Array allowing only Integers to be stored"]
+                                  name:        code("polyglot int array"),
+                                  explanation: "an object which implements the `polyglot_*` methods for array elements allowing only Integers to be stored"]
   }.each { |key, subject| subject.key = key }
 
   def predicate(name, is, *message_args, &setup)
@@ -290,7 +290,7 @@ describe 'Interop:' do
   end
 
   def unsupported_test(precise = true, &action)
-    Test.new("fails with UnsupportedError") do |subject|
+    Test.new("fails with Polyglot::UnsupportedMessageError") do |subject|
       error_matcher = precise ? Polyglot::UnsupportedMessageError : -> v { Polyglot::UnsupportedMessageError === v || RuntimeError === v || TypeError === v }
       -> { action.call(subject) }.should raise_error(error_matcher, /Message not supported|unsupported message/)
     end
@@ -299,10 +299,10 @@ describe 'Interop:' do
   def array_element_predicate(message, predicate, insert_on_true_case)
     insert = -> subject { Truffle::Interop.write_array_element(subject, 0, Object.new) }
     Message[message,
-            Test.new("returns true if there is #{insert_on_true_case ? 'a' : 'no'} value on the given index",
+            Test.new("returns true if there is #{insert_on_true_case ? 'a' : 'no'} value at the given index",
                      :array, :polyglot_array,
                      &predicate(predicate, true, 0, &(insert if insert_on_true_case))),
-            Test.new("returns false if there is #{!insert_on_true_case ? 'a' : 'no'} value on the given index",
+            Test.new("returns false if there is #{!insert_on_true_case ? 'a' : 'no'} value at the given index",
                      :array, :polyglot_array,
                      &predicate(predicate, false, 0, &(insert unless insert_on_true_case))),
             Test.new("returns false", &predicate(predicate, false, 0))]
@@ -310,7 +310,7 @@ describe 'Interop:' do
 
   MESSAGES = [
       Delimiter["`null` related messages"],
-      Message[:isNUll,
+      Message[:isNull,
               Test.new("returns true", :nil, &predicate(:null?, true)),
               Test.new("returns false", &predicate(:null?, false))],
 
@@ -335,11 +335,11 @@ describe 'Interop:' do
                 value = Object.new
                 Truffle::Interop.execute(subject, value).should == value
               end,
-              Test.new("fails with `ArgumentError` an error when the number of arguments is wrong", :lambda, :method) do |subject|
+              Test.new("fails with `ArgumentError` when the number of arguments is wrong", :lambda, :method) do |subject|
                 value = Object.new
                 -> { Truffle::Interop.execute(subject, value, value) }.should raise_error(ArgumentError)
               end,
-              Test.new("returns the result of the execution even though the number of arguments is wrong", :proc) do |subject|
+              Test.new("returns the result of the execution even though the number of arguments is wrong (Ruby behavior)", :proc) do |subject|
                 value = Object.new
                 Truffle::Interop.execute(subject, value, value).should == value
               end,
@@ -350,12 +350,12 @@ describe 'Interop:' do
               Test.new("returns true", :pointer, &predicate(:pointer?, true)),
               Test.new("returns false", &predicate(:pointer?, false))],
       Message[:asPointer,
-              Test.new("returns pointer address", :pointer) do |subject|
+              Test.new("returns the pointer address", :pointer) do |subject|
                 Truffle::Interop.as_pointer(subject).should == 0
               end,
               unsupported_test { |subject| Truffle::Interop.as_pointer(subject) }],
       Message[:toNative,
-              Test.new('converts receiver from object returning isPointer => false to object returning isPointer => true if possible',
+              Test.new('converts the receiver to native and changes the value of isPointer from false to true if possible',
                        :pointer, :polyglot_pointer) do |subject|
                 case subject
                 when Truffle::FFI::Pointer
@@ -386,11 +386,11 @@ describe 'Interop:' do
               end,
               unsupported_test { |subject| Truffle::Interop.array_size(subject) }],
       Message[:readArrayElement,
-              Test.new("returns stored value when it is present on the given valid index", :array, :polyglot_array, mode: :values) do |subject, value|
+              Test.new("returns the stored value when it is present at the given valid index (`0 <= index < size`)", :array, :polyglot_array, mode: :values) do |subject, value|
                 Truffle::Interop.write_array_element(subject, 0, value)
                 Truffle::Interop.read_array_element(subject, 0).should polyglot_match value
               end,
-              Test.new("fails with `IndexError` when a value is not present on the index or the index is invalid", :array, :polyglot_array) do |subject|
+              Test.new("fails with `IndexError` when a value is not present at the index or the index is invalid", :array, :polyglot_array) do |subject|
                 -> { Truffle::Interop.read_array_element(subject, 0) }.should raise_error(IndexError)
                 -> { Truffle::Interop.read_array_element(subject, -1) }.should raise_error(IndexError)
               end,
@@ -412,13 +412,13 @@ describe 'Interop:' do
               end,
               unsupported_test { |subject| Truffle::Interop.write_array_element(subject, 0, Object.new) }],
       Message[:removeArrayElement,
-              Test.new("removes a value when the value is present on a valid index", :array, :polyglot_array) do |subject|
+              Test.new("removes a value when the value is present at a valid index", :array, :polyglot_array) do |subject|
                 value = Object.new
                 Truffle::Interop.write_array_element(subject, 0, value)
                 Truffle::Interop.remove_array_element(subject, 0)
                 Truffle::Interop.array_element_readable?(subject, 0).should be_false
               end,
-              Test.new("fails with IndexError when the value is not present on a valid index", :array, :polyglot_array) do |subject|
+              Test.new("fails with IndexError when the value is not present at a valid index", :array, :polyglot_array) do |subject|
                 -> { Truffle::Interop.remove_array_element(subject, 0) }.should raise_error(IndexError)
               end,
               unsupported_test { |subject| Truffle::Interop.remove_array_element(subject, 0) }],
@@ -448,18 +448,22 @@ describe 'Interop:' do
           out.puts "\n### #{message.text}"
           next
         end
-        out.puts "\nWhen interop message `#{message.name}` is send"
+        out.puts "\nWhen interop message `#{message.name}` is sent"
 
-        format_subjects = -> subjects { subjects.select(&:doc).map(&:name).join(', ') }
+        format_subjects = -> subjects {
+          names = subjects.select(&:doc).map(&:name)
+          names = names[0...-2] + [names[-2..-1].join(' or ')] if names.size > 1
+          names.join(', ')
+        }
         message.tests.each do |test|
-          out.puts "- to: " + format_subjects.call(test.subjects) + "\n  it " + test.description + "."
+          out.puts "- to " + format_subjects.call(test.subjects) + "\n  it " + test.description + "."
         end
 
         # remaining_keys = SUBJECTS.keys - message.tests.map(&:subjects).flatten
         # remaining_subjects = SUBJECTS.values_at(*remaining_keys)
 
         if message.rest
-          out.puts "- to all other objects not mentioned above\n  it " + message.rest.description + "."
+          out.puts "- otherwise\n  it " + message.rest.description + "."
         end
       end
     end
@@ -477,7 +481,7 @@ describe 'Interop:' do
     next if message.is_a? Delimiter
 
     tests = message.tests
-    describe "When interop message #{message.name} is send to" do
+    describe "When interop message #{message.name} is sent to" do
       subjects_tested = {}
 
       tests.each do |test|
