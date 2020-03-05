@@ -918,7 +918,11 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change kl
      OBJ_WB_UNPROTECT((VALUE)(obj)) : ((VALUE)(obj)))
 #endif
 
+#ifdef TRUFFLERUBY
+#define RBASIC_CLASS(obj) (rb_class_of(obj))
+#else
 #define RBASIC_CLASS(obj) (RBASIC(obj)->klass)
+#endif
 
 #define ROBJECT_EMBED_LEN_MAX ROBJECT_EMBED_LEN_MAX
 #define ROBJECT_EMBED ROBJECT_EMBED

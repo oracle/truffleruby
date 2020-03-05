@@ -83,6 +83,7 @@ Compatibility:
 * Implemented `Thread::Backtrace::Locations#base_label` (#1920).
 * Implemented `rb_mProcess` (#1936).
 * Implemented `rb_gc_latest_gc_info` (#1937).
+* Implemented `RBASIC_CLASS` (#1935).
 
 Changes:
 
