@@ -367,6 +367,7 @@ describe 'Interop:' do
                 end
                 Truffle::Interop.to_native(subject)
                 Truffle::Interop.pointer?(subject).should be_true
+                Truffle::Interop.as_pointer(subject).should be_kind_of(Integer)
               end,
               unsupported_test { |subject| Truffle::Interop.as_pointer(subject) }],
 
