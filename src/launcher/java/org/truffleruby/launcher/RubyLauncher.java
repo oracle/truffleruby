@@ -10,7 +10,6 @@
 package org.truffleruby.launcher;
 
 import java.io.PrintStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,7 +54,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printVersion() {
-        System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
+        System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
         System.out.println();
         printPolyglotVersions();
     }
@@ -122,7 +121,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         Metrics.begin();
         printPreRunInformation(config);
         final int exitValue = runRubyMain(contextBuilder, config);
-        Metrics.end(isAOT());
+        Metrics.end();
         System.exit(exitValue);
     }
 
@@ -287,7 +286,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private void printPreRunInformation(CommandLineOptions config) {
         if (config.showVersion) {
-            System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
+            System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
         }
 
         if (config.showCopyright) {

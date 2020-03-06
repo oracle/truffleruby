@@ -768,7 +768,7 @@ public class CoreLibrary {
         setConstant(
                 objectClass,
                 "RUBY_DESCRIPTION",
-                frozenUSASCIIString(TruffleRuby.getVersionString(Truffle.getRuntime().getName(), TruffleOptions.AOT)));
+                frozenUSASCIIString(TruffleRuby.getVersionString(Truffle.getRuntime().getName())));
         setConstant(objectClass, "RUBY_COPYRIGHT", frozenUSASCIIString(TruffleRuby.RUBY_COPYRIGHT));
 
         // BasicObject knows itself

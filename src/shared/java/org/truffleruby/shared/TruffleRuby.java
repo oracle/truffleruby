@@ -9,6 +9,8 @@
  */
 package org.truffleruby.shared;
 
+import org.graalvm.nativeimage.ImageInfo;
+
 public class TruffleRuby {
 
     public static final String FORMAL_NAME = "TruffleRuby";
@@ -24,9 +26,9 @@ public class TruffleRuby {
     public static final boolean PRE_INITIALIZE_CONTEXTS = System
             .getProperty("polyglot.image-build-time.PreinitializeContexts") != null;
 
-    public static String getVersionString(String implementationName, boolean isAOT) {
+    public static String getVersionString(String implementationName) {
         final String vm;
-        if (isAOT) {
+        if (ImageInfo.inImageCode()) {
             vm = implementationName + " Native";
         } else {
             vm = implementationName + " JVM";
