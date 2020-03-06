@@ -51,6 +51,18 @@ describe :enumerable_collect, shared: true do
     ScratchPad.recorded.should == [1]
   end
 
+  it "yields 2 arguments for a Hash" do
+    c = Class.new do
+      def register(a, b)
+        ScratchPad << [a, b]
+      end
+    end
+    m = c.new.method(:register)
+
+    ScratchPad.record []
+    { 1 => 'a', 2 => 'b' }.map(&m)
+    ScratchPad.recorded.should == [[1, 'a'], [2, 'b']]
+  end
 
   it_should_behave_like :enumerable_enumeratorized_with_origin_size
 end
