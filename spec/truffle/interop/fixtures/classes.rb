@@ -92,7 +92,7 @@ module TruffleInteropSpecs
     def initialize(&value_validator)
       @log = []
       @storage = []
-      @value_validator = value_validator
+      @value_validator = value_validator || -> _ { true }
     end
 
     def polyglot_has_array_elements?
@@ -113,7 +113,7 @@ module TruffleInteropSpecs
 
     def polyglot_write_array_element(index, value)
       @log << [__callee__, index, value]
-      @value_validator.nil? || @value_validator.call(value) || raise(Truffle::Interop::UnsupportedTypeException)
+      @value_validator.call(value) or raise Truffle::Interop::UnsupportedTypeException
       @storage[index] = value
       nil
     end
