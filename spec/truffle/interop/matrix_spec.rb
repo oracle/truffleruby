@@ -486,7 +486,7 @@ describe 'Interop:' do
 
     tests = message.tests
     describe "When interop message #{message.name} is sent to" do
-      subjects_tested = {}
+      subjects_tested = {}.compare_by_identity
 
       tests.each do |test|
         test.subjects.each do |subject|
