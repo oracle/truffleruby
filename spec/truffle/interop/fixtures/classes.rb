@@ -171,9 +171,7 @@ module TruffleInteropSpecs
 
     def polyglot_read_member(name)
       @log << [__callee__, name]
-      @storage.fetch name
-    rescue KeyError
-      raise Truffle::Interop::UnknownIdentifierException
+      @storage.fetch(name) { raise Truffle::Interop::UnknownIdentifierException }
     end
 
     def polyglot_write_member(name, value)
@@ -188,9 +186,7 @@ module TruffleInteropSpecs
 
     def polyglot_invoke_member(name, *args)
       @log << [__callee__, name, *args]
-      @storage.fetch(name).call(*args)
-    rescue KeyError
-      raise Truffle::Interop::UnknownIdentifierException
+      @storage.fetch(name) { raise Truffle::Interop::UnknownIdentifierException }.call(*args)
     end
 
     def polyglot_member_readable?(name)
