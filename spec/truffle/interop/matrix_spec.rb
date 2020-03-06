@@ -100,11 +100,13 @@ describe 'Interop:' do
     '`' + string + '`'
   end
 
-  Subject = Struct.new(:value_constructor, :key, :name, :doc, :frozen, :explanation) do
-    def initialize(value_constructor, name: INSPECTION, doc: false, frozen: nil, explanation: nil)
-      super value_constructor, nil, name, doc,
-            frozen.nil? ? !value_constructor.is_a?(Proc) : frozen,
-            explanation
+  def bold(string)
+    '**' + string + '**'
+  end
+
+  Subject = Struct.new(:constant_value, :value_constructor, :key, :name, :doc, :explanation) do
+    def initialize(value = nil, name: INSPECTION, doc: false, explanation: nil, &value_constructor)
+      super value, value_constructor, nil, name, doc, explanation
 
       if name.is_a? Proc
         self.name = self.name.call value
@@ -113,8 +115,12 @@ describe 'Interop:' do
       end
     end
 
+    class << self
+      alias_method :call, :new
+    end
+
     def value
-      self.frozen ? value_constructor : value_constructor.call
+      value_constructor ? value_constructor.call : constant_value
     end
   end
 
@@ -202,14 +208,14 @@ describe 'Interop:' do
   # TODO (pitr-ch 13-Feb-2020): add number corner cases
 
   SUBJECTS = {
-      nil:            Subject[nil, doc: true],
-      false:          Subject[false, doc: true],
-      true:           Subject[true, doc: true],
+      nil:            Subject.(nil, doc: true),
+      false:          Subject.(false, doc: true),
+      true:           Subject.(true, doc: true),
 
-      symbol:         Subject[:symbol, doc: true],
-      strange_symbol: Subject[:"strange -=@\0x2397"],
-      empty_string:   Subject[-> { "" }],
-      string:         Subject[-> { "string" }, name: AN_INSTANCE, doc: true],
+      symbol:         Subject.(:symbol, doc: true),
+      strange_symbol: Subject.(:"strange -=@\0x2397"),
+      empty_string:   Subject.() { "" },
+      string:         Subject.(name: AN_INSTANCE, doc: true) { "string" },
 
       # TODO (pitr-ch 24-Feb-2020): has array interface?, test it
       # java_string:     Subject[Truffle::Interop.to_java_string("Java-string"),
@@ -217,60 +223,55 @@ describe 'Interop:' do
       #                          # TODO (pitr-ch 24-Feb-2020): mark this as foreign object and test it only in tests of Interop.* methods
       #                          doc: true, name: 'a ' + code('java.lang.String')],
 
-      zero:          Subject[0],
-      small_integer: Subject[1, name: AN_INSTANCE, doc: true],
-      zero_float:    Subject[0.0],
-      small_float:   Subject[1.0, name: AN_INSTANCE, doc: true],
-      big_decimal:   Subject[BigDecimal('1e99'), name: AN_INSTANCE, doc: true],
+      zero:          Subject.(0),
+      small_integer: Subject.(1, name: AN_INSTANCE, doc: true),
+      zero_float:    Subject.(0.0),
+      small_float:   Subject.(1.0, name: AN_INSTANCE, doc: true),
+      big_decimal:   Subject.(BigDecimal('1e99'), name: AN_INSTANCE, doc: true),
 
-      object:        Subject[-> { Object.new }, name: AN_INSTANCE, doc: true],
-      class:         Subject[-> { Class.new }, name: AN_INSTANCE, doc: true],
-      module:        Subject[-> { Module.new }, name: AN_INSTANCE],
-      hash:          Subject[-> { {} }, name: AN_INSTANCE, doc: true],
-      array:         Subject[-> { [] }, name: AN_INSTANCE, doc: true],
+      object:        Subject.(name: AN_INSTANCE, doc: true) { Object.new },
+      class:         Subject.(name: AN_INSTANCE, doc: true) { Class.new },
+      module:        Subject.(name: AN_INSTANCE) { Module.new },
+      hash:          Subject.(name: AN_INSTANCE, doc: true) { {} },
+      array:         Subject.(name: AN_INSTANCE, doc: true) { [] },
 
-      proc:          Subject[proc { |v| v }, name: code("proc {...}"), doc: true, frozen: true],
-      lambda:        Subject[-> v { v }, name: code("lambda {...}"), doc: true, frozen: true],
-      method:        Subject[
-                         Object.new.tap do |o|
-                           def o.foo(v)
-                             v
-                           end
-                         end.method(:foo),
-                         name: AN_INSTANCE, doc: true, frozen: true],
+      proc:          Subject.(proc { |v| v }, name: code("proc {...}"), doc: true),
+      lambda:        Subject.(-> v { v }, name: code("lambda {...}"), doc: true),
+      method:        Subject.new(Object.new.tap { |o| o.define_singleton_method(:foo) { |v| v } }.method(:foo),
+                                 name: AN_INSTANCE, doc: true),
 
       # TODO (pitr-ch 02-Mar-2020): better pointer for doc
-      pointer:          Subject[-> { Truffle::FFI::Pointer.new(0) },
-                                name:        AN_INSTANCE,
-                                doc:         true,
-                                explanation: "an object implementing the polyglot pointer API."],
-      polyglot_pointer: Subject[-> { TruffleInteropSpecs::PolyglotPointer.new },
-                                name:        AN_INSTANCE,
-                                doc:         true,
-                                explanation: "an object which implements the `polyglot_*` methods for pointer, which are:\n  " +
-                                                 pointer_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
-                                                 interop_library_reference],
+      pointer:          Subject.new(
+          name:        AN_INSTANCE,
+          doc:         true,
+          explanation: "an object implementing the polyglot pointer API.") { Truffle::FFI::Pointer.new(0) },
+      polyglot_pointer: Subject.new(
+          name:        "polyglot pointer",
+          doc:         true,
+          explanation: "an object which implements the `polyglot_*` methods for pointer, which are:\n  " +
+                           pointer_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
+                           interop_library_reference) { TruffleInteropSpecs::PolyglotPointer.new },
 
-      polyglot_object:  Subject[-> { TruffleInteropSpecs::PolyglotMember.new },
-                                doc:         true,
-                                name:        code("polyglot object"),
-                                explanation: "an object which implements the `polyglot_*` methods for members, which are:\n  " +
-                                                 member_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
-                                                 interop_library_reference],
-      polyglot_array:   Subject[-> { TruffleInteropSpecs::PolyglotArray.new },
-                                doc:         true,
-                                name:        code("polyglot array"),
-                                explanation: "an object which implements the `polyglot_*` methods for array elements, which are:\n  " +
-                                                 array_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
-                                                 interop_library_reference]
+      polyglot_object:  Subject.new(
+          doc:         true,
+          name:        "polyglot members",
+          explanation: "an object which implements the `polyglot_*` methods for members, which are:\n  " +
+                           member_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
+                           interop_library_reference) { TruffleInteropSpecs::PolyglotMember.new },
+      polyglot_array:   Subject.new(
+          doc:         true,
+          name:        "polyglot array",
+          explanation: "an object which implements the `polyglot_*` methods for array elements, which are:\n  " +
+                           array_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
+                           interop_library_reference) { TruffleInteropSpecs::PolyglotArray.new }
   }.each { |key, subject| subject.key = key }
 
   # not part of the standard matrix, not considered in last rest case
   EXTRA_SUBJECTS = {
-      polyglot_int_array: Subject[-> { TruffleInteropSpecs::PolyglotArray.new { |v| Integer === v } },
-                                  doc:         true,
-                                  name:        code("polyglot int array"),
-                                  explanation: "an object which implements the `polyglot_*` methods for array elements allowing only Integers to be stored"]
+      polyglot_int_array: Subject.new(
+          doc:         true,
+          explanation: "an object which implements the `polyglot_*` methods for array elements allowing only Integers to be stored",
+          name:        "polyglot int array") { TruffleInteropSpecs::PolyglotArray.new { |v| Integer === v } }
   }.each { |key, subject| subject.key = key }
 
   def predicate(name, is, *message_args, &setup)
@@ -428,25 +429,26 @@ describe 'Interop:' do
     if File.exist?(md_path) && File.writable?(md_path)
       File.open(md_path, 'w') do |out|
         out.print "<!-- Generated by spec/truffle/interop/matrix_spec.rb -->\n\n"
-        out.print "### Detailed definition of polyglot behaviour is given for\n\n"
+        out.print "# Detailed definition of polyglot behaviour is given for\n\n"
 
         { **SUBJECTS, **EXTRA_SUBJECTS }.each do |_, subject|
           next unless subject.doc
-          out.print '- ' + subject.name
-          out.puts subject.explanation ? (" - " + subject.explanation) : nil
+          out.print '- ' + bold(subject.name)
+          out.puts subject.explanation ? (" – " + subject.explanation) : nil
         end
 
         out.puts
+        out.puts "# Behavior of interop messages for Ruby objects"
 
         MESSAGES.each do |message|
           if message.is_a? Delimiter
-            out.puts "\n### #{message.text}"
+            out.puts "\n## #{message.text}"
             next
           end
           out.puts "\nWhen interop message `#{message.name}` is sent"
 
           format_subjects = -> subjects {
-            names = subjects.select(&:doc).map(&:name)
+            names = subjects.select(&:doc).map(&:name).map { |s| bold s }
             names = names[0...-2] + [names[-2..-1].join(' or ')] if names.size > 1
             names.join(', ')
           }
