@@ -61,7 +61,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             @Cached IntegerCastNode integerCastNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @Shared("translateRubyException") @Cached TranslateRubyExceptionNode translateRubyException,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
 
@@ -82,7 +82,7 @@ public class RubyObjectMessages {
     protected static Object readArrayElement(
             DynamicObject receiver, long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @Shared("translateRubyException") @Cached TranslateRubyExceptionNode translateRubyException,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws InvalidArrayIndexException, UnsupportedMessageException {
 
@@ -103,7 +103,7 @@ public class RubyObjectMessages {
     protected static void writeArrayElement(
             DynamicObject receiver, long index, Object value,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @Shared("translateRubyException") @Cached TranslateRubyExceptionNode translateRubyException,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException, InvalidArrayIndexException, UnsupportedTypeException {
 
@@ -123,7 +123,7 @@ public class RubyObjectMessages {
     protected static void removeArrayElement(
             DynamicObject receiver, long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @Shared("translateRubyException") @Cached TranslateRubyExceptionNode translateRubyException,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException, InvalidArrayIndexException {
 
@@ -193,7 +193,7 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
-            @Shared("translateRubyException") @Cached TranslateRubyExceptionNode translateRubyException,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
         try {
