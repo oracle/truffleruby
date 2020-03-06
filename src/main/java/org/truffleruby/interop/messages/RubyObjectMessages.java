@@ -65,16 +65,17 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
 
+        Object value;
         try {
-            Object value = dispatchNode.call(receiver, "polyglot_array_size");
-            if (value == DispatchNode.MISSING) {
-                errorProfile.enter();
-                throw UnsupportedMessageException.create();
-            }
-            return integerCastNode.executeCastInt(value);
+            value = dispatchNode.call(receiver, "polyglot_array_size");
         } catch (RaiseException e) {
             throw translateRubyException.execute(e);
         }
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return integerCastNode.executeCastInt(value);
     }
 
     @ExportMessage
@@ -196,16 +197,17 @@ public class RubyObjectMessages {
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
+        Object value;
         try {
-            Object value = dispatchNode.call(receiver, "polyglot_as_pointer");
-            if (value == DispatchNode.MISSING) {
-                errorProfile.enter();
-                throw UnsupportedMessageException.create();
-            }
-            return longCastNode.executeCastLong(value);
+            value = dispatchNode.call(receiver, "polyglot_as_pointer");
         } catch (RaiseException e) {
             throw translateRubyException.execute(e);
         }
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return longCastNode.executeCastLong(value);
     }
 
     @ExportMessage
