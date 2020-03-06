@@ -94,25 +94,9 @@ public abstract class MutexOperations {
         Layouts.THREAD.getOwnedLocks(thread).remove(lock);
     }
 
-    @TruffleBoundary
     public static void unlockInternal(ReentrantLock lock) {
         assert lock.isHeldByCurrentThread();
         lock.unlock();
-    }
-
-    // TODO(norswap, eregen, 03 Mar 2020)
-    //  Should be removed from TruffleFeature.
-    //  Just a field read and ==.
-    @TruffleBoundary
-    public static boolean isHeldByCurrentThread(ReentrantLock lock) {
-        return lock.isHeldByCurrentThread();
-    }
-
-    // TODO(norswap, eregen, 03 Mar 2020)
-    //  Should be behind a @TruffleBoundary, but is on the fast path for C-exts!
-    //  So in fact, should be removed from TruffleFeature.
-    public static boolean isLocked(ReentrantLock lock) {
-        return lock.isLocked();
     }
 
     @TruffleBoundary

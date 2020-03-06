@@ -65,7 +65,7 @@ public abstract class MutexNodes {
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
 
-            if (MutexOperations.isHeldByCurrentThread(lock)) {
+            if (lock.isHeldByCurrentThread()) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }
@@ -82,7 +82,7 @@ public abstract class MutexNodes {
 
         @Specialization
         protected boolean isLocked(DynamicObject mutex) {
-            return MutexOperations.isLocked(Layouts.MUTEX.getLock(mutex));
+            return Layouts.MUTEX.getLock(mutex).isLocked();
         }
 
     }
@@ -91,7 +91,7 @@ public abstract class MutexNodes {
     public abstract static class IsOwnedNode extends UnaryCoreMethodNode {
         @Specialization
         protected boolean isOwned(DynamicObject mutex) {
-            return MutexOperations.isHeldByCurrentThread(Layouts.MUTEX.getLock(mutex));
+            return Layouts.MUTEX.getLock(mutex).isHeldByCurrentThread();
         }
     }
 
@@ -105,7 +105,7 @@ public abstract class MutexNodes {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 
-            if (heldByCurrentThreadProfile.profile(MutexOperations.isHeldByCurrentThread(lock))) {
+            if (heldByCurrentThreadProfile.profile(lock.isHeldByCurrentThread())) {
                 return false;
             } else {
                 return doTryLock(thread, lock);
@@ -151,7 +151,7 @@ public abstract class MutexNodes {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 
-            if (MutexOperations.isHeldByCurrentThread(lock)) {
+            if (lock.isHeldByCurrentThread()) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }

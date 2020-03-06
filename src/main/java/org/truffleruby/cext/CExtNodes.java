@@ -134,7 +134,7 @@ public class CExtNodes {
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = MutexOperations.isHeldByCurrentThread(lock);
+                boolean owned = lock.isHeldByCurrentThread();
 
                 if (ownedProfile.profile(!owned)) {
                     MutexOperations.lockInternal(getContext(), lock, this);
@@ -203,7 +203,7 @@ public class CExtNodes {
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = MutexOperations.isHeldByCurrentThread(lock);
+                boolean owned = lock.isHeldByCurrentThread();
 
                 if (ownedProfile.profile(owned)) {
                     MutexOperations.unlockInternal(lock);
