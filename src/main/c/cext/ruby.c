@@ -2165,14 +2165,15 @@ VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS),
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
   VALUE rescued = rb_ary_new();
+  int total = polyglot_get_arg_count();
   int n = 4;
-  while (true) {
-    void* arg = polyglot_get_arg(n);
-    if (arg == NULL) {
-      break;
-    }
-    rb_ary_push(rescued, (VALUE) arg);
-    n++;
+  // Callers _should_ have terminated the var args with a NULL, but
+  // some code uses a zero instead, and this can break. So we read the
+  // arguments using the polyglot api and ignore the final null or 0
+  // argument.
+  for (;n < total; n++) {
+    VALUE arg = polyglot_get_arg(n);
+    rb_ary_push(rescued, arg);
   }
   return polyglot_invoke(RUBY_CEXT, "rb_rescue2", b_proc, (void*)data1, r_proc, (void*)data2, rb_tr_unwrap(rescued));
 }
