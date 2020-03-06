@@ -121,7 +121,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     protected void launch(Context.Builder contextBuilder) {
         Metrics.begin();
         printPreRunInformation(config);
-        debugPreInitialization();
         final int exitValue = runRubyMain(contextBuilder, config);
         Metrics.end(isAOT());
         System.exit(exitValue);
@@ -239,21 +238,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
                     "truffleruby: an exception escaped out of the interpreter - this is an implementation bug");
             e.printStackTrace();
             return 1;
-        }
-    }
-
-    private static void debugPreInitialization() {
-        if (!isAOT() && TruffleRuby.PRE_INITIALIZE_CONTEXTS) {
-            // This is only run when saying that you are pre-initialising a context but actually you're not running in the image generator
-
-            try {
-                final Class<?> holderClz = Class.forName("org.graalvm.polyglot.Engine$ImplHolder");
-                final Method preInitMethod = holderClz.getDeclaredMethod("preInitializeEngine");
-                preInitMethod.setAccessible(true);
-                preInitMethod.invoke(null);
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
-            }
         }
     }
 
