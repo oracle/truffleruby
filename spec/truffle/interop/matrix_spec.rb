@@ -89,15 +89,6 @@ describe 'Interop:' do
   # and explicit API belongs under Polyglot namespace. Since the first one is for internal
   # TruffleRuby implementation of polyglot behaviour the other one is outward, to talk to other languages.
 
-
-  def read_array_elemet(index)
-    raise Interop::InvalidArrayIndexException if index < 0
-    @data.fetch index
-  rescue IndexError
-    42
-  end
-
-
   INSPECTION  = -> v { code v.inspect }
   AN_INSTANCE = -> v do
     class_name = v.class.name
