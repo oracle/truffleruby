@@ -9,11 +9,11 @@ New features:
 * All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods.
 * Rename dynamic API to match InteropLibrary. All the methods keep the name as it is in InteropLibrary with following changes: use snake_case, add `polyglot_` prefix, drop `get` and `is` prefix, append `?` on all predicates.  
 * Many nodes that manipulate arrays have been converted to use `ArrayStoreLibrary`.
-* Split `Truffle::Interop.write` into `.write_array_element` and `.write_member` methods
-* Rename `Truffle::Interop.size` to `.array_size`
-* Rename `Truffle::Interop.is_boolean?` to `.boolean?`
-* Split `Truffle::Interop.read` into `.read_member` and `.read_array_element`
-* Drop `is_` prefix in `Truffle::Interop.is_array_element_*` predicates
+* Split `Truffle::Interop.write` into `.write_array_element` and `.write_member` methods.
+* Rename `Truffle::Interop.size` to `.array_size`.
+* Rename `Truffle::Interop.is_boolean?` to `.boolean?`.
+* Split `Truffle::Interop.read` into `.read_member` and `.read_array_element`.
+* Drop `is_` prefix in `Truffle::Interop.is_array_element_*` predicates.
 * The old array strategy code has been removed and all remaining nodes converted to the new `ArrayStoreLibrary`.
 
 Bug fixes:
@@ -33,16 +33,16 @@ Bug fixes:
 * Fixed `Dir#children` implementation.
 * Fixed `SignalException.new` error when bad parameter given.
 * Added deprecation warning to `Kernel#=~`.
-* Fixed `puts` for a foreign objects, e.g. `puts Polyglot.eval('js', '[]')` (#1881) 
+* Fixed `puts` for a foreign objects, e.g. `puts Polyglot.eval('js', '[]')` (#1881).
 * Fixed `Exception#full_message` implementation.
 * Updated `Kernel.Complex()` to handle the `exception: false` parameter.
 * Fixed `Kernel#dup` to return self for `Complex` and `Rational` objects.
 * Updated `Kernel.Float()` to handle the `exception: false` parameter.
 * Fixed `String#unpack` `M` format (#1901).
 * Fixed error when `SystemCallError` message contained non-ASCII characters.
-* Fixed `rb_rescue` to allow null rescue methods. (#1909, @kipply)
-* Fixed incorrect comparisons between bignums and doubles. 
-* Prevented some internal uses of `Kernel#caller_locations` to be overridden by user code (#1934). 
+* Fixed `rb_rescue` to allow null rescue methods. (#1909, @kipply).
+* Fixed incorrect comparisons between bignums and doubles.
+* Prevented some internal uses of `Kernel#caller_locations` to be overridden by user code (#1934).
 * Fixed an issue caused by recursing inlining within `Regexp#quote` (#1927).
 * Updated `Kernel.Float()` to return given string in error message (#1945).
 * Parameters and arity of methods derived from `method_missing` should now match MRI (#1921).
@@ -73,8 +73,8 @@ Compatibility:
 * Make `Thread#backtrace` support omit, length and range arguments.
 * Implemented `Range#%`.
 * Fixed the type of the `flags` field of `rb_data_type_t` (#1911).
-* Implemented `rb_obj_is_proc` (#1908, @kipply, @XrXr). 
-* Implemented C API macro `RARRAY_ASET()`
+* Implemented `rb_obj_is_proc` (#1908, @kipply, @XrXr).
+* Implemented C API macro `RARRAY_ASET()`.
 * Implemented `num2short` (#1910, @kipply).
 * `RSTRING_END()` now always returns a native pointer.
 * Removed `register` specifier for `rb_mem_clear()` (#1924).
@@ -112,10 +112,10 @@ Bug fixes:
 * Dump and load instance variables in subclasses of `Exception` (#1766, @rafaelfranca).
 * Fix `Date._iso8601` and `Date._rfc3339` when the string is an invalid date (#1773, @rafaelfranca).
 * Fail earlier for bad handle unwrapping (#1777, @chrisseaton).
-* Match out of range `ArgumentError` message with MRI (#1774, @rafaelfranca)
+* Match out of range `ArgumentError` message with MRI (#1774, @rafaelfranca).
 * Raise `Encoding::CompatibilityError` with incompatible encodings on `Regexp` (#1775, @rafaelfranca).
 * Fixed interactions between attributes and instance variables in `Struct` (#1776, @chrisseaton).
-* Coercion fixes for `TCPServer.new` (#1780, @XrXr)
+* Coercion fixes for `TCPServer.new` (#1780, @XrXr).
 * Fix `Float#<=>` not calling `coerce` when `other` argument responds to it (#1783, @XrXr).
 * Do not warn / crash when requiring a file that sets and trigger autoload on itself (#1779, @XrXr).
 * Strip trailing whitespaces when creating a `BigDecimal` with a `String` (#1796, @XrXr).
@@ -135,9 +135,9 @@ Bug fixes:
 * Fixed `Module#to_s` and `Module#inspect` to not return an extra `#<Class:` for singleton classes.
 * Arrays backed by native storage now allocate the correct amount of memory (#1828).
 * Fixed issue in `ConditionVariable#wait` that could lose a `ConditionVariable#signal`.
-* Do not expose TruffleRuby-specific method `Array#swap` (#1816)
+* Do not expose TruffleRuby-specific method `Array#swap` (#1816).
 * Fixed `#inspect` on broken UTF-8 sequences (#1842, @chrisseaton).
-* `Truffle::Interop.keys` should report methods of `String` and `Symbol` (#1817)
+* `Truffle::Interop.keys` should report methods of `String` and `Symbol` (#1817).
 * `Kernel#sprintf` encoding validity has been fixed (#1852, @XrXr).
 * Fixed `ArrayIndexOutOfBoundsException` in `File.fnmatch` (#1845).
 * Make `String#concat` work with no or multiple arguments (#1519).
