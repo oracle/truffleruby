@@ -60,14 +60,9 @@ public abstract class SymbolNodes {
     @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubySymbol(b)")
-        protected boolean equal(DynamicObject a, DynamicObject b) {
+        @Specialization
+        protected boolean equal(DynamicObject a, Object b) {
             return a == b;
-        }
-
-        @Specialization(guards = "!isRubySymbol(b)")
-        protected boolean equal(VirtualFrame frame, DynamicObject a, Object b) {
-            return false;
         }
 
     }
