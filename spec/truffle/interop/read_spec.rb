@@ -26,7 +26,7 @@ describe "Truffle::Interop.read" do
     end
 
     it "raises for an index that doesn't exist" do
-      -> { Truffle::Interop.read_array_element(@array, 100) }.should raise_error(NameError)
+      -> { Truffle::Interop.read_array_element(@array, 100) }.should raise_error(IndexError)
     end
 
   end

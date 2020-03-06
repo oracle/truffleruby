@@ -32,6 +32,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -60,59 +61,81 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             @Cached IntegerCastNode integerCastNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws UnsupportedMessageException {
 
-        Object value = dispatchNode.call(receiver, "polyglot_array_size");
+        Object value;
+        try {
+            value = dispatchNode.call(receiver, "polyglot_array_size");
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e);
+        }
         if (value == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
         return integerCastNode.executeCastInt(value);
-
     }
 
     @ExportMessage
-    @SuppressWarnings("unused") // has to throw here-unused InvalidArrayIndexException because of ArrayMessages
+    @SuppressWarnings("unused") // because of throws in ArrayMessages
     protected static Object readArrayElement(
             DynamicObject receiver, long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
             throws InvalidArrayIndexException, UnsupportedMessageException {
 
-        Object value = dispatchNode.call(receiver, "polyglot_read_array_element", index);
-        if (value == DispatchNode.MISSING) {
-            errorProfile.enter();
-            throw UnsupportedMessageException.create();
+        try {
+            Object value = dispatchNode.call(receiver, "polyglot_read_array_element", index);
+            if (value == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
+            return value;
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, index);
         }
-        return value;
     }
 
     @ExportMessage
+    @SuppressWarnings("unused") // because of throws in ArrayMessages
     protected static void writeArrayElement(
             DynamicObject receiver, long index, Object value,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
-            throws UnsupportedMessageException {
+            throws UnsupportedMessageException, InvalidArrayIndexException, UnsupportedTypeException {
 
-        Object result = dispatchNode.call(receiver, "polyglot_write_array_element", index, value);
-        if (result == DispatchNode.MISSING) {
-            errorProfile.enter();
-            throw UnsupportedMessageException.create();
+        try {
+            Object result = dispatchNode.call(receiver, "polyglot_write_array_element", index, value);
+            if (result == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, index, value);
         }
+
     }
 
     @ExportMessage
     protected static void removeArrayElement(
             DynamicObject receiver, long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
-            throws UnsupportedMessageException {
+            throws UnsupportedMessageException, InvalidArrayIndexException {
 
-        Object result = dispatchNode.call(receiver, "polyglot_remove_array_element", index);
-        if (result == DispatchNode.MISSING) {
-            errorProfile.enter();
-            throw UnsupportedMessageException.create();
+        try {
+            Object result = dispatchNode.call(receiver, "polyglot_remove_array_element", index);
+            if (result == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, index);
         }
     }
 
@@ -171,9 +194,15 @@ public class RubyObjectMessages {
             DynamicObject receiver,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
 
-        Object value = dispatchNode.call(receiver, "polyglot_as_pointer");
+        Object value;
+        try {
+            value = dispatchNode.call(receiver, "polyglot_as_pointer");
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e);
+        }
         if (value == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnsupportedMessageException.create();

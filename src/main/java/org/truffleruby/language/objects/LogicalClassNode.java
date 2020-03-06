@@ -10,18 +10,22 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
+@GenerateUncached
 @ImportStatic(ShapeCachingGuards.class)
-public abstract class LogicalClassNode extends RubyContextNode {
+public abstract class LogicalClassNode extends RubyBaseNode {
 
     public static LogicalClassNode create() {
         return LogicalClassNodeGen.create();
@@ -30,33 +34,39 @@ public abstract class LogicalClassNode extends RubyContextNode {
     public abstract DynamicObject executeLogicalClass(Object value);
 
     @Specialization(guards = "value")
-    protected DynamicObject logicalClassTrue(boolean value) {
-        return coreLibrary().trueClass;
+    protected DynamicObject logicalClassTrue(boolean value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected DynamicObject logicalClassFalse(boolean value) {
-        return coreLibrary().falseClass;
+    protected DynamicObject logicalClassFalse(boolean value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().falseClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassInt(int value) {
-        return coreLibrary().integerClass;
+    protected DynamicObject logicalClassInt(int value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().integerClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassLong(long value) {
-        return coreLibrary().integerClass;
+    protected DynamicObject logicalClassLong(long value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().integerClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassDouble(double value) {
-        return coreLibrary().floatClass;
+    protected DynamicObject logicalClassDouble(double value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().floatClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassNil(Nil value) {
-        return coreLibrary().nilClass;
+    protected DynamicObject logicalClassNil(Nil value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().nilClass;
     }
 
     @Specialization(
@@ -79,9 +89,10 @@ public abstract class LogicalClassNode extends RubyContextNode {
         return Layouts.BASIC_OBJECT.getLogicalClass(object);
     }
 
-    @Fallback
-    protected DynamicObject logicalClassFallback(Object object) {
-        return getContext().getCoreLibrary().getLogicalClass(object);
+    @Specialization(guards = { "!isPrimitive(object)", "!isNil(object)", "!isDynamicObject(object)" })
+    protected DynamicObject logicalClassFallback(Object object,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().getLogicalClass(object);
     }
 
     protected static DynamicObject getLogicalClass(Shape shape) {
@@ -89,7 +100,7 @@ public abstract class LogicalClassNode extends RubyContextNode {
     }
 
     protected int getCacheLimit() {
-        return getContext().getOptions().CLASS_CACHE;
+        return RubyLanguage.getCurrentContext().getOptions().CLASS_CACHE;
     }
 
 }

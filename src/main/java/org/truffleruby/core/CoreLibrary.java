@@ -150,6 +150,8 @@ public class CoreLibrary {
     public final DynamicObject systemStackErrorClass;
     public final DynamicObject securityErrorClass;
     public final DynamicObject standardErrorClass;
+    public final DynamicObject polyglotModule;
+    public final DynamicObject unsupportedMessageErrorClass;
     public final DynamicObject stringClass;
     public final DynamicObjectFactory stringFactory;
     public final DynamicObject symbolClass;
@@ -176,6 +178,10 @@ public class CoreLibrary {
     public final DynamicObject truffleExceptionOperationsModule;
     public final DynamicObject truffleInteropModule;
     public final DynamicObject truffleInteropForeignClass;
+    public final DynamicObject unsupportedMessageExceptionClass;
+    public final DynamicObject invalidArrayIndexExceptionClass;
+    public final DynamicObject unknownIdentifierExceptionClass;
+    public final DynamicObject unsupportedTypeExceptionClass;
     public final DynamicObject truffleKernelOperationsModule;
     public final DynamicObject truffleRegexpOperationsModule;
     public final DynamicObject truffleThreadOperationsModule;
@@ -350,6 +356,8 @@ public class CoreLibrary {
         threadErrorClass = defineClass(standardErrorClass, "ThreadError");
         typeErrorClass = defineClass(standardErrorClass, "TypeError");
         zeroDivisionErrorClass = defineClass(standardErrorClass, "ZeroDivisionError");
+        polyglotModule = defineModule("Polyglot");
+        unsupportedMessageErrorClass = defineClass(polyglotModule, standardErrorClass, "UnsupportedMessageError");
 
         // StandardError > RuntimeError
         runtimeErrorClass = defineClass(standardErrorClass, "RuntimeError");
@@ -539,6 +547,22 @@ public class CoreLibrary {
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
         truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
+        unsupportedMessageExceptionClass = defineClass(
+                truffleInteropModule,
+                exceptionClass,
+                "UnsupportedMessageException");
+        invalidArrayIndexExceptionClass = defineClass(
+                truffleInteropModule,
+                exceptionClass,
+                "InvalidArrayIndexException");
+        unknownIdentifierExceptionClass = defineClass(
+                truffleInteropModule,
+                exceptionClass,
+                "UnknownIdentifierException");
+        unsupportedTypeExceptionClass = defineClass(
+                truffleInteropModule,
+                exceptionClass,
+                "UnsupportedTypeException");
         defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "Digest");
@@ -560,7 +584,6 @@ public class CoreLibrary {
         DynamicObject handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, handleFactory);
-        defineModule("Polyglot");
         warningModule = defineModule("Warning");
 
         bigDecimalClass = defineClass(numericClass, "BigDecimal");

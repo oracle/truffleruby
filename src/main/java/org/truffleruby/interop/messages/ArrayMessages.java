@@ -19,7 +19,6 @@ import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -45,18 +44,13 @@ public class ArrayMessages extends RubyObjectMessages {
             @Cached @Shared("error") BranchProfile errorProfile,
             // FIXME (pitr 11-Feb-2020): use ArrayReadNormalizedNode
             // @Cached ArrayReadNormalizedNode readNode)
-            @Cached @Exclusive CallDispatchHeadNode dispatch)
-            throws InvalidArrayIndexException, UnsupportedMessageException {
+            @Cached @Exclusive CallDispatchHeadNode dispatch) throws InvalidArrayIndexException {
         if (inBounds(array, index)) {
             // return readNode.executeRead(array, (int) index);
             return dispatch.call(array, "[]", index);
         } else {
             errorProfile.enter();
-            if (validIndex(index)) {
-                throw InvalidArrayIndexException.create(index);
-            } else {
-                throw UnsupportedMessageException.create();
-            }
+            throw InvalidArrayIndexException.create(index);
         }
     }
 
@@ -68,15 +62,13 @@ public class ArrayMessages extends RubyObjectMessages {
             @Cached @Shared("error") BranchProfile errorProfile,
             // FIXME (pitr 11-Feb-2020): use ArrayWriteNormalizedNode
             // @Cached ArrayWriteNormalizedNode writeNode)
-            @Cached @Exclusive CallDispatchHeadNode dispatch)
-            throws UnsupportedMessageException {
-        if (validIndex(index)) {
+            @Cached @Exclusive CallDispatchHeadNode dispatch) throws InvalidArrayIndexException {
+        if (index >= 0 && RubyGuards.fitsInInteger(index)) {
             // writeNode.executeWrite(array, (int) index, value);
             dispatch.call(array, "[]=", index, value);
         } else {
             errorProfile.enter();
-            // always unsupported not just invalid index
-            throw UnsupportedMessageException.create();
+            throw InvalidArrayIndexException.create(index);
         }
     }
 
@@ -87,24 +79,14 @@ public class ArrayMessages extends RubyObjectMessages {
             // FIXME (pitr 11-Feb-2020): use delete-at node directly
             // @Cached ArrayNodes.DeleteAtNode deleteAtNode,
             @Cached @Exclusive CallDispatchHeadNode dispatch,
-            @Cached @Shared("error") BranchProfile errorProfile)
-            throws UnsupportedMessageException, InvalidArrayIndexException {
+            @Cached @Shared("error") BranchProfile errorProfile) throws InvalidArrayIndexException {
 
-        // TODO (pitr-ch 29-Aug-2019): allow to remove element only from the end,
-        //  other removals has other observable effects - elements shift
-        //  It can be modified to nil instead.
-
-        if (validIndex(index)) {
-            if (index < Layouts.ARRAY.getSize(array)) {
-                // deleteAtNode.executeDeleteAt(array, (int) index);
-                dispatch.call(array, "delete_at", index);
-            } else {
-                errorProfile.enter();
-                throw InvalidArrayIndexException.create(index);
-            }
+        if (inBounds(array, index)) {
+            // deleteAtNode.executeDeleteAt(array, (int) index);
+            dispatch.call(array, "delete_at", index);
         } else {
             errorProfile.enter();
-            throw UnsupportedMessageException.create();
+            throw InvalidArrayIndexException.create(index);
         }
     }
 
@@ -133,10 +115,6 @@ public class ArrayMessages extends RubyObjectMessages {
             DynamicObject array, long index,
             @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(array) && RubyGuards.fitsInInteger(index) && index >= Layouts.ARRAY.getSize(array);
-    }
-
-    private static boolean validIndex(long index) {
-        return index >= 0 && RubyGuards.fitsInInteger(index);
     }
 
     private static boolean inBounds(DynamicObject array, long index) {

@@ -55,6 +55,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -138,23 +139,14 @@ public abstract class InteropNodes {
                 Object[] args,
                 @Cached RubyToForeignArgumentsNode rubyToForeignArgumentsNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @Cached BranchProfile exceptionProfile,
-                @Cached ForeignToRubyNode foreignToRubyNode) {
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             final Object foreign;
 
             try {
                 foreign = receivers.execute(receiver, rubyToForeignArgumentsNode.executeConvert(args));
-            } catch (UnsupportedTypeException e) {
-                exceptionProfile.enter();
-                throw new RaiseException(context, translate(context, e));
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                // TODO (pitr-ch 25-Jan-2020): translate uniformly for all methods on Truffle:Interop
-                throw new RaiseException(context, translate(context, e));
-            } catch (ArityException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
 
             return foreignToRubyNode.executeConvert(foreign);
@@ -316,12 +308,12 @@ public abstract class InteropNodes {
         @Specialization(limit = "getCacheLimit()")
         protected Object arraySize(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached BranchProfile exceptionProfile) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+
             try {
                 return receivers.getArraySize(receiver);
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
 
@@ -383,11 +375,13 @@ public abstract class InteropNodes {
         @Specialization(limit = "getCacheLimit()")
         protected boolean asBoolean(
                 Object receiver,
+                @Cached TranslateInteropExceptionNode translateInteropException,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
+
             try {
                 return receivers.asBoolean(receiver);
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
     }
@@ -502,15 +496,9 @@ public abstract class InteropNodes {
     public abstract static class PointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isPointer(
-                TruffleObject receiver,
+        protected boolean isPointer(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isPointer(receiver);
-        }
-
-        @Fallback
-        protected boolean isPointer(Object receiver) {
-            return false;
         }
 
     }
@@ -519,15 +507,13 @@ public abstract class InteropNodes {
     public abstract static class AsPointerNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected long asPointer(
-                TruffleObject receiver,
+        protected long asPointer(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached BranchProfile exceptionProfile) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
                 return receivers.asPointer(receiver);
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
     }
@@ -536,12 +522,10 @@ public abstract class InteropNodes {
     public abstract static class ToNativeNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object toNative(
-                TruffleObject receiver,
+        protected Nil toNative(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             receivers.toNative(receiver);
-            // TODO (pitr-ch 27-Mar-2019): return nil instead?
-            return receiver;
+            return Nil.INSTANCE;
         }
 
     }
@@ -604,21 +588,13 @@ public abstract class InteropNodes {
         @Specialization(limit = "getCacheLimit()")
         protected Object readArrayElement(Object receiver, long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @Cached BranchProfile unknownIdentifierProfile,
-                @Cached BranchProfile exceptionProfile,
-                @Cached ForeignToRubyNode foreignToRubyNode) {
+                @Cached ForeignToRubyNode foreignToRubyNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             final Object foreign;
             try {
                 foreign = receivers.readArrayElement(receiver, identifier);
-            } catch (InvalidArrayIndexException e) {
-                unknownIdentifierProfile.enter();
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
 
             return foreignToRubyNode.executeConvert(foreign);
@@ -644,18 +620,11 @@ public abstract class InteropNodes {
         @Specialization(limit = "getCacheLimit()")
         protected Nil readArrayElement(Object receiver, long identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @CachedContext(RubyLanguage.class) RubyContext context,
-                @Cached BranchProfile exceptionProfile) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
                 receivers.removeArrayElement(receiver, identifier);
-            } catch (InvalidArrayIndexException e) {
-                exceptionProfile.enter();
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
-            } catch (UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
 
             return Nil.INSTANCE;
@@ -771,20 +740,12 @@ public abstract class InteropNodes {
         @Specialization(limit = "getCacheLimit()")
         protected Object write(Object receiver, long identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached RubyToForeignNode valueToForeignNode,
-                @Cached BranchProfile unknownIdentifierProfile,
-                @Cached BranchProfile exceptionProfile) {
+                @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
                 receivers.writeArrayElement(receiver, identifier, valueToForeignNode.executeConvert(value));
-            } catch (InvalidArrayIndexException e) {
-                unknownIdentifierProfile.enter();
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().nameErrorUnknownIdentifier(receiver, identifier, e, this));
-            } catch (UnsupportedTypeException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
 
             return value;

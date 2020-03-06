@@ -30,15 +30,39 @@ details.
 
 ## How Ruby responds to messages
 
-All interop message implementations of different Ruby object types are defined 
-in package `org.truffleruby.interop.messages`. 
-`RubyObjectMessages` defines the common behaviour for all Ruby objects. 
-Other Ruby core classes like `StringMessages`, `ArrayMessages`, etc. then
-inherit from it.   
+All interop message implementations of different Ruby object types are defined
+in package `org.truffleruby.interop.messages`, with the exception of `nil`. Its
+messages are defined directly on the singleton object
+`org.truffleruby.language.Nil`.
+ 
+`RubyObjectMessages` defines the common behavior for all Ruby objects. Other
+Ruby core classes like `StringMessages`, `ArrayMessages`, etc. then inherit from
+it and modify the behavior.
 
-More details to be added.  
+As expected:
+- `BasicObject` has polyglot members
+- `Array` has polyglot array elements
+- `Proc` and `Method` are polyglot executable
+- `String` and `Symbol` are polyglot strings
+
+Any Ruby object can implement the polyglot array or member behavior by
+implementing the appropriate `polyglot_*` methods.
+
+The detailed definitions of the behavior can be found in
+[another document](interop_details.md).
 
 ## How to explicitly send messages from Ruby
+
+### Errors
+
+If any of the sent messages fails then the Java `InteropException` is
+translated to a Ruby exception as follows:
+
+- `UnsupportedMessageException` → `Polyglot::UnsupportedMessageError`
+- `InvalidArrayIndexException`  → `IndexError`
+- `UnknownIdentifierException`  → `NameError` or → `NoMethodError` if the message is `invokeMember`
+- `ArityException`              → `ArgumentError`
+- `UnsupportedTypeException`    → `TypeError`
 
 ### `IS_EXECUTABLE`
 
