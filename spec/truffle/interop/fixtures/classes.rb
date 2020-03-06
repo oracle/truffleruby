@@ -107,7 +107,7 @@ module TruffleInteropSpecs
 
     def polyglot_read_array_element(index)
       @log << [__callee__, index]
-      raise Truffle::Interop::InvalidArrayIndexException unless polyglot_array_element_readable? index
+      raise Truffle::Interop::InvalidArrayIndexException unless in_bounds?(index)
       @storage[index]
     end
 
