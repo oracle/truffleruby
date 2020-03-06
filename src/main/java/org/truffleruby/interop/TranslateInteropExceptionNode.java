@@ -96,8 +96,8 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             boolean inInvokeMember,
             Object receiver,
             Object[] args,
-
             @CachedContext(RubyLanguage.class) RubyContext context) {
+
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().typeErrorUnsupportedTypeException(exception, this));
@@ -111,8 +111,8 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             boolean inInvokeMember,
             Object receiver,
             Object[] args,
-
             @CachedContext(RubyLanguage.class) RubyContext context) {
+
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().argumentError(
