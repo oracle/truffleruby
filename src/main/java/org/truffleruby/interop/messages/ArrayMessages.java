@@ -63,12 +63,11 @@ public class ArrayMessages extends RubyObjectMessages {
             // FIXME (pitr 11-Feb-2020): use ArrayWriteNormalizedNode
             // @Cached ArrayWriteNormalizedNode writeNode)
             @Cached @Exclusive CallDispatchHeadNode dispatch) throws InvalidArrayIndexException {
-        if (validIndex(index)) {
+        if (index >= 0 && RubyGuards.fitsInInteger(index)) {
             // writeNode.executeWrite(array, (int) index, value);
             dispatch.call(array, "[]=", index, value);
         } else {
             errorProfile.enter();
-            // always unsupported not just invalid index
             throw InvalidArrayIndexException.create(index);
         }
     }
@@ -82,7 +81,7 @@ public class ArrayMessages extends RubyObjectMessages {
             @Cached @Exclusive CallDispatchHeadNode dispatch,
             @Cached @Shared("error") BranchProfile errorProfile) throws InvalidArrayIndexException {
 
-        if (index < Layouts.ARRAY.getSize(array)) {
+        if (inBounds(array, index)) {
             // deleteAtNode.executeDeleteAt(array, (int) index);
             dispatch.call(array, "delete_at", index);
         } else {
@@ -116,10 +115,6 @@ public class ArrayMessages extends RubyObjectMessages {
             DynamicObject array, long index,
             @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(array) && RubyGuards.fitsInInteger(index) && index >= Layouts.ARRAY.getSize(array);
-    }
-
-    private static boolean validIndex(long index) {
-        return index >= 0 && RubyGuards.fitsInInteger(index);
     }
 
     private static boolean inBounds(DynamicObject array, long index) {
