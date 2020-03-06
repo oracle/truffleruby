@@ -10,8 +10,8 @@
 
 module Polyglot
 
-  -> do # stubs, defined in CoreLibrary
-    UnsupportedMessageError = Class.new StandardError
+  # stub defined in CoreLibrary
+  class UnsupportedMessageError < StandardError
   end
 
   def self.export(name, value)

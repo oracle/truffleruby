@@ -16,12 +16,11 @@ module Truffle
 
     # FIXME (pitr-ch 02-Mar-2020): interop methods should call regular Ruby conversions like to_s (which should try asString if foreign.isString)
 
-    -> do # stubs, defined in CoreLibrary
-      UnsupportedMessageException = Class.new Exception
-      InvalidArrayIndexException = Class.new Exception
-      UnknownIdentifierException = Class.new Exception
-      UnsupportedTypeException = Class.new Exception
-    end
+    # stubs, defined in CoreLibrary
+    class UnsupportedMessageException < Exception; end
+    class InvalidArrayIndexException < Exception; end
+    class UnknownIdentifierException < Exception; end
+    class UnsupportedTypeException < Exception; end
 
     def self.import_method(name)
       method = import(name.to_s)
