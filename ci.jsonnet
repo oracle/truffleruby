@@ -608,7 +608,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     },
 
   manual_builds: {
-    local shared = $.cap.manual { timelimit: "5:00" },
+    local shared = $.use.common + $.cap.manual + { timelimit: "5:00" },
 
     "ruby-generate-native-config-linux": shared + $.platform.linux + $.run.generate_native_config,
     "ruby-generate-native-config-darwin": shared + $.platform.darwin + $.run.generate_native_config,
