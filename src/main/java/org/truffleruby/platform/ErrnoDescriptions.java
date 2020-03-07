@@ -52,7 +52,7 @@ public class ErrnoDescriptions {
         map.put("EBFONT", "Bad font file format");
         map.put("EBUSY", "Device or resource busy");
         map.put("ECANCELED", "Operation canceled");
-        map.put("ECAPMODE", "TODO: Unknown description for ECAPMODE");
+        map.put("ECAPMODE", "Not permitted in capability mode");
         map.put("ECHILD", "No child processes");
         map.put("ECHRNG", "Channel number out of range");
         map.put("ECOMM", "Communication error on send");
@@ -64,7 +64,7 @@ public class ErrnoDescriptions {
         map.put("EDESTADDRREQ", "Destination address required");
         map.put("EDEVERR", "Device error");
         map.put("EDOM", "Numerical argument out of domain");
-        map.put("EDOOFUS", "TODO: Unknown description for EDOOFUS");
+        map.put("EDOOFUS", "Programming error");
         map.put("EDOTDOT", "RFS specific error");
         map.put("EDQUOT", "Disk quota exceeded");
         map.put("EEXIST", "File exists");
@@ -80,7 +80,7 @@ public class ErrnoDescriptions {
         map.put("EINTR", "Interrupted system call");
         map.put("EINVAL", "Invalid argument");
         map.put("EIO", "Input/output error");
-        map.put("EIPSEC", "TODO: Unknown description for EIPSEC");
+        map.put("EIPSEC", "IPsec processing failure");
         map.put("EISCONN", "Transport endpoint is already connected");
         map.put("EISDIR", "Is a directory");
         map.put("EISNAM", "Is a named type file");
@@ -134,7 +134,7 @@ public class ErrnoDescriptions {
         map.put("ENOSTR", "Device not a stream");
         map.put("ENOSYS", "Function not implemented");
         map.put("ENOTBLK", "Block device required");
-        map.put("ENOTCAPABLE", "TODO: Unknown description for ENOTCAPABLE");
+        map.put("ENOTCAPABLE", "Capabilities insufficient");
         map.put("ENOTCONN", "Transport endpoint is not connected");
         map.put("ENOTDIR", "Not a directory");
         map.put("ENOTEMPTY", "Directory not empty");
