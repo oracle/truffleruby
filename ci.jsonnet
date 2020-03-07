@@ -214,13 +214,6 @@ local part_definitions = {
       },
     },
 
-    # For `jt install jvmci`, verify that `jt install jvmci` still works when changing the version
-    openjdk8: with_path {
-      downloads+: {
-        JAVA_HOME: jdks.openjdk8,
-      },
-    },
-
     v11: with_path {
       downloads+: {
         JAVA_HOME: jdks["labsjdk-ce-11"],
