@@ -316,6 +316,15 @@ local part_definitions = {
     },
 
     generate_native_config: {
+      setup+: [
+        ["mx", "sforceimports"], # clone the graal repo
+        ["mx", "-p", "../graal/sulong", "build"],
+        ["set-export", "TOOLCHAIN_PATH", ["mx", "-p", "../graal/sulong", "lli", "--print-toolchain-path"]],
+        ["set-export", "CC", "$TOOLCHAIN_PATH/clang"],
+        ["set-export", "CXX", "$TOOLCHAIN_PATH/clang++"],
+        # for finding libc++
+        ["set-export", "LD_LIBRARY_PATH", "$BUILD_DIR/graal/sulong/mxbuild/linux-amd64/SULONG_HOME/native/lib:$LD_LIBRARY_PATH"],
+      ],
       run+: [
         ["ruby", "tool/generate-native-config.rb"],
         ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
@@ -601,10 +610,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     },
 
   manual_builds: {
-    local shared = $.use.common + $.cap.manual + { timelimit: "5:00" },
+    local shared = $.jdk.v8 + $.use.common + $.cap.manual + { timelimit: "5:00" },
 
-    "ruby-generate-native-config-linux": shared + $.platform.linux + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin": shared + $.platform.darwin + $.run.generate_native_config,
+    "ruby-generate-native-config-linux": $.platform.linux + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin": $.platform.darwin + shared + $.run.generate_native_config,
   },
 
   builds:

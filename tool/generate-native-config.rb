@@ -113,7 +113,7 @@ HANDLER = JavaHandler.new
 def run(command)
   puts "$ #{command}"
   output = `#{command}`
-  raise "#{command} failed:\m#{output}" unless $?.success?
+  raise "#{command} failed:\n#{output}" unless $?.success?
   output
 end
 
@@ -183,7 +183,7 @@ class StructGenerator < Generator
   end
 
   def cc
-    'clang++'
+    ENV.fetch('CXX', 'clang++')
   end
 
   def source_file
