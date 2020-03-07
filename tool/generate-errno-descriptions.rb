@@ -1,4 +1,4 @@
-errnos = File.readlines("#{__dir__}/known_errors.def", chomp: true)
+errnos = File.readlines("#{__dir__}/known_errors.def").map(&:chomp)
 
 c = <<EOC
 #include <errno.h>
