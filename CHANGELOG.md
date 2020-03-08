@@ -83,6 +83,7 @@ Compatibility:
 * Implemented `rb_gc_latest_gc_info` (#1937).
 * Implemented `RBASIC_CLASS` (#1935).
 * Yield 2 arguments for `Hash#map` if the arity of the block is > 1 (#1944).
+* Add all `Errno` constants to match MRI, needed by recent RubyGems.
 
 Changes:
 

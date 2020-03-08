@@ -113,7 +113,7 @@ HANDLER = JavaHandler.new
 def run(command)
   puts "$ #{command}"
   output = `#{command}`
-  raise "#{command} failed:\m#{output}" unless $?.success?
+  raise "#{command} failed:\n#{output}" unless $?.success?
   output
 end
 
@@ -183,7 +183,7 @@ class StructGenerator < Generator
   end
 
   def cc
-    'clang++'
+    ENV.fetch('CXX', 'clang++')
   end
 
   def source_file
@@ -558,19 +558,8 @@ end
 
 constants 'errno' do |cg|
   cg.include 'errno.h'
-  cg.consts %w[
-    EPERM ENOENT ESRCH EINTR EIO ENXIO E2BIG ENOEXEC EBADF ECHILD EDEADLK ENOMEM
-    EACCES EFAULT ENOTBLK EBUSY EEXIST EXDEV ENODEV ENOTDIR EISDIR EINVAL ENFILE
-    EMFILE ENOTTY ETXTBSY EFBIG ENOSPC ESPIPE EROFS EMLINK EPIPE EDOM ERANGE
-    EWOULDBLOCK EAGAIN EINPROGRESS EALREADY ENOTSOCK EDESTADDRREQ EMSGSIZE
-    EPROTOTYPE ENOPROTOOPT EPROTONOSUPPORT ESOCKTNOSUPPORT EOPNOTSUPP
-    EPFNOSUPPORT EAFNOSUPPORT EADDRINUSE EADDRNOTAVAIL ENETDOWN ENETUNREACH
-    ENETRESET ECONNABORTED ECONNRESET ENOBUFS EISCONN ENOTCONN ESHUTDOWN
-    ETOOMANYREFS ETIMEDOUT ECONNREFUSED ELOOP ENAMETOOLONG EHOSTDOWN
-    EHOSTUNREACH ENOTEMPTY EUSERS EDQUOT ESTALE EREMOTE ENOLCK ENOSYS EOVERFLOW
-    EIDRM ENOMSG EILSEQ EBADMSG EMULTIHOP ENODATA ENOLINK ENOSR ENOSTR EPROTO
-    ETIME
-  ]
+  errnos = File.readlines("#{__dir__}/known_errors.def").map(&:chomp)
+  cg.consts errnos
 end
 
 constants 'limits' do |cg|

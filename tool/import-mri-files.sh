@@ -92,3 +92,6 @@ rm -rf lib/cext/include/ruby lib/cext/include/ccan
 git checkout lib/cext/include/ruby/config.h
 cp -r ../ruby/include/. lib/cext/include
 cp -r ../ruby/ccan/. lib/cext/include/ccan
+
+# defs/
+cp ../ruby/defs/known_errors.def tool
