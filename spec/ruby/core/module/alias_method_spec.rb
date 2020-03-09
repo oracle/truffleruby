@@ -166,5 +166,4 @@ describe "Module#alias_method" do
       @subclass.private_instance_methods.include?(:respond_to_missing?).should be_true
     end
   end
-
 end
