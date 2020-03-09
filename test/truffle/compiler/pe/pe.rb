@@ -24,7 +24,7 @@
 #
 # Run with:
 #
-#   jt --env jvm-ce ruby --experimental-options --engine.TraceCompilation --engine.CompilationExceptionsAreFatal --engine.IterativePartialEscape test.rb
+#   jt --env jvm-ce ruby --experimental-options --engine.TraceCompilation --engine.CompilationFailureAction=ExitVM --engine.IterativePartialEscape test.rb
 
 require_relative 'pe_harness'
 
