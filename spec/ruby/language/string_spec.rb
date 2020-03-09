@@ -261,16 +261,16 @@ end
 
 describe "Ruby String interpolation" do
   it "returns a string with the source encoding by default" do
-    "a#{"b"}c".encoding.should == Encoding::UTF_8
+    "a#{"b"}c".encoding.should == Encoding::BINARY
     eval('"a#{"b"}c"'.force_encoding("us-ascii")).encoding.should == Encoding::US_ASCII
   end
 
   it "returns a string with the source encoding, even if the components have another encoding" do
     a = "abc".force_encoding("euc-jp")
-    "#{a}".encoding.should == Encoding::UTF_8
+    "#{a}".encoding.should == Encoding::BINARY
 
-    b = "abc".encode("binary")
-    "#{b}".encoding.should == Encoding::UTF_8
+    b = "abc".encode("utf-8")
+    "#{b}".encoding.should == Encoding::BINARY
   end
 
   it "raises an Encoding::CompatibilityError if the Encodings are not compatible" do
