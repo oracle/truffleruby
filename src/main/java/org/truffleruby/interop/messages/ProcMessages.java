@@ -27,8 +27,7 @@ public class ProcMessages extends RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static Object execute(
-            DynamicObject proc, Object[] arguments,
+    protected static Object execute(DynamicObject proc, Object[] arguments,
             @Cached YieldNode yieldNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
         return yieldNode.executeDispatch(proc, foreignToRubyArgumentsNode.executeConvert(arguments));

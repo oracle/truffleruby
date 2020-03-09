@@ -39,13 +39,15 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected boolean isPrimitive(@CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+    protected boolean isPrimitive(
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.isPrimitive(storage);
     }
 
     @ExportMessage
     @TruffleBoundary
-    protected String toString(@CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+    protected String toString(
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return String.format("Delegate of (%s)", stores.toString(storage));
     }
 
@@ -111,7 +113,8 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    protected ArrayAllocator allocator(@CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+    protected ArrayAllocator allocator(
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.allocator(storage);
     }
 

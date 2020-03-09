@@ -561,8 +561,7 @@ public abstract class TruffleDebugNodes {
 
             @ExportMessage
             @TruffleBoundary
-            protected Object getMembers(
-                    boolean includeInternal,
+            protected Object getMembers(boolean includeInternal,
                     @CachedContext(RubyLanguage.class) RubyContext context) {
                 return context.getEnv().asGuestValue(map.keySet().toArray(new String[map.size()]));
             }

@@ -80,7 +80,8 @@ public abstract class MetaClassNode extends RubyBaseNode {
             guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",
             limit = "getCacheLimit()")
-    protected DynamicObject metaClassCached(DynamicObject object,
+    protected DynamicObject metaClassCached(
+            DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             // used only during instantiation when it's always correct for a given object
             @CachedContext(RubyLanguage.class) RubyContext context,

@@ -91,28 +91,24 @@ public class ArrayMessages extends RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean isArrayElementReadable(
-            DynamicObject array, long index) {
+    protected static boolean isArrayElementReadable(DynamicObject array, long index) {
         return inBounds(array, index);
     }
 
     @ExportMessage
-    protected static boolean isArrayElementModifiable(
-            DynamicObject array, long index,
+    protected static boolean isArrayElementModifiable(DynamicObject array, long index,
             @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(array) && inBounds(array, index);
     }
 
     @ExportMessage
-    protected static boolean isArrayElementRemovable(
-            DynamicObject array, long index,
+    protected static boolean isArrayElementRemovable(DynamicObject array, long index,
             @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(array) && inBounds(array, index);
     }
 
     @ExportMessage
-    protected static boolean isArrayElementInsertable(
-            DynamicObject array, long index,
+    protected static boolean isArrayElementInsertable(DynamicObject array, long index,
             @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(array) && RubyGuards.fitsInInteger(index) && index >= Layouts.ARRAY.getSize(array);
     }

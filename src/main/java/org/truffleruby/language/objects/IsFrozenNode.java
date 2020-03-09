@@ -53,8 +53,7 @@ public abstract class IsFrozenNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected boolean isFrozen(
-            DynamicObject object,
+    protected boolean isFrozen(DynamicObject object,
             @Cached ReadObjectFieldNode readFrozenNode) {
         return (boolean) readFrozenNode.execute(object, Layouts.FROZEN_IDENTIFIER, false);
     }

@@ -47,8 +47,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean hasArrayElements(
-            DynamicObject receiver,
+    protected static boolean hasArrayElements(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
@@ -57,8 +56,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static long getArraySize(
-            DynamicObject receiver,
+    protected static long getArraySize(DynamicObject receiver,
             @Cached IntegerCastNode integerCastNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
@@ -80,8 +78,7 @@ public class RubyObjectMessages {
 
     @ExportMessage
     @SuppressWarnings("unused") // because of throws in ArrayMessages
-    protected static Object readArrayElement(
-            DynamicObject receiver, long index,
+    protected static Object readArrayElement(DynamicObject receiver, long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
@@ -101,8 +98,7 @@ public class RubyObjectMessages {
 
     @ExportMessage
     @SuppressWarnings("unused") // because of throws in ArrayMessages
-    protected static void writeArrayElement(
-            DynamicObject receiver, long index, Object value,
+    protected static void writeArrayElement(DynamicObject receiver, long index, Object value,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
@@ -121,8 +117,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static void removeArrayElement(
-            DynamicObject receiver, long index,
+    protected static void removeArrayElement(DynamicObject receiver, long index,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
@@ -140,8 +135,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean isArrayElementReadable(
-            DynamicObject receiver, long index,
+    protected static boolean isArrayElementReadable(DynamicObject receiver, long index,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
@@ -150,8 +144,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean isArrayElementModifiable(
-            DynamicObject receiver, long index,
+    protected static boolean isArrayElementModifiable(DynamicObject receiver, long index,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
@@ -160,8 +153,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean isArrayElementInsertable(
-            DynamicObject receiver, long index,
+    protected static boolean isArrayElementInsertable(DynamicObject receiver, long index,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
@@ -170,8 +162,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean isArrayElementRemovable(
-            DynamicObject receiver, long index,
+    protected static boolean isArrayElementRemovable(DynamicObject receiver, long index,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
@@ -180,8 +171,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static boolean isPointer(
-            DynamicObject receiver,
+    protected static boolean isPointer(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
@@ -190,8 +180,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static long asPointer(
-            DynamicObject receiver,
+    protected static long asPointer(DynamicObject receiver,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
@@ -211,8 +200,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static void toNative(
-            DynamicObject receiver,
+    protected static void toNative(DynamicObject receiver,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode) {
 
@@ -229,9 +217,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static Object getMembers(
-            DynamicObject receiver,
-            boolean internal,
+    protected static Object getMembers(DynamicObject receiver, boolean internal,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Exclusive @Cached CallDispatchHeadNode dispatchNode) {
 
@@ -298,9 +284,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static void removeMember(
-            DynamicObject receiver,
-            String name,
+    protected static void removeMember(DynamicObject receiver, String name,
             @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
             @Exclusive @Cached CallDispatchHeadNode removeInstanceVariableNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
@@ -328,10 +312,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static Object invokeMember(
-            DynamicObject receiver,
-            String name,
-            Object[] arguments,
+    protected static Object invokeMember(DynamicObject receiver, String name, Object[] arguments,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchDynamic,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchMember,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,

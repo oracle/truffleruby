@@ -49,9 +49,7 @@ public abstract class PolyglotNodes {
                         "idEqualNode.execute(rope(id), cachedMimeType)",
                         "sourceEqualNode.execute(rope(source), cachedSource)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(
-                DynamicObject id,
-                DynamicObject source,
+        protected Object evalCached(DynamicObject id, DynamicObject source,
                 @Cached("privatizeRope(id)") Rope cachedMimeType,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("create(parse(id, source))") DirectCallNode callNode,

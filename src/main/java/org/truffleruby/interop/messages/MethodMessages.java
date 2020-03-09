@@ -31,8 +31,7 @@ public class MethodMessages extends RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static Object execute(
-            DynamicObject method, Object[] arguments,
+    protected static Object execute(DynamicObject method, Object[] arguments,
             @Cached CallBoundMethodNode callBoundMethodNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @CachedContext(RubyLanguage.class) RubyContext context) {

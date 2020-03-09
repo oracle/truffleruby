@@ -70,8 +70,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "cachedName.equals(OBJECT_ID) || cachedName.equals(ID)",
                     "args.length == 0" },
             limit = "1")
-    protected Object objectId(
-            Object receiver, String name, Object[] args,
+    protected Object objectId(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName) {
         return System.identityHashCode(receiver);
     }
@@ -83,8 +82,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "args.length == 1",
                     "isBasicInteger(first(args))" },
             limit = "1")
-    protected Object readArrayElement(
-            Object receiver, String name, Object[] args,
+    protected Object readArrayElement(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.ReadArrayElementNode readNode) {
         return readNode.execute(receiver, args[0]);
@@ -97,8 +95,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "args.length == 1",
                     "isRubySymbol(first(args)) || isRubyString(first(args))" },
             limit = "1")
-    protected Object readMember(
-            Object receiver, String name, Object[] args,
+    protected Object readMember(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.ReadMemberNode readNode) {
         return readNode.execute(receiver, args[0]);
@@ -136,24 +133,21 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(CALL)" }, limit = "1")
-    protected Object call(
-            Object receiver, String name, Object[] args,
+    protected Object call(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.ExecuteNode executeNode) {
         return executeNode.execute(receiver, args);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(NEW)" }, limit = "1")
-    protected Object newOutgoing(
-            Object receiver, String name, Object[] args,
+    protected Object newOutgoing(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.NewNode newNode) {
         return newNode.execute(receiver, args);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(SEND)", "args.length >= 1" }, limit = "1")
-    protected Object sendOutgoing(
-            Object receiver, String name, Object[] args,
+    protected Object sendOutgoing(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached @Shared("dispatch") CallDispatchHeadNode dispatchNode) {
 
@@ -164,16 +158,14 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(NIL)", "args.length == 0" }, limit = "1")
-    protected Object nil(
-            Object receiver, String name, Object[] args,
+    protected Object nil(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.NullNode nullNode) {
         return nullNode.execute(receiver);
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(EQUAL)", "args.length == 1" }, limit = "1")
-    protected Object isEqual(
-            Object receiver, String name, Object[] args,
+    protected Object isEqual(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         final Object a = receiver;
@@ -207,8 +199,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "canHaveBadArguments(cachedName)",
                     "badArity(args, cachedArity, cachedName)" },
             limit = "1" /* the name is constant */)
-    protected Object withBadArguments(
-            Object receiver, String name, Object[] args,
+    protected Object withBadArguments(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
             @CachedContext(RubyLanguage.class) RubyContext context) {
@@ -284,8 +275,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(
             guards = { "isRedirectToTruffleInterop(cachedName)", "args.length == cachedArity" },
             limit = "1" /* the name is constant */)
-    protected Object redirectToTruffleInterop(
-            Object receiver, String name, Object[] args,
+    protected Object redirectToTruffleInterop(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached(value = "expectedArity(cachedName)", allowUncached = true) int cachedArity,
             @Cached(value = "specialToInteropMethod(cachedName)", allowUncached = true) String interopMethodName,
@@ -307,8 +297,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "name == cachedName", "isOperatorMethod(cachedName)" }, limit = "1")
-    protected Object operator(
-            Object receiver, String name, Object[] args,
+    protected Object operator(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached PrimitiveConversionForOperatorAndReDispatchOutgoingNode node) {
         return node.executeCall(receiver, name, args);
@@ -327,8 +316,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "!isRedirectToTruffleInterop(cachedName)",
                     "!isOperatorMethod(cachedName)" },
             limit = "1")
-    protected Object notOperator(
-            Object receiver, String name, Object[] args,
+    protected Object notOperator(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.InvokeNode invokeNode) {
         return invokeNode.execute(receiver, name, args);
@@ -351,8 +339,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected abstract Object executeCall(Object receiver, String name, Object[] args);
 
         @Specialization(guards = "receivers.isBoolean(receiver)", limit = "getCacheLimit()")
-        protected Object callBoolean(
-                Object receiver, String name, Object[] args,
+        protected Object callBoolean(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
@@ -363,8 +350,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "receivers.isString(receiver)", limit = "getCacheLimit()")
-        protected Object callString(
-                Object receiver, String name, Object[] args,
+        protected Object callString(Object receiver, String name, Object[] args,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached CallDispatchHeadNode dispatch) {
@@ -379,8 +365,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         @Specialization(
                 guards = { "receivers.isNumber(receiver)", "receivers.fitsInInt(receiver)" },
                 limit = "getCacheLimit()")
-        protected Object callInt(
-                Object receiver, String name, Object[] args,
+        protected Object callInt(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
@@ -396,8 +381,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                         "!receivers.fitsInInt(receiver)",
                         "receivers.fitsInLong(receiver)" },
                 limit = "getCacheLimit()")
-        protected Object callLong(
-                Object receiver, String name, Object[] args,
+        protected Object callLong(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
@@ -413,8 +397,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                         "!receivers.fitsInLong(receiver)",
                         "receivers.fitsInDouble(receiver)" },
                 limit = "getCacheLimit()")
-        protected Object callDouble(
-                Object receiver, String name, Object[] args,
+        protected Object callDouble(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
@@ -430,8 +413,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                         "!receivers.isString(receiver)",
                         "!receivers.isNumber(receiver)" },
                 limit = "getCacheLimit()")
-        protected Object call(
-                Object receiver, String name, Object[] args,
+        protected Object call(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached InteropNodes.InvokeNode invokeNode) {
             return invokeNode.execute(receiver, name, args);

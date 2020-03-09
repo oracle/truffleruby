@@ -144,7 +144,11 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class CopyContents {
 
         @Specialization
-        protected static void copyContents(NativeArrayStorage srcStore, int srcStart, Object destStore, int destStart,
+        protected static void copyContents(
+                NativeArrayStorage srcStore,
+                int srcStart,
+                Object destStore,
+                int destStart,
                 int length,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
                 @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary destStores) {

@@ -99,7 +99,6 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
             MissingBehavior missingBehavior,
             boolean ignoreVisibility,
             boolean onlyCallPublic,
-
             @Cached("dispatchAction") DispatchAction cachedDispatchAction,
             @Cached("missingBehavior") MissingBehavior cachedMissingBehaviour,
             @Cached("ignoreVisibility") boolean cachedIgnoreVisibility,

@@ -44,7 +44,10 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
     @Specialization(
             guards = { "getSize(array) == 1", "startAt == 0" },
             limit = "STORAGE_STRATEGIES")
-    protected DynamicObject iterateOne(DynamicObject array, DynamicObject block, int startAt,
+    protected DynamicObject iterateOne(
+            DynamicObject array,
+            DynamicObject block,
+            int startAt,
             ArrayElementConsumerNode consumerNode,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
         final Object store = Layouts.ARRAY.getStore(array);
@@ -62,7 +65,10 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
     @Specialization(
             guards = { "getSize(array) != 1" },
             limit = "STORAGE_STRATEGIES")
-    protected DynamicObject iterateMany(DynamicObject array, DynamicObject block, int startAt,
+    protected DynamicObject iterateMany(
+            DynamicObject array,
+            DynamicObject block,
+            int startAt,
             ArrayElementConsumerNode consumerNode,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
             @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {

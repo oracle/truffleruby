@@ -44,8 +44,7 @@ public abstract class LongCastNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "!isBasicInteger(value)")
-    protected long doBasicObject(
-            Object value,
+    protected long doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(context, notAFixnum(context, value));
     }

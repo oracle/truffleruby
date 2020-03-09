@@ -35,8 +35,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     public abstract DynamicObject executeFromJavaString(Object value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    protected DynamicObject doCached(
-            String value,
+    protected DynamicObject doCached(String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
             @Cached StringNodes.MakeStringNode makeStringNode) {
@@ -44,8 +43,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "doCached")
-    protected DynamicObject doGeneric(
-            String value,
+    protected DynamicObject doGeneric(String value,
             @Cached StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }

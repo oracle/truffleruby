@@ -133,7 +133,11 @@ public abstract class ByteArrayNodes {
     public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(source)")
-        protected Object fillFromString(DynamicObject byteArray, int dstStart, DynamicObject source, int srcStart,
+        protected Object fillFromString(
+                DynamicObject byteArray,
+                int dstStart,
+                DynamicObject source,
+                int srcStart,
                 int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(source);
@@ -144,7 +148,11 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(guards = "isRubyPointer(source)")
-        protected Object fillFromPointer(DynamicObject byteArray, int dstStart, DynamicObject source, int srcStart,
+        protected Object fillFromPointer(
+                DynamicObject byteArray,
+                int dstStart,
+                DynamicObject source,
+                int srcStart,
                 int length,
                 @Cached BranchProfile nullPointerProfile) {
             assert length > 0;

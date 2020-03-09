@@ -145,8 +145,7 @@ public abstract class ExceptionNodes {
         @Child private ReadObjectFieldNode readCustomBacktraceNode;
 
         @Specialization
-        protected Object backtrace(
-                DynamicObject exception,
+        protected Object backtrace(DynamicObject exception,
                 @Cached("createBinaryProfile()") ConditionProfile hasCustomBacktraceProfile,
                 @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile) {
             final Object customBacktrace = getReadCustomBacktraceNode()

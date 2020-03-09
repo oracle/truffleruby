@@ -2108,48 +2108,148 @@ EOS
     mx 'checkstyle', '-f', '--primary'
   end
 
-  def make_specializations_protected
-    changed = false
-    count_braces = -> line { line.count('(') - line.count(')') }
+  module Formatting
+    def make_specializations_protected
+      iterate do |first, *rest|
+        # change to protected
+        [first.gsub(/^( *)(public |protected |private |)/, '\1protected '), *rest]
+      end
+    end
 
-    Dir.glob(File.join(TRUFFLERUBY_DIR, 'src', '**', '*.java')) do |file|
-      content = File.read file
-      new_content = ''
+    def specialisation_declaration
+      iterate do |lines|
+        first = lines.first
+        indent = "#{first[/^ +/]}"
+        arg_indent = indent + ' ' * 8
+        declaration, *arguments, rest = split_arguments(lines.join)
 
-      looking = false
-      braces = 0
-      content.lines.each do |line|
-        if looking
-          if braces == 0
-            if line =~ /[\w<>]+(\[\])? \w+\(/
-              new_line = line.
-                  # change to protected
-                  gsub(/^( *)(public |protected |private |)/, '\1protected ')
-              new_content << new_line
-              looking = false
-            else
-              new_content << line
-            end
-          else
-            braces += count_braces.(line)
-            new_content << line
-          end
+        dynamic_arguments, cached_arguments = arguments.partition { |segment| !segment.start_with?('@') || segment.start_with?('@SuppressWarnings') }
+
+        one_line = indent + declaration + dynamic_arguments.join(', ')
+        one_line += case [dynamic_arguments.empty?, cached_arguments.empty?]
+                    when [true, true], [false, true]
+                      rest
+                    when [true, false]
+                      ''
+                    when [false, false]
+                      ','
+                    end
+
+        if one_line.size <= 120
+          [one_line + "\n",
+           *cached_arguments[0..-2].map {|c| arg_indent + c + ",\n" },
+           *(arg_indent + cached_arguments[-1] + rest + "\n" unless cached_arguments.empty?)]
         else
-          looking = /^ *@(Specialization|Fallback|CreateCast|ExportMessage)/ =~ line
-          new_content << line
-          if looking
-            braces = count_braces.(line)
+          [indent + declaration + "\n",
+           *arguments[0..-2].map {|c| arg_indent + c + ",\n" },
+           arg_indent + arguments[-1] + rest + "\n"]
+        end
+        # lines
+      end
+    end
+
+    private
+
+    def split_arguments(line)
+      i            = 0
+      split_points = []
+      i            += 1 while line[i] != '('
+      i            += 1
+      brackets     = 1
+      split_points << i # ( start of arguments
+
+
+      while i < line.size
+        case line[i]
+        when '('
+          brackets += 1
+        when ')'
+          brackets -= 1
+          if brackets == 0
+            split_points << i
+            break
           end
+        when ','
+          split_points << i if brackets == 1
+        else
+          # nothing to do
+        end
+        i += 1
+      end
+
+      split_points = [0, *split_points, -1]
+      segments = split_points.each_with_index.reduce([]) do |arr, (split_point, j)|
+        if j + 1 == split_points.size
+          arr
+        else
+          arr << line[split_point...split_points[j + 1]]
+        end
+      end
+      segments.map { |segment| segment.gsub(/\A,?\s+|\s+,?\Z/, '') }
+    end
+
+    def iterate(&update)
+      changed = false
+
+      Dir.glob(File.join(TRUFFLERUBY_DIR, 'src', '**', '*.java')) do |file|
+        content     = File.read file
+        new_content = ''
+        lines       = content.lines.to_a
+
+        while (line = lines.shift)
+          new_content << line and next unless /^ *@(Specialization|Fallback|CreateCast|ExportMessage)/ =~ line
+
+          braces = count_braces(line)
+          # look for end of annotation
+          while braces != 0
+            new_content << line
+            line   = lines.shift
+            braces += count_braces(line)
+          end
+
+          # look for declaration
+          while line !~ /[\w<>]+(\[\])? \w+\(/
+            new_content << line
+            line = lines.shift
+          end
+
+          # look for whole declaration
+          braces      = count_braces(line)
+          declaration = [line]
+          while braces != 0
+            # new_content << line
+            line   = lines.shift
+            braces += count_braces(line)
+            declaration << line
+          end
+
+          declaration = update.call declaration
+          declaration.each { |l| new_content << l }
+        end
+
+        if content != new_content
+          puts "#{file} updated"
+          changed = true
+          File.write file, new_content
         end
       end
 
-      if content != new_content
-        puts "#{file} updated"
-        changed = true
-        File.write file, new_content
-      end
+      changed
     end
-    changed
+
+    def count_braces(line, brackets = '()')
+      line.count(brackets[0]) - line.count(brackets[1])
+    end
+
+    extend self
+  end
+
+  def make_specializations_protected
+    Formatting.make_specializations_protected
+  end
+
+  def specialisation_declaration
+    Formatting.specialisation_declaration
   end
 
   def lint
@@ -2169,6 +2269,7 @@ EOS
     check_documentation_urls
     check_license
     abort 'Some Specializations were not protected.' if make_specializations_protected
+    abort 'Some Specializations were not properly formatted.' if specialisation_declaration
   end
 
   def sync

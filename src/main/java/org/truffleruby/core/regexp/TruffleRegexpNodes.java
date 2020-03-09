@@ -151,7 +151,8 @@ public class TruffleRegexpNodes {
     public static abstract class CompilationStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        protected Object buildStatsArray(@Cached ArrayBuilderNode arrayBuilderNode) {
+        protected Object buildStatsArray(
+                @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(compiledRegexps, arrayBuilderNode, getContext());
         }
     }
@@ -160,7 +161,8 @@ public class TruffleRegexpNodes {
     public static abstract class MatchStatsArrayNode extends RegexpStatsNode {
 
         @Specialization
-        protected Object buildStatsArray(@Cached ArrayBuilderNode arrayBuilderNode) {
+        protected Object buildStatsArray(
+                @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(matchedRegexps, arrayBuilderNode, getContext());
         }
     }
@@ -190,8 +192,13 @@ public class TruffleRegexpNodes {
         // Without a private copy, the MatchData's source could be modified to be upcased when it should remain the
         // same as when the MatchData was created.
         @Specialization
-        protected Object executeMatch(DynamicObject regexp, DynamicObject string, Matcher matcher,
-                int startPos, int range, boolean onlyMatchAtStart,
+        protected Object executeMatch(
+                DynamicObject regexp,
+                DynamicObject string,
+                Matcher matcher,
+                int startPos,
+                int range,
+                boolean onlyMatchAtStart,
                 @Cached("createBinaryProfile()") ConditionProfile matchesProfile) {
             assert RubyGuards.isRubyRegexp(regexp);
             assert RubyGuards.isRubyString(string);

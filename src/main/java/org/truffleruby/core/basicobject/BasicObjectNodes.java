@@ -260,8 +260,13 @@ public abstract class BasicObjectNodes {
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName,
-                int line, NotProvided block,
+        protected Object instanceEval(
+                VirtualFrame frame,
+                Object receiver,
+                DynamicObject string,
+                DynamicObject fileName,
+                int line,
+                NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -270,8 +275,13 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = { "isRubyString(string)", "isRubyString(fileName)" })
-        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, DynamicObject fileName,
-                NotProvided line, NotProvided block,
+        protected Object instanceEval(
+                VirtualFrame frame,
+                Object receiver,
+                DynamicObject string,
+                DynamicObject fileName,
+                NotProvided line,
+                NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -280,8 +290,13 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = { "isRubyString(string)" })
-        protected Object instanceEval(VirtualFrame frame, Object receiver, DynamicObject string, NotProvided fileName,
-                NotProvided line, NotProvided block,
+        protected Object instanceEval(
+                VirtualFrame frame,
+                Object receiver,
+                DynamicObject string,
+                NotProvided fileName,
+                NotProvided line,
+                NotProvided block,
                 @Cached ReadCallerFrameNode callerFrameNode,
                 @Cached IndirectCallNode callNode) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
@@ -296,7 +311,11 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        protected Object instanceEval(Object receiver, NotProvided string, NotProvided fileName, NotProvided line,
+        protected Object instanceEval(
+                Object receiver,
+                NotProvided string,
+                NotProvided fileName,
+                NotProvided line,
                 DynamicObject block,
                 @Cached InstanceExecNode instanceExecNode) {
             return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);

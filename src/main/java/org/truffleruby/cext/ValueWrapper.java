@@ -78,8 +78,7 @@ public class ValueWrapper implements TruffleObject {
     }
 
     @ExportMessage
-    protected static long asPointer(
-            ValueWrapper wrapper,
+    protected static long asPointer(ValueWrapper wrapper,
             @Cached KeepAliveNode keepAliveNode,
             @Cached AllocateHandleNode createNativeHandleNode,
             @Cached BranchProfile createHandleProfile,

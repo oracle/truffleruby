@@ -84,8 +84,7 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
                     "rubyClass.getShape() == cachedShape",
                     "cachedSingletonClass != null" },
             limit = "getCacheLimit()")
-    protected DynamicObject singletonClassClassCached(
-            DynamicObject rubyClass,
+    protected DynamicObject singletonClassClassCached(DynamicObject rubyClass,
             @Cached("rubyClass.getShape()") Shape cachedShape,
             @Cached("getSingletonClassOrNull(rubyClass)") DynamicObject cachedSingletonClass) {
 

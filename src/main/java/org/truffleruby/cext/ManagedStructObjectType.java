@@ -83,17 +83,13 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @ExportMessage
-    protected static Object getMembers(
-            DynamicObject receiver,
-            boolean includeInternal,
+    protected static Object getMembers(DynamicObject receiver, boolean includeInternal,
             @Cached CallDispatchHeadNode dispatchNode) {
         return dispatchNode.call(receiver, "instance_variables");
     }
 
     @ExportMessage
-    protected static Object readMember(
-            DynamicObject receiver,
-            String name,
+    protected static Object readMember(DynamicObject receiver, String name,
             @Cached ObjectIVarGetNode readObjectFieldNode) throws UnknownIdentifierException {
 
         if (!receiver.containsKey(name)) {
@@ -103,10 +99,7 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @ExportMessage
-    protected static void writeMember(
-            DynamicObject receiver,
-            String name,
-            Object value,
+    protected static void writeMember(DynamicObject receiver, String name, Object value,
             @Cached ObjectIVarSetNode writeObjectFieldNode) {
 
         writeObjectFieldNode.executeIVarSet(receiver, name, value);
