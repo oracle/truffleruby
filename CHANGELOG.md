@@ -52,6 +52,7 @@ Bug fixes:
 * Fixed `Date.parse` to dup the coerced string to not modify original (#1946).
 * Update `Comparable` error messages for special constant values (#1941).
 * Fixed `File.ftype` parameter conversion (#1961).
+* Fixed `Digest::Instance#file` to not modify string literal (#1964).
 
 Compatibility:
 
