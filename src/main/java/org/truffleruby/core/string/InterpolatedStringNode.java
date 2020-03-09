@@ -11,6 +11,7 @@ package org.truffleruby.core.string;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.cast.ToSNode;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -32,22 +33,22 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     @Child private IsTaintedNode isTaintedNode;
     @Child private TaintNode taintNode;
 
-    private final Encoding encoding;
+    private final Rope emptyRope;
 
     private final ConditionProfile taintProfile = ConditionProfile.createCountingProfile();
 
     public InterpolatedStringNode(ToSNode[] children, Encoding encoding) {
+        assert children.length > 0;
         this.children = children;
-        this.encoding = encoding;
+        this.emptyRope = RopeOperations.emptyRope(encoding);
     }
 
     @ExplodeLoop
     @Override
     public Object execute(VirtualFrame frame) {
-        assert children.length > 0;
 
         // Start with an empty string to ensure the result has class String and the proper encoding.
-        DynamicObject builder = StringOperations.createString(getContext(), RopeOperations.emptyRope(encoding));
+        DynamicObject builder = StringOperations.createString(getContext(), emptyRope);
         boolean tainted = false;
 
         // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
