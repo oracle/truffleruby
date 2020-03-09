@@ -6,18 +6,18 @@
 - **`false`**
 - **`true`**
 - **`:symbol`**
-- **a `NilClass`**
+- **a `String`**
 - **an `Integer`**
 - **a `Float`**
 - **a `BigDecimal`**
-- **a `NilClass`**
-- **a `NilClass`**
-- **a `NilClass`**
-- **a `NilClass`**
+- **an `Object`**
+- **a `Class`**
+- **a `Hash`**
+- **an `Array`**
 - **`proc {...}`**
 - **`lambda {...}`**
 - **a `Method`**
-- **a `NilClass`** – an object implementing the polyglot pointer API.
+- **a `Truffle::FFI::Pointer`** – an object implementing the polyglot pointer API.
 - **polyglot pointer** – an object which implements the `polyglot_*` methods for pointer, which are:
   `polyglot_pointer?`,
   `polyglot_as_pointer`,
@@ -100,19 +100,19 @@ When interop message `execute` is sent
 ## Messages related to pointers
 
 When interop message `isPointer` is sent
-- to **a `NilClass`**
+- to **a `Truffle::FFI::Pointer`**
   it returns true.
 - otherwise
   it returns false.
 
 When interop message `asPointer` is sent
-- to **a `NilClass`**
+- to **a `Truffle::FFI::Pointer`**
   it returns the pointer address.
 - otherwise
   it fails with Polyglot::UnsupportedMessageError.
 
 When interop message `toNative` is sent
-- to **a `NilClass`** or **polyglot pointer**
+- to **a `Truffle::FFI::Pointer`** or **polyglot pointer**
   it converts the receiver to native and changes the value of isPointer from false to true if possible.
 - otherwise
   it does nothing.
@@ -120,29 +120,29 @@ When interop message `toNative` is sent
 ## Array related messages (incomplete)
 
 When interop message `hasArrayElements` is sent
-- to **a `NilClass`**, **polyglot array** or **polyglot int array**
+- to **an `Array`**, **polyglot array** or **polyglot int array**
   it returns true.
 - otherwise
   it returns false.
 
 When interop message `getArraySize` is sent
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns size of the array.
 - otherwise
   it fails with Polyglot::UnsupportedMessageError.
 
 When interop message `readArrayElement` is sent
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns the stored value when it is present at the given valid index (`0 <= index < size`).
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it fails with `IndexError` when a value is not present at the index or the index is invalid.
 - otherwise
   it fails with Polyglot::UnsupportedMessageError.
 
 When interop message `writeArrayElement` is sent
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it stores a value at a given index.
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it fails with `IndexError` when a index is invalid.
 - to **polyglot int array**
   it fails with `TypeError` when the value is invalid.
@@ -150,41 +150,41 @@ When interop message `writeArrayElement` is sent
   it fails with Polyglot::UnsupportedMessageError.
 
 When interop message `removeArrayElement` is sent
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it removes a value when the value is present at a valid index.
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it fails with IndexError when the value is not present at a valid index.
 - otherwise
   it fails with Polyglot::UnsupportedMessageError.
 
 When interop message `isArrayElementReadable` is sent
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns true if there is a value at the given index.
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns false if there is no value at the given index.
 - otherwise
   it returns false.
 
 When interop message `isArrayElementModifiable` is sent
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns true if there is a value at the given index.
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns false if there is no value at the given index.
 - otherwise
   it returns false.
 
 When interop message `isArrayElementInsertable` is sent
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns true if there is no value at the given index.
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns false if there is a value at the given index.
 - otherwise
   it returns false.
 
 When interop message `isArrayElementRemovable` is sent
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns true if there is a value at the given index.
-- to **a `NilClass`** or **polyglot array**
+- to **an `Array`** or **polyglot array**
   it returns false if there is no value at the given index.
 - otherwise
   it returns false.
