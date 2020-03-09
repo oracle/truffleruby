@@ -755,7 +755,7 @@ module Commands
         add_experimental_options.call
         vm_args << '--engine.CompileImmediately'
         vm_args << '--engine.BackgroundCompilation=false'
-        vm_args << '--engine.CompilationExceptionsAreFatal'
+        vm_args << '--engine.CompilationFailureAction=ExitVM'
       when '--asm'
         vm_args += %w[--vm.XX:+UnlockDiagnosticVMOptions --vm.XX:CompileCommand=print,*::callRoot]
       when '--jdebug'
@@ -1768,7 +1768,7 @@ EOS
   def benchmark(*args)
     vm_args = []
     if truffleruby_compiler?
-      vm_args << '--experimental-options' << '--engine.CompilationExceptionsAreFatal'
+      vm_args << '--experimental-options' << '--engine.CompilationFailureAction=ExitVM'
     end
     run_ruby(*vm_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
   end
