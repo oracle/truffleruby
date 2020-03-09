@@ -54,6 +54,7 @@ public abstract class BasicPlatform {
     }
 
     public static final OS_TYPE OS = determineOS();
+    public static final String ARCHITECTURE = determineArchitecture();
 
     public static String getOSName() {
         return OS.rubyName;
@@ -83,7 +84,7 @@ public abstract class BasicPlatform {
         throw new UnsupportedOperationException("Unknown platform: " + osName);
     }
 
-    public static String getArchitecture() {
+    private static String determineArchitecture() {
         String architecture = System.getProperty("os.arch");
 
         if (architecture == null) {

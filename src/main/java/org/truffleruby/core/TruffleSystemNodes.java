@@ -72,6 +72,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.shared.BasicPlatform;
 
 @CoreModule("Truffle::System")
 public abstract class TruffleSystemNodes {
@@ -172,7 +173,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         protected DynamicObject hostCPU() {
-            return makeStringNode.executeMake(Platform.ARCHITECTURE, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(BasicPlatform.ARCHITECTURE, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
