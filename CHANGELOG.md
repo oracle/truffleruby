@@ -87,6 +87,7 @@ Compatibility:
 * Add all `Errno` constants to match MRI, needed by recent RubyGems.
 * Silence `ruby_dep` warnings since that gem is unmaintained.
 * Clarify error message for not implemented `Process.daemon` (#1962).
+* Update `NoMethodError#message` to match MRI (#1957). 
 
 Changes:
 
