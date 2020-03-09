@@ -9,12 +9,12 @@
  */
 package org.truffleruby.interop.messages;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -293,15 +293,10 @@ public class RubyObjectMessages {
             } catch (RaiseException e) { // raises only if the name is missing
                 errorProfile.enter();
                 UnknownIdentifierException unknownIdentifier = UnknownIdentifierException.create(name);
-                initCause(unknownIdentifier, e);
+                ExceptionOperations.initCause(unknownIdentifier, e);
                 throw unknownIdentifier;
             }
         }
-    }
-
-    @TruffleBoundary
-    private static void initCause(Exception exception, Throwable cause) {
-        exception.initCause(cause);
     }
 
     @ExportMessage
