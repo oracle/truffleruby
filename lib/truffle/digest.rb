@@ -36,7 +36,7 @@ module Digest
     # returns self.
     def file(name)
       File.open(name, 'rb') do |f|
-        buf = ''
+        buf = String.new
         while f.read(16384, buf)
           update buf
         end
