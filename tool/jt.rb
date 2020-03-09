@@ -2109,21 +2109,21 @@ EOS
   end
 
   module Formatting
-    def make_specializations_protected
+    def format_specializations_visibility
       iterate do |first, *rest|
         # change to protected
         [first.gsub(/^( *)(public |protected |private |)/, '\1protected '), *rest]
       end
     end
 
-    def specialisation_declaration
+    def format_specializations_arguments
       iterate do |lines|
         first = lines.first
         indent = "#{first[/^ +/]}"
         arg_indent = indent + ' ' * 8
         declaration, *arguments, rest = split_arguments(lines.join)
 
-        dynamic_arguments, cached_arguments = arguments.partition { |segment| !segment.start_with?('@') || segment.start_with?('@SuppressWarnings') }
+        dynamic_arguments, cached_arguments = arguments.partition { |segment| segment !~ /^ *@/ || segment =~ /^ *@SuppressWarnings/ }
 
         one_line = indent + declaration + dynamic_arguments.join(', ')
         one_line += case [dynamic_arguments.empty?, cached_arguments.empty?]
@@ -2244,12 +2244,12 @@ EOS
     extend self
   end
 
-  def make_specializations_protected
-    Formatting.make_specializations_protected
+  def format_specializations_visibility
+    Formatting.format_specializations_visibility
   end
 
-  def specialisation_declaration
-    Formatting.specialisation_declaration
+  def format_specializations_arguments
+    Formatting.format_specializations_arguments
   end
 
   def lint
@@ -2268,8 +2268,8 @@ EOS
     check_parser
     check_documentation_urls
     check_license
-    abort 'Some Specializations were not protected.' if make_specializations_protected
-    abort 'Some Specializations were not properly formatted.' if specialisation_declaration
+    abort 'Some Specializations were not protected.' if format_specializations_visibility
+    abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
   end
 
   def sync

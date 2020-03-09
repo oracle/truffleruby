@@ -37,11 +37,7 @@ public abstract class ObjectIVarSetNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "name == cachedName", "checkName == cachedCheckName" }, limit = "getCacheLimit()")
-    protected Object ivarSetCached(
-            DynamicObject object,
-            Object name,
-            Object value,
-            boolean checkName,
+    protected Object ivarSetCached(DynamicObject object, Object name, Object value, boolean checkName,
             @Cached("checkName") boolean cachedCheckName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             // context does not have to be guarded since it used only during cache instance creation
