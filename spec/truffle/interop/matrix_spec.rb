@@ -105,8 +105,8 @@ describe 'Interop:' do
   end
 
   Subject = Struct.new(:constant_value, :value_constructor, :key, :name, :doc, :explanation) do
-    def initialize(value = nil, name: INSPECTION, doc: false, explanation: nil, &value_constructor)
-      super value, value_constructor, nil, name, doc, explanation
+    def initialize(constant_value = nil, name: INSPECTION, doc: false, explanation: nil, &value_constructor)
+      super constant_value, value_constructor, nil, name, doc, explanation
 
       if name.is_a? Proc
         self.name = self.name.call value
