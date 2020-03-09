@@ -10,7 +10,6 @@
 package org.truffleruby.launcher;
 
 import java.io.PrintStream;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,7 +54,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     @Override
     protected void printVersion() {
-        System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
+        System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
         System.out.println();
         printPolyglotVersions();
     }
@@ -121,9 +120,8 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     protected void launch(Context.Builder contextBuilder) {
         Metrics.begin();
         printPreRunInformation(config);
-        debugPreInitialization();
         final int exitValue = runRubyMain(contextBuilder, config);
-        Metrics.end(isAOT());
+        Metrics.end();
         System.exit(exitValue);
     }
 
@@ -242,21 +240,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
         }
     }
 
-    private static void debugPreInitialization() {
-        if (!isAOT() && TruffleRuby.PRE_INITIALIZE_CONTEXTS) {
-            // This is only run when saying that you are pre-initialising a context but actually you're not running in the image generator
-
-            try {
-                final Class<?> holderClz = Class.forName("org.graalvm.polyglot.Engine$ImplHolder");
-                final Method preInitMethod = holderClz.getDeclaredMethod("preInitializeEngine");
-                preInitMethod.setAccessible(true);
-                preInitMethod.invoke(null);
-            } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     private Context createContext(Context.Builder builder, CommandLineOptions config) {
         if (isAOT() && !config.isSetInPolyglotOptions(OptionsCatalog.LAUNCHER.getName())) {
             final String launcher = ProcessProperties.getExecutableName();
@@ -303,7 +286,7 @@ public class RubyLauncher extends AbstractLanguageLauncher {
 
     private void printPreRunInformation(CommandLineOptions config) {
         if (config.showVersion) {
-            System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine(), isAOT()));
+            System.out.println(TruffleRuby.getVersionString(getImplementationNameFromEngine()));
         }
 
         if (config.showCopyright) {

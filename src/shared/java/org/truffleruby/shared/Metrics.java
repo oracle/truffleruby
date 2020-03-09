@@ -9,6 +9,8 @@
  */
 package org.truffleruby.shared;
 
+import org.graalvm.nativeimage.ImageInfo;
+
 import java.lang.management.ManagementFactory;
 
 public class Metrics {
@@ -25,9 +27,9 @@ public class Metrics {
         }
     }
 
-    private static void printMemory(boolean isAOT) {
+    private static void printMemory() {
         // Memory stats aren't available in native.
-        if (!isAOT && METRICS_MEMORY_USED_ON_EXIT) {
+        if (!ImageInfo.inImageCode() && METRICS_MEMORY_USED_ON_EXIT) {
             for (int n = 0; n < 10; n++) {
                 System.gc();
             }
@@ -57,9 +59,9 @@ public class Metrics {
         printTime("before-main");
     }
 
-    public static void end(boolean isAOT) {
+    public static void end() {
         printTime("after-main");
-        printMemory(isAOT);
+        printMemory();
     }
 
 }
