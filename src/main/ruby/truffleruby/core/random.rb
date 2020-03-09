@@ -183,5 +183,3 @@ class Random
     Primitive.randomizer_bytes @randomizer, length
   end
 end
-
-Random::DEFAULT = Random.new
