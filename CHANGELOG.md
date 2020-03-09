@@ -85,6 +85,7 @@ Compatibility:
 * Yield 2 arguments for `Hash#map` if the arity of the block is > 1 (#1944).
 * Add all `Errno` constants to match MRI, needed by recent RubyGems.
 * Silence `ruby_dep` warnings since that gem is unmaintained.
+* Clarify error message for not implemented `Process.daemon` (#1962).
 
 Changes:
 
