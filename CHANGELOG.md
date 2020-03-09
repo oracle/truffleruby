@@ -61,6 +61,7 @@ Bug fixes:
 * Fixed `Random::DEFAULT.seed` to be different on boot (#1965, @kipply)
 * `rb_encoding->name` can now be read even if the `rb_encoding` is stored in native memory.
 * Detect and cut off recursion when inspecting a foreign object, substituting an ellipsis instead.
+* Change handling of var args in `rb_rescue2` to handle usage in C extensions (#1823).
 
 Compatibility:
 
