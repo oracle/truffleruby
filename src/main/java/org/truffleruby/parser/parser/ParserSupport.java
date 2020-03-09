@@ -649,10 +649,11 @@ public class ParserSupport {
 
     /** assign_in_cond **/
     private boolean checkAssignmentInCondition(ParseNode node) {
-        if (node instanceof MultipleAsgnParseNode) {
-            lexer.compile_error(PID.MULTIPLE_ASSIGNMENT_IN_CONDITIONAL, "multiple assignment in conditional");
-        } else if (node instanceof LocalAsgnParseNode || node instanceof DAsgnParseNode ||
-                node instanceof GlobalAsgnParseNode || node instanceof InstAsgnParseNode) {
+        if (node instanceof MultipleAsgnParseNode ||
+                node instanceof LocalAsgnParseNode ||
+                node instanceof DAsgnParseNode ||
+                node instanceof GlobalAsgnParseNode ||
+                node instanceof InstAsgnParseNode) {
             ParseNode valueNode = ((AssignableParseNode) node).getValueNode();
             if (isStaticContent(valueNode)) {
                 warnings.warn(
