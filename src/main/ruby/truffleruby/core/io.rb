@@ -202,7 +202,6 @@ class IO
 
         reset!
         if fill(io) == 0
-          io.instance_variable_set(:@eof, true)
           @eof = true
         end
 
@@ -1066,7 +1065,6 @@ class IO
     @binmode = nil
     @internal = nil
     @external = nil
-    @eof = false
     @pid = nil
 
     mode, binary, external, internal, autoclose_tmp = IO.normalize_options(mode, options)
@@ -1532,7 +1530,7 @@ class IO
   def eof?
     ensure_open_and_readable
     @ibuffer.fill_from self unless @ibuffer.exhausted?
-    @eof and @ibuffer.exhausted?
+    @ibuffer.exhausted?
   end
   alias_method :eof, :eof?
 
@@ -2175,9 +2173,7 @@ class IO
   #  f.readline                  #=> "And so on...\n"
   def seek(amount, whence=SEEK_SET)
     flush
-
     reset_buffering
-    @eof = false
 
     r = Truffle::POSIX.lseek(@descriptor, Integer(amount), whence)
     Errno.handle if r == -1
