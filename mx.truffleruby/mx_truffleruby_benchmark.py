@@ -20,6 +20,8 @@ from os.path import join
 import mx
 import mx_benchmark
 
+# TODO IMPORTANT: you need RUBY_BENCHMARKS=true for this file to be imported by mx_truffleruby.py
+
 # Utilities
 
 _suite = mx.suite('truffleruby')
