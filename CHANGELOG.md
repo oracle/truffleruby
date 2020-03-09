@@ -51,6 +51,7 @@ Bug fixes:
 * Fixed `Digest::SHA2.hexdigest` error with long messages (#1922).
 * Fixed `Date.parse` to dup the coerced string to not modify original (#1946).
 * Update `Comparable` error messages for special constant values (#1941).
+* Fixed `File.ftype` parameter conversion (#1961).
 
 Compatibility:
 
