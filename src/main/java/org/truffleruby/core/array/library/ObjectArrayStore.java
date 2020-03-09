@@ -13,6 +13,10 @@ package org.truffleruby.core.array.library;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
+
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -20,56 +24,52 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
-import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
-
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = Object[].class)
 @GenerateUncached
 public class ObjectArrayStore {
 
     @ExportMessage
-    public static Object read(Object[] store, int index) {
+    protected static Object read(Object[] store, int index) {
         return store[index];
     }
 
     @ExportMessage
-    public static boolean acceptsValue(Object[] store, Object value) {
+    protected static boolean acceptsValue(Object[] store, Object value) {
         return true;
     }
 
     @ExportMessage
-    public static boolean acceptsAllValues(Object[] store, Object otherStore) {
+    protected static boolean acceptsAllValues(Object[] store, Object otherStore) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isMutable(Object[] store) {
+    protected static boolean isMutable(Object[] store) {
         return true;
     }
 
     @ExportMessage
-    public static String toString(Object[] store) {
+    protected static String toString(Object[] store) {
         return "Object[]";
     }
 
     @ExportMessage
-    public static void write(Object[] store, int index, Object value) {
+    protected static void write(Object[] store, int index, Object value) {
         store[index] = value;
     }
 
     @ExportMessage
-    public static int capacity(Object[] store) {
+    protected static int capacity(Object[] store) {
         return store.length;
     }
 
     @ExportMessage
-    public static Object[] expand(Object[] store, int newCapacity) {
+    protected static Object[] expand(Object[] store, int newCapacity) {
         return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage
-    public static Object[] boxedCopyOfRange(Object[] store, int start, int length) {
+    protected static Object[] boxedCopyOfRange(Object[] store, int start, int length) {
         Object[] result = new Object[length];
         System.arraycopy(store, start, result, 0, length);
         return result;
@@ -99,12 +99,12 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    public static Object[] toJavaArrayCopy(Object[] store, int length) {
+    protected static Object[] toJavaArrayCopy(Object[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage
-    public static Iterable<Object> getIterable(Object[] store, int from, int length) {
+    protected static Iterable<Object> getIterable(Object[] store, int from, int length) {
         return () -> new Iterator<Object>() {
 
             private int n = from;
@@ -134,17 +134,17 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator generalizeForValue(Object[] store, Object newValue) {
+    protected static ArrayAllocator generalizeForValue(Object[] store, Object newValue) {
         return OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage
-    public static ArrayAllocator generalizeForStore(Object[] store, Object newValue) {
+    protected static ArrayAllocator generalizeForStore(Object[] store, Object newValue) {
         return OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage
-    public static ArrayAllocator allocator(Object[] store) {
+    protected static ArrayAllocator allocator(Object[] store) {
         return OBJECT_ARRAY_ALLOCATOR;
     }
 

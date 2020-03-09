@@ -34,7 +34,7 @@ Dir.glob(File.join(root, "src", "**", "*.java")) do |file|
         new_content << line.chomp << " "
       end
     else
-      looking = line.match?(/^ *@(Specialization|Fallback|CreateCast)/)
+      looking = line.match?(/^ *@(Specialization|Fallback|CreateCast|ExportMessage)/)
       new_content << (looking ? (line.chomp + " ") : line)
       if looking
         braces = braces(line)

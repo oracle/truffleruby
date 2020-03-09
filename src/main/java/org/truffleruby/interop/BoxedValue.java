@@ -27,7 +27,7 @@ public class BoxedValue implements TruffleObject {
 
     @TruffleBoundary
     @ExportMessage
-    public Object send(Message message, Object[] args) throws Exception {
+    protected Object send(Message message, Object[] args) throws Exception {
         ReflectionLibrary reflection = ReflectionLibrary.getFactory().getUncached();
         return reflection.send(value, message, args);
     }

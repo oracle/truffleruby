@@ -14,6 +14,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -23,21 +27,17 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
-import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
-
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = int[].class)
 @GenerateUncached
 public class IntegerArrayStore {
 
     @ExportMessage
-    public static int read(int[] store, int index) {
+    protected static int read(int[] store, int index) {
         return store[index];
     }
 
     @ExportMessage
-    public static boolean acceptsValue(int[] store, Object value) {
+    protected static boolean acceptsValue(int[] store, Object value) {
         return value instanceof Integer;
     }
 
@@ -66,37 +66,37 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    public static boolean isMutable(int[] store) {
+    protected static boolean isMutable(int[] store) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isPrimitive(int[] store) {
+    protected static boolean isPrimitive(int[] store) {
         return true;
     }
 
     @ExportMessage
-    public static String toString(int[] store) {
+    protected static String toString(int[] store) {
         return "int[]";
     }
 
     @ExportMessage
-    public static void write(int[] store, int index, Object value) {
+    protected static void write(int[] store, int index, Object value) {
         store[index] = (int) value;
     }
 
     @ExportMessage
-    public static int capacity(int[] store) {
+    protected static int capacity(int[] store) {
         return store.length;
     }
 
     @ExportMessage
-    public static int[] expand(int[] store, int newCapacity) {
+    protected static int[] expand(int[] store, int newCapacity) {
         return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage
-    public static Object[] boxedCopyOfRange(int[] store, int start, int length) {
+    protected static Object[] boxedCopyOfRange(int[] store, int start, int length) {
         Object[] result = new Object[length];
         for (int i = 0; i < length; i++) {
             result[i] = store[start + i];
@@ -127,18 +127,18 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    public static int[] toJavaArrayCopy(int[] store, int length) {
+    protected static int[] toJavaArrayCopy(int[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage
     @TruffleBoundary
-    public static void sort(int[] store, int size) {
+    protected static void sort(int[] store, int size) {
         Arrays.sort(store, 0, size);
     }
 
     @ExportMessage
-    public static Iterable<Object> getIterable(int[] store, int from, int length) {
+    protected static Iterable<Object> getIterable(int[] store, int from, int length) {
         return () -> new Iterator<Object>() {
 
             private int n = from;
@@ -223,7 +223,7 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator allocator(int[] store) {
+    protected static ArrayAllocator allocator(int[] store) {
         return INTEGER_ARRAY_ALLOCATOR;
     }
 

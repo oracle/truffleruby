@@ -482,7 +482,7 @@ public abstract class TruffleDebugNodes {
         public static class ForeignNull implements TruffleObject {
 
             @ExportMessage
-            public boolean isNull() {
+            protected boolean isNull() {
                 return true;
             }
         }
@@ -508,12 +508,12 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            public boolean isPointer() {
+            protected boolean isPointer() {
                 return true;
             }
 
             @ExportMessage
-            public long asPointer() {
+            protected long asPointer() {
                 return address;
             }
         }
@@ -555,25 +555,25 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            public boolean hasMembers() {
+            protected boolean hasMembers() {
                 return true;
             }
 
             @ExportMessage
             @TruffleBoundary
-            public Object getMembers(
+            protected Object getMembers(
                     boolean includeInternal,
                     @CachedContext(RubyLanguage.class) RubyContext context) {
                 return context.getEnv().asGuestValue(map.keySet().toArray(new String[map.size()]));
             }
 
             @ExportMessage
-            public boolean isMemberReadable(String member) {
+            protected boolean isMemberReadable(String member) {
                 return map.containsKey(member);
             }
 
             @ExportMessage
-            public Object readMember(String key) throws UnknownIdentifierException {
+            protected Object readMember(String key) throws UnknownIdentifierException {
                 final Object value = map.get(key);
                 if (value == null) {
                     throw UnknownIdentifierException.create(key);
@@ -604,18 +604,18 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            public boolean hasArrayElements() {
+            protected boolean hasArrayElements() {
                 return true;
             }
 
             @ExportMessage(name = "isArrayElementReadable")
             @ExportMessage(name = "isArrayElementModifiable")
-            public boolean isArrayElement(long index) {
+            protected boolean isArrayElement(long index) {
                 return 0 >= index && index < array.length;
             }
 
             @ExportMessage
-            public Object readArrayElement(long index) throws InvalidArrayIndexException {
+            protected Object readArrayElement(long index) throws InvalidArrayIndexException {
                 try {
                     return array[(int) index];
                 } catch (ArrayIndexOutOfBoundsException e) {
@@ -624,7 +624,7 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            public void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
+            protected void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
                 try {
                     array[(int) index] = value;
                 } catch (ArrayIndexOutOfBoundsException e) {
@@ -633,12 +633,12 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            public final boolean isArrayElementInsertable(long index) {
+            protected final boolean isArrayElementInsertable(long index) {
                 return false;
             }
 
             @ExportMessage
-            public long getArraySize() {
+            protected long getArraySize() {
                 return array.length;
             }
         }
@@ -670,12 +670,12 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            public boolean isPointer() {
+            protected boolean isPointer() {
                 return true;
             }
 
             @ExportMessage
-            public long asPointer() {
+            protected long asPointer() {
                 return 0; // shouldn't be used
             }
         }
@@ -704,12 +704,12 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            public boolean isExecutable() {
+            protected boolean isExecutable() {
                 return true;
             }
 
             @ExportMessage
-            public Object execute(Object... arguments) {
+            protected Object execute(Object... arguments) {
                 return value;
             }
         }
@@ -735,12 +735,12 @@ public abstract class TruffleDebugNodes {
             }
 
             @ExportMessage
-            public boolean isString() {
+            protected boolean isString() {
                 return true;
             }
 
             @ExportMessage
-            public String asString() {
+            protected String asString() {
                 return string;
             }
         }

@@ -26,12 +26,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class MethodMessages extends RubyObjectMessages {
 
     @ExportMessage
-    public static boolean isExecutable(DynamicObject receiver) {
+    protected static boolean isExecutable(DynamicObject receiver) {
         return true;
     }
 
     @ExportMessage
-    public static Object execute(
+    protected static Object execute(
             DynamicObject method, Object[] arguments,
             @Cached CallBoundMethodNode callBoundMethodNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,

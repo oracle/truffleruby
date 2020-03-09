@@ -13,6 +13,9 @@ package org.truffleruby.core.array.library;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -21,9 +24,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-
-import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 
 @ExportLibrary(value = ArrayStoreLibrary.class)
 @GenerateUncached
@@ -36,39 +36,39 @@ public class ZeroLengthArrayStore {
 
     @ExportMessage
     @TruffleBoundary
-    public Object read(int index) {
+    protected Object read(int index) {
         throw new UnsupportedOperationException();
     }
 
     @ExportMessage
-    public boolean isPrimitive() {
+    protected boolean isPrimitive() {
         return true;
     }
 
     @ExportMessage
-    public static String toString(ZeroLengthArrayStore store) {
+    protected static String toString(ZeroLengthArrayStore store) {
         return "empty";
     }
 
     @ExportMessage
-    public int capacity() {
+    protected int capacity() {
         return 0;
     }
 
     @ExportMessage
-    public Object[] expand(int newCapacity) {
+    protected Object[] expand(int newCapacity) {
         return new Object[newCapacity];
     }
 
     @ExportMessage
-    public Object extractRange(int start, int end) {
+    protected Object extractRange(int start, int end) {
         assert start == 0;
         assert end == 0;
         return this;
     }
 
     @ExportMessage
-    public Object[] boxedCopyOfRange(int start, int length) {
+    protected Object[] boxedCopyOfRange(int start, int length) {
         assert start == 0;
         assert length == 0;
 
@@ -76,24 +76,24 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    public void copyContents(int srcStart, Object destStore, int destStart, int length) {
+    protected void copyContents(int srcStart, Object destStore, int destStart, int length) {
         assert srcStart == 0;
         assert length == 0;
     }
 
     @ExportMessage
-    public Object[] toJavaArrayCopy(int length) {
+    protected Object[] toJavaArrayCopy(int length) {
         assert length == 0;
         return new Object[length];
     }
 
     @ExportMessage
-    public void sort(int size) {
+    protected void sort(int size) {
         assert size == 0;
     }
 
     @ExportMessage
-    public Iterable<Object> getIterable(int from, int length) {
+    protected Iterable<Object> getIterable(int from, int length) {
         return () -> new Iterator<Object>() {
             @Override
             public boolean hasNext() {
@@ -154,7 +154,7 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator allocator(ZeroLengthArrayStore store) {
+    protected static ArrayAllocator allocator(ZeroLengthArrayStore store) {
         return ZERO_LENGTH_ALLOCATOR;
     }
 

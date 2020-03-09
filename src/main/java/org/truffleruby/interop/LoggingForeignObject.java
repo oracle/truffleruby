@@ -39,7 +39,7 @@ public class LoggingForeignObject implements TruffleObject {
 
     @ExportMessage
     @TruffleBoundary
-    Object send(Message message, Object[] args) throws Exception {
+    protected Object send(Message message, Object[] args) throws Exception {
         final Object[] flatArgs;
         if (message == INVOKE_MEMBER) {
             Object[] invokeArg = (Object[]) args[1];

@@ -28,17 +28,17 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public class ArrayMessages extends RubyObjectMessages {
 
     @ExportMessage
-    public static boolean hasArrayElements(DynamicObject array) {
+    protected static boolean hasArrayElements(DynamicObject array) {
         return true;
     }
 
     @ExportMessage
-    public static long getArraySize(DynamicObject array) {
+    protected static long getArraySize(DynamicObject array) {
         return Layouts.ARRAY.getSize(array);
     }
 
     @ExportMessage
-    public static Object readArrayElement(
+    protected static Object readArrayElement(
             DynamicObject array,
             long index,
             @Cached @Shared("error") BranchProfile errorProfile,
@@ -55,7 +55,7 @@ public class ArrayMessages extends RubyObjectMessages {
     }
 
     @ExportMessage
-    public static void writeArrayElement(
+    protected static void writeArrayElement(
             DynamicObject array,
             long index,
             Object value,
@@ -73,7 +73,7 @@ public class ArrayMessages extends RubyObjectMessages {
     }
 
     @ExportMessage
-    public static void removeArrayElement(
+    protected static void removeArrayElement(
             DynamicObject array,
             long index,
             // FIXME (pitr 11-Feb-2020): use delete-at node directly
@@ -91,27 +91,27 @@ public class ArrayMessages extends RubyObjectMessages {
     }
 
     @ExportMessage
-    public static boolean isArrayElementReadable(
+    protected static boolean isArrayElementReadable(
             DynamicObject array, long index) {
         return inBounds(array, index);
     }
 
     @ExportMessage
-    public static boolean isArrayElementModifiable(
+    protected static boolean isArrayElementModifiable(
             DynamicObject array, long index,
             @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(array) && inBounds(array, index);
     }
 
     @ExportMessage
-    public static boolean isArrayElementRemovable(
+    protected static boolean isArrayElementRemovable(
             DynamicObject array, long index,
             @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(array) && inBounds(array, index);
     }
 
     @ExportMessage
-    public static boolean isArrayElementInsertable(
+    protected static boolean isArrayElementInsertable(
             DynamicObject array, long index,
             @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
         return !isFrozenNode.execute(array) && RubyGuards.fitsInInteger(index) && index >= Layouts.ARRAY.getSize(array);

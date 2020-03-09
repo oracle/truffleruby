@@ -2121,7 +2121,7 @@ EOS
       content.lines.each do |line|
         if looking
           if braces == 0
-            if line =~ /\w+(\[\])? \w+\(/
+            if line =~ /[\w<>]+(\[\])? \w+\(/
               new_line = line.
                   # change to protected
                   gsub(/^( *)(public |protected |private |)/, '\1protected ')
@@ -2135,7 +2135,7 @@ EOS
             new_content << line
           end
         else
-          looking = /^ *@(Specialization|Fallback|CreateCast)/ =~ line
+          looking = /^ *@(Specialization|Fallback|CreateCast|ExportMessage)/ =~ line
           new_content << line
           if looking
             braces = count_braces.(line)

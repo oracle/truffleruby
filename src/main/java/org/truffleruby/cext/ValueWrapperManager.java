@@ -337,12 +337,12 @@ public class ValueWrapperManager {
     public static class UnwrapperFunction implements TruffleObject {
 
         @ExportMessage
-        public boolean isExecutable() {
+        protected boolean isExecutable() {
             return true;
         }
 
         @ExportMessage
-        public Object execute(Object[] arguments,
+        protected Object execute(Object[] arguments,
                 @Cached UnwrapNode unwrapNode) {
             return unwrapNode.execute(arguments[0]);
         }
@@ -353,12 +353,12 @@ public class ValueWrapperManager {
     public static class WrapperFunction implements TruffleObject {
 
         @ExportMessage
-        public boolean isExecutable() {
+        protected boolean isExecutable() {
             return true;
         }
 
         @ExportMessage
-        public Object execute(Object[] arguments,
+        protected Object execute(Object[] arguments,
                 @Cached WrapNode wrapNode) {
             return wrapNode.execute(arguments[0]);
         }

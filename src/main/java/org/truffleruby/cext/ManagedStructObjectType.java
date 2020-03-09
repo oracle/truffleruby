@@ -63,27 +63,27 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @ExportMessage
-    public static boolean hasMembers(DynamicObject receiver) {
+    protected static boolean hasMembers(DynamicObject receiver) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isMemberReadable(DynamicObject receiver, String member) {
+    protected static boolean isMemberReadable(DynamicObject receiver, String member) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isMemberModifiable(DynamicObject receiver, String member) {
+    protected static boolean isMemberModifiable(DynamicObject receiver, String member) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isMemberInsertable(DynamicObject receiver, String member) {
+    protected static boolean isMemberInsertable(DynamicObject receiver, String member) {
         return true;
     }
 
     @ExportMessage
-    public static Object getMembers(
+    protected static Object getMembers(
             DynamicObject receiver,
             boolean includeInternal,
             @Cached CallDispatchHeadNode dispatchNode) {
@@ -91,7 +91,7 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @ExportMessage
-    public static Object readMember(
+    protected static Object readMember(
             DynamicObject receiver,
             String name,
             @Cached ObjectIVarGetNode readObjectFieldNode) throws UnknownIdentifierException {
@@ -103,7 +103,7 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @ExportMessage
-    public static void writeMember(
+    protected static void writeMember(
             DynamicObject receiver,
             String name,
             Object value,
@@ -113,12 +113,12 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @ExportMessage
-    public static boolean hasNativeType(DynamicObject receiver) {
+    protected static boolean hasNativeType(DynamicObject receiver) {
         return true;
     }
 
     @ExportMessage
-    public static Object getNativeType(DynamicObject receiver) {
+    protected static Object getNativeType(DynamicObject receiver) {
         return ManagedStructObjectType.MANAGED_STRUCT.getType(receiver);
     }
 

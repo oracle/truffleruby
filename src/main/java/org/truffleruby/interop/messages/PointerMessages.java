@@ -20,16 +20,16 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class PointerMessages extends RubyObjectMessages {
 
     @ExportMessage
-    public static boolean isPointer(DynamicObject receiver) {
+    protected static boolean isPointer(DynamicObject receiver) {
         return true;
     }
 
     @ExportMessage
-    public static long asPointer(DynamicObject receiver) {
+    protected static long asPointer(DynamicObject receiver) {
         return Layouts.POINTER.getPointer(receiver).getAddress();
     }
 
     @ExportMessage
-    public static void toNative(DynamicObject receiver) {
+    protected static void toNative(DynamicObject receiver) {
     }
 }

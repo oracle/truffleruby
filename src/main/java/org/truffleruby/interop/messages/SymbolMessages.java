@@ -23,7 +23,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class SymbolMessages extends RubyObjectMessages {
 
     @ExportMessage
-    public static boolean isString(DynamicObject symbol) {
+    protected static boolean isString(DynamicObject symbol) {
         return true;
     }
 
