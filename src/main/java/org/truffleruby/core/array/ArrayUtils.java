@@ -10,7 +10,9 @@
 package org.truffleruby.core.array;
 
 import java.lang.reflect.Array;
+import java.util.Arrays;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 
 public abstract class ArrayUtils {
@@ -216,5 +218,10 @@ public abstract class ArrayUtils {
         }
 
         return 0;
+    }
+
+    @TruffleBoundary
+    public static void sort(Object[] elements, int length) {
+        Arrays.sort(elements, 0, length);
     }
 }

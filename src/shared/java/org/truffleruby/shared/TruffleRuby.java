@@ -40,7 +40,7 @@ public class TruffleRuby {
                 getEngineVersion(),
                 LANGUAGE_VERSION,
                 vm,
-                BasicPlatform.getArchitecture(),
+                BasicPlatform.ARCHITECTURE,
                 BasicPlatform.getOSName());
     }
 

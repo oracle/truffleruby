@@ -72,6 +72,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.shared.BasicPlatform;
 
 @CoreModule("Truffle::System")
 public abstract class TruffleSystemNodes {
@@ -151,7 +152,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization(guards = "isRubyString(property)")
         protected Object getJavaProperty(DynamicObject property) {
-            String value = System.getProperty(StringOperations.getString(property));
+            String value = getProperty(StringOperations.getString(property));
             if (value == null) {
                 return nil;
             } else {
@@ -159,6 +160,10 @@ public abstract class TruffleSystemNodes {
             }
         }
 
+        @TruffleBoundary
+        private static String getProperty(String key) {
+            return System.getProperty(key);
+        }
     }
 
     @CoreMethod(names = "host_cpu", onSingleton = true)
@@ -168,7 +173,7 @@ public abstract class TruffleSystemNodes {
 
         @Specialization
         protected DynamicObject hostCPU() {
-            return makeStringNode.executeMake(Platform.getArchitecture(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(BasicPlatform.ARCHITECTURE, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

@@ -14,6 +14,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -321,7 +322,7 @@ public class RubyObjectMessages {
             } catch (RaiseException e) { // raises only if the name is missing
                 errorProfile.enter();
                 UnknownIdentifierException unknownIdentifier = UnknownIdentifierException.create(name);
-                unknownIdentifier.initCause(e);
+                ExceptionOperations.initCause(unknownIdentifier, e);
                 throw unknownIdentifier;
             }
         }

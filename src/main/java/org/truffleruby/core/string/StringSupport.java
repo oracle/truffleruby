@@ -47,6 +47,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.utils.Utils;
 
 public final class StringSupport {
     public static final int TRANS_SIZE = 256;
@@ -75,7 +76,7 @@ public final class StringSupport {
                     return preciseLength(encoding, bytes, byteOffset, byteEnd);
                 }
             default:
-                throw new UnsupportedOperationException("unknown code range value: " + codeRange);
+                throw Utils.unsupportedOperation("unknown code range value: " + codeRange);
         }
     }
 

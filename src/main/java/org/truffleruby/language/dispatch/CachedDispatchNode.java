@@ -75,7 +75,9 @@ public abstract class CachedDispatchNode extends DispatchNode {
         moreThanReferenceCompare.enter();
 
         if (cachedName instanceof String) {
-            return cachedName.equals(methodName);
+            // Cast needed because Object#equals is SVM-blacklisted, but String#equals isn't.
+            //noinspection RedundantCast
+            return ((String) cachedName).equals(methodName);
         } else if (ropeEqualsNode != null) { // cachedName is a Ruby String
             return RubyGuards.isRubyString(methodName) && ropeEqualsNode.execute(
                     StringOperations.rope((DynamicObject) cachedName),

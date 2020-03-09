@@ -567,11 +567,13 @@ public abstract class TruffleDebugNodes {
                 return context.getEnv().asGuestValue(map.keySet().toArray(new String[map.size()]));
             }
 
+            @TruffleBoundary
             @ExportMessage
             public boolean isMemberReadable(String member) {
                 return map.containsKey(member);
             }
 
+            @TruffleBoundary
             @ExportMessage
             public Object readMember(String key) throws UnknownIdentifierException {
                 final Object value = map.get(key);

@@ -89,12 +89,10 @@ public abstract class MutexNodes {
 
     @CoreMethod(names = "owned?")
     public abstract static class IsOwnedNode extends UnaryCoreMethodNode {
-
         @Specialization
         protected boolean isOwned(DynamicObject mutex) {
             return Layouts.MUTEX.getLock(mutex).isHeldByCurrentThread();
         }
-
     }
 
     @CoreMethod(names = "try_lock")

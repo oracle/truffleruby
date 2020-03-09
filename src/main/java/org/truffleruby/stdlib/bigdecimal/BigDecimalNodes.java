@@ -43,6 +43,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.Utils;
 
 @CoreModule(value = "BigDecimal", isClass = true)
 public abstract class BigDecimalNodes {
@@ -155,7 +156,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(value)", "!isNormalZero(value)" })
         protected Object negNormal(DynamicObject value) {
-            return createBigDecimal(Layouts.BIG_DECIMAL.getValue(value).negate());
+            return createBigDecimal(BigDecimalOps.negate(Layouts.BIG_DECIMAL.getValue(value)));
         }
 
         @Specialization(guards = { "isNormal(value)", "isNormalZero(value)" })
@@ -487,7 +488,7 @@ public abstract class BigDecimalNodes {
                 return createArray(store, store.length);
             }
 
-            throw new UnsupportedOperationException("unreachable code branch");
+            throw Utils.unsupportedOperation("unreachable code branch");
         }
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
@@ -595,7 +596,7 @@ public abstract class BigDecimalNodes {
                 return createBigDecimal(a);
             }
 
-            throw new UnsupportedOperationException("unreachable code branch");
+            throw Utils.unsupportedOperation("unreachable code branch");
         }
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
@@ -659,7 +660,7 @@ public abstract class BigDecimalNodes {
                 return createBigDecimal(power(
                         Layouts.BIG_DECIMAL.getValue(a),
                         exponent,
-                        new MathContext(newPrecision, getRoundMode())));
+                        BigDecimalOps.newMathContext(newPrecision, getRoundMode())));
             }
         }
 
@@ -813,7 +814,7 @@ public abstract class BigDecimalNodes {
         protected Object sqrt(DynamicObject a, int precision,
                 @Cached("createBinaryProfile()") ConditionProfile positiveValueProfile) {
             final BigDecimal valueBigDecimal = Layouts.BIG_DECIMAL.getValue(a);
-            if (positiveValueProfile.profile(valueBigDecimal.signum() >= 0)) {
+            if (positiveValueProfile.profile(BigDecimalOps.signum(valueBigDecimal) >= 0)) {
                 return createBigDecimal(sqrt(valueBigDecimal, new MathContext(precision, getRoundMode())));
             } else {
                 throw new RaiseException(getContext(), coreExceptions().floatDomainErrorSqrtNegative(this));
@@ -852,19 +853,14 @@ public abstract class BigDecimalNodes {
 
         @Child private CallDispatchHeadNode redoCompare;
 
-        @TruffleBoundary
-        private int compareBigDecimal(DynamicObject a, BigDecimal b) {
-            return BigDecimalOps.compare(Layouts.BIG_DECIMAL.getValue(a), b);
-        }
-
         @Specialization(guards = "isNormal(a)")
         protected int compare(DynamicObject a, long b) {
-            return compareBigDecimal(a, BigDecimal.valueOf(b));
+            return BigDecimalOps.compare(a, BigDecimalOps.valueOf(b));
         }
 
         @Specialization(guards = { "isNormal(a)", "isFinite(b)" })
         protected int compareFinite(DynamicObject a, double b) {
-            return compareBigDecimal(a, valueOf(b));
+            return BigDecimalOps.compare(a, BigDecimalOps.valueOf(b));
         }
 
         @Specialization(guards = { "isNormal(a)", "!isFinite(b)" })
@@ -879,22 +875,22 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(a)", "isRubyBignum(b)" })
         protected int compare(DynamicObject a, DynamicObject b) {
-            return compareBigDecimal(a, new BigDecimal(Layouts.BIGNUM.getValue(b)));
+            return BigDecimalOps.compare(a, BigDecimalOps.fromBigInteger(b));
         }
 
         @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected int compareNormal(DynamicObject a, DynamicObject b) {
-            return compareBigDecimal(a, Layouts.BIG_DECIMAL.getValue(b));
+            return BigDecimalOps.compare(a, Layouts.BIG_DECIMAL.getValue(b));
         }
 
         @Specialization(guards = "!isNormal(a)")
         protected Object compareSpecial(DynamicObject a, long b) {
-            return compareSpecial(a, createBigDecimal(BigDecimal.valueOf(b)));
+            return compareSpecial(a, createBigDecimal(BigDecimalOps.valueOf(b)));
         }
 
         @Specialization(guards = { "!isNormal(a)", "isFinite(b)" })
         protected Object compareSpecialFinite(DynamicObject a, double b) {
-            return compareSpecial(a, createBigDecimal(valueOf(b)));
+            return compareSpecial(a, createBigDecimal(BigDecimalOps.valueOf(b)));
         }
 
         @Specialization(guards = { "!isNormal(a)", "!isFinite(b)" })
@@ -910,7 +906,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "!isNormal(a)", "isRubyBignum(b)" })
         protected Object compareSpecialBignum(DynamicObject a, DynamicObject b) {
-            return compareSpecial(a, createBigDecimal(new BigDecimal(Layouts.BIGNUM.getValue(b))));
+            return compareSpecial(a, createBigDecimal(BigDecimalOps.fromBigInteger(b)));
         }
 
         @Specialization(guards = { "!isNormal(a)", "isNan(a)" })
@@ -972,12 +968,6 @@ public abstract class BigDecimalNodes {
             }
             return redoCompare.call(a, "redo_compare_no_error", b);
         }
-
-        @TruffleBoundary
-        private BigDecimal valueOf(double val) {
-            return BigDecimal.valueOf(val);
-        }
-
     }
 
     // TODO (pitr 20-May-2015): compare Ruby implementation of #== with a Java one
@@ -1011,7 +1001,7 @@ public abstract class BigDecimalNodes {
                 @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
             final String name;
 
-            if (positiveProfile.profile(Layouts.BIG_DECIMAL.getValue(value).signum() > 0)) {
+            if (positiveProfile.profile(BigDecimalOps.signum(value) > 0)) {
                 name = "SIGN_POSITIVE_FINITE";
             } else {
                 name = "SIGN_NEGATIVE_FINITE";
@@ -1412,14 +1402,10 @@ public abstract class BigDecimalNodes {
     @CoreMethod(names = { "to_i", "to_int" })
     public abstract static class ToINode extends BigDecimalCoreMethodArrayArgumentsNode {
 
-        private BigInteger toBigInteger(BigDecimal bigDecimal) {
-            return bigDecimal.toBigInteger();
-        }
-
         @Specialization(guards = "isNormal(value)")
         protected Object toINormal(DynamicObject value,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode) {
-            return fixnumOrBignumNode.fixnumOrBignum(toBigInteger(Layouts.BIG_DECIMAL.getValue(value)));
+            return fixnumOrBignumNode.fixnumOrBignum(BigDecimalOps.toBigInteger(Layouts.BIG_DECIMAL.getValue(value)));
         }
 
         @TruffleBoundary

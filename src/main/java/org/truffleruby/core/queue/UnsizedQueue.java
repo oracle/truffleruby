@@ -19,8 +19,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class UnsizedQueue {
 
-    private final ReentrantLock lock = new ReentrantLock();
-    private final Condition canTake = lock.newCondition();
+    private final ReentrantLock lock;
+    private final Condition canTake;
 
     private Item addEnd;
     private Item takeEnd;
@@ -28,6 +28,12 @@ public class UnsizedQueue {
     private boolean closed;
 
     public static final Object CLOSED = new Object();
+
+    @TruffleBoundary
+    public UnsizedQueue() {
+        this.lock = new ReentrantLock();
+        this.canTake = lock.newCondition();
+    }
 
     @TruffleBoundary
     public boolean add(Object item) {

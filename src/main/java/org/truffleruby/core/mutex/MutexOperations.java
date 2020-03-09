@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.mutex;
 
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 import com.oracle.truffle.api.nodes.Node;
@@ -99,6 +100,12 @@ public abstract class MutexOperations {
         lock.unlock();
     }
 
+    @TruffleBoundary
+    public static Condition newCondition(ReentrantLock lock) {
+        return lock.newCondition();
+    }
+
+    @TruffleBoundary
     public static void checkOwnedMutex(RubyContext context, ReentrantLock lock, RubyNode currentNode,
             BranchProfile errorProfile) {
         if (!lock.isHeldByCurrentThread()) {

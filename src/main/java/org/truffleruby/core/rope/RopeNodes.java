@@ -51,6 +51,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.SlowPathException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.Utils;
 
 public abstract class RopeNodes {
 
@@ -721,7 +722,7 @@ public abstract class RopeNodes {
                         .characterLengthWithRecovery(encoding, CR_VALID, bytes, p, e);
                 if (delta < 0) {
                     errorProfile.enter();
-                    throw new UnsupportedOperationException(
+                    throw Utils.unsupportedOperation(
                             "Code range is reported as valid, but is invalid for the given encoding: " +
                                     encodingName(encoding));
                 }
@@ -809,7 +810,7 @@ public abstract class RopeNodes {
 
                 default: {
                     errorProfile.enter();
-                    throw new UnsupportedOperationException(
+                    throw Utils.unsupportedOperation(
                             "CR_UNKNOWN encountered, but code range should have been calculated");
                 }
             }

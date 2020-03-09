@@ -92,6 +92,11 @@ public abstract class ExceptionOperations {
                 Layouts.SYSTEM_CALL_ERROR.build(message, null, backtrace, cause, null, null, errno));
     }
 
+    @TruffleBoundary // Exception#initCause is blacklisted in TruffleFeature
+    public static void initCause(Exception exception, Throwable cause) {
+        exception.initCause(cause);
+    }
+
     public static DynamicObject getFormatter(String name, RubyContext context) {
         return (DynamicObject) Layouts.MODULE
                 .getFields(context.getCoreLibrary().truffleExceptionOperationsModule)

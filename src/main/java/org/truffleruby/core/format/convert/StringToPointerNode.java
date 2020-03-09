@@ -12,6 +12,7 @@ package org.truffleruby.core.format.convert;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
@@ -56,9 +57,13 @@ public abstract class StringToPointerNode extends FormatNode {
             frame.setObject(FormatFrameDescriptor.ASSOCIATED_SLOT, associated);
         }
 
-        associated.add(pointer);
+        add(associated, pointer);
 
         return pointer.getAddress();
     }
 
+    @TruffleBoundary
+    private static void add(List<Pointer> list, Pointer ptr) {
+        list.add(ptr);
+    }
 }
