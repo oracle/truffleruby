@@ -94,6 +94,7 @@ public abstract class MutexOperations {
         Layouts.THREAD.getOwnedLocks(thread).remove(lock);
     }
 
+    @TruffleBoundary
     public static void unlockInternal(ReentrantLock lock) {
         assert lock.isHeldByCurrentThread();
         lock.unlock();
