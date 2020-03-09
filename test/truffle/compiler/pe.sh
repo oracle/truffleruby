@@ -2,4 +2,4 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby --experimental-options --engine.CompilationExceptionsAreThrown --engine.IterativePartialEscape test/truffle/compiler/pe/pe.rb "$@"
+jt ruby --experimental-options --engine.CompilationFailureAction=ExitVM --engine.IterativePartialEscape test/truffle/compiler/pe/pe.rb "$@"
