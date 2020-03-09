@@ -263,6 +263,7 @@ describe "Ruby String interpolation" do
   it "returns a string with the source encoding by default" do
     "a#{"b"}c".encoding.should == Encoding::BINARY
     eval('"a#{"b"}c"'.force_encoding("us-ascii")).encoding.should == Encoding::US_ASCII
+    eval("# coding: US-ASCII \n 'a#{"b"}c'").encoding.should == Encoding::US_ASCII
   end
 
   it "returns a string with the source encoding, even if the components have another encoding" do
