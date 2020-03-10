@@ -52,8 +52,8 @@ module Truffle
     def self.get_members_implementation(object, internal)
       keys = []
 
-      if object.respond_to? :polyglot_members
-        keys = object.polyglot_members internal
+      if object.respond_to?(:polyglot_members, true)
+        keys = object.__send__(:polyglot_members, internal)
       else
         add_method_key = proc do |method|
           # do not list methods which cannot be read using interop
