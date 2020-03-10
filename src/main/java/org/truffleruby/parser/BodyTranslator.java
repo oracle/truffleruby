@@ -19,6 +19,7 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
+import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Syntax;
@@ -1123,7 +1124,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitDStrNode(DStrParseNode node) {
-        final RubyNode ret = translateInterpolatedString(node.getPosition(), node.children());
+        final RubyNode ret = translateInterpolatedString(node.getPosition(), node.getEncoding(), node.children());
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -1131,21 +1132,22 @@ public class BodyTranslator extends Translator {
     public RubyNode visitDSymbolNode(DSymbolParseNode node) {
         SourceIndexLength sourceSection = node.getPosition();
 
-        final RubyNode stringNode = translateInterpolatedString(sourceSection, node.children());
+        final RubyNode stringNode = translateInterpolatedString(sourceSection, node.getEncoding(), node.children());
 
         final RubyNode ret = StringToSymbolNodeGen.create(stringNode);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
 
-    private RubyNode translateInterpolatedString(SourceIndexLength sourceSection, ParseNode[] childNodes) {
+    private RubyNode translateInterpolatedString(SourceIndexLength sourceSection,
+            Encoding encoding, ParseNode[] childNodes) {
         final ToSNode[] children = new ToSNode[childNodes.length];
 
         for (int i = 0; i < childNodes.length; i++) {
             children[i] = ToSNodeGen.create(childNodes[i].accept(this));
         }
 
-        final RubyNode ret = new InterpolatedStringNode(children);
+        final RubyNode ret = new InterpolatedStringNode(children, encoding);
         ret.unsafeSetSourceSection(sourceSection);
         return ret;
     }

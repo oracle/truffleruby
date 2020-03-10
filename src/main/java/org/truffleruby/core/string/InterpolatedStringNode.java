@@ -9,10 +9,12 @@
  */
 package org.truffleruby.core.string;
 
+import org.jcodings.Encoding;
 import org.truffleruby.core.cast.ToSNode;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.TaintNode;
 
@@ -28,52 +30,37 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     @Children private final ToSNode[] children;
 
     @Child private StringNodes.StringAppendPrimitiveNode appendNode;
-    @Child private CallDispatchHeadNode dupNode;
     @Child private IsTaintedNode isTaintedNode;
     @Child private TaintNode taintNode;
 
+    private final Rope emptyRope;
+
     private final ConditionProfile taintProfile = ConditionProfile.createCountingProfile();
 
-    public InterpolatedStringNode(ToSNode[] children) {
+    public InterpolatedStringNode(ToSNode[] children, Encoding encoding) {
+        assert children.length > 0;
         this.children = children;
+        this.emptyRope = RopeOperations.emptyRope(encoding);
     }
 
     @ExplodeLoop
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object[] strings = new Object[children.length];
 
+        // Start with an empty string to ensure the result has class String and the proper encoding.
+        DynamicObject builder = StringOperations.createString(getContext(), emptyRope);
         boolean tainted = false;
 
-        for (int n = 0; n < children.length; n++) {
-            final Object toInterpolate = children[n].execute(frame);
-            strings[n] = toInterpolate;
+        // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
+        for (ToSNode child : children) {
+            final Object toInterpolate = child.execute(frame);
+            assert RubyGuards.isRubyString(toInterpolate);
+            builder = executeStringAppend(builder, (DynamicObject) toInterpolate);
             tainted |= executeIsTainted(toInterpolate);
         }
 
-        final Object string = concat(strings);
-
         if (taintProfile.profile(tainted)) {
-            executeTaint(string);
-        }
-
-        return string;
-    }
-
-    private Object concat(Object[] strings) {
-        // TODO(CS): there is a lot of copying going on here - and I think this is sometimes inner loop stuff
-
-        DynamicObject builder = null;
-
-        // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
-        for (Object string : strings) {
-            assert RubyGuards.isRubyString(string);
-
-            if (builder == null) {
-                builder = (DynamicObject) callDup(string);
-            } else {
-                builder = executeStringAppend(builder, (DynamicObject) string);
-            }
+            executeTaint(builder);
         }
 
         return builder;
@@ -95,14 +82,6 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
         return appendNode.executeStringAppend(builder, string);
     }
 
-    private Object callDup(Object string) {
-        if (dupNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            dupNode = insert(CallDispatchHeadNode.createPrivate());
-        }
-        return dupNode.call(string, "dup");
-    }
-
     private boolean executeIsTainted(Object object) {
         if (isTaintedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -110,5 +89,4 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
         }
         return isTaintedNode.executeIsTainted(object);
     }
-
 }
