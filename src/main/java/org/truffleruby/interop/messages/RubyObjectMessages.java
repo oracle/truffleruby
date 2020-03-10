@@ -243,11 +243,18 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
             @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
-            throws UnknownIdentifierException {
+            throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_read_member", rubyName);
+        Object dynamic;
+        try {
+            dynamic = dispatchNode.call(receiver, "polyglot_read_member", rubyName);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, name);
+        }
+
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             Object iVar = readObjectFieldNode.execute(receiver, name, null);
             if (ivarFoundProfile.profile(iVar != null)) {
@@ -269,11 +276,18 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
-            throws UnknownIdentifierException {
+            throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_write_member", rubyName, value);
+        Object dynamic;
+        try {
+            dynamic = dispatchNode.call(receiver, "polyglot_write_member", rubyName, value);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, name);
+        }
+
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             if (isIVar(name)) {
                 writeObjectFieldNode.write(receiver, name, value);
@@ -291,11 +305,17 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchNode.call(receiver, "polyglot_remove_member", rubyName);
+        Object dynamic;
+        try {
+            dynamic = dispatchNode.call(receiver, "polyglot_remove_member", rubyName);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, name);
+        }
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             if (!isIVar(name)) {
                 errorProfile.enter();
@@ -319,11 +339,18 @@ public class RubyObjectMessages {
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnknownIdentifierException {
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnknownIdentifierException, UnsupportedTypeException, UnsupportedMessageException {
 
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object rubyName = nameToRubyNode.executeConvert(name);
-        Object dynamic = dispatchDynamic.call(receiver, "polyglot_invoke_member", rubyName, convertedArguments);
+        Object dynamic;
+        try {
+            dynamic = dispatchDynamic.call(receiver, "polyglot_invoke_member", rubyName, convertedArguments);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, name, arguments);
+        }
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
             Object result = dispatchMember.call(receiver, name, convertedArguments);
             if (result == DispatchNode.MISSING) {

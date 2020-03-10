@@ -26,24 +26,24 @@ describe "Truffle::Interop.keys?" do
     Truffle::Interop.keys?(Object.new.freeze).should be_true
   end
 
-  it "returns true for true" do
-    Truffle::Interop.keys?(true).should be_true
+  it "returns false for true" do
+    Truffle::Interop.keys?(true).should be_false
   end
 
-  it "returns true for false" do
-    Truffle::Interop.keys?(false).should be_true
+  it "returns false for false" do
+    Truffle::Interop.keys?(false).should be_false
   end
 
-  it "returns true for Fixnum" do
-    Truffle::Interop.keys?(14).should be_true
+  it "returns false for Fixnum" do
+    Truffle::Interop.keys?(14).should be_false
   end
 
   it "returns true for Bignum" do
     Truffle::Interop.keys?(bignum_value).should be_true
   end
 
-  it "returns true for Float" do
-    Truffle::Interop.keys?(14.2).should be_true
+  it "returns false for Float" do
+    Truffle::Interop.keys?(14.2).should be_false
   end
 
   it "returns true for Symbol" do

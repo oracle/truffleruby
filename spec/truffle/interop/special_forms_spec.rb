@@ -15,23 +15,23 @@ describe "Interop special form" do
   end
 
   it "#[] sends readMember(*)" do
-    -> { @object[:foo] }.should raise_error(RuntimeError, /UnsupportedMessageException/)
-    -> { @object['bar'] }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object[:foo] }.should raise_error(Polyglot::UnsupportedMessageError)
+    -> { @object['bar'] }.should raise_error(Polyglot::UnsupportedMessageError)
     @object.to_s.should include("readMember(foo)")
     @object.to_s.should include("readMember(bar)")
   end
 
   it "#[]= sends writeMember(*)" do
-    -> { (@object[:foo] = 1) }.should raise_error(RuntimeError, /UnsupportedMessageException/)
-    -> { (@object['bar'] = 2) }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { (@object[:foo] = 1) }.should raise_error(Polyglot::UnsupportedMessageError)
+    -> { (@object['bar'] = 2) }.should raise_error(Polyglot::UnsupportedMessageError)
     @object.to_s.should include("writeMember(foo, 1)")
     @object.to_s.should include("writeMember(bar, 2)")
   end
 
   # FIXME (pitr-ch 18-Mar-2019): break down
   it "#delete(name) sends removeMember(*) or removeArrayElement(*)" do
-    -> { @object.delete :foo }.should raise_error(NameError)
-    -> { @object.delete 14 }.should raise_error(RuntimeError)
+    -> { @object.delete :foo }.should raise_error(Polyglot::UnsupportedMessageError)
+    -> { @object.delete 14 }.should raise_error(Polyglot::UnsupportedMessageError)
     @object.to_s.should include("removeMember(foo)")
     @object.to_s.should include("removeArrayElement(14)")
   end
@@ -52,7 +52,7 @@ describe "Interop special form" do
   end
 
   it "#keys sends getMembers(false)" do
-    -> { @object.keys }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object.keys }.should raise_error(Polyglot::UnsupportedMessageError)
     @object.to_s.should include("getMembers(false)")
   end
 
@@ -63,14 +63,14 @@ describe "Interop special form" do
   end
 
   it "#name sends invokeMember(*)" do
-    -> { @object.foo }.should raise_error(NoMethodError)
-    -> { @object.bar(1, 2, 3) }.should raise_error(NoMethodError)
+    -> { @object.foo }.should raise_error(Polyglot::UnsupportedMessageError)
+    -> { @object.bar(1, 2, 3) }.should raise_error(Polyglot::UnsupportedMessageError)
     @object.to_s.should include("invokeMember(foo)")
     @object.to_s.should include("invokeMember(bar, 1, 2, 3)")
   end
 
   it "#new sends instantiate()" do
-    -> { @object.new }.should raise_error(RuntimeError, /UnsupportedMessageException/)
+    -> { @object.new }.should raise_error(Polyglot::UnsupportedMessageError)
     @object.to_s.should include("instantiate()")
   end
 

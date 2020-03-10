@@ -15,7 +15,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -25,9 +24,9 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -183,6 +182,37 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         }
     }
 
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "cachedName.equals(DELETE)",
+                    "args.length == 1",
+                    "isBasicInteger(first(args))" },
+            limit = "1")
+    protected Object deleteArrayElement(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached @Shared("dispatch") CallDispatchHeadNode dispatchNode) {
+
+        return dispatchNode
+                .call(context.getCoreLibrary().truffleInteropModule, "remove_array_element", receiver, args[0]);
+    }
+
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "cachedName.equals(DELETE)",
+                    "args.length == 1",
+                    "isRubySymbol(first(args)) || isRubyString(first(args))" },
+            limit = "1")
+    protected Object deleteMember(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached @Shared("dispatch") CallDispatchHeadNode dispatchNode) {
+
+        return dispatchNode.call(context.getCoreLibrary().truffleInteropModule, "remove_member", receiver, args[0]);
+    }
+
     protected static boolean canHaveBadArguments(String cachedName) {
         return cachedName.equals(INDEX_READ) || cachedName.equals(INDEX_WRITE) || cachedName.equals(SEND) ||
                 cachedName.equals(NIL) || cachedName.equals(EQUAL) || cachedName.equals(OBJECT_ID) ||
@@ -250,8 +280,6 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 return "keys";
             case RESPOND_TO:
                 return "foreign_respond_to?";
-            case DELETE:
-                return "remove";
             case INSPECT:
                 return "foreign_inspect";
             case CLASS:
@@ -341,11 +369,12 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         @Specialization(guards = "receivers.isBoolean(receiver)", limit = "getCacheLimit()")
         protected Object callBoolean(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
                 return dispatch.call(receivers.asBoolean(receiver), name, args);
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
 
@@ -353,12 +382,13 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         protected Object callString(Object receiver, String name, Object[] args,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
                 Object rubyString = foreignToRubyNode.executeConvert(receivers.asString(receiver));
                 return dispatch.call(rubyString, name, args);
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
 
@@ -367,11 +397,12 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 limit = "getCacheLimit()")
         protected Object callInt(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
                 return dispatch.call(receivers.asInt(receiver), name, args);
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
 
@@ -383,11 +414,12 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 limit = "getCacheLimit()")
         protected Object callLong(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
                 return dispatch.call(receivers.asLong(receiver), name, args);
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
 
@@ -399,11 +431,12 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                 limit = "getCacheLimit()")
         protected Object callDouble(Object receiver, String name, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached CallDispatchHeadNode dispatch) {
             try {
                 return dispatch.call(receivers.asDouble(receiver), name, args);
-            } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
             }
         }
 
