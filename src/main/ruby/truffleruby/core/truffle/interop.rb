@@ -88,9 +88,85 @@ module Truffle
       end
     end
 
+    class HashKeysAsPolyglotMembers
+      def initialize(hash)
+        raise ArgumentError, 'expected a Hash' unless Hash === hash
+        # Otherwise Symbol keys won't be seen from e.g., readMember()
+        @hash = hash.transform_keys do |key|
+          if Symbol === key
+            key.to_s
+          else
+            key
+          end
+        end
+      end
+
+      private
+
+      def polyglot_has_members?
+        true
+      end
+
+      def polyglot_members(internal)
+        @hash.keys
+      end
+
+      def polyglot_read_member(name)
+        @hash.fetch(name) { raise Truffle::Interop::UnknownIdentifierException }
+      end
+
+      def polyglot_write_member(name, value)
+        @hash[name] = value
+      end
+
+      def polyglot_remove_member(name)
+        @hash.delete(name) { raise Truffle::Interop::UnknownIdentifierException }
+      end
+
+      def polyglot_invoke_member(name, *args)
+        @hash.fetch(name) { raise Truffle::Interop::UnknownIdentifierException }.call(*args)
+      end
+
+      def polyglot_member_readable?(name)
+        @hash.key? name
+      end
+
+      def polyglot_member_modifiable?(name)
+        @hash.key? name
+      end
+
+      def polyglot_member_removable?(name)
+        @hash.key? name
+      end
+
+      def polyglot_member_insertable?(name)
+        !@hash.key? name
+      end
+
+      def polyglot_member_invocable?(name)
+        value = @hash.fetch(name) { return false }
+        Truffle::Interop.executable?(value)
+      end
+
+      def polyglot_member_internal?(name)
+        false
+      end
+
+      def polyglot_has_member_read_side_effects?(name)
+        false
+      end
+
+      def polyglot_has_member_write_side_effects?(name)
+        false
+      end
+    end
+
+    def self.hash_keys_as_members(hash)
+      HashKeysAsPolyglotMembers.new(hash)
+    end
+
     class ForeignEnumerable
       include Enumerable
-
       attr_reader :foreign
 
       def initialize(foreign)
@@ -106,7 +182,6 @@ module Truffle
       def size
         Truffle::Interop.array_size(foreign)
       end
-
     end
 
     def self.enumerable(foreign)
