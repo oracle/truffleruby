@@ -128,10 +128,13 @@ class Regexp
       case pattern
       when Array
         return union(*pattern)
-      when Regexp
-        return pattern
       else
-        return Regexp.new(Regexp.quote(StringValue(pattern)))
+        converted = Truffle::Type.rb_check_convert_type(pattern, Regexp, :to_regexp)
+        if converted.nil?
+          return Regexp.new(Regexp.quote(pattern))
+        else
+          return converted
+        end
       end
     else
       compatible?(*patterns)

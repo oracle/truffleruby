@@ -55,6 +55,7 @@ Bug fixes:
 * Fixed `Digest::Instance#file` to not modify string literal (#1964).
 * Make sure that string interpolation returns a `String`, and not a subclass (#1950).
 * `alias_method` and `instance_methods` should now work correctly inside a refinement (#1942).
+* Fixed `Regexp.union` parameter conversion (#1963).
 
 Compatibility:
 
