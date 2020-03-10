@@ -166,7 +166,7 @@ module TruffleInteropSpecs
 
     def polyglot_members(internal)
       @log << [__callee__, internal]
-      internal ? [] : @storage.keys
+      @storage.keys
     end
 
     def polyglot_read_member(name)
