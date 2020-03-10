@@ -475,7 +475,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             }
         }
 
-        return null;
+        if (isRefinement()) {
+            return Layouts.MODULE.getFields(getRefinedClass()).deepMethodSearch(context, name);
+        } else {
+            return null;
+        }
     }
 
     @TruffleBoundary

@@ -316,14 +316,8 @@ public abstract class ModuleNodes {
         @Specialization
         protected DynamicObject aliasMethod(DynamicObject module, String newName, String oldName,
                 @Cached BranchProfile errorProfile) {
-            DynamicObject moduleForLookup;
-            if (Layouts.MODULE.getFields(module).isRefinement()) {
-                moduleForLookup = Layouts.MODULE.getFields(module).getRefinedClass();
-            } else {
-                moduleForLookup = module;
-            }
             final InternalMethod method = Layouts.MODULE
-                    .getFields(moduleForLookup)
+                    .getFields(module)
                     .deepMethodSearch(getContext(), oldName);
 
             if (method == null) {
