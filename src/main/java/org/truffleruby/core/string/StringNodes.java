@@ -1384,8 +1384,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "isNil(encoding)")
-        protected DynamicObject initializeJavaStringNoEncoding(DynamicObject string, String from,
-                Object encoding) {
+        protected DynamicObject initializeJavaStringNoEncoding(DynamicObject string, String from, Object encoding) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError(
@@ -1400,8 +1399,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isRubyString(from)", "!isString(from)" })
-        protected DynamicObject initialize(VirtualFrame frame, DynamicObject string, Object from,
-                Object encoding,
+        protected DynamicObject initialize(VirtualFrame frame, DynamicObject string, Object from, Object encoding,
                 @Cached ToStrNode toStrNode) {
             StringOperations.setRope(string, rope(toStrNode.executeToStr(frame, from)));
             return string;
@@ -2595,7 +2593,10 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "!isEmpty(self)", "isRubyString(fromStr)", "isRubyString(toStr)", "isEmpty(toStr)" })
-        protected Object trBangEmpty(VirtualFrame frame, DynamicObject self, DynamicObject fromStr,
+        protected Object trBangEmpty(
+                VirtualFrame frame,
+                DynamicObject self,
+                DynamicObject fromStr,
                 DynamicObject toStr) {
             if (deleteBangNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -2679,9 +2680,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = "equalNode.execute(rope(format), cachedFormat)", limit = "getCacheLimit()")
-        protected DynamicObject unpackCached(
-                DynamicObject string,
-                DynamicObject format,
+        protected DynamicObject unpackCached(DynamicObject string, DynamicObject format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("create(compileFormat(format))") DirectCallNode callUnpackNode,
                 @Cached RopeNodes.BytesNode bytesNode,
@@ -2707,9 +2706,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(replaces = "unpackCached")
-        protected DynamicObject unpackUncached(
-                DynamicObject string,
-                DynamicObject format,
+        protected DynamicObject unpackUncached(DynamicObject string, DynamicObject format,
                 @Cached IndirectCallNode callUnpackNode,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached ReadObjectFieldNode readAssociatedNode) {
@@ -4624,8 +4621,12 @@ public abstract class StringNodes {
                         "indexAtStartBound(spliceByteIndex)",
                         "isRubyString(other)",
                         "isRubyEncoding(rubyEncoding)" })
-        protected Object splicePrepend(DynamicObject string, DynamicObject other, int spliceByteIndex,
-                int byteCountToReplace, DynamicObject rubyEncoding,
+        protected Object splicePrepend(
+                DynamicObject string,
+                DynamicObject other,
+                int spliceByteIndex,
+                int byteCountToReplace,
+                DynamicObject rubyEncoding,
                 @Cached RopeNodes.SubstringNode prependSubstringNode,
                 @Cached RopeNodes.ConcatNode prependConcatNode) {
 
@@ -4645,8 +4646,12 @@ public abstract class StringNodes {
                         "indexAtEndBound(string, spliceByteIndex)",
                         "isRubyString(other)",
                         "isRubyEncoding(rubyEncoding)" })
-        protected Object spliceAppend(DynamicObject string, DynamicObject other, int spliceByteIndex,
-                int byteCountToReplace, DynamicObject rubyEncoding,
+        protected Object spliceAppend(
+                DynamicObject string,
+                DynamicObject other,
+                int spliceByteIndex,
+                int byteCountToReplace,
+                DynamicObject rubyEncoding,
                 @Cached RopeNodes.ConcatNode appendConcatNode) {
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final Rope left = rope(string);
@@ -4662,8 +4667,12 @@ public abstract class StringNodes {
                         "!indexAtEitherBounds(string, spliceByteIndex)",
                         "isRubyString(other)",
                         "isRubyEncoding(rubyEncoding)" })
-        protected DynamicObject splice(DynamicObject string, DynamicObject other, int spliceByteIndex,
-                int byteCountToReplace, DynamicObject rubyEncoding,
+        protected DynamicObject splice(
+                DynamicObject string,
+                DynamicObject other,
+                int spliceByteIndex,
+                int byteCountToReplace,
+                DynamicObject rubyEncoding,
                 @Cached("createBinaryProfile()") ConditionProfile insertStringIsEmptyProfile,
                 @Cached("createBinaryProfile()") ConditionProfile splitRightIsEmptyProfile,
                 @Cached RopeNodes.SubstringNode leftSubstringNode,
@@ -4994,7 +5003,10 @@ public abstract class StringNodes {
     public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isByteArray(bytes)", "isRubyEncoding(rubyEncoding)" })
-        protected DynamicObject stringFromByteArray(DynamicObject bytes, int start, int count,
+        protected DynamicObject stringFromByteArray(
+                DynamicObject bytes,
+                int start,
+                int count,
                 DynamicObject rubyEncoding,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);

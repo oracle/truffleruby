@@ -123,9 +123,7 @@ public class CExtNodes {
         public abstract Object execute(Object receiverm, DynamicObject argsArray);
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object callCWithMutex(
-                Object receiver,
-                DynamicObject argsArray,
+        protected Object callCWithMutex(Object receiver, DynamicObject argsArray,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached BranchProfile exceptionProfile,
@@ -174,8 +172,7 @@ public class CExtNodes {
         @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
-        protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray,
-                Object block,
+        protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray, Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
             extensionStack.push(block);
@@ -192,9 +189,7 @@ public class CExtNodes {
     public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object callCWithoutMutex(
-                Object receiver,
-                DynamicObject argsArray,
+        protected Object callCWithoutMutex(Object receiver, DynamicObject argsArray,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile,
@@ -293,7 +288,12 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject bytes(int num, int num_words, int word_length, boolean msw_first, boolean twosComp,
+        protected DynamicObject bytes(
+                int num,
+                int num_words,
+                int word_length,
+                boolean msw_first,
+                boolean twosComp,
                 boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
@@ -301,7 +301,12 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject bytes(long num, int num_words, int word_length, boolean msw_first, boolean twosComp,
+        protected DynamicObject bytes(
+                long num,
+                int num_words,
+                int word_length,
+                boolean msw_first,
+                boolean twosComp,
                 boolean bigEndian) {
             BigInteger bi = BigInteger.valueOf(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
@@ -309,8 +314,13 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyBignum(num)")
         @TruffleBoundary
-        protected DynamicObject bytes(DynamicObject num, int num_words, int word_length, boolean msw_first,
-                boolean twosComp, boolean bigEndian) {
+        protected DynamicObject bytes(
+                DynamicObject num,
+                int num_words,
+                int word_length,
+                boolean msw_first,
+                boolean twosComp,
+                boolean bigEndian) {
             BigInteger bi = Layouts.BIGNUM.getValue(num);
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }

@@ -69,17 +69,16 @@ public class ValueWrapper implements TruffleObject {
     }
 
     @ExportMessage
-    public boolean isPointer() {
+    protected boolean isPointer() {
         return true;
     }
 
     @ExportMessage
-    public void toNative() {
+    protected void toNative() {
     }
 
     @ExportMessage
-    public static long asPointer(
-            ValueWrapper wrapper,
+    protected static long asPointer(ValueWrapper wrapper,
             @Cached KeepAliveNode keepAliveNode,
             @Cached AllocateHandleNode createNativeHandleNode,
             @Cached BranchProfile createHandleProfile,

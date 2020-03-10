@@ -57,9 +57,7 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
     @Specialization(
             guards = { "cachedClassToAllocate == classToAllocate", "!cachedIsSingleton" },
             limit = "getCacheLimit()")
-    protected DynamicObject allocateCached(
-            DynamicObject classToAllocate,
-            Object[] values,
+    protected DynamicObject allocateCached(DynamicObject classToAllocate, Object[] values,
             @Cached("classToAllocate") DynamicObject cachedClassToAllocate,
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
             @Cached("getInstanceFactory(classToAllocate)") DynamicObjectFactory factory,
@@ -75,8 +73,7 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
     // because the factory is not constant
     @TruffleBoundary
     @Specialization(guards = { "!isSingleton(classToAllocate)" }, replaces = "allocateCached")
-    protected DynamicObject allocateUncached(
-            DynamicObject classToAllocate, Object[] values,
+    protected DynamicObject allocateUncached(DynamicObject classToAllocate, Object[] values,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached(
@@ -92,8 +89,7 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isSingleton(classToAllocate)")
-    protected DynamicObject allocateSingleton(
-            DynamicObject classToAllocate, Object[] values,
+    protected DynamicObject allocateSingleton(DynamicObject classToAllocate, Object[] values,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
                 context,

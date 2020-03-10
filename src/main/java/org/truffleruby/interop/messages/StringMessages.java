@@ -21,12 +21,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class StringMessages extends RubyObjectMessages {
 
     @ExportMessage
-    public static boolean isString(DynamicObject string) {
+    protected static boolean isString(DynamicObject string) {
         return true;
     }
 
     @ExportMessage
-    public static String asString(DynamicObject string,
+    protected static String asString(DynamicObject string,
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(string);
     }

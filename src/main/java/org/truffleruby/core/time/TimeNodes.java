@@ -461,14 +461,34 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode;
 
         @Specialization(guards = "(isutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
-        protected DynamicObject timeSFromArray(DynamicObject timeClass, int sec, int min, int hour, int mday, int month,
-                int year, int nsec, int isdst, boolean isutc, Object utcoffset) {
+        protected DynamicObject timeSFromArray(
+                DynamicObject timeClass,
+                int sec,
+                int min,
+                int hour,
+                int mday,
+                int month,
+                int year,
+                int nsec,
+                int isdst,
+                boolean isutc,
+                Object utcoffset) {
             return buildTime(timeClass, sec, min, hour, mday, month, year, nsec, isdst, isutc, utcoffset);
         }
 
         @Specialization(guards = "!isInteger(sec) || !isInteger(nsec)")
-        protected Object timeSFromArrayFallback(DynamicObject timeClass, Object sec, int min, int hour, int mday,
-                int month, int year, Object nsec, int isdst, boolean isutc, Object utcoffset) {
+        protected Object timeSFromArrayFallback(
+                DynamicObject timeClass,
+                Object sec,
+                int min,
+                int hour,
+                int mday,
+                int month,
+                int year,
+                Object nsec,
+                int isdst,
+                boolean isutc,
+                Object utcoffset) {
             return FAILURE;
         }
 

@@ -74,8 +74,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyEncoding(source)", "isRubyEncoding(destination)" })
-        protected Object initialize(DynamicObject self, DynamicObject source, DynamicObject destination,
-                int options) {
+        protected Object initialize(DynamicObject self, DynamicObject source, DynamicObject destination, int options) {
             // Adapted from RubyConverter - see attribution there
             //
             // This method should only be called after the Encoding::Converter instance has already been initialized
@@ -189,20 +188,35 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "isRubyString(source)", "isRubyString(target)", "isRubyHash(options)" })
-        protected Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
-                DynamicObject target, int offset, int size, DynamicObject options) {
+        protected Object encodingConverterPrimitiveConvert(
+                DynamicObject encodingConverter,
+                DynamicObject source,
+                DynamicObject target,
+                int offset,
+                int size,
+                DynamicObject options) {
             throw new UnsupportedOperationException("not implemented");
         }
 
         @Specialization(guards = { "isNil(source)", "isRubyString(target)" })
-        protected Object primitiveConvertNilSource(DynamicObject encodingConverter, Object source,
-                DynamicObject target, int offset, int size, int options) {
+        protected Object primitiveConvertNilSource(
+                DynamicObject encodingConverter,
+                Object source,
+                DynamicObject target,
+                int offset,
+                int size,
+                int options) {
             return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
         }
 
         @Specialization(guards = { "isRubyString(source)", "isRubyString(target)" })
-        protected Object encodingConverterPrimitiveConvert(DynamicObject encodingConverter, DynamicObject source,
-                DynamicObject target, int offset, int size, int options) {
+        protected Object encodingConverterPrimitiveConvert(
+                DynamicObject encodingConverter,
+                DynamicObject source,
+                DynamicObject target,
+                int offset,
+                int size,
+                int options) {
 
             // Taken from org.jruby.RubyConverter#primitive_convert.
 

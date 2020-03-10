@@ -24,7 +24,7 @@ public final class Nil implements TruffleObject {
     }
 
     @ExportMessage
-    public boolean isNull() {
+    protected boolean isNull() {
         return true;
     }
 

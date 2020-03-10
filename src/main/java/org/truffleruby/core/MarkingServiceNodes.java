@@ -56,8 +56,7 @@ public class MarkingServiceNodes {
         public abstract MarkerThreadLocalData execute(Object dynamicParameter);
 
         @Specialization(guards = "thread == currentJavaThread(dynamicParameter)", limit = "getCacheLimit()")
-        protected MarkerThreadLocalData getDataOnKnownThread(
-                Object dynamicParameter,
+        protected MarkerThreadLocalData getDataOnKnownThread(Object dynamicParameter,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached("currentJavaThread(dynamicParameter)") Thread thread,
                 @Cached("getData(dynamicParameter, context)") MarkerThreadLocalData data) {
@@ -65,8 +64,7 @@ public class MarkingServiceNodes {
         }
 
         @Specialization(replaces = "getDataOnKnownThread")
-        protected MarkerThreadLocalData getData(
-                Object dynamicParameter,
+        protected MarkerThreadLocalData getData(Object dynamicParameter,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             return context.getMarkingService().getThreadLocalData();
         }

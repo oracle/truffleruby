@@ -658,8 +658,12 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object evalBindingUncached(Object target, DynamicObject source, DynamicObject binding,
-                DynamicObject file, int line,
+        protected Object evalBindingUncached(
+                Object target,
+                DynamicObject source,
+                DynamicObject binding,
+                DynamicObject file,
+                int line,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(
                     target,
@@ -1532,7 +1536,10 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubyString(name)")
-        protected boolean doesRespondToString(VirtualFrame frame, Object object, DynamicObject name,
+        protected boolean doesRespondToString(
+                VirtualFrame frame,
+                Object object,
+                DynamicObject name,
                 boolean includeProtectedAndPrivate) {
             final boolean ret;
 
@@ -1557,7 +1564,10 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubySymbol(name)")
-        protected boolean doesRespondToSymbol(VirtualFrame frame, Object object, DynamicObject name,
+        protected boolean doesRespondToSymbol(
+                VirtualFrame frame,
+                Object object,
+                DynamicObject name,
                 boolean includeProtectedAndPrivate) {
             final boolean ret;
 
@@ -1783,10 +1793,7 @@ public abstract class KernelNodes {
                         "isRubyString(format)",
                         "equalNode.execute(rope(format), cachedFormat)",
                         "isDebug(frame) == cachedIsDebug" })
-        protected DynamicObject formatCached(
-                VirtualFrame frame,
-                DynamicObject format,
-                Object[] arguments,
+        protected DynamicObject formatCached(VirtualFrame frame, DynamicObject format, Object[] arguments,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
@@ -1807,10 +1814,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "isRubyString(format)", replaces = "formatCached")
-        protected DynamicObject formatUncached(
-                VirtualFrame frame,
-                DynamicObject format,
-                Object[] arguments,
+        protected DynamicObject formatUncached(VirtualFrame frame, DynamicObject format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
                 @Cached IsTaintedNode isTaintedNode) {
             final BytesResult result;

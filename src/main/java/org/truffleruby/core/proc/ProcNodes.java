@@ -124,7 +124,10 @@ public abstract class ProcNodes {
         }
 
         @Specialization(guards = "procClass != metaClass(block)")
-        protected DynamicObject procSpecial(VirtualFrame frame, DynamicObject procClass, Object[] args,
+        protected DynamicObject procSpecial(
+                VirtualFrame frame,
+                DynamicObject procClass,
+                Object[] args,
                 DynamicObject block) {
             // Instantiate a new instance of procClass as classes do not correspond
 
@@ -339,8 +342,7 @@ public abstract class ProcNodes {
     public static abstract class SingleBlockArgNode extends PrimitiveNode {
 
         @Specialization
-        protected Object singleBlockArg(
-                VirtualFrame frame,
+        protected Object singleBlockArg(VirtualFrame frame,
                 @Cached("createBinaryProfile()") ConditionProfile emptyArgsProfile,
                 @Cached("createBinaryProfile()") ConditionProfile singleArgProfile) {
 

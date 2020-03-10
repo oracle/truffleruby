@@ -185,8 +185,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     // array[start, length] = object_or_array with non-int start or length
 
     @Specialization(guards = { "!isInteger(startObject) || !isInteger(lengthObject)", "wasProvided(value)" })
-    protected Object setStartLengthNotInt(DynamicObject array, Object startObject, Object lengthObject,
-            Object value) {
+    protected Object setStartLengthNotInt(DynamicObject array, Object startObject, Object lengthObject, Object value) {
         return fallback(array, startObject, lengthObject, value);
     }
 
@@ -217,8 +216,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     // array[start..end] = object (not array)
 
     @Specialization(guards = { "isIntRange(range)", "!isRubyArray(value)" })
-    protected Object setRangeWithNonArray(DynamicObject array, DynamicObject range, Object value,
-            NotProvided unused) {
+    protected Object setRangeWithNonArray(DynamicObject array, DynamicObject range, Object value, NotProvided unused) {
         // the fallback will recurse after converting the object to an array
         return fallback(array, range, value, unused);
     }

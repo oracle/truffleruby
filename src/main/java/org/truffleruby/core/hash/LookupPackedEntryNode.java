@@ -42,7 +42,10 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
                     "cachedIndex < getSize(hash)",
                     "sameKeysAtIndex(hash, key, hashed, cachedIndex, cachedByIdentity)" },
             limit = "1")
-    protected Object getConstantIndexPackedArray(DynamicObject hash, Object key, int hashed,
+    protected Object getConstantIndexPackedArray(
+            DynamicObject hash,
+            Object key,
+            int hashed,
             BiFunctionNode defaultValueNode,
             @Cached("index(hash, key, hashed)") int cachedIndex,
             @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity) {
@@ -90,7 +93,11 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(replaces = "getConstantIndexPackedArray")
-    protected Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key, int hashed,
+    protected Object getPackedArray(
+            VirtualFrame frame,
+            DynamicObject hash,
+            Object key,
+            int hashed,
             BiFunctionNode defaultValueNode,
             @Cached BranchProfile notInHashProfile,
             @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {

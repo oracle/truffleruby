@@ -38,7 +38,11 @@ public abstract class CallSuperMethodNode extends FrameSendingNode {
 
     // superMethod is typed as Object below because it must accept "null".
     @Specialization
-    protected Object callSuperMethod(VirtualFrame frame, Object self, Object superMethodObject, Object[] arguments,
+    protected Object callSuperMethod(
+            VirtualFrame frame,
+            Object self,
+            Object superMethodObject,
+            Object[] arguments,
             Object block) {
         final InternalMethod superMethod = (InternalMethod) superMethodObject;
 

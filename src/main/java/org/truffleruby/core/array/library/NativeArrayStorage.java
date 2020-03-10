@@ -14,9 +14,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.truffleruby.cext.UnwrapNode;
+import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.cext.WrapNode;
-import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
@@ -24,10 +24,10 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -56,27 +56,27 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public boolean acceptsValue(Object value) {
+    protected boolean acceptsValue(Object value) {
         return true;
     }
 
     @ExportMessage
-    public boolean acceptsAllValues(Object otherStore) {
+    protected boolean acceptsAllValues(Object otherStore) {
         return true;
     }
 
     @ExportMessage
-    public boolean isMutable() {
+    protected boolean isMutable() {
         return true;
     }
 
     @ExportMessage
-    public boolean isNative() {
+    protected boolean isNative() {
         return true;
     }
 
     @ExportMessage
-    public static String toString(NativeArrayStorage storage) {
+    protected static String toString(NativeArrayStorage storage) {
         return "NativeArrayStorage";
     }
 
@@ -110,7 +110,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public int capacity() {
+    protected int capacity() {
         return length;
     }
 
@@ -130,7 +130,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public Object[] boxedCopyOfRange(int start, int length,
+    protected Object[] boxedCopyOfRange(int start, int length,
             @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
         Object[] newStore = new Object[length];
         for (int i = 0; i < length; i++) {
@@ -144,7 +144,11 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     public static abstract class CopyContents {
 
         @Specialization
-        protected static void copyContents(NativeArrayStorage srcStore, int srcStart, Object destStore, int destStart,
+        protected static void copyContents(
+                NativeArrayStorage srcStore,
+                int srcStart,
+                Object destStore,
+                int destStart,
                 int length,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
                 @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary destStores) {
@@ -155,7 +159,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public Object[] toJavaArrayCopy(int size,
+    protected Object[] toJavaArrayCopy(int size,
             @Shared("unwrap") @Cached UnwrapNode unwrapNode) {
         Object[] newStore = new Object[size];
         assert size >= length;
@@ -166,7 +170,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public static Iterable<Object> getIterable(NativeArrayStorage store, int from, int length,
+    protected static Iterable<Object> getIterable(NativeArrayStorage store, int from, int length,
             @CachedLibrary("store") ArrayStoreLibrary stores) {
         return () -> new Iterator<Object>() {
 
@@ -197,17 +201,17 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
-    public ArrayAllocator allocator() {
+    protected ArrayAllocator allocator() {
         return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage
-    ArrayAllocator generalizeForValue(Object newValue) {
+    protected ArrayAllocator generalizeForValue(Object newValue) {
         return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
     }
 
     @ExportMessage
-    ArrayAllocator generalizeForStore(Object newStore) {
+    protected ArrayAllocator generalizeForStore(Object newStore) {
         return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
     }
 

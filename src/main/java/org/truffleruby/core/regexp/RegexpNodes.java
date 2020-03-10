@@ -441,13 +441,21 @@ public abstract class RegexpNodes {
         @Child RopeNodes.CodeRangeNode rangeNode = RopeNodes.CodeRangeNode.create();
 
         @Specialization(guards = { "!isInitialized(regexp)", "isRubyString(string)" })
-        protected Object notInitialized(DynamicObject regexp, DynamicObject string, int start, int end,
+        protected Object notInitialized(
+                DynamicObject regexp,
+                DynamicObject string,
+                int start,
+                int end,
                 boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
         }
 
         @Specialization(guards = { "isRubyString(string)", "!isValidEncoding(string, rangeNode)" })
-        protected Object invalidEncoding(DynamicObject regexp, DynamicObject string, int start, int end,
+        protected Object invalidEncoding(
+                DynamicObject regexp,
+                DynamicObject string,
+                int start,
+                int end,
                 boolean forward) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(formatError(string), this));
         }

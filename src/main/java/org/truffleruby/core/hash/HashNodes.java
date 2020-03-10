@@ -164,7 +164,10 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        protected Object getPackedArray(VirtualFrame frame, DynamicObject hash, Object key,
+        protected Object getPackedArray(
+                VirtualFrame frame,
+                DynamicObject hash,
+                Object key,
                 BiFunctionNode defaultValueNode,
                 @Cached LookupPackedEntryNode lookupPackedEntryNode,
                 @Cached("new()") HashNode hashNode,
@@ -948,7 +951,10 @@ public abstract class HashNodes {
         @Specialization(
                 guards = { "isPackedHash(hash)", "getSize(hash) == cachedSize" },
                 limit = "getPackedHashLimit()")
-        protected Object eachPackedArrayCached(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode,
+        protected Object eachPackedArrayCached(
+                VirtualFrame frame,
+                DynamicObject hash,
+                BiConsumerNode callbackNode,
                 Object state,
                 @Cached("getSize(hash)") int cachedSize) {
             assert HashOperations.verifyStore(getContext(), hash);
@@ -966,7 +972,10 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected Object eachBuckets(VirtualFrame frame, DynamicObject hash, BiConsumerNode callbackNode,
+        protected Object eachBuckets(
+                VirtualFrame frame,
+                DynamicObject hash,
+                BiConsumerNode callbackNode,
                 Object state) {
             assert HashOperations.verifyStore(getContext(), hash);
 

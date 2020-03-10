@@ -620,7 +620,11 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyString(code)")
-        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, NotProvided file,
+        protected Object classEval(
+                VirtualFrame frame,
+                DynamicObject module,
+                DynamicObject code,
+                NotProvided file,
                 NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
@@ -628,7 +632,11 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
-        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file,
+        protected Object classEval(
+                VirtualFrame frame,
+                DynamicObject module,
+                DynamicObject code,
+                DynamicObject file,
                 NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
@@ -636,7 +644,11 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
-        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, DynamicObject file,
+        protected Object classEval(
+                VirtualFrame frame,
+                DynamicObject module,
+                DynamicObject code,
+                DynamicObject file,
                 int line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
@@ -650,15 +662,25 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "wasProvided(code)")
-        protected Object classEval(VirtualFrame frame, DynamicObject module, Object code, NotProvided file,
-                NotProvided line, NotProvided block,
+        protected Object classEval(
+                VirtualFrame frame,
+                DynamicObject module,
+                Object code,
+                NotProvided file,
+                NotProvided line,
+                NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(frame, module, toStr(frame, code), "(eval)", callNode);
         }
 
         @Specialization(guards = { "isRubyString(code)", "wasProvided(file)" })
-        protected Object classEval(VirtualFrame frame, DynamicObject module, DynamicObject code, Object file,
-                NotProvided line, NotProvided block,
+        protected Object classEval(
+                VirtualFrame frame,
+                DynamicObject module,
+                DynamicObject code,
+                Object file,
+                NotProvided line,
+                NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(frame, module, code, StringOperations.getString(toStr(frame, file)), callNode);
         }
@@ -701,20 +723,32 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line,
+        protected Object classEval(
+                DynamicObject self,
+                NotProvided code,
+                NotProvided file,
+                NotProvided line,
                 DynamicObject block,
                 @Cached ClassExecNode classExecNode) {
             return classExecNode.executeClassExec(self, new Object[]{ self }, block);
         }
 
         @Specialization
-        protected Object classEval(DynamicObject self, NotProvided code, NotProvided file, NotProvided line,
+        protected Object classEval(
+                DynamicObject self,
+                NotProvided code,
+                NotProvided file,
+                NotProvided line,
                 NotProvided block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(0, 1, 2, this));
         }
 
         @Specialization(guards = "wasProvided(code)")
-        protected Object classEval(DynamicObject self, Object code, NotProvided file, NotProvided line,
+        protected Object classEval(
+                DynamicObject self,
+                Object code,
+                NotProvided file,
+                NotProvided line,
                 DynamicObject block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(1, 0, this));
         }
@@ -1089,14 +1123,20 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected DynamicObject defineMethodBlock(VirtualFrame frame, DynamicObject module, String name,
+        protected DynamicObject defineMethodBlock(
+                VirtualFrame frame,
+                DynamicObject module,
+                String name,
                 NotProvided proc,
                 DynamicObject block) {
             return defineMethodProc(frame, module, name, block, NotProvided.INSTANCE);
         }
 
         @Specialization(guards = "isRubyProc(proc)")
-        protected DynamicObject defineMethodProc(VirtualFrame frame, DynamicObject module, String name,
+        protected DynamicObject defineMethodProc(
+                VirtualFrame frame,
+                DynamicObject module,
+                String name,
                 DynamicObject proc,
                 NotProvided block) {
             return defineMethod(module, name, proc, readCallerFrame.execute(frame));
@@ -1104,7 +1144,10 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(methodObject)")
-        protected DynamicObject defineMethodMethod(DynamicObject module, String name, DynamicObject methodObject,
+        protected DynamicObject defineMethodMethod(
+                DynamicObject module,
+                String name,
+                DynamicObject methodObject,
                 NotProvided block,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode) {
             final InternalMethod method = Layouts.METHOD.getMethod(methodObject);
@@ -1127,7 +1170,10 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyUnboundMethod(method)")
-        protected DynamicObject defineMethod(VirtualFrame frame, DynamicObject module, String name,
+        protected DynamicObject defineMethod(
+                VirtualFrame frame,
+                DynamicObject module,
+                String name,
                 DynamicObject method,
                 NotProvided block) {
             final MaterializedFrame callerFrame = readCallerFrame.execute(frame);

@@ -66,8 +66,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isBasicObjectID(id)")
-        protected DynamicObject id2Ref(
-                final long id,
+        protected DynamicObject id2Ref(long id,
                 @Cached ReadObjectFieldNode readObjectIdNode) {
             for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
                 final long objectID = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);

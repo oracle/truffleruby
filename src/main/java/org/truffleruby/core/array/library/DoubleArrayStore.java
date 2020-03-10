@@ -14,6 +14,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
+import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -23,21 +27,17 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
-import org.truffleruby.core.array.ArrayGuards;
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
-
 @ExportLibrary(value = ArrayStoreLibrary.class, receiverType = double[].class)
 @GenerateUncached
 public class DoubleArrayStore {
 
     @ExportMessage
-    public static double read(double[] store, int index) {
+    protected static double read(double[] store, int index) {
         return store[index];
     }
 
     @ExportMessage
-    public static boolean acceptsValue(double[] store, Object value) {
+    protected static boolean acceptsValue(double[] store, Object value) {
         return value instanceof Double;
     }
 
@@ -66,37 +66,37 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    public static boolean isMutable(double[] store) {
+    protected static boolean isMutable(double[] store) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isPrimitive(double[] store) {
+    protected static boolean isPrimitive(double[] store) {
         return true;
     }
 
     @ExportMessage
-    public static String toString(double[] store) {
+    protected static String toString(double[] store) {
         return "double[]";
     }
 
     @ExportMessage
-    public static void write(double[] store, int index, Object value) {
+    protected static void write(double[] store, int index, Object value) {
         store[index] = (double) value;
     }
 
     @ExportMessage
-    public static int capacity(double[] store) {
+    protected static int capacity(double[] store) {
         return store.length;
     }
 
     @ExportMessage
-    public static double[] expand(double[] store, int newCapacity) {
+    protected static double[] expand(double[] store, int newCapacity) {
         return ArrayUtils.grow(store, newCapacity);
     }
 
     @ExportMessage
-    public static Object[] boxedCopyOfRange(double[] store, int start, int length) {
+    protected static Object[] boxedCopyOfRange(double[] store, int start, int length) {
         Object[] result = new Object[length];
         for (int i = 0; i < length; i++) {
             result[i] = store[start + i];
@@ -109,7 +109,11 @@ public class DoubleArrayStore {
     static class CopyContents {
 
         @Specialization
-        protected static void copyContents(double[] srcStore, int srcStart, double[] destStore, int destStart,
+        protected static void copyContents(
+                double[] srcStore,
+                int srcStart,
+                double[] destStore,
+                int destStart,
                 int length) {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
@@ -128,18 +132,18 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    public static double[] toJavaArrayCopy(double[] store, int length) {
+    protected static double[] toJavaArrayCopy(double[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }
 
     @ExportMessage
     @TruffleBoundary
-    public static void sort(double[] store, int size) {
+    protected static void sort(double[] store, int size) {
         Arrays.sort(store, 0, size);
     }
 
     @ExportMessage
-    public static Iterable<Object> getIterable(double[] store, int from, int length) {
+    protected static Iterable<Object> getIterable(double[] store, int from, int length) {
         return () -> new Iterator<Object>() {
 
             private int n = from;
@@ -214,7 +218,7 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    public static ArrayAllocator allocator(double[] store) {
+    protected static ArrayAllocator allocator(double[] store) {
         return DOUBLE_ARRAY_ALLOCATOR;
     }
 

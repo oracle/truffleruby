@@ -55,9 +55,13 @@ public abstract class FiberNodes {
                 FiberOperation operation, Object[] args);
 
         @Specialization(guards = "isRubyFiber(fiber)")
-        protected Object transfer(VirtualFrame frame,
-                DynamicObject currentThread, DynamicObject currentFiber, DynamicObject fiber,
-                FiberOperation operation, Object[] args,
+        protected Object transfer(
+                VirtualFrame frame,
+                DynamicObject currentThread,
+                DynamicObject currentFiber,
+                DynamicObject fiber,
+                FiberOperation operation,
+                Object[] args,
                 @Cached BranchProfile errorProfile) {
 
             if (!Layouts.FIBER.getAlive(fiber)) {

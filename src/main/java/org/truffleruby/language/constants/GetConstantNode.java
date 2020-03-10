@@ -54,15 +54,23 @@ public abstract class GetConstantNode extends RubyContextNode {
     }
 
     @Specialization(guards = { "constant != null", "constant.hasValue()" })
-    protected Object getConstant(LexicalScope lexicalScope, DynamicObject module, String name, RubyConstant constant,
+    protected Object getConstant(
+            LexicalScope lexicalScope,
+            DynamicObject module,
+            String name,
+            RubyConstant constant,
             LookupConstantInterface lookupConstantNode) {
         return constant.getValue();
     }
 
     @TruffleBoundary
     @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
-    protected Object autoloadConstant(LexicalScope lexicalScope, DynamicObject module, String name,
-            RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode,
+    protected Object autoloadConstant(
+            LexicalScope lexicalScope,
+            DynamicObject module,
+            String name,
+            RubyConstant autoloadConstant,
+            LookupConstantInterface lookupConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode callRequireNode) {
 
         final DynamicObject feature = autoloadConstant.getAutoloadConstant().getFeature();
@@ -143,8 +151,12 @@ public abstract class GetConstantNode extends RubyContextNode {
     @Specialization(
             guards = { "isNullOrUndefined(constant)", "guardName(name, cachedName, sameNameProfile)" },
             limit = "getCacheLimit()")
-    protected Object missingConstantCached(LexicalScope lexicalScope, DynamicObject module, String name,
-            Object constant, LookupConstantInterface lookupConstantNode,
+    protected Object missingConstantCached(
+            LexicalScope lexicalScope,
+            DynamicObject module,
+            String name,
+            Object constant,
+            LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") DynamicObject symbolName,
             @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
@@ -152,8 +164,12 @@ public abstract class GetConstantNode extends RubyContextNode {
     }
 
     @Specialization(guards = "isNullOrUndefined(constant)")
-    protected Object missingConstantUncached(LexicalScope lexicalScope, DynamicObject module, String name,
-            Object constant, LookupConstantInterface lookupConstantNode) {
+    protected Object missingConstantUncached(
+            LexicalScope lexicalScope,
+            DynamicObject module,
+            String name,
+            Object constant,
+            LookupConstantInterface lookupConstantNode) {
         return doMissingConstant(module, name, getSymbol(name));
     }
 

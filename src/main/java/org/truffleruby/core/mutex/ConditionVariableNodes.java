@@ -66,7 +66,10 @@ public abstract class ConditionVariableNodes {
     public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isNil(timeout)")
-        protected DynamicObject waitTimeoutNil(VirtualFrame frame, DynamicObject conditionVariable, DynamicObject mutex,
+        protected DynamicObject waitTimeoutNil(
+                VirtualFrame frame,
+                DynamicObject conditionVariable,
+                DynamicObject mutex,
                 Object timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
@@ -79,7 +82,10 @@ public abstract class ConditionVariableNodes {
         }
 
         @Specialization
-        protected DynamicObject waitTimeout(VirtualFrame frame, DynamicObject conditionVariable, DynamicObject mutex,
+        protected DynamicObject waitTimeout(
+                VirtualFrame frame,
+                DynamicObject conditionVariable,
+                DynamicObject mutex,
                 long timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {

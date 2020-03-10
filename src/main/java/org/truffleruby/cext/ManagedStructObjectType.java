@@ -63,37 +63,33 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @ExportMessage
-    public static boolean hasMembers(DynamicObject receiver) {
+    protected static boolean hasMembers(DynamicObject receiver) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isMemberReadable(DynamicObject receiver, String member) {
+    protected static boolean isMemberReadable(DynamicObject receiver, String member) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isMemberModifiable(DynamicObject receiver, String member) {
+    protected static boolean isMemberModifiable(DynamicObject receiver, String member) {
         return true;
     }
 
     @ExportMessage
-    public static boolean isMemberInsertable(DynamicObject receiver, String member) {
+    protected static boolean isMemberInsertable(DynamicObject receiver, String member) {
         return true;
     }
 
     @ExportMessage
-    public static Object getMembers(
-            DynamicObject receiver,
-            boolean includeInternal,
+    protected static Object getMembers(DynamicObject receiver, boolean includeInternal,
             @Cached CallDispatchHeadNode dispatchNode) {
         return dispatchNode.call(receiver, "instance_variables");
     }
 
     @ExportMessage
-    public static Object readMember(
-            DynamicObject receiver,
-            String name,
+    protected static Object readMember(DynamicObject receiver, String name,
             @Cached ObjectIVarGetNode readObjectFieldNode) throws UnknownIdentifierException {
 
         if (!receiver.containsKey(name)) {
@@ -103,22 +99,19 @@ public class ManagedStructObjectType extends ObjectType {
     }
 
     @ExportMessage
-    public static void writeMember(
-            DynamicObject receiver,
-            String name,
-            Object value,
+    protected static void writeMember(DynamicObject receiver, String name, Object value,
             @Cached ObjectIVarSetNode writeObjectFieldNode) {
 
         writeObjectFieldNode.executeIVarSet(receiver, name, value);
     }
 
     @ExportMessage
-    public static boolean hasNativeType(DynamicObject receiver) {
+    protected static boolean hasNativeType(DynamicObject receiver) {
         return true;
     }
 
     @ExportMessage
-    public static Object getNativeType(DynamicObject receiver) {
+    protected static Object getNativeType(DynamicObject receiver) {
         return ManagedStructObjectType.MANAGED_STRUCT.getType(receiver);
     }
 

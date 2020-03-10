@@ -118,8 +118,7 @@ public abstract class ThreadNodes {
     public abstract static class BacktraceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object backtrace(
-                DynamicObject rubyThread, int omit, NotProvided length) {
+        protected Object backtrace(DynamicObject rubyThread, int omit, NotProvided length) {
             return backtrace(rubyThread, omit, Integer.MAX_VALUE);
         }
 
@@ -157,14 +156,12 @@ public abstract class ThreadNodes {
     public abstract static class BacktraceLocationsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object backtraceLocations(
-                DynamicObject rubyThread, int first, NotProvided second) {
+        protected Object backtraceLocations(DynamicObject rubyThread, int first, NotProvided second) {
             return backtraceLocationsInternal(rubyThread, first, GetBacktraceException.UNLIMITED);
         }
 
         @Specialization
-        protected Object backtraceLocations(
-                DynamicObject rubyThread, int first, int second) {
+        protected Object backtraceLocations(DynamicObject rubyThread, int first, int second) {
             return backtraceLocationsInternal(rubyThread, first, second);
         }
 
@@ -242,7 +239,10 @@ public abstract class ThreadNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization(guards = { "isRubyClass(exceptionClass)", "isRubySymbol(timing)" })
-        protected Object handle_interrupt(DynamicObject self, DynamicObject exceptionClass, DynamicObject timing,
+        protected Object handle_interrupt(
+                DynamicObject self,
+                DynamicObject exceptionClass,
+                DynamicObject timing,
                 DynamicObject block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(timing);
@@ -302,8 +302,7 @@ public abstract class ThreadNodes {
     public abstract static class ThreadAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject allocate(
-                DynamicObject rubyClass,
+        protected DynamicObject allocate(DynamicObject rubyClass,
                 @Cached AllocateObjectNode allocateObjectNode) {
             return getContext().getThreadManager().createThread(rubyClass, allocateObjectNode);
         }

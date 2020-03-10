@@ -677,19 +677,28 @@ public abstract class RopeNodes {
                 Object characterLength);
 
         @Specialization(guards = "is7Bit(codeRange)")
-        protected LeafRope makeAsciiOnlyLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected LeafRope makeAsciiOnlyLeafRope(
+                byte[] bytes,
+                Encoding encoding,
+                CodeRange codeRange,
                 Object characterLength) {
             return new AsciiOnlyLeafRope(bytes, encoding);
         }
 
         @Specialization(guards = "isValid(codeRange)")
-        protected LeafRope makeValidLeafRopeWithCharacterLength(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected LeafRope makeValidLeafRopeWithCharacterLength(
+                byte[] bytes,
+                Encoding encoding,
+                CodeRange codeRange,
                 int characterLength) {
             return new ValidLeafRope(bytes, encoding, characterLength);
         }
 
         @Specialization(guards = { "isValid(codeRange)", "isFixedWidth(encoding)" })
-        protected LeafRope makeValidLeafRopeFixedWidthEncoding(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected LeafRope makeValidLeafRopeFixedWidthEncoding(
+                byte[] bytes,
+                Encoding encoding,
+                CodeRange codeRange,
                 NotProvided characterLength) {
             final int calculatedCharacterLength = bytes.length / encoding.minLength();
 
@@ -697,7 +706,10 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "isAsciiCompatible(encoding)" })
-        protected LeafRope makeValidLeafRopeAsciiCompat(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected LeafRope makeValidLeafRopeAsciiCompat(
+                byte[] bytes,
+                Encoding encoding,
+                CodeRange codeRange,
                 NotProvided characterLength,
                 @Cached BranchProfile errorProfile,
                 @Cached CalculateCharacterLengthNode calculateCharacterLengthNode) {
@@ -735,7 +747,10 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "isValid(codeRange)", "!isFixedWidth(encoding)", "!isAsciiCompatible(encoding)" })
-        protected LeafRope makeValidLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected LeafRope makeValidLeafRope(
+                byte[] bytes,
+                Encoding encoding,
+                CodeRange codeRange,
                 NotProvided characterLength) {
             // Extracted from StringSupport.strLength.
 
@@ -751,13 +766,19 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "isBroken(codeRange)")
-        protected LeafRope makeInvalidLeafRope(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected LeafRope makeInvalidLeafRope(
+                byte[] bytes,
+                Encoding encoding,
+                CodeRange codeRange,
                 Object characterLength) {
             return new InvalidLeafRope(bytes, encoding, RopeOperations.strLength(encoding, bytes, 0, bytes.length));
         }
 
         @Specialization(guards = { "isUnknown(codeRange)", "isEmpty(bytes)" })
-        protected LeafRope makeUnknownLeafRopeEmpty(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected LeafRope makeUnknownLeafRopeEmpty(
+                byte[] bytes,
+                Encoding encoding,
+                CodeRange codeRange,
                 Object characterLength,
                 @Cached("createBinaryProfile()") ConditionProfile isUTF8,
                 @Cached("createBinaryProfile()") ConditionProfile isUSAscii,
@@ -783,7 +804,10 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "isUnknown(codeRange)", "!isEmpty(bytes)" })
-        protected LeafRope makeUnknownLeafRopeGeneric(byte[] bytes, Encoding encoding, CodeRange codeRange,
+        protected LeafRope makeUnknownLeafRopeGeneric(
+                byte[] bytes,
+                Encoding encoding,
+                CodeRange codeRange,
                 Object characterLength,
                 @Cached CalculateAttributesNode calculateAttributesNode,
                 @Cached BranchProfile asciiOnlyProfile,
@@ -1655,14 +1679,24 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "codeRange == CR_7BIT")
-        protected int cr7Bit(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd,
+        protected int cr7Bit(
+                Encoding encoding,
+                CodeRange codeRange,
+                byte[] bytes,
+                int byteOffset,
+                int byteEnd,
                 boolean recoverIfBroken) {
             assert byteOffset < byteEnd;
             return 1;
         }
 
         @Specialization(guards = { "codeRange == CR_VALID", "encoding.isUTF8()" })
-        protected int validUtf8(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd,
+        protected int validUtf8(
+                Encoding encoding,
+                CodeRange codeRange,
+                byte[] bytes,
+                int byteOffset,
+                int byteEnd,
                 boolean recoverIfBroken,
                 @Cached BranchProfile oneByteProfile,
                 @Cached BranchProfile twoBytesProfile,
@@ -1695,8 +1729,13 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "codeRange == CR_VALID", "encoding.isAsciiCompatible()" })
-        protected int validAsciiCompatible(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset,
-                int byteEnd, boolean recoverIfBroken,
+        protected int validAsciiCompatible(
+                Encoding encoding,
+                CodeRange codeRange,
+                byte[] bytes,
+                int byteOffset,
+                int byteEnd,
+                boolean recoverIfBroken,
                 @Cached("createBinaryProfile()") ConditionProfile asciiCharProfile) {
             if (asciiCharProfile.profile(bytes[byteOffset] >= 0)) {
                 return 1;
@@ -1706,7 +1745,12 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "codeRange == CR_VALID", "encoding.isFixedWidth()" })
-        protected int validFixedWidth(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd,
+        protected int validFixedWidth(
+                Encoding encoding,
+                CodeRange codeRange,
+                byte[] bytes,
+                int byteOffset,
+                int byteEnd,
                 boolean recoverIfBroken) {
             final int width = encoding.minLength();
             assert (byteEnd - byteOffset) >= width;
@@ -1719,14 +1763,24 @@ public abstract class RopeNodes {
                         /* UTF-8 is ASCII-compatible, so we don't need to check the encoding is not UTF-8 here. */
                         "!encoding.isAsciiCompatible()",
                         "!encoding.isFixedWidth()" })
-        protected int validGeneral(Encoding encoding, CodeRange codeRange, byte[] bytes, int byteOffset, int byteEnd,
+        protected int validGeneral(
+                Encoding encoding,
+                CodeRange codeRange,
+                byte[] bytes,
+                int byteOffset,
+                int byteEnd,
                 boolean recoverIfBroken) {
             return encodingLength(encoding, bytes, byteOffset, byteEnd);
         }
 
         @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "recoverIfBroken" })
-        protected int brokenOrUnknownWithRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes,
-                int byteOffset, int byteEnd, boolean recoverIfBroken,
+        protected int brokenOrUnknownWithRecovery(
+                Encoding encoding,
+                CodeRange codeRange,
+                byte[] bytes,
+                int byteOffset,
+                int byteEnd,
+                boolean recoverIfBroken,
                 @Cached("createBinaryProfile()") ConditionProfile validCharWidthProfile,
                 @Cached("createBinaryProfile()") ConditionProfile minEncodingWidthUsedProfile) {
             final int bytesRemaining = byteEnd - byteOffset;
@@ -1746,8 +1800,13 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "codeRange == CR_BROKEN || codeRange == CR_UNKNOWN", "!recoverIfBroken" })
-        protected int brokenOrUnknownWithoutRecovery(Encoding encoding, CodeRange codeRange, byte[] bytes,
-                int byteOffset, int byteEnd, boolean recoverIfBroken,
+        protected int brokenOrUnknownWithoutRecovery(
+                Encoding encoding,
+                CodeRange codeRange,
+                byte[] bytes,
+                int byteOffset,
+                int byteEnd,
+                boolean recoverIfBroken,
                 @Cached("createBinaryProfile()") ConditionProfile byteOffsetOutOfBoundsProfile,
                 @Cached("createBinaryProfile()") ConditionProfile validCharWidthProfile) {
             final int bytesRemaining = byteEnd - byteOffset;

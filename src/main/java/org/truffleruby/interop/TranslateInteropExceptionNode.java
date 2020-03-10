@@ -38,7 +38,6 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             boolean inInvokeMember,
             Object receiver,
             Object[] args,
-
             @CachedContext(RubyLanguage.class) RubyContext context) {
         RaiseException raiseException = new RaiseException(
                 context,
@@ -106,11 +105,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected RuntimeException handle(
-            ArityException exception,
-            boolean inInvokeMember,
-            Object receiver,
-            Object[] args,
+    protected RuntimeException handle(ArityException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         RaiseException raiseException = new RaiseException(
