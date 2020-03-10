@@ -443,8 +443,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
-      "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "30:00" },
-      "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:20:00" },
+      "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "40:00" },
+      "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
       "ruby-test-integration-linux": $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_integration,
       "ruby-test-cexts-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts,
       "ruby-test-cexts-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.use.gem_test_pack + $.run.test_cexts + { timelimit: "01:20:00" },
