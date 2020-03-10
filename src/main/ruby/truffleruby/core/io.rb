@@ -169,8 +169,7 @@ class IO
     def fill(io, max = DEFAULT_READ_SIZE)
       io = io.to_io unless io.kind_of? IO
 
-      left = unused
-      count = left < max ? left : max
+      count = Primitive.min(unused, max)
 
       buffer, bytes_read = fill_read(io, count)
       if bytes_read > 0
@@ -203,7 +202,7 @@ class IO
           end
           size
         else
-          size < max ? size : max
+          Primitive.min(size, max)
         end
       end
     end
@@ -1322,7 +1321,7 @@ class IO
         break unless available > 0
 
         if count = @buffer.find(@separator)
-          bytes = count < wanted ? count : wanted
+          bytes = Primitive.min(count, wanted)
           str << @buffer.shift(bytes)
 
           str = IO.read_encode(@io, str)

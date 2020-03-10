@@ -91,7 +91,7 @@ class Array
 
     Thread.detect_recursion self, other do
       i = 0
-      count = total < size ? total : size
+      count = Primitive.min(total, size)
 
       while i < count
         order = self[i] <=> other[i]
@@ -1379,9 +1379,9 @@ class Array
     finish = size
     while left < finish
       right = left + width
-      right = right < finish ? right : finish
+      right = Primitive.min(right, finish)
       last = left + (2 * width)
-      last = last < finish ? last : finish
+      last = Primitive.min(last, finish)
 
       isort!(left, right)
       isort!(right, last)
@@ -1395,9 +1395,9 @@ class Array
       left = 0
       while left < finish
         right = left + width
-        right = right < finish ? right : finish
+        right = Primitive.min(right, finish)
         last = left + (2 * width)
-        last = last < finish ? last : finish
+        last = Primitive.min(last, finish)
 
         bottom_up_merge(left, right, last, source, scratch)
         left += 2 * width
@@ -1444,9 +1444,9 @@ class Array
     finish = size
     while left < finish
       right = left + width
-      right = right < finish ? right : finish
+      right = Primitive.min(right, finish)
       last = left + (2 * width)
-      last = last < finish ? last : finish
+      last = Primitive.min(last, finish)
 
       isort_block!(left, right, block)
       isort_block!(right, last, block)
@@ -1459,9 +1459,9 @@ class Array
       left = 0
       while left < finish
         right = left + width
-        right = right < finish ? right : finish
+        right = Primitive.min(right, finish)
         last = left + (2 * width)
-        last = last < finish ? last : finish
+        last = Primitive.min(last, finish)
 
         bottom_up_merge_block(left, right, last, source, scratch, block)
         left += 2 * width

@@ -296,6 +296,7 @@ class Enumerator
 
       current_size = enumerator_size
       if current_size.kind_of?(Numeric)
+        # Not Primitive.min since current_size is not always an Integer
         set_size = n < current_size ? n : current_size
       else
         set_size = current_size
