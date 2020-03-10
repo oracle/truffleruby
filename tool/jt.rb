@@ -2035,6 +2035,8 @@ EOS
 
   def command_format(*args)
     mx 'eclipseformat', '--no-backup', '--primary', *args, continue_on_failure: true
+    format_specializations_visibility
+    format_specializations_arguments
   end
 
   private def check_filename_length
