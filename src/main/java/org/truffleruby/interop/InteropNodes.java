@@ -36,6 +36,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CallTarget;
@@ -1057,6 +1058,16 @@ public abstract class InteropNodes {
             } catch (IllegalStateException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
+        }
+
+    }
+
+    @Primitive(name = "dispatch_missing")
+    public abstract static class DispatchMissingNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object dispatchMissing() {
+            return DispatchNode.MISSING;
         }
 
     }

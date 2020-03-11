@@ -274,6 +274,7 @@ public class RubyObjectMessages {
     protected static void writeMember(DynamicObject receiver, String name, Object value,
             @Cached WriteObjectFieldNode writeObjectFieldNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
@@ -289,6 +290,10 @@ public class RubyObjectMessages {
         }
 
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (isFrozenNode.execute(receiver)) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
             if (isIVar(name)) {
                 writeObjectFieldNode.write(receiver, name, value);
             } else {
@@ -306,7 +311,8 @@ public class RubyObjectMessages {
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
-            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Cached @Shared("frozen") IsFrozenNode isFrozenNode)
             throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
@@ -317,9 +323,13 @@ public class RubyObjectMessages {
             throw translateRubyException.execute(e, name);
         }
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (!isIVar(name)) {
+            if (isFrozenNode.execute(receiver)) {
                 errorProfile.enter();
                 throw UnsupportedMessageException.create();
+            }
+            if (!isIVar(name)) {
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name);
             }
             try {
                 removeInstanceVariableNode.call(receiver, "remove_instance_variable", rubyName);

@@ -19,6 +19,7 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.LookupMethodNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -27,7 +28,7 @@ public abstract class DispatchNode extends FrameSendingNode {
 
     private final DispatchAction dispatchAction;
 
-    private static final class Missing {
+    private static final class Missing implements TruffleObject {
     }
 
     public static final Object MISSING = new Missing();

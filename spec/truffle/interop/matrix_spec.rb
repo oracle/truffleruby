@@ -95,6 +95,7 @@ describe 'Interop:' do
     an         = class_name.start_with?('A', 'E', 'I', 'O', 'U')
     (an ? 'an ' : 'a ') + code(class_name)
   end
+  DEFAULT     = Object.new
 
   def code(string)
     '`' + string + '`'
@@ -133,11 +134,12 @@ describe 'Interop:' do
     end
   end
 
-  Test = Struct.new(:description, :subjects, :test, :mode) do
+  Test = Struct.new(:description, :subjects_description, :subjects, :test, :mode) do
     def initialize(description, *subjects, mode: :single, &test)
       raise ArgumentError, description.inspect unless String === description
       raise ArgumentError, test.inspect unless Proc === test
-      super description, subjects.map { |k| SUBJECTS.fetch(k) { EXTRA_SUBJECTS.fetch(k) } }, test, mode
+      subjects_description = (subjects.shift if subjects.first.is_a? String)
+      super description, subjects_description, subjects.map { |k| SUBJECTS.fetch(k) { EXTRA_SUBJECTS.fetch(k) } }, test, mode
     end
 
     def spec_describe(subject)
@@ -207,6 +209,8 @@ describe 'Interop:' do
   # TODO (pitr-ch 20-Feb-2020): test objects from CExt ?
   # TODO (pitr-ch 13-Feb-2020): add number corner cases
 
+  StructWithValue = Struct.new :value
+
   SUBJECTS = {
       nil:            Subject.(nil, doc: true),
       false:          Subject.(false, doc: true),
@@ -230,6 +234,8 @@ describe 'Interop:' do
       big_decimal:   Subject.(BigDecimal('1e99'), name: AN_INSTANCE, doc: true),
 
       object:        Subject.(name: AN_INSTANCE, doc: true) { Object.new },
+      frozen_object: Subject.(name: "a frozen `Object`", doc: true) { Object.new.freeze },
+      struct:        Subject.(name: AN_INSTANCE, doc: true, explanation: "a `Struct` with one property named `value`") { StructWithValue.new DEFAULT },
       class:         Subject.(name: AN_INSTANCE, doc: true) { Class.new },
       module:        Subject.(name: AN_INSTANCE) { Module.new },
       hash:          Subject.(name: AN_INSTANCE, doc: true) { {} },
@@ -265,6 +271,10 @@ describe 'Interop:' do
                            array_polyglot_methods.map { |m| code(m) }.join(",\n  ") + ".\n" +
                            interop_library_reference) { TruffleInteropSpecs::PolyglotArray.new }
   }.each { |key, subject| subject.key = key }
+
+  immediate_subjects     = [:nil, :false, :true, :zero, :small_integer, :zero_float, :small_float]
+  non_immediate_subjects = SUBJECTS.keys - immediate_subjects
+  frozen_subjects        = [:symbol, :strange_symbol, :frozen_object]
 
   # not part of the standard matrix, not considered in last rest case
   EXTRA_SUBJECTS = {
@@ -367,7 +377,7 @@ describe 'Interop:' do
                 Truffle::Interop.pointer?(subject).should_not be_true
               end],
 
-      Delimiter["Array related messages (incomplete)"],
+      Delimiter["Array related messages"],
       Message[:hasArrayElements,
               Test.new("returns true", :array, :polyglot_array, :polyglot_int_array, &predicate(:has_array_elements?, true)),
               Test.new("returns false", &predicate(:has_array_elements?, false))],
@@ -421,7 +431,61 @@ describe 'Interop:' do
       array_element_predicate(:isArrayElementReadable, :array_element_readable?, true),
       array_element_predicate(:isArrayElementModifiable, :array_element_modifiable?, true),
       array_element_predicate(:isArrayElementInsertable, :array_element_insertable?, false),
-      array_element_predicate(:isArrayElementRemovable, :array_element_removable?, true)
+      array_element_predicate(:isArrayElementRemovable, :array_element_removable?, true),
+
+      Delimiter["Members related messages (incomplete)"],
+      Message[:readMember,
+              Test.new("returns a method with the given name when the method is defined", "any non-immediate `Object`",
+                       *non_immediate_subjects - [:polyglot_object]) do |subject|
+                Truffle::Interop.read_member(subject, 'to_s').should == subject.method(:to_s)
+              end,
+              Test.new("fails with NameError when the method is not defined", "any non-immediate `Object`",
+                       *non_immediate_subjects - [:polyglot_object]) do |subject|
+                -> { Truffle::Interop.read_member(subject, '__non_existing__') }.should raise_error(NameError)
+              end,
+              Test.new("reads the given instance variable", "any non-immediate `Object`",
+                       *SUBJECTS.keys - immediate_subjects - frozen_subjects - [:polyglot_object]) do |subject|
+                value = Object.new
+                subject.instance_variable_set :@ivar, value
+                Truffle::Interop.read_member(subject, '@ivar').should == value
+              end,
+              Test.new("reads the value stored with the given name", :polyglot_object) do |subject|
+                value = Object.new
+                Truffle::Interop.write_member(subject, 'key', value)
+                Truffle::Interop.read_member(subject, 'key').should == value
+              end,
+              Test.new("returns the value of the given struct member", :struct) do |subject|
+                Truffle::Interop.read_member(subject, 'value').should == DEFAULT
+                subject.value = value = Object.new
+                Truffle::Interop.read_member(subject, 'value').should == value
+              end,
+              unsupported_test { |subject| Truffle::Interop.read_member(subject, :any) }],
+      Message[:writeMember,
+              Test.new("writes the given instance variable", "any non-immediate non-frozen `Object`",
+                       *SUBJECTS.keys - immediate_subjects - frozen_subjects - [:polyglot_object]) do |subject|
+                value = Object.new
+                Truffle::Interop.write_member(subject, '@ivar', value)
+                subject.instance_variable_get(:@ivar).should == value
+              end,
+              Test.new("writes the given value under the given name", :polyglot_object) do |subject|
+                value = Object.new
+                Truffle::Interop.write_member(subject, 'key', value)
+                Truffle::Interop.read_member(subject, 'key').should == value
+              end,
+              Test.new("writes the value to the given struct member", :struct) do |subject|
+                value = Object.new
+                Truffle::Interop.write_member(subject, 'value', value)
+                subject.value.should == value
+              end,
+              Test.new("fails with NameError when the receiver is frozen", *frozen_subjects) do |subject|
+                -> { Truffle::Interop.write_member(subject, '@ivar', Object.new) }.should raise_error(Polyglot::UnsupportedMessageError)
+              end,
+              unsupported_test { |subject| Truffle::Interop.write_member(subject, :something, 'val') }],
+
+      Delimiter["Number related messages (missing)"],
+      Delimiter["Instantiation related messages (missing)"],
+      Delimiter["Exception related messages (missing)"],
+      Delimiter["Time related messages (unimplemented)"],
   ]
 
   at_exit do
@@ -453,7 +517,8 @@ describe 'Interop:' do
             names.join(', ')
           }
           message.tests.each do |test|
-            out.puts "- to " + format_subjects.call(test.subjects) + "\n  it " + test.description + "."
+            subjects_description = (test.subjects_description + " like " if test.subjects_description)
+            out.puts "- to #{subjects_description}" + format_subjects.call(test.subjects) + "\n  it " + test.description + "."
           end
 
           # remaining_keys = SUBJECTS.keys - message.tests.map(&:subjects).flatten
