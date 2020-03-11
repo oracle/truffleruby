@@ -9,10 +9,10 @@
 require_relative '../../ruby/spec_helper'
 require_relative 'fixtures/classes'
 
-describe "Truffle::Interop.size?" do
+describe "Truffle::Interop.has_array_elements?" do
 
   it "array has size" do
-    Truffle::Interop.size?([1, 2, 3]).should be_true
+    Truffle::Interop.has_array_elements?([1, 2, 3]).should be_true
   end
 
   { hash: {},
@@ -24,7 +24,7 @@ describe "Truffle::Interop.size?" do
     struct: Struct.new(:a).new(:v)
   }.each do |name, v|
     it "#{name} does not have size" do
-      Truffle::Interop.size?(v).should be_false
+      Truffle::Interop.has_array_elements?(v).should be_false
     end
   end
 end

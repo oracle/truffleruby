@@ -248,11 +248,11 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "size?", onSingleton = true, required = 1)
-    public abstract static class HasSizeNode extends InteropCoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "has_array_elements?", onSingleton = true, required = 1)
+    public abstract static class HasArrayElementsNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected boolean hasSize(Object receiver,
+        protected boolean hasArrayElements(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasArrayElements(receiver);
         }

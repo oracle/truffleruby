@@ -90,7 +90,7 @@ translated to a Ruby exception as follows:
 
 ### `HAS_SIZE`
 
-`Truffle::Interop.size?(value)`
+`Truffle::Interop.has_array_elements?(value)`
 
 ### `GET_SIZE`
 

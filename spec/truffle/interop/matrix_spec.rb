@@ -369,8 +369,8 @@ describe 'Interop:' do
 
       Delimiter["Array related messages (incomplete)"],
       Message[:hasArrayElements,
-              Test.new("returns true", :array, :polyglot_array, :polyglot_int_array, &predicate(:size?, true)),
-              Test.new("returns false", &predicate(:size?, false))],
+              Test.new("returns true", :array, :polyglot_array, :polyglot_int_array, &predicate(:has_array_elements?, true)),
+              Test.new("returns false", &predicate(:has_array_elements?, false))],
       Message[:getArraySize,
               Test.new("returns size of the array", :array, :polyglot_array) do |subject|
                 Truffle::Interop.array_size(subject).should == 0
