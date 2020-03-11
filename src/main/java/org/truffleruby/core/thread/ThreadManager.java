@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
@@ -71,7 +72,23 @@ public class ThreadManager {
 
     private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
 
-    private final Map<Thread, UnblockingAction> unblockingActions = new ConcurrentHashMap<>();
+    public static final class ActionHolder {
+
+        private static final AtomicReferenceFieldUpdater<ActionHolder, UnblockingAction> actionUpdater = AtomicReferenceFieldUpdater
+                .newUpdater(ActionHolder.class, UnblockingAction.class, "action");
+        public volatile UnblockingAction action;
+
+        public ActionHolder(UnblockingAction action) {
+            this.action = action;
+        }
+
+        @TruffleBoundary
+        public UnblockingAction getAndSet(UnblockingAction action) {
+            return actionUpdater.getAndSet(this, action);
+        }
+    }
+
+    private final Map<Thread, ActionHolder> unblockingActions = new ConcurrentHashMap<>();
     public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
@@ -502,12 +519,27 @@ public class ThreadManager {
         assert unblockingAction != null;
         final Thread thread = Thread.currentThread();
 
-        final UnblockingAction oldUnblockingAction = unblockingActions.put(thread, unblockingAction);
+        final ActionHolder holder = unblockingActions.computeIfAbsent(thread, k -> new ActionHolder(null));
+        final UnblockingAction oldUnblockingAction = holder.action;
+        holder.action = unblockingAction;
         try {
             return runUntilResult(currentNode, blockingAction);
         } finally {
-            unblockingActions.put(thread, oldUnblockingAction);
+            holder.action = oldUnblockingAction;
         }
+    }
+
+    @TruffleBoundary
+    public ActionHolder getActionHolder(Thread thread) {
+        return unblockingActions.get(thread);
+    }
+
+    @TruffleBoundary
+    public UnblockingAction setUnblockingAction(Thread thread, UnblockingAction action) {
+        ActionHolder holder = unblockingActions.computeIfAbsent(thread, k -> new ActionHolder(null));
+        UnblockingAction oldAction = holder.action;
+        holder.action = action;
+        return oldAction;
     }
 
     /** Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for blocking native calls. If
@@ -525,6 +557,7 @@ public class ThreadManager {
         }, getNativeCallUnblockingAction());
     }
 
+    @TruffleBoundary
     public UnblockingAction getNativeCallUnblockingAction() {
         return blockingNativeCallUnblockingAction.get();
     }
@@ -545,9 +578,9 @@ public class ThreadManager {
             blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, () -> {
+        unblockingActions.put(thread, new ActionHolder(() -> {
             thread.interrupt();
-        });
+        }));
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
@@ -670,7 +703,7 @@ public class ThreadManager {
 
     @TruffleBoundary
     public void interrupt(Thread thread) {
-        final UnblockingAction action = unblockingActions.get(thread);
+        final UnblockingAction action = unblockingActions.computeIfAbsent(thread, k -> new ActionHolder(null)).action;
 
         if (action != null) {
             action.unblock();

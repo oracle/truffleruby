@@ -517,24 +517,51 @@ public abstract class ThreadNodes {
 
     @NonStandard
     @CoreMethod(names = "unblock", required = 2)
-    public abstract static class UnblockNode extends YieldingCoreMethodNode {
+    public abstract static class Unblock2Node extends YieldingCoreMethodNode {
 
-        @TruffleBoundary
         @Specialization(guards = "isRubyProc(runner)")
         protected Object unblock(DynamicObject thread, Object unblocker, DynamicObject runner) {
             final UnblockingAction unblockingAction;
             if (unblocker == nil) {
-                unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
+                unblockingAction = getUnblockingAction();
             } else {
-                assert RubyGuards.isRubyProc(unblocker);
-                final DynamicObject unblockerProc = (DynamicObject) unblocker;
-                unblockingAction = () -> yield(unblockerProc);
+                unblockingAction = makeUnblockingAction(unblocker);
             }
 
-            return getContext().getThreadManager().runUntilResult(
-                    this,
-                    () -> yield(runner),
-                    unblockingAction);
+            Thread javaThread = Thread.currentThread();
+            ThreadManager.ActionHolder actionHolder = getContext().getThreadManager().getActionHolder(javaThread);
+            UnblockingAction oldAction = actionHolder.getAndSet(unblockingAction);
+
+            Object result = null;
+
+            try {
+                do {
+                    final ThreadStatus status = Layouts.THREAD.getStatus(thread);
+                    Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
+
+                    try {
+                        result = yield(runner);
+                    } finally {
+                        Layouts.THREAD.setStatus(thread, status);
+                    }
+                } while (result == null);
+
+                return result;
+            } finally {
+                actionHolder.getAndSet(oldAction);
+            }
+        }
+
+        @TruffleBoundary
+        private UnblockingAction getUnblockingAction() {
+            return getContext().getThreadManager().getNativeCallUnblockingAction();
+        }
+
+        @TruffleBoundary
+        private UnblockingAction makeUnblockingAction(Object unblocker) {
+            assert RubyGuards.isRubyProc(unblocker);
+            final DynamicObject unblockerProc = (DynamicObject) unblocker;
+            return () -> yield(unblockerProc);
         }
 
     }
@@ -738,9 +765,31 @@ public abstract class ThreadNodes {
         @Specialization(guards = "isRubyProc(block)")
         protected Object runBlockingSystemCall(DynamicObject block,
                 @Cached YieldNode yieldNode) {
-            return getContext().getThreadManager().runBlockingNFISystemCallUntilResult(
-                    this,
-                    () -> yieldNode.executeDispatch(block));
+            final UnblockingAction unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
+            final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
+
+            Thread javaThread = Thread.currentThread();
+            ThreadManager.ActionHolder actionHolder = getContext().getThreadManager().getActionHolder(javaThread);
+            UnblockingAction oldAction = actionHolder.getAndSet(unblockingAction);
+
+            Object result = NotProvided.INSTANCE;
+
+            try {
+                do {
+                    final ThreadStatus status = Layouts.THREAD.getStatus(thread);
+                    Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
+
+                    try {
+                        result = yieldNode.executeDispatch(block);
+                    } finally {
+                        Layouts.THREAD.setStatus(thread, status);
+                    }
+                } while (result == NotProvided.INSTANCE);
+
+                return result;
+            } finally {
+                actionHolder.getAndSet(oldAction);
+            }
         }
     }
 
