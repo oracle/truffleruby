@@ -184,4 +184,6 @@ class Random
   end
 end
 
-Random::DEFAULT = Random.new
+Truffle::Boot.delay do
+  Random::DEFAULT = Random.new
+end
