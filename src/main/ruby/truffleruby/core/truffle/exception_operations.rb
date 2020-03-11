@@ -14,22 +14,24 @@ module Truffle
       Truffle::Type.object_class(receiver).name
     end
 
+    # MRI: name_err_mesg_to_str
     def self.receiver_string(exception)
       receiver = exception.receiver
       ret = begin
         if Primitive.object_respond_to?(receiver, :inspect, false)
-          if class_name = class_name(receiver)
-            "#{receiver.inspect}:#{class_name}"
-          else
-            "#{receiver.inspect}"
-          end
+          Truffle::Type.rb_inspect(receiver)
         else
-          Truffle::Type.rb_any_to_s(receiver)
+          nil
         end
       rescue Exception # rubocop:disable Lint/RescueException
-        Truffle::Type.rb_any_to_s(receiver)
+        nil
       end
-      ret
+      ret = Truffle::Type.rb_any_to_s(receiver) unless ret && ret.bytesize <= 65
+      if ret.start_with?('#')
+        ret
+      else
+        "#{ret}:#{class_name(receiver)}"
+      end
     end
 
     def self.message_and_class(exception, highlight)
@@ -116,11 +118,11 @@ module Truffle
     end
 
     PRIVATE_METHOD_ERROR = Proc.new do |exception|
-      format("private method `%s' called for %s", exception.name, class_name(exception.receiver))
+      format("private method `%s' called for %s", exception.name, receiver_string(exception))
     end
 
     PROTECTED_METHOD_ERROR = Proc.new do |exception|
-      format("protected method `%s' called for %s", exception.name, class_name(exception.receiver))
+      format("protected method `%s' called for %s", exception.name, receiver_string(exception))
     end
 
     SUPER_METHOD_ERROR = Proc.new do |exception|

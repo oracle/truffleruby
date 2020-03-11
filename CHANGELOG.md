@@ -94,6 +94,7 @@ Compatibility:
 * Silence `ruby_dep` warnings since that gem is unmaintained.
 * Clarify error message for not implemented `Process.daemon` (#1962).
 * Allow multiple assignments in conditionals (#1513).
+* Update `NoMethodError#message` to match MRI (#1957). 
 
 Changes:
 
