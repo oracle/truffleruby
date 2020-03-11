@@ -721,14 +721,13 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUnknownIdentifierException(UnknownIdentifierException exception, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().nameErrorClass;
-        DynamicObject errorMessage = StringOperations.createString(
-                context,
-                StringOperations.encodeRope(
-                        "unknown identifier " + exception.getUnknownIdentifier(),
-                        UTF8Encoding.INSTANCE));
-        return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
+    public DynamicObject nameErrorUnknownIdentifierException(
+            UnknownIdentifierException exception, Object receiver, Node currentNode) {
+        return nameError(
+                "Unknown identifier: " + exception.getUnknownIdentifier(),
+                receiver,
+                exception.getUnknownIdentifier(),
+                currentNode);
     }
 
     @TruffleBoundary

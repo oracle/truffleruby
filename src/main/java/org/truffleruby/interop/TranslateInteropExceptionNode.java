@@ -82,7 +82,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         } else {
             raiseException = new RaiseException(
                     context,
-                    context.getCoreExceptions().nameErrorUnknownIdentifierException(exception, this));
+                    context.getCoreExceptions().nameErrorUnknownIdentifierException(exception, receiver, this));
         }
 
         raiseException.initCause(exception);

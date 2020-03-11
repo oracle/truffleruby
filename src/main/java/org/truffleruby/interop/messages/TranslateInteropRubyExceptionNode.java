@@ -42,6 +42,16 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         }
     }
 
+    public final AssertionError execute(RaiseException exception, String name)
+            throws UnsupportedMessageException, UnknownIdentifierException {
+
+        try {
+            return execute(exception, 0, name, null);
+        } catch (InvalidArrayIndexException | UnsupportedTypeException e) {
+            throw handleBadErrorType(e);
+        }
+    }
+
     public final AssertionError execute(RaiseException exception, long index, Object value)
             throws UnsupportedMessageException, InvalidArrayIndexException, UnsupportedTypeException {
 
@@ -52,7 +62,15 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         }
     }
 
-    // TODO (pitr-ch 02-Mar-2020): Other execute methods for members
+    public final AssertionError execute(RaiseException exception, String name, Object... arguments)
+            throws UnsupportedMessageException, UnknownIdentifierException, UnsupportedTypeException {
+
+        try {
+            return execute(exception, 0, name, arguments);
+        } catch (InvalidArrayIndexException e) {
+            throw handleBadErrorType(e);
+        }
+    }
 
     protected abstract AssertionError execute(
             RaiseException exception, long index, String identifier, Object[] arguments)

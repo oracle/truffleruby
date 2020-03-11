@@ -17,22 +17,19 @@ describe "Truffle::Interop.remove" do
     end
 
     it "removes the element at the specified index" do
-      Truffle::Interop.remove(@array, 2).should == true
+      Truffle::Interop.remove_array_element(@array, 2).should == nil
       @array.should == [:a, :b, :d]
     end
 
     it "raises when the index is out of bounds" do
-      -> { Truffle::Interop.remove(@array, 10) }.should raise_error NameError
+      -> { Truffle::Interop.remove_array_element(@array, 10) }.should raise_error IndexError
       @array.should == [:a, :b, :c, :d]
     end
 
-    it "raises a NameError when the index is not an integer" do
+    it "raises a IndexError when the index is not valid" do
       -> {
-        Truffle::Interop.remove(@array, :b)
-      }.should raise_error(NameError, /Message not supported./) { |e|
-        e.receiver.should equal @array
-        e.name.should == :b
-      }
+        Truffle::Interop.remove_array_element(@array, -1)
+      }.should raise_error(IndexError)
     end
   end
 
@@ -43,22 +40,21 @@ describe "Truffle::Interop.remove" do
       end
 
       it "removes an instance variable that exists" do
-        Truffle::Interop.remove(@object, :@a).should == true
+        Truffle::Interop.remove_member(@object, :@a).should == nil
         @object.instance_variable_defined?(:@a).should be_false
       end
 
       it "raises an error when the instance variable doesn't exist" do
         -> {
-          Truffle::Interop.remove(@object, :@foo)
+          Truffle::Interop.remove_member(@object, :@foo)
         }.should raise_error(NameError)
       end
     end
 
     describe "with a name that doesn't start with @" do
       it "raises an unsupported message error" do
-        -> { Truffle::Interop.remove("abc", 1) }.
-            # TODO (pitr-ch 13-Mar-2019): when on Interop 2 keep the second match
-            should raise_error(RuntimeError, /Message (not supported|unsupported)/)
+        -> { Truffle::Interop.remove_array_element("abc", 1) }.
+            should raise_error(Polyglot::UnsupportedMessageError)
       end
     end
   end
