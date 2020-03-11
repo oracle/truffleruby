@@ -54,6 +54,7 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Math")
 public abstract class MathNodes {
@@ -523,6 +524,23 @@ public abstract class MathNodes {
             }
 
             return Math.log(a) / LOG2;
+        }
+
+    }
+
+    @Primitive(name = "min")
+    public abstract static class MinNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected int min(int a, int b,
+                @Cached("createBinaryProfile()") ConditionProfile profile) {
+            return profile.profile(a < b) ? a : b;
+        }
+
+        @Specialization
+        protected long min(long a, long b,
+                @Cached("createBinaryProfile()") ConditionProfile profile) {
+            return profile.profile(a < b) ? a : b;
         }
 
     }

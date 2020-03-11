@@ -101,6 +101,7 @@ class IO
   # buffer.
   class InternalBuffer
     SIZE = 32768
+    DEFAULT_READ_SIZE = 16384
 
     def initialize
       @storage = Truffle::ByteArray.new(SIZE)
@@ -165,14 +166,10 @@ class IO
       written
     end
 
-    def fill(io)
-      unless io.kind_of? IO
-        io = io.to_io
-      end
+    def fill(io, max = DEFAULT_READ_SIZE)
+      io = io.to_io unless io.kind_of? IO
 
-      max = 16384
-      left = unused
-      count = left < max ? left : max
+      count = Primitive.min(unused, max)
 
       buffer, bytes_read = fill_read(io, count)
       if bytes_read > 0
@@ -193,19 +190,20 @@ class IO
     # +IO+ instance. Any new data causes this method to return.
     #
     # Returns the number of bytes in the buffer.
-    def fill_from(io, skip = nil)
+    def fill_from(io, skip = nil, max = DEFAULT_READ_SIZE)
       Truffle::System.synchronized(self) do
         empty_to io
         discard skip if skip
 
-        return size unless empty?
-
-        reset!
-        if fill(io) == 0
-          @eof = true
+        if empty?
+          reset!
+          if fill(io, max) == 0
+            @eof = true
+          end
+          size
+        else
+          Primitive.min(size, max)
         end
-
-        size
       end
     end
 
@@ -445,7 +443,7 @@ class IO
         @from.seek @offset, IO::SEEK_CUR
       end
 
-      size = @length ? @length : 16384
+      size = @length || InternalBuffer::DEFAULT_READ_SIZE
       bytes = 0
 
       begin
@@ -1323,7 +1321,7 @@ class IO
         break unless available > 0
 
         if count = @buffer.find(@separator)
-          bytes = count < wanted ? count : wanted
+          bytes = Primitive.min(count, wanted)
           str << @buffer.shift(bytes)
 
           str = IO.read_encode(@io, str)
@@ -1862,9 +1860,7 @@ class IO
     str = +''
     needed = length
     while needed > 0 and not @ibuffer.exhausted?
-      available = @ibuffer.fill_from self
-
-      count = available > needed ? needed : available
+      count = @ibuffer.fill_from(self, nil, needed)
       str << @ibuffer.shift(count)
       str = nil if str.empty?
 
@@ -1875,7 +1871,7 @@ class IO
       if buffer
         buffer.replace str.force_encoding(buffer.encoding)
       else
-        str.force_encoding Encoding::ASCII_8BIT
+        str.force_encoding Encoding::BINARY
       end
     else
       buffer.clear if buffer

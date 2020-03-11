@@ -57,6 +57,7 @@ Bug fixes:
 * Make sure that string interpolation returns a `String`, and not a subclass (#1950).
 * `alias_method` and `instance_methods` should now work correctly inside a refinement (#1942).
 * Fixed `Regexp.union` parameter conversion (#1963).
+* `IO#read(n)` no longer buffers more than needed, which could cause hanging if detecting readability via a native call such as `select(2)` (#1951).
 
 Compatibility:
 
