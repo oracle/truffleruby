@@ -183,3 +183,7 @@ class Random
     Primitive.randomizer_bytes @randomizer, length
   end
 end
+
+Truffle::Boot.delay do
+  Random::DEFAULT = Random.new
+end

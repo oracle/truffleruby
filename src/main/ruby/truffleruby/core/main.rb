@@ -85,7 +85,3 @@ Truffle::Boot.delay do
     end
   end
 end
-
-Truffle::Boot.delay do
-  Random::DEFAULT = Random.new
-end
