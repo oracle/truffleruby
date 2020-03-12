@@ -97,22 +97,6 @@ static int rb_tr_fprintf_value(FILE *stream,
   return len;
 }
 
-// Run when loading C-extension support
-
-void rb_tr_init(void *ruby_cext) {
-  rb_tr_cext = ruby_cext;
-  rb_tr_unwrap = polyglot_invoke(rb_tr_cext, "rb_tr_unwrap_function");
-  rb_tr_wrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
-  rb_tr_longwrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
-
-  #ifdef __APPLE__
-  printf_domain = new_printf_domain();
-  register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);
-  #else
-  register_printf_specifier('Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
-  #endif
-}
-
 // Private helper macros just for ruby.c
 
 #define rb_boolean(c) ((c) ? Qtrue : Qfalse)
@@ -2119,8 +2103,10 @@ static void rb_protect_write_status(int *status, int value) {
   }
 }
 
+VALUE (*cext_rb_protect)(VALUE (*function)(VALUE), void *data, void (*write_status)(int *status, int value), int *status);
+
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
-  return polyglot_invoke(RUBY_CEXT, "rb_protect", function, (void*)data, rb_protect_write_status, status);
+  return cext_rb_protect(function, data, rb_protect_write_status, status);
 }
 
 void rb_jump_tag(int status) {
@@ -2153,13 +2139,19 @@ void rb_sys_fail(const char *message) {
   rb_syserr_fail(n, message);
 }
 
+VALUE (*cext_rb_ensure)(VALUE (*b_proc)(VALUE), void* data1, VALUE (*e_proc)(VALUE), void* data2);
+
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
-  return polyglot_invoke(RUBY_CEXT, "rb_ensure", b_proc, (void*)data1, e_proc, (void*)data2);
+  return cext_rb_ensure(b_proc, data1, e_proc, data2);
 }
 
+VALUE (*cext_rb_rescue)(VALUE (*b_proc)(VALUE data), void* data1, VALUE (*r_proc)(VALUE data, VALUE e), void* data2);
+
 VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
-  return polyglot_invoke(RUBY_CEXT, "rb_rescue", b_proc, (void*)data1, r_proc, (void*)data2);
+  return cext_rb_rescue(b_proc, data1, r_proc, data2);
 }
+
+VALUE (*cext_rb_rescue2)(VALUE (*b_proc)(VALUE data), void* data1, VALUE (*r_proc)(VALUE data, VALUE e), void* data2, void* rescued);
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
   VALUE rescued = rb_ary_new();
@@ -2172,7 +2164,7 @@ VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS)
     rb_ary_push(rescued, (VALUE) arg);
     n++;
   }
-  return polyglot_invoke(RUBY_CEXT, "rb_rescue2", b_proc, (void*)data1, r_proc, (void*)data2, rb_tr_unwrap(rescued));
+  return cext_rb_rescue2(b_proc, data1, r_proc, data2, rb_tr_unwrap(rescued));
 }
 
 VALUE rb_make_backtrace(void) {
@@ -5000,4 +4992,25 @@ void ruby_qsort(void* base, const size_t nel, const size_t size, cmpfunc_t *cmp,
 
 ID rb_intern(const char *string) {
   return (ID) RUBY_CEXT_INVOKE("rb_intern", rb_str_new_cstr(string));
+}
+
+// Run when loading C-extension support, keep as the last function
+
+void rb_tr_init(void *ruby_cext) {
+  rb_tr_cext = ruby_cext;
+  rb_tr_unwrap = polyglot_invoke(rb_tr_cext, "rb_tr_unwrap_function");
+  rb_tr_wrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
+  rb_tr_longwrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
+
+  cext_rb_protect = polyglot_get_member(rb_tr_cext, "rb_protect");
+  cext_rb_ensure = polyglot_get_member(rb_tr_cext, "rb_ensure");
+  cext_rb_rescue = polyglot_get_member(rb_tr_cext, "rb_rescue");
+  cext_rb_rescue2 = polyglot_get_member(rb_tr_cext, "rb_rescue2");
+
+  #ifdef __APPLE__
+  printf_domain = new_printf_domain();
+  register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);
+  #else
+  register_printf_specifier('Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
+  #endif
 }
