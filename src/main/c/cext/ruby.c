@@ -38,8 +38,8 @@
 
 void* rb_tr_cext;
 void* (*rb_tr_unwrap)(VALUE obj);
-void* (*rb_tr_wrap)(VALUE obj);
-void* (*rb_tr_longwrap)(long obj);
+VALUE (*rb_tr_wrap)(void *obj);
+VALUE (*rb_tr_longwrap)(long obj);
 
 #ifdef __APPLE__
 static printf_domain_t printf_domain;
@@ -429,7 +429,7 @@ int RB_FIXNUM_P(VALUE value) {
 }
 
 int RTEST(VALUE value) {
-  return value != NULL && polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RTEST", value));
+  return value != Qfalse && polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("RTEST", value));
 }
 
 // Kernel
@@ -772,7 +772,7 @@ long rb_big2long(VALUE x) {
 }
 
 VALUE rb_big2str(VALUE x, int base) {
-  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap((void *)x), "to_s", base));
+  return rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(x), "to_s", base));
 }
 
 unsigned long rb_big2ulong(VALUE x) {
@@ -845,7 +845,7 @@ int MBCLEN_CHARFOUND_LEN(int r) {
 }
 
 int rb_str_len(VALUE string) {
-  return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap((void *)string), "bytesize"));
+  return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(string), "bytesize"));
 }
 
 VALUE rb_str_new(const char *string, long length) {
@@ -869,7 +869,8 @@ VALUE rb_tainted_str_new(const char *ptr, long len) {
 
 VALUE rb_str_new_cstr(const char *string) {
   // TODO CS 24-Oct-17 would be nice to read in one go rather than strlen followed by read
-  return rb_str_new(string, strlen(string));
+  size_t len = strlen(string);
+  return rb_str_new(string, len);
 }
 
 VALUE rb_str_new_shared(VALUE string) {
@@ -1541,7 +1542,7 @@ VALUE rb_ary_new_from_values(long n, const VALUE *values) {
 }
 
 VALUE rb_ary_push(VALUE array, VALUE value) {
-  polyglot_invoke(rb_tr_unwrap(array), "push", rb_tr_unwrap(value));
+  RUBY_INVOKE_NO_WRAP(array, "push", value);
   return array;
 }
 
@@ -1736,7 +1737,7 @@ VALUE rb_hash_delete_if(VALUE hash) {
 }
 
 void rb_hash_foreach(VALUE hash, int (*func)(ANYARGS), VALUE farg) {
-  polyglot_invoke(RUBY_CEXT, "rb_hash_foreach", rb_tr_unwrap(hash), (void (*)(void *)) func, farg);
+  polyglot_invoke(RUBY_CEXT, "rb_hash_foreach", rb_tr_unwrap(hash), func, (void*)farg);
 }
 
 VALUE rb_hash_size(VALUE hash) {
@@ -1758,7 +1759,7 @@ const char* rb_class2name(VALUE ruby_class) {
 }
 
 VALUE rb_class_real(VALUE ruby_class) {
-  if (ruby_class == NULL) {
+  if (!ruby_class) {
     return NULL;
   }
   return RUBY_CEXT_INVOKE("rb_class_real", ruby_class);
@@ -1849,7 +1850,7 @@ VALUE rb_mod_ancestors(VALUE mod) {
 // Proc
 
 VALUE rb_proc_new(VALUE (*function)(ANYARGS), VALUE value) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_proc_new", (void (*)(void *)) function, rb_tr_unwrap(value)));
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_proc_new", function, rb_tr_unwrap(value)));
 }
 
 VALUE rb_proc_call(VALUE self, VALUE args) {
@@ -1857,7 +1858,7 @@ VALUE rb_proc_call(VALUE self, VALUE args) {
 }
 
 int rb_proc_arity(VALUE self) {
-  return polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(self), "arity"));
+  return polyglot_as_i32(RUBY_INVOKE_NO_WRAP(self, "arity"));
 }
 
 // Utilities
@@ -1883,8 +1884,7 @@ VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
 }
 
 #undef rb_enumeratorize_with_size
-VALUE
-rb_enumeratorize_with_size(VALUE obj, VALUE meth, int argc, const VALUE *argv, rb_enumerator_size_func * size_fn) {
+VALUE rb_enumeratorize_with_size(VALUE obj, VALUE meth, int argc, const VALUE *argv, rb_enumerator_size_func *size_fn) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_enumeratorize_with_size", rb_tr_unwrap(obj), rb_tr_unwrap(meth), rb_tr_unwrap(rb_ary_new4(argc, argv)), size_fn));
 }
 
@@ -1926,7 +1926,7 @@ VALUE rb_block_call(VALUE object, ID name, int args_count, const VALUE *args, rb
   } else if (block_call_func == NULL) {
     return rb_funcallv(object, name, args_count, args);
   } else {
-    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_block_call", rb_tr_unwrap(object), rb_tr_unwrap(ID2SYM(name)), rb_tr_unwrap(rb_ary_new4(args_count, args)), block_call_func, data));
+    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_block_call", rb_tr_unwrap(object), rb_tr_unwrap(ID2SYM(name)), rb_tr_unwrap(rb_ary_new4(args_count, args)), block_call_func, (void*)data));
   }
 }
 
@@ -2115,10 +2115,12 @@ void rb_exc_raise(VALUE exception) {
   rb_tr_error("rb_exc_raise should not return");
 }
 
+static void rb_protect_write_status(int *status, int value) {
+  *status = value;
+}
+
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {
-  VALUE ary = polyglot_invoke(RUBY_CEXT, "rb_protect_with_block", function, data);
-  *status = NUM2INT(rb_tr_wrap(polyglot_get_array_element(ary, 1)));
-  return polyglot_get_array_element(ary, 0);
+  return polyglot_invoke(RUBY_CEXT, "rb_protect", function, (void*)data, rb_protect_write_status, status);
 }
 
 void rb_jump_tag(int status) {
@@ -2152,25 +2154,25 @@ void rb_sys_fail(const char *message) {
 }
 
 VALUE rb_ensure(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*e_proc)(ANYARGS), VALUE data2) {
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ensure", b_proc, data1, e_proc, data2));
+  return polyglot_invoke(RUBY_CEXT, "rb_ensure", b_proc, (void*)data1, e_proc, (void*)data2);
 }
 
 VALUE rb_rescue(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2) {
-  return polyglot_invoke(RUBY_CEXT, "rb_rescue", b_proc, data1, r_proc, data2);
+  return polyglot_invoke(RUBY_CEXT, "rb_rescue", b_proc, (void*)data1, r_proc, (void*)data2);
 }
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
   VALUE rescued = rb_ary_new();
   int n = 4;
   while (true) {
-    VALUE arg = polyglot_get_arg(n);
+    void* arg = polyglot_get_arg(n);
     if (arg == NULL) {
       break;
     }
-    rb_ary_push(rescued, arg);
+    rb_ary_push(rescued, (VALUE) arg);
     n++;
   }
-  return polyglot_invoke(RUBY_CEXT, "rb_rescue2", b_proc, data1, r_proc, data2, rb_tr_unwrap(rescued));
+  return polyglot_invoke(RUBY_CEXT, "rb_rescue2", b_proc, (void*)data1, r_proc, (void*)data2, rb_tr_unwrap(rescued));
 }
 
 VALUE rb_make_backtrace(void) {
@@ -2182,7 +2184,7 @@ void rb_throw(const char *tag, VALUE val) {
 }
 
 void rb_throw_obj(VALUE tag, VALUE value) {
-  RUBY_INVOKE_NO_WRAP(rb_mKernel, "throw", tag, value == NULL ? Qnil : value);
+  RUBY_INVOKE_NO_WRAP(rb_mKernel, "throw", tag, value ? value : Qnil);
   rb_tr_error("rb_throw_obj should not return");
 }
 
@@ -2218,10 +2220,6 @@ VALUE rb_define_class_under(VALUE module, const char *name, VALUE superclass) {
 }
 
 VALUE rb_define_class_id_under(VALUE module, ID name, VALUE superclass) {
-  if (superclass == NULL) {
-    // Handle the horrid semantics of what 0 means in this case.
-    return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_define_class_under", rb_tr_unwrap(module), rb_tr_unwrap(name), superclass));
-  }
   return RUBY_CEXT_INVOKE("rb_define_class_under", module, name, superclass);
 }
 
@@ -2241,7 +2239,7 @@ void rb_define_method(VALUE module, const char *name, VALUE (*function)(ANYARGS)
   if (function == rb_f_notimplement) {
     RUBY_CEXT_INVOKE("rb_define_method_undefined", module, rb_str_new_cstr(name));
   } else {
-    rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_define_method", rb_tr_unwrap(module), rb_tr_unwrap(rb_str_new_cstr(name)), (void (*)(void *)) function, argc));
+    rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_define_method", rb_tr_unwrap(module), rb_tr_unwrap(rb_str_new_cstr(name)), function, argc));
   }
 }
 
@@ -2265,7 +2263,7 @@ void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int
 }
 
 void rb_define_singleton_method(VALUE object, const char *name, VALUE (*function)(ANYARGS), int argc) {
-  rb_define_method(rb_tr_wrap(polyglot_invoke(rb_tr_unwrap(object), "singleton_class")), name, function, argc);
+  rb_define_method(RUBY_INVOKE(object, "singleton_class"), name, function, argc);
 }
 
 void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {
@@ -2289,7 +2287,7 @@ void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex) {
 }
 
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {
-  polyglot_invoke(RUBY_CEXT, "rb_define_alloc_func", rb_tr_unwrap(ruby_class), (void (*)(void *)) alloc_function);
+  polyglot_invoke(RUBY_CEXT, "rb_define_alloc_func", rb_tr_unwrap(ruby_class), alloc_function);
 }
 
 void rb_undef_alloc_func(VALUE ruby_class) {
@@ -2482,9 +2480,14 @@ struct timespec rb_time_timespec(VALUE time_val) {
 }
 
 VALUE rb_time_timespec_new(const struct timespec *ts, int offset) {
-  VALUE is_utc = rb_tr_unwrap(rb_boolean(offset == INT_MAX-1));
-  VALUE is_local = rb_tr_unwrap(rb_boolean(offset == INT_MAX));
-  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_time_timespec_new", ts->tv_sec, ts->tv_nsec, offset, is_utc, is_local));
+  void* is_utc = rb_tr_unwrap(rb_boolean(offset == INT_MAX-1));
+  void* is_local = rb_tr_unwrap(rb_boolean(offset == INT_MAX));
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_time_timespec_new",
+    ts->tv_sec,
+    ts->tv_nsec,
+    offset,
+    is_utc,
+    is_local));
 }
 
 void rb_timespec_now(struct timespec *ts) {
@@ -2639,7 +2642,7 @@ VALUE rb_thread_create(VALUE (*fn)(ANYARGS), void *arg) {
 }
 
 void rb_thread_schedule(void) {
-  polyglot_invoke(rb_tr_unwrap(rb_cThread), "pass");
+  RUBY_INVOKE_NO_WRAP(rb_cThread, "pass");
 }
 
 rb_nativethread_id_t rb_nativethread_self() {
@@ -2844,7 +2847,7 @@ VALUE rb_struct_aset(VALUE s, VALUE idx, VALUE val) {
 }
 
 VALUE rb_struct_define(const char *name, ...) {
-  VALUE rb_name = name == NULL ? RUBY_CEXT_INVOKE("Qnil") : rb_str_new_cstr(name);
+  VALUE rb_name = name == NULL ? Qnil : rb_str_new_cstr(name);
   VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
@@ -2856,7 +2859,7 @@ VALUE rb_struct_define(const char *name, ...) {
 }
 
 VALUE rb_struct_define_under(VALUE outer, const char *name, ...) {
-  VALUE rb_name = name == NULL ? RUBY_CEXT_INVOKE("Qnil") : rb_str_new_cstr(name);
+  VALUE rb_name = name == NULL ? Qnil : rb_str_new_cstr(name);
   VALUE ary = rb_ary_new();
   int i = 0;
   char *arg = NULL;
@@ -2946,7 +2949,7 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 }
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
-  if (rb_tr_object_hidden_var_get(value, "data_type") != data_type) {
+  if ((rb_data_type_t*) rb_tr_object_hidden_var_get(value, "data_type") != data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
   }
   return RTYPEDDATA_DATA(value);
@@ -3557,7 +3560,7 @@ VALUE rb_class_inherited(VALUE super, VALUE klass) {
 
 VALUE rb_define_class_id(ID id, VALUE super) {
   // id is deliberately ignored - see MRI
-  if (super == NULL) {
+  if (!super) {
     super = rb_cObject;
   }
   return rb_class_new(super);

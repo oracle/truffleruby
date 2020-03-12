@@ -28,4 +28,8 @@ public final class Nil implements TruffleObject {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "nil";
+    }
 }

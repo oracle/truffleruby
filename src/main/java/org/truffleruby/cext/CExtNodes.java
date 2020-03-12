@@ -120,7 +120,7 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
-        public abstract Object execute(Object receiverm, DynamicObject argsArray);
+        public abstract Object execute(Object receiver, DynamicObject argsArray);
 
         @Specialization(limit = "getCacheLimit()")
         protected Object callCWithMutex(Object receiver, DynamicObject argsArray,
@@ -1594,7 +1594,7 @@ public class CExtNodes {
     public abstract static class WrapperFunctionNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object unwrapFunction() {
+        protected Object wrapFunction() {
             return new ValueWrapperManager.WrapperFunction();
         }
     }
