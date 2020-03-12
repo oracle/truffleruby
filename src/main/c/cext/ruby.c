@@ -2190,11 +2190,11 @@ void rb_throw_obj(VALUE tag, VALUE value) {
   rb_tr_error("rb_throw_obj should not return");
 }
 
-VALUE rb_catch(const char *tag, VALUE (*func)(), VALUE data) {
+VALUE rb_catch(const char *tag, VALUE (*func)(ANYARGS), VALUE data) {
   return rb_catch_obj(rb_intern(tag), func, data);
 }
 
-VALUE rb_catch_obj(VALUE t, VALUE (*func)(), VALUE data) {
+VALUE rb_catch_obj(VALUE t, VALUE (*func)(ANYARGS), VALUE data) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_catch_obj", rb_tr_unwrap(t), func, rb_tr_unwrap(data)));
 }
 
