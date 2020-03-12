@@ -342,6 +342,37 @@ class Struct
     to_a.values_at(*args)
   end
 
+  private def polyglot_read_member(name)
+    symbol = name.to_sym
+    if members.include? symbol
+      self[symbol]
+    else
+      Primitive.dispatch_missing
+    end
+  end
+
+  private def polyglot_write_member(name, value)
+    symbol = name.to_sym
+    if members.include? symbol
+      self[symbol] = value
+    else
+      Primitive.dispatch_missing
+    end
+  end
+
+  private def polyglot_member_modifiable?(name)
+    if members.include? name.to_sym
+      true
+    else
+      Primitive.dispatch_missing
+    end
+  end
+
+  # other polyglot member related methods do not need to be defined since
+  # the default implementation already does what we need.
+  # E.g. all the members of struct members are already readable since there
+  # are methods to read them
+
   def self._specialize(attrs)
     # Because people are crazy, they subclass Struct directly, ie.
     #  class Craptastic < Struct

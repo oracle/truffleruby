@@ -8,22 +8,22 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::Interop.size?" do
+describe "Truffle::Interop.has_array_elements?" do
 
   it "returns true for arrays" do
-    Truffle::Interop.size?([]).should be_true
+    Truffle::Interop.has_array_elements?([]).should be_true
   end
 
   it "returns false for hashes" do
-    Truffle::Interop.size?({}).should be_false
+    Truffle::Interop.has_array_elements?({}).should be_false
   end
 
   it "returns false for strings" do
-    Truffle::Interop.size?('').should be_false
+    Truffle::Interop.has_array_elements?('').should be_false
   end
 
   it "returns false for nil" do
-    Truffle::Interop.size?(nil).should be_false
+    Truffle::Interop.has_array_elements?(nil).should be_false
   end
 
 end

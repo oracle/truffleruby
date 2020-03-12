@@ -11,6 +11,8 @@
 - **a `Float`**
 - **a `BigDecimal`**
 - **an `Object`**
+- **a frozen `Object`**
+- **a `StructWithValue`** – a `Struct` with one property named `value`
 - **a `Class`**
 - **a `Hash`**
 - **an `Array`**
@@ -117,7 +119,7 @@ When interop message `toNative` is sent
 - otherwise
   it does nothing.
 
-## Array related messages (incomplete)
+## Array related messages
 
 When interop message `hasArrayElements` is sent
 - to **an `Array`**, **polyglot array** or **polyglot int array**
@@ -188,3 +190,39 @@ When interop message `isArrayElementRemovable` is sent
   it returns false if there is no value at the given index.
 - otherwise
   it returns false.
+
+## Members related messages (incomplete)
+
+When interop message `readMember` is sent
+- to any non-immediate `Object` like **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+  it returns a method with the given name when the method is defined.
+- to any non-immediate `Object` like **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+  it fails with NameError when the method is not defined.
+- to any non-immediate non-frozen `Object` like **a `String`**, **a `BigDecimal`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+  it reads the given instance variable.
+- to **polyglot members**
+  it returns a value stored with the given name.
+- to **a `StructWithValue`**
+  it returns value of the given struct member.
+- otherwise
+  it fails with Polyglot::UnsupportedMessageError.
+
+When interop message `writeMember` is sent
+- to any non-immediate non-frozen `Object` like **a `String`**, **a `BigDecimal`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+  it writes the given instance variable.
+- to **polyglot members**
+  it returns a value stored with the given name.
+- to **a `StructWithValue`**
+  it writes value to the given struct member.
+- to **`:symbol`** or **a frozen `Object`**
+  it fails with NameError when the receiver is frozen.
+- otherwise
+  it fails with Polyglot::UnsupportedMessageError.
+
+## Number related messages (missing)
+
+## Instantiation related messages (missing)
+
+## Exception related messages (missing)
+
+## Time related messages (unimplemented)

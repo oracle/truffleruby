@@ -36,6 +36,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CallTarget;
@@ -248,11 +249,11 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "size?", onSingleton = true, required = 1)
-    public abstract static class HasSizeNode extends InteropCoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "has_array_elements?", onSingleton = true, required = 1)
+    public abstract static class HasArrayElementsNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected boolean hasSize(Object receiver,
+        protected boolean hasArrayElements(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasArrayElements(receiver);
         }
@@ -1057,6 +1058,16 @@ public abstract class InteropNodes {
             } catch (IllegalStateException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
+        }
+
+    }
+
+    @Primitive(name = "dispatch_missing")
+    public abstract static class DispatchMissingNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object dispatchMissing() {
+            return DispatchNode.MISSING;
         }
 
     }

@@ -264,7 +264,7 @@ module Truffle
           string << ":#{hash_code}"
         end
 
-        if Truffle::Interop.size?(object)
+        if Truffle::Interop.has_array_elements?(object)
           string << " #{to_array(object).inspect}"
         end
         if Truffle::Interop.keys?(object)
@@ -301,11 +301,11 @@ module Truffle
     def self.foreign_respond_to?(object, name)
       case name.to_sym
       when :to_a, :to_ary
-        Truffle::Interop.size?(object)
+        Truffle::Interop.has_array_elements?(object)
       when :new
         Truffle::Interop.instantiable?(object)
       when :size
-        Truffle::Interop.size?(object)
+        Truffle::Interop.has_array_elements?(object)
       when :keys
         Truffle::Interop.keys?(object)
       when :call
@@ -323,7 +323,7 @@ module Truffle
     end
 
     def self.to_array(object)
-      unless Truffle::Interop.size?(object)
+      unless Truffle::Interop.has_array_elements?(object)
         raise 'foreign object does not have a size to turn it into an array'
       end
 
