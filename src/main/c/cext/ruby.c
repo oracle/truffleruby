@@ -698,30 +698,28 @@ static int endian_swap(int flags) {
 }
 
 int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
-  long i;
-  VALUE msw_first, twosComp, swap;
-  int sign, size, bytes_needed, words_needed, result;
-  uint8_t *buf;
-  msw_first = rb_boolean(check_msw_first(flags));
-  twosComp = rb_boolean(((flags & INTEGER_PACK_2COMP) != 0));
-  swap = rb_boolean(endian_swap(flags));
+  VALUE msw_first = rb_boolean(check_msw_first(flags));
+  VALUE twosComp = rb_boolean(((flags & INTEGER_PACK_2COMP) != 0));
+  VALUE swap = rb_boolean(endian_swap(flags));
   // Test for fixnum and do the right things here.
   void* bytes = polyglot_invoke(RUBY_CEXT, "rb_integer_bytes", rb_tr_unwrap(value),
                           (int)numwords, (int)wordsize, rb_tr_unwrap(msw_first), rb_tr_unwrap(twosComp), rb_tr_unwrap(swap));
-  size = (twosComp == Qtrue) ? polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_2scomp_bit_length", value))
+  int size = (twosComp == Qtrue) ? polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_2scomp_bit_length", value))
     : polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_absint_bit_length", value));
+
+  int sign;
   if (RB_FIXNUM_P(value)) {
     long l = NUM2LONG(value);
     sign = (l > 0) - (l < 0);
   } else {
     sign = polyglot_as_i32(polyglot_invoke(rb_tr_unwrap(value), "<=>", 0));
   }
-  bytes_needed = size / 8 + (size % 8 == 0 ? 0 : 1);
-  words_needed = bytes_needed / wordsize + (bytes_needed % wordsize == 0 ? 0 : 1);
-  result = (words_needed <= numwords ? 1 : 2) * sign;
+  int bytes_needed = size / 8 + (size % 8 == 0 ? 0 : 1);
+  int words_needed = bytes_needed / wordsize + (bytes_needed % wordsize == 0 ? 0 : 1);
+  int result = (words_needed <= numwords ? 1 : 2) * sign;
 
-  buf = (uint8_t *)words;
-  for (i = 0; i < numwords * wordsize; i++) {
+  uint8_t *buf = (uint8_t *)words;
+  for (long i = 0; i < numwords * wordsize; i++) {
     buf[i] = (uint8_t) polyglot_as_i32(polyglot_get_array_element(bytes, i));
   }
   return result;
