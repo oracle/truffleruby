@@ -590,7 +590,7 @@ module Commands
       jt test basictest                              run MRI's basictest suite
       jt test bootstraptest                          run MRI's bootstraptest suite
       jt test mri                                    run mri tests
-      #{MRI_TEST_MODULES.map { |k, h| format ' ' * 10 + '%-16s%s', k, h[:help] }.join("\n")}
+#{MRI_TEST_MODULES.map { |k, h| format ' ' * 10 + '%-16s%s', k, h[:help] }.join("\n")}
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
