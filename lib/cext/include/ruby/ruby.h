@@ -168,7 +168,7 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #define PRIxVALUE PRI_VALUE_PREFIX"x"
 #define PRIXVALUE PRI_VALUE_PREFIX"X"
 #ifdef TRUFFLERUBY
-#define PRIsVALUE "Y"
+#define PRIsVALUE "P"
 #else
 #define PRIsVALUE PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
 #endif
