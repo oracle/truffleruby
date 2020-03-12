@@ -699,14 +699,14 @@ static int endian_swap(int flags) {
 
 int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
   long i;
-  VALUE msw_first, twosComp, swap, bytes;
+  VALUE msw_first, twosComp, swap;
   int sign, size, bytes_needed, words_needed, result;
   uint8_t *buf;
   msw_first = rb_boolean(check_msw_first(flags));
   twosComp = rb_boolean(((flags & INTEGER_PACK_2COMP) != 0));
   swap = rb_boolean(endian_swap(flags));
   // Test for fixnum and do the right things here.
-  bytes = polyglot_invoke(RUBY_CEXT, "rb_integer_bytes", rb_tr_unwrap(value),
+  void* bytes = polyglot_invoke(RUBY_CEXT, "rb_integer_bytes", rb_tr_unwrap(value),
                           (int)numwords, (int)wordsize, rb_tr_unwrap(msw_first), rb_tr_unwrap(twosComp), rb_tr_unwrap(swap));
   size = (twosComp == Qtrue) ? polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_2scomp_bit_length", value))
     : polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_absint_bit_length", value));
