@@ -30,8 +30,8 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
@@ -237,6 +237,37 @@ public abstract class KernelNodes {
             }
 
             return booleanCastNode.executeToBoolean(eqlNode.call(left, "eql?", right));
+        }
+
+    }
+
+    @Primitive(name = "find_file")
+    public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object findFile(DynamicObject featureString,
+                @Cached BranchProfile notFoundProfile,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            String feature = StringOperations.getString(featureString);
+            final String expandedPath = getContext().getFeatureLoader().findFeature(feature);
+            if (expandedPath == null) {
+                notFoundProfile.enter();
+                return nil;
+            }
+            return makeStringNode
+                    .executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+    }
+
+    @Primitive(name = "load_feature")
+    public abstract static class LoadNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private RequireNode requireNode = RequireNode.create();
+
+        @Specialization
+        protected boolean loadFeature(DynamicObject featureString, DynamicObject expandedPathString) {
+            return requireNode.executeRequire(StringOperations.getString(featureString), expandedPathString);
         }
 
     }
@@ -1435,24 +1466,6 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "require", isModuleFunction = true, required = 1)
-    @NodeChild(value = "feature", type = RubyNode.class)
-    public abstract static class KernelRequireNode extends CoreMethodNode {
-
-        @CreateCast("feature")
-        protected RubyNode coerceFeatureToPath(RubyNode feature) {
-            return ToPathNodeGen.create(feature);
-        }
-
-        @Specialization(guards = "isRubyString(featureString)")
-        protected boolean require(DynamicObject featureString,
-                @Cached RequireNode requireNode) {
-            String feature = StringOperations.getString(featureString);
-            return requireNode.executeRequire(feature);
-        }
-
-    }
-
     @CoreMethod(names = "require_relative", isModuleFunction = true, required = 1)
     @NodeChild(value = "feature", type = RubyNode.class)
     public abstract static class RequireRelativeNode extends CoreMethodNode {
@@ -1465,7 +1478,7 @@ public abstract class KernelNodes {
         @Specialization
         protected boolean requireRelative(String feature,
                 @Cached RequireNode requireNode) {
-            return requireNode.executeRequire(getFullPath(feature));
+            return requireNode.executeRequire(getFullPath(feature), null);
         }
 
         @TruffleBoundary

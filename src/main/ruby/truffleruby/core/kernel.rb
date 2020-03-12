@@ -221,6 +221,11 @@ module Kernel
   end
   module_function :autoload?
 
+  def require(name)
+    Truffle::KernelOperations.require_internal(name)
+  end
+  module_function :require
+
   alias_method :iterator?, :block_given?
 
   def define_singleton_method(*args, &block)

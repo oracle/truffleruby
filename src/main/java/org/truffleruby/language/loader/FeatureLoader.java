@@ -65,6 +65,8 @@ public class FeatureLoader {
     private NativeFunction getcwd;
     private static final int PATH_MAX = 1024; // jnr-posix hard codes this value
 
+    private static final String[] EXTENSIONS = new String[]{ TruffleRuby.EXTENSION, RubyLanguage.CEXT_EXTENSION };
+
     public FeatureLoader(RubyContext context) {
         this.context = context;
     }
@@ -134,6 +136,12 @@ public class FeatureLoader {
         } else {
             return basename;
         }
+    }
+
+    private boolean hasExtension(String path) {
+        final int dotIndex = path.lastIndexOf('.');
+        final int slashIndex = path.lastIndexOf('/');
+        return dotIndex > 0 && (slashIndex < 0 || slashIndex < dotIndex);
     }
 
     public void setWorkingDirectory(String cwd) {
@@ -239,7 +247,7 @@ public class FeatureLoader {
 
         if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME) || new File(feature).isAbsolute()) {
             found = findFeatureWithAndWithoutExtension(feature);
-        } else {
+        } else if (hasExtension(feature)) {
             for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
                 // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
                 final String loadPath = canonicalize(pathObject.toString());
@@ -248,12 +256,31 @@ public class FeatureLoader {
                     RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));
                 }
 
-                final String fileWithinPath = new File(loadPath, feature).getPath();
-                final String result = findFeatureWithAndWithoutExtension(fileWithinPath);
+                String fileWithinPath = new File(loadPath, translateIfNativePath(feature)).getPath();
+                final String result = findFeatureWithExactPath(fileWithinPath);
 
                 if (result != null) {
                     found = result;
                     break;
+                }
+            }
+        } else {
+            extensionLoop: for (String extension : EXTENSIONS) {
+                for (Object pathObject : ArrayOperations.toIterable(context.getCoreLibrary().getLoadPath())) {
+                    // $LOAD_PATH entries are canonicalized since Ruby 2.4.4
+                    final String loadPath = canonicalize(pathObject.toString());
+
+                    if (context.getOptions().LOG_FEATURE_LOCATION) {
+                        RubyLanguage.LOGGER.info(String.format("from load path %s...", loadPath));
+                    }
+
+                    final String fileWithinPath = new File(loadPath, feature).getPath();
+                    final String result = findFeatureWithExactPath(fileWithinPath + extension);
+
+                    if (result != null) {
+                        found = result;
+                        break extensionLoop;
+                    }
                 }
             }
         }
@@ -269,13 +296,20 @@ public class FeatureLoader {
         return found;
     }
 
+    private String translateIfNativePath(String feature) {
+        if (!RubyLanguage.CEXT_EXTENSION.equals(".so") && feature.endsWith(".so")) {
+            final String base = feature.substring(0, feature.length() - 3);
+            return base + RubyLanguage.CEXT_EXTENSION;
+        } else {
+            return feature;
+        }
+    }
+
     private String findFeatureWithAndWithoutExtension(String path) {
         assert new File(path).isAbsolute();
 
         if (path.endsWith(".so")) {
-            final String base = path.substring(0, path.length() - 3);
-            final String pathWithNativeExt = base + RubyLanguage.CEXT_EXTENSION;
-
+            final String pathWithNativeExt = translateIfNativePath(path);
             final String asCExt = findFeatureWithExactPath(pathWithNativeExt);
             if (asCExt != null) {
                 return asCExt;
@@ -345,7 +379,7 @@ public class FeatureLoader {
 
             Metrics.printTime("before-load-cext-support");
             try {
-                requireNode.executeRequire("truffle/cext");
+                requireNode.executeRequire("truffle/cext", null);
                 final DynamicObject truffleModule = context.getCoreLibrary().truffleModule;
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 

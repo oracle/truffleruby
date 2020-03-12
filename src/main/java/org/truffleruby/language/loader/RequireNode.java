@@ -22,6 +22,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -69,14 +70,19 @@ public abstract class RequireNode extends RubyContextNode {
         return RequireNodeGen.create();
     }
 
-    public abstract boolean executeRequire(String feature);
+    public abstract boolean executeRequire(String feature, DynamicObject expandedPath);
 
     @Specialization
-    protected boolean require(String feature,
+    protected boolean require(String feature, DynamicObject expandedPathString,
             @Cached BranchProfile notFoundProfile,
             @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
             @Cached StringNodes.MakeStringNode makeStringNode) {
-        final String expandedPath = getContext().getFeatureLoader().findFeature(feature);
+        final String expandedPath;
+        if (expandedPathString == null) {
+            expandedPath = getContext().getFeatureLoader().findFeature(feature);
+        } else {
+            expandedPath = StringOperations.getString(expandedPathString);
+        }
 
         if (expandedPath == null) {
             notFoundProfile.enter();
