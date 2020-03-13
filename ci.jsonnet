@@ -30,6 +30,7 @@ local jdks = (import "common.json").jdks;
 local part_definitions = {
   local jt = function(args) [["ruby", "tool/jt.rb"] + args],
   local mri_version = "2.6.3",
+  local mri_ruby = "/cm/shared/apps/ruby/" + mri_version + "/bin/ruby",
 
   use: {
     common: {
@@ -125,7 +126,7 @@ local part_definitions = {
         HOST_VM_CONFIG: "default",
         GUEST_VM: "mri",
         GUEST_VM_CONFIG: "default",
-        RUBY_BIN: "/cm/shared/apps/ruby/" + mri_version + "/bin/ruby",
+        RUBY_BIN: mri_ruby,
       },
     },
 
@@ -272,6 +273,10 @@ local part_definitions = {
       run+: jt(["test", "specs"]) +
             jt(["test", "specs", ":next"]) +
             jt(["test", "basictest"]),
+    },
+
+    test_specs_mri: {
+      run+: jt(["-u", mri_ruby, "mspec", "spec/ruby"]),
     },
 
     test_fast: {
@@ -431,6 +436,8 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
   test_builds:
     {
       "ruby-lint": $.platform.linux + $.cap.gate + $.jdk.v8 + $.use.common + $.env.jvm + $.use.build_no_clean + $.run.lint + { timelimit: "30:00" },
+      # Run specs on MRI to make sure new specs are compatible and have the needed version guards
+      "ruby-test-specs-mri": $.platform.linux + $.cap.gate + $.use.common + $.run.test_specs_mri + { timelimit: "30:00" },
     } +
 
     {
