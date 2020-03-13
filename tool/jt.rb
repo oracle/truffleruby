@@ -127,7 +127,7 @@ module Utilities
     case from
     when :suite
       suite = File.read("#{TRUFFLERUBY_DIR}/mx.truffleruby/suite.py")
-      raise unless /"name": "tools",.+?"version": "(\h{40})"/m =~ suite
+      raise unless /"name": "sulong",.+?"version": "(\h{40})"/m =~ suite
       $1
     when :repository
       raw_sh('git', 'rev-parse', 'HEAD', capture: :out, no_print_cmd: true, chdir: GRAAL_DIR).chomp
