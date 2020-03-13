@@ -64,6 +64,15 @@ describe "Inspect on a foreign" do
 
   end
 
+  describe "recursive array" do
+    it "gives a similar representation to Ruby" do
+      x = [1, 2, 3]
+      list = Truffle::Debug.foreign_array_from_java(Truffle::Interop.to_java_array(x))
+      list[0] = list
+      list.inspect.should =~ /#<Foreign:0x\h+ \[\[...\], 2, 3\]>/
+    end
+  end
+
   describe "null" do
 
     it "gives a similar representation to Ruby" do
