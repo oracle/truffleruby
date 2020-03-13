@@ -59,6 +59,7 @@ Bug fixes:
 * Fixed `Regexp.union` parameter conversion (#1963).
 * `IO#read(n)` no longer buffers more than needed, which could cause hanging if detecting readability via a native call such as `select(2)` (#1951).
 * Fixed `Random::DEFAULT.seed` to be different on boot (#1965, @kipply)
+* Detect and cut off recursion when inspecting a foreign object, substituting an ellipsis instead.
 
 Compatibility:
 
