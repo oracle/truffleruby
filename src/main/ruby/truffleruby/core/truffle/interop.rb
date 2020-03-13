@@ -237,7 +237,7 @@ module Truffle
       end
     end
 
-    def self.foreign_inspect(object)
+    private_class_method def self.foreign_inspect_nonrecursive(object)
       object = Truffle::Interop.unbox_if_needed(object)
       hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
       if object.is_a?(String)
@@ -247,7 +247,7 @@ module Truffle
           '#<Java null>'
         elsif Truffle::Interop.java_class?(object)
           "#<Java class #{object.class.getName}>"
-        elsif object.respond_to?(:size)
+        elsif has_array_elements?(object)
           "#<Java:#{hash_code} #{to_array(object).inspect}>"
         elsif is_java_map?(object)
           "#<Java:#{hash_code} {#{pairs_from_java_map(object).map { |k, v| "#{k.inspect}=>#{v.inspect}" }.join(', ')}}>"
@@ -275,7 +275,24 @@ module Truffle
         end
         string << '>'
       end
+    end
 
+    private_class_method def self.recursive_string_for(object)
+      if java?(object) && is_java_map?(object) || keys?(object)
+        +'{...}'
+      elsif has_array_elements?(object)
+        +'[...]'
+      else
+        # This last case should not currently be hit, but could be if we extend inspect with new cases.
+        hash_code = "0x#{Truffle::Interop.identity_hash_code(object).to_s(16)}"
+        java?(object) ? "<Java:#{hash_code} ...>" : "<Foreign:#{hash_code} ...>"
+      end
+    end
+
+    def self.foreign_inspect(object)
+      return recursive_string_for(object) if Thread.detect_recursion self do
+        return foreign_inspect_nonrecursive(object)
+      end
     end
 
     def self.foreign_class(receiver, *args)
