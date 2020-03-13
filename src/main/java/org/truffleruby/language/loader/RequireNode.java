@@ -17,15 +17,13 @@ import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
@@ -65,37 +63,27 @@ public abstract class RequireNode extends RubyContextNode {
 
     @Child private GetConstantNode getConstantNode;
     @Child private LookupConstantNode lookupConstantNode;
+    @Child private KernelNodes.FindFileNode findFileNode;
 
     public static RequireNode create() {
         return RequireNodeGen.create();
     }
 
-    public abstract boolean executeRequire(String feature, DynamicObject expandedPath);
+    public abstract boolean executeRequire(String feature, Object expandedPath);
 
     @Specialization
-    protected boolean require(String feature, DynamicObject expandedPathString,
+    protected boolean require(String feature, Object expandedPathString,
             @Cached BranchProfile notFoundProfile,
-            @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile,
-            @Cached StringNodes.MakeStringNode makeStringNode) {
-        final String expandedPath;
-        if (expandedPathString == null) {
-            expandedPath = getContext().getFeatureLoader().findFeature(feature);
-        } else {
-            expandedPath = StringOperations.getString(expandedPathString);
-        }
-
-        if (expandedPath == null) {
+            @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile) {
+        if (expandedPathString == nil) {
             notFoundProfile.enter();
             throw new RaiseException(getContext(), getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
         }
-
-        final DynamicObject pathString = makeStringNode
-                .executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-
-        if (isLoadedProfile.profile(isFeatureLoaded(pathString))) {
+        final String expandedPath = StringOperations.getString((DynamicObject) expandedPathString);
+        if (isLoadedProfile.profile(isFeatureLoaded((DynamicObject) expandedPathString))) {
             return false;
         } else {
-            return requireWithMetrics(feature, expandedPath, pathString);
+            return requireWithMetrics(feature, expandedPath, (DynamicObject) expandedPathString);
         }
     }
 
@@ -262,7 +250,7 @@ public abstract class RequireNode extends RubyContextNode {
         final TruffleObject library;
 
         try {
-            featureLoader.ensureCExtImplementationLoaded(feature, this);
+            featureLoader.ensureCExtImplementationLoaded(feature, this, getFindFileNode());
 
             if (getContext().getOptions().CEXTS_LOG_LOAD) {
                 RubyLanguage.LOGGER
@@ -425,6 +413,14 @@ public abstract class RequireNode extends RubyContextNode {
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
             addToLoadedFeatures.call(loadedFeatures, "<<", feature);
         }
+    }
+
+    private KernelNodes.FindFileNode getFindFileNode() {
+        if (findFileNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            findFileNode = insert(KernelNodes.FindFileNode.create());
+        }
+        return findFileNode;
     }
 
     private void warnCircularRequire(String path) {

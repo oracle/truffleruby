@@ -62,6 +62,7 @@ Bug fixes:
 * `rb_encoding->name` can now be read even if the `rb_encoding` is stored in native memory.
 * Detect and cut off recursion when inspecting a foreign object, substituting an ellipsis instead.
 * Fixed feature lookup order on load path.
+* Fixed feature lookup order to check every `$LOAD_PATH` path entry for `.rb`, then every entry for native extension when require called with no extension.
 
 Compatibility:
 

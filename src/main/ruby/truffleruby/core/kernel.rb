@@ -222,9 +222,19 @@ module Kernel
   module_function :autoload?
 
   def require(name)
-    Truffle::KernelOperations.require_internal(name)
+    feature = Truffle::Type.coerce_to_path(name)
+    path = Truffle::KernelOperations.require_find_file(feature)
+    Primitive.load_feature(feature, path)
   end
   module_function :require
+
+  def require_relative(name)
+    feature = Truffle::Type.coerce_to_path(name)
+    full_path = Primitive.get_caller_path(feature)
+    path = Truffle::KernelOperations.require_find_file(full_path)
+    Primitive.load_feature(feature, path)
+  end
+  module_function :require_relative
 
   alias_method :iterator?, :block_given?
 

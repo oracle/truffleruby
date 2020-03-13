@@ -23,6 +23,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -139,9 +140,8 @@ public class FeatureLoader {
     }
 
     private boolean hasExtension(String path) {
-        final int dotIndex = path.lastIndexOf('.');
-        final int slashIndex = path.lastIndexOf('/');
-        return dotIndex > 0 && (slashIndex < 0 || slashIndex < dotIndex);
+        return path.endsWith(TruffleRuby.EXTENSION) || path.endsWith(RubyLanguage.CEXT_EXTENSION) ||
+                path.endsWith(".so");
     }
 
     public void setWorkingDirectory(String cwd) {
@@ -353,7 +353,8 @@ public class FeatureLoader {
     }
 
     @TruffleBoundary
-    public void ensureCExtImplementationLoaded(String feature, RequireNode requireNode) {
+    public void ensureCExtImplementationLoaded(String feature, RequireNode requireNode,
+            KernelNodes.FindFileNode findFileNode) {
         synchronized (cextImplementationLock) {
             if (cextImplementationLoaded) {
                 return;
@@ -379,7 +380,8 @@ public class FeatureLoader {
 
             Metrics.printTime("before-load-cext-support");
             try {
-                requireNode.executeRequire("truffle/cext", null);
+                final Object expandedPath = findFileNode.executeFind("truffle/cext");
+                requireNode.executeRequire("truffle/cext", expandedPath);
                 final DynamicObject truffleModule = context.getCoreLibrary().truffleModule;
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 

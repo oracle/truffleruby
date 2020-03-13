@@ -122,11 +122,10 @@ module Truffle
         Primitive.global_variable_set :$stderr, v
       })
 
-    def self.require_internal(feature)
-      feature = Truffle::Type.coerce_to_path(feature)
+    def self.require_find_file(feature)
       path = Primitive.find_file(feature)
-      raise_load_error(feature) unless path
-      Primitive.load_feature(feature, path)
+      Truffle::KernelOperations.raise_load_error(feature) unless path
+      path
     end
 
     def self.raise_load_error(name)
