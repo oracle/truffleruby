@@ -1,2 +1,2 @@
-DYNAMIC_IMPORTS=/vm-enterprise,/graal-enterprise,/tools
+DYNAMIC_IMPORTS=/graal-enterprise,/tools
 COMPONENTS=TruffleRuby,GraalVM enterprise compiler,GraalVM Profiler,GraalVM Chrome Inspector,GraalVM Coverage
