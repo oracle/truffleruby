@@ -102,7 +102,7 @@ module Truffle::CExt
 
   class RbEncoding
     ENCODING_CACHE = {} # Encoding => RbEncoding
-    NATIVE_CACHE = {} # RbEncoding => Encoding
+    NATIVE_CACHE = {} # RbEncoding address => RbEncoding
     ENCODING_CACHE_MUTEX = Mutex.new
 
     private_class_method :new
@@ -123,7 +123,7 @@ module Truffle::CExt
 
     def initialize(encoding)
       @encoding = encoding
-      @address = nil
+      @pointer = nil
       @name = nil
     end
 
@@ -188,32 +188,29 @@ module Truffle::CExt
     end
 
     def polyglot_pointer?
-      !@address.nil?
+      !@pointer.nil?
     end
 
-    # Every IS_POINTER object should also have TO_NATIVE
     def polyglot_to_native
-      @address ||= cache_address
-    end
-
-    def polyglot_as_pointer
-      @address
-    end
-
-    def cache_address
-      # TODO (eregon, 24 Feb 2020), this returns the address of RSTRING_PTR(@name),
-      # not of a rb_encoding* which should have the name as first field
       name = @name or raise '@name not set'
       unless Truffle::Interop.pointer?(name)
         Truffle::Interop.to_native(name)
         raise unless Truffle::Interop.pointer?(name)
       end
+      name_address = Truffle::Interop.as_pointer(name)
 
-      addr = Truffle::Interop.as_pointer(name)
       ENCODING_CACHE_MUTEX.synchronize do
-        NATIVE_CACHE[addr] = self
+        unless @pointer
+          @pointer = Truffle::FFI::MemoryPointer.new(:pointer, 1)
+          @pointer.write_pointer name_address
+
+          NATIVE_CACHE[@pointer.address] = self
+        end
       end
-      addr
+    end
+
+    def polyglot_as_pointer
+      @pointer.address
     end
   end
 
