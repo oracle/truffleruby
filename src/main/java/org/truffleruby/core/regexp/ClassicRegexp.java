@@ -811,6 +811,14 @@ public class ClassicRegexp implements ReOptions {
 
         Encoding[] fixedEnc = new Encoding[]{ null };
         RopeBuilder unescaped = preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        enc = computeRegexpEncoding(options, enc, fixedEnc, context);
+
+        pattern = getRegexpFromCache(context, unescaped, enc, options);
+        str = bytes;
+        return this;
+    }
+
+    static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc, RubyContext context) {
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
                     (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
@@ -829,10 +837,7 @@ public class ClassicRegexp implements ReOptions {
         if (fixedEnc[0] != null) {
             options.setFixed(true);
         }
-
-        pattern = getRegexpFromCache(context, unescaped, enc, options);
-        str = bytes;
-        return this;
+        return enc;
     }
 
     public static void appendOptions(RopeBuilder to, RegexpOptions options) {

@@ -323,24 +323,7 @@ public class TruffleRegexpNodes {
             Encoding[] fixedEnc = new Encoding[]{ null };
             RopeBuilder unescaped = ClassicRegexp
                     .preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-            if (fixedEnc[0] != null) {
-                if ((fixedEnc[0] != enc && options.isFixed()) ||
-                        (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                    throw new RaiseException(
-                            context,
-                            context.getCoreExceptions().regexpError("incompatible character encoding", null));
-                }
-                if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
-                    options.setFixed(true);
-                    enc = fixedEnc[0];
-                }
-            } else if (!options.isFixed()) {
-                enc = USASCIIEncoding.INSTANCE;
-            }
-
-            if (fixedEnc[0] != null) {
-                options.setFixed(true);
-            }
+            enc = ClassicRegexp.computeRegexpEncoding(options, enc, fixedEnc, context);
 
             Regex regexp = new Regex(
                     unescaped.getUnsafeBytes(),
