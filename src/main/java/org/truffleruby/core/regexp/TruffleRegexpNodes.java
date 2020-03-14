@@ -341,7 +341,6 @@ public class TruffleRegexpNodes {
             if (fixedEnc[0] != null) {
                 options.setFixed(true);
             }
-            //if (regexpOptions.isEncodingNone()) setEncodingNone();
 
             Regex regexp = new Regex(
                     unescaped.getUnsafeBytes(),

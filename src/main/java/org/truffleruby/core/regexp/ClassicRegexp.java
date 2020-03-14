@@ -133,7 +133,7 @@ public class ClassicRegexp implements ReOptions {
     private ClassicRegexp(RubyContext context, Rope str, RegexpOptions options) {
         this.context = context;
         this.options = options;
-        regexpInitialize(str, str.getEncoding(), options);
+        regexpInitialize(str, options);
     }
 
     // used only by the compiler/interpreter (will set the literal flag)
@@ -794,7 +794,7 @@ public class ClassicRegexp implements ReOptions {
 
     // rb_reg_initialize
     @TruffleBoundary
-    public ClassicRegexp regexpInitialize(Rope bytes, Encoding enc, RegexpOptions options) {
+    public ClassicRegexp regexpInitialize(Rope bytes, RegexpOptions options) {
         //checkFrozen();
         // FIXME: Something unsets this bit, but we aren't...be more permissive until we figure this out
         //if (isLiteral()) throw runtime.newSecurityError("can't modify literal regexp");
@@ -803,6 +803,8 @@ public class ClassicRegexp implements ReOptions {
                     context,
                     context.getCoreExceptions().typeError("already initialized regexp", null));
         }
+
+        Encoding enc = bytes.getEncoding();
         if (enc.isDummy()) {
             throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
         }
@@ -812,8 +814,9 @@ public class ClassicRegexp implements ReOptions {
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
                     (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                throw new UnsupportedOperationException();
-                //RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "incompatible character encoding");
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().regexpError("incompatible character encoding", null));
             }
             if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
                 options.setFixed(true);
