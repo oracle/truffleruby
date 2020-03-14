@@ -67,7 +67,7 @@ public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
     private Regex pattern;
     private Rope str = RopeConstants.EMPTY_UTF8_ROPE;
-    private RegexpOptions options;
+    private final RegexpOptions options;
 
     public void setLiteral() {
         options.setLiteral(true);
@@ -130,16 +130,9 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    /** default constructor */
-    ClassicRegexp(RubyContext context) {
-        this.context = context;
-        this.options = new RegexpOptions();
-    }
-
     private ClassicRegexp(RubyContext context, Rope str, RegexpOptions options) {
-        this(context);
-        str.getClass();
-
+        this.context = context;
+        this.options = options;
         regexpInitialize(str, str.getEncoding(), options);
     }
 
@@ -661,9 +654,9 @@ public class ClassicRegexp implements ReOptions {
         return regexpEnc;
     }
 
-    /** rb_reg_quote */
     private static final int QUOTED_V = 11;
 
+    /** rb_reg_quote */
     @TruffleBoundary
     public static Rope quote19(Rope bs) {
         final boolean asciiOnly = bs.isAsciiOnly();
@@ -802,8 +795,6 @@ public class ClassicRegexp implements ReOptions {
     // rb_reg_initialize
     @TruffleBoundary
     public ClassicRegexp regexpInitialize(Rope bytes, Encoding enc, RegexpOptions options) {
-        this.options = options;
-
         //checkFrozen();
         // FIXME: Something unsets this bit, but we aren't...be more permissive until we figure this out
         //if (isLiteral()) throw runtime.newSecurityError("can't modify literal regexp");
