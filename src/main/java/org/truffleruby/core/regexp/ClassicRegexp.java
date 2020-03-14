@@ -794,16 +794,7 @@ public class ClassicRegexp implements ReOptions {
 
     // rb_reg_initialize
     @TruffleBoundary
-    public ClassicRegexp regexpInitialize(Rope bytes, RegexpOptions options) {
-        //checkFrozen();
-        // FIXME: Something unsets this bit, but we aren't...be more permissive until we figure this out
-        //if (isLiteral()) throw runtime.newSecurityError("can't modify literal regexp");
-        if (pattern != null) {
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().typeError("already initialized regexp", null));
-        }
-
+    private void regexpInitialize(Rope bytes, RegexpOptions options) {
         Encoding enc = bytes.getEncoding();
         if (enc.isDummy()) {
             throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
@@ -815,7 +806,6 @@ public class ClassicRegexp implements ReOptions {
 
         pattern = getRegexpFromCache(context, unescaped, enc, options);
         str = bytes;
-        return this;
     }
 
     static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc, RubyContext context) {
