@@ -73,7 +73,7 @@ public class RegexpOptions implements Cloneable {
     }
 
     private KCode getExplicitKCode() {
-        if (kcodeDefault == true) {
+        if (kcodeDefault) {
             return null;
         }
 
@@ -221,16 +221,16 @@ public class RegexpOptions implements Cloneable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 11 * hash + (this.kcode != null ? this.kcode.hashCode() : 0);
-        hash = 11 * hash + (this.fixed ? 1 : 0);
-        hash = 11 * hash + (this.once ? 1 : 0);
-        hash = 11 * hash + (this.extended ? 1 : 0);
-        hash = 11 * hash + (this.multiline ? 1 : 0);
-        hash = 11 * hash + (this.ignorecase ? 1 : 0);
-        hash = 11 * hash + (this.java ? 1 : 0);
-        hash = 11 * hash + (this.encodingNone ? 1 : 0);
-        hash = 11 * hash + (this.kcodeDefault ? 1 : 0);
-        hash = 11 * hash + (this.literal ? 1 : 0);
+        hash = 11 * hash + (kcode != null ? kcode.hashCode() : 0);
+        hash = 11 * hash + (fixed ? 1 : 0);
+        hash = 11 * hash + (once ? 1 : 0);
+        hash = 11 * hash + (extended ? 1 : 0);
+        hash = 11 * hash + (multiline ? 1 : 0);
+        hash = 11 * hash + (ignorecase ? 1 : 0);
+        hash = 11 * hash + (java ? 1 : 0);
+        hash = 11 * hash + (encodingNone ? 1 : 0);
+        hash = 11 * hash + (kcodeDefault ? 1 : 0);
+        hash = 11 * hash + (literal ? 1 : 0);
         return hash;
     }
 
@@ -271,15 +271,15 @@ public class RegexpOptions implements Cloneable {
     @Override
     public String toString() {
         return "RegexpOptions(kcode: " + kcode +
-                (encodingNone == true ? ", encodingNone" : "") +
-                (extended == true ? ", extended" : "") +
-                (fixed == true ? ", fixed" : "") +
-                (ignorecase == true ? ", ignorecase" : "") +
-                (java == true ? ", java" : "") +
-                (kcodeDefault == true ? ", kcodeDefault" : "") +
-                (literal == true ? ", literal" : "") +
-                (multiline == true ? ", multiline" : "") +
-                (once == true ? ", once" : "") +
+                (encodingNone ? ", encodingNone" : "") +
+                (extended ? ", extended" : "") +
+                (fixed ? ", fixed" : "") +
+                (ignorecase ? ", ignorecase" : "") +
+                (java ? ", java" : "") +
+                (kcodeDefault ? ", kcodeDefault" : "") +
+                (literal ? ", literal" : "") +
+                (multiline ? ", multiline" : "") +
+                (once ? ", once" : "") +
                 ")";
     }
 
