@@ -65,8 +65,8 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
-    private Regex pattern;
-    private Rope str = RopeConstants.EMPTY_UTF8_ROPE;
+    private final Regex pattern;
+    private final Rope str;
     private final RegexpOptions options;
 
     public void setLiteral() {
@@ -133,7 +133,18 @@ public class ClassicRegexp implements ReOptions {
     private ClassicRegexp(RubyContext context, Rope str, RegexpOptions options) {
         this.context = context;
         this.options = options;
-        regexpInitialize(str, options);
+
+        Encoding enc = str.getEncoding();
+        if (enc.isDummy()) {
+            throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
+        }
+
+        Encoding[] fixedEnc = new Encoding[]{ null };
+        RopeBuilder unescaped = preprocess(context, str, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        enc = computeRegexpEncoding(options, enc, fixedEnc, context);
+
+        this.pattern = getRegexpFromCache(context, unescaped, enc, options);
+        this.str = str;
     }
 
     // used only by the compiler/interpreter (will set the literal flag)
@@ -790,22 +801,6 @@ public class ClassicRegexp implements ReOptions {
 
         result.setLength(op);
         return RopeOperations.ropeFromRopeBuilder(result);
-    }
-
-    // rb_reg_initialize
-    @TruffleBoundary
-    private void regexpInitialize(Rope bytes, RegexpOptions options) {
-        Encoding enc = bytes.getEncoding();
-        if (enc.isDummy()) {
-            throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
-        }
-
-        Encoding[] fixedEnc = new Encoding[]{ null };
-        RopeBuilder unescaped = preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
-        enc = computeRegexpEncoding(options, enc, fixedEnc, context);
-
-        pattern = getRegexpFromCache(context, unescaped, enc, options);
-        str = bytes;
     }
 
     static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc, RubyContext context) {
