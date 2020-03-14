@@ -136,7 +136,7 @@ public class ClassicRegexp implements ReOptions {
 
         Encoding enc = str.getEncoding();
         if (enc.isDummy()) {
-            throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
+            throw new UnsupportedOperationException("can't make regexp with dummy encoding");
         }
 
         Encoding[] fixedEnc = new Encoding[]{ null };
