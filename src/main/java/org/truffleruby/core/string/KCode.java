@@ -28,8 +28,6 @@
 
 package org.truffleruby.core.string;
 
-import org.jcodings.Encoding;
-
 public enum KCode {
 
     NONE("NONE", "ASCII"),
@@ -40,22 +38,9 @@ public enum KCode {
     private final String kcode;
     private final String encodingName;
 
-    private volatile Encoding encoding;
-
     private KCode(String kcode, String encodingName) {
         this.kcode = kcode;
         this.encodingName = encodingName;
-    }
-
-    public String getKCode() {
-        return kcode;
-    }
-
-    public Encoding getEncoding() {
-        if (encoding == null) {
-            encoding = Encoding.load(encodingName);
-        }
-        return encoding;
     }
 
     @Override
