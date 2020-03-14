@@ -147,17 +147,6 @@ public abstract class RegexpNodes {
         setSource(regexp, setSource);
     }
 
-    public static DynamicObject createRubyRegexp(RubyContext context, Node currentNode, DynamicObjectFactory factory,
-            Rope source, RegexpOptions options) {
-        final Regex regexp = TruffleRegexpNodes.compile(context, source, options, currentNode);
-
-        // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
-        // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
-        // constructing the final regexp.
-        return Layouts.REGEXP
-                .createRegexp(factory, regexp, (Rope) regexp.getUserObject(), options, new EncodingCache());
-    }
-
     @TruffleBoundary
     public static DynamicObject createRubyRegexp(DynamicObjectFactory factory, Regex regex, Rope source,
             RegexpOptions options) {

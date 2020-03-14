@@ -2729,7 +2729,7 @@ public class BodyTranslator extends Translator {
     @Override
     public RubyNode visitRegexpNode(RegexpParseNode node) {
         final Rope rope = node.getValue();
-        final RegexpOptions options = node.getOptions();
+        final RegexpOptions options = (RegexpOptions) node.getOptions().clone();
         options.setLiteral(true);
         Regex regex = TruffleRegexpNodes.compile(context, rope, options, currentNode);
 

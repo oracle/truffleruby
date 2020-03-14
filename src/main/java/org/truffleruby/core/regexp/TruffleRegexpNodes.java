@@ -313,6 +313,7 @@ public class TruffleRegexpNodes {
         matchedRegexps = new ConcurrentHashMap<>(matchedRegexps);
     };
 
+    /** WARNING: computeRegexpEncoding() mutates options, so the caller should make sure it's a copy */
     @TruffleBoundary
     public static Regex compile(RubyContext context, Rope bytes, RegexpOptions options, Node currentNode) {
         try {

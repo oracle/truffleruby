@@ -117,9 +117,9 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    public ClassicRegexp(RubyContext context, Rope str, RegexpOptions options) {
+    public ClassicRegexp(RubyContext context, Rope str, RegexpOptions originalOptions) {
         this.context = context;
-        this.options = (RegexpOptions) options.clone();
+        this.options = (RegexpOptions) originalOptions.clone();
 
         Encoding enc = str.getEncoding();
         if (enc.isDummy()) {
@@ -769,6 +769,7 @@ public class ClassicRegexp implements ReOptions {
         return RopeOperations.ropeFromRopeBuilder(result);
     }
 
+    /** WARNING: This mutates options, so the caller should make sure it's a copy */
     static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc, RubyContext context) {
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
