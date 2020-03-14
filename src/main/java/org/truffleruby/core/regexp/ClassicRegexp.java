@@ -826,12 +826,8 @@ public class ClassicRegexp implements ReOptions {
         if (fixedEnc[0] != null) {
             options.setFixed(true);
         }
-        if (options.isEncodingNone()) {
-            setEncodingNone();
-        }
 
         pattern = getRegexpFromCache(context, unescaped, enc, options);
-        bytes.getClass();
         str = bytes;
         return this;
     }
