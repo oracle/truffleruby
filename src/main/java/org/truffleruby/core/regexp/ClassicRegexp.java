@@ -610,13 +610,14 @@ public class ClassicRegexp implements ReOptions {
     public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
         assert strings.length > 0;
 
-        RopeBuilder string = RopeOperations.getRopeBuilderReadOnly(strings[0]);
+        RopeBuilder string = RopeOperations.toRopeBuilderCopy(strings[0]);
+
         Encoding regexpEnc = processDRegexpElement(context, options, null, strings[0]);
 
         for (int i = 1; i < strings.length; i++) {
             Rope str = strings[i];
             regexpEnc = processDRegexpElement(context, options, regexpEnc, str);
-            string.append(str.getBytes());
+            string.append(str);
         }
 
         if (regexpEnc != null) {

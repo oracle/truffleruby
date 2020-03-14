@@ -581,10 +581,6 @@ public class RopeOperations {
         }
     }
 
-    public static RopeBuilder getRopeBuilderReadOnly(Rope rope) {
-        return RopeBuilder.createRopeBuilder(rope.getBytes(), rope.getEncoding());
-    }
-
     public static RopeBuilder toRopeBuilderCopy(Rope rope) {
         return RopeBuilder.createRopeBuilder(rope.getBytes(), rope.getEncoding());
     }
