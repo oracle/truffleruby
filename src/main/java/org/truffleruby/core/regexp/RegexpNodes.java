@@ -295,10 +295,10 @@ public abstract class RegexpNodes {
 
         public abstract DynamicObject execute(DynamicObject regexp);
 
-        @Specialization(guards = "isSameRegexp(regexp,cachedRegexp)")
+        @Specialization(guards = "isSameRegexp(regexp, cachedRegexp)")
         protected DynamicObject toSCached(DynamicObject regexp,
                 @Cached("regexp") DynamicObject cachedRegexp,
-                @Cached("createRope(regexp)") Rope rope) {
+                @Cached("createRope(cachedRegexp)") Rope rope) {
             return makeStringNode.fromRope(rope);
         }
 
@@ -310,10 +310,10 @@ public abstract class RegexpNodes {
 
         @TruffleBoundary
         protected Rope createRope(DynamicObject regexp) {
-            final ClassicRegexp classicRegexp = ClassicRegexp.newRegexp(
+            final ClassicRegexp classicRegexp = new ClassicRegexp(
                     getContext(),
                     Layouts.REGEXP.getSource(regexp),
-                    Layouts.REGEXP.getRegex(regexp).getOptions());
+                    RegexpOptions.fromEmbeddedOptions(Layouts.REGEXP.getRegex(regexp).getOptions()));
             return classicRegexp.toRopeBuilder().toRope();
         }
     }

@@ -73,21 +73,8 @@ public class ClassicRegexp implements ReOptions {
         options.setLiteral(true);
     }
 
-    public boolean isLiteral() {
-        return options.isLiteral();
-    }
-
-    public void setEncodingNone() {
-        options.setEncodingNone(true);
-    }
-
     public Encoding getEncoding() {
         return pattern.getEncoding();
-    }
-
-    public void setEncoding(Encoding encoding) {
-        // FIXME: Which encoding should be changed here?
-        // FIXME: transcode?
     }
 
     private static Regex makeRegexp(RubyContext context, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
@@ -105,7 +92,7 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding, RegexpOptions options) {
+    private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding, RegexpOptions options) {
         if (context == null) {
             final Regex regex = makeRegexp(context, bytes, options, encoding);
             regex.setUserObject(bytes);
@@ -130,9 +117,9 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    private ClassicRegexp(RubyContext context, Rope str, RegexpOptions options) {
+    public ClassicRegexp(RubyContext context, Rope str, RegexpOptions options) {
         this.context = context;
-        this.options = options;
+        this.options = (RegexpOptions) options.clone();
 
         Encoding enc = str.getEncoding();
         if (enc.isDummy()) {
@@ -145,27 +132,6 @@ public class ClassicRegexp implements ReOptions {
 
         this.pattern = getRegexpFromCache(context, unescaped, enc, options);
         this.str = str;
-    }
-
-    // used only by the compiler/interpreter (will set the literal flag)
-    public static ClassicRegexp newRegexp(RubyContext runtime, Rope pattern, int options) {
-        return newRegexp(runtime, pattern, RegexpOptions.fromEmbeddedOptions(options));
-    }
-
-    // used only by the compiler/interpreter (will set the literal flag)
-    public static ClassicRegexp newRegexp(RubyContext runtime, Rope pattern, RegexpOptions options) {
-        //try {
-        return new ClassicRegexp(runtime, pattern, (RegexpOptions) options.clone());
-        //} catch (RaiseException re) {
-        //    throw new RaiseException(runtime.getCoreExceptions().syntaxError(re.getMessage(), null));
-        //}
-    }
-
-    /** throws RaiseException on error so parser can pick this up and give proper line and line number error as opposed
-     * to any non-literal regexp creation which may raise a syntax error but will not have this extra source info in the
-     * error message */
-    public static ClassicRegexp newRegexpParser(RubyContext runtime, Rope pattern, RegexpOptions options) {
-        return new ClassicRegexp(runtime, pattern, (RegexpOptions) options.clone());
     }
 
     @TruffleBoundary
