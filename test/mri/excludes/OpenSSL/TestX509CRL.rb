@@ -1,7 +1,0 @@
-exclude :test_basic, "needs investigation"
-exclude :test_crlnumber, "needs investigation"
-exclude :test_extension, "needs investigation"
-exclude :test_revoked, "needs investigation"
-exclude :test_sign_and_verify, "needs investigation"
-exclude :test_eq, "needs investigation"
-exclude :test_revoked_to_der, "needs investigation"
