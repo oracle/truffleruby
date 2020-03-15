@@ -1,3 +1,4 @@
+# frozen_string_literal: false
 # truffleruby_primitives: true
 
 # Copyright (c) 2013, Brian Shirai
