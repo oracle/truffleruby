@@ -295,6 +295,11 @@ describe "C-API Kernel function" do
       proof[0].should == 23
       proof[1].should == nil
     end
+
+    it "accepts NULL as status and returns nil if it failed" do
+      @s.rb_protect_null_status(42) { |x| x + 1 }.should == 43
+      @s.rb_protect_null_status(42) { |x| raise }.should == nil
+    end
   end
 
   describe "rb_eval_string_protect" do

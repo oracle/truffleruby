@@ -2116,7 +2116,9 @@ void rb_exc_raise(VALUE exception) {
 }
 
 static void rb_protect_write_status(int *status, int value) {
-  *status = value;
+  if (status != NULL) {
+    *status = value;
+  }
 }
 
 VALUE rb_protect(VALUE (*function)(VALUE), VALUE data, int *status) {

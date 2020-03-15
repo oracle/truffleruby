@@ -98,6 +98,8 @@ Compatibility:
 * Clarify error message for not implemented `Process.daemon` (#1962).
 * Allow multiple assignments in conditionals (#1513).
 * Update `NoMethodError#message` to match MRI (#1957). 
+* Make `StringIO` work with `--enable-frozen-string-literal` (#1969).
+* Support `NULL` for the status of `rb_protect()`.
 
 Changes:
 

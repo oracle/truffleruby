@@ -1083,24 +1083,36 @@ module Commands
   def retag(*args)
     require_ruby_launcher!
     options, test_files = args.partition { |a| a.start_with?('-') }
-    raise unless test_files.size == 1
-    test_file = test_files[0]
-    test_classes = File.read(test_file).scan(/class ([\w:]+) < .+TestCase/)
-    test_classes.each do |test_class,|
-      prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
-      FileUtils::Verbose.rm_f "#{prefix}.rb"
-      FileUtils::Verbose.rm_rf prefix
+
+    test_files.each do |test_file|
+      puts '', test_file
+      test_classes = File.read(test_file).scan(/class\s+([\w:]+)\s*<.+TestCase/).map(&:first)
+      raise "Could not find class inheriting from TestCase in #{test_file}" if test_classes.empty?
+      found_excludes = false
+      test_classes.each do |test_class|
+        prefix = "test/mri/excludes/#{test_class.gsub('::', '/')}"
+        ["#{prefix}.rb", prefix].each do |file|
+          if File.exist?(file)
+            FileUtils::Verbose.rm_r file
+            found_excludes = true
+          end
+        end
+      end
+      unless found_excludes
+        puts "Found no excludes for #{test_classes.join(', ')}"
+        next
+      end
+
+      puts '1. Tagging tests'
+      output_file = 'mri_tests.txt'
+      run_mri_tests(options, [test_file], [], out: output_file, continue_on_failure: true)
+
+      puts '2. Parsing errors'
+      sh 'ruby', 'tool/parse_mri_errors.rb', output_file
+
+      puts '3. Verifying tests pass'
+      run_mri_tests(options, [test_file], [], use_exec: test_files.size == 1)
     end
-
-    puts '1. Tagging tests'
-    output_file = 'mri_tests.txt'
-    run_mri_tests(options, test_files, [], out: output_file, continue_on_failure: true)
-
-    puts '2. Parsing errors'
-    sh 'ruby', 'tool/parse_mri_errors.rb', output_file
-
-    puts '3. Verifying tests pass'
-    run_mri_tests(options, test_files, [], use_exec: true)
   end
 
   private def test_compiler(*args)
