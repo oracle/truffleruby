@@ -71,6 +71,7 @@ Bug fixes:
 
 Compatibility:
 
+* The C API type `VALUE` is now defined as `unsigned long` as on MRI. This enables `switch (VALUE)` and other expressions which rely on `VALUE` being an integer type (#1409, #1541, #1675, #1917, #1954).
 * Implemented `Float#{floor, ceil}` with `ndigits` argument.
 * Implemented `Thread#fetch`.
 * Implemented `Float#truncate` with `ndigits` argument.
