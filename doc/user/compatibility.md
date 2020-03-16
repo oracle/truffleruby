@@ -252,12 +252,12 @@ fixed, please report these cases.
 
 `rb_scan_args` only supports up to ten pointers.
 
-#### `RDATA`
+#### mark functions of `RDATA` and `RTYPEDDATA`
 
-The `mark` function of `RDATA` and `RTYPEDDATA` is not called during
-garbage collection. Instead we simulate this by caching information
+The `mark` functions of `RDATA` and `RTYPEDDATA` are not called during
+garbage collection but periodically. We cache information
 about objects as they are assigned to structs, and periodically run
-all mark functions when the cache has become full to represent those
+all `mark` functions when the cache has become full to represent those
 object relationships in a way that the our garbage collector will
 understand. The process should behave identically to MRI.
 
