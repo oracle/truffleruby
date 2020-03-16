@@ -82,10 +82,7 @@ class MSpecScript
   set :library_cext, library_cext_specs
 
   set :capi, [
-    "spec/ruby/optional/capi",
-
-    # switch (VALUE) is not yet supported
-    "^spec/ruby/optional/capi/language_spec.rb",
+    "spec/ruby/optional/capi"
   ]
 
   set :truffle, [
