@@ -30,8 +30,8 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
@@ -43,7 +43,6 @@ import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
-import org.truffleruby.core.cast.ToPathNodeGen;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
@@ -237,6 +236,98 @@ public abstract class KernelNodes {
             }
 
             return booleanCastNode.executeToBoolean(eqlNode.call(left, "eql?", right));
+        }
+
+    }
+
+    @Primitive(name = "find_file")
+    public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
+
+        public static FindFileNode create() {
+            return KernelNodesFactory.FindFileNodeFactory.create(null);
+        }
+
+        public abstract Object executeFind(Object featureString);
+
+        @Specialization
+        protected Object findFile(DynamicObject featureString,
+                @Cached BranchProfile notFoundProfile,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            String feature = StringOperations.getString(featureString);
+            return findFileString(feature, notFoundProfile, makeStringNode);
+        }
+
+        @Specialization
+        protected Object findFileString(String featureString,
+                @Cached BranchProfile notFoundProfile,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
+            if (expandedPath == null) {
+                notFoundProfile.enter();
+                return nil;
+            }
+            return makeStringNode
+                    .executeMake(expandedPath, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
+    }
+
+    @Primitive(name = "get_caller_path")
+    public abstract static class GetCallerPathNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        @TruffleBoundary
+        protected DynamicObject getCallerPath(DynamicObject feature,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            final String featureString = StringOperations.getString(feature);
+            final String featurePath;
+            if (new File(featureString).isAbsolute()) {
+                featurePath = featureString;
+            } else {
+                final Source source = getContext()
+                        .getCallStack()
+                        .getCallerNodeIgnoringSend()
+                        .getEncapsulatingSourceSection()
+                        .getSource();
+
+                String sourcePath = getContext().getAbsolutePath(source);
+                if (sourcePath == null) {
+                    // Use the filename passed to eval as basepath
+                    sourcePath = source.getName();
+                }
+
+                if (sourcePath == null) {
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().loadError("cannot infer basepath", featureString, this));
+                }
+
+                sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath);
+
+                featurePath = getContext().getFeatureLoader().dirname(sourcePath) + "/" + featureString;
+            }
+
+            // Normalize the path like File.expand_path() (e.g., remove "../"), but do not resolve
+            // symlinks. MRI does this for #require_relative always, but not for #require, so we
+            // need to do it to be compatible in the case the path does not exist, so the
+            // LoadError's #path is the same as MRI's.
+            return makeStringNode
+                    .executeMake(
+                            Paths.get(featurePath).normalize().toString(),
+                            UTF8Encoding.INSTANCE,
+                            CodeRange.CR_UNKNOWN);
+        }
+
+    }
+
+    @Primitive(name = "load_feature")
+    public abstract static class LoadNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private RequireNode requireNode = RequireNode.create();
+
+        @Specialization
+        protected boolean loadFeature(DynamicObject featureString, DynamicObject expandedPathString) {
+            return requireNode.executeRequire(StringOperations.getString(featureString), expandedPathString);
         }
 
     }
@@ -1433,77 +1524,6 @@ public abstract class KernelNodes {
             return dispatchNode.dispatch(frame, self, name, block, args);
         }
 
-    }
-
-    @CoreMethod(names = "require", isModuleFunction = true, required = 1)
-    @NodeChild(value = "feature", type = RubyNode.class)
-    public abstract static class KernelRequireNode extends CoreMethodNode {
-
-        @CreateCast("feature")
-        protected RubyNode coerceFeatureToPath(RubyNode feature) {
-            return ToPathNodeGen.create(feature);
-        }
-
-        @Specialization(guards = "isRubyString(featureString)")
-        protected boolean require(DynamicObject featureString,
-                @Cached RequireNode requireNode) {
-            String feature = StringOperations.getString(featureString);
-            return requireNode.executeRequire(feature);
-        }
-
-    }
-
-    @CoreMethod(names = "require_relative", isModuleFunction = true, required = 1)
-    @NodeChild(value = "feature", type = RubyNode.class)
-    public abstract static class RequireRelativeNode extends CoreMethodNode {
-
-        @CreateCast("feature")
-        protected RubyNode coerceToPath(RubyNode feature) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(ToPathNodeGen.create(feature));
-        }
-
-        @Specialization
-        protected boolean requireRelative(String feature,
-                @Cached RequireNode requireNode) {
-            return requireNode.executeRequire(getFullPath(feature));
-        }
-
-        @TruffleBoundary
-        private String getFullPath(String featureString) {
-            final String featurePath;
-
-            if (new File(featureString).isAbsolute()) {
-                featurePath = featureString;
-            } else {
-                final Source source = getContext()
-                        .getCallStack()
-                        .getCallerNodeIgnoringSend()
-                        .getEncapsulatingSourceSection()
-                        .getSource();
-
-                String sourcePath = getContext().getAbsolutePath(source);
-                if (sourcePath == null) {
-                    // Use the filename passed to eval as basepath
-                    sourcePath = source.getName();
-                }
-
-                if (sourcePath == null) {
-                    throw new RaiseException(
-                            getContext(),
-                            coreExceptions().loadError("cannot infer basepath", featureString, this));
-                }
-
-                sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath);
-
-                featurePath = getContext().getFeatureLoader().dirname(sourcePath) + "/" + featureString;
-            }
-
-            // Normalize the path like File.expand_path() (e.g., remove "../"), but do not resolve
-            // symlinks. MRI does this for #require_relative always, but not for #require, so we
-            // need to do it to be compatible in the case the path does not exist, so the
-            // LoadError's #path is the same as MRI's.
-            return Paths.get(featurePath).normalize().toString();
-        }
     }
 
     @CoreMethod(names = "respond_to?", required = 1, optional = 1)
