@@ -4,21 +4,9 @@ suite = {
 
     "imports": {
         "suites": [
-            { # Import only the tools suite which depends on truffle, to avoid duplicating import versions.
-              # We want tools to be reliably available with TruffleRuby, even with "mx build", so this is a static import.
-                "name": "tools",
-                "subdir": True,
-                # version must always be equal to the version of the "sulong" import below
-                "version": "87d7a60277fd5ab80fed55fbabd0efa7574125a2",
-                "urls": [
-                    {"url": "https://github.com/oracle/graal.git", "kind": "git"},
-                    {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
-                ]
-            },
             {
                 "name": "sulong",
                 "subdir": True,
-                # version must always be equal to the version of the "tools" import above
                 "version": "87d7a60277fd5ab80fed55fbabd0efa7574125a2",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
