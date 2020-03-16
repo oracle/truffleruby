@@ -29,8 +29,8 @@ local jdks = (import "common.json").jdks;
 # where build is defined, there are no other objects in the middle.
 local part_definitions = {
   local jt = function(args) [["ruby", "tool/jt.rb"] + args],
+  local mri_path = function(version) "/cm/shared/apps/ruby/" + version + "/bin/ruby",
   local mri_version = "2.6.3",
-  local mri_ruby = "/cm/shared/apps/ruby/" + mri_version + "/bin/ruby",
 
   use: {
     common: {
@@ -126,7 +126,7 @@ local part_definitions = {
         HOST_VM_CONFIG: "default",
         GUEST_VM: "mri",
         GUEST_VM_CONFIG: "default",
-        RUBY_BIN: mri_ruby,
+        RUBY_BIN: mri_path(mri_version),
       },
     },
 
@@ -276,7 +276,8 @@ local part_definitions = {
     },
 
     test_specs_mri: {
-      run+: jt(["-u", mri_ruby, "mspec", "spec/ruby"]),
+      run+: jt(["-u", mri_path(mri_version), "mspec", "spec/ruby"]) +
+            jt(["-u", mri_path("2.5.7"), "mspec", "spec/ruby"]),
     },
 
     test_fast: {
