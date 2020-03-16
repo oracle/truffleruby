@@ -236,6 +236,8 @@ public class Options {
     public final int PACK_RECOVER_LOOP_MIN;
     /** --cexts-marking-cache=100 */
     public final int CEXTS_MARKING_CACHE;
+    /** --cexts-tonative-stats=false */
+    public final boolean CEXTS_TONATIVE_STATS;
     /** --rope-depth-threshold=128 */
     public final int ROPE_DEPTH_THRESHOLD;
     /** --global-variable-max-invalidations=1 */
@@ -383,6 +385,7 @@ public class Options {
         PACK_UNROLL_LIMIT = options.get(OptionsCatalog.PACK_UNROLL_LIMIT_KEY);
         PACK_RECOVER_LOOP_MIN = options.get(OptionsCatalog.PACK_RECOVER_LOOP_MIN_KEY);
         CEXTS_MARKING_CACHE = options.get(OptionsCatalog.CEXTS_MARKING_CACHE_KEY);
+        CEXTS_TONATIVE_STATS = options.get(OptionsCatalog.CEXTS_TONATIVE_STATS_KEY);
         ROPE_DEPTH_THRESHOLD = options.get(OptionsCatalog.ROPE_DEPTH_THRESHOLD_KEY);
         GLOBAL_VARIABLE_MAX_INVALIDATIONS = options.get(OptionsCatalog.GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY);
         CLONE_DEFAULT = options.get(OptionsCatalog.CLONE_DEFAULT_KEY);
@@ -620,6 +623,8 @@ public class Options {
                 return PACK_RECOVER_LOOP_MIN;
             case "ruby.cexts-marking-cache":
                 return CEXTS_MARKING_CACHE;
+            case "ruby.cexts-tonative-stats":
+                return CEXTS_TONATIVE_STATS;
             case "ruby.rope-depth-threshold":
                 return ROPE_DEPTH_THRESHOLD;
             case "ruby.global-variable-max-invalidations":
