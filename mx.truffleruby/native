@@ -1,3 +1,4 @@
-DYNAMIC_IMPORTS=/vm,/substratevm,/tools
+DYNAMIC_IMPORTS=/substratevm,/tools
 COMPONENTS=TruffleRuby,SubstrateVM,GraalVM Profiler,GraalVM Chrome Inspector,GraalVM Coverage
 NATIVE_IMAGES=truffleruby,graalvm-native-clang,graalvm-native-clang++
+DISABLE_INSTALLABLES=false
