@@ -61,6 +61,7 @@ Bug fixes:
 * Fixed `Random::DEFAULT.seed` to be different on boot (#1965, @kipply)
 * `rb_encoding->name` can now be read even if the `rb_encoding` is stored in native memory.
 * Detect and cut off recursion when inspecting a foreign object, substituting an ellipsis instead.
+* Define the `_DARWIN_C_SOURCE` macro in extension makefiles (#1592).
 
 Compatibility:
 
