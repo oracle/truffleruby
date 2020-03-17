@@ -179,7 +179,7 @@ module Truffle
                  else
                    primitive_result
                  end
-      end while (result == :retry)
+      end while result == :retry
 
       if result == 0
         nil # timeout
