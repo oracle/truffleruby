@@ -896,11 +896,6 @@ module Commands
     def url(remote_name, dir = TRUFFLERUBY_DIR)
       remote_urls(dir).find { |r, _u| r == remote_name }.last
     end
-
-    def try_fetch(repo)
-      remote = github(repo) || bitbucket(repo) || 'origin'
-      raw_sh 'git', '-C', repo, 'fetch', remote, continue_on_failure: true
-    end
   end
 
   def test(*args)
@@ -1405,14 +1400,15 @@ EOS
     end
 
     # Unset variable set by the pre-commit hook which confuses git
-    ENV.delete 'GIT_DIR'
-    ENV.delete 'GIT_INDEX_FILE'
+    env = { 'GIT_DIR' => nil, 'GIT_INDEX_FILE' => nil }
 
-    current = `git -C #{gem_test_pack} rev-parse HEAD`.chomp
+    current = raw_sh(env, 'git', '-C', gem_test_pack, 'rev-parse', 'HEAD', capture: :out).chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
-      has_commit = raw_sh 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
-      Remotes.try_fetch(gem_test_pack) unless has_commit
-      raw_sh 'git', '-C', gem_test_pack, 'checkout', '-q', TRUFFLERUBY_GEM_TEST_PACK_VERSION
+      has_commit = raw_sh env, 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
+      unless has_commit
+        raw_sh env, 'git', '-C', gem_test_pack, 'fetch', Removes.bitbucket(gem_test_pack), continue_on_failure: true
+      end
+      raw_sh env, 'git', '-C', gem_test_pack, 'checkout', '-q', TRUFFLERUBY_GEM_TEST_PACK_VERSION
     end
 
     puts gem_test_pack
