@@ -24,6 +24,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.platform.Signals;
 
 import com.oracle.truffle.api.Assumption;
@@ -281,11 +282,12 @@ public class SafepointManager {
 
     @TruffleBoundary
     public void pauseRubyThreadAndExecute(DynamicObject rubyThread, Node currentNode, SafepointAction action) {
-        final DynamicObject currentThread = context.getThreadManager().getCurrentThread();
+        final ThreadManager threadManager = context.getThreadManager();
+        final DynamicObject currentThread = threadManager.getCurrentThread();
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rubyThread);
 
         if (currentThread == rubyThread) {
-            if (fiberManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getCurrentFiber()) {
+            if (threadManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getCurrentFiber()) {
                 throw new IllegalStateException(
                         "The currently executing Java thread does not correspond to the currently active fiber for the current Ruby thread");
             }
@@ -294,7 +296,7 @@ public class SafepointManager {
         } else {
             pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
                 if (thread == rubyThread &&
-                        fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
+                        threadManager.getRubyFiberFromCurrentJavaThread() == fiberManager.getCurrentFiber()) {
                     action.accept(thread, currentNode1);
                 }
             });

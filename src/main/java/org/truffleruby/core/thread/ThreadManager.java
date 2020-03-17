@@ -25,6 +25,7 @@ import java.util.function.Supplier;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.string.StringUtils;
@@ -71,6 +72,10 @@ public class ThreadManager {
             .newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
 
     private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
+
+    public final Map<Thread, DynamicObject> rubyFiberForeignMap = new ConcurrentHashMap<>();
+    public final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
+            .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
     public static final class ActionHolder {
 
@@ -519,7 +524,8 @@ public class ThreadManager {
         assert unblockingAction != null;
         final Thread thread = Thread.currentThread();
 
-        final ActionHolder holder = unblockingActions.computeIfAbsent(thread, k -> new ActionHolder(null));
+        final ActionHolder holder = ConcurrentOperations
+                .getOrCompute(unblockingActions, thread, k -> new ActionHolder(null));
         final UnblockingAction oldUnblockingAction = holder.action;
         holder.action = unblockingAction;
         try {
@@ -536,7 +542,7 @@ public class ThreadManager {
 
     @TruffleBoundary
     public UnblockingAction setUnblockingAction(Thread thread, UnblockingAction action) {
-        ActionHolder holder = unblockingActions.computeIfAbsent(thread, k -> new ActionHolder(null));
+        ActionHolder holder = ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new ActionHolder(null));
         UnblockingAction oldAction = holder.action;
         holder.action = action;
         return oldAction;
@@ -603,6 +609,11 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
+    public DynamicObject getRubyFiberFromCurrentJavaThread() {
+        return rubyFiber.get();
+    }
+
+    @TruffleBoundary
     public DynamicObject getForeignRubyThread(Thread javaThread) {
         return foreignThreadMap.get(javaThread);
     }
@@ -628,7 +639,7 @@ public class ThreadManager {
 
         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
 
-        if (fiberManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getRootFiber()) {
+        if (getRubyFiberFromCurrentJavaThread() != fiberManager.getRootFiber()) {
             throw new UnsupportedOperationException(
                     "ThreadManager.shutdown() must be called on the root Fiber of the main Thread");
         }
@@ -674,7 +685,7 @@ public class ThreadManager {
                 context.getSafepointManager().pauseAllThreadsAndExecute(null, false, (thread, currentNode) -> {
                     if (Thread.currentThread() != initiatingJavaThread) {
                         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
-                        final DynamicObject fiber = fiberManager.getRubyFiberFromCurrentJavaThread();
+                        final DynamicObject fiber = getRubyFiberFromCurrentJavaThread();
 
                         if (fiberManager.getCurrentFiber() == fiber) {
                             Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
@@ -703,7 +714,8 @@ public class ThreadManager {
 
     @TruffleBoundary
     public void interrupt(Thread thread) {
-        final UnblockingAction action = unblockingActions.computeIfAbsent(thread, k -> new ActionHolder(null)).action;
+        final UnblockingAction action = ConcurrentOperations
+                .getOrCompute(unblockingActions, thread, k -> new ActionHolder(null)).action;
 
         if (action != null) {
             action.unblock();

@@ -55,6 +55,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
@@ -243,6 +244,7 @@ public abstract class VMPrimitiveNodes {
 
                 final DynamicObject rootThread = context.getThreadManager().getRootThread();
                 final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
+                final ThreadManager threadManager = getContext().getThreadManager();
 
                 // Workaround: we need to register with Truffle (which means going multithreaded),
                 // so that NFI can get its context to call pthread_kill() (GR-7405).
@@ -264,7 +266,7 @@ public abstract class VMPrimitiveNodes {
                             true,
                             (rubyThread, currentNode) -> {
                                 if (rubyThread == rootThread &&
-                                        fiberManager.getRubyFiberFromCurrentJavaThread() == fiberManager
+                                        threadManager.getRubyFiberFromCurrentJavaThread() == fiberManager
                                                 .getCurrentFiber()) {
                                     ProcOperations.rootCall(action);
                                 }

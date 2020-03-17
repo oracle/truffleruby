@@ -10,7 +10,6 @@
 package org.truffleruby.core.fiber;
 
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -50,15 +49,6 @@ public class FiberManager {
     private DynamicObject currentFiber;
     private final Set<DynamicObject> runningFibers = newFiberSet();
 
-    private final Map<Thread, DynamicObject> rubyFiberForeignMap = createForeignMap();
-    private final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
-            .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
-
-    @TruffleBoundary
-    private static Map<Thread, DynamicObject> createForeignMap() {
-        return new ConcurrentHashMap<>();
-    }
-
     public FiberManager(RubyContext context, DynamicObject rubyThread) {
         this.context = context;
         this.rootFiber = createRootFiber(context, rubyThread);
@@ -86,11 +76,6 @@ public class FiberManager {
     // as it could switch to another Fiber before the actual operation on the returned fiber.
     public DynamicObject getCurrentFiberRacy() {
         return currentFiber;
-    }
-
-    @TruffleBoundary
-    public DynamicObject getRubyFiberFromCurrentJavaThread() {
-        return rubyFiber.get();
     }
 
     private void setCurrentFiber(DynamicObject fiber) {
@@ -270,10 +255,10 @@ public class FiberManager {
         final ThreadManager threadManager = context.getThreadManager();
 
         if (Thread.currentThread() == javaThread) {
-            rubyFiber.set(fiber);
+            context.getThreadManager().rubyFiber.set(fiber);
         }
         if (!threadManager.isRubyManagedThread(javaThread)) {
-            rubyFiberForeignMap.put(javaThread, fiber);
+            context.getThreadManager().rubyFiberForeignMap.put(javaThread, fiber);
         }
 
         Layouts.FIBER.setThread(fiber, javaThread);
@@ -305,9 +290,9 @@ public class FiberManager {
         Layouts.FIBER.setThread(fiber, null);
 
         if (Thread.currentThread() == javaThread) {
-            rubyFiber.remove();
+            context.getThreadManager().rubyFiber.remove();
         }
-        rubyFiberForeignMap.remove(javaThread);
+        context.getThreadManager().rubyFiberForeignMap.remove(javaThread);
 
         Layouts.FIBER.getFinishedLatch(fiber).countDown();
     }
