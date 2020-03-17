@@ -91,7 +91,8 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding, RegexpOptions options) {
+    private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding,
+            RegexpOptions options) {
         if (context == null) {
             final Regex regex = makeRegexp(context, bytes, options, encoding);
             regex.setUserObject(bytes);
@@ -769,7 +770,8 @@ public class ClassicRegexp implements ReOptions {
     }
 
     /** WARNING: This mutates options, so the caller should make sure it's a copy */
-    static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc, RubyContext context) {
+    static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc,
+            RubyContext context) {
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
                     (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {

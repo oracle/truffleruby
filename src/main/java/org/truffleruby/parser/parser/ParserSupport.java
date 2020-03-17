@@ -1537,7 +1537,10 @@ public class ParserSupport {
     }        // 1.9 mode overrides to do extra checking...
 
     private void allocateNamedLocals(RegexpParseNode regexpNode) {
-        ClassicRegexp pattern = new ClassicRegexp(configuration.getContext(), regexpNode.getValue(), regexpNode.getOptions());
+        ClassicRegexp pattern = new ClassicRegexp(
+                configuration.getContext(),
+                regexpNode.getValue(),
+                regexpNode.getOptions());
         pattern.setLiteral();
         String[] names = pattern.getNames();
         int length = names.length;

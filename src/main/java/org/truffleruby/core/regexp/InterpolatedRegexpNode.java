@@ -106,13 +106,19 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             final RegexpOptions options = (RegexpOptions) this.options.clone();
             final RopeBuilder preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
 
-            final Regex regexp1 = TruffleRegexpNodes.compile(getContext(), RopeOperations.ropeFromRopeBuilder(preprocessed), options, this);
+            final Regex regexp1 = TruffleRegexpNodes
+                    .compile(getContext(), RopeOperations.ropeFromRopeBuilder(preprocessed), options, this);
 
             // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
             // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
             // constructing the final regexp.
             final DynamicObject regexp = Layouts.REGEXP
-                    .createRegexp(coreLibrary().regexpFactory, regexp1, (Rope) regexp1.getUserObject(), options, new EncodingCache());
+                    .createRegexp(
+                            coreLibrary().regexpFactory,
+                            regexp1,
+                            (Rope) regexp1.getUserObject(),
+                            options,
+                            new EncodingCache());
 
             if (options.isEncodingNone()) {
                 final Rope source = Layouts.REGEXP.getSource(regexp);
