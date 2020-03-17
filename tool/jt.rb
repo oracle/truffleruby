@@ -1405,6 +1405,7 @@ EOS
     end
 
     # Unset variable set by the pre-commit hook which confuses git
+    ENV.delete 'GIT_DIR'
     ENV.delete 'GIT_INDEX_FILE'
 
     current = `git -C #{gem_test_pack} rev-parse HEAD`.chomp
