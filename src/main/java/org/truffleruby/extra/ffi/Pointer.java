@@ -280,7 +280,7 @@ public class Pointer implements AutoCloseable {
 
         @Override
         public String toString() {
-            return "free(" + address + ")";
+            return "free(0x" + Long.toHexString(address) + ")";
         }
 
     }
@@ -312,6 +312,12 @@ public class Pointer implements AutoCloseable {
     @Override
     public int hashCode() {
         return Long.hashCode(address);
+    }
+
+    @TruffleBoundary
+    @Override
+    public String toString() {
+        return "Pointer@0x" + Long.toHexString(address);
     }
 
     public static long rawMalloc(long size) {
