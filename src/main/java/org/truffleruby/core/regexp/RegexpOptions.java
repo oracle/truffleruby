@@ -15,9 +15,6 @@ package org.truffleruby.core.regexp;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
-import org.jcodings.specific.EUCJPEncoding;
-import org.jcodings.specific.UTF8Encoding;
-import org.jcodings.specific.Windows_31JEncoding;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ReOptions;
 
@@ -133,24 +130,15 @@ public class RegexpOptions implements Cloneable {
     public Encoding setup() {
         KCode explicitKCode = getExplicitKCode();
 
-        // None will not set fixed
-        if (explicitKCode == KCode.NONE) {
+        if (explicitKCode == null) {
+            return null;
+        } else if (explicitKCode == KCode.NONE) { // None will not set fixed
             setEncodingNone(true);
             return ASCIIEncoding.INSTANCE;
+        } else {
+            setFixed(true);
+            return explicitKCode.getEncoding();
         }
-
-        if (explicitKCode == KCode.EUC) {
-            fixed = true;
-            return EUCJPEncoding.INSTANCE;
-        } else if (explicitKCode == KCode.SJIS) {
-            fixed = true;
-            return Windows_31JEncoding.INSTANCE;
-        } else if (explicitKCode == KCode.UTF8) {
-            fixed = true;
-            return UTF8Encoding.INSTANCE;
-        }
-
-        return null;
     }
 
     /** This int value is meant to only be used when dealing directly with the joni regular expression library. It
