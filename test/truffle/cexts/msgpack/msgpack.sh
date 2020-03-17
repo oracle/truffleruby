@@ -2,12 +2,12 @@
 
 source test/truffle/common.sh.inc
 
-jt gem-test-pack
+gem_test_pack=$(jt gem-test-pack)
 
 ruby_home="$(jt ruby -e 'puts Truffle::Boot.ruby_home')"
 export PATH="$ruby_home/bin:$PATH"
 
-cd "$(jt gem-test-pack)/gem-testing/msgpack-ruby"
+cd "$gem_test_pack/gem-testing/msgpack-ruby" || exit 1
 
 # Use ruby -S to avoid the nested shebang problem on macOS when using GraalVM Bash launchers
 ruby -S bundle config --local cache_path ./gem-cache
