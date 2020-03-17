@@ -422,10 +422,18 @@ module Utilities
     end
 
     raise 'use multiple arguments instead of a single string with spaces' if args[0].include?(' ')
-    env = env.map { |k, v| "#{k}=#{shellescape(v)}" }
+    sets = []
+    unsets = []
+    env.each_pair do |k, v|
+      if v
+        sets << "#{k}=#{shellescape(v)}"
+      else
+        unsets << k
+      end
+    end
     args = args.map { |a| shellescape(a) }
 
-    all = [*env, *args]
+    all = [*("unset #{unsets.join(' ')};" unless unsets.empty?), *sets, *args]
     size = all.reduce(0) { |s, v| s + v.size }
     all.join(size <= 180 ? ' ' : " \\\n  ")
   end
