@@ -276,6 +276,9 @@ local part_definitions = {
     },
 
     test_specs_mri: {
+      environment+: {
+        "CHECK_LEAKS": "true",
+      },
       run+: jt(["-u", mri_path(mri_version), "mspec", "spec/ruby"]) +
             jt(["-u", mri_path("2.5.7"), "mspec", "spec/ruby"]),
     },
