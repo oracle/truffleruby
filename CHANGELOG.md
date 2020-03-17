@@ -64,6 +64,7 @@ Bug fixes:
 * Fixed feature lookup order on load path.
 * Fixed feature lookup order to check every `$LOAD_PATH` path entry for `.rb`, then every entry for native extension when require called with no extension.
 * Define the `_DARWIN_C_SOURCE` macro in extension makefiles (#1592).
+* Actually unset environment variables with a `nil` value for `Process.spawn` instead of setting them to an empty String.
 
 Compatibility:
 
