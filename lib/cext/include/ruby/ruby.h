@@ -477,7 +477,7 @@ enum ruby_special_consts {
 #endif
 #define SYMBOL_FLAG RUBY_SYMBOL_FLAG
 
-#define RB_TEST(v) !(((unsigned long)(v) & ~((unsigned long)RUBY_Qnil)) == 0)
+#define RB_TEST(v) !(((VALUE)(v) & (VALUE)~RUBY_Qnil) == 0)
 #define RB_NIL_P(v) !((VALUE)(v) != RUBY_Qnil)
 #define RTEST(v) RB_TEST(v)
 #define NIL_P(v) RB_NIL_P(v)
