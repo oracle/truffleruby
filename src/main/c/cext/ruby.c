@@ -2151,14 +2151,14 @@ VALUE (*cext_rb_rescue2)(VALUE (*b_proc)(VALUE data), void* data1, VALUE (*r_pro
 
 VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS), VALUE data2, ...) {
   VALUE rescued = rb_ary_new();
+  int total = polyglot_get_arg_count();
   int n = 4;
-  while (true) {
-    void* arg = polyglot_get_arg(n);
-    if (arg == NULL) {
-      break;
-    }
-    rb_ary_push(rescued, (VALUE) arg);
-    n++;
+  // Callers _should_ have terminated the var args with a VALUE sized 0, but
+  // some code uses a zero instead, and this can break. So we read the
+  // arguments using the polyglot api.
+  for (;n < total; n++) {
+    VALUE arg = polyglot_get_arg(n);
+    rb_ary_push(rescued, arg);
   }
   return cext_rb_rescue2(b_proc, data1, r_proc, data2, rb_tr_unwrap(rescued));
 }
