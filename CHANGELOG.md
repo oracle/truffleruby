@@ -63,6 +63,7 @@ Bug fixes:
 * Detect and cut off recursion when inspecting a foreign object, substituting an ellipsis instead.
 * Fixed feature lookup order on load path.
 * Fixed feature lookup order to check every `$LOAD_PATH` path entry for `.rb`, then every entry for native extension when require called with no extension.
+* Define the `_DARWIN_C_SOURCE` macro in extension makefiles (#1592).
 
 Compatibility:
 

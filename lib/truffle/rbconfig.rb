@@ -68,7 +68,6 @@ module RbConfig
     'configure_args'    => ' ',
     'CCDLFLAGS'         => '-fPIC',
     'COUTFLAG'          => '-o ',
-    'CPPFLAGS'          => '',
     'CPPOUTFILE'        => '-o conftest.i',
     'DLDLIBS'           => '',
     'DLEXT'             => Truffle::Platform::DLEXT.dup,

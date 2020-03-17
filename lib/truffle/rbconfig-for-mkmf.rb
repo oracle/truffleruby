@@ -103,8 +103,9 @@ mkconfig['cxxflags'] = '$(optflags) $(debugflags) $(warnflags)'
 expanded['CXXFLAGS'] = cxxflags
 mkconfig['CXXFLAGS'] = '$(cxxflags)'
 defs = ''
-expanded['CPPFLAGS'] = " #{defs} #{cppflags}"
-mkconfig['CPPFLAGS'] = ' $(DEFS) $(cppflags)'
+cppflags_hardcoded = Truffle::Platform.darwin? ? ' -D_DARWIN_C_SOURCE' : ''
+expanded['CPPFLAGS'] = "#{cppflags_hardcoded} #{defs} #{cppflags}"
+mkconfig['CPPFLAGS'] = "#{cppflags_hardcoded} $(DEFS) $(cppflags)"
 
 # We use -I$(<D) (the directory portion of the prerequisite - i.e. the
 # C or C++ file) to add the file's path as the first entry on the
