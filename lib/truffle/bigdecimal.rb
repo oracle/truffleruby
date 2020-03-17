@@ -257,8 +257,12 @@ class BigDecimal < Numeric
     end
   end
 
+  ORIGINAL_TO_S = instance_method(:to_s)
+  private_constant :ORIGINAL_TO_S
+
   def inspect
-    finite? ? to_s.downcase : to_s
+    str = ORIGINAL_TO_S.bind(self).call
+    finite? ? str.downcase : str
   end
 
   def _dump(level=nil)
