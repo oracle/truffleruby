@@ -1531,7 +1531,7 @@ public class ParserSupport {
         try {
             ClassicRegexp.preprocessCheck(configuration.getContext(), value);
         } catch (RaiseException re) {
-            compile_error(re.getMessage());
+            throw compile_error(re.getMessage());
         }
         return value;
     }        // 1.9 mode overrides to do extra checking...
@@ -1581,7 +1581,7 @@ public class ParserSupport {
         return ' ';
     }
 
-    public void compile_error(String message) { // mri: rb_compile_error_with_enc
+    public RuntimeException compile_error(String message) { // mri: rb_compile_error_with_enc
         String line = lexer.getCurrentLine();
         SourceIndexLength position = lexer.getPosition();
         String errorMessage = lexer.getFile() + ":" + (position.toSourceSection(lexer.getSource()).getStartLine()) +
@@ -1639,12 +1639,12 @@ public class ParserSupport {
         return value;
     }
 
-    protected void checkRegexpSyntax(Rope value, RegexpOptions options) {
+    protected ClassicRegexp checkRegexpSyntax(Rope value, RegexpOptions options) {
         try {
             // This is only for syntax checking but this will as a side-effect create an entry in the regexp cache.
-            new ClassicRegexp(getConfiguration().getContext(), value, options);
+            return new ClassicRegexp(getConfiguration().getContext(), value, options);
         } catch (RaiseException re) {
-            compile_error(re.getMessage());
+            throw compile_error(re.getMessage());
         }
     }
 
