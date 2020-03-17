@@ -2167,10 +2167,9 @@ VALUE rb_rescue2(VALUE (*b_proc)(ANYARGS), VALUE data1, VALUE (*r_proc)(ANYARGS)
   VALUE rescued = rb_ary_new();
   int total = polyglot_get_arg_count();
   int n = 4;
-  // Callers _should_ have terminated the var args with a NULL, but
+  // Callers _should_ have terminated the var args with a VALUE sized 0, but
   // some code uses a zero instead, and this can break. So we read the
-  // arguments using the polyglot api and ignore the final null or 0
-  // argument.
+  // arguments using the polyglot api.
   for (;n < total; n++) {
     VALUE arg = polyglot_get_arg(n);
     rb_ary_push(rescued, arg);
