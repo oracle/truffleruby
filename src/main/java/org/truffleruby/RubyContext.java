@@ -488,6 +488,11 @@ public class RubyContext {
             RubyLanguage.LOGGER.info("total ropes interned: " + getRopeCache().totalRopes());
         }
 
+        if (options.CEXTS_TONATIVE_STATS) {
+            RubyLanguage.LOGGER.info(
+                    "Total VALUE object to native conversions: " + getValueWrapperManager().totalHandleAllocations());
+        }
+
         if (options.COVERAGE_GLOBAL) {
             coverageManager.print(System.out);
         }

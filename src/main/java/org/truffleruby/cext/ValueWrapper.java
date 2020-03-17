@@ -10,6 +10,7 @@
 package org.truffleruby.cext;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
 import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
 import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
@@ -65,28 +66,28 @@ public class ValueWrapper implements TruffleObject {
 
     @ExportMessage
     protected boolean isPointer() {
-        return true;
+        return handle != ValueWrapperManager.UNSET_HANDLE;
     }
 
     @ExportMessage
-    protected void toNative() {
+    protected static void toNative(ValueWrapper wrapper,
+            @Cached AllocateHandleNode createNativeHandleNode,
+            @Cached @Exclusive BranchProfile createHandleProfile) {
+        if (!wrapper.isPointer()) {
+            createHandleProfile.enter();
+            createNativeHandleNode.execute(wrapper);
+        }
     }
 
     @ExportMessage
     protected static long asPointer(ValueWrapper wrapper,
             @Cached KeepAliveNode keepAliveNode,
-            @Cached AllocateHandleNode createNativeHandleNode,
-            @Cached BranchProfile createHandleProfile,
-            @Cached BranchProfile taggedObjBranchProfile) {
+            @Cached @Exclusive BranchProfile taggedObjectProfile) {
         long handle = wrapper.getHandle();
-
-        if (handle == ValueWrapperManager.UNSET_HANDLE) {
-            createHandleProfile.enter();
-            handle = createNativeHandleNode.execute(wrapper);
-        }
+        assert handle != ValueWrapperManager.UNSET_HANDLE;
 
         if (ValueWrapperManager.isTaggedObject(handle)) {
-            taggedObjBranchProfile.enter();
+            taggedObjectProfile.enter();
             keepAliveNode.execute(wrapper);
         }
 

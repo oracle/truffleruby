@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.cext.UnwrapNode;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
 import org.truffleruby.cext.ValueWrapper;
@@ -97,8 +98,12 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         protected static void write(NativeArrayStorage storage, int index, Object value,
                 @CachedLibrary(limit = "1") InteropLibrary wrappers,
                 @Cached WrapNode wrapNode,
+                @Cached("createBinaryProfile()") ConditionProfile isPointerProfile,
                 @Cached BranchProfile errorProfile) {
             final ValueWrapper wrapper = wrapNode.execute(value);
+            if (!isPointerProfile.profile(wrappers.isPointer(wrapper))) {
+                wrappers.toNative(wrapper);
+            }
             try {
                 assert wrappers.isPointer(wrapper);
                 storage.writeElement(index, wrappers.asPointer(wrapper));

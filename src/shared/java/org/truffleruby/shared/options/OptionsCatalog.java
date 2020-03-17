@@ -127,6 +127,7 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> PACK_UNROLL_LIMIT_KEY = new OptionKey<>(4);
     public static final OptionKey<Integer> PACK_RECOVER_LOOP_MIN_KEY = new OptionKey<>(32);
     public static final OptionKey<Integer> CEXTS_MARKING_CACHE_KEY = new OptionKey<>(100);
+    public static final OptionKey<Boolean> CEXTS_TONATIVE_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Integer> ROPE_DEPTH_THRESHOLD_KEY = new OptionKey<>(128);
     public static final OptionKey<Integer> GLOBAL_VARIABLE_MAX_INVALIDATIONS_KEY = new OptionKey<>(1);
     public static final OptionKey<Boolean> CLONE_DEFAULT_KEY = new OptionKey<>(true);
@@ -896,6 +897,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor CEXTS_TONATIVE_STATS = OptionDescriptor
+            .newBuilder(CEXTS_TONATIVE_STATS_KEY, "ruby.cexts-tonative-stats")
+            .help("Track the number of conversions of VALUEs to native and print the stats at application exit")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor ROPE_DEPTH_THRESHOLD = OptionDescriptor
             .newBuilder(ROPE_DEPTH_THRESHOLD_KEY, "ruby.rope-depth-threshold")
             .help("Threshold value at which ropes will be rebalanced (indirectly controls flattening as well)")
@@ -1245,6 +1253,8 @@ public class OptionsCatalog {
                 return PACK_RECOVER_LOOP_MIN;
             case "ruby.cexts-marking-cache":
                 return CEXTS_MARKING_CACHE;
+            case "ruby.cexts-tonative-stats":
+                return CEXTS_TONATIVE_STATS;
             case "ruby.rope-depth-threshold":
                 return ROPE_DEPTH_THRESHOLD;
             case "ruby.global-variable-max-invalidations":
@@ -1397,6 +1407,7 @@ public class OptionsCatalog {
             PACK_UNROLL_LIMIT,
             PACK_RECOVER_LOOP_MIN,
             CEXTS_MARKING_CACHE,
+            CEXTS_TONATIVE_STATS,
             ROPE_DEPTH_THRESHOLD,
             GLOBAL_VARIABLE_MAX_INVALIDATIONS,
             CLONE_DEFAULT,

@@ -19,9 +19,9 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.UnwrapNodeGen.NativeToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.ToWrapperNodeGen;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -172,25 +172,12 @@ public abstract class UnwrapNode extends RubyBaseNode {
             return nativeToWrapperNode.execute(value);
         }
 
-        @Specialization(
-                guards = { "!isWrapper(value)", "values.isPointer(value)" },
-                limit = "getCacheLimit()",
-                rewriteOn = UnsupportedMessageException.class)
-        protected ValueWrapper pointerToWrapper(Object value,
-                @CachedLibrary("value") InteropLibrary values,
-                @Cached NativeToWrapperNode nativeToWrapperNode) throws UnsupportedMessageException {
-            return nativeToWrapperNode.execute(values.asPointer(value));
-        }
-
-        @Specialization(
-                guards = { "!isWrapper(value)", "values.isPointer(value)" },
-                limit = "getCacheLimit()",
-                replaces = "pointerToWrapper")
+        @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
         protected ValueWrapper genericToWrapper(Object value,
                 @CachedLibrary("value") InteropLibrary values,
                 @Cached NativeToWrapperNode nativeToWrapperNode,
                 @Cached BranchProfile unsupportedProfile) {
-            long handle = 0;
+            long handle;
             try {
                 handle = values.asPointer(value);
             } catch (UnsupportedMessageException e) {
@@ -227,27 +214,13 @@ public abstract class UnwrapNode extends RubyBaseNode {
         return unwrapNode.execute(value);
     }
 
-    @Specialization(
-            guards = { "!isWrapper(value)", "values.isPointer(value)" },
-            limit = "getCacheLimit()",
-            rewriteOn = UnsupportedMessageException.class)
-    protected Object unwrapPointer(Object value,
-            @CachedLibrary("value") InteropLibrary values,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached UnwrapNativeNode unwrapNativeNode) throws UnsupportedMessageException {
-        return unwrapNativeNode.execute(values.asPointer(value));
-    }
-
-    @Specialization(
-            guards = { "!isWrapper(value)", "values.isPointer(value)" },
-            limit = "getCacheLimit()",
-            replaces = "unwrapPointer")
+    @Specialization(guards = { "!isWrapper(value)", "values.isPointer(value)" }, limit = "getCacheLimit()")
     protected Object unwrapGeneric(Object value,
             @CachedLibrary("value") InteropLibrary values,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached UnwrapNativeNode unwrapNativeNode,
             @Cached BranchProfile unsupportedProfile) {
-        long handle = 0;
+        long handle;
         try {
             handle = values.asPointer(value);
         } catch (UnsupportedMessageException e) {

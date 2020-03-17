@@ -1450,8 +1450,8 @@ public class CExtNodes {
                 getContext().getMarkingService().addMark(wrappedValue);
             }
             // We do nothing here if the handle cannot be resolved. If we are marking an object
-            // which is only reachable via weak refs then the handles of objects it is iteself
-            // marking may have already been removed from the handle map. }
+            // which is only reachable via weak refs then the handles of objects it is itself
+            // marking may have already been removed from the handle map.
             return nil;
         }
 
@@ -1538,46 +1538,6 @@ public class CExtNodes {
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().pop();
             return nil;
-        }
-    }
-
-    @CoreMethod(names = "RB_NIL_P", onSingleton = true, required = 1)
-    @ImportStatic({ ValueWrapperManager.class })
-    public abstract static class NilPNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean nilPWrapper(ValueWrapper value) {
-            return value.getObject() == nil;
-        }
-
-        @Specialization(
-                guards = { "!isWrapper(value)", "values.isPointer(value)" },
-                limit = "getCacheLimit()",
-                rewriteOn = UnsupportedMessageException.class)
-        protected boolean nilPPointer(Object value,
-                @CachedLibrary("value") InteropLibrary values) throws UnsupportedMessageException {
-            return values.asPointer(value) == ValueWrapperManager.NIL_HANDLE;
-        }
-
-        @Specialization(
-                guards = { "!isWrapper(value)", "values.isPointer(value)" },
-                limit = "getCacheLimit()",
-                replaces = "nilPPointer")
-        protected boolean nilPGeneric(Object value,
-                @CachedLibrary("value") InteropLibrary values,
-                @Cached BranchProfile unsupportedProfile) {
-            long handle = 0;
-            try {
-                handle = values.asPointer(value);
-            } catch (UnsupportedMessageException e) {
-                unsupportedProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this, e));
-            }
-            return handle == ValueWrapperManager.NIL_HANDLE;
-        }
-
-        protected int getCacheLimit() {
-            return getContext().getOptions().DISPATCH_CACHE;
         }
     }
 

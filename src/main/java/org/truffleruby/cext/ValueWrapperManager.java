@@ -13,6 +13,7 @@ import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -156,6 +157,16 @@ public class ValueWrapperManager {
             this.start = start;
             this.next = next;
         }
+    }
+
+    private final AtomicLong counter = new AtomicLong();
+
+    protected void recordHandleAllocation() {
+        counter.incrementAndGet();
+    }
+
+    public long totalHandleAllocations() {
+        return counter.get();
     }
 
     private static final int BLOCK_BITS = 15;
@@ -305,6 +316,10 @@ public class ValueWrapperManager {
                 @Cached GetHandleBlockHolderNode getBlockHolderNode) {
             HandleThreadData threadData = getBlockHolderNode.execute(wrapper);
             HandleBlock block = threadData.holder.handleBlock;
+            if (context.getOptions().CEXTS_TONATIVE_STATS) {
+                context.getValueWrapperManager().recordHandleAllocation();
+            }
+
             if (block == null || block.isFull()) {
                 if (block != null) {
                     context.getMarkingService().queueForMarking(block);

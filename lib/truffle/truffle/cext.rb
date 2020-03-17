@@ -522,10 +522,6 @@ module Truffle::CExt
     value.is_a?(Float)
   end
 
-  def RTEST(value)
-    !nil.equal?(value) && !false.equal?(value)
-  end
-
   def rb_require(feature)
     require feature
   end
