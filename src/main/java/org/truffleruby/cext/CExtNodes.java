@@ -1450,8 +1450,8 @@ public class CExtNodes {
                 getContext().getMarkingService().addMark(wrappedValue);
             }
             // We do nothing here if the handle cannot be resolved. If we are marking an object
-            // which is only reachable via weak refs then the handles of objects it is iteself
-            // marking may have already been removed from the handle map. }
+            // which is only reachable via weak refs then the handles of objects it is itself
+            // marking may have already been removed from the handle map.
             return nil;
         }
 
