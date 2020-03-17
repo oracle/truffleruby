@@ -28,7 +28,20 @@ function test_server {
 
   jobs -l
   kill $serverpid
-  wait $serverpid || true
+
+  status=0
+  wait $serverpid || status=$?
+  if [[ "$status" == "134" ]]; then
+    echo "Server aborted! $status"
+    exit 1
+  elif [[ "$status" == "143" ]]; then
+    echo "Server terminated with $status (SIGTERM)"
+  elif [[ "$status" == "0" ]]; then
+    echo "Server terminated with $status"
+  else
+    echo "Unknown server exit status: $status"
+    exit 1
+  fi
 
   if [[ $response != *"Hello"* ]]
   then
