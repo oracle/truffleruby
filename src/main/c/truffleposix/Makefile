@@ -13,7 +13,7 @@ else
 CC := cc
 endif
 
-CFLAGS := -Wall -Werror -fPIC -std=c99
+CFLAGS := -Wall -Werror -fPIC -std=c99 -g
 LDFLAGS := -m64
 
 ifeq ($(OS),Darwin)
