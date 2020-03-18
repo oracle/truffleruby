@@ -109,30 +109,24 @@ class MSpecScript
   ]
 
   set :xtags, (get(:xtags) || [])
-  tags = get(:xtags)
+  excludes = get(:xtags)
 
   if defined?(::TruffleRuby)
     if TruffleRuby.native?
-      # exclude specs tagged with 'aot'
-      tags << 'aot'
+      excludes << 'aot'
     else
-      # exclude specs tagged with 'jvm'
-      tags << 'jvm'
+      excludes << 'jvm'
     end
   end
 
   if windows?
-    # exclude specs tagged with 'windows'
-    tags << 'windows'
+    excludes << 'windows'
   elsif linux?
-    # exclude specs tagged with 'linux'
-    tags << 'linux'
+    excludes << 'linux'
   elsif darwin?
-    # exclude specs tagged with 'darwin'
-    tags << 'darwin'
+    excludes << 'darwin'
   elsif solaris?
-    # exclude specs tagged with 'solaris'
-    tags << 'solaris'
+    excludes << 'solaris'
   end
 
   # All specs, excluding specs needing C-extensions support.
