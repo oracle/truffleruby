@@ -92,9 +92,9 @@ class MSpecScript
     "spec/truffle/capi"
   ]
 
-  set :next, [
-    "spec/ruby/core/file/absolute_path_spec.rb",
-    "spec/ruby/core/matchdata/allocate_spec.rb",
+  set :next, %w[
+    spec/ruby/core/file/absolute_path_spec.rb
+    spec/ruby/core/matchdata/allocate_spec.rb
   ]
 
   set :tags_patterns, [
