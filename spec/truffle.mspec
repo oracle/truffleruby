@@ -32,6 +32,8 @@ class MSpecScript
     end
   end
 
+  set :prefix, 'spec/ruby'
+
   # Specs that need Sulong and should be tested in the Sulong gate
   library_cext_specs = %w[
     spec/ruby/library/etc
