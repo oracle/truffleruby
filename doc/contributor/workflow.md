@@ -202,7 +202,7 @@ $ PRETEND_RUBY_VERSION=2.7.0 jt test spec/ruby/core/file/absolute_path_spec.rb
 This also works for `jt tag`/`jt untag`.
 
 When working on a feature from the next version of Ruby, add the spec file in
-the corresponding file list (`:next`) in `spec/truffle.mspec` so that the
+the corresponding file list (`:next`) in `spec/truffleruby.mspec` so that the
 specs are run in CI too.
 
 ## How to fix a failing MRI test
