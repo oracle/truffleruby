@@ -195,7 +195,7 @@ module Truffle
         if env and !env.empty?
           array = (@options[:env] ||= [])
 
-          env.each do |key, value|
+          env.each_pair do |key, value|
             array << [convert_env_key(key), convert_env_value(value)]
           end
         end
@@ -353,7 +353,7 @@ module Truffle
       end
 
       def convert_env_value(value)
-        return if value.nil?
+        return nil if value.nil?
         Truffle::Type.check_null_safe(StringValue(value))
       end
 
@@ -370,7 +370,13 @@ module Truffle
       def spawn_setup(alter_process)
         env = @options.delete(:unsetenv_others) ? {} : ENV.to_hash
         if add_to_env = @options.delete(:env)
-          env.merge! Hash[add_to_env]
+          add_to_env.each do |key, value|
+            if value
+              env[key] = value
+            else
+              env.delete(key)
+            end
+          end
         end
 
         @env_array = env.map { |k, v| "#{k}=#{v}" }

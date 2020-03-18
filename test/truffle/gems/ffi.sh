@@ -7,7 +7,7 @@ gem_test_pack=$(jt gem-test-pack)
 ruby_home="$(jt ruby -e 'puts Truffle::Boot.ruby_home')"
 export PATH="$ruby_home/bin:$PATH"
 
-cd spec/ffi
+cd spec/ffi || exit 1
 
 # Use ruby -S to avoid the nested shebang problem on macOS when using GraalVM Bash launchers
 # Same gems as msgpack

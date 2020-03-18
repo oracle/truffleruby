@@ -66,6 +66,7 @@ Bug fixes:
 * Define the `_DARWIN_C_SOURCE` macro in extension makefiles (#1592).
 * Change handling of var args in `rb_rescue2` to handle usage in C extensions (#1823).
 * Fixed incorrect `Encoding::CompatibilityError` raised for some interpolated Regexps (#1967).
+* Actually unset environment variables with a `nil` value for `Process.spawn` instead of setting them to an empty String.
 
 Compatibility:
 

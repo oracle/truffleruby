@@ -2,7 +2,9 @@
 
 source test/truffle/common.sh.inc
 
-jt ruby $(jt gem-test-pack)/gems/gems/asciidoctor-1.5.4/bin/asciidoctor --attribute last-update-label!= test/truffle/gems/asciidoctor/userguide.adoc
+gem_test_pack=$(jt gem-test-pack)
+
+jt ruby $gem_test_pack/gems/gems/asciidoctor-1.5.4/bin/asciidoctor --attribute last-update-label!= test/truffle/gems/asciidoctor/userguide.adoc
 
 if ! cmp --silent test/truffle/gems/asciidoctor/userguide.html test/truffle/gems/asciidoctor/userguide-expected.html
 then
