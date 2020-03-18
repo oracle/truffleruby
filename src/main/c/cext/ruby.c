@@ -1299,10 +1299,6 @@ void rb_tr_add_flags(VALUE value, int flags) {
   }
 }
 
-bool rb_tr_hidden_p(VALUE value) {
-  return false;
-}
-
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));

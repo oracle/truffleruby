@@ -30,8 +30,6 @@ VALUE rb_tr_object_hidden_var_get(VALUE object, const char *name);
 int rb_tr_obj_equal(VALUE first, VALUE second);
 int rb_tr_flags(VALUE value);
 void rb_tr_add_flags(VALUE value, int flags);
-bool rb_tr_hidden_p(VALUE value);
-
 
 // Managed Structs
 
@@ -82,7 +80,7 @@ if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warn?"))) { \
 if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
   RUBY_INVOKE(rb_mKernel, "warn", rb_sprintf(FORMAT, ##__VA_ARGS__)); \
 } \
-    })
+})
 
 #define rb_tr_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_tr_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
