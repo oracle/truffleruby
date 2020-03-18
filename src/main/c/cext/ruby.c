@@ -2958,10 +2958,6 @@ void rb_tr_log_warning(const char *message) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_log_warning", rb_str_new_cstr(message));
 }
 
-long rb_tr_obj_id(VALUE object) {
-  return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_obj_id", object));
-}
-
 VALUE rb_java_class_of(VALUE obj) {
   return RUBY_CEXT_INVOKE("rb_java_class_of", obj);
 }
