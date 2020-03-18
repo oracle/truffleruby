@@ -52,23 +52,11 @@ class MSpecScript
     spec/ruby/security/cve_2019_8325_spec.rb
   ]
 
-  set :command_line, [
-    "spec/ruby/command_line"
-  ]
-
   set :security, [
     "spec/ruby/security",
 
     # Tested separately as they need Sulong
     *library_cext_specs.map { |path| "^#{path}" }
-  ]
-
-  set :language, [
-    "spec/ruby/language"
-  ]
-
-  set :core, [
-    "spec/ruby/core"
   ]
 
   set :library, [
@@ -109,8 +97,6 @@ class MSpecScript
     "spec/ruby/core/matchdata/allocate_spec.rb",
   ]
 
-  set :backtrace_filter, /mspec\//
-
   set :tags_patterns, [
     [%r(^.*/command_line/),             'spec/tags/command_line/'],
     [%r(^.*/security/),                 'spec/tags/security/'],
@@ -149,6 +135,7 @@ class MSpecScript
     tags << 'solaris'
   end
 
+  # All specs, excluding specs needing C-extensions support.
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
 
   # All specs, including specs needing C-extensions support.
