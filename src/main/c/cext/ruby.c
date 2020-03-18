@@ -1845,18 +1845,6 @@ void rb_bug(const char *fmt, ...) {
   rb_tr_error("rb_bug not yet implemented");
 }
 
-int rb_tr_to_int_const(VALUE value) {
-  if (value == Qfalse) {
-    return Qfalse_int_const;
-  } else if (value == Qtrue) {
-    return Qtrue_int_const;
-  } else if (value == Qnil) {
-    return Qnil_int_const;
-  } else {
-    return 8;
-  }
-}
-
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return RUBY_CEXT_INVOKE("rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
@@ -2357,14 +2345,14 @@ VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
  */
 int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
   if (!rb_obj_is_kind_of(range, rb_cRange)) {
-    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("begin")))) return Qfalse_int_const;
-    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("end")))) return Qfalse_int_const;
+    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("begin")))) return Qfalse;
+    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("end")))) return Qfalse;
   }
 
   *begp = RUBY_INVOKE(range, "begin");
   *endp = RUBY_INVOKE(range, "end");
   *exclp = (int) RTEST(RUBY_INVOKE(range, "exclude_end?"));
-  return Qtrue_int_const;
+  return Qtrue;
 }
 
 VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {

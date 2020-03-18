@@ -9,12 +9,6 @@
 # Tested with pg version 0.21.0
 class PgPatches
 
-  PG_BINARY_ENCODER_PATCH = <<-EOF
-    switch(rb_tr_to_int_const(value)){
-        case Qtrue_int_const : mybool = 1; break;
-        case Qfalse_int_const : mybool = 0; break;
-EOF
-
   PG_TEXT_DECODER_FREE_OLD = <<-EOF
 static VALUE
 pg_text_dec_bytea(t_pg_coder *conv, const char *val, int len, int tuple, int field, int enc_idx)
@@ -33,12 +27,6 @@ EOF
   PATCHES = {
     gem: 'pg',
     patches: {
-      'pg_binary_encoder.c' => [
-        {
-          match: /[[:blank:]]*?switch\s*?\(.*?Qfalse\s*?:.*?break;/m,
-          replacement: PG_BINARY_ENCODER_PATCH
-        }
-      ],
       'pg_result.c' => [
         {
           match: 'xmalloc(',

@@ -66,11 +66,6 @@ bool rb_tr_obj_taintable_p(VALUE object);
 bool rb_tr_obj_tainted_p(VALUE object);
 void rb_tr_obj_infect(VALUE a, VALUE b);
 
-#define Qfalse_int_const 0
-#define Qtrue_int_const 2
-#define Qnil_int_const 4
-int rb_tr_to_int_const(VALUE value);
-
 int rb_tr_readable(int mode);
 int rb_tr_writable(int mode);
 
