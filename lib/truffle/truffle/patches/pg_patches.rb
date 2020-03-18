@@ -55,12 +55,6 @@ EOF
           replacement: 'if(TYPE(*intermediate) == T_FIXNUM && NUM2LL(*intermediate) != -(NUM2LL(*intermediate)))'
         },
       ],
-      'pg_type_map_by_class.c' => [
-        {
-          match: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[(klass >> 8) & 0xff] )',
-          replacement: '#define CACHE_LOOKUP(this, klass) ( &this->cache_row[(unsigned long)(rb_tr_obj_id(klass)) & 0xff] )'
-        },
-      ],
     }
   }
 end
