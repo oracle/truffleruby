@@ -65,6 +65,7 @@ Bug fixes:
 * Fixed feature lookup order to check every `$LOAD_PATH` path entry for `.rb`, then every entry for native extension when require called with no extension.
 * Define the `_DARWIN_C_SOURCE` macro in extension makefiles (#1592).
 * Change handling of var args in `rb_rescue2` to handle usage in C extensions (#1823).
+* Fixed incorrect `Encoding::CompatibilityError` raised for some interpolated Regexps (#1967).
 
 Compatibility:
 

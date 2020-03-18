@@ -9,8 +9,12 @@
  */
 package org.truffleruby.core.regexp;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
+import org.joni.Regex;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
@@ -19,11 +23,10 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.parser.BodyTranslator;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -100,19 +103,27 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
         @TruffleBoundary
         protected DynamicObject createRegexp(Rope[] strings) {
+            final RegexpOptions options = (RegexpOptions) this.options.clone();
             final RopeBuilder preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
 
-            final DynamicObject regexp = RegexpNodes.createRubyRegexp(
-                    getContext(),
-                    this,
-                    coreLibrary().regexpFactory,
-                    RopeOperations.ropeFromRopeBuilder(preprocessed),
-                    options);
+            final Regex regexp1 = TruffleRegexpNodes
+                    .compile(getContext(), RopeOperations.ropeFromRopeBuilder(preprocessed), options, this);
+
+            // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
+            // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
+            // constructing the final regexp.
+            final DynamicObject regexp = Layouts.REGEXP
+                    .createRegexp(
+                            coreLibrary().regexpFactory,
+                            regexp1,
+                            (Rope) regexp1.getUserObject(),
+                            options,
+                            new EncodingCache());
 
             if (options.isEncodingNone()) {
                 final Rope source = Layouts.REGEXP.getSource(regexp);
 
-                if (!BodyTranslator.all7Bit(preprocessed.getBytes())) {
+                if (!all7Bit(preprocessed.getBytes())) {
                     Layouts.REGEXP.setSource(regexp, RopeOperations.withEncoding(source, ASCIIEncoding.INSTANCE));
                 } else {
                     Layouts.REGEXP.setSource(regexp, RopeOperations.withEncoding(source, USASCIIEncoding.INSTANCE));
@@ -120,6 +131,39 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             }
 
             return regexp;
+        }
+
+        private static boolean all7Bit(byte[] bytes) {
+            for (int n = 0; n < bytes.length; n++) {
+                if (bytes[n] < 0) {
+                    return false;
+                }
+
+                if (bytes[n] == '\\' && n + 1 < bytes.length && bytes[n + 1] == 'x') {
+                    final String num;
+                    final boolean isSecondHex = n + 3 < bytes.length && Character.digit(bytes[n + 3], 16) != -1;
+                    if (isSecondHex) {
+                        num = new String(Arrays.copyOfRange(bytes, n + 2, n + 4), StandardCharsets.UTF_8);
+                    } else {
+                        num = new String(Arrays.copyOfRange(bytes, n + 2, n + 3), StandardCharsets.UTF_8);
+                    }
+
+                    int b = Integer.parseInt(num, 16);
+
+                    if (b > 0x7F) {
+                        return false;
+                    }
+
+                    if (isSecondHex) {
+                        n += 3;
+                    } else {
+                        n += 2;
+                    }
+
+                }
+            }
+
+            return true;
         }
     }
 }

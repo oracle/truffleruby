@@ -29,32 +29,25 @@
 package org.truffleruby.core.string;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.EUCJPEncoding;
+import org.jcodings.specific.UTF8Encoding;
+import org.jcodings.specific.Windows_31JEncoding;
 
 public enum KCode {
 
-    NONE("NONE", "ASCII"),
-    UTF8("UTF8", "NonStrictUTF8"),
-    SJIS("SJIS", "NonStrictSJIS"),
-    EUC("EUC", "NonStrictEUCJP");
+    NONE(ASCIIEncoding.INSTANCE),
+    UTF8(UTF8Encoding.INSTANCE),
+    SJIS(Windows_31JEncoding.INSTANCE),
+    EUC(EUCJPEncoding.INSTANCE);
 
-    private final String kcode;
-    private final String encodingName;
+    private final Encoding encoding;
 
-    private volatile Encoding encoding;
-
-    private KCode(String kcode, String encodingName) {
-        this.kcode = kcode;
-        this.encodingName = encodingName;
-    }
-
-    public String getKCode() {
-        return kcode;
+    private KCode(Encoding encoding) {
+        this.encoding = encoding;
     }
 
     public Encoding getEncoding() {
-        if (encoding == null) {
-            encoding = Encoding.load(encodingName);
-        }
         return encoding;
     }
 

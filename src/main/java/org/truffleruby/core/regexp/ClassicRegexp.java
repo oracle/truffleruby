@@ -55,7 +55,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
-import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.language.control.RaiseException;
@@ -65,29 +64,16 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class ClassicRegexp implements ReOptions {
     private final RubyContext context;
-    private Regex pattern;
-    private Rope str = RopeConstants.EMPTY_UTF8_ROPE;
-    private RegexpOptions options;
+    private final Regex pattern;
+    private final Rope str;
+    private final RegexpOptions options;
 
     public void setLiteral() {
         options.setLiteral(true);
     }
 
-    public boolean isLiteral() {
-        return options.isLiteral();
-    }
-
-    public void setEncodingNone() {
-        options.setEncodingNone(true);
-    }
-
     public Encoding getEncoding() {
         return pattern.getEncoding();
-    }
-
-    public void setEncoding(Encoding encoding) {
-        // FIXME: Which encoding should be changed here?
-        // FIXME: transcode?
     }
 
     private static Regex makeRegexp(RubyContext context, RopeBuilder bytes, RegexpOptions options, Encoding enc) {
@@ -105,7 +91,8 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding, RegexpOptions options) {
+    private static Regex getRegexpFromCache(RubyContext context, RopeBuilder bytes, Encoding encoding,
+            RegexpOptions options) {
         if (context == null) {
             final Regex regex = makeRegexp(context, bytes, options, encoding);
             regex.setUserObject(bytes);
@@ -130,38 +117,21 @@ public class ClassicRegexp implements ReOptions {
         }
     }
 
-    /** default constructor */
-    ClassicRegexp(RubyContext context) {
+    public ClassicRegexp(RubyContext context, Rope str, RegexpOptions originalOptions) {
         this.context = context;
-        this.options = new RegexpOptions();
-    }
+        this.options = (RegexpOptions) originalOptions.clone();
 
-    private ClassicRegexp(RubyContext context, Rope str, RegexpOptions options) {
-        this(context);
-        str.getClass();
+        Encoding enc = str.getEncoding();
+        if (enc.isDummy()) {
+            throw new UnsupportedOperationException("can't make regexp with dummy encoding");
+        }
 
-        regexpInitialize(str, str.getEncoding(), options);
-    }
+        Encoding[] fixedEnc = new Encoding[]{ null };
+        RopeBuilder unescaped = preprocess(context, str, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        enc = computeRegexpEncoding(options, enc, fixedEnc, context);
 
-    // used only by the compiler/interpreter (will set the literal flag)
-    public static ClassicRegexp newRegexp(RubyContext runtime, Rope pattern, int options) {
-        return newRegexp(runtime, pattern, RegexpOptions.fromEmbeddedOptions(options));
-    }
-
-    // used only by the compiler/interpreter (will set the literal flag)
-    public static ClassicRegexp newRegexp(RubyContext runtime, Rope pattern, RegexpOptions options) {
-        //try {
-        return new ClassicRegexp(runtime, pattern, (RegexpOptions) options.clone());
-        //} catch (RaiseException re) {
-        //    throw new RaiseException(runtime.getCoreExceptions().syntaxError(re.getMessage(), null));
-        //}
-    }
-
-    /** throws RaiseException on error so parser can pick this up and give proper line and line number error as opposed
-     * to any non-literal regexp creation which may raise a syntax error but will not have this extra source info in the
-     * error message */
-    public static ClassicRegexp newRegexpParser(RubyContext runtime, Rope pattern, RegexpOptions options) {
-        return new ClassicRegexp(runtime, pattern, (RegexpOptions) options.clone());
+        this.pattern = getRegexpFromCache(context, unescaped, enc, options);
+        this.str = str;
     }
 
     @TruffleBoundary
@@ -610,13 +580,14 @@ public class ClassicRegexp implements ReOptions {
     public static RopeBuilder preprocessDRegexp(RubyContext context, Rope[] strings, RegexpOptions options) {
         assert strings.length > 0;
 
-        RopeBuilder string = RopeOperations.getRopeBuilderReadOnly(strings[0]);
+        RopeBuilder string = RopeOperations.toRopeBuilderCopy(strings[0]);
+
         Encoding regexpEnc = processDRegexpElement(context, options, null, strings[0]);
 
         for (int i = 1; i < strings.length; i++) {
             Rope str = strings[i];
             regexpEnc = processDRegexpElement(context, options, regexpEnc, str);
-            string.append(str.getBytes());
+            string.append(str);
         }
 
         if (regexpEnc != null) {
@@ -660,9 +631,9 @@ public class ClassicRegexp implements ReOptions {
         return regexpEnc;
     }
 
-    /** rb_reg_quote */
     private static final int QUOTED_V = 11;
 
+    /** rb_reg_quote */
     @TruffleBoundary
     public static Rope quote19(Rope bs) {
         final boolean asciiOnly = bs.isAsciiOnly();
@@ -798,30 +769,15 @@ public class ClassicRegexp implements ReOptions {
         return RopeOperations.ropeFromRopeBuilder(result);
     }
 
-    // rb_reg_initialize
-    @TruffleBoundary
-    public ClassicRegexp regexpInitialize(Rope bytes, Encoding enc, RegexpOptions options) {
-        this.options = options;
-
-        //checkFrozen();
-        // FIXME: Something unsets this bit, but we aren't...be more permissive until we figure this out
-        //if (isLiteral()) throw runtime.newSecurityError("can't modify literal regexp");
-        if (pattern != null) {
-            throw new RaiseException(
-                    context,
-                    context.getCoreExceptions().typeError("already initialized regexp", null));
-        }
-        if (enc.isDummy()) {
-            throw new UnsupportedOperationException(); // RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "can't make regexp with dummy encoding");
-        }
-
-        Encoding[] fixedEnc = new Encoding[]{ null };
-        RopeBuilder unescaped = preprocess(context, bytes, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+    /** WARNING: This mutates options, so the caller should make sure it's a copy */
+    static Encoding computeRegexpEncoding(RegexpOptions options, Encoding enc, Encoding[] fixedEnc,
+            RubyContext context) {
         if (fixedEnc[0] != null) {
             if ((fixedEnc[0] != enc && options.isFixed()) ||
                     (fixedEnc[0] != ASCIIEncoding.INSTANCE && options.isEncodingNone())) {
-                throw new UnsupportedOperationException();
-                //RegexpSupport.raiseRegexpError19(runtime, bytes, enc, options, "incompatible character encoding");
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().regexpError("incompatible character encoding", null));
             }
             if (fixedEnc[0] != ASCIIEncoding.INSTANCE) {
                 options.setFixed(true);
@@ -834,14 +790,7 @@ public class ClassicRegexp implements ReOptions {
         if (fixedEnc[0] != null) {
             options.setFixed(true);
         }
-        if (options.isEncodingNone()) {
-            setEncodingNone();
-        }
-
-        pattern = getRegexpFromCache(context, unescaped, enc, options);
-        bytes.getClass();
-        str = bytes;
-        return this;
+        return enc;
     }
 
     public static void appendOptions(RopeBuilder to, RegexpOptions options) {
