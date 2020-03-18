@@ -34,8 +34,6 @@ EOF
           replacement: 'static VALUE to_array(VALUE self)'
         },
       ],
-      'xml_io.c' => [
-      ],
       'xslt_stylesheet.c' => [
         { # It is not currently possible to pass var args from native
           # functions to sulong, so we work round the issue here.
