@@ -49,8 +49,7 @@ We usually think of the specs for the C extension API as being separate
 
 Specs are in `spec/`.
 
-Run specs with `jt test specs`, or
-`ruby spec/mspec/bin/mspec --config spec/truffle.mspec`.
+Run specs with `jt test specs`, or `ruby spec/mspec/bin/mspec`.
 
 ### MRI tests
 

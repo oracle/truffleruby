@@ -1,5 +1,8 @@
 require 'rbconfig'
 
+# Inherit from the default configuration
+load "#{__dir__}/ruby/default.mspec"
+
 # Don't run ruby/spec as root on TruffleRuby
 raise 'ruby/spec is not designed to be run as root on TruffleRuby' if Process.uid == 0
 
@@ -32,6 +35,8 @@ class MSpecScript
     end
   end
 
+  set :prefix, 'spec/ruby'
+
   # Specs that need Sulong and should be tested in the Sulong gate
   library_cext_specs = %w[
     spec/ruby/library/etc
@@ -47,23 +52,11 @@ class MSpecScript
     spec/ruby/security/cve_2019_8325_spec.rb
   ]
 
-  set :command_line, [
-    "spec/ruby/command_line"
-  ]
-
   set :security, [
     "spec/ruby/security",
 
     # Tested separately as they need Sulong
     *library_cext_specs.map { |path| "^#{path}" }
-  ]
-
-  set :language, [
-    "spec/ruby/language"
-  ]
-
-  set :core, [
-    "spec/ruby/core"
   ]
 
   set :library, [
@@ -99,12 +92,10 @@ class MSpecScript
     "spec/truffle/capi"
   ]
 
-  set :next, [
-    "spec/ruby/core/file/absolute_path_spec.rb",
-    "spec/ruby/core/matchdata/allocate_spec.rb",
+  set :next, %w[
+    spec/ruby/core/file/absolute_path_spec.rb
+    spec/ruby/core/matchdata/allocate_spec.rb
   ]
-
-  set :backtrace_filter, /mspec\//
 
   set :tags_patterns, [
     [%r(^.*/command_line/),             'spec/tags/command_line/'],
@@ -118,32 +109,27 @@ class MSpecScript
   ]
 
   set :xtags, (get(:xtags) || [])
-  tags = get(:xtags)
+  excludes = get(:xtags)
 
   if defined?(::TruffleRuby)
     if TruffleRuby.native?
-      # exclude specs tagged with 'aot'
-      tags << 'aot'
+      excludes << 'aot'
     else
-      # exclude specs tagged with 'jvm'
-      tags << 'jvm'
+      excludes << 'jvm'
     end
   end
 
   if windows?
-    # exclude specs tagged with 'windows'
-    tags << 'windows'
+    excludes << 'windows'
   elsif linux?
-    # exclude specs tagged with 'linux'
-    tags << 'linux'
+    excludes << 'linux'
   elsif darwin?
-    # exclude specs tagged with 'darwin'
-    tags << 'darwin'
+    excludes << 'darwin'
   elsif solaris?
-    # exclude specs tagged with 'solaris'
-    tags << 'solaris'
+    excludes << 'solaris'
   end
 
+  # All specs, excluding specs needing C-extensions support.
   set :files, get(:command_line) + get(:language) + get(:core) + get(:library) + get(:truffle) + get(:security)
 
   # All specs, including specs needing C-extensions support.

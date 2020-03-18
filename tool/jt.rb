@@ -522,7 +522,7 @@ module Utilities
   end
 
   def run_mspec(env_vars, command = 'run', *args)
-    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffle.mspec']
+    mspec_args = ['spec/mspec/bin/mspec', command, '--config', 'spec/truffleruby.mspec']
     Dir.chdir(TRUFFLERUBY_DIR) do
       ruby env_vars, *mspec_args, '-t', ruby_launcher, *args
     end
