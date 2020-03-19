@@ -50,7 +50,6 @@ import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.interop.ToJavaStringNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.TaintNode;
@@ -70,7 +69,7 @@ public abstract class ReadlineHistoryNodes {
     @CoreMethod(names = { "push", "<<" }, rest = true)
     public abstract static class PushNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNodeGen.create();
+        @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();
 
         @Specialization
         protected DynamicObject push(VirtualFrame frame, DynamicObject history, Object... lines) {
@@ -223,7 +222,7 @@ public abstract class ReadlineHistoryNodes {
 
         @CreateCast("line")
         protected RubyNode coerceLineToJavaString(RubyNode line) {
-            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(line);
+            return ToJavaStringNode.create(line);
         }
 
         @TruffleBoundary

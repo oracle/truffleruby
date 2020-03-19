@@ -22,7 +22,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.cast.NameToJavaStringNodeGen;
+import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.Nil;
@@ -164,7 +164,7 @@ public abstract class BindingNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return NameToJavaStringNode.create(name);
         }
 
         @Specialization(
@@ -208,7 +208,7 @@ public abstract class BindingNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return NameToJavaStringNode.create(name);
         }
 
         @Specialization(guards = "!isHiddenVariable(name)")
@@ -248,7 +248,7 @@ public abstract class BindingNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return NameToJavaStringNode.create(name);
         }
 
         @Specialization(

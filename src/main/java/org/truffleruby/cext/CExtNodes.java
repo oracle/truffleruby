@@ -53,7 +53,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
-import org.truffleruby.interop.ToJavaStringNodeGen;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -665,7 +665,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return ToJavaStringNode.create(name);
         }
 
         @Specialization
@@ -685,7 +685,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return ToJavaStringNode.create(name);
         }
 
         @Specialization
@@ -703,7 +703,7 @@ public class CExtNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return ToJavaStringNode.create(name);
         }
 
         @Specialization

@@ -16,10 +16,9 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -37,20 +36,15 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  * name. */
 @ImportStatic({ StringCachingGuards.class, StringOperations.class })
 @GenerateUncached
-public abstract class NameToJavaStringNode extends RubyBaseNode {
-
-    // FIXME (pitr 12-Jun-2019): find a different way
-    @NodeChild(value = "value", type = RubyNode.class)
-    public static abstract class RubyNodeWrapperNode extends RubyContextSourceNode {
-        @Specialization
-        protected Object call(Object value,
-                @Cached NameToJavaStringNode toJavaString) {
-            return toJavaString.executeToJavaString(value);
-        }
-    }
+@NodeChild(value = "value", type = RubyNode.class)
+public abstract class NameToJavaStringNode extends RubySourceNode {
 
     public static NameToJavaStringNode create() {
-        return NameToJavaStringNodeGen.create();
+        return NameToJavaStringNodeGen.create(null);
+    }
+
+    public static NameToJavaStringNode create(RubyNode name) {
+        return NameToJavaStringNodeGen.create(name);
     }
 
     public abstract String executeToJavaString(Object name);
