@@ -168,7 +168,7 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #define PRIxVALUE PRI_VALUE_PREFIX"x"
 #define PRIXVALUE PRI_VALUE_PREFIX"X"
 #ifdef TRUFFLERUBY
-#define PRIsVALUE "Y"
+#define PRIsVALUE "P"
 #else
 #define PRIsVALUE PRI_VALUE_PREFIX"i" RUBY_PRI_VALUE_MARK
 #endif
@@ -267,7 +267,7 @@ typedef char ruby_check_sizeof_voidp[SIZEOF_VOIDP == sizeof(void*) ? 1 : -1];
 #define FIXNUM_MAX RUBY_FIXNUM_MAX
 #define FIXNUM_MIN RUBY_FIXNUM_MIN
 
-#define RB_INT2FIX(i) (VALUE)((((unsigned long)(i)) << 1) | RUBY_FIXNUM_FLAG)
+#define RB_INT2FIX(i) (((VALUE)(i))<<1 | RUBY_FIXNUM_FLAG)
 #define INT2FIX(i) RB_INT2FIX(i)
 #define RB_LONG2FIX(i) (VALUE)rb_tr_longwrap((long)(i))
 #define LONG2FIX(i) RB_INT2FIX(i)
@@ -477,7 +477,7 @@ enum ruby_special_consts {
 #endif
 #define SYMBOL_FLAG RUBY_SYMBOL_FLAG
 
-#define RB_TEST(v) !(((unsigned long)(v) & ~((unsigned long)RUBY_Qnil)) == 0)
+#define RB_TEST(v) !(((VALUE)(v) & (VALUE)~RUBY_Qnil) == 0)
 #define RB_NIL_P(v) !((VALUE)(v) != RUBY_Qnil)
 #define RTEST(v) RB_TEST(v)
 #define NIL_P(v) RB_NIL_P(v)
@@ -1163,11 +1163,7 @@ struct rb_data_type_struct {
     const rb_data_type_t *parent;
     void *data;        /* This area can be used for any purpose
                           by a programmer who define the type. */
-#ifdef TRUFFLERUBY
-    unsigned long flags;
-#else
     VALUE flags;       /* RUBY_FL_WB_PROTECTED */
-#endif
 };
 
 #define HAVE_TYPE_RB_DATA_TYPE_T 1
@@ -1177,11 +1173,7 @@ struct rb_data_type_struct {
 struct RTypedData {
     struct RBasic basic;
     const rb_data_type_t *type;
-#ifdef TRUFFLERUBY
-    int typed_flag; /* 1 or not */
-#else
     VALUE typed_flag; /* 1 or not */
-#endif
     void *data;
 };
 
@@ -1539,7 +1531,7 @@ rb_obj_write(VALUE a, VALUE *slot, VALUE b, RB_UNUSED_VAR(const char *filename),
     *slot = b;
 
 #if USE_RGENGC
-    rb_obj_written(a, Qundef /* ignore `oldv' now */, b, filename, line);
+    rb_obj_written(a, RUBY_Qundef /* ignore `oldv' now */, b, filename, line);
 #endif
     return a;
 }

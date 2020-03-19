@@ -10,13 +10,6 @@
 
 class NokogiriPatches
 
-  XML_NODE_SET_PATCH = <<-EOF
-  switch (rb_tr_to_int_const(rb_range_beg_len(arg, &beg, &len, (long)node_set->nodeNr, 0))) {
-  case Qfalse_int_const:
-    break;
-  case Qnil_int_const:
-EOF
-
   NOKOGIRI_DEALLOC_DECL_ORIG = <<-EOF
 static int dealloc_node_i(xmlNodePtr key, xmlNodePtr node, xmlDocPtr doc)
 {
@@ -34,18 +27,12 @@ EOF
     gem: 'nokogiri',
     patches: {
       'xml_node_set.c' => [
-        {
-          match: /[[:blank:]]*?switch\s*?\(.*?Qnil:/m,
-          replacement: XML_NODE_SET_PATCH
-        },
         { # Nokogiri declares the function with more arguments than it
           # is called with. This works on MRI but causes an error in
           # TruffleRuby.
           match: 'static VALUE to_array(VALUE self, VALUE rb_node)',
           replacement: 'static VALUE to_array(VALUE self)'
         },
-      ],
-      'xml_io.c' => [
       ],
       'xslt_stylesheet.c' => [
         { # It is not currently possible to pass var args from native

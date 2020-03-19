@@ -231,26 +231,22 @@ experimental `--backtraces-omit-unused` option.
 
 ## C Extension Compatibility
 
-#### `VALUE` is a pointer
-
-In TruffleRuby `VALUE` is a pointer type (`void *`) rather than a
-integer type (`long`). This means that `switch` statements cannot be
-done using a raw `VALUE` as they can with MRI. You can normally
-replace any `switch` statement with `if` statements with little
-difficulty if required.
-
 #### Identifiers may be macros or functions
 
 Identifiers which are normally macros may be functions, functions may be macros,
 and global variables may be macros. This may cause problems where they are used
 in a context which relies on a particular implementation (e.g., taking the
-address of it, assigning to a function pointer variable and using defined() to
+address of it, assigning to a function pointer variable and using `defined()` to
 check if a macro exists). These issues should all be considered bugs and be
 fixed, please report these cases.
 
 #### `rb_scan_args`
 
-`rb_scan_args` only supports up to ten pointers.
+`rb_scan_args` only supports up to 10 pointers.
+
+#### `rb_funcall`
+
+`rb_funcall` only supports up to 15 arguments.
 
 #### mark functions of `RDATA` and `RTYPEDDATA`
 

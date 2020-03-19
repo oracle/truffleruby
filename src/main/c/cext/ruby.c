@@ -1299,10 +1299,6 @@ void rb_tr_add_flags(VALUE value, int flags) {
   }
 }
 
-bool rb_tr_hidden_p(VALUE value) {
-  return false;
-}
-
 #undef rb_enc_str_new
 VALUE rb_enc_str_new(const char *ptr, long len, rb_encoding *enc) {
   return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(enc));
@@ -1845,18 +1841,6 @@ void rb_bug(const char *fmt, ...) {
   rb_tr_error("rb_bug not yet implemented");
 }
 
-int rb_tr_to_int_const(VALUE value) {
-  if (value == Qfalse) {
-    return Qfalse_int_const;
-  } else if (value == Qtrue) {
-    return Qtrue_int_const;
-  } else if (value == Qnil) {
-    return Qnil_int_const;
-  } else {
-    return 8;
-  }
-}
-
 VALUE rb_enumeratorize(VALUE obj, VALUE meth, int argc, const VALUE *argv) {
   return RUBY_CEXT_INVOKE("rb_enumeratorize", obj, meth, rb_ary_new4(argc, argv));
 }
@@ -2357,14 +2341,14 @@ VALUE rb_range_new(VALUE beg, VALUE end, int exclude_end) {
  */
 int rb_range_values(VALUE range, VALUE *begp, VALUE *endp, int *exclp) {
   if (!rb_obj_is_kind_of(range, rb_cRange)) {
-    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("begin")))) return Qfalse_int_const;
-    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("end")))) return Qfalse_int_const;
+    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("begin")))) return Qfalse;
+    if (!RTEST(RUBY_INVOKE(range, "respond_to?", rb_intern("end")))) return Qfalse;
   }
 
   *begp = RUBY_INVOKE(range, "begin");
   *endp = RUBY_INVOKE(range, "end");
   *exclp = (int) RTEST(RUBY_INVOKE(range, "exclude_end?"));
-  return Qtrue_int_const;
+  return Qtrue;
 }
 
 VALUE rb_range_beg_len(VALUE range, long *begp, long *lenp, long len, int err) {
@@ -2968,10 +2952,6 @@ void rb_tr_error(const char *message) {
 
 void rb_tr_log_warning(const char *message) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_log_warning", rb_str_new_cstr(message));
-}
-
-long rb_tr_obj_id(VALUE object) {
-  return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_tr_obj_id", object));
 }
 
 VALUE rb_java_class_of(VALUE obj) {
@@ -5005,8 +4985,8 @@ void rb_tr_init(void *ruby_cext) {
 
   #ifdef __APPLE__
   printf_domain = new_printf_domain();
-  register_printf_domain_function(printf_domain, 'Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);
+  register_printf_domain_function(printf_domain, 'P', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo, NULL);
   #else
-  register_printf_specifier('Y', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
+  register_printf_specifier('P', rb_tr_fprintf_value, rb_tr_fprintf_value_arginfo);
   #endif
 }

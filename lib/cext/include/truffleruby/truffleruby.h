@@ -25,14 +25,11 @@ NORETURN(VALUE rb_f_notimplement(int args_count, const VALUE *args, VALUE object
 NORETURN(void rb_tr_error(const char *message));
 void rb_tr_log_warning(const char *message);
 #define rb_tr_debug(args...) polyglot_invoke(RUBY_CEXT, "rb_tr_debug", args)
-long rb_tr_obj_id(VALUE object);
 void rb_tr_object_hidden_var_set(VALUE object, const char *name, VALUE value);
 VALUE rb_tr_object_hidden_var_get(VALUE object, const char *name);
 int rb_tr_obj_equal(VALUE first, VALUE second);
 int rb_tr_flags(VALUE value);
 void rb_tr_add_flags(VALUE value, int flags);
-bool rb_tr_hidden_p(VALUE value);
-
 
 // Managed Structs
 
@@ -66,11 +63,6 @@ bool rb_tr_obj_taintable_p(VALUE object);
 bool rb_tr_obj_tainted_p(VALUE object);
 void rb_tr_obj_infect(VALUE a, VALUE b);
 
-#define Qfalse_int_const 0
-#define Qtrue_int_const 2
-#define Qnil_int_const 4
-int rb_tr_to_int_const(VALUE value);
-
 int rb_tr_readable(int mode);
 int rb_tr_writable(int mode);
 
@@ -88,7 +80,7 @@ if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warn?"))) { \
 if (polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "warning?"))) { \
   RUBY_INVOKE(rb_mKernel, "warn", rb_sprintf(FORMAT, ##__VA_ARGS__)); \
 } \
-    })
+})
 
 #define rb_tr_scan_args_1(ARGC, ARGV, FORMAT, V1) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)
 #define rb_tr_scan_args_2(ARGC, ARGV, FORMAT, V1, V2) rb_tr_scan_args(ARGC, ARGV, FORMAT, V1, V2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)

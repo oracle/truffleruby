@@ -1981,17 +1981,6 @@ module Truffle::CExt
     Primitive.string_pointer_to_native(string)
   end
 
-  def rb_tr_obj_id(object)
-    id = object.object_id
-
-    # This method specifically returns a long for everyday practicality - so return a sentinel value if it's out of range
-    if Truffle::Type.fits_into_long?(id) && id >= 0
-      id
-    else
-      0x0101010101010101
-    end
-  end
-
   def rb_java_class_of(object)
     Truffle::Debug.java_class_of(object)
   end
