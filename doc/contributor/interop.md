@@ -45,199 +45,49 @@ As expected:
 - `Proc` and `Method` are polyglot executable
 - `String` and `Symbol` are polyglot strings
 
-Any Ruby object can implement the polyglot array or member behavior by
-implementing the appropriate `polyglot_*` methods.
+Any Ruby object can implement the polyglot array, pointer or member behavior by
+implementing the appropriate `polyglot_*` methods. It is called the **dynamic
+polyglot API**. The list of the methods which have to be implemented can be
+found in the [details](interop_details.md), see polyglot pointer, polyglot array
+and polyglot members. If the `polyglot_*` method needs to raise an
+[InteropException](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropException.html)
+exception like
+[UnsupportedMessageException](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/UnsupportedMessageException.html)
+it raises corresponding Ruby exception available in `Truffle::Interop` module.
+The names are the same, e.g. `Truffle::Interop::UnsupportedMessageException`.
+These exceptions inherit from `Exception`, therefore they are not caught by
+default in `rescue`. Only `Truffle::Interop::ArityException` takes any
+arguments, it takes one `Integer` an expected number of arguments.
 
 The detailed definitions of the behavior can be found in
 [another document](interop_details.md).
 
-## How to explicitly send messages from Ruby
+## How to explicitly send InteropLibrary messages from Ruby - Explicit polyglot API
 
-### Errors
+For every message in the
+[InteropLibrary](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropLibrary.html)
+there is a Ruby method in the `Truffle::Interop` module. The name of the message
+is translated as follows:
 
-If any of the sent messages fails then the Java `InteropException` is
-translated to a Ruby exception as follows:
+- `snake_case` is used instead of `camelCase`
+- `is` and `get` prefix is dropped (`has` is not)
+- predicate messages end with `?` in Ruby 
+
+Few examples: `isString` becomes `string?`, `hasArrayElements` becomes
+`has_array_elements?`, `getArraySize` becomes `array_size`.
+
+If the message returns `void` the Ruby method returns `nil`.
+
+If any of the sent messages fails then the Java `InteropException` is translated
+to a Ruby exception as follows:
 
 - `UnsupportedMessageException` → `Polyglot::UnsupportedMessageError`
 - `InvalidArrayIndexException`  → `IndexError`
-- `UnknownIdentifierException`  → `NameError` or → `NoMethodError` if the message is `invokeMember`
+- `UnknownIdentifierException`  → `NameError` or `NoMethodError` if the message is `invokeMember`
 - `ArityException`              → `ArgumentError`
 - `UnsupportedTypeException`    → `TypeError`
 
-### `IS_EXECUTABLE`
-
-`Truffle::Interop.executable?(value)`
-
-### `EXECUTE`
-
-`Truffle::Interop.execute(receiver, *args)`
-
-`Truffle::Interop.execute_without_conversion(receiver, *args)`
-
-### `INVOKE`
-
-`Truffle::Interop.invoke(receiver, name, *args)`
-
-`name` can be a `String` or `Symbol`.
-
-### `IS_INSTANTIABLE`
-
-`Truffle::Interop.instantiable?(receiver)`
-
-### `NEW`
-
-`Truffle::Interop.new(receiver, *args)`
-
-### `HAS_SIZE`
-
-`Truffle::Interop.has_array_elements?(value)`
-
-### `GET_SIZE`
-
-`Truffle::Interop.array_size(value)`
-
-### `IS_BOXED`
-
-`Truffle::Interop.boxed?(value)`
-
-### `UNBOX`
-
-`Truffle::Interop.unbox(value)`
-
-`Truffle::Interop.unbox_without_conversion(value)`
-
-### `IS_POINTER`
-
-`Truffle::Interop.pointer?(value)`
-
-### `AS_POINTER`
-
-`Truffle::Interop.as_pointer(value)`
-
-### `TO_NATIVE`
-
-`Truffle::Interop.to_native(value)`
-
-### `IS_NULL`
-
-`Truffle::Interop.null?(value)`
-
-### `HAS_KEYS`
-
-`Truffle::Interop.keys?(value)`
-
-### `KEYS`
-
-`Truffle::Interop.keys(value, internal=false)`
-
-TruffleRuby will convert the returned value from a foreign object of Java
-`String` objects, to a Ruby `Array` of Ruby `String` objects.
-
-`Truffle::Interop.keys_without_conversion(value, internal=false)`
-
-### `KEY_INFO`
-
-`Truffle::Interop.key_info(object, name)`
-
-Returns an array containing zero or more of the symbols
-`[:existing, :readable, :writable, :invocable, :internal, :removable, :modifiable, :insertable]`
-in an undefined order.
-
-### `READ`
-
-`Truffle::Interop.read_array_element(object, index)`
-`Truffle::Interop.read_member(object, name)`
-
-`Truffle::Interop.read_without_conversion(object, name/index)`
-
-### `WRITE`
-
-`Truffle::Interop.write_member(object, name, value)`
-`Truffle::Interop.write_array_element(object, index, value)`
-
-### `REMOVE`
-
-`Truffle::Interop.remove(object, name/index)`
-
-## How to send messages using idiomatic Ruby
-
-### `IS_EXECUTABLE`
-
-`object.respond_to?(:call)`
-
-### `EXECUTE`
-
-`object.call(*args)`
-
-### `INVOKE`
-
-`object.name`
-
-`object.name(*args)`
-
-### `IS_INSTANTIABLE`
-
-`object.respond_to?(:new)`
-
-### `NEW`
-
-`object.new(*args)`
-
-### `HAS_SIZE`
-
-`object.respond_to?(:size)`
-
-### `GET_SIZE`
-
-`value.size`
-
-### `IS_BOXED`
-
-Not supported.
-
-### `UNBOX`
-
-Not supported.
-
-### `IS_POINTER`
-
-Not supported.
-
-### `AS_POINTER`
-
-Not supported.
-
-### `TO_NATIVE`
-
-Not supported.
-
-### `IS_NULL`
-
-`value.nil?`
-
-### `HAS_KEYS`
-
-`object.respond_to?(:keys)`
-
-### `KEYS`
-
-`value.keys`
-
-### `READ`
-
-`object[name/index]`, where name is a `String` or `Symbol` in most cases, or an
-integer, or anything else
-
-### `WRITE`
-
-`object[name/index] = value`, where name is a `String` or `Symbol` in most
-cases, or an integer, or anything else
-
-### `REMOVE`
-
-Not supported.
-
-## What messages are sent for Ruby syntax on foreign objects
+## What messages are sent for Ruby syntax on foreign objects - Implicit polyglot API
 
 TruffleRuby automatically provides these special methods on a foreign object.
 They have priority over methods that the foreign object actually provides.
