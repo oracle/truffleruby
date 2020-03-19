@@ -275,7 +275,7 @@ describe 'Interop:' do
   end
 
   def unsupported_test(precise = true, &action)
-    Test.new("fails with Polyglot::UnsupportedMessageError") do |subject|
+    Test.new("fails with `UnsupportedMessageError`") do |subject|
       error_matcher = precise ? Polyglot::UnsupportedMessageError : -> v { Polyglot::UnsupportedMessageError === v || RuntimeError === v || TypeError === v }
       -> { action.call(subject) }.should raise_error(error_matcher, /Message not supported|unsupported message/)
     end
@@ -320,7 +320,7 @@ describe 'Interop:' do
                 value = Object.new
                 Truffle::Interop.execute(subject, value).should == value
               end,
-              Test.new("fails with `ArgumentError` when the number of arguments is wrong", :lambda, :method) do |subject|
+              Test.new("fails with `ArityException` when the number of arguments is wrong", :lambda, :method) do |subject|
                 value = Object.new
                 -> { Truffle::Interop.execute(subject, value, value) }.should raise_error(ArgumentError)
               end,
@@ -379,7 +379,7 @@ describe 'Interop:' do
                 Truffle::Interop.write_array_element(subject, 0, value)
                 Truffle::Interop.read_array_element(subject, 0).should polyglot_match value
               end,
-              Test.new("fails with `IndexError` when a value is not present at the index or the index is invalid", :array, :polyglot_array) do |subject|
+              Test.new("fails with `InvalidArrayIndexException` when a value is not present at the index or the index is invalid", :array, :polyglot_array) do |subject|
                 -> { Truffle::Interop.read_array_element(subject, 0) }.should raise_error(IndexError)
                 -> { Truffle::Interop.read_array_element(subject, -1) }.should raise_error(IndexError)
               end,
@@ -391,10 +391,10 @@ describe 'Interop:' do
                 Truffle::Interop.write_array_element(subject, 10, value)
                 Truffle::Interop.read_array_element(subject, 10).should polyglot_match value
               end,
-              Test.new("fails with `IndexError` when a index is invalid", :array, :polyglot_array) do |subject|
+              Test.new("fails with `InvalidArrayIndexException` when a index is invalid", :array, :polyglot_array) do |subject|
                 -> { Truffle::Interop.write_array_element(subject, -1, Object.new) }.should raise_error(IndexError)
               end,
-              Test.new("fails with `TypeError` when the value is invalid", :polyglot_int_array) do |subject|
+              Test.new("fails with `UnsupportedTypeException` when the value is invalid", :polyglot_int_array) do |subject|
                 Truffle::Interop.write_array_element(subject, 0, 42)
                 Truffle::Interop.read_array_element(subject, 0).should == 42
                 -> { Truffle::Interop.write_array_element(subject, 1, Object.new) }.should raise_error(TypeError)
@@ -407,7 +407,7 @@ describe 'Interop:' do
                 Truffle::Interop.remove_array_element(subject, 0)
                 Truffle::Interop.array_element_readable?(subject, 0).should be_false
               end,
-              Test.new("fails with IndexError when the value is not present at a valid index", :array, :polyglot_array) do |subject|
+              Test.new("fails with `InvalidArrayIndexException` when the value is not present at a valid index", :array, :polyglot_array) do |subject|
                 -> { Truffle::Interop.remove_array_element(subject, 0) }.should raise_error(IndexError)
               end,
               unsupported_test { |subject| Truffle::Interop.remove_array_element(subject, 0) }],
@@ -422,7 +422,7 @@ describe 'Interop:' do
                        *non_immediate_subjects - [:polyglot_object]) do |subject|
                 Truffle::Interop.read_member(subject, 'to_s').should == subject.method(:to_s)
               end,
-              Test.new("fails with NameError when the method is not defined", "any non-immediate `Object`",
+              Test.new("fails with `UnknownIdentifierException` when the method is not defined", "any non-immediate `Object`",
                        *non_immediate_subjects - [:polyglot_object]) do |subject|
                 -> { Truffle::Interop.read_member(subject, '__non_existing__') }.should raise_error(NameError)
               end,
@@ -460,7 +460,7 @@ describe 'Interop:' do
                 Truffle::Interop.write_member(subject, 'value', value)
                 subject.value.should == value
               end,
-              Test.new("fails with NameError when the receiver is frozen", *frozen_subjects) do |subject|
+              Test.new("fails with `UnsupportedMessageError` when the receiver is frozen", *frozen_subjects) do |subject|
                 -> { Truffle::Interop.write_member(subject, '@ivar', Object.new) }.should raise_error(Polyglot::UnsupportedMessageError)
               end,
               unsupported_test { |subject| Truffle::Interop.write_member(subject, :something, 'val') }],
