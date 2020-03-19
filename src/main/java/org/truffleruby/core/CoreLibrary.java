@@ -182,6 +182,7 @@ public class CoreLibrary {
     public final DynamicObject invalidArrayIndexExceptionClass;
     public final DynamicObject unknownIdentifierExceptionClass;
     public final DynamicObject unsupportedTypeExceptionClass;
+    public final DynamicObject arityExceptionClass;
     public final DynamicObject truffleKernelOperationsModule;
     public final DynamicObject truffleRegexpOperationsModule;
     public final DynamicObject truffleThreadOperationsModule;
@@ -547,22 +548,30 @@ public class CoreLibrary {
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
         truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
-        unsupportedMessageExceptionClass = defineClass(
+        DynamicObject interopExceptionClass = defineClass(
                 truffleInteropModule,
                 exceptionClass,
+                "InteropException");
+        unsupportedMessageExceptionClass = defineClass(
+                truffleInteropModule,
+                interopExceptionClass,
                 "UnsupportedMessageException");
         invalidArrayIndexExceptionClass = defineClass(
                 truffleInteropModule,
-                exceptionClass,
+                interopExceptionClass,
                 "InvalidArrayIndexException");
         unknownIdentifierExceptionClass = defineClass(
                 truffleInteropModule,
-                exceptionClass,
+                interopExceptionClass,
                 "UnknownIdentifierException");
         unsupportedTypeExceptionClass = defineClass(
                 truffleInteropModule,
-                exceptionClass,
+                interopExceptionClass,
                 "UnsupportedTypeException");
+        arityExceptionClass = defineClass(
+                truffleInteropModule,
+                interopExceptionClass,
+                "ArityException");
         defineModule(truffleModule, "CExt");
         defineModule(truffleModule, "Debug");
         defineModule(truffleModule, "Digest");

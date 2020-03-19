@@ -29,6 +29,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -351,7 +352,7 @@ public class RubyObjectMessages {
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
-            throws UnknownIdentifierException, UnsupportedTypeException, UnsupportedMessageException {
+            throws UnknownIdentifierException, UnsupportedTypeException, UnsupportedMessageException, ArityException {
 
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object rubyName = nameToRubyNode.executeConvert(name);

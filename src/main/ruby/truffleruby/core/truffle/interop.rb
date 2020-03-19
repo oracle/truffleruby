@@ -16,10 +16,19 @@ module Truffle
 
     # stubs, defined in CoreLibrary
     # rubocop:disable Lint/InheritException
-    class UnsupportedMessageException < Exception; end
-    class InvalidArrayIndexException < Exception; end
-    class UnknownIdentifierException < Exception; end
-    class UnsupportedTypeException < Exception; end
+    class InteropException < Exception; end
+    class UnsupportedMessageException < InteropException; end
+    class InvalidArrayIndexException < InteropException; end
+    class UnknownIdentifierException < InteropException; end
+    class UnsupportedTypeException < InteropException; end
+    class ArityException < InteropException
+      attr_reader :expected
+
+      def initialize(expected)
+        @expected = expected
+        raise ArgumentError unless expected.is_a? Integer
+      end
+    end
 
     def self.import_method(name)
       method = import(name.to_s)
