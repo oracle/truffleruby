@@ -9,14 +9,9 @@
  */
 package org.truffleruby.cext;
 
-import static org.truffleruby.core.array.ArrayHelpers.getSize;
-import static org.truffleruby.core.array.ArrayHelpers.getStore;
 import static org.truffleruby.core.string.StringOperations.rope;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jcodings.Encoding;
@@ -35,9 +30,7 @@ import org.truffleruby.cext.CExtNodesFactory.StringToNativeNodeGen;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
-import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.exception.ErrnoErrorNode;
@@ -95,7 +88,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -1211,43 +1203,6 @@ public class CExtNodes {
             } else {
                 throw new JavaException(e);
             }
-        }
-    }
-
-    @CoreMethod(names = "linker", onSingleton = true, required = 3)
-    @ImportStatic(ArrayGuards.class)
-    public abstract static class LinkerNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization(
-                guards = {
-                        "isRubyString(outputFileName)",
-                        "isRubyArray(libraries)",
-                        "isRubyArray(bitcodeFiles)" },
-                limit = "STORAGE_STRATEGIES")
-        protected Object linker(DynamicObject outputFileName, DynamicObject libraries, DynamicObject bitcodeFiles,
-                @CachedLibrary("getStore(libraries)") ArrayStoreLibrary libStores,
-                @CachedLibrary("getStore(bitcodeFiles)") ArrayStoreLibrary fileStores) {
-            try {
-                final Object[] boxedLibs = libStores.boxedCopyOfRange(getStore(libraries), 0, getSize(libraries));
-                final Object[] boxedFiles = fileStores
-                        .boxedCopyOfRange(getStore(bitcodeFiles), 0, getSize(bitcodeFiles));
-                Linker.link(
-                        StringOperations.getString(outputFileName),
-                        array2StringList(boxedLibs),
-                        array2StringList(boxedFiles));
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-            return outputFileName;
-        }
-
-        private static List<String> array2StringList(Object[] objectArray) {
-            List<String> list = new ArrayList<>(objectArray.length);
-            for (int i = 0; i < objectArray.length; i++) {
-                list.add(StringOperations.getString((DynamicObject) objectArray[i]));
-            }
-            return list;
         }
     }
 
