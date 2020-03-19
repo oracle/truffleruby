@@ -28,7 +28,6 @@ describe "Interop special form" do
     @object.to_s.should include("writeMember(bar, 2)")
   end
 
-  # FIXME (pitr-ch 18-Mar-2019): break down
   it "#delete(name) sends removeMember(*) or removeArrayElement(*)" do
     -> { @object.delete :foo }.should raise_error(Polyglot::UnsupportedMessageError)
     -> { @object.delete 14 }.should raise_error(Polyglot::UnsupportedMessageError)
@@ -171,7 +170,6 @@ describe "Interop special form" do
     @object.to_s.should include("isString()")
   end
 
-  # FIXME (pitr-ch 18-Mar-2019): break down to new messages, test isNumber and isBoolean separately
   it "#respond_to?(:to_str) sends IS_BOXED" do
     @object.respond_to?(:to_str)
     @object.to_s.should include("isString()")

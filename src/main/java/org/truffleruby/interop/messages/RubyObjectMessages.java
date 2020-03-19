@@ -576,7 +576,6 @@ public class RubyObjectMessages {
         Object instance = dispatchNode.call(receiver, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
 
         // TODO (pitr-ch 28-Jan-2020): we should translate argument-error caused by bad arity to ArityException
-        // TODO (pitr-ch 04-Feb-2020): should we throw UnsupportedTypeException? Defined - if one of the arguments is not compatible to the executable signature
         if (instance == DispatchNode.MISSING) {
             errorProfile.enter();
             throw UnsupportedMessageException.create();

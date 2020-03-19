@@ -65,11 +65,6 @@ import com.oracle.truffle.api.source.Source;
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
 
-    // TODO (pitr-ch 27-Mar-2019): remove create()
-    // TODO (pitr-ch 27-Mar-2019): rename methods to match new messages
-    // TODO (pitr-ch 27-Mar-2019): break down to new messages
-    // TODO (pitr-ch 11-Mar-2020): make sure any argument type is accepted, always try to convert with to_s or to_i
-
     @CoreMethod(names = "import_file", onSingleton = true, required = 1)
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
@@ -304,7 +299,6 @@ public abstract class InteropNodes {
         }
     }
 
-    // TODO (pitr-ch 01-Apr-2019): turn conversion into argument
     @CoreMethod(names = "as_string_without_conversion", onSingleton = true, required = 1)
     public abstract static class AsStringWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 

@@ -40,18 +40,8 @@ end
 
 describe 'Interop:' do
 
-  # TODO (pitr-ch 13-Feb-2020): should test all InteropLibrary messages against all possible Ruby types we care about.
-  # TODO (pitr-ch 25-Feb-2020): Truffle::Interop.* test with different objects as indexes and names, test their conversion to long/String
-  #
-  # TODO (pitr-ch 25-Feb-2020): documentation
-  # TODO (pitr-ch 02-Mar-2020): - translation of InteropExceptions to RubyExceptions
-  # TODO (pitr-ch 25-Feb-2020): - exceptions accepted in dynamic Ruby API
-  # TODO (pitr-ch 02-Mar-2020): - generate documentation for explicit API (Truffle::Interop.*)
-  #
-  # TODO (pitr-ch 27-Feb-2020): deal with Arity exception when calling a ruby method from different language
-  #   Ruby ArgumentError should be translated properly to ArityException
-  # TODO (pitr-ch 27-Feb-2020): Over time dynamic ruby api under TrufflerRuby, explicit API under Polyglot
-  #
+  # TODO (pitr-ch 18-Mar-2020): move the notes
+
   # == Dynamic Ruby API   ->
   # * Use custom exceptions to never confuse implementation bug with
   #   what is suppose to be thrown on the Java side.
@@ -221,12 +211,6 @@ describe 'Interop:' do
       empty_string:   Subject.() { "" },
       string:         Subject.(name: AN_INSTANCE, doc: true) { "string" },
 
-      # TODO (pitr-ch 24-Feb-2020): has array interface?, test it
-      # java_string:     Subject[Truffle::Interop.to_java_string("Java-string"),
-      #                          # TODO (pitr-ch 21-Feb-2020): where do we test foreign objects? (just example here for now)
-      #                          # TODO (pitr-ch 24-Feb-2020): mark this as foreign object and test it only in tests of Interop.* methods
-      #                          doc: true, name: 'a ' + code('java.lang.String')],
-
       zero:          Subject.(0),
       small_integer: Subject.(1, name: AN_INSTANCE, doc: true),
       zero_float:    Subject.(0.0),
@@ -246,7 +230,6 @@ describe 'Interop:' do
       method:        Subject.new(Object.new.tap { |o| o.define_singleton_method(:foo) { |v| v } }.method(:foo),
                                  name: AN_INSTANCE, doc: true),
 
-      # TODO (pitr-ch 02-Mar-2020): better pointer for doc
       pointer:          Subject.new(
           name:        AN_INSTANCE,
           doc:         true,

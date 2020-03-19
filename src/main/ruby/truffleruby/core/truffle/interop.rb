@@ -14,8 +14,6 @@ Truffle::Interop::MAIN = self
 module Truffle
   module Interop
 
-    # FIXME (pitr-ch 02-Mar-2020): interop methods should call regular Ruby conversions like to_s (which should try asString if foreign.isString)
-
     # stubs, defined in CoreLibrary
     # rubocop:disable Lint/InheritException
     class UnsupportedMessageException < Exception; end
@@ -383,12 +381,10 @@ module Truffle
       end
     end
 
-    # TODO (pitr-ch 01-Apr-2019): remove
     def self.boxed?(object)
       boolean?(object) || is_string?(object) || is_number?(object)
     end
 
-    # TODO (pitr-ch 01-Apr-2019): remove
     def self.unbox(object)
       return as_boolean object if boolean? object
       return as_string object if is_string? object
@@ -402,7 +398,6 @@ module Truffle
       raise ArgumentError, "not boxed: #{object}"
     end
 
-    # TODO (pitr-ch 01-Apr-2019): remove
     def self.unbox_without_conversion(object)
       return as_boolean object if boolean? object
       return as_string_without_conversion object if is_string? object
