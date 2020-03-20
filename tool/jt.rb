@@ -484,7 +484,23 @@ module Utilities
   end
 
   def find_java_home
-    @java_home ||= ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
+    @java_home ||= begin
+      java_home = ENV['JAVA_HOME']
+      _, jvmci_version = jvmci_update_and_version
+      if java_home
+        if java_home.include?(jvmci_version)
+          :use_env_java_home
+        elsif java_home.include?('jvmci')
+          warn "warning: JAVA_HOME=#{java_home} is not the same JVMCI version as in common.json (#{jvmci_version})"
+          :use_env_java_home
+        else
+          raise '$JAVA_HOME does not seem to point to a JVMCI-enabled JDK'
+        end
+      else
+        raise '$JAVA_HOME should be set in CI' if ci?
+        install_jvmci('$JAVA_HOME is not set, downloading JDK8 with JVMCI')
+      end
+    end
   end
 
   def language_dir(graalvm_home)
@@ -501,7 +517,7 @@ module Utilities
 
     env = mx_args.first.is_a?(Hash) ? mx_args.shift : {}
     java_home = find_java_home
-    mx_args.unshift '--java-home', java_home if java_home
+    mx_args.unshift '--java-home', java_home unless java_home == :use_env_java_home
 
     raw_sh(env, find_mx, *mx_args, **options)
   end
@@ -643,7 +659,7 @@ module Commands
       recognised environment variables:
 
         RUBY_BIN                                     The TruffleRuby executable to use (normally just bin/truffleruby)
-        JVMCI_HOME                                   Path to the JVMCI JDK used for building with mx
+        JAVA_HOME                                    Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
     TXT
   end
@@ -698,7 +714,7 @@ module Commands
 
   def env
     puts 'Environment'
-    env_vars = %w[JAVA_HOME JVMCI_HOME PATH RUBY_BIN OPENSSL_PREFIX TRUFFLERUBYOPT RUBYOPT]
+    env_vars = %w[JAVA_HOME PATH RUBY_BIN OPENSSL_PREFIX TRUFFLERUBYOPT RUBYOPT]
     column_size = env_vars.map(&:size).max
     env_vars.each do |e|
       puts format "%#{column_size}s: %s", e, ENV[e].inspect
@@ -1822,13 +1838,13 @@ EOS
   def install(name, *options)
     case name
     when 'jvmci'
-      puts install_jvmci
+      puts install_jvmci('Downloading JDK8 with JVMCI')
     else
       raise "Unknown how to install #{what}"
     end
   end
 
-  private def install_jvmci
+  private def install_jvmci(download_message)
     raise 'Installing JVMCI is only available on Linux and macOS currently' unless ON_LINUX || ON_MAC
 
     update, jvmci_version = jvmci_update_and_version
@@ -1836,7 +1852,7 @@ EOS
     java_home = begin
       dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
-        puts 'Downloading JDK8 with JVMCI'
+        STDERR.puts download_message
         jvmci_releases = 'https://github.com/graalvm/openjdk8-jvmci-builder/releases/download'
         filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
         chdir(dir) do
