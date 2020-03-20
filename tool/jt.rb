@@ -578,7 +578,7 @@ module Commands
                                               GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm,
                                               the Ruby is symlinked into rbenv or chruby if available
             options:
-              --[no-]sforceimports            run sforceimports before building (default: !ci?)
+              --sforceimports                 run sforceimports before building (default: false)
               --[no-]ee-checkout             checkout graal-enterprise when necessary (default: !ci?)
               --env|-e                        mx env file used to build the GraalVM, default is "jvm"
               --name|-n NAME                  specify the name of the build "mxbuild/truffleruby-NAME",
@@ -591,7 +591,7 @@ module Commands
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
-      jt rebuild [build options]                     clean, sforceimports, and build
+      jt rebuild [build options]                     clean and build
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
@@ -1953,15 +1953,17 @@ EOS
                               env
                             end
 
-    sforceimports = options.delete('--sforceimports') || (options.delete('--no-sforceimports') ? false : !ci?)
-    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if sforceimports && !ci?
+    mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
+
+    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if options.delete('--sforceimports')
+
+    mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only')
 
     ee_checkout = options.delete('--ee-checkout') || (options.delete('--no-ee-checkout') ? false : !ci?)
     checkout_enterprise_revision if env.include?('ee') && ee_checkout
 
     mx_options, mx_build_options = args_split(options)
-
-    mx_args = ['-p', TRUFFLERUBY_DIR, '--env', env, *mx_options]
+    mx_args = mx_base_args + mx_options
 
     env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
 
