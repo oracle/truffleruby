@@ -2585,7 +2585,7 @@ int rb_thread_alone(void) {
 }
 
 VALUE rb_thread_current(void) {
-  return RUBY_INVOKE(rb_tr_get_Thread(), "current");
+  return RUBY_INVOKE(rb_cThread, "current");
 }
 
 VALUE rb_thread_local_aref(VALUE thread, ID id) {
@@ -4978,6 +4978,8 @@ void rb_tr_init(void *ruby_cext) {
   cext_rb_ensure = polyglot_get_member(rb_tr_cext, "rb_ensure");
   cext_rb_rescue = polyglot_get_member(rb_tr_cext, "rb_rescue");
   cext_rb_rescue2 = polyglot_get_member(rb_tr_cext, "rb_rescue2");
+
+  rb_tr_init_global_constants();
 
   #ifdef __APPLE__
   printf_domain = new_printf_domain();

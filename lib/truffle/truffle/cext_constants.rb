@@ -9,22 +9,6 @@
 # From ./tool/generate-cext-constants.rb
 
 module Truffle::CExt
-  def Qundef
-    Truffle::UNDEFINED
-  end
-
-  def Qtrue
-    true
-  end
-
-  def Qfalse
-    false
-  end
-
-  def Qnil
-    nil
-  end
-
   def rb_cArray
     Array
   end

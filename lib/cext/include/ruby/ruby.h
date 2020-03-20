@@ -2155,9 +2155,6 @@ NORETURN(void rb_throw_obj(VALUE,VALUE));
 
 VALUE rb_require(const char*);
 
-#ifdef TRUFFLERUBY
-#include <truffleruby/constants.h>
-#else
 RUBY_EXTERN VALUE rb_mKernel;
 RUBY_EXTERN VALUE rb_mComparable;
 RUBY_EXTERN VALUE rb_mEnumerable;
@@ -2249,6 +2246,7 @@ RUBY_EXTERN VALUE rb_eLoadError;
 
 RUBY_EXTERN VALUE rb_eMathDomainError;
 
+#ifndef TRUFFLERUBY
 RUBY_EXTERN VALUE rb_stdin, rb_stdout, rb_stderr;
 #endif
 

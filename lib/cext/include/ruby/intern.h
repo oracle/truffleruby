@@ -530,10 +530,14 @@ void rb_hash_free(VALUE);
 /* io.c */
 #define rb_defout rb_stdout
 RUBY_EXTERN VALUE rb_fs;
+#ifndef TRUFFLERUBY
 RUBY_EXTERN VALUE rb_output_fs;
 RUBY_EXTERN VALUE rb_rs;
+#endif
 RUBY_EXTERN VALUE rb_default_rs;
+#ifndef TRUFFLERUBY
 RUBY_EXTERN VALUE rb_output_rs;
+#endif
 VALUE rb_io_write(VALUE, VALUE);
 VALUE rb_io_gets(VALUE);
 VALUE rb_io_getbyte(VALUE);

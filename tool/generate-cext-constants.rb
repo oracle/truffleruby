@@ -9,10 +9,6 @@
 # GNU Lesser General Public License version 2.1.
 
 constants = [
-    ['Truffle::UNDEFINED', 'undef'],
-    true,
-    false,
-    nil,
     Array,
     Class,
     Comparable,
@@ -92,9 +88,7 @@ constants = [
   else
     value = const
 
-    if value.nil?
-      name = 'nil'
-    elsif value.is_a?(Module)
+    if value.is_a?(Module)
       name = value.name.split('::').last
     else
       name = value.to_s
@@ -107,9 +101,7 @@ constants = [
     expr = value.to_s
   end
 
-  if [true, false, nil].include?(value) or name == 'undef'
-    tag = 'Q'
-  elsif value.is_a?(Class) && (value < Exception || value == Exception)
+  if value.is_a?(Class) && (value < Exception || value == Exception)
     tag = 'rb_e'
   elsif value.is_a?(Class)
     tag = 'rb_c'
@@ -124,31 +116,8 @@ constants = [
   [macro_name, name, expr]
 end
 
-File.open("lib/cext/include/truffleruby/constants.h", "w") do |f|
-  f.puts <<COPYRIGHT
-/*
- * Copyright (c) #{Time.now.year} Oracle and/or its affiliates. All rights reserved. This
- * code is released under a tri EPL/GPL/LGPL license. You can use it,
- * redistribute it and/or modify it under the terms of the:
- *
- * Eclipse Public License version 2.0, or
- * GNU General Public License version 2, or
- * GNU Lesser General Public License version 2.1.
- */
-COPYRIGHT
-  f.puts
-  f.puts "// From #{__FILE__}"
-  f.puts
-
-  constants.each do |macro_name, name, _|
-    f.puts "VALUE rb_tr_get_#{name}(void);"
-  end
-
-  f.puts
-
-  constants.each do |macro_name, name, _|
-    f.puts "#define #{macro_name} rb_tr_get_#{name}()" unless macro_name[0] == 'Q'
-  end
+constants_except_globals = constants.reject do |macro_name, name, expr|
+  expr.start_with?('$')
 end
 
 File.open("src/main/c/cext/cext_constants.c", "w") do |f|
@@ -167,13 +136,18 @@ COPYRIGHT
   f.puts "// From #{__FILE__}"
   f.puts
   f.puts '#include <ruby.h>'
+  f.puts
 
-  constants.each do |macro_name, name, _|
-    f.puts
-    f.puts "VALUE rb_tr_get_#{name}(void) {"
-    f.puts "  return RUBY_CEXT_INVOKE(\"#{macro_name}\");"
-    f.puts "}"
+  constants_except_globals.each do |macro_name, _, _|
+    f.puts "VALUE #{macro_name};"
   end
+
+  f.puts
+  f.puts "void rb_tr_init_global_constants(void) {"
+  constants_except_globals.each do |macro_name, name, _|
+    f.puts "  #{macro_name} = RUBY_CEXT_INVOKE(\"#{macro_name}\");"
+  end
+  f.puts "}"
 end
 
 File.open("lib/truffle/truffle/cext_constants.rb", "w") do |f|
