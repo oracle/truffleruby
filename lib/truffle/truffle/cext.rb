@@ -404,6 +404,10 @@ module Truffle::CExt
     $stderr
   end
 
+  def rb_fs
+    $;
+  end
+
   def rb_output_fs
     $,
   end

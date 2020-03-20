@@ -40,6 +40,7 @@ void rb_tr_init_global_constants(void);
 #define rb_stdin RUBY_CEXT_INVOKE("rb_stdin")
 #define rb_stdout RUBY_CEXT_INVOKE("rb_stdout")
 #define rb_stderr RUBY_CEXT_INVOKE("rb_stderr")
+#define rb_fs RUBY_CEXT_INVOKE("rb_fs")
 #define rb_output_fs RUBY_CEXT_INVOKE("rb_output_fs")
 #define rb_rs RUBY_CEXT_INVOKE("rb_rs")
 #define rb_output_rs RUBY_CEXT_INVOKE("rb_output_rs")
