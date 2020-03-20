@@ -111,12 +111,12 @@ constants = [
     tag = 'rb_'
   end
 
-  macro_name = "#{tag}#{name}"
+  name = "#{tag}#{name}"
 
-  [macro_name, name, expr]
+  [name, expr]
 end
 
-constants_except_globals = constants.reject do |macro_name, name, expr|
+constants_except_ruby_gvars = constants.reject do |name, expr|
   expr.start_with?('$')
 end
 
@@ -138,14 +138,14 @@ COPYRIGHT
   f.puts '#include <ruby.h>'
   f.puts
 
-  constants_except_globals.each do |macro_name, _, _|
-    f.puts "VALUE #{macro_name};"
+  constants_except_ruby_gvars.each do |name, expr|
+    f.puts "VALUE #{name};"
   end
 
   f.puts
   f.puts "void rb_tr_init_global_constants(void) {"
-  constants_except_globals.each do |macro_name, name, _|
-    f.puts "  #{macro_name} = RUBY_CEXT_INVOKE(\"#{macro_name}\");"
+  constants_except_ruby_gvars.each do |name, expr|
+    f.puts "  #{name} = RUBY_CEXT_INVOKE(\"#{name}\");"
   end
   f.puts "}"
 end
@@ -165,8 +165,8 @@ COPYRIGHT
   f.puts
 
   f.puts "module Truffle::CExt"
-  constants.each do |macro_name, _, expr|
-    f.puts "  def #{macro_name}"
+  constants.each do |name, expr|
+    f.puts "  def #{name}"
     f.puts "    #{expr}"
     f.puts "  end"
     f.puts
