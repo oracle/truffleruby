@@ -234,10 +234,6 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass) {
   return obj;
 }
 
-// Constants
-
-#include "cext_constants.c"
-
 // Conversions
 
 unsigned long rb_num2ulong(VALUE val) {

@@ -165,6 +165,8 @@ File.open("src/main/c/cext/cext_constants.c", "w") do |f|
 COPYRIGHT
   f.puts
   f.puts "// From #{__FILE__}"
+  f.puts
+  f.puts '#include <ruby.h>'
 
   constants.each do |macro_name, name, _|
     f.puts

@@ -10,6 +10,8 @@
 
 // From ./tool/generate-cext-constants.rb
 
+#include <ruby.h>
+
 VALUE rb_tr_get_undef(void) {
   return RUBY_CEXT_INVOKE("Qundef");
 }
