@@ -13,6 +13,14 @@ module Truffle::CExt
     Array
   end
 
+  def rb_cBasicObject
+    BasicObject
+  end
+
+  def rb_cBinding
+    Binding
+  end
+
   def rb_cClass
     Class
   end
@@ -21,16 +29,20 @@ module Truffle::CExt
     Comparable
   end
 
+  def rb_cComplex
+    Complex
+  end
+
   def rb_cData
     Data
   end
 
-  def rb_cEncoding
-    Encoding
+  def rb_cDir
+    Dir
   end
 
-  def rb_eEncodingError
-    EncodingError
+  def rb_cEncoding
+    Encoding
   end
 
   def rb_mEnumerable
@@ -49,8 +61,20 @@ module Truffle::CExt
     File
   end
 
+  def rb_mFileTest
+    FileTest
+  end
+
+  def rb_cStat
+    File::Stat
+  end
+
   def rb_cFloat
     Float
+  end
+
+  def rb_mGC
+    GC
   end
 
   def rb_cHash
@@ -73,6 +97,14 @@ module Truffle::CExt
     MatchData
   end
 
+  def rb_mMath
+    Math
+  end
+
+  def rb_cMethod
+    Method
+  end
+
   def rb_cModule
     Module
   end
@@ -89,12 +121,24 @@ module Truffle::CExt
     Object
   end
 
+  def rb_cProc
+    Proc
+  end
+
   def rb_mProcess
     Process
   end
 
+  def rb_cRandom
+    Random
+  end
+
   def rb_cRange
     Range
+  end
+
+  def rb_cRational
+    Rational
   end
 
   def rb_cRegexp
@@ -125,20 +169,16 @@ module Truffle::CExt
     TrueClass
   end
 
-  def rb_cProc
-    Proc
-  end
-
-  def rb_cMethod
-    Method
-  end
-
-  def rb_cDir
-    Dir
+  def rb_cUnboundMethod
+    UnboundMethod
   end
 
   def rb_eArgError
     ArgumentError
+  end
+
+  def rb_eEncodingError
+    EncodingError
   end
 
   def rb_eEOFError
@@ -155,6 +195,10 @@ module Truffle::CExt
 
   def rb_eFloatDomainError
     FloatDomainError
+  end
+
+  def rb_eFrozenError
+    FrozenError
   end
 
   def rb_eIndexError
@@ -231,6 +275,10 @@ module Truffle::CExt
 
   def rb_eStandardError
     StandardError
+  end
+
+  def rb_eStopIteration
+    StopIteration
   end
 
   def rb_eSyntaxError
