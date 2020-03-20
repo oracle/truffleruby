@@ -43,6 +43,7 @@ void rb_tr_init_global_constants(void);
 #define rb_output_fs RUBY_CEXT_INVOKE("rb_output_fs")
 #define rb_rs RUBY_CEXT_INVOKE("rb_rs")
 #define rb_output_rs RUBY_CEXT_INVOKE("rb_output_rs")
+#define rb_default_rs RUBY_CEXT_INVOKE("rb_default_rs")
 
 // Managed Structs
 

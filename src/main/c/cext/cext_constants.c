@@ -78,7 +78,6 @@ VALUE rb_mWaitReadable;
 VALUE rb_mWaitWritable;
 VALUE rb_eZeroDivError;
 VALUE rb_eFatal;
-VALUE rb_default_rs;
 
 void rb_tr_init_global_constants(void) {
   rb_cArray = RUBY_CEXT_INVOKE("rb_cArray");
@@ -147,5 +146,4 @@ void rb_tr_init_global_constants(void) {
   rb_mWaitWritable = RUBY_CEXT_INVOKE("rb_mWaitWritable");
   rb_eZeroDivError = RUBY_CEXT_INVOKE("rb_eZeroDivError");
   rb_eFatal = RUBY_CEXT_INVOKE("rb_eFatal");
-  rb_default_rs = RUBY_CEXT_INVOKE("rb_default_rs");
 }

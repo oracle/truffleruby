@@ -74,14 +74,7 @@ constants = [
     IO::WaitReadable,
     IO::WaitWritable,
     [ZeroDivisionError, 'ZeroDivError'],
-    ['Truffle::CExt.rb_const_get(Object, \'fatal\')', 'eFatal'],
-    ['$stdin', 'stdin'],
-    ['$stdout', 'stdout'],
-    ['$stderr', 'stderr'],
-    ['$,', 'output_fs'],
-    ['$/', 'rs'],
-    ['$\\', 'output_rs'],
-    ['"\n"', 'default_rs']
+    ['Truffle::CExt.rb_const_get(Object, \'fatal\')', 'Fatal'],
 ].map do |const|
   if const.is_a?(Array)
     value, name = const
@@ -95,29 +88,21 @@ constants = [
     end
   end
 
-  if value.nil?
-    expr = 'nil'
-  else
-    expr = value.to_s
-  end
+  expr = value.to_s
 
-  if value.is_a?(Class) && (value < Exception || value == Exception)
+  if (value.is_a?(Class) && value <= Exception) or name == 'Fatal'
     tag = 'rb_e'
   elsif value.is_a?(Class)
     tag = 'rb_c'
   elsif value.is_a?(Module)
     tag = 'rb_m'
   else
-    tag = 'rb_'
+    raise value.inspect
   end
 
   name = "#{tag}#{name}"
 
   [name, expr]
-end
-
-constants_except_ruby_gvars = constants.reject do |name, expr|
-  expr.start_with?('$')
 end
 
 File.open("src/main/c/cext/cext_constants.c", "w") do |f|
@@ -138,13 +123,13 @@ COPYRIGHT
   f.puts '#include <ruby.h>'
   f.puts
 
-  constants_except_ruby_gvars.each do |name, expr|
+  constants.each do |name, expr|
     f.puts "VALUE #{name};"
   end
 
   f.puts
   f.puts "void rb_tr_init_global_constants(void) {"
-  constants_except_ruby_gvars.each do |name, expr|
+  constants.each do |name, expr|
     f.puts "  #{name} = RUBY_CEXT_INVOKE(\"#{name}\");"
   end
   f.puts "}"

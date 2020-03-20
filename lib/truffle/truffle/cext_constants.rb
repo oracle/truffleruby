@@ -273,32 +273,4 @@ module Truffle::CExt
     Truffle::CExt.rb_const_get(Object, 'fatal')
   end
 
-  def rb_stdin
-    $stdin
-  end
-
-  def rb_stdout
-    $stdout
-  end
-
-  def rb_stderr
-    $stderr
-  end
-
-  def rb_output_fs
-    $,
-  end
-
-  def rb_rs
-    $/
-  end
-
-  def rb_output_rs
-    $\
-  end
-
-  def rb_default_rs
-    "\n"
-  end
-
 end

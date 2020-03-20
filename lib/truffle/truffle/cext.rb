@@ -392,6 +392,34 @@ module Truffle::CExt
     Interop.mime_type_supported?('application/x-sulong-library')
   end
 
+  def rb_stdin
+    $stdin
+  end
+
+  def rb_stdout
+    $stdout
+  end
+
+  def rb_stderr
+    $stderr
+  end
+
+  def rb_output_fs
+    $,
+  end
+
+  def rb_rs
+    $/
+  end
+
+  def rb_output_rs
+    $\
+  end
+
+  def rb_default_rs
+    "\n"
+  end
+
   def rb_type(value)
     # TODO CS 23-Jul-16 we could do with making this a kind of specialising case
     # that puts never seen cases behind a transfer
