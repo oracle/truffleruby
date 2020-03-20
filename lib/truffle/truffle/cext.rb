@@ -1574,6 +1574,10 @@ module Truffle::CExt
     NATIVETHREAD_LOCKS.delete(lock)
   end
 
+  def rb_set_end_proc(func, data)
+    at_exit { Primitive.call_with_c_mutex(func, [data]) }
+  end
+
   def rb_data_object_wrap(ruby_class, data, mark, free)
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)

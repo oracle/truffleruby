@@ -300,7 +300,7 @@ static VALUE kernel_spec_rb_exec_recursive(VALUE self, VALUE obj) {
 }
 
 static void write_io(VALUE io) {
-  rb_funcall(io, rb_intern("write"), 1, rb_str_new2("e"));
+  rb_funcall(io, rb_intern("write"), 1, rb_str_new2("in write_io"));
 }
 
 static VALUE kernel_spec_rb_set_end_proc(VALUE self, VALUE io) {

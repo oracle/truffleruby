@@ -109,6 +109,7 @@ Compatibility:
 * Make `StringIO` work with `--enable-frozen-string-literal` (#1969).
 * Support `NULL` for the status of `rb_protect()`.
 * Ensure `BigDecimal#inspect` does not call `BigDecimal#to_s` to avoid behaviour change on `to_s` override (#1960).
+* Implemented `rb_set_end_proc` (#1959).
 
 Changes:
 
