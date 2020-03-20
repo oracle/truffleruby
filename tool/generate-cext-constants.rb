@@ -9,32 +9,40 @@
 # GNU Lesser General Public License version 2.1.
 
 constants = [
-    ['Truffle::UNDEFINED', 'undef'],
-    true,
-    false,
-    nil,
+    # classes and modules
     Array,
+    BasicObject,
+    Binding,
     Class,
     Comparable,
+    Complex,
     Data,
+    Dir,
     Encoding,
-    EncodingError,
     Enumerable,
     Enumerator,
     FalseClass,
     File,
+    FileTest,
+    File::Stat,
     Float,
+    GC,
     Hash,
     Integer,
     IO,
     Kernel,
     [MatchData, 'Match'],
+    Math,
+    Method,
     Module,
     NilClass,
     Numeric,
     Object,
+    Proc,
     Process,
+    Random,
     Range,
+    Rational,
     Regexp,
     String,
     Struct,
@@ -42,14 +50,15 @@ constants = [
     Time,
     Thread,
     TrueClass,
-    Proc,
-    Method,
-    Dir,
+    UnboundMethod,
+    # exception classes
     [ArgumentError, 'ArgError'],
+    EncodingError,
     EOFError,
     Errno,
     Exception,
     FloatDomainError,
+    FrozenError,
     IndexError,
     Interrupt,
     IOError,
@@ -69,6 +78,7 @@ constants = [
     SecurityError,
     [SignalException, 'Signal'],
     StandardError,
+    StopIteration,
     SyntaxError,
     SystemCallError,
     SystemExit,
@@ -78,77 +88,35 @@ constants = [
     IO::WaitReadable,
     IO::WaitWritable,
     [ZeroDivisionError, 'ZeroDivError'],
-    ['Truffle::CExt.rb_const_get(Object, \'fatal\')', 'eFatal'],
-    ['$stdin', 'stdin'],
-    ['$stdout', 'stdout'],
-    ['$stderr', 'stderr'],
-    ['$,', 'output_fs'],
-    ['$/', 'rs'],
-    ['$\\', 'output_rs'],
-    ['"\n"', 'default_rs']
+    ['Truffle::CExt.rb_const_get(Object, \'fatal\')', 'Fatal'],
 ].map do |const|
   if const.is_a?(Array)
     value, name = const
   else
     value = const
 
-    if value.nil?
-      name = 'nil'
-    elsif value.is_a?(Module)
+    if value.is_a?(Module)
       name = value.name.split('::').last
     else
       name = value.to_s
     end
   end
 
-  if value.nil?
-    expr = 'nil'
-  else
-    expr = value.to_s
-  end
+  expr = value.to_s
 
-  if [true, false, nil].include?(value) or name == 'undef'
-    tag = 'Q'
-  elsif value.is_a?(Class) && (value < Exception || value == Exception)
+  if (value.is_a?(Class) && value <= Exception) or name == 'Fatal'
     tag = 'rb_e'
   elsif value.is_a?(Class)
     tag = 'rb_c'
   elsif value.is_a?(Module)
     tag = 'rb_m'
   else
-    tag = 'rb_'
+    raise value.inspect
   end
 
-  macro_name = "#{tag}#{name}"
+  name = "#{tag}#{name}"
 
-  [macro_name, name, expr]
-end
-
-File.open("lib/cext/include/truffleruby/constants.h", "w") do |f|
-  f.puts <<COPYRIGHT
-/*
- * Copyright (c) #{Time.now.year} Oracle and/or its affiliates. All rights reserved. This
- * code is released under a tri EPL/GPL/LGPL license. You can use it,
- * redistribute it and/or modify it under the terms of the:
- *
- * Eclipse Public License version 2.0, or
- * GNU General Public License version 2, or
- * GNU Lesser General Public License version 2.1.
- */
-COPYRIGHT
-  f.puts
-  f.puts "// From #{__FILE__}"
-  f.puts
-
-  constants.each do |macro_name, name, _|
-    f.puts "VALUE rb_tr_get_#{name}(void);"
-  end
-
-  f.puts
-
-  constants.each do |macro_name, name, _|
-    f.puts "#define #{macro_name} rb_tr_get_#{name}()" unless macro_name[0] == 'Q'
-  end
+  [name, expr]
 end
 
 File.open("src/main/c/cext/cext_constants.c", "w") do |f|
@@ -165,13 +133,20 @@ File.open("src/main/c/cext/cext_constants.c", "w") do |f|
 COPYRIGHT
   f.puts
   f.puts "// From #{__FILE__}"
+  f.puts
+  f.puts '#include <ruby.h>'
+  f.puts
 
-  constants.each do |macro_name, name, _|
-    f.puts
-    f.puts "VALUE rb_tr_get_#{name}(void) {"
-    f.puts "  return RUBY_CEXT_INVOKE(\"#{macro_name}\");"
-    f.puts "}"
+  constants.each do |name, expr|
+    f.puts "VALUE #{name};"
   end
+
+  f.puts
+  f.puts "void rb_tr_init_global_constants(void) {"
+  constants.each do |name, expr|
+    f.puts "  #{name} = RUBY_CEXT_INVOKE(\"#{name}\");"
+  end
+  f.puts "}"
 end
 
 File.open("lib/truffle/truffle/cext_constants.rb", "w") do |f|
@@ -189,8 +164,8 @@ COPYRIGHT
   f.puts
 
   f.puts "module Truffle::CExt"
-  constants.each do |macro_name, _, expr|
-    f.puts "  def #{macro_name}"
+  constants.each do |name, expr|
+    f.puts "  def #{name}"
     f.puts "    #{expr}"
     f.puts "  end"
     f.puts

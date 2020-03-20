@@ -31,6 +31,21 @@ int rb_tr_obj_equal(VALUE first, VALUE second);
 int rb_tr_flags(VALUE value);
 void rb_tr_add_flags(VALUE value, int flags);
 
+// Initialization
+
+void rb_tr_init_global_constants(void);
+
+// These refer Ruby global variables and their value can change,
+// so we use macros instead of C global variables like MRI, which would be complicated to update.
+#define rb_stdin RUBY_CEXT_INVOKE("rb_stdin")
+#define rb_stdout RUBY_CEXT_INVOKE("rb_stdout")
+#define rb_stderr RUBY_CEXT_INVOKE("rb_stderr")
+#define rb_fs RUBY_CEXT_INVOKE("rb_fs")
+#define rb_output_fs RUBY_CEXT_INVOKE("rb_output_fs")
+#define rb_rs RUBY_CEXT_INVOKE("rb_rs")
+#define rb_output_rs RUBY_CEXT_INVOKE("rb_output_rs")
+#define rb_default_rs RUBY_CEXT_INVOKE("rb_default_rs")
+
 // Managed Structs
 
 void* rb_tr_new_managed_struct_internal(void *type);

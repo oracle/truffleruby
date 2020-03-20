@@ -20,8 +20,6 @@ end
 
 require 'mkmf'
 
-$srcs = %w[ruby.c internal.c st.c]
-
 # st.c needs this for TRUE/FALSE to be defined.
 # -DRUBY_EXPORT is added in MRI's configure.in.
 $CFLAGS << " -DRUBY_EXPORT"
