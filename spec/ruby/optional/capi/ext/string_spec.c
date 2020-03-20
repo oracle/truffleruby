@@ -297,7 +297,7 @@ VALUE string_spec_RSTRING_PTR_iterate_uint32(VALUE self, VALUE str) {
 }
 
 VALUE string_spec_RSTRING_PTR_short_memcpy(VALUE self, VALUE str) {
-  // Short memcpy operations may be optimised by the compiler to a single write.
+  /* Short memcpy operations may be optimised by the compiler to a single write. */
   if (RSTRING_LEN(str) >= 8) {
     memcpy(RSTRING_PTR(str), "Infinity", 8);
   }
