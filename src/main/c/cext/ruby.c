@@ -2881,12 +2881,6 @@ VALUE rb_struct_members(VALUE s) {
 
 // Data
 
-POLYGLOT_DECLARE_STRUCT(RData)
-
-struct RData *RDATA(VALUE value) {
-  return polyglot_as_RData(RUBY_CEXT_INVOKE_NO_WRAP("RDATA", value));
-}
-
 static RUBY_DATA_FUNC rb_tr_free_function(RUBY_DATA_FUNC dfree) {
   return (dfree == (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE) ? free : dfree;
 }

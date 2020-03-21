@@ -1252,6 +1252,10 @@ struct RData {
     void *data;
 };
 
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RData)
+#endif
+
 typedef struct rb_data_type_struct rb_data_type_t;
 
 struct rb_data_type_struct {
@@ -1279,6 +1283,10 @@ struct RTypedData {
     VALUE typed_flag; /* 1 or not */
     void *data;
 };
+
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RTypedData)
+#endif
 
 #define DATA_PTR(dta) (RDATA(dta)->data)
 
@@ -1379,8 +1387,8 @@ int rb_big_sign(VALUE);
 #define RREGEXP(obj) (R_CAST(RRegexp)(obj))
 #define RARRAY(obj)  (R_CAST(RArray)(obj))
 #ifdef TRUFFLERUBY
-struct RData *RDATA(VALUE value);
-#define RTYPEDDATA(value) ((struct RTypedData *)RDATA(value))
+#define RDATA(obj) (polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
+#define RTYPEDDATA(obj) (polyglot_as_RTypedData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
 #else
 #define RDATA(obj)   (R_CAST(RData)(obj))
 #define RTYPEDDATA(obj)   (R_CAST(RTypedData)(obj))
