@@ -2930,6 +2930,22 @@ void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
   return RTYPEDDATA_DATA(value);
 }
 
+int rb_typeddata_inherited_p(const rb_data_type_t *child, const rb_data_type_t *parent) {
+  while (child) {
+    if (child == parent) {
+      return 1;
+    }
+    child = child->parent;
+  }
+  return 0;
+}
+
+int rb_typeddata_is_kind_of(VALUE obj, const rb_data_type_t *data_type) {
+  return RB_TYPE_P(obj, T_DATA) &&
+    RTYPEDDATA_P(obj) &&
+    rb_typeddata_inherited_p(RTYPEDDATA_TYPE(obj), data_type);
+}
+
 // VM
 
 VALUE rb_tr_ruby_verbose_ptr;
@@ -4772,14 +4788,6 @@ VALUE rb_obj_setup(VALUE obj, VALUE klass, VALUE type) {
 
 VALUE rb_float_new_in_heap(double d) {
   rb_tr_error("rb_float_new_in_heap not implemented");
-}
-
-int rb_typeddata_inherited_p(const rb_data_type_t *child, const rb_data_type_t *parent) {
-  rb_tr_error("rb_typeddata_inherited_p not implemented");
-}
-
-int rb_typeddata_is_kind_of(VALUE obj, const rb_data_type_t *data_type) {
-  rb_tr_error("rb_typeddata_is_kind_of not implemented");
 }
 
 void rb_freeze_singleton_class(VALUE x) {
