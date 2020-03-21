@@ -322,14 +322,19 @@ unsigned LONG_LONG rb_num2ull(VALUE val) {
 short rb_num2short(VALUE value) {
   long long_val = rb_num2long(value);
   if ((long)(short)long_val != long_val) {
-    rb_raise(rb_eRangeError, "integer %li too %s to convert to `short'",
+    rb_raise(rb_eRangeError, "integer %ld too %s to convert to `short'",
        long_val, long_val < 0 ? "small" : "big");
   }
   return long_val;
 }
 
 unsigned short rb_num2ushort(VALUE value) {
-  rb_tr_error("rb_num2ushort not implemented");
+  unsigned long long_val = rb_num2ulong(value);
+  if ((unsigned long)(unsigned short)long_val != long_val) {
+    rb_raise(rb_eRangeError, "integer %ld too %s to convert to `unsigned short'",
+       long_val, long_val < 0 ? "small" : "big");
+  }
+  return long_val;
 }
 
 short rb_fix2short(VALUE value) {
