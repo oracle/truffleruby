@@ -2352,7 +2352,7 @@ rb_array_len(VALUE a)
 
 #ifdef TRUFFLERUBY
 static inline const VALUE *
-rb_array_const_ptr(VALUE a)
+rb_array_const_ptr_transient(VALUE a)
 {
     return ((const VALUE *) RARRAY_PTR(a));
 }
@@ -2364,6 +2364,7 @@ rb_array_const_ptr_transient(VALUE a)
     return FIX_CONST_VALUE_PTR((RBASIC(a)->flags & RARRAY_EMBED_FLAG) ?
 	RARRAY(a)->as.ary : RARRAY(a)->as.heap.ptr);
 }
+#endif
 
 /* internal function. do not use this function */
 static inline const VALUE *
@@ -2379,6 +2380,7 @@ rb_array_const_ptr(VALUE a)
     return rb_array_const_ptr_transient(a);
 }
 
+#ifndef TRUFFLERUBY
 /* internal function. do not use this function */
 static inline VALUE *
 rb_array_ptr_use_start(VALUE a, int allow_transient)
