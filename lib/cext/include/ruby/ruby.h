@@ -1161,7 +1161,6 @@ struct RArray {
 #ifdef TRUFFLERUBY
 long rb_array_len(VALUE a);
 int RARRAY_LENINT(VALUE array);
-#define rb_array_const_ptr(array) ((const VALUE *)RARRAY_PTR(array))
 #else
 #define RARRAY_LENINT(ary) rb_long2int(RARRAY_LEN(ary))
 #endif
@@ -2351,7 +2350,13 @@ rb_array_len(VALUE a)
 # define FIX_CONST_VALUE_PTR(x) (x)
 #endif
 
-#ifndef TRUFFLERUBY
+#ifdef TRUFFLERUBY
+static inline const VALUE *
+rb_array_const_ptr(VALUE a)
+{
+    return ((const VALUE *) RARRAY_PTR(a));
+}
+#else
 /* internal function. do not use this function */
 static inline const VALUE *
 rb_array_const_ptr_transient(VALUE a)
