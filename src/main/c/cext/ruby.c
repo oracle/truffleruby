@@ -4380,7 +4380,7 @@ VALUE rb_str_format(int argc, const VALUE *argv, VALUE fmt) {
 }
 
 VALUE rb_str_tmp_new(long len) {
-  rb_tr_error("rb_str_tmp_new not implemented");
+  return rb_obj_hide(rb_str_new(NULL, len));
 }
 
 #undef rb_utf8_str_new
