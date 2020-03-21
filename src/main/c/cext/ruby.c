@@ -2314,6 +2314,14 @@ VALUE rb_complex_polar(VALUE r, VALUE theta) {
   return RUBY_CEXT_INVOKE("rb_complex_polar", r, theta);
 }
 
+VALUE rb_complex_real(VALUE complex) {
+  return RUBY_INVOKE(complex, "real");
+}
+
+VALUE rb_complex_imag(VALUE complex) {
+  return RUBY_INVOKE(complex, "imag");
+}
+
 VALUE rb_complex_set_real(VALUE complex, VALUE real) {
   return RUBY_CEXT_INVOKE("rb_complex_set_real", complex, real);
 }
