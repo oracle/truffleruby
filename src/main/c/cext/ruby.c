@@ -2924,7 +2924,7 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 }
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
-  if ((rb_data_type_t*) rb_tr_object_hidden_var_get(value, "data_type") != data_type) {
+  if (RTYPEDDATA_TYPE(value) != data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
   }
   return RTYPEDDATA_DATA(value);
