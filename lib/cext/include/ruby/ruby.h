@@ -1278,7 +1278,10 @@ struct rb_data_type_struct {
 #define HAVE_RB_DATA_TYPE_T_PARENT 1
 
 struct RTypedData {
+#ifndef TRUFFLERUBY
+    // TruffleRuby: RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
     struct RBasic basic;
+#endif
     const rb_data_type_t *type;
     VALUE typed_flag; /* 1 or not */
     void *data;
