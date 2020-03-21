@@ -40,19 +40,25 @@ module Truffle::CExt
     end
 
     def polyglot_members(internal)
-      ['data']
+      %w[data type typed_flag]
     end
 
     def polyglot_read_member(name)
-      data_holder.data
-    ensure
-      name == 'data' or raise "Unknown identifier: #{name}"
+      case name
+      when 'data'
+        data_holder.data
+      when 'type'
+        type
+      when 'typed_flag'
+        type ? 1 : 0
+      else
+        raise "Unknown identifier: #{name}"
+      end
     end
 
     def polyglot_write_member(name, value)
+      raise "Unknown identifier: #{name}" unless name == 'data'
       data_holder.data = value
-    ensure
-      name == 'data' or raise "Unknown identifier: #{name}"
     end
 
     def polyglot_remove_member(name)
@@ -64,7 +70,7 @@ module Truffle::CExt
     end
 
     def polyglot_member_readable?(name)
-      name == 'data'
+      name == 'data' or name == 'type' or name == 'typed_flag'
     end
 
     def polyglot_member_modifiable?(name)
@@ -97,6 +103,10 @@ module Truffle::CExt
 
     def data_holder
       Primitive.object_hidden_var_get(@object, DATA_HOLDER)
+    end
+
+    def type
+      Primitive.object_hidden_var_get(@object, :data_type)
     end
   end
 
