@@ -13,6 +13,7 @@ require_relative 'cext_constants'
 
 module Truffle::CExt
 
+  DATA_TYPE = Object.new
   DATA_HOLDER = Object.new
   DATA_MEMSIZER = Object.new
   RB_TYPE = Object.new
@@ -106,7 +107,7 @@ module Truffle::CExt
     end
 
     def type
-      Primitive.object_hidden_var_get(@object, :data_type)
+      Primitive.object_hidden_var_get(@object, DATA_TYPE)
     end
   end
 
@@ -1630,7 +1631,7 @@ module Truffle::CExt
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
     data_holder = DataHolder.new(data)
-    hidden_variable_set object, :data_type, data_type
+    hidden_variable_set object, DATA_TYPE, data_type
     hidden_variable_set object, DATA_HOLDER, data_holder
     hidden_variable_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless size.nil?
 
