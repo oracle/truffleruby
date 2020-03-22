@@ -287,6 +287,7 @@ class Socket < BasicSocket
     end
 
     def self.unpack_sockaddr_un(addr)
+      addr = addr.to_sockaddr if addr.is_a?(Addrinfo)
       struct = Truffle::Socket::Foreign::SockaddrUn.with_sockaddr(addr)
       begin
         unless struct.family == Socket::AF_UNIX
