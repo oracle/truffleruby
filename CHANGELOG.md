@@ -110,6 +110,7 @@ Compatibility:
 * Support `NULL` for the status of `rb_protect()`.
 * Ensure `BigDecimal#inspect` does not call `BigDecimal#to_s` to avoid behaviour change on `to_s` override (#1960).
 * Define all C-API `rb_{c,m,e}*` constants as C global variables (#1541).
+* Raise `ArgumentError` for `Socket.unpack_sockaddr_un` if the socket family is incorrect.
 
 Changes:
 
