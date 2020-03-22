@@ -234,9 +234,10 @@ class Socket < BasicSocket
     Truffle::Socket::Foreign.pack_sockaddr_in(host, port)
   end
 
-  def self.unpack_sockaddr_in(sockaddr)
+  def self.unpack_sockaddr_in(addr)
+    addr = addr.to_sockaddr if addr.is_a?(Addrinfo)
     _, address, port = Truffle::Socket::Foreign
-      .unpack_sockaddr_in(sockaddr, false)
+      .unpack_sockaddr_in(addr, false)
 
     [port, address]
   rescue SocketError => e
