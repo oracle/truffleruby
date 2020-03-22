@@ -1,1 +1,0 @@
-solaris:Socket.unpack_sockaddr_in raises an ArgumentError when the sin_family is not AF_INET
