@@ -234,9 +234,10 @@ class Socket < BasicSocket
     Truffle::Socket::Foreign.pack_sockaddr_in(host, port)
   end
 
-  def self.unpack_sockaddr_in(sockaddr)
+  def self.unpack_sockaddr_in(addr)
+    addr = addr.to_sockaddr if addr.is_a?(Addrinfo)
     _, address, port = Truffle::Socket::Foreign
-      .unpack_sockaddr_in(sockaddr, false)
+      .unpack_sockaddr_in(addr, false)
 
     [port, address]
   rescue SocketError => e
@@ -287,9 +288,12 @@ class Socket < BasicSocket
     end
 
     def self.unpack_sockaddr_un(addr)
+      addr = addr.to_sockaddr if addr.is_a?(Addrinfo)
       struct = Truffle::Socket::Foreign::SockaddrUn.with_sockaddr(addr)
-
       begin
+        unless struct.family == Socket::AF_UNIX
+          raise ArgumentError, 'not an AF_UNIX sockaddr'
+        end
         struct[:sun_path].to_s
       ensure
         struct.pointer.free

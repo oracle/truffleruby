@@ -340,7 +340,7 @@ class IO
     end
 
     def inspect # :nodoc:
-      content = (@start..@used).map { |i| @storage[i].chr }.join.inspect
+      content = (@start...@used).map { |i| @storage[i].chr(Encoding::BINARY) }.join.inspect
       "#{super[0...-1]} #{content}>"
     end
   end
