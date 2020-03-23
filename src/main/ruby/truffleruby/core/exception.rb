@@ -120,13 +120,13 @@ class Exception
 
   def full_message(highlight: nil, order: undefined)
     highlight = if highlight.equal?(nil)
-                  Truffle::ExceptionOperations.original_std_err_tty?
+                  Exception.to_tty?
                 else
                   raise ArgumentError, "expected true of false as highlight: #{highlight}" unless highlight.equal?(true) || highlight.equal?(false)
                   !highlight.equal?(false)
                 end
     reverse = if Primitive.undefined?(order)
-                Truffle::ExceptionOperations.original_std_err_tty?
+                Exception.to_tty?
               else
                 raise ArgumentError, "expected :top or :bottom as order: #{order}" unless order.equal?(:top) || order.equal?(:bottom)
                 !order.equal?(:top)
@@ -175,7 +175,7 @@ class Exception
   end
 
   def self.to_tty?
-    Truffle::ExceptionOperations.original_std_err_tty?
+    $stderr.equal?(STDERR) && !STDERR.closed? && STDERR.tty?
   end
 end
 
