@@ -68,6 +68,7 @@ Bug fixes:
 * Fixed incorrect `Encoding::CompatibilityError` raised for some interpolated Regexps (#1967).
 * Actually unset environment variables with a `nil` value for `Process.spawn` instead of setting them to an empty String.
 * Core library methods part of the Native Image heap are no longer added in the compilation queue on the first call, but after they reach the thresholds like other methods.
+* Fix `RbConfig::CONFIG['LIBRUBY_SO']` file extension.
 
 Compatibility:
 
