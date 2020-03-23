@@ -37,6 +37,7 @@ https://www.ruby-lang.org/en/security/.
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
+CVE-2020-10663 | Unsafe Object Creation Vulnerability in JSON (Additional fix) | [Fix](https://bugs.ruby-lang.org/issues/16698) | [Spec](https://github.com/ruby/spec/pull/764) | The pure Ruby version of JSON we use is safe
 CVE-2019-16255 | A code injection vulnerability of Shell#[] and Shell#test | [Fix](https://github.com/ruby/ruby/commit/d6adc68dc9c74a33b3ca012af171e2d59f0dea10) | MRI test | Same
 CVE-2019-16254 | HTTP response splitting in WEBrick (Additional fix) | [Fix](https://github.com/ruby/ruby/commit/3ce238b5f9795581eb84114dcfbdf4aa086bfecc) | MRI test | Same
 CVE-2019-15845 | A NUL injection vulnerability of File.fnmatch and File.fnmatch? | [Fix](https://github.com/ruby/ruby/commit/a0a2640b398cffd351f87d3f6243103add66575b) | MRI test | Check for NUL bytes
