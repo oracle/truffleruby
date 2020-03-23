@@ -12,10 +12,10 @@
 # A workflow tool for TruffleRuby development
 
 require 'fileutils'
-require 'json'
 require 'timeout'
 require 'rbconfig'
 require 'pathname'
+autoload :JSON, 'json'
 
 if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
   $stderr.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
