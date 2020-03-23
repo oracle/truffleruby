@@ -48,6 +48,7 @@ class JT
     end
 
     private def dockerfile(*args)
+      require 'yaml'
       config = @config ||= YAML.load_file(File.join(TRUFFLERUBY_DIR, 'tool', 'docker-configs.yaml'))
 
       distro = 'ol7'

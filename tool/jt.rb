@@ -14,7 +14,6 @@
 require 'fileutils'
 require 'json'
 require 'timeout'
-require 'yaml'
 require 'rbconfig'
 require 'pathname'
 
