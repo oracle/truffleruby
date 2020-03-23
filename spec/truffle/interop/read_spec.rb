@@ -74,7 +74,7 @@ describe "Truffle::Interop.read" do
       object = TruffleInteropSpecs::PolyglotMember.new
       Truffle::Interop.write_member(object, :bob,  14)
       Truffle::Interop.read_member(object, :bob).should == 14
-      Truffle::Interop.keys(object).should include 'bob'
+      Truffle::Interop.members(object).should include 'bob'
       object.log.should include [:polyglot_read_member, 'bob']
     end
 

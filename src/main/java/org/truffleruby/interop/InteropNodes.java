@@ -720,28 +720,28 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "keys?", onSingleton = true, required = 1)
-    public abstract static class InteropHasKeysNode extends InteropCoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "has_members?", onSingleton = true, required = 1)
+    public abstract static class HasMembersNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected boolean hasKeys(Object receiver,
+        protected boolean hasMembers(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasMembers(receiver);
         }
     }
 
-    @CoreMethod(names = "keys_without_conversion", onSingleton = true, required = 1, optional = 1)
-    public abstract static class KeysNode extends InteropPrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "members_without_conversion", onSingleton = true, required = 1, optional = 1)
+    public abstract static class GetMembersNode extends InteropPrimitiveArrayArgumentsNode {
 
-        protected abstract Object executeKeys(TruffleObject receiver, boolean internal);
+        protected abstract Object executeMembers(TruffleObject receiver, boolean internal);
 
         @Specialization
-        protected Object keys(TruffleObject receiver, NotProvided internal) {
-            return executeKeys(receiver, false);
+        protected Object members(TruffleObject receiver, NotProvided internal) {
+            return executeMembers(receiver, false);
         }
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object keys(Object receiver, boolean internal,
+        protected Object members(Object receiver, boolean internal,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {

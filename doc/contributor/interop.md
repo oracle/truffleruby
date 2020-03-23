@@ -178,8 +178,8 @@ conversion for `EXECUTE` using `Truffle::Interop.execute_without_conversion`,
 for `READ` using `Truffle::Interop.read_without_conversion`, and for `UNBOX`
 using `Truffle::Interop.unbox_without_conversion`.
 
-`Truffle::Interop.keys` converts Java string key names to Ruby strings, so it
-also has a `Truffle::Interop.keys_without_conversion` equivalent.
+`Truffle::Interop.members` converts Java string key names to Ruby strings, so it
+also has a `Truffle::Interop.members_without_conversion` equivalent.
 
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
 `WRITE`, or `UNBOX`, that returns a Java string will convert the returned string

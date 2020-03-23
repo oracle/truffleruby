@@ -51,8 +51,8 @@ module Truffle
       from_java_string(import_without_conversion(name))
     end
 
-    def self.keys(object, internal = false)
-      keys = keys_without_conversion(object, internal)
+    def self.members(object, internal = false)
+      keys = members_without_conversion(object, internal)
       enumerable(keys).map { |key| from_java_string(key) }
     end
 
@@ -274,7 +274,7 @@ module Truffle
         if Truffle::Interop.has_array_elements?(object)
           string << " #{to_array(object).inspect}"
         end
-        if Truffle::Interop.keys?(object)
+        if Truffle::Interop.has_members?(object)
           string << " #{pairs_from_object(object).map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(', ')}"
         end
         if Truffle::Interop.executable?(object)
@@ -285,7 +285,7 @@ module Truffle
     end
 
     private_class_method def self.recursive_string_for(object)
-      if java?(object) && is_java_map?(object) || keys?(object)
+      if java?(object) && is_java_map?(object) || has_members?(object)
         +'{...}'
       elsif has_array_elements?(object)
         +'[...]'
@@ -331,7 +331,7 @@ module Truffle
       when :size
         Truffle::Interop.has_array_elements?(object)
       when :keys
-        Truffle::Interop.keys?(object)
+        Truffle::Interop.has_members?(object)
       when :call
         Truffle::Interop.executable?(object)
       when :class
@@ -379,7 +379,7 @@ module Truffle
     end
 
     def self.pairs_from_object(object)
-      keys(object).map { |key| [key, object[key]] }
+      members(object).map { |key| [key, object[key]] }
     end
 
     def self.unbox_if_needed(object)
