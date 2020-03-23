@@ -322,14 +322,19 @@ unsigned LONG_LONG rb_num2ull(VALUE val) {
 short rb_num2short(VALUE value) {
   long long_val = rb_num2long(value);
   if ((long)(short)long_val != long_val) {
-    rb_raise(rb_eRangeError, "integer %li too %s to convert to `short'",
+    rb_raise(rb_eRangeError, "integer %ld too %s to convert to `short'",
        long_val, long_val < 0 ? "small" : "big");
   }
   return long_val;
 }
 
 unsigned short rb_num2ushort(VALUE value) {
-  rb_tr_error("rb_num2ushort not implemented");
+  unsigned long long_val = rb_num2ulong(value);
+  if ((unsigned long)(unsigned short)long_val != long_val) {
+    rb_raise(rb_eRangeError, "integer %ld too %s to convert to `unsigned short'",
+       long_val, long_val < 0 ? "small" : "big");
+  }
+  return long_val;
 }
 
 short rb_fix2short(VALUE value) {
@@ -2314,6 +2319,14 @@ VALUE rb_complex_polar(VALUE r, VALUE theta) {
   return RUBY_CEXT_INVOKE("rb_complex_polar", r, theta);
 }
 
+VALUE rb_complex_real(VALUE complex) {
+  return RUBY_INVOKE(complex, "real");
+}
+
+VALUE rb_complex_imag(VALUE complex) {
+  return RUBY_INVOKE(complex, "imag");
+}
+
 VALUE rb_complex_set_real(VALUE complex, VALUE real) {
   return RUBY_CEXT_INVOKE("rb_complex_set_real", complex, real);
 }
@@ -2868,12 +2881,6 @@ VALUE rb_struct_members(VALUE s) {
 
 // Data
 
-POLYGLOT_DECLARE_STRUCT(RData)
-
-struct RData *RDATA(VALUE value) {
-  return polyglot_as_RData(RUBY_CEXT_INVOKE_NO_WRAP("RDATA", value));
-}
-
 static RUBY_DATA_FUNC rb_tr_free_function(RUBY_DATA_FUNC dfree) {
   return (dfree == (RUBY_DATA_FUNC)RUBY_DEFAULT_FREE) ? free : dfree;
 }
@@ -2917,10 +2924,26 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 }
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
-  if ((rb_data_type_t*) rb_tr_object_hidden_var_get(value, "data_type") != data_type) {
+  if (RTYPEDDATA_TYPE(value) != data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
   }
   return RTYPEDDATA_DATA(value);
+}
+
+int rb_typeddata_inherited_p(const rb_data_type_t *child, const rb_data_type_t *parent) {
+  while (child) {
+    if (child == parent) {
+      return 1;
+    }
+    child = child->parent;
+  }
+  return 0;
+}
+
+int rb_typeddata_is_kind_of(VALUE obj, const rb_data_type_t *data_type) {
+  return RB_TYPE_P(obj, T_DATA) &&
+    RTYPEDDATA_P(obj) &&
+    rb_typeddata_inherited_p(RTYPEDDATA_TYPE(obj), data_type);
 }
 
 // VM
@@ -4372,7 +4395,7 @@ VALUE rb_str_format(int argc, const VALUE *argv, VALUE fmt) {
 }
 
 VALUE rb_str_tmp_new(long len) {
-  rb_tr_error("rb_str_tmp_new not implemented");
+  return rb_obj_hide(rb_str_new(NULL, len));
 }
 
 #undef rb_utf8_str_new
@@ -4765,14 +4788,6 @@ VALUE rb_obj_setup(VALUE obj, VALUE klass, VALUE type) {
 
 VALUE rb_float_new_in_heap(double d) {
   rb_tr_error("rb_float_new_in_heap not implemented");
-}
-
-int rb_typeddata_inherited_p(const rb_data_type_t *child, const rb_data_type_t *parent) {
-  rb_tr_error("rb_typeddata_inherited_p not implemented");
-}
-
-int rb_typeddata_is_kind_of(VALUE obj, const rb_data_type_t *data_type) {
-  rb_tr_error("rb_typeddata_is_kind_of not implemented");
 }
 
 void rb_freeze_singleton_class(VALUE x) {

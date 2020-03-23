@@ -13,6 +13,7 @@ require_relative 'cext_constants'
 
 module Truffle::CExt
 
+  DATA_TYPE = Object.new
   DATA_HOLDER = Object.new
   DATA_MEMSIZER = Object.new
   RB_TYPE = Object.new
@@ -40,19 +41,25 @@ module Truffle::CExt
     end
 
     def polyglot_members(internal)
-      ['data']
+      %w[data type typed_flag]
     end
 
     def polyglot_read_member(name)
-      data_holder.data
-    ensure
-      name == 'data' or raise "Unknown identifier: #{name}"
+      case name
+      when 'data'
+        data_holder.data
+      when 'type'
+        type
+      when 'typed_flag'
+        type ? 1 : 0
+      else
+        raise "Unknown identifier: #{name}"
+      end
     end
 
     def polyglot_write_member(name, value)
+      raise "Unknown identifier: #{name}" unless name == 'data'
       data_holder.data = value
-    ensure
-      name == 'data' or raise "Unknown identifier: #{name}"
     end
 
     def polyglot_remove_member(name)
@@ -64,7 +71,7 @@ module Truffle::CExt
     end
 
     def polyglot_member_readable?(name)
-      name == 'data'
+      name == 'data' or name == 'type' or name == 'typed_flag'
     end
 
     def polyglot_member_modifiable?(name)
@@ -97,6 +104,10 @@ module Truffle::CExt
 
     def data_holder
       Primitive.object_hidden_var_get(@object, DATA_HOLDER)
+    end
+
+    def type
+      Primitive.object_hidden_var_get(@object, DATA_TYPE)
     end
   end
 
@@ -429,14 +440,14 @@ module Truffle::CExt
     # that puts never seen cases behind a transfer
 
     value_class = value.class
-    type = hidden_variable_get(value_class, RB_TYPE)
-    type ||= hidden_variable_set(value_class, RB_TYPE, rb_tr_find_type(value))
+    type = Primitive.object_hidden_var_get(value_class, RB_TYPE)
+    type ||= Primitive.object_hidden_var_set(value_class, RB_TYPE, rb_tr_find_type(value))
     rb_tr_cached_type(value, type)
   end
 
   def rb_tr_cached_type(value, type)
     if type == T_NONE
-      if hidden_variable_get(value, DATA_HOLDER)
+      if Primitive.object_hidden_var_get(value, DATA_HOLDER)
         T_DATA
       else
         T_OBJECT
@@ -1427,7 +1438,7 @@ module Truffle::CExt
     class << ruby_class
       private :__allocate__
     end
-    hidden_variable_set(ruby_class.singleton_class, ALLOCATOR_FUNC, function)
+    Primitive.object_hidden_var_set(ruby_class.singleton_class, ALLOCATOR_FUNC, function)
   end
 
   def rb_get_alloc_func(ruby_class)
@@ -1437,7 +1448,7 @@ module Truffle::CExt
     rescue NameError
       nil
     else
-      hidden_variable_get(allocate_method, ALLOCATOR_FUNC)
+      Primitive.object_hidden_var_get(allocate_method, ALLOCATOR_FUNC)
     end
   end
 
@@ -1446,7 +1457,7 @@ module Truffle::CExt
   rescue NameError
     nil # it's fine to call this on a class that doesn't have an allocator
   else
-    hidden_variable_set(ruby_class.singleton_class, ALLOCATOR_FUNC, nil)
+    Primitive.object_hidden_var_set(ruby_class.singleton_class, ALLOCATOR_FUNC, nil)
   end
 
   def rb_alias(mod, new_name, old_name)
@@ -1610,7 +1621,7 @@ module Truffle::CExt
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
     data_holder = DataHolder.new(data)
-    hidden_variable_set object, DATA_HOLDER, data_holder
+    Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
     define_marker object, data_marker(mark, data_holder) unless mark.nil?
     object
@@ -1620,9 +1631,9 @@ module Truffle::CExt
     ruby_class = Object unless ruby_class
     object = ruby_class.__send__(:__layout_allocate__)
     data_holder = DataHolder.new(data)
-    hidden_variable_set object, :data_type, data_type
-    hidden_variable_set object, DATA_HOLDER, data_holder
-    hidden_variable_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless size.nil?
+    Primitive.object_hidden_var_set object, DATA_TYPE, data_type
+    Primitive.object_hidden_var_set object, DATA_HOLDER, data_holder
+    Primitive.object_hidden_var_set object, DATA_MEMSIZER, data_sizer(size, data_holder) unless size.nil?
 
     ObjectSpace.define_finalizer object, data_finalizer(free, data_holder) unless free.nil?
 

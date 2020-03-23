@@ -30,6 +30,9 @@ extern "C" {
 // Enabling USE_FLONUM also changes the value of Qtrue/Qnil/Qundef.
 #define USE_FLONUM 0
 
+// We don't have a transient heap
+#define USE_TRANSIENT_HEAP 0
+
 // Sulong enforces calling functions with the correct arity, so we set this
 // to catch rb_block_call_func_t* functions with incorrect arity faster.
 #define RB_BLOCK_CALL_FUNC_STRICT 1

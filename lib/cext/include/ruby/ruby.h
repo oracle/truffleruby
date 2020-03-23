@@ -1161,7 +1161,6 @@ struct RArray {
 #ifdef TRUFFLERUBY
 long rb_array_len(VALUE a);
 int RARRAY_LENINT(VALUE array);
-#define rb_array_const_ptr(array) ((const VALUE *)RARRAY_PTR(array))
 #else
 #define RARRAY_LENINT(ary) rb_long2int(RARRAY_LEN(ary))
 #endif
@@ -1253,6 +1252,10 @@ struct RData {
     void *data;
 };
 
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RData)
+#endif
+
 typedef struct rb_data_type_struct rb_data_type_t;
 
 struct rb_data_type_struct {
@@ -1275,11 +1278,18 @@ struct rb_data_type_struct {
 #define HAVE_RB_DATA_TYPE_T_PARENT 1
 
 struct RTypedData {
+#ifndef TRUFFLERUBY
+    // TruffleRuby: RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
     struct RBasic basic;
+#endif
     const rb_data_type_t *type;
     VALUE typed_flag; /* 1 or not */
     void *data;
 };
+
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RTypedData)
+#endif
 
 #define DATA_PTR(dta) (RDATA(dta)->data)
 
@@ -1380,8 +1390,8 @@ int rb_big_sign(VALUE);
 #define RREGEXP(obj) (R_CAST(RRegexp)(obj))
 #define RARRAY(obj)  (R_CAST(RArray)(obj))
 #ifdef TRUFFLERUBY
-struct RData *RDATA(VALUE value);
-#define RTYPEDDATA(value) ((struct RTypedData *)RDATA(value))
+#define RDATA(obj) (polyglot_as_RData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
+#define RTYPEDDATA(obj) (polyglot_as_RTypedData(polyglot_invoke(RUBY_CEXT, "RDATA", rb_tr_unwrap(obj))))
 #else
 #define RDATA(obj)   (R_CAST(RData)(obj))
 #define RTYPEDDATA(obj)   (R_CAST(RTypedData)(obj))
@@ -2351,7 +2361,13 @@ rb_array_len(VALUE a)
 # define FIX_CONST_VALUE_PTR(x) (x)
 #endif
 
-#ifndef TRUFFLERUBY
+#ifdef TRUFFLERUBY
+static inline const VALUE *
+rb_array_const_ptr_transient(VALUE a)
+{
+    return ((const VALUE *) RARRAY_PTR(a));
+}
+#else
 /* internal function. do not use this function */
 static inline const VALUE *
 rb_array_const_ptr_transient(VALUE a)
@@ -2359,6 +2375,7 @@ rb_array_const_ptr_transient(VALUE a)
     return FIX_CONST_VALUE_PTR((RBASIC(a)->flags & RARRAY_EMBED_FLAG) ?
 	RARRAY(a)->as.ary : RARRAY(a)->as.heap.ptr);
 }
+#endif
 
 /* internal function. do not use this function */
 static inline const VALUE *
@@ -2374,6 +2391,7 @@ rb_array_const_ptr(VALUE a)
     return rb_array_const_ptr_transient(a);
 }
 
+#ifndef TRUFFLERUBY
 /* internal function. do not use this function */
 static inline VALUE *
 rb_array_ptr_use_start(VALUE a, int allow_transient)
