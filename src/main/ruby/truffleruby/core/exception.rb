@@ -175,6 +175,7 @@ class Exception
   end
 
   def self.to_tty?
+    # Whether $stderr refers to the original STDERR and STDERR is a tty
     $stderr.equal?(STDERR) && !STDERR.closed? && STDERR.tty?
   end
 end
