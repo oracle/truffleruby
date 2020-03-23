@@ -89,35 +89,14 @@ to a Ruby exception as follows:
 
 ## What messages are sent for Ruby syntax on foreign objects - Implicit polyglot API
 
+The syntax for each message is detailed in the [Implicit Polyglot API documentation](interop_implicit_api.md).
+
 TruffleRuby automatically provides these special methods on a foreign object.
 They have priority over methods that the foreign object actually provides.
-
-`object[name/index]` (`#[](name/index)`) sends `READ`.
-
-`object[name/index] = value` (`#[]=(name/index, value)`) sends `WRITE`.
-
-`object.delete(name/index)` sends `REMOVE`.
-
-`object.call(*args)` sends `EXECUTE`.
-
-`object.nil?` sends `IS_NIL`.
-
-`object.size` sends `SIZE`.
-
-`object.keys` sends `KEYS`.
-
-`object.name` sends `INVOKE`.
 
 `object + other` and other operator method calls (method name not beginning with
 a letter) will send `IS_BOXED` on `object` and based on that will possibly
 `UNBOX` it, convert to Ruby, and then call the method on the unboxed version.
-
-`object.name(*args)` sends `INVOKE`.
-
-`object.new(*args)` sends `NEW`.
-
-`object.class` sends `READ(class)` for a Java `Class` object, otherwise sends an
-`INVOKE` as normal.
 
 `object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`.
 
@@ -148,18 +127,7 @@ runtime object instance.
 
 `foreign_object.kind_of?` works like `foreign_object.is_a?`.
 
-`object.respond_to?(:to_a)`, `respond_to?(:to_ary)` and `respond_to?(:size)`
-sends `HAS_SIZE`.
-
-`object.respond_to?(:call)` sends `EXECUTABLE`.
-
-`object.respond_to?(:new)` sends `IS_INSTANTIABLE`.
-
 `object.respond_to?(:class)` calls `Truffle::Interop.java_class?(object)`.
-
-`object.respond_to?(:inspect)`, `:to_s`, `:is_a?`, is `true`.
-
-`object.respond_to?(:to_str)` is `true` if the object `UNBOXes` to a `String`.
 
 `object.respond_to?(name)` for other names returns `false`.
 
