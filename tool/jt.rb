@@ -244,14 +244,14 @@ module Utilities
   end
 
   def truffleruby_native?
-    return @truffleruby_native unless @truffleruby_native.nil?
+    return @truffleruby_native if defined?(@truffleruby_native)
     # the truffleruby executable is bigger than 10MB if it is a native executable
     # the executable delegator for mac has less than 1MB
     @truffleruby_native = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
   end
 
   def truffleruby_compiler?
-    return @truffleruby_compiler unless @truffleruby_compiler.nil?
+    return @truffleruby_compiler if defined?(@truffleruby_compiler)
 
     return @truffleruby_compiler = false unless truffleruby?
     return @truffleruby_compiler = true if truffleruby_native?
