@@ -341,7 +341,7 @@ public class RubyDebugTest {
             properties = value.getProperties();
             assertEquals(2, properties.size()); // 'hash' has two properties
             try {
-                properties.iterator().next().as(String.class);
+                properties.iterator().next().toDisplayString();
             } catch (IllegalStateException ex) {
                 "Value is not readable".equals(ex.getMessage()); // BUG
                 Assert.fail(ex.getMessage());
@@ -398,7 +398,7 @@ public class RubyDebugTest {
                 Object expectedValue = expectedFrame[i + 1];
                 DebugValue value = frame.getScope().getDeclaredValue(expectedIdentifier);
                 assertNotNull(value);
-                String valueStr = value.as(String.class);
+                String valueStr = value.toDisplayString();
 
                 assertEquals(expectedValue, valueStr);
             }
