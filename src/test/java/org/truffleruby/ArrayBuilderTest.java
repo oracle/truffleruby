@@ -31,7 +31,6 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.shared.TruffleRuby;
-import org.truffleruby.shared.options.OptionsCatalog;
 
 import jline.internal.InputStreamReader;
 
@@ -195,16 +194,8 @@ public class ArrayBuilderTest {
 
     @Before
     public void before() {
-        context = RubyTest
-                .setupContext(Context.newBuilder())
-                // We also want to test instrumentation works well with lazy nodes
-                .option(OptionsCatalog.LAZY_TRANSLATION_USER.getName(), Boolean.TRUE.toString())
-                .out(out)
-                .err(err)
-                .build();
-
+        context = RubyTest.setupContext(Context.newBuilder()).out(out).err(err).build();
         context.eval(getSource("init.rb"));
-
     }
 
     @After

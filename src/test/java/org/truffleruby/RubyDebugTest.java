@@ -91,7 +91,7 @@ public class RubyDebugTest {
         context = RubyTest
                 .setupContext(Context.newBuilder())
                 // We also want to test instrumentation works well with lazy nodes
-                .option(OptionsCatalog.LAZY_TRANSLATION_USER.getName(), Boolean.TRUE.toString())
+                .option(OptionsCatalog.LAZY_TRANSLATION_USER.getName(), "true")
                 .out(out)
                 .err(err)
                 .build();
@@ -118,10 +118,9 @@ public class RubyDebugTest {
         }
     }
 
-    @Ignore
     @Test
     public void testBreakpoint() throws Throwable {
-        final Source factorial = createFactorial();
+        final Source factorial = getSource("factorial.rb");
 
         run.addLast(() -> {
             assertNull(suspendedEvent);
@@ -165,7 +164,7 @@ public class RubyDebugTest {
 
     @Test
     public void stepInStepOver() throws Throwable {
-        final Source factorial = createFactorial();
+        final Source factorial = getSource("factorial.rb");
         context.eval(factorial);
         run.addLast(() -> {
             assertNull(suspendedEvent);
@@ -341,7 +340,7 @@ public class RubyDebugTest {
             properties = value.getProperties();
             assertEquals(2, properties.size()); // 'hash' has two properties
             try {
-                properties.iterator().next().as(String.class);
+                properties.iterator().next().toDisplayString();
             } catch (IllegalStateException ex) {
                 "Value is not readable".equals(ex.getMessage()); // BUG
                 Assert.fail(ex.getMessage());
@@ -398,7 +397,7 @@ public class RubyDebugTest {
                 Object expectedValue = expectedFrame[i + 1];
                 DebugValue value = frame.getScope().getDeclaredValue(expectedIdentifier);
                 assertNotNull(value);
-                String valueStr = value.as(String.class);
+                String valueStr = value.toDisplayString();
 
                 assertEquals(expectedValue, valueStr);
             }
@@ -421,11 +420,7 @@ public class RubyDebugTest {
         assertTrue(msg + ". Assuming all requests processed: " + run, run.isEmpty());
     }
 
-    private static Source createFactorial() {
-        return getSource("factorial.rb");
-    }
-
-    private final String getErr() {
+    private String getErr() {
         try {
             err.flush();
         } catch (IOException e) {

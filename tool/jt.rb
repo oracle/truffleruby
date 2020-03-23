@@ -12,11 +12,10 @@
 # A workflow tool for TruffleRuby development
 
 require 'fileutils'
-require 'json'
 require 'timeout'
-require 'yaml'
 require 'rbconfig'
 require 'pathname'
+autoload :JSON, 'json'
 
 if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
   $stderr.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
@@ -244,14 +243,14 @@ module Utilities
   end
 
   def truffleruby_native?
-    return @truffleruby_native unless @truffleruby_native.nil?
+    return @truffleruby_native if defined?(@truffleruby_native)
     # the truffleruby executable is bigger than 10MB if it is a native executable
     # the executable delegator for mac has less than 1MB
     @truffleruby_native = truffleruby? && File.size(truffleruby_launcher_path) > 10*1024*1024
   end
 
   def truffleruby_compiler?
-    return @truffleruby_compiler unless @truffleruby_compiler.nil?
+    return @truffleruby_compiler if defined?(@truffleruby_compiler)
 
     return @truffleruby_compiler = false unless truffleruby?
     return @truffleruby_compiler = true if truffleruby_native?
@@ -927,12 +926,13 @@ module Commands
     when 'bootstraptest' then test_bootstraptest(*rest)
     when 'mri' then test_mri(*rest)
     when 'unit', 'unittest'
+      rest, mx_options = args_split(rest)
       tests = rest.empty? ? ['org.truffleruby'] : rest
       # TODO (eregon, 4 Feb 2019): This should run on GraalVM, not development jars
       # The home needs to be set, otherwise TruffleFile does not allow access to files in the TruffleRuby home,
       # because it cannot find the correct home.
       home = "-Dorg.graalvm.language.ruby.home=#{ruby_home}"
-      mx 'unittest', home, *tests
+      mx(*mx_options, 'unittest', home, *tests)
     when 'tck' then mx 'tck', *rest
     else
       if File.expand_path(path, TRUFFLERUBY_DIR).start_with?("#{TRUFFLERUBY_DIR}/test")
