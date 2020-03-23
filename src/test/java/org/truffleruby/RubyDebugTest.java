@@ -91,7 +91,7 @@ public class RubyDebugTest {
         context = RubyTest
                 .setupContext(Context.newBuilder())
                 // We also want to test instrumentation works well with lazy nodes
-                .option(OptionsCatalog.LAZY_TRANSLATION_USER.getName(), Boolean.TRUE.toString())
+                .option(OptionsCatalog.LAZY_TRANSLATION_USER.getName(), "true")
                 .out(out)
                 .err(err)
                 .build();

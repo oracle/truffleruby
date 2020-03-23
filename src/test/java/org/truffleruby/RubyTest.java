@@ -62,10 +62,8 @@ public abstract class RubyTest {
     public static Context.Builder setupContext(Context.Builder builder) {
         return builder
                 .allowAllAccess(true)
-                .option(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), Boolean.FALSE.toString())
-                .option(
-                        OptionsCatalog.BASICOPS_INLINE.getName(),
-                        Boolean.FALSE.toString());
+                .option(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT.getName(), "false")
+                .option(OptionsCatalog.BASICOPS_INLINE.getName(), "false");
     }
 
     public static Context createContext() {
