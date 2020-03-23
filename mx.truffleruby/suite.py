@@ -1,5 +1,5 @@
 suite = {
-    "mxversion": "5.228.6",
+    "mxversion": "5.256.4",
     "name": "truffleruby",
 
     "imports": {
@@ -322,6 +322,7 @@ suite = {
         "TRUFFLERUBY-SERVICES": {
             "moduleInfo": {
                 "name": "org.truffleruby.services",
+                "requires": ["java.scripting"],
                 "exports": ["org.truffleruby.services.scriptengine"],
             },
             "dependencies": [
