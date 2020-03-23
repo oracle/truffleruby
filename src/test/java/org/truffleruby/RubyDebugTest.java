@@ -120,7 +120,7 @@ public class RubyDebugTest {
 
     @Test
     public void testBreakpoint() throws Throwable {
-        final Source factorial = createFactorial();
+        final Source factorial = getSource("factorial.rb");
 
         run.addLast(() -> {
             assertNull(suspendedEvent);
@@ -164,7 +164,7 @@ public class RubyDebugTest {
 
     @Test
     public void stepInStepOver() throws Throwable {
-        final Source factorial = createFactorial();
+        final Source factorial = getSource("factorial.rb");
         context.eval(factorial);
         run.addLast(() -> {
             assertNull(suspendedEvent);
@@ -420,11 +420,7 @@ public class RubyDebugTest {
         assertTrue(msg + ". Assuming all requests processed: " + run, run.isEmpty());
     }
 
-    private static Source createFactorial() {
-        return getSource("factorial.rb");
-    }
-
-    private final String getErr() {
+    private String getErr() {
         try {
             err.flush();
         } catch (IOException e) {
