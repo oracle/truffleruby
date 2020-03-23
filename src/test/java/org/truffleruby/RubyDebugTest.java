@@ -118,7 +118,6 @@ public class RubyDebugTest {
         }
     }
 
-    @Ignore
     @Test
     public void testBreakpoint() throws Throwable {
         final Source factorial = createFactorial();
