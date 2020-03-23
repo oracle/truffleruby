@@ -30,7 +30,7 @@ end
 begin
   top
 rescue => e
-  puts_backtrace e.full_message
+  puts_backtrace e.full_message(order: :top, highlight: false)
 end
 
 
@@ -48,7 +48,7 @@ end
 begin
   double_lock
 rescue => e
-  puts_backtrace e.full_message
+  puts_backtrace e.full_message(order: :top, highlight: false)
 end
 
 
@@ -63,7 +63,7 @@ end
 begin
   Backtraces.foo(Bar.new)
 rescue => e
-  puts_backtrace e.full_message
+  puts_backtrace e.full_message(order: :top, highlight: false)
 end
 
 
@@ -76,7 +76,7 @@ begin
     raise "error from Ruby called from instrinsified qsort()"
   })
 rescue => e
-  puts_backtrace e.full_message
+  puts_backtrace e.full_message(order: :top, highlight: false)
 end
 
 
@@ -93,5 +93,5 @@ begin
     error_helper
   })
 rescue RuntimeError => e
-  puts_backtrace e.full_message
+  puts_backtrace e.full_message(order: :top, highlight: false)
 end
