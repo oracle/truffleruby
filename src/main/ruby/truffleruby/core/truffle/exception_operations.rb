@@ -136,9 +136,5 @@ module Truffle
         "#{errno_description}#{extra_message}"
       end
     end
-
-    def self.original_std_err_tty?
-      $stderr.equal?(STDERR) && !STDERR.closed? && STDERR.tty?
-    end
   end
 end
