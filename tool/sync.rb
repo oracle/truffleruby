@@ -11,8 +11,11 @@
 # A script to synchronize changes from the Ruby source files
 # to the GraalVM build instantaneously.
 
-# Use 'gem install listen' to install this dependency
-require 'listen'
+begin
+  require 'listen'
+rescue LoadError
+  abort "Gem 'listen' not installed. Install with 'gem install listen'."
+end
 
 require 'fileutils'
 
@@ -29,6 +32,7 @@ DIRS_TO_SYNC = %w[
   lib/mri
   lib/patches
   lib/truffle
+  lib/gems
 ].map { |path| "#{FROM}/#{path}" }
 
 listener = Listen.to(*DIRS_TO_SYNC) do |modified, added, removed|
