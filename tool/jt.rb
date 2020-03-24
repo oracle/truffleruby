@@ -579,7 +579,6 @@ module Commands
                                               the Ruby is symlinked into rbenv or chruby if available
             options:
               --sforceimports                 run sforceimports before building (default: false)
-              --[no-]ee-checkout             checkout graal-enterprise when necessary (default: !ci?)
               --env|-e                        mx env file used to build the GraalVM, default is "jvm"
               --name|-n NAME                  specify the name of the build "mxbuild/truffleruby-NAME",
                                               it is also linked in your ruby manager (if found) under the same name,
@@ -1875,30 +1874,23 @@ EOS
     java_home
   end
 
-  def checkout_enterprise_revision
+  def clone_enterprise
     ee_path = File.expand_path '../graal-enterprise', TRUFFLERUBY_DIR
-    unless File.directory?(ee_path)
+    if File.directory?(ee_path)
+      false
+    else
       github_ee_url = 'https://github.com/graalvm/graal-enterprise.git'
       bitbucket_ee_url = raw_sh('mx', 'urlrewrite', github_ee_url, capture: :out).chomp
       if bitbucket_ee_url == github_ee_url
         raise "#{ee_path} is missing and could not be cloned using urlrewrite, clone the repository manually or setup the urlrewrite rules"
       end
       git_clone(bitbucket_ee_url, ee_path)
+      true
     end
+  end
 
-    raw_sh 'git', '-C', ee_path, 'fetch', 'origin'
-
-    suite_file = File.join ee_path, 'vm-enterprise/mx.vm-enterprise/suite.py'
-    # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
-    merge_commit_in_graal = raw_sh(
-        'git', '-C', GRAAL_DIR, 'log', '--pretty=%H', '--grep=PullRequest:', '--merges', '--max-count=1', get_truffle_version,
-        capture: :out).chomp
-    # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
-    # The suite file is automatically updated on every graal PR merged.
-    graal_enterprise_commit = raw_sh(
-        'git', '-C', ee_path, 'log', 'origin/master', '--pretty=%H', '--grep=PullRequest:', '--reverse', '-m',
-        '-S', merge_commit_in_graal, '--', suite_file, capture: :out).lines.first.chomp
-    raw_sh('git', '-C', ee_path, 'checkout', graal_enterprise_commit)
+  def checkout_enterprise_revision(env = 'jvm-ee')
+    mx('-p', TRUFFLERUBY_DIR, '--env', env, 'checkout-downstream', 'compiler', 'graal-enterprise')
   end
 
   def bootstrap_toolchain
@@ -1952,15 +1944,18 @@ EOS
                             else
                               env
                             end
-
     mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
 
-    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if options.delete('--sforceimports')
+    cloned = env.include?('ee') && clone_enterprise
+
+    if options.delete('--sforceimports')
+      mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
+      checkout_enterprise_revision(env) if env.include?('ee')
+    else
+      checkout_enterprise_revision(env) if cloned
+    end
 
     mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only')
-
-    ee_checkout = options.delete('--ee-checkout') || (options.delete('--no-ee-checkout') ? false : !ci?)
-    checkout_enterprise_revision if env.include?('ee') && ee_checkout
 
     mx_options, mx_build_options = args_split(options)
     mx_args = mx_base_args + mx_options

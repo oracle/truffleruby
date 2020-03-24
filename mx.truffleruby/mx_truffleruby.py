@@ -48,7 +48,7 @@ def jt(*args):
 
 def build_truffleruby(args):
     mx.command_function('sversions')([])
-    jt('build', '--no-ee-checkout')
+    jt('build')
 
 def miniruby_for_building_cexts(args):
     jvm_args = mx.get_runtime_jvm_args(['TRUFFLERUBY', 'TRUFFLERUBY-LAUNCHER', 'SULONG'])

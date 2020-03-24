@@ -68,7 +68,6 @@ local part_definitions = {
       ],
 
       mx_build_options:: [],
-      jt_build_options:: [],
     },
 
     maven: {
@@ -79,7 +78,7 @@ local part_definitions = {
     build_no_clean: {
       setup+: [["mx", "sversions"]] +
               # aot-build.log is used for the build-stats metrics, in other cases it does no harm
-              jt(["build", "--env", self.mx_env] + self.jt_build_options + ["--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
+              jt(["build", "--env", self.mx_env, "--"] + self.mx_build_options + ["|", "tee", "aot-build.log"]) +
               [
                 # make sure jt always uses what was just built
                 ["set-export", "RUBY_BIN", jt(["--use", self.mx_env, "--silent", "launcher"])[0]],
@@ -92,10 +91,6 @@ local part_definitions = {
     },
 
     build: $.use.build_no_clean + $.use.clean,
-
-    clone_enterprise: {
-      setup+: [["mx", "sversions"]] + jt(["checkout_enterprise_revision"]),
-    },
 
     truffleruby: {
       "$.benchmark.server":: { options: [] },
@@ -170,7 +165,6 @@ local part_definitions = {
     },
     jvm_ee: {
       mx_env:: "jvm-ee",
-      jt_build_options:: ["--ee-checkout"],
       environment+: {
         HOST_VM: "server",
         HOST_VM_CONFIG: "graal-enterprise",
@@ -193,7 +187,6 @@ local part_definitions = {
     } + svm,
     native_ee: {
       mx_env:: "native-ee",
-      jt_build_options:: ["--ee-checkout"],
       environment+: {
         HOST_VM_CONFIG: "graal-enterprise",
       },
@@ -466,14 +459,14 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
 
       "ruby-test-compiler-graal-core":    $.platform.linux + $.jdk.v8  + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       "ruby-test-compiler-graal-core-11": $.platform.linux + $.jdk.v11 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
-      # "ruby-test-compiler-graal-enterprise": $.platform.linux + $.jdk.v8 + $.use.clone_enterprise + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      # "ruby-test-compiler-graal-enterprise": $.platform.linux + $.jdk.v8 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
 
       "ruby-test-svm-graal-core-linux":        $.platform.linux  + $.jdk.v8  + $.env.native + gate + $.run.testdownstream_aot,
       "ruby-test-svm-graal-core-linux-11":     $.platform.linux  + $.jdk.v11 + $.env.native + gate + $.run.testdownstream_aot,
       "ruby-test-svm-graal-core-darwin":       $.platform.darwin + $.jdk.v8  + $.env.native + gate + $.run.testdownstream_aot,
       "ruby-test-svm-graal-core-darwin-11":    $.platform.darwin + $.jdk.v11 + $.env.native + gate + $.run.testdownstream_aot,
-      "ruby-test-svm-graal-enterprise-linux":  $.platform.linux  + $.jdk.v8  + $.use.clone_enterprise + $.env.native_ee + gate + $.run.testdownstream_aot,
-      "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + $.jdk.v8  + $.use.clone_enterprise + $.env.native_ee + gate + $.run.testdownstream_aot,
+      "ruby-test-svm-graal-enterprise-linux":  $.platform.linux  + $.jdk.v8  + $.env.native_ee + gate + $.run.testdownstream_aot,
+      "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + $.jdk.v8  + $.env.native_ee + gate + $.run.testdownstream_aot,
     },
 
   local other_rubies = {
