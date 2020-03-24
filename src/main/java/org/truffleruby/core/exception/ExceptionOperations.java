@@ -104,7 +104,7 @@ public abstract class ExceptionOperations {
                 .getValue();
     }
 
-    public static void rethrow(Throwable throwable) {
+    public static RuntimeException rethrow(Throwable throwable) {
         if (throwable instanceof RuntimeException) {
             throw (RuntimeException) throwable;
         } else if (throwable instanceof Error) {

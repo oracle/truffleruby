@@ -73,6 +73,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_AUTOLOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_FEATURE_LOCATION_KEY = new OptionKey<>(false);
+    public static final OptionKey<Profile> METRICS_PROFILE_REQUIRE_KEY = new OptionKey<>(Profile.NONE, EnumOptionType.optionTypeFor(Profile.class));
     public static final OptionKey<Boolean> CEXTS_LOG_LOAD_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> CEXTS_LOG_WARNINGS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> ARGV_GLOBALS_KEY = new OptionKey<>(false);
@@ -515,6 +516,13 @@ public class OptionsCatalog {
     public static final OptionDescriptor LOG_FEATURE_LOCATION = OptionDescriptor
             .newBuilder(LOG_FEATURE_LOCATION_KEY, "ruby.log-feature-location")
             .help("Log the process of finding features")
+            .category(OptionCategory.EXPERT)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
+    public static final OptionDescriptor METRICS_PROFILE_REQUIRE = OptionDescriptor
+            .newBuilder(METRICS_PROFILE_REQUIRE_KEY, "ruby.metrics-profile-require")
+            .help("Measure time for searching, parsing, translating and loading files. Valid values are: summary, detail, or none.")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1145,6 +1153,8 @@ public class OptionsCatalog {
                 return LOG_AUTOLOAD;
             case "ruby.log-feature-location":
                 return LOG_FEATURE_LOCATION;
+            case "ruby.metrics-profile-require":
+                return METRICS_PROFILE_REQUIRE;
             case "ruby.cexts-log-load":
                 return CEXTS_LOG_LOAD;
             case "ruby.cexts-log-warnings":
@@ -1353,6 +1363,7 @@ public class OptionsCatalog {
             LOG_LOAD,
             LOG_AUTOLOAD,
             LOG_FEATURE_LOCATION,
+            METRICS_PROFILE_REQUIRE,
             CEXTS_LOG_LOAD,
             CEXTS_LOG_WARNINGS,
             ARGV_GLOBALS,

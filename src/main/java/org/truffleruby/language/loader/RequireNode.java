@@ -92,7 +92,10 @@ public abstract class RequireNode extends RubyContextNode {
         requireMetric("before-require-" + feature);
         try {
             //intern() to improve footprint
-            return requireConsideringAutoload(feature, expandedPathRaw.intern(), pathString);
+            return getContext().getMetricsProfiler().callWithMetrics(
+                    "require",
+                    feature,
+                    () -> requireConsideringAutoload(feature, expandedPathRaw.intern(), pathString));
         } finally {
             requireMetric("after-require-" + feature);
         }
@@ -231,7 +234,10 @@ public abstract class RequireNode extends RubyContextNode {
 
             requireMetric("before-execute-" + feature);
             try {
-                deferredCall.call(callNode);
+                getContext().getMetricsProfiler().callWithMetrics(
+                        "execute",
+                        feature,
+                        () -> deferredCall.call(callNode));
             } finally {
                 requireMetric("after-execute-" + feature);
             }

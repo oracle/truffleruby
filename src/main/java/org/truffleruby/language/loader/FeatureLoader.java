@@ -211,8 +211,17 @@ public class FeatureLoader {
         return fileLocks;
     }
 
+
     @TruffleBoundary
     public String findFeature(String feature) {
+        return context.getMetricsProfiler().callWithMetrics(
+                "searching",
+                feature,
+                () -> findFeatureImpl(feature));
+    }
+
+    @TruffleBoundary
+    public String findFeatureImpl(String feature) {
         if (context.getOptions().LOG_FEATURE_LOCATION) {
             final String originalFeature = feature;
 
