@@ -28,7 +28,8 @@ describe 'RbConfig::CONFIG' do
     ruby_exe(<<-RUBY, options: '--enable-frozen-string-literal').should == "Done\n"
       require 'rbconfig'
       RbConfig::CONFIG.each do |k, v|
-        if v.frozen?
+        # SDKROOT excluded here to workaround the issue: https://bugs.ruby-lang.org/issues/16738
+        if v.frozen? && k != 'SDKROOT'
           puts "\#{k} Failure"
         end
       end
