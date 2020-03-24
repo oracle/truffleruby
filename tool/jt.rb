@@ -45,12 +45,7 @@ RUBOCOP_INCLUDE_LIST = %w[
   spec/truffle
 ]
 
-ON_MAC = RbConfig::CONFIG['host_os'].include?('darwin')
-ON_LINUX = RbConfig::CONFIG['host_os'].include?('linux')
-
-# See core/truffle/platform.rb
-SOEXT = ON_MAC ? 'dylib' : 'so'
-DLEXT = ON_MAC ? 'bundle' : 'so'
+DLEXT = RbConfig::CONFIG['DLEXT']
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -111,15 +106,22 @@ SUBPROCESSES = []
 end
 
 module Utilities
-
   private
 
-  def bold(text)
-    STDOUT.tty? ? "\e[1m#{text}\e[22m" : text
+  def linux?
+    @linux ||= RbConfig::CONFIG['host_os'].include?('linux')
+  end
+
+  def darwin?
+    @darwin ||= RbConfig::CONFIG['host_os'].include?('darwin')
   end
 
   def ci?
     ENV.key?('BUILD_URL')
+  end
+
+  def bold(text)
+    STDOUT.tty? ? "\e[1m#{text}\e[22m" : text
   end
 
   def get_truffle_version(from: :suite)
@@ -466,7 +468,7 @@ module Utilities
   end
 
   def app_open(file)
-    cmd = ON_MAC ? 'open' : 'xdg-open'
+    cmd = darwin? ? 'open' : 'xdg-open'
 
     sh cmd, file
   end
@@ -523,9 +525,9 @@ module Utilities
   end
 
   def mx_os
-    if ON_MAC
+    if darwin?
       'darwin'
-    elsif ON_LINUX
+    elsif linux?
       'linux'
     else
       abort 'Unknown OS'
@@ -1229,7 +1231,7 @@ EOS
         # Test a gem dynamically compiling a C extension
         # Does not work on macOS. Also fails on macOS on MRI with --enabled-shared.
         # It's a bug of RubyInline not using LIBRUBYARG/LIBRUBYARG_SHARED.
-        sh 'test/truffle/cexts/RubyInline/RubyInline.sh' unless ON_MAC
+        sh 'test/truffle/cexts/RubyInline/RubyInline.sh' unless darwin?
 
         # Test cexts used by many projects
         sh 'test/truffle/cexts/msgpack/msgpack.sh'
@@ -1613,11 +1615,11 @@ EOS
     METRICS_REPS.times do
       log '.', "sampling\n"
 
-      max_rss_in_mb = if ON_LINUX
+      max_rss_in_mb = if linux?
                         out = raw_sh('/usr/bin/time', '-v', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
                         out =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
-                      elsif ON_MAC
+                      elsif darwin?
                         out = raw_sh('/usr/bin/time', '-l', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
                         out =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
@@ -1844,7 +1846,7 @@ EOS
   end
 
   private def install_jvmci(download_message)
-    raise 'Installing JVMCI is only available on Linux and macOS currently' unless ON_LINUX || ON_MAC
+    raise 'Installing JVMCI is only available on Linux and macOS currently' unless linux? || darwin?
 
     update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path('..', TRUFFLERUBY_DIR)
@@ -1862,7 +1864,7 @@ EOS
       dirs = Dir[dir_pattern]
       abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
       extracted = dirs.first
-      ON_MAC ? "#{extracted}/Contents/Home" : extracted
+      darwin? ? "#{extracted}/Contents/Home" : extracted
     end
 
     abort 'Could not find the extracted JDK' unless java_home
@@ -1975,7 +1977,7 @@ EOS
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.
-    if ON_MAC && !truffleruby_native?
+    if darwin? && !truffleruby_native?
       FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
       FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
