@@ -1937,14 +1937,15 @@ EOS
           else
             'jvm'
           end
-    native = env.include? 'native'
+    raise 'Cannot use both --use and --env' if defined?(@ruby_name)
+    @ruby_name = env
+
     name = 'truffleruby-' + if (i = options.index('--name') || options.index('-n'))
                               options.delete_at i
                               options.delete_at i
                             else
                               env
                             end
-    mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
 
     cloned = env.include?('ee') && clone_enterprise
 
@@ -1955,6 +1956,7 @@ EOS
       checkout_enterprise_revision(env) if cloned
     end
 
+    mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
     mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only')
 
     mx_options, mx_build_options = args_split(options)
@@ -1973,7 +1975,7 @@ EOS
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.
-    if ON_MAC && !native
+    if ON_MAC && !truffleruby_native?
       FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
       FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
