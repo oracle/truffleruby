@@ -35,6 +35,16 @@ describe 'RbConfig::CONFIG' do
       puts 'Done'
     RUBY
   end
+
+  it "libdir/LIBRUBY_SO is the path to libruby and it exists if and only if ENABLE_SHARED" do
+    if RbConfig::CONFIG['ENABLE_SHARED'] == 'yes'
+      libdir = RbConfig::CONFIG['libdir']
+      File.should.exist?("#{libdir}/#{RbConfig::CONFIG['LIBRUBY_SO']}")
+    elsif RbConfig::CONFIG['ENABLE_SHARED'] == 'no'
+      libdir = RbConfig::CONFIG['libdir']
+      File.should_not.exist?("#{libdir}/#{RbConfig::CONFIG['LIBRUBY_SO']}")
+    end
+  end
 end
 
 describe "RbConfig::TOPDIR" do
