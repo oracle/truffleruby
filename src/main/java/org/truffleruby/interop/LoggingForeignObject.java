@@ -9,7 +9,9 @@
  */
 package org.truffleruby.interop;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -23,7 +25,6 @@ import com.oracle.truffle.api.library.ReflectionLibrary;
 @ExportLibrary(ReflectionLibrary.class)
 public class LoggingForeignObject implements TruffleObject {
 
-    private final static Message INVOKE_MEMBER = Message.resolve(InteropLibrary.class, "invokeMember");
     private final static Message IS_STRING = Message.resolve(InteropLibrary.class, "isString");
     private final static Message AS_STRING = Message.resolve(InteropLibrary.class, "asString");
     private final StringBuilder log = new StringBuilder();
@@ -40,18 +41,9 @@ public class LoggingForeignObject implements TruffleObject {
     @ExportMessage
     @TruffleBoundary
     protected Object send(Message message, Object[] args) throws Exception {
-        final Object[] flatArgs;
-        if (message == INVOKE_MEMBER) {
-            Object[] invokeArg = (Object[]) args[1];
-            Object[] newArgs = new Object[1 + invokeArg.length];
-            newArgs[0] = args[0];
-            System.arraycopy(invokeArg, 0, newArgs, 1, invokeArg.length);
-            flatArgs = newArgs;
-        } else {
-            flatArgs = args;
-        }
+        final Object[] flatArgs = flatten(args);
 
-        String[] a = new String[flatArgs.length];
+        final String[] a = new String[flatArgs.length];
         Arrays.fill(a, "%s");
 
         log(message.getSimpleName() + "(" + String.join(", ", a) + ")", flatArgs);
@@ -69,6 +61,18 @@ public class LoggingForeignObject implements TruffleObject {
         }
 
         throw UnsupportedMessageException.create();
+    }
+
+    private Object[] flatten(Object[] args) {
+        List<Object> flat = new ArrayList<>();
+        for (Object arg : args) {
+            if (arg instanceof Object[]) {
+                flat.addAll(Arrays.asList((Object[]) arg));
+            } else {
+                flat.add(arg);
+            }
+        }
+        return flat.toArray();
     }
 
 }
