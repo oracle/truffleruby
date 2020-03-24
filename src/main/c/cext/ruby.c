@@ -455,7 +455,7 @@ void rb_need_block(void) {
 }
 
 void rb_set_end_proc(void (*func)(VALUE), VALUE data) {
-  rb_tr_error("rb_set_end_proc not implemented");
+  polyglot_invoke(RUBY_CEXT, "rb_set_end_proc", func, data);
 }
 
 void rb_iter_break(void) {

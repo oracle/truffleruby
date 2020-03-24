@@ -1,6 +1,6 @@
 require_relative 'spec_helper'
 
-load_extension("kernel")
+kernel_path = load_extension("kernel")
 
 describe "C-API Kernel function" do
   before :each do
@@ -531,25 +531,9 @@ describe "C-API Kernel function" do
     end
   end
 
-  platform_is_not :windows do
-    describe "rb_set_end_proc" do
-      before :each do
-        @r, @w = IO.pipe
-      end
-
-      after :each do
-        @r.close
-        @w.close
-        Process.wait @pid
-      end
-
-      it "runs a C function on shutdown" do
-        @pid = fork {
-          @s.rb_set_end_proc(@w)
-        }
-
-        @r.read(1).should == "e"
-      end
+  describe "rb_set_end_proc" do
+    it "runs a C function on shutdown" do
+      ruby_exe("require #{kernel_path.inspect}; CApiKernelSpecs.new.rb_set_end_proc(STDOUT)").should == "in write_io"
     end
   end
 
