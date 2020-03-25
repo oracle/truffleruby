@@ -45,12 +45,7 @@ RUBOCOP_INCLUDE_LIST = %w[
   spec/truffle
 ]
 
-ON_MAC = RbConfig::CONFIG['host_os'].include?('darwin')
-ON_LINUX = RbConfig::CONFIG['host_os'].include?('linux')
-
-# See core/truffle/platform.rb
-SOEXT = ON_MAC ? 'dylib' : 'so'
-DLEXT = ON_MAC ? 'bundle' : 'so'
+DLEXT = RbConfig::CONFIG['DLEXT']
 
 # Expand GEM_HOME relative to cwd so it cannot be misinterpreted later.
 ENV['GEM_HOME'] = File.expand_path(ENV['GEM_HOME']) if ENV['GEM_HOME']
@@ -111,15 +106,22 @@ SUBPROCESSES = []
 end
 
 module Utilities
-
   private
 
-  def bold(text)
-    STDOUT.tty? ? "\e[1m#{text}\e[22m" : text
+  def linux?
+    @linux ||= RbConfig::CONFIG['host_os'].include?('linux')
+  end
+
+  def darwin?
+    @darwin ||= RbConfig::CONFIG['host_os'].include?('darwin')
   end
 
   def ci?
     ENV.key?('BUILD_URL')
+  end
+
+  def bold(text)
+    STDOUT.tty? ? "\e[1m#{text}\e[22m" : text
   end
 
   def get_truffle_version(from: :suite)
@@ -466,7 +468,7 @@ module Utilities
   end
 
   def app_open(file)
-    cmd = ON_MAC ? 'open' : 'xdg-open'
+    cmd = darwin? ? 'open' : 'xdg-open'
 
     sh cmd, file
   end
@@ -484,7 +486,23 @@ module Utilities
   end
 
   def find_java_home
-    @java_home ||= ci? ? nil : ENV['JVMCI_HOME'] || install_jvmci
+    @java_home ||= begin
+      java_home = ENV['JAVA_HOME']
+      _, jvmci_version = jvmci_update_and_version
+      if java_home
+        if java_home.include?(jvmci_version)
+          :use_env_java_home
+        elsif java_home.include?('jvmci')
+          warn "warning: JAVA_HOME=#{java_home} is not the same JVMCI version as in common.json (#{jvmci_version})"
+          :use_env_java_home
+        else
+          raise '$JAVA_HOME does not seem to point to a JVMCI-enabled JDK'
+        end
+      else
+        raise '$JAVA_HOME should be set in CI' if ci?
+        install_jvmci('$JAVA_HOME is not set, downloading JDK8 with JVMCI')
+      end
+    end
   end
 
   def language_dir(graalvm_home)
@@ -501,15 +519,15 @@ module Utilities
 
     env = mx_args.first.is_a?(Hash) ? mx_args.shift : {}
     java_home = find_java_home
-    mx_args.unshift '--java-home', java_home if java_home
+    mx_args.unshift '--java-home', java_home unless java_home == :use_env_java_home
 
     raw_sh(env, find_mx, *mx_args, **options)
   end
 
   def mx_os
-    if ON_MAC
+    if darwin?
       'darwin'
-    elsif ON_LINUX
+    elsif linux?
       'linux'
     else
       abort 'Unknown OS'
@@ -562,8 +580,7 @@ module Commands
                                               GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm,
                                               the Ruby is symlinked into rbenv or chruby if available
             options:
-              --[no-]sforceimports            run sforceimports before building (default: !ci?)
-              --[no-]ee-checkout             checkout graal-enterprise when necessary (default: !ci?)
+              --sforceimports                 run sforceimports before building (default: false)
               --env|-e                        mx env file used to build the GraalVM, default is "jvm"
               --name|-n NAME                  specify the name of the build "mxbuild/truffleruby-NAME",
                                               it is also linked in your ruby manager (if found) under the same name,
@@ -575,7 +592,7 @@ module Commands
       jt build_stats [--json] <attribute>            prints attribute's value from build process (e.g., binary size)
       jt clean                                       clean
       jt env                                         prints the current environment
-      jt rebuild [build options]                     clean, sforceimports, and build
+      jt rebuild [build options]                     clean and build
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
@@ -643,7 +660,7 @@ module Commands
       recognised environment variables:
 
         RUBY_BIN                                     The TruffleRuby executable to use (normally just bin/truffleruby)
-        JVMCI_HOME                                   Path to the JVMCI JDK used for building with mx
+        JAVA_HOME                                    Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
     TXT
   end
@@ -698,7 +715,7 @@ module Commands
 
   def env
     puts 'Environment'
-    env_vars = %w[JAVA_HOME JVMCI_HOME PATH RUBY_BIN OPENSSL_PREFIX TRUFFLERUBYOPT RUBYOPT]
+    env_vars = %w[JAVA_HOME PATH RUBY_BIN OPENSSL_PREFIX TRUFFLERUBYOPT RUBYOPT]
     column_size = env_vars.map(&:size).max
     env_vars.each do |e|
       puts format "%#{column_size}s: %s", e, ENV[e].inspect
@@ -1214,7 +1231,7 @@ EOS
         # Test a gem dynamically compiling a C extension
         # Does not work on macOS. Also fails on macOS on MRI with --enabled-shared.
         # It's a bug of RubyInline not using LIBRUBYARG/LIBRUBYARG_SHARED.
-        sh 'test/truffle/cexts/RubyInline/RubyInline.sh' unless ON_MAC
+        sh 'test/truffle/cexts/RubyInline/RubyInline.sh' unless darwin?
 
         # Test cexts used by many projects
         sh 'test/truffle/cexts/msgpack/msgpack.sh'
@@ -1598,11 +1615,11 @@ EOS
     METRICS_REPS.times do
       log '.', "sampling\n"
 
-      max_rss_in_mb = if ON_LINUX
+      max_rss_in_mb = if linux?
                         out = raw_sh('/usr/bin/time', '-v', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
                         out =~ /Maximum resident set size \(kbytes\): (?<max_rss_in_kb>\d+)/m
                         Integer($~[:max_rss_in_kb]) / 1024.0
-                      elsif ON_MAC
+                      elsif darwin?
                         out = raw_sh('/usr/bin/time', '-l', '--', ruby_launcher, *args, capture: :both, no_print_cmd: true)
                         out =~ /(?<max_rss_in_bytes>\d+)\s+maximum resident set size/m
                         Integer($~[:max_rss_in_bytes]) / 1024.0 / 1024.0
@@ -1822,21 +1839,21 @@ EOS
   def install(name, *options)
     case name
     when 'jvmci'
-      puts install_jvmci
+      puts install_jvmci('Downloading JDK8 with JVMCI')
     else
       raise "Unknown how to install #{what}"
     end
   end
 
-  private def install_jvmci
-    raise 'Installing JVMCI is only available on Linux and macOS currently' unless ON_LINUX || ON_MAC
+  private def install_jvmci(download_message)
+    raise 'Installing JVMCI is only available on Linux and macOS currently' unless linux? || darwin?
 
     update, jvmci_version = jvmci_update_and_version
     dir = File.expand_path('..', TRUFFLERUBY_DIR)
     java_home = begin
       dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
-        puts 'Downloading JDK8 with JVMCI'
+        STDERR.puts download_message
         jvmci_releases = 'https://github.com/graalvm/openjdk8-jvmci-builder/releases/download'
         filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
         chdir(dir) do
@@ -1847,7 +1864,7 @@ EOS
       dirs = Dir[dir_pattern]
       abort "ambiguous JVMCI directories:\n#{dirs.join("\n")}" if dirs.length != 1
       extracted = dirs.first
-      ON_MAC ? "#{extracted}/Contents/Home" : extracted
+      darwin? ? "#{extracted}/Contents/Home" : extracted
     end
 
     abort 'Could not find the extracted JDK' unless java_home
@@ -1859,30 +1876,23 @@ EOS
     java_home
   end
 
-  def checkout_enterprise_revision
+  def clone_enterprise
     ee_path = File.expand_path '../graal-enterprise', TRUFFLERUBY_DIR
-    unless File.directory?(ee_path)
+    if File.directory?(ee_path)
+      false
+    else
       github_ee_url = 'https://github.com/graalvm/graal-enterprise.git'
       bitbucket_ee_url = raw_sh('mx', 'urlrewrite', github_ee_url, capture: :out).chomp
       if bitbucket_ee_url == github_ee_url
         raise "#{ee_path} is missing and could not be cloned using urlrewrite, clone the repository manually or setup the urlrewrite rules"
       end
       git_clone(bitbucket_ee_url, ee_path)
+      true
     end
+  end
 
-    raw_sh 'git', '-C', ee_path, 'fetch', 'origin'
-
-    suite_file = File.join ee_path, 'vm-enterprise/mx.vm-enterprise/suite.py'
-    # Find the latest merge commit of a pull request in the graal repo, equal or older than our graal import.
-    merge_commit_in_graal = raw_sh(
-        'git', '-C', GRAAL_DIR, 'log', '--pretty=%H', '--grep=PullRequest:', '--merges', '--max-count=1', get_truffle_version,
-        capture: :out).chomp
-    # Find the commit importing that version of graal in graal-enterprise by looking at the suite file.
-    # The suite file is automatically updated on every graal PR merged.
-    graal_enterprise_commit = raw_sh(
-        'git', '-C', ee_path, 'log', 'origin/master', '--pretty=%H', '--grep=PullRequest:', '--reverse', '-m',
-        '-S', merge_commit_in_graal, '--', suite_file, capture: :out).lines.first.chomp
-    raw_sh('git', '-C', ee_path, 'checkout', graal_enterprise_commit)
+  def checkout_enterprise_revision(env = 'jvm-ee')
+    mx('-p', TRUFFLERUBY_DIR, '--env', env, 'checkout-downstream', 'compiler', 'graal-enterprise')
   end
 
   def bootstrap_toolchain
@@ -1929,7 +1939,9 @@ EOS
           else
             'jvm'
           end
-    native = env.include? 'native'
+    raise 'Cannot use both --use and --env' if defined?(@ruby_name)
+    @ruby_name = env
+
     name = 'truffleruby-' + if (i = options.index('--name') || options.index('-n'))
                               options.delete_at i
                               options.delete_at i
@@ -1937,15 +1949,20 @@ EOS
                               env
                             end
 
-    sforceimports = options.delete('--sforceimports') || (options.delete('--no-sforceimports') ? false : !ci?)
-    mx('-p', TRUFFLERUBY_DIR, 'sforceimports') if sforceimports && !ci?
+    cloned = env.include?('ee') && clone_enterprise
 
-    ee_checkout = options.delete('--ee-checkout') || (options.delete('--no-ee-checkout') ? false : !ci?)
-    checkout_enterprise_revision if env.include?('ee') && ee_checkout
+    if options.delete('--sforceimports')
+      mx('-p', TRUFFLERUBY_DIR, 'sforceimports')
+      checkout_enterprise_revision(env) if env.include?('ee')
+    else
+      checkout_enterprise_revision(env) if cloned
+    end
+
+    mx_base_args = ['-p', TRUFFLERUBY_DIR, '--env', env]
+    mx(*mx_base_args, 'scheckimports', '--ignore-uncommitted', '--warn-only')
 
     mx_options, mx_build_options = args_split(options)
-
-    mx_args = ['-p', TRUFFLERUBY_DIR, '--env', env, *mx_options]
+    mx_args = mx_base_args + mx_options
 
     env = ENV['JT_CACHE_TOOLCHAIN'] ? { 'SULONG_BOOTSTRAP_GRAALVM' => bootstrap_toolchain } : {}
 
@@ -1960,7 +1977,7 @@ EOS
 
     # Insert native wrapper around the bash launcher
     # since nested shebang does not work on macOS when fish shell is used.
-    if ON_MAC && !native
+    if darwin? && !truffleruby_native?
       FileUtils.mv "#{dest_bin}/truffleruby", "#{dest_bin}/truffleruby.sh"
       FileUtils.cp "#{TRUFFLERUBY_DIR}/tool/native_launcher_darwin", "#{dest_bin}/truffleruby"
     end
