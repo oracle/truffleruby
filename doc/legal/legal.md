@@ -144,7 +144,7 @@ files.
 
 #### FFI
 
-TruffleRuby includes parts of the FFI gem 1.11.1. The FFI gem is copyright
+TruffleRuby includes parts of the FFI gem 1.12.2. The FFI gem is copyright
 2008-2016, Ruby FFI project contributors, and covered by the three-clause BSD
 licence (see `ffi.txt`).
 
