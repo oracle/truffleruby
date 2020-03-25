@@ -1,5 +1,4 @@
 Q$(MX_VERBOSE) = @
-MX_SUBPROCESS_FLAGS = $(MX_VERBOSE:y=-v)
 MKMF_MAKEFILE_SUBPROCESS_FLAGS = $(MX_VERBOSE:y=V=1)
 
 OS := $(shell uname)
@@ -16,7 +15,7 @@ $(error This Makefile should be called from mx)
 endif
 
 ROOT := $(realpath ../../..)
-RUBY := $(MX_HOME)/mx $(MX_SUBPROCESS_FLAGS) -p $(ROOT) miniruby_for_building_cexts
+RUBY := $(TRUFFLERUBY_BOOTSTRAP_LAUNCHER)
 
 CC := clang
 CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
