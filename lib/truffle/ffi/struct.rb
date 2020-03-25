@@ -190,7 +190,7 @@ module FFI
       #             :field2, :pointer, 6,  # set offset to 6 for this field
       #             :field3, :string
       #    end
-      #  @example Creating a layout from a hash +spec+ (Ruby 1.9 only)
+      #  @example Creating a layout from a hash +spec+
       #    class MyStructFromHash < Struct
       #      layout :field1 => :int,
       #             :field2 => :pointer,
@@ -202,9 +202,8 @@ module FFI
       #             :function2, callback([:pointer], :void),
       #             :field3, :string
       #    end
-      #  @note Creating a layout from a hash +spec+ is supported only for Ruby 1.9.
       def layout(*spec)
-        #raise RuntimeError, "struct layout already defined for #{self.inspect}" if defined?(@layout)
+        warn "[DEPRECATION] Struct layout is already defined for class #{self.inspect}. Redefinition as in #{caller[0]} will be disallowed in ffi-2.0." if defined?(@layout)
         return @layout if spec.size == 0
 
         builder = StructLayoutBuilder.new

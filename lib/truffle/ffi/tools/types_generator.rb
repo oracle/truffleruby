@@ -50,6 +50,7 @@ module FFI
 #include <sys/types.h>
 #if !(defined(WIN32))
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <sys/resource.h>
 #endif
         C
@@ -66,7 +67,7 @@ module FFI
         end
       end
 
-      code = ""
+      code = []
 
       typedefs.each_line do |type|
         # We only care about single line typedef
@@ -116,18 +117,18 @@ module FFI
         end
 
         if type = TYPE_MAP[def_type]
-          code << "rbx.platform.typedef.#{final_type} = #{type}\n"
+          code << "rbx.platform.typedef.#{final_type} = #{type}"
           TYPE_MAP[final_type] = TYPE_MAP[def_type]
         else
           # Fallback to an ordinary pointer if we don't know the type
           if def_type =~ /\*/
-            code << "rbx.platform.typedef.#{final_type} = pointer\n"
+            code << "rbx.platform.typedef.#{final_type} = pointer"
             TYPE_MAP[final_type] = :pointer
           end
         end
       end
 
-      code
+      code.sort.join("\n")
     end
   end
 end

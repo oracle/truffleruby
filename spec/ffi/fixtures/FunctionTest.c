@@ -117,16 +117,16 @@ static void* asyncThreadCall(void *data)
 
 void testAsyncCallback(void (*fn)(int), int value)
 {
-//#ifndef _WIN32
-//    pthread_t t;
-//    struct async_data d;
-//    d.fn = fn;
-//    d.value = value;
-//    pthread_create(&t, NULL, asyncThreadCall, &d);
-//    pthread_join(t, NULL);
-//#else
+#ifndef _WIN32
+    pthread_t t;
+    struct async_data d;
+    d.fn = fn;
+    d.value = value;
+    pthread_create(&t, NULL, asyncThreadCall, &d);
+    pthread_join(t, NULL);
+#else
     (*fn)(value);
-//#endif
+#endif
 }
 
 #if defined(_WIN32) && !defined(_WIN64)
