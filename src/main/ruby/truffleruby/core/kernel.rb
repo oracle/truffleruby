@@ -221,7 +221,9 @@ module Kernel
   end
   module_function :autoload?
 
-  def require(feature)
+  # Take this alias name so RubyGems will reuse this method
+  # and skip the method below once RubyGems is loaded.
+  private def gem_original_require(feature)
     feature = Truffle::Type.coerce_to_path(feature)
 
     path = Primitive.find_file(feature)
@@ -229,7 +231,33 @@ module Kernel
 
     Primitive.load_feature(feature, path)
   end
+
+  # A #require which lazily loads rubygems when needed.
+  # The logic is inlined so there is no extra backtrace entry for lazy-rubygems.
+  def require(feature)
+    feature = Truffle::Type.coerce_to_path(feature)
+
+    path = Primitive.find_file(feature)
+    if path
+      Primitive.load_feature(feature, path)
+    else
+      if Truffle::Boot.get_option_or_default('rubygems-lazy', false)
+        gem_original_require 'rubygems'
+
+        # Check that #require was redefined by RubyGems, otherwise we would end up in infinite recursion
+        new_require = ::Kernel.instance_method(:require)
+        if new_require == Truffle::KernelOperations::ORIGINAL_REQUIRE
+          raise 'RubyGems did not redefine #require as expected, make sure $LOAD_PATH and home are set correctly'
+        end
+        new_require.bind(self).call(feature)
+      else
+        Truffle::KernelOperations.raise_load_error(feature)
+      end
+    end
+  end
   module_function :require
+
+  Truffle::KernelOperations::ORIGINAL_REQUIRE = instance_method(:require)
 
   def require_relative(feature)
     feature = Truffle::Type.coerce_to_path(feature)

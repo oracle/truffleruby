@@ -24,33 +24,31 @@ if Truffle::Boot.ruby_home
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
   end
 
-  if Truffle::Boot.get_option_or_default('rubygems', true)
-    begin
-      Truffle::Boot.print_time_metric :'before-rubygems'
+  Truffle::Boot.delay do
+    if Truffle::Boot.get_option('rubygems') and !Truffle::Boot.get_option('rubygems-lazy')
       begin
-        if Truffle::Boot.get_option_or_default('rubygems-lazy', true)
-          require 'truffle/lazy-rubygems'
-        else
+        Truffle::Boot.print_time_metric :'before-rubygems'
+        begin
           require 'rubygems'
+        ensure
+          Truffle::Boot.print_time_metric :'after-rubygems'
         end
-      ensure
-        Truffle::Boot.print_time_metric :'after-rubygems'
+      rescue LoadError => e
+        Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
       end
+    end
+  end
+
+  if Truffle::Boot.get_option_or_default('did-you-mean', true)
+    # Load DidYouMean here manually, to avoid loading RubyGems eagerly
+    Truffle::Boot.print_time_metric :'before-did-you-mean'
+    begin
+      $LOAD_PATH << "#{Truffle::Boot.ruby_home}/lib/gems/gems/did_you_mean-1.3.0/lib"
+      require 'did_you_mean'
     rescue LoadError => e
       Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
-    else
-      if Truffle::Boot.get_option_or_default('did-you-mean', true)
-        # Load DidYouMean here manually, to avoid loading RubyGems eagerly
-        Truffle::Boot.print_time_metric :'before-did-you-mean'
-        begin
-          $LOAD_PATH << "#{Truffle::Boot.ruby_home}/lib/gems/gems/did_you_mean-1.3.0/lib"
-          require 'did_you_mean'
-        rescue LoadError => e
-          Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
-        ensure
-          Truffle::Boot.print_time_metric :'after-did-you-mean'
-        end
-      end
+    ensure
+      Truffle::Boot.print_time_metric :'after-did-you-mean'
     end
   end
 end

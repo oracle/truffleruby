@@ -365,11 +365,6 @@ public class RubyContext {
             return false;
         }
 
-        if (newOptions.LAZY_RUBYGEMS != oldOptions.LAZY_RUBYGEMS) {
-            RubyLanguage.LOGGER.fine(notReusingContext + "loading lazy-rubygems is " + newOptions.LAZY_RUBYGEMS);
-            return false;
-        }
-
         if (newOptions.DID_YOU_MEAN != oldOptions.DID_YOU_MEAN) {
             RubyLanguage.LOGGER.fine(notReusingContext + "loading did_you_mean is " + newOptions.DID_YOU_MEAN);
             return false;
