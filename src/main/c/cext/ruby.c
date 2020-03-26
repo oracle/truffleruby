@@ -3086,19 +3086,20 @@ int rb_thread_remove_event_hook_with_data(VALUE thval, rb_event_hook_func_t func
 }
 
 VALUE rb_tracepoint_new(VALUE target_thval, rb_event_flag_t events, void (*func)(VALUE, void *), void *data) {
-  rb_tr_error("rb_tracepoint_new not implemented");
+  // target_thval parameter is unused as of 2.6.5
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_tracepoint_new", events, func, data));
 }
 
 VALUE rb_tracepoint_enable(VALUE tpval) {
-  rb_tr_error("rb_tracepoint_enable not implemented");
+  return RUBY_INVOKE(tpval, "enable");
 }
 
 VALUE rb_tracepoint_disable(VALUE tpval) {
-  rb_tr_error("rb_tracepoint_disable not implemented");
+  return RUBY_INVOKE(tpval, "disable");
 }
 
 VALUE rb_tracepoint_enabled_p(VALUE tpval) {
-  rb_tr_error("rb_tracepoint_enabled_p not implemented");
+  return RUBY_INVOKE(tpval, "enabled?");
 }
 
 rb_event_flag_t rb_tracearg_event_flag(rb_trace_arg_t *trace_arg) {

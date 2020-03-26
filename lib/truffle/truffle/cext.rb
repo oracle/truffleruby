@@ -909,6 +909,26 @@ module Truffle::CExt
     $SAFE = level
   end
 
+  def rb_tracepoint_new(events, func, data)
+    TracePoint.new(*events_to_events_array(events)) do |tp|
+      Primitive.call_with_c_mutex(func, [tp, data])
+    end
+  end
+
+  def events_to_events_array(events)
+    events_ary = []
+    if events & 0x0001 != 0
+      events ^= 0x0001
+      events_ary << :line
+    end
+    if events & 0x0002 != 0
+      events ^= 0x0002
+      events_ary << :class
+    end
+    raise ArgumentError, "unknown event #{'%#x' % events}" unless events == 0
+    events_ary
+  end
+
   def rb_thread_alone
     Thread.list.count == 1 ? 1 : 0
   end
