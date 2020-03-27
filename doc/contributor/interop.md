@@ -49,15 +49,15 @@ Any Ruby object can implement the polyglot array, pointer or member behavior by
 implementing the appropriate `polyglot_*` methods. It is called the **dynamic
 polyglot API**. The list of the methods which have to be implemented can be
 found in the [details](interop_details.md), see polyglot pointer, polyglot array
-and polyglot members. If the `polyglot_*` method needs to raise an
+and polyglot members. If the `polyglot_*` method need to raise an
 [InteropException](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/InteropException.html)
 exception like
 [UnsupportedMessageException](https://www.graalvm.org/truffle/javadoc/com/oracle/truffle/api/interop/UnsupportedMessageException.html)
 it raises corresponding Ruby exception available in `Truffle::Interop` module.
 The names are the same, e.g. `Truffle::Interop::UnsupportedMessageException`.
 These exceptions inherit from `Exception`, therefore they are not caught by
-default in `rescue`. Only `Truffle::Interop::ArityException` takes any
-arguments, it takes one `Integer` an expected number of arguments.
+default in `rescue`. Only `Truffle::Interop::ArityException` takes an
+argument, an `Integer` to describe the number of expected arguments.
 
 The detailed definitions of the behavior can be found in
 [another document](interop_details.md).
@@ -70,8 +70,8 @@ there is a Ruby method in the `Truffle::Interop` module. The name of the message
 is translated as follows:
 
 - `snake_case` is used instead of `camelCase`
-- `is` and `get` prefix is dropped (`has` is not)
-- predicate messages end with `?` in Ruby 
+- `?` is appended for predicate messages (messages with `is` and `has` prefixes)
+- the `is_` and `get_` prefixes are removed (`has_` is kept)
 
 Few examples: `isString` becomes `string?`, `hasArrayElements` becomes
 `has_array_elements?`, `getArraySize` becomes `array_size`.
@@ -178,7 +178,7 @@ conversion for `EXECUTE` using `Truffle::Interop.execute_without_conversion`,
 for `READ` using `Truffle::Interop.read_without_conversion`, and for `UNBOX`
 using `Truffle::Interop.unbox_without_conversion`.
 
-`Truffle::Interop.members` converts Java string key names to Ruby strings, so it
+`Truffle::Interop.members` converts Java string member names to Ruby strings, so it
 also has a `Truffle::Interop.members_without_conversion` equivalent.
 
 A call from Ruby to a foreign language using `NEW`, `EXECUTE`, `INVOKE`, `READ`,
