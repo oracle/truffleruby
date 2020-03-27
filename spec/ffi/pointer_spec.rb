@@ -155,7 +155,7 @@ describe "Pointer" do
     end
 
     it "access beyond bounds should raise IndexError" do
-      next # no checks on access currently
+      skip "not yet supported on TruffleRuby" if RUBY_ENGINE == "truffleruby"
       expect { @mptr.slice(4, 4).get_int(4) }.to raise_error(IndexError)
     end
   end
@@ -291,7 +291,7 @@ describe "AutoPointer" do
       aptr = ptr_class.new(FFI::Pointer.new(:int, 0xdeadbeef))
       expect(aptr.type_size).to eq(FFI.type_size(:int))
     end
-
+    
     it "[] offset should match wrapped Pointer" do
       mptr = FFI::MemoryPointer.new(:int, 1024)
       aptr = ptr_class.new(FFI::Pointer.new(:int, mptr))

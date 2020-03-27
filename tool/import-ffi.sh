@@ -5,6 +5,8 @@ set -e
 
 repo="../../ffi"
 
+cp "$repo/LICENSE" doc/legal/ffi.txt
+
 # lib/
 rm -rf lib/truffle/ffi
 cp -R ../../ffi/lib/ffi lib/truffle
@@ -19,7 +21,6 @@ cp -R "$repo/spec/ffi" spec
 
 # Keep the Gemfile files
 git checkout spec/ffi/Gemfile spec/ffi/Gemfile.lock
-
 
 # Remove unused files
 rm -rf spec/ffi/embed-test

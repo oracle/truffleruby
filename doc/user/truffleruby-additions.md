@@ -78,7 +78,7 @@ and set.
 ## FFI
 
 TruffleRuby includes a built-in implementation of [Ruby-FFI](https://github.com/ffi/ffi),
-compatible with version 1.11.1 of the `ffi` gem. This should be transparent: you can
+compatible with version 1.12.2 of the `ffi` gem. This should be transparent: you can
 just install the `ffi` gem as normal, and it will use our built-in implementation,
 regardless of the version of the `ffi` gem.
 

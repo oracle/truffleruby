@@ -142,8 +142,8 @@ describe "Function with primitive integer arguments" do
     end
   end
 end
-describe "Integer parameter range checking" do
-  next # overflow behavior
+# range checks are not yet supported on TruffleRuby
+describe "Integer parameter range checking", :if => RUBY_ENGINE != "truffleruby" do
   [ 128, -129 ].each do |i|
     it ":char call(:char (#{i}))" do
       expect { expect(LibTest.ret_s8(i)).to eq(i) }.to raise_error(Exception) { |error| expect([RSpec::Expectations::ExpectationNotMetError, RangeError]).to be_include(error.class) }

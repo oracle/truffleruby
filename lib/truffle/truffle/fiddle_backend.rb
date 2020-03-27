@@ -245,7 +245,7 @@ module Fiddle
       else
         library = nil if library == Truffle::FiddleBackend::RTLD_DEFAULT
         begin
-          @handle = Primitive.interop_eval_nfi(library ? "load #{library}" : 'default')
+          @handle = Primitive.interop_eval_nfi(library ? "load '#{library}'" : 'default')
         rescue RuntimeError
           raise DLError, "#{library}: cannot open shared object file: No such file or directory"
         end

@@ -24,3 +24,28 @@ require C extension support for gems using FFI.
   `FFI::Pointer` once `"ffi"` is required. `Truffle::FFI::Pointer` should
   therefore have the same API as `FFI::Pointer` in the FFI gem.
 * `tool/import-ffi.sh`: Imports files from a checkout of the FFI gem.
+
+## Synchronization
+
+I use a branch `truffleruby-specs-$FFI_RELEASE` on my fork https://github.com/eregon/ffi
+which keeps our modifications on top of the FFI release tag we are based on.
+`tool/import-ffi.sh` from the latest of these branches should synchronize cleanly.
+
+In general, changes are done in TruffleRuby first, then I add them to my local `ffi` repository
+in the `truffleruby-specs-$FFI_RELEASE` branch with `git cherry-pick`.
+This requires `truffleruby` to be added as a remote to the `ffi` repo:
+```bash
+git remote add truffleruby ../truffleruby-ws/truffleruby
+```
+
+From there we should of course upstream as many changes as possible to minimize the diff.
+
+## Running Specs in Upstream FFI Repository
+
+```bash
+chruby truffleruby
+bundle install
+bundle exec rspec spec/ffi
+```
+
+Note that `bundle exec rake compile` is unnecessary on TruffleRuby.

@@ -37,6 +37,8 @@ module TestLibrary
       "freebsd"
     when /openbsd/
       "openbsd"
+    when /dragonfly/
+      "dragonflybsd"
     when /sunos|solaris/
       "solaris"
     when /mswin|mingw/
@@ -50,7 +52,7 @@ module TestLibrary
     lib = "#{dir}/#{lib}"
 
     FileUtils.cd(dir) do
-      make = system('which gmake >/dev/null') ? 'gmake' : 'make'
+      make = ENV['MAKE'] || (system('which gmake >/dev/null') ? 'gmake' : 'make')
 
       unless system(*%{#{make} CPU=#{CPU} OS=#{OS}}.tap{ |cmd| puts cmd.inspect })
         puts "ERROR: #{$?}"
