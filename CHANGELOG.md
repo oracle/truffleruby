@@ -115,6 +115,7 @@ Compatibility:
 * Raise `ArgumentError` for `Socket.unpack_sockaddr_un` if the socket family is incorrect.
 * Implemented `RTYPEDDATA_*()` macros and `rb_str_tmp_new()` (#1975).
 * Implemented `rb_set_end_proc` (#1959).
+* Implemented `rb_class_instance_methods`, `rb_class_public_instance_methods`, `rb_class_protected_instance_methods`, and `rb_class_private_instance_methods`. 
 
 Changes:
 
