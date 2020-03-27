@@ -255,7 +255,7 @@ public class OptionsCatalog {
             .build();
 
     public static final OptionDescriptor LAZY_RUBYGEMS = OptionDescriptor
-            .newBuilder(LAZY_RUBYGEMS_KEY, "ruby.rubygems-lazy")
+            .newBuilder(LAZY_RUBYGEMS_KEY, "ruby.lazy-rubygems")
             .help("Load RubyGems lazily on first failing require")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
@@ -1077,7 +1077,7 @@ public class OptionsCatalog {
                 return RUBYGEMS;
             case "ruby.lazy-default":
                 return DEFAULT_LAZY;
-            case "ruby.rubygems-lazy":
+            case "ruby.lazy-rubygems":
                 return LAZY_RUBYGEMS;
             case "ruby.patching":
                 return PATCHING;

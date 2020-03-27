@@ -53,7 +53,7 @@ public class Options {
     public final boolean RUBYGEMS;
     /** --lazy-default=true */
     public final boolean DEFAULT_LAZY;
-    /** --rubygems-lazy=RUBYGEMS && DEFAULT_LAZY */
+    /** --lazy-rubygems=RUBYGEMS && DEFAULT_LAZY */
     public final boolean LAZY_RUBYGEMS;
     /** --patching=true */
     public final boolean PATCHING;
@@ -443,7 +443,7 @@ public class Options {
                 return RUBYGEMS;
             case "ruby.lazy-default":
                 return DEFAULT_LAZY;
-            case "ruby.rubygems-lazy":
+            case "ruby.lazy-rubygems":
                 return LAZY_RUBYGEMS;
             case "ruby.patching":
                 return PATCHING;

@@ -11,7 +11,7 @@
 # Delay this so the pre-initialized context can also be used with --disable-gems
 # Otherwise, --disable-gems would degrade startup which is counter-intuitive.
 Truffle::Boot.delay do
-  if Truffle::Boot.get_option 'rubygems-lazy'
+  if Truffle::Boot.get_option 'lazy-rubygems'
     module Kernel
       private def gem(*args)
         gem_original_require 'rubygems'
