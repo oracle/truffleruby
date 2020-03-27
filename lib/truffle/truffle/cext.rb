@@ -206,7 +206,7 @@ module Truffle::CExt
       name = @name or raise '@name not set'
       unless Truffle::Interop.pointer?(name)
         Truffle::Interop.to_native(name)
-        raise 'it was not converted to native' unless Truffle::Interop.pointer?(name)
+        raise "#{name.inspect} could not be converted to native" unless Truffle::Interop.pointer?(name)
       end
       name_address = Truffle::Interop.as_pointer(name)
 
