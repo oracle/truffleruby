@@ -13,9 +13,9 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.loader.FeatureLoader;
 
@@ -81,7 +81,8 @@ public abstract class GetConstantNode extends RubyContextNode {
         }
 
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
-        final String expandedPath = featureLoader.findFeature(autoloadConstant.getAutoloadConstant().getAutoloadPath());
+        final String expandedPath = featureLoader
+                .findFeature(autoloadConstant.getAutoloadConstant().getAutoloadPath());
         if (expandedPath != null && featureLoader.getFileLocks().isCurrentThreadHoldingLock(expandedPath)) {
             // We found an autoload constant while we are already require-ing the autoload file,
             // consider it missing to avoid circular require warnings and calling #require twice.

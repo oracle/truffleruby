@@ -47,6 +47,7 @@ import org.truffleruby.core.string.FrozenStringLiterals;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
+import org.truffleruby.debug.MetricsProfiler;
 import org.truffleruby.interop.InteropManager;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.LexicalScope;
@@ -114,6 +115,7 @@ public class RubyContext {
     private final FrozenStringLiterals frozenStringLiterals = new FrozenStringLiterals(this);
     private final CoreExceptions coreExceptions = new CoreExceptions(this);
     private final EncodingManager encodingManager = new EncodingManager(this);
+    private final MetricsProfiler metricsProfiler = new MetricsProfiler(this);
     private final WeakValueCache<RegexpCacheKey, Regex> regexpCache = new WeakValueCache<>();
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
@@ -656,6 +658,10 @@ public class RubyContext {
         return encodingManager;
     }
 
+    public MetricsProfiler getMetricsProfiler() {
+        return metricsProfiler;
+    }
+
     public PreInitializationManager getPreInitializationManager() {
         return preInitializationManager;
     }
@@ -843,6 +849,14 @@ public class RubyContext {
             return mainSourceAbsolutePath;
         } else {
             return getPath(source);
+        }
+    }
+
+    public String getPathRelativeToHome(String path) {
+        if (path.startsWith(rubyHome) && path.length() > rubyHome.length()) {
+            return path.substring(rubyHome.length() + 1);
+        } else {
+            return path;
         }
     }
 

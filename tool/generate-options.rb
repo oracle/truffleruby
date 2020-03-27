@@ -122,6 +122,7 @@ import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.Verbosity;
+import org.truffleruby.shared.options.Profile;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
 

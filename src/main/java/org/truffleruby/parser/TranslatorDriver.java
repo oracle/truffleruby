@@ -43,6 +43,7 @@ import java.util.List;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.aot.ParserCache;
+import org.truffleruby.collections.Memo;
 import org.truffleruby.core.LoadRequiredLibrariesNode;
 import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
@@ -169,7 +170,10 @@ public class TranslatorDriver {
             node = ParserCache.INSTANCE.get(source.getName());
         } else {
             printParseTranslateExecuteMetric("before-parsing", context, source);
-            node = parseToJRubyAST(rubySource, staticScope, parserConfiguration);
+            node = context.getMetricsProfiler().callWithMetrics(
+                    "parsing",
+                    source.getName(),
+                    () -> parseToJRubyAST(rubySource, staticScope, parserConfiguration));
             printParseTranslateExecuteMetric("after-parsing", context, source);
         }
 
@@ -241,17 +245,23 @@ public class TranslatorDriver {
                 parserContext,
                 currentNode);
 
-        RubyNode beginNode = null;
+        final Memo<RubyNode> beginNodeMemo = new Memo<>(null);
         RubyNode truffleNode;
         printParseTranslateExecuteMetric("before-translate", context, source);
         try {
-            if (node.getBeginNode() != null) {
-                beginNode = translator.translateNodeOrNil(sourceIndexLength, node.getBeginNode());
-            }
-            truffleNode = translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
+            truffleNode = context.getMetricsProfiler().callWithMetrics(
+                    "translating",
+                    source.getName(),
+                    () -> {
+                        if (node.getBeginNode() != null) {
+                            beginNodeMemo.set(translator.translateNodeOrNil(sourceIndexLength, node.getBeginNode()));
+                        }
+                        return translator.translateNodeOrNil(sourceIndexLength, node.getBodyNode());
+                    });
         } finally {
             printParseTranslateExecuteMetric("after-translate", context, source);
         }
+        RubyNode beginNode = beginNodeMemo.get();
 
         // Load arguments
 

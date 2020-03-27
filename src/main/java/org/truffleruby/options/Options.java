@@ -17,6 +17,7 @@ import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionValues;
 import org.truffleruby.shared.options.OptionsCatalog;
 import org.truffleruby.shared.options.Verbosity;
+import org.truffleruby.shared.options.Profile;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
@@ -128,6 +129,8 @@ public class Options {
     public final boolean LOG_AUTOLOAD;
     /** --log-feature-location=false */
     public final boolean LOG_FEATURE_LOCATION;
+    /** --metrics-profile-require=Profile.NONE */
+    public final Profile METRICS_PROFILE_REQUIRE;
     /** --cexts-log-load=false */
     public final boolean CEXTS_LOG_LOAD;
     /** --cexts-log-warnings=false */
@@ -331,6 +334,7 @@ public class Options {
         LOG_LOAD = options.get(OptionsCatalog.LOG_LOAD_KEY);
         LOG_AUTOLOAD = options.get(OptionsCatalog.LOG_AUTOLOAD_KEY);
         LOG_FEATURE_LOCATION = options.get(OptionsCatalog.LOG_FEATURE_LOCATION_KEY);
+        METRICS_PROFILE_REQUIRE = options.get(OptionsCatalog.METRICS_PROFILE_REQUIRE_KEY);
         CEXTS_LOG_LOAD = options.get(OptionsCatalog.CEXTS_LOG_LOAD_KEY);
         CEXTS_LOG_WARNINGS = options.get(OptionsCatalog.CEXTS_LOG_WARNINGS_KEY);
         ARGV_GLOBALS = options.get(OptionsCatalog.ARGV_GLOBALS_KEY);
@@ -515,6 +519,8 @@ public class Options {
                 return LOG_AUTOLOAD;
             case "ruby.log-feature-location":
                 return LOG_FEATURE_LOCATION;
+            case "ruby.metrics-profile-require":
+                return METRICS_PROFILE_REQUIRE;
             case "ruby.cexts-log-load":
                 return CEXTS_LOG_LOAD;
             case "ruby.cexts-log-warnings":
