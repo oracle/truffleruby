@@ -221,18 +221,24 @@ module Kernel
   end
   module_function :autoload?
 
-  def require(name)
-    feature = Truffle::Type.coerce_to_path(name)
-    path = Truffle::KernelOperations.require_find_file(feature)
+  def require(feature)
+    feature = Truffle::Type.coerce_to_path(feature)
+
+    path = Primitive.find_file(feature)
+    Truffle::KernelOperations.raise_load_error(feature) unless path
+
     Primitive.load_feature(feature, path)
   end
   module_function :require
 
-  def require_relative(name)
-    feature = Truffle::Type.coerce_to_path(name)
-    full_path = Primitive.get_caller_path(feature)
-    path = Truffle::KernelOperations.require_find_file(full_path)
-    Primitive.load_feature(feature, path)
+  def require_relative(feature)
+    feature = Truffle::Type.coerce_to_path(feature)
+    path = Primitive.get_caller_path(feature)
+
+    expanded_path = Primitive.find_file(path)
+    Truffle::KernelOperations.raise_load_error(path) unless expanded_path
+
+    Primitive.load_feature(feature, expanded_path)
   end
   module_function :require_relative
 

@@ -122,12 +122,6 @@ module Truffle
         Primitive.global_variable_set :$stderr, v
       })
 
-    def self.require_find_file(feature)
-      path = Primitive.find_file(feature)
-      Truffle::KernelOperations.raise_load_error(feature) unless path
-      path
-    end
-
     def self.raise_load_error(name)
       load_error = LoadError.new("cannot load such file -- #{name}")
       load_error.path = name
