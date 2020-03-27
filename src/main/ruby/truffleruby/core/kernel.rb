@@ -236,8 +236,6 @@ module Kernel
   end
   module_function :require_relative
 
-  alias_method :iterator?, :block_given?
-
   def define_singleton_method(*args, &block)
     singleton_class.define_method(*args, &block)
   end
