@@ -92,5 +92,8 @@ profiles/
 # Jay
 tool/jay/jay
 
+# Generated
+doc/user/README.md
+
 # Ignore .rb files at the root, it's temporary files to debug some issue
 /*.rb
