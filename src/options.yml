@@ -22,7 +22,7 @@ EXPERT:
     FROZEN_STRING_LITERALS: [frozen-string-literals, boolean, false, Use frozen string literals]
     RUBYGEMS: [rubygems, boolean, true, Use RubyGems]
     DEFAULT_LAZY: [lazy-default, boolean, true, Enable default lazy options]
-    LAZY_RUBYGEMS: [rubygems-lazy, boolean, DEFAULT_LAZY, Load RubyGems lazily on first failing require]
+    LAZY_RUBYGEMS: [rubygems-lazy, boolean, ['RUBYGEMS && ', DEFAULT_LAZY], Load RubyGems lazily on first failing require]
     PATCHING: [patching, boolean, true, Use patching]
     DID_YOU_MEAN: [did-you-mean, boolean, true, Use did_you_mean]
     HASHING_DETERMINISTIC: [hashing-deterministic, boolean, false, Produce deterministic hash values]

@@ -53,7 +53,7 @@ public class Options {
     public final boolean RUBYGEMS;
     /** --lazy-default=true */
     public final boolean DEFAULT_LAZY;
-    /** --rubygems-lazy=DEFAULT_LAZY */
+    /** --rubygems-lazy=RUBYGEMS && DEFAULT_LAZY */
     public final boolean LAZY_RUBYGEMS;
     /** --patching=true */
     public final boolean PATCHING;
@@ -296,7 +296,7 @@ public class Options {
         FROZEN_STRING_LITERALS = options.get(OptionsCatalog.FROZEN_STRING_LITERALS_KEY);
         RUBYGEMS = options.get(OptionsCatalog.RUBYGEMS_KEY);
         DEFAULT_LAZY = options.get(OptionsCatalog.DEFAULT_LAZY_KEY);
-        LAZY_RUBYGEMS = options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : DEFAULT_LAZY;
+        LAZY_RUBYGEMS = RUBYGEMS && (options.hasBeenSet(OptionsCatalog.LAZY_RUBYGEMS_KEY) ? options.get(OptionsCatalog.LAZY_RUBYGEMS_KEY) : DEFAULT_LAZY);
         PATCHING = options.get(OptionsCatalog.PATCHING_KEY);
         DID_YOU_MEAN = options.get(OptionsCatalog.DID_YOU_MEAN_KEY);
         HASHING_DETERMINISTIC = options.get(OptionsCatalog.HASHING_DETERMINISTIC_KEY);
