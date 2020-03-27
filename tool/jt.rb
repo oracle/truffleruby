@@ -514,11 +514,10 @@ module Utilities
     end
   end
 
-  def mx(*args, **options)
+  def mx(*args, java_home: find_java_home, **options)
     mx_args = args.dup
 
     env = mx_args.first.is_a?(Hash) ? mx_args.shift : {}
-    java_home = find_java_home
     mx_args.unshift '--java-home', java_home unless java_home == :use_env_java_home
 
     raw_sh(env, find_mx, *mx_args, **options)
@@ -534,8 +533,9 @@ module Utilities
     end
   end
 
-  def git_clone(*args)
-    mx('sclone', '--kind', 'git', *args)
+  def git_clone(url, path)
+    # Don't check $JAVA_HOME, mx sclone doesn't use it
+    mx('sclone', '--kind', 'git', url, path, java_home: :use_env_java_home)
   end
 
   def run_mspec(env_vars, command = 'run', *args)
