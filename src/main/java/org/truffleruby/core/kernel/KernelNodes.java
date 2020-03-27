@@ -41,7 +41,6 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.cast.NameToJavaStringNodeGen;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.exception.GetBacktraceException;
@@ -984,7 +983,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return NameToJavaStringNode.create(name);
         }
 
         @Specialization
@@ -1034,7 +1033,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         protected RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return NameToJavaStringNode.create(name);
         }
 
         @Specialization
@@ -1052,7 +1051,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         protected RubyNode coerceName(RubyNode name) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return NameToJavaStringNode.create(name);
         }
 
         @Specialization
@@ -1069,7 +1068,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return NameToJavaStringNode.create(name);
         }
 
         @TruffleBoundary
@@ -1678,7 +1677,7 @@ public abstract class KernelNodes {
 
         @CreateCast("name")
         protected RubyNode coerceToString(RubyNode name) {
-            return NameToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(name);
+            return NameToJavaStringNode.create(name);
         }
 
         @Specialization

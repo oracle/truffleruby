@@ -53,21 +53,21 @@ module Truffle::CExt
       when 'typed_flag'
         type ? 1 : 0
       else
-        raise "Unknown identifier: #{name}"
+        raise Truffle::Interop::UnknownIdentifierException
       end
     end
 
     def polyglot_write_member(name, value)
-      raise "Unknown identifier: #{name}" unless name == 'data'
+      raise Truffle::Interop::UnknownIdentifierException unless name == 'data'
       data_holder.data = value
     end
 
     def polyglot_remove_member(name)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise Truffle::Interop::UnsupportedMessageException
     end
 
     def polyglot_invoke_member(name, *args)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise Truffle::Interop::UnsupportedMessageException
     end
 
     def polyglot_member_readable?(name)
@@ -149,21 +149,21 @@ module Truffle::CExt
     end
 
     def polyglot_read_member(name)
-      raise "Unknown identifier: #{name}" unless name == 'name'
+      raise Truffle::Interop::UnknownIdentifierException unless name == 'name'
       @name or raise '@name not set'
     end
 
     def polyglot_write_member(name, value)
-      raise "Unknown identifier: #{name}" unless name == 'name'
+      raise Truffle::Interop::UnknownIdentifierException unless name == 'name'
       @name = value
     end
 
     def polyglot_remove_member(name)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise Truffle::Interop::UnsupportedMessageException
     end
 
     def polyglot_invoke_member(name, *args)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise Truffle::Interop::UnsupportedMessageException
     end
 
     def polyglot_member_readable?(name)
@@ -206,7 +206,7 @@ module Truffle::CExt
       name = @name or raise '@name not set'
       unless Truffle::Interop.pointer?(name)
         Truffle::Interop.to_native(name)
-        raise unless Truffle::Interop.pointer?(name)
+        raise "#{name.inspect} could not be converted to native" unless Truffle::Interop.pointer?(name)
       end
       name_address = Truffle::Interop.as_pointer(name)
 
@@ -247,20 +247,20 @@ module Truffle::CExt
       when 'mode'
         @io.instance_variable_get(:@mode)
       else
-        raise "Unknown identifier: #{name}"
+        raise Truffle::Interop::UnknownIdentifierException
       end
     end
 
     def polyglot_write_member(name, value)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise Truffle::Interop::UnsupportedMessageException
     end
 
     def polyglot_remove_member(name)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise Truffle::Interop::UnsupportedMessageException
     end
 
     def polyglot_invoke_member(name, *args)
-      raise # FIXME (pitr-ch 06-Feb-2020): should be translated to UnsupportedMessageException
+      raise Truffle::Interop::UnsupportedMessageException
     end
 
     def polyglot_member_readable?(name)

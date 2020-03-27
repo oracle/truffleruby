@@ -65,11 +65,6 @@ import com.oracle.truffle.api.source.Source;
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
 
-    // TODO (pitr-ch 27-Mar-2019): remove create()
-    // TODO (pitr-ch 27-Mar-2019): rename methods to match new messages
-    // TODO (pitr-ch 27-Mar-2019): break down to new messages
-    // TODO (pitr-ch 11-Mar-2020): make sure any argument type is accepted, always try to convert with to_s or to_i
-
     @CoreMethod(names = "import_file", onSingleton = true, required = 1)
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
@@ -304,7 +299,6 @@ public abstract class InteropNodes {
         }
     }
 
-    // TODO (pitr-ch 01-Apr-2019): turn conversion into argument
     @CoreMethod(names = "as_string_without_conversion", onSingleton = true, required = 1)
     public abstract static class AsStringWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
@@ -726,28 +720,28 @@ public abstract class InteropNodes {
         }
     }
 
-    @CoreMethod(names = "keys?", onSingleton = true, required = 1)
-    public abstract static class InteropHasKeysNode extends InteropCoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "has_members?", onSingleton = true, required = 1)
+    public abstract static class HasMembersNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected boolean hasKeys(Object receiver,
+        protected boolean hasMembers(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasMembers(receiver);
         }
     }
 
-    @CoreMethod(names = "keys_without_conversion", onSingleton = true, required = 1, optional = 1)
-    public abstract static class KeysNode extends InteropPrimitiveArrayArgumentsNode {
+    @CoreMethod(names = "members_without_conversion", onSingleton = true, required = 1, optional = 1)
+    public abstract static class GetMembersNode extends InteropPrimitiveArrayArgumentsNode {
 
-        protected abstract Object executeKeys(TruffleObject receiver, boolean internal);
+        protected abstract Object executeMembers(TruffleObject receiver, boolean internal);
 
         @Specialization
-        protected Object keys(TruffleObject receiver, NotProvided internal) {
-            return executeKeys(receiver, false);
+        protected Object members(TruffleObject receiver, NotProvided internal) {
+            return executeMembers(receiver, false);
         }
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object keys(Object receiver, boolean internal,
+        protected Object members(Object receiver, boolean internal,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
@@ -938,7 +932,7 @@ public abstract class InteropNodes {
 
         @CreateCast("name")
         protected RubyNode coerceNameToString(RubyNode newName) {
-            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(newName);
+            return ToJavaStringNode.create(newName);
         }
 
         @TruffleBoundary
@@ -956,7 +950,7 @@ public abstract class InteropNodes {
 
         @CreateCast("name")
         protected RubyNode coerceNameToString(RubyNode newName) {
-            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(newName);
+            return ToJavaStringNode.create(newName);
         }
 
         @Specialization

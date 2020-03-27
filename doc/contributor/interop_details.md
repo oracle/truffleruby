@@ -79,7 +79,7 @@ When interop message `asBoolean` is sent
 - to **`true`** or **`false`**
   it returns the receiver.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 ## Messages related to executable objects
 
@@ -93,11 +93,11 @@ When interop message `execute` is sent
 - to **`proc {...}`**, **`lambda {...}`** or **a `Method`**
   it returns the result of the execution.
 - to **`lambda {...}`** or **a `Method`**
-  it fails with `ArgumentError` when the number of arguments is wrong.
+  it fails with `ArityException` when the number of arguments is wrong.
 - to **`proc {...}`**
   it returns the result of the execution even though the number of arguments is wrong (Ruby behavior).
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 ## Messages related to pointers
 
@@ -111,7 +111,7 @@ When interop message `asPointer` is sent
 - to **a `Truffle::FFI::Pointer`**
   it returns the pointer address.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 When interop message `toNative` is sent
 - to **a `Truffle::FFI::Pointer`** or **polyglot pointer**
@@ -131,33 +131,33 @@ When interop message `getArraySize` is sent
 - to **an `Array`** or **polyglot array**
   it returns size of the array.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 When interop message `readArrayElement` is sent
 - to **an `Array`** or **polyglot array**
   it returns the stored value when it is present at the given valid index (`0 <= index < size`).
 - to **an `Array`** or **polyglot array**
-  it fails with `IndexError` when a value is not present at the index or the index is invalid.
+  it fails with `InvalidArrayIndexException` when a value is not present at the index or the index is invalid.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 When interop message `writeArrayElement` is sent
 - to **an `Array`** or **polyglot array**
   it stores a value at a given index.
 - to **an `Array`** or **polyglot array**
-  it fails with `IndexError` when a index is invalid.
+  it fails with `InvalidArrayIndexException` when a index is invalid.
 - to **polyglot int array**
-  it fails with `TypeError` when the value is invalid.
+  it fails with `UnsupportedTypeException` when the value is invalid.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 When interop message `removeArrayElement` is sent
 - to **an `Array`** or **polyglot array**
   it removes a value when the value is present at a valid index.
 - to **an `Array`** or **polyglot array**
-  it fails with IndexError when the value is not present at a valid index.
+  it fails with `InvalidArrayIndexException` when the value is not present at a valid index.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 When interop message `isArrayElementReadable` is sent
 - to **an `Array`** or **polyglot array**
@@ -197,27 +197,27 @@ When interop message `readMember` is sent
 - to any non-immediate `Object` like **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
   it returns a method with the given name when the method is defined.
 - to any non-immediate `Object` like **`:symbol`**, **a `String`**, **a `BigDecimal`**, **an `Object`**, **a frozen `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
-  it fails with NameError when the method is not defined.
-- to any non-immediate non-frozen `Object` like **a `String`**, **a `BigDecimal`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
+  it fails with `UnknownIdentifierException` when the method is not defined.
+- to any non-immediate `Object` like **a `String`**, **a `BigDecimal`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
   it reads the given instance variable.
 - to **polyglot members**
-  it returns a value stored with the given name.
+  it reads the value stored with the given name.
 - to **a `StructWithValue`**
-  it returns value of the given struct member.
+  it returns the value of the given struct member.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 When interop message `writeMember` is sent
 - to any non-immediate non-frozen `Object` like **a `String`**, **a `BigDecimal`**, **an `Object`**, **a `StructWithValue`**, **a `Class`**, **a `Hash`**, **an `Array`**, **`proc {...}`**, **`lambda {...}`**, **a `Method`**, **a `Truffle::FFI::Pointer`**, **polyglot pointer** or **polyglot array**
   it writes the given instance variable.
 - to **polyglot members**
-  it returns a value stored with the given name.
+  it writes the given value under the given name.
 - to **a `StructWithValue`**
-  it writes value to the given struct member.
+  it writes the value to the given struct member.
 - to **`:symbol`** or **a frozen `Object`**
-  it fails with NameError when the receiver is frozen.
+  it fails with `UnsupportedMessageError` when the receiver is frozen.
 - otherwise
-  it fails with Polyglot::UnsupportedMessageError.
+  it fails with `UnsupportedMessageError`.
 
 ## Number related messages (missing)
 

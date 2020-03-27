@@ -2,8 +2,10 @@ package org.truffleruby.interop.messages;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -13,6 +15,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -27,7 +30,8 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
         try {
             return execute(exception, 0, null, null);
-        } catch (InvalidArrayIndexException | UnknownIdentifierException | UnsupportedTypeException e) {
+        } catch (InvalidArrayIndexException | UnknownIdentifierException | UnsupportedTypeException
+                | ArityException e) {
             throw handleBadErrorType(e);
         }
     }
@@ -37,7 +41,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
         try {
             return execute(exception, index, null, null);
-        } catch (UnknownIdentifierException | UnsupportedTypeException e) {
+        } catch (UnknownIdentifierException | UnsupportedTypeException | ArityException e) {
             throw handleBadErrorType(e);
         }
     }
@@ -47,7 +51,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
         try {
             return execute(exception, 0, name, null);
-        } catch (InvalidArrayIndexException | UnsupportedTypeException e) {
+        } catch (InvalidArrayIndexException | UnsupportedTypeException | ArityException e) {
             throw handleBadErrorType(e);
         }
     }
@@ -57,13 +61,13 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
         try {
             return execute(exception, index, null, new Object[]{ value });
-        } catch (UnknownIdentifierException e) {
+        } catch (UnknownIdentifierException | ArityException e) {
             throw handleBadErrorType(e);
         }
     }
 
     public final AssertionError execute(RaiseException exception, String name, Object... arguments)
-            throws UnsupportedMessageException, UnknownIdentifierException, UnsupportedTypeException {
+            throws UnsupportedMessageException, UnknownIdentifierException, UnsupportedTypeException, ArityException {
 
         try {
             return execute(exception, 0, name, arguments);
@@ -75,7 +79,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
     protected abstract AssertionError execute(
             RaiseException exception, long index, String identifier, Object[] arguments)
             throws UnsupportedMessageException, InvalidArrayIndexException, UnknownIdentifierException,
-            UnsupportedTypeException;
+            UnsupportedTypeException, ArityException;
 
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unsupportedMessageExceptionClass",
@@ -137,6 +141,26 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnsupportedTypeException {
 
         UnsupportedTypeException interopException = UnsupportedTypeException.create(arguments);
+        interopException.initCause(exception);
+        throw interopException;
+    }
+
+    @Specialization(
+            guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().arityExceptionClass",
+            limit = "1")
+    protected AssertionError arityExceptionClass(
+            RaiseException exception,
+            long index,
+            String identifier,
+            Object[] arguments,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached CallDispatchHeadNode dispatch,
+            @Cached LongCastNode longCastNode,
+            @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws ArityException {
+
+        int expected = Math
+                .toIntExact(longCastNode.executeCastLong(dispatch.call(exception.getException(), "expected")));
+        ArityException interopException = ArityException.create(expected, arguments.length);
         interopException.initCause(exception);
         throw interopException;
     }

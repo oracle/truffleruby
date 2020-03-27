@@ -63,7 +63,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
-import org.truffleruby.interop.ToJavaStringNodeGen;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -225,7 +225,7 @@ public abstract class ReadlineNodes {
 
         @CreateCast("text")
         protected RubyNode coerceTextToString(RubyNode text) {
-            return ToJavaStringNodeGen.RubyNodeWrapperNodeGen.create(text);
+            return ToJavaStringNode.create(text);
         }
 
         @TruffleBoundary

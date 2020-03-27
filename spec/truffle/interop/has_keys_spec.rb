@@ -8,46 +8,46 @@
 
 require_relative '../../ruby/spec_helper'
 
-describe "Truffle::Interop.keys?" do
+describe "Truffle::Interop.has_members?" do
 
   it "returns true for an array" do
-    Truffle::Interop.keys?([1, 2, 3]).should be_true
+    Truffle::Interop.has_members?([1, 2, 3]).should be_true
   end
 
   it "returns true for a hash" do
-    Truffle::Interop.keys?({a: 1, b: 2, c: 3}).should be_true
+    Truffle::Interop.has_members?({a: 1, b: 2, c: 3}).should be_true
   end
 
   it "returns true for general objects" do
-    Truffle::Interop.keys?(Object.new).should be_true
+    Truffle::Interop.has_members?(Object.new).should be_true
   end
 
   it "returns true for frozen objects" do
-    Truffle::Interop.keys?(Object.new.freeze).should be_true
+    Truffle::Interop.has_members?(Object.new.freeze).should be_true
   end
 
   it "returns false for true" do
-    Truffle::Interop.keys?(true).should be_false
+    Truffle::Interop.has_members?(true).should be_false
   end
 
   it "returns false for false" do
-    Truffle::Interop.keys?(false).should be_false
+    Truffle::Interop.has_members?(false).should be_false
   end
 
   it "returns false for Fixnum" do
-    Truffle::Interop.keys?(14).should be_false
+    Truffle::Interop.has_members?(14).should be_false
   end
 
   it "returns true for Bignum" do
-    Truffle::Interop.keys?(bignum_value).should be_true
+    Truffle::Interop.has_members?(bignum_value).should be_true
   end
 
   it "returns false for Float" do
-    Truffle::Interop.keys?(14.2).should be_false
+    Truffle::Interop.has_members?(14.2).should be_false
   end
 
   it "returns true for Symbol" do
-    Truffle::Interop.keys?(:foo).should be_true
+    Truffle::Interop.has_members?(:foo).should be_true
   end
 
 end

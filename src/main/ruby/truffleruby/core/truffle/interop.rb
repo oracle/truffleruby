@@ -14,14 +14,21 @@ Truffle::Interop::MAIN = self
 module Truffle
   module Interop
 
-    # FIXME (pitr-ch 02-Mar-2020): interop methods should call regular Ruby conversions like to_s (which should try asString if foreign.isString)
-
     # stubs, defined in CoreLibrary
     # rubocop:disable Lint/InheritException
-    class UnsupportedMessageException < Exception; end
-    class InvalidArrayIndexException < Exception; end
-    class UnknownIdentifierException < Exception; end
-    class UnsupportedTypeException < Exception; end
+    class InteropException < Exception; end
+    class UnsupportedMessageException < InteropException; end
+    class InvalidArrayIndexException < InteropException; end
+    class UnknownIdentifierException < InteropException; end
+    class UnsupportedTypeException < InteropException; end
+    class ArityException < InteropException
+      attr_reader :expected
+
+      def initialize(expected)
+        @expected = expected
+        raise ArgumentError unless expected.is_a? Integer
+      end
+    end
 
     def self.import_method(name)
       method = import(name.to_s)
@@ -44,8 +51,8 @@ module Truffle
       from_java_string(import_without_conversion(name))
     end
 
-    def self.keys(object, internal = false)
-      keys = keys_without_conversion(object, internal)
+    def self.members(object, internal = false)
+      keys = members_without_conversion(object, internal)
       enumerable(keys).map { |key| from_java_string(key) }
     end
 
@@ -267,7 +274,7 @@ module Truffle
         if Truffle::Interop.has_array_elements?(object)
           string << " #{to_array(object).inspect}"
         end
-        if Truffle::Interop.keys?(object)
+        if Truffle::Interop.has_members?(object)
           string << " #{pairs_from_object(object).map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(', ')}"
         end
         if Truffle::Interop.executable?(object)
@@ -278,7 +285,7 @@ module Truffle
     end
 
     private_class_method def self.recursive_string_for(object)
-      if java?(object) && is_java_map?(object) || keys?(object)
+      if java?(object) && is_java_map?(object) || has_members?(object)
         +'{...}'
       elsif has_array_elements?(object)
         +'[...]'
@@ -324,7 +331,7 @@ module Truffle
       when :size
         Truffle::Interop.has_array_elements?(object)
       when :keys
-        Truffle::Interop.keys?(object)
+        Truffle::Interop.has_members?(object)
       when :call
         Truffle::Interop.executable?(object)
       when :class
@@ -372,7 +379,7 @@ module Truffle
     end
 
     def self.pairs_from_object(object)
-      keys(object).map { |key| [key, object[key]] }
+      members(object).map { |key| [key, object[key]] }
     end
 
     def self.unbox_if_needed(object)
@@ -383,12 +390,10 @@ module Truffle
       end
     end
 
-    # TODO (pitr-ch 01-Apr-2019): remove
     def self.boxed?(object)
       boolean?(object) || is_string?(object) || is_number?(object)
     end
 
-    # TODO (pitr-ch 01-Apr-2019): remove
     def self.unbox(object)
       return as_boolean object if boolean? object
       return as_string object if is_string? object
@@ -402,7 +407,6 @@ module Truffle
       raise ArgumentError, "not boxed: #{object}"
     end
 
-    # TODO (pitr-ch 01-Apr-2019): remove
     def self.unbox_without_conversion(object)
       return as_boolean object if boolean? object
       return as_string_without_conversion object if is_string? object
