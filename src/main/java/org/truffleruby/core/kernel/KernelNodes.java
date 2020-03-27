@@ -321,7 +321,7 @@ public abstract class KernelNodes {
     }
 
     @Primitive(name = "load_feature")
-    public abstract static class LoadNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class LoadFeatureNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RequireNode requireNode = RequireNode.create();
 
