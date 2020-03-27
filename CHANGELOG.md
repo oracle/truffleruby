@@ -16,6 +16,7 @@ New features:
 * Drop `is_` prefix in `Truffle::Interop.is_array_element_*` predicates.
 * The old array strategy code has been removed and all remaining nodes converted to the new `ArrayStoreLibrary`.
 * `Truffle::Interop.hash_keys_as_members` has been added to treat a Ruby Hash as a polyglot object with the Hash keys as members.
+* Added `--metrics-profile-require` option to profile searching, parsing, translating and loading files.
 
 Bug fixes:
 
