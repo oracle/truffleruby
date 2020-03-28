@@ -89,14 +89,12 @@ describe "C-API constant" do
     @s.rb_mKernel.should == Kernel
   end
 
-  specify "rb_mMath references the Math module" do
-    @s.rb_mMath.should == Math
+  # On 2.4 with require 'mathn', Math is redefined as CMath
+  ruby_version_is "2.5" do
+    specify "rb_mMath references the Math module" do
+      @s.rb_mMath.should == Math
+    end
   end
-
-  specify "rb_mProcess references the Process module" do
-    @s.rb_mProcess.should == Process
-  end
-
 
   specify "rb_cMatch references the MatchData class" do
     @s.rb_cMatch.should == MatchData
@@ -124,6 +122,10 @@ describe "C-API constant" do
 
   specify "rb_cProc references the Proc class" do
     @s.rb_cProc.should == Proc
+  end
+
+  specify "rb_mProcess references the Process module" do
+    @s.rb_mProcess.should == Process
   end
 
   specify "rb_cRandom references the Random class" do

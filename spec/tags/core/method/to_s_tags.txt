@@ -1,0 +1,1 @@
+fails:Method#to_s returns a String containing the singleton class if method is defined in the singleton class

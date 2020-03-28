@@ -29,7 +29,6 @@ defconstfunc(rb_cInteger)
 defconstfunc(rb_cIO)
 defconstfunc(rb_mKernel)
 defconstfunc(rb_mMath)
-defconstfunc(rb_mProcess)
 defconstfunc(rb_cMatch)
 defconstfunc(rb_cMethod)
 defconstfunc(rb_cModule)
@@ -37,6 +36,7 @@ defconstfunc(rb_cNilClass)
 defconstfunc(rb_cNumeric)
 defconstfunc(rb_cObject)
 defconstfunc(rb_cProc)
+defconstfunc(rb_mProcess)
 defconstfunc(rb_cRandom)
 defconstfunc(rb_cRange)
 defconstfunc(rb_cRational)
@@ -57,7 +57,9 @@ defconstfunc(rb_mErrno)
 defconstfunc(rb_eException)
 defconstfunc(rb_eFatal)
 defconstfunc(rb_eFloatDomainError)
+#ifdef RUBY_VERSION_IS_2_5
 defconstfunc(rb_eFrozenError)
+#endif
 defconstfunc(rb_eIndexError)
 defconstfunc(rb_eInterrupt)
 defconstfunc(rb_eIOError)
@@ -110,7 +112,6 @@ void Init_constants_spec(void) {
   rb_define_method(cls, "rb_cIO", constants_spec_rb_cIO, 0);
   rb_define_method(cls, "rb_mKernel", constants_spec_rb_mKernel, 0);
   rb_define_method(cls, "rb_mMath", constants_spec_rb_mMath, 0);
-  rb_define_method(cls, "rb_mProcess", constants_spec_rb_mProcess, 0);
   rb_define_method(cls, "rb_cMatch", constants_spec_rb_cMatch, 0);
   rb_define_method(cls, "rb_cMethod", constants_spec_rb_cMethod, 0);
   rb_define_method(cls, "rb_cModule", constants_spec_rb_cModule, 0);
@@ -118,6 +119,7 @@ void Init_constants_spec(void) {
   rb_define_method(cls, "rb_cNumeric", constants_spec_rb_cNumeric, 0);
   rb_define_method(cls, "rb_cObject", constants_spec_rb_cObject, 0);
   rb_define_method(cls, "rb_cProc", constants_spec_rb_cProc, 0);
+  rb_define_method(cls, "rb_mProcess", constants_spec_rb_mProcess, 0);
   rb_define_method(cls, "rb_cRandom", constants_spec_rb_cRandom, 0);
   rb_define_method(cls, "rb_cRange", constants_spec_rb_cRange, 0);
   rb_define_method(cls, "rb_cRational", constants_spec_rb_cRational, 0);
@@ -138,7 +140,9 @@ void Init_constants_spec(void) {
   rb_define_method(cls, "rb_eException", constants_spec_rb_eException, 0);
   rb_define_method(cls, "rb_eFatal", constants_spec_rb_eFatal, 0);
   rb_define_method(cls, "rb_eFloatDomainError", constants_spec_rb_eFloatDomainError, 0);
+  #ifdef RUBY_VERSION_IS_2_5
   rb_define_method(cls, "rb_eFrozenError", constants_spec_rb_eFrozenError, 0);
+  #endif
   rb_define_method(cls, "rb_eIndexError", constants_spec_rb_eIndexError, 0);
   rb_define_method(cls, "rb_eInterrupt", constants_spec_rb_eInterrupt, 0);
   rb_define_method(cls, "rb_eIOError", constants_spec_rb_eIOError, 0);
