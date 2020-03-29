@@ -27,7 +27,7 @@ We recommend that TruffleRuby is embedded via the Polyglot API, which is part of
 GraalVM. The API is different because it's designed to support many languages,
 not just Ruby.
 
-TruffleRuby also supports JSR 223, compatible with JRruby, to make it
+TruffleRuby also supports JSR 223, compatible with JRuby, to make it
 easier to run legacy JRuby code.
 
 You will need to use the GraalVM to use both these APIs.
