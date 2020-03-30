@@ -525,9 +525,7 @@ public class ThreadManager {
     @TruffleBoundary
     public UnblockingAction setUnblockingAction(Thread thread, UnblockingAction action) {
         AtomicReference<UnblockingAction> holder = getActionHolder(thread);
-        UnblockingAction oldAction = holder.get();
-        holder.set(action);
-        return oldAction;
+        return holder.getAndSet(action);
     }
 
     /** Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for blocking native calls. If
