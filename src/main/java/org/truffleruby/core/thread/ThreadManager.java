@@ -509,8 +509,7 @@ public class ThreadManager {
         assert unblockingAction != null;
         final Thread thread = Thread.currentThread();
 
-        final AtomicReference<UnblockingAction> holder = ConcurrentOperations
-                .getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null));
+        final AtomicReference<UnblockingAction> holder = getActionHolder(thread);
         final UnblockingAction oldUnblockingAction = holder.getAndSet(unblockingAction);
         try {
             return runUntilResult(currentNode, blockingAction);
@@ -521,13 +520,12 @@ public class ThreadManager {
 
     @TruffleBoundary
     public AtomicReference<UnblockingAction> getActionHolder(Thread thread) {
-        return unblockingActions.get(thread);
+        return ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null));
     }
 
     @TruffleBoundary
     public UnblockingAction setUnblockingAction(Thread thread, UnblockingAction action) {
-        AtomicReference<UnblockingAction> holder = ConcurrentOperations
-                .getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null));
+        AtomicReference<UnblockingAction> holder = getActionHolder(thread);
         UnblockingAction oldAction = holder.get();
         holder.set(action);
         return oldAction;
@@ -699,9 +697,7 @@ public class ThreadManager {
 
     @TruffleBoundary
     public void interrupt(Thread thread) {
-        final UnblockingAction action = ConcurrentOperations
-                .getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null))
-                .get();
+        final UnblockingAction action = getActionHolder(thread).get();
 
         if (action != null) {
             action.unblock();
