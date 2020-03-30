@@ -87,14 +87,17 @@ describe "ObjectSpace::WeakMap" do
 
     def iso.sorter(x)
       x === String ? x : x[0]
-  end
+    end
 
     def iso.test_iter(method, result)
       map.send(method, &method(:collector)).should == map
       # Important to sort in-place and clear, to help the MRI GC.
       arr.sort_by!(&method(:sorter))
-      arr.should == result
-      self.arr.clear
+      matcher = arr.should
+      matcher == result
+      matcher.initialize []
+      matcher = nil
+      arr.clear
       self.arr = [] # at the end to not retain refs!
     end
 
