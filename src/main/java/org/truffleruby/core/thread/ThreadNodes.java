@@ -89,6 +89,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Thread", isClass = true)
@@ -521,16 +522,19 @@ public abstract class ThreadNodes {
     public abstract static class UnblockNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "isRubyProc(runner)")
-        protected Object unblock(DynamicObject thread, Object unblocker, DynamicObject runner) {
+        protected Object unblock(DynamicObject thread, Object unblocker, DynamicObject runner,
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             final UnblockingAction unblockingAction;
             if (unblocker == nil) {
-                unblockingAction = getUnblockingAction();
+                unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
             } else {
                 unblockingAction = makeUnblockingAction(unblocker);
             }
 
             Thread javaThread = Thread.currentThread();
-            AtomicReference<UnblockingAction> actionHolder = getContext().getThreadManager().getActionHolder(javaThread);
+            AtomicReference<UnblockingAction> actionHolder = getContext()
+                    .getThreadManager()
+                    .getActionHolder(javaThread);
             UnblockingAction oldAction = actionHolder.getAndSet(unblockingAction);
 
             Object result = null;
@@ -545,17 +549,12 @@ public abstract class ThreadNodes {
                     } finally {
                         Layouts.THREAD.setStatus(thread, status);
                     }
-                } while (result == null);
+                } while (loopProfile.profile(result == null));
 
                 return result;
             } finally {
                 actionHolder.set(oldAction);
             }
-        }
-
-        @TruffleBoundary
-        private UnblockingAction getUnblockingAction() {
-            return getContext().getThreadManager().getNativeCallUnblockingAction();
         }
 
         @TruffleBoundary
@@ -765,12 +764,15 @@ public abstract class ThreadNodes {
 
         @Specialization(guards = "isRubyProc(block)")
         protected Object runBlockingSystemCall(DynamicObject block,
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
                 @Cached YieldNode yieldNode) {
             final UnblockingAction unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
             final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
 
             Thread javaThread = Thread.currentThread();
-            AtomicReference<UnblockingAction> actionHolder = getContext().getThreadManager().getActionHolder(javaThread);
+            AtomicReference<UnblockingAction> actionHolder = getContext()
+                    .getThreadManager()
+                    .getActionHolder(javaThread);
             UnblockingAction oldAction = actionHolder.getAndSet(unblockingAction);
 
             Object result = NotProvided.INSTANCE;
@@ -785,7 +787,7 @@ public abstract class ThreadNodes {
                     } finally {
                         Layouts.THREAD.setStatus(thread, status);
                     }
-                } while (result == NotProvided.INSTANCE);
+                } while (loopProfile.profile(result == NotProvided.INSTANCE));
 
                 return result;
             } finally {
