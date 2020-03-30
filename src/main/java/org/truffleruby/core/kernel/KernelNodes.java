@@ -320,7 +320,7 @@ public abstract class KernelNodes {
     }
 
     @Primitive(name = "load_feature")
-    public abstract static class LoadNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class LoadFeatureNode extends PrimitiveArrayArgumentsNode {
 
         @Child private RequireNode requireNode = RequireNode.create();
 
@@ -367,7 +367,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = "block_given?", isModuleFunction = true)
+    @CoreMethod(names = { "block_given?", "iterator?" }, isModuleFunction = true)
     public abstract static class BlockGivenNode extends CoreMethodArrayArgumentsNode {
 
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
