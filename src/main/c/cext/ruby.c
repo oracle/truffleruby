@@ -4839,7 +4839,7 @@ ID rb_check_id(volatile VALUE *namep) {
 }
 
 VALUE rb_to_symbol(VALUE name) {
-  rb_tr_error("rb_to_symbol not implemented");
+  return RUBY_CEXT_INVOKE("rb_to_symbol", name);
 }
 
 VALUE rb_check_symbol(volatile VALUE *namep) {

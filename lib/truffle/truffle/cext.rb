@@ -435,6 +435,17 @@ module Truffle::CExt
     "\n"
   end
 
+  def rb_to_symbol(name)
+    case name
+    when Symbol
+      name
+    else
+      converted = Truffle::Type.rb_check_convert_type(name , String, :to_str)
+      raise TypeError, "#{name} is not a symbol" unless converted
+      converted.to_sym
+    end
+  end
+
   def rb_type(value)
     # TODO CS 23-Jul-16 we could do with making this a kind of specialising case
     # that puts never seen cases behind a transfer
