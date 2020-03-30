@@ -42,6 +42,7 @@ package org.truffleruby.core.thread;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -517,7 +518,7 @@ public abstract class ThreadNodes {
 
     @NonStandard
     @CoreMethod(names = "unblock", required = 2)
-    public abstract static class Unblock2Node extends YieldingCoreMethodNode {
+    public abstract static class UnblockNode extends YieldingCoreMethodNode {
 
         @Specialization(guards = "isRubyProc(runner)")
         protected Object unblock(DynamicObject thread, Object unblocker, DynamicObject runner) {
@@ -529,7 +530,7 @@ public abstract class ThreadNodes {
             }
 
             Thread javaThread = Thread.currentThread();
-            ThreadManager.ActionHolder actionHolder = getContext().getThreadManager().getActionHolder(javaThread);
+            AtomicReference<UnblockingAction> actionHolder = getContext().getThreadManager().getActionHolder(javaThread);
             UnblockingAction oldAction = actionHolder.getAndSet(unblockingAction);
 
             Object result = null;
@@ -548,7 +549,7 @@ public abstract class ThreadNodes {
 
                 return result;
             } finally {
-                actionHolder.getAndSet(oldAction);
+                actionHolder.set(oldAction);
             }
         }
 
@@ -769,7 +770,7 @@ public abstract class ThreadNodes {
             final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
 
             Thread javaThread = Thread.currentThread();
-            ThreadManager.ActionHolder actionHolder = getContext().getThreadManager().getActionHolder(javaThread);
+            AtomicReference<UnblockingAction> actionHolder = getContext().getThreadManager().getActionHolder(javaThread);
             UnblockingAction oldAction = actionHolder.getAndSet(unblockingAction);
 
             Object result = NotProvided.INSTANCE;
@@ -788,7 +789,7 @@ public abstract class ThreadNodes {
 
                 return result;
             } finally {
-                actionHolder.getAndSet(oldAction);
+                actionHolder.set(oldAction);
             }
         }
     }

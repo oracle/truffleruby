@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
@@ -77,23 +78,7 @@ public class ThreadManager {
     public final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
             .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
-    public static final class ActionHolder {
-
-        private static final AtomicReferenceFieldUpdater<ActionHolder, UnblockingAction> actionUpdater = AtomicReferenceFieldUpdater
-                .newUpdater(ActionHolder.class, UnblockingAction.class, "action");
-        public volatile UnblockingAction action;
-
-        public ActionHolder(UnblockingAction action) {
-            this.action = action;
-        }
-
-        @TruffleBoundary
-        public UnblockingAction getAndSet(UnblockingAction action) {
-            return actionUpdater.getAndSet(this, action);
-        }
-    }
-
-    private final Map<Thread, ActionHolder> unblockingActions = new ConcurrentHashMap<>();
+    private final Map<Thread, AtomicReference<UnblockingAction>> unblockingActions = new ConcurrentHashMap<>();
     public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
@@ -524,27 +509,26 @@ public class ThreadManager {
         assert unblockingAction != null;
         final Thread thread = Thread.currentThread();
 
-        final ActionHolder holder = ConcurrentOperations
-                .getOrCompute(unblockingActions, thread, k -> new ActionHolder(null));
-        final UnblockingAction oldUnblockingAction = holder.action;
-        holder.action = unblockingAction;
+        final AtomicReference<UnblockingAction> holder = ConcurrentOperations
+                .getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null));
+        final UnblockingAction oldUnblockingAction = holder.getAndSet(unblockingAction);
         try {
             return runUntilResult(currentNode, blockingAction);
         } finally {
-            holder.action = oldUnblockingAction;
+            holder.set(oldUnblockingAction);
         }
     }
 
     @TruffleBoundary
-    public ActionHolder getActionHolder(Thread thread) {
+    public AtomicReference<UnblockingAction> getActionHolder(Thread thread) {
         return unblockingActions.get(thread);
     }
 
     @TruffleBoundary
     public UnblockingAction setUnblockingAction(Thread thread, UnblockingAction action) {
-        ActionHolder holder = ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new ActionHolder(null));
-        UnblockingAction oldAction = holder.action;
-        holder.action = action;
+        AtomicReference<UnblockingAction> holder = ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null));
+        UnblockingAction oldAction = holder.get();
+        holder.set(action);
         return oldAction;
     }
 
@@ -584,7 +568,7 @@ public class ThreadManager {
             blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, new ActionHolder(() -> {
+        unblockingActions.put(thread, new AtomicReference<>(() -> {
             thread.interrupt();
         }));
     }
@@ -715,7 +699,7 @@ public class ThreadManager {
     @TruffleBoundary
     public void interrupt(Thread thread) {
         final UnblockingAction action = ConcurrentOperations
-                .getOrCompute(unblockingActions, thread, k -> new ActionHolder(null)).action;
+            .getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null)).get();
 
         if (action != null) {
             action.unblock();
