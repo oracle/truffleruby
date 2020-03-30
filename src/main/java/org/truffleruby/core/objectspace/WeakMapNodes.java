@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.objectspace;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -17,6 +18,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -85,8 +87,8 @@ public abstract class WeakMapNodes {
     public abstract static class KeysNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject keys(DynamicObject map) {
-            return createArray(Layouts.WEAK_MAP.getWeakMapStorage(map).keys().toArray());
+        protected DynamicObject getKeys(DynamicObject map) {
+            return createArray(keys(Layouts.WEAK_MAP.getWeakMapStorage(map)));
         }
     }
 
@@ -94,16 +96,9 @@ public abstract class WeakMapNodes {
     public abstract static class ValuesNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject values(DynamicObject map) {
-            return createArray(Layouts.WEAK_MAP.getWeakMapStorage(map).values().toArray());
+        protected DynamicObject getValues(DynamicObject map) {
+            return createArray(values(Layouts.WEAK_MAP.getWeakMapStorage(map)));
         }
-    }
-
-    private static DynamicObject eachNoBlockProvided(YieldingCoreMethodNode node, DynamicObject map) {
-        if (Layouts.WEAK_MAP.getWeakMapStorage(map).size() == 0) {
-            return map;
-        }
-        throw new RaiseException(node.getContext(), node.coreExceptions().localJumpError("no block given", node));
     }
 
     @CoreMethod(names = { "each_key" }, needsBlock = true)
@@ -116,7 +111,7 @@ public abstract class WeakMapNodes {
 
         @Specialization
         protected DynamicObject eachKey(DynamicObject map, DynamicObject block) {
-            for (Object key : Layouts.WEAK_MAP.getWeakMapStorage(map).keys()) {
+            for (Object key : keys(Layouts.WEAK_MAP.getWeakMapStorage(map))) {
                 yield(block, key);
             }
             return map;
@@ -127,13 +122,13 @@ public abstract class WeakMapNodes {
     public abstract static class EachValueNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected DynamicObject eachKey(DynamicObject map, NotProvided block) {
+        protected DynamicObject eachValue(DynamicObject map, NotProvided block) {
             return eachNoBlockProvided(this, map);
         }
 
         @Specialization
         protected DynamicObject eachValue(DynamicObject map, DynamicObject block) {
-            for (Object value : Layouts.WEAK_MAP.getWeakMapStorage(map).values()) {
+            for (Object value : values(Layouts.WEAK_MAP.getWeakMapStorage(map))) {
                 yield(block, value);
             }
             return map;
@@ -150,10 +145,11 @@ public abstract class WeakMapNodes {
             return eachNoBlockProvided(this, map);
         }
 
+        @TruffleBoundary
         @Specialization
         protected DynamicObject each(DynamicObject map, DynamicObject block) {
 
-            for (Entry e : Layouts.WEAK_MAP.getWeakMapStorage(map).entries()) {
+            for (Entry e : entries(Layouts.WEAK_MAP.getWeakMapStorage(map))) {
                 yieldPair(block, e.getKey(), e.getValue());
             }
 
@@ -168,5 +164,27 @@ public abstract class WeakMapNodes {
                 yield(block, createArray(new Object[]{ key, value }, 2));
             }
         }
+    }
+
+    @TruffleBoundary
+    private static Object[] keys(WeakValueCache cache) {
+        return cache.keys().toArray();
+    }
+
+    @TruffleBoundary
+    private static Object[] values(WeakValueCache cache) {
+        return cache.values().toArray();
+    }
+
+    @TruffleBoundary
+    private static Entry[] entries(WeakValueCache cache) {
+        return (Entry[]) cache.entries().toArray(new Entry[0]);
+    }
+
+    private static DynamicObject eachNoBlockProvided(YieldingCoreMethodNode node, DynamicObject map) {
+        if (Layouts.WEAK_MAP.getWeakMapStorage(map).size() == 0) {
+            return map;
+        }
+        throw new RaiseException(node.getContext(), node.coreExceptions().localJumpError("no block given", node));
     }
 }
