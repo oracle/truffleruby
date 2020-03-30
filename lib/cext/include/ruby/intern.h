@@ -303,7 +303,7 @@ const char *rb_sourcefile(void);
 VALUE rb_check_funcall(VALUE, ID, int, const VALUE*);
 
 NORETURN(void rb_error_arity(int, int, int));
-void rb_check_arity(int argc, int min, int max);
+int rb_check_arity(int argc, int min, int max);
 #define rb_check_arity rb_check_arity /* for ifdef */
 
 #if defined(NFDBITS) && defined(HAVE_RB_FD_INIT)

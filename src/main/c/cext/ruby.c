@@ -1851,8 +1851,9 @@ VALUE rb_enumeratorize_with_size(VALUE obj, VALUE meth, int argc, const VALUE *a
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_enumeratorize_with_size", rb_tr_unwrap(obj), rb_tr_unwrap(meth), rb_tr_unwrap(rb_ary_new4(argc, argv)), size_fn));
 }
 
-void rb_check_arity(int argc, int min, int max) {
+int rb_check_arity(int argc, int min, int max) {
   polyglot_invoke(RUBY_CEXT, "rb_check_arity", argc, min, max);
+  return argc;
 }
 
 char* ruby_strdup(const char *str) {
@@ -3579,19 +3580,39 @@ VALUE rb_mod_include_p(VALUE mod, VALUE mod2) {
 }
 
 VALUE rb_class_instance_methods(int argc, const VALUE *argv, VALUE mod) {
-  rb_tr_error("rb_class_instance_methods not implemented");
+  if (rb_check_arity(argc, 0, 1)) {
+    VALUE include_super = rb_boolean(argv[0]);
+    return RUBY_INVOKE(mod, "instance_methods", include_super);
+  } else {
+    return RUBY_INVOKE(mod, "instance_methods");
+  }
 }
 
 VALUE rb_class_public_instance_methods(int argc, const VALUE *argv, VALUE mod) {
-  rb_tr_error("rb_class_public_instance_methods not implemented");
+  if (rb_check_arity(argc, 0, 1)) {
+    VALUE include_super = rb_boolean(argv[0]);
+    return RUBY_INVOKE(mod, "public_instance_methods", include_super);
+  } else {
+    return RUBY_INVOKE(mod, "public_instance_methods");
+  }
 }
 
 VALUE rb_class_protected_instance_methods(int argc, const VALUE *argv, VALUE mod) {
-  rb_tr_error("rb_class_protected_instance_methods not implemented");
+  if (rb_check_arity(argc, 0, 1)) {
+    VALUE include_super = rb_boolean(argv[0]);
+    return RUBY_INVOKE(mod, "protected_instance_methods", include_super);
+  } else {
+    return RUBY_INVOKE(mod, "protected_instance_methods");
+  }
 }
 
 VALUE rb_class_private_instance_methods(int argc, const VALUE *argv, VALUE mod) {
-  rb_tr_error("rb_class_private_instance_methods not implemented");
+  if (rb_check_arity(argc, 0, 1)) {
+    VALUE include_super = rb_boolean(argv[0]);
+    return RUBY_INVOKE(mod, "private_instance_methods", include_super);
+  } else {
+    return RUBY_INVOKE(mod, "private_instance_methods");
+  }
 }
 
 VALUE rb_obj_singleton_methods(int argc, const VALUE *argv, VALUE obj) {
