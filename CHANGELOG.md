@@ -129,6 +129,7 @@ Performance:
 * Fixed memory footprint issue due to large compilation on Native Image, notably during `bundle install` (#1893).
 * `ArrayBuilderNode` now uses a new Truffle library for manipulating array stores.
 * Ruby objects passed to C extensions are now converted less often to native handles.
+* Calling blocking system calls and running C code with unblocking actions has been refactored to remove some optimisation boundaries.
 
 # 20.0.0
 

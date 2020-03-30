@@ -42,6 +42,7 @@ package org.truffleruby.core.thread;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -88,6 +89,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Thread", isClass = true)
@@ -519,22 +521,47 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "unblock", required = 2)
     public abstract static class UnblockNode extends YieldingCoreMethodNode {
 
-        @TruffleBoundary
         @Specialization(guards = "isRubyProc(runner)")
-        protected Object unblock(DynamicObject thread, Object unblocker, DynamicObject runner) {
+        protected Object unblock(DynamicObject thread, Object unblocker, DynamicObject runner,
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             final UnblockingAction unblockingAction;
             if (unblocker == nil) {
                 unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
             } else {
-                assert RubyGuards.isRubyProc(unblocker);
-                final DynamicObject unblockerProc = (DynamicObject) unblocker;
-                unblockingAction = () -> yield(unblockerProc);
+                unblockingAction = makeUnblockingAction(unblocker);
             }
 
-            return getContext().getThreadManager().runUntilResult(
-                    this,
-                    () -> yield(runner),
-                    unblockingAction);
+            Thread javaThread = Thread.currentThread();
+            AtomicReference<UnblockingAction> actionHolder = getContext()
+                    .getThreadManager()
+                    .getActionHolder(javaThread);
+            UnblockingAction oldAction = actionHolder.getAndSet(unblockingAction);
+
+            Object result = null;
+
+            try {
+                do {
+                    final ThreadStatus status = Layouts.THREAD.getStatus(thread);
+                    Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
+
+                    try {
+                        result = yield(runner);
+                    } finally {
+                        Layouts.THREAD.setStatus(thread, status);
+                    }
+                } while (loopProfile.profile(result == null));
+
+                return result;
+            } finally {
+                actionHolder.set(oldAction);
+            }
+        }
+
+        @TruffleBoundary
+        private UnblockingAction makeUnblockingAction(Object unblocker) {
+            assert RubyGuards.isRubyProc(unblocker);
+            final DynamicObject unblockerProc = (DynamicObject) unblocker;
+            return () -> yield(unblockerProc);
         }
 
     }
@@ -737,10 +764,35 @@ public abstract class ThreadNodes {
 
         @Specialization(guards = "isRubyProc(block)")
         protected Object runBlockingSystemCall(DynamicObject block,
+                @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
                 @Cached YieldNode yieldNode) {
-            return getContext().getThreadManager().runBlockingNFISystemCallUntilResult(
-                    this,
-                    () -> yieldNode.executeDispatch(block));
+            final UnblockingAction unblockingAction = getContext().getThreadManager().getNativeCallUnblockingAction();
+            final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
+
+            Thread javaThread = Thread.currentThread();
+            AtomicReference<UnblockingAction> actionHolder = getContext()
+                    .getThreadManager()
+                    .getActionHolder(javaThread);
+            UnblockingAction oldAction = actionHolder.getAndSet(unblockingAction);
+
+            Object result = NotProvided.INSTANCE;
+
+            try {
+                do {
+                    final ThreadStatus status = Layouts.THREAD.getStatus(thread);
+                    Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
+
+                    try {
+                        result = yieldNode.executeDispatch(block);
+                    } finally {
+                        Layouts.THREAD.setStatus(thread, status);
+                    }
+                } while (loopProfile.profile(result == NotProvided.INSTANCE));
+
+                return result;
+            } finally {
+                actionHolder.set(oldAction);
+            }
         }
     }
 
