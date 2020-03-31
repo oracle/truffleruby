@@ -461,12 +461,12 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-compiler-graal-core-11": $.platform.linux + $.jdk.v11 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
       # "ruby-test-compiler-graal-enterprise": $.platform.linux + $.jdk.v8 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
 
-      "ruby-test-svm-graal-core-linux":        $.platform.linux  + $.jdk.v8  + $.env.native + gate + $.run.testdownstream_aot,
-      "ruby-test-svm-graal-core-linux-11":     $.platform.linux  + $.jdk.v11 + $.env.native + gate + $.run.testdownstream_aot,
-      "ruby-test-svm-graal-core-darwin":       $.platform.darwin + $.jdk.v8  + $.env.native + gate + $.run.testdownstream_aot,
-      "ruby-test-svm-graal-core-darwin-11":    $.platform.darwin + $.jdk.v11 + $.env.native + gate + $.run.testdownstream_aot,
-      "ruby-test-svm-graal-enterprise-linux":  $.platform.linux  + $.jdk.v8  + $.env.native_ee + gate + $.run.testdownstream_aot,
-      "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + $.jdk.v8  + $.env.native_ee + gate + $.run.testdownstream_aot,
+      "ruby-test-svm-graal-core-linux":        $.platform.linux  + $.jdk.v8  + $.env.native + gate + $.run.testdownstream_aot + $.run.test_integration,
+      "ruby-test-svm-graal-core-linux-11":     $.platform.linux  + $.jdk.v11 + $.env.native + gate + $.run.testdownstream_aot + $.run.test_integration,
+      "ruby-test-svm-graal-core-darwin":       $.platform.darwin + $.jdk.v8  + $.env.native + gate + $.run.testdownstream_aot + $.run.test_integration,
+      "ruby-test-svm-graal-core-darwin-11":    $.platform.darwin + $.jdk.v11 + $.env.native + gate + $.run.testdownstream_aot + $.run.test_integration,
+      "ruby-test-svm-graal-enterprise-linux":  $.platform.linux  + $.jdk.v8  + $.env.native_ee + gate + $.run.testdownstream_aot + $.run.test_integration,
+      "ruby-test-svm-graal-enterprise-darwin": $.platform.darwin + $.jdk.v8  + $.env.native_ee + gate + $.run.testdownstream_aot + $.run.test_integration,
     },
 
   local other_rubies = {
