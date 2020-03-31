@@ -8,11 +8,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-Truffle::Boot.delay do
-  wd = Truffle::Boot.get_option('working-directory')
-  Dir.chdir(wd) unless wd.empty?
-end
-
+# These files are loaded during context pre-initialization to save startup time
 if Truffle::Boot.ruby_home
   # Always provided features: ruby --disable-gems -e 'puts $"'
   begin
@@ -65,6 +61,11 @@ if Truffle::Boot.preinitializing?
       end
     end
   end
+end
+
+Truffle::Boot.delay do
+  wd = Truffle::Boot.get_option('working-directory')
+  Dir.chdir(wd) unless wd.empty?
 end
 
 if Truffle::Boot.ruby_home
