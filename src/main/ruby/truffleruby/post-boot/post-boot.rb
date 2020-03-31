@@ -8,11 +8,7 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-Truffle::Boot.delay do
-  wd = Truffle::Boot.get_option('working-directory')
-  Dir.chdir(wd) unless wd.empty?
-end
-
+# These files are loaded during context pre-initialization to save startup time
 if Truffle::Boot.ruby_home
   # Always provided features: ruby --disable-gems -e 'puts $"'
   begin
@@ -22,21 +18,6 @@ if Truffle::Boot.ruby_home
     require 'complex'
   rescue LoadError => e
     Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
-  end
-
-  Truffle::Boot.delay do
-    if Truffle::Boot.get_option('rubygems') and !Truffle::Boot.get_option('lazy-rubygems')
-      begin
-        Truffle::Boot.print_time_metric :'before-rubygems'
-        begin
-          require 'rubygems'
-        ensure
-          Truffle::Boot.print_time_metric :'after-rubygems'
-        end
-      rescue LoadError => e
-        Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}"
-      end
-    end
   end
 
   if Truffle::Boot.get_option_or_default('did-you-mean', true)
@@ -77,6 +58,29 @@ if Truffle::Boot.preinitializing?
       new_home = Truffle::Boot.ruby_home
       paths_starting_with_home.each do |path|
         path.replace(new_home + path)
+      end
+    end
+  end
+end
+
+Truffle::Boot.delay do
+  wd = Truffle::Boot.get_option('working-directory')
+  Dir.chdir(wd) unless wd.empty?
+end
+
+if Truffle::Boot.ruby_home
+  Truffle::Boot.delay do
+    if Truffle::Boot.get_option('rubygems') and !Truffle::Boot.get_option('lazy-rubygems')
+      begin
+        Truffle::Boot.print_time_metric :'before-rubygems'
+        begin
+          # Needs to happen after patching $LOAD_PATH above
+          require 'rubygems'
+        ensure
+          Truffle::Boot.print_time_metric :'after-rubygems'
+        end
+      rescue LoadError => e
+        Truffle::Debug.log_warning "#{File.basename(__FILE__)}:#{__LINE__} #{e.message}\n#{$LOAD_PATH.join "\n"}"
       end
     end
   end
