@@ -10,9 +10,15 @@
 
 module Truffle::FiddleBackend
 
+  SIZEOF_CHAR   = Primitive.pointer_find_type_size(:char)
+  SIZEOF_SHORT  = Primitive.pointer_find_type_size(:short)
   SIZEOF_INT    = Primitive.pointer_find_type_size(:int)
   SIZEOF_LONG   = Primitive.pointer_find_type_size(:long)
 
+  CHAR_NFI_TYPE  = "SINT#{SIZEOF_CHAR * 8}"
+  UCHAR_NFI_TYPE  = "UINT#{SIZEOF_CHAR * 8}"
+  SHORT_NFI_TYPE  = "SINT#{SIZEOF_SHORT * 8}"
+  USHORT_NFI_TYPE  = "UINT#{SIZEOF_SHORT * 8}"
   INT_NFI_TYPE  = "SINT#{SIZEOF_INT * 8}"
   UINT_NFI_TYPE  = "UINT#{SIZEOF_INT * 8}"
   LONG_NFI_TYPE = "SINT#{SIZEOF_LONG * 8}"
@@ -34,11 +40,17 @@ module Truffle::FiddleBackend
     when Fiddle::TYPE_VOIDP
       'POINTER'
     when Fiddle::TYPE_CHAR
-      'CHAR'
+      CHAR_NFI_TYPE
+    when -Fiddle::TYPE_CHAR
+      UCHAR_NFI_TYPE
     when Fiddle::TYPE_SHORT
-      'SHORT'
+      SHORT_NFI_TYPE
+    when -Fiddle::TYPE_SHORT
+      USHORT_NFI_TYPE
     when Fiddle::TYPE_INT
       INT_NFI_TYPE
+    when -Fiddle::TYPE_INT
+      UINT_NFI_TYPE
     when Fiddle::TYPE_LONG
       LONG_NFI_TYPE
     when -Fiddle::TYPE_LONG
@@ -63,6 +75,8 @@ module Truffle::FiddleBackend
 
   def self.convert_ruby_to_native(type, val)
     case type
+    when Fiddle::TYPE_CHAR
+      Integer(val)
     when Fiddle::TYPE_VOIDP
       get_pointer_value(val)
     when Fiddle::TYPE_INT
