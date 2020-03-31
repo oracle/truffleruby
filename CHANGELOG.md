@@ -118,6 +118,7 @@ Compatibility:
 * Implemented `rb_to_symbol`.
 * Implemented `rb_class_instance_methods`, `rb_class_public_instance_methods`, `rb_class_protected_instance_methods`, and `rb_class_private_instance_methods`. 
 * Implemented `rb_tracepoint_new`, `rb_tracepoint_disable`, `rb_tracepoint_enable`, and `rb_tracepoint_enabled_p` (#1450). 
+* Not yet implemented C API functions are now correctly detected as missing via `mkmf`'s `have_func` (#1980).
 
 Changes:
 
