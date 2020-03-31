@@ -78,6 +78,8 @@ import org.truffleruby.core.numeric.IntegerNodesBuiltins;
 import org.truffleruby.core.numeric.IntegerNodesFactory;
 import org.truffleruby.core.objectspace.ObjectSpaceNodesBuiltins;
 import org.truffleruby.core.objectspace.ObjectSpaceNodesFactory;
+import org.truffleruby.core.objectspace.WeakMapNodesBuiltins;
+import org.truffleruby.core.objectspace.WeakMapNodesFactory;
 import org.truffleruby.core.proc.ProcNodesBuiltins;
 import org.truffleruby.core.proc.ProcNodesFactory;
 import org.truffleruby.core.queue.QueueNodesBuiltins;
@@ -228,6 +230,7 @@ public abstract class BuiltinsClasses {
         TypeNodesBuiltins.setup(coreManager, primitiveManager);
         UnboundMethodNodesBuiltins.setup(coreManager, primitiveManager);
         VMPrimitiveNodesBuiltins.setup(coreManager, primitiveManager);
+        WeakMapNodesBuiltins.setup(coreManager, primitiveManager);
         WeakRefNodesBuiltins.setup(coreManager, primitiveManager);
     }
 
@@ -302,6 +305,7 @@ public abstract class BuiltinsClasses {
                 TypeNodesFactory.getFactories(),
                 UnboundMethodNodesFactory.getFactories(),
                 VMPrimitiveNodesFactory.getFactories(),
+                WeakMapNodesFactory.getFactories(),
                 WeakRefNodesFactory.getFactories());
     }
 

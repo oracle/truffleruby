@@ -1940,6 +1940,7 @@ public abstract class KernelNodes {
 
     }
 
+    @Primitive(name = "kernel_to_hex")
     public abstract static class ToHexStringNode extends CoreMethodArrayArgumentsNode {
 
         public abstract String executeToHexString(Object value);

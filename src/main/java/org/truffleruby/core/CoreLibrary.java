@@ -30,6 +30,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.aot.ParserCache;
+import org.truffleruby.builtins.BuiltinsClasses;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -79,6 +80,31 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
+/** When adding a new class (MyClass) to the core library, you need to:
+ * <ul>
+ * <li>Add any Ruby file to {@link #CORE_FILES}.
+ *
+ * <li>Create a CoreLibrary field for the class ({@code myClassClass}) and initialize it using {@link #defineClass}. See
+ * examples in this file.
+ *
+ * <li>If the class has Java-defined nodes ({@code MyClassNodes}), edit the two lists in {@link BuiltinsClasses} (follow
+ * the existing pattern).
+ *
+ * <li>If the class has a specific layout ({@code MyClassLayout}), you will *usually*:
+ * <ul>
+ * <li>Create a CoreLibrary field for the factory ({@code myClassFactory}) and initialize it by calling
+ * {@code MyClassLayoutImpl.INSTANCE.createMyClassShape}.
+ * <li>Set the factory for the class by calling {@link Layouts#CLASS}
+ * {@link org.truffleruby.core.klass.ClassLayout#setInstanceFactoryUnsafe #setInstanceFactoryUnsafe}.
+ * <li>The above step is unnecessary when inheriting the superclass layout.
+ * <li>> See examples in this file.
+ * </ul>
+ *
+ * <li>If the class includes some Java-defined modules, perform the inclusion by calling
+ * `Layouts.MODULE.getFields(myClassClass).include(context, node, myModule)` inside the `CoreLibrary#includeModules`
+ * method.
+ * </ul>
+*/
 public class CoreLibrary {
 
     public static final SourceSection UNAVAILABLE_SOURCE_SECTION = Source
@@ -203,6 +229,8 @@ public class CoreLibrary {
     public final DynamicObject warningModule;
     public final DynamicObjectFactory digestFactory;
     public final DynamicObject structClass;
+    public final DynamicObject weakMapClass;
+    public final DynamicObjectFactory weakMapFactory;
 
     public final DynamicObject argv;
     public final DynamicObject mainObject;
@@ -519,6 +547,10 @@ public class CoreLibrary {
         defineModule("Math");
         objectSpaceModule = defineModule("ObjectSpace");
 
+        weakMapClass = defineClass(objectSpaceModule, objectClass, "WeakMap");
+        weakMapFactory = Layouts.WEAK_MAP.createWeakMapShape(weakMapClass, weakMapClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(weakMapClass, weakMapFactory);
+
         // The rest
 
         DynamicObject conditionVariableClass = defineClass("ConditionVariable");
@@ -692,6 +724,7 @@ public class CoreLibrary {
         Layouts.MODULE.getFields(dirClass).include(context, node, enumerableModule);
         Layouts.MODULE.getFields(hashClass).include(context, node, enumerableModule);
         Layouts.MODULE.getFields(rangeClass).include(context, node, enumerableModule);
+        Layouts.MODULE.getFields(weakMapClass).include(context, node, enumerableModule);
     }
 
     public void initialize() {
@@ -1179,6 +1212,7 @@ public class CoreLibrary {
             "/core/method.rb",
             "/core/unbound_method.rb",
             "/core/warning.rb",
+            "/core/weakmap.rb",
             "/core/tracepoint.rb",
             "/core/truffle/interop.rb",
             "/core/truffle/polyglot.rb",

@@ -36,7 +36,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.truffleruby.core.hash.ReHashable;
 
@@ -50,14 +52,16 @@ public class WeakValueCache<Key, Value> implements ReHashable {
     private Map<Key, KeyedReference<Key, Value>> map = new ConcurrentHashMap<>();
     private final ReferenceQueue<Value> deadRefs = new ReferenceQueue<>();
 
+    @TruffleBoundary
+    public WeakValueCache() {
+        this.map = new ConcurrentHashMap<>();
+    }
+
+    @TruffleBoundary
     public Value get(Key key) {
         removeStaleEntries();
         final KeyedReference<Key, Value> reference = map.get(key);
-        if (reference == null) {
-            return null;
-        }
-
-        return reference.get();
+        return reference == null ? null : reference.get();
     }
 
     /** Returns the value in the cache (existing or added). Similar to a putIfAbsent() but always return the value in
@@ -83,20 +87,36 @@ public class WeakValueCache<Key, Value> implements ReHashable {
                     // A stale entry, replace it with a new entry
                     if (map.replace(key, oldRef, newRef)) {
                         return newValue;
-                    } else {
-                        // Some other thread replaced or removed the stale entry, try again from the start.
-                        continue;
                     }
+                    // else continue: Some other thread replaced or removed the stale entry, try again from the start.
                 }
             }
         }
     }
 
+
+    /** Sets the value in the cache, always returns the added value. */
+    @TruffleBoundary
+    public Value put(Key key, Value value) {
+        removeStaleEntries();
+        final KeyedReference<Key, Value> ref = new KeyedReference<>(value, key, deadRefs);
+        map.put(key, ref);
+        return value;
+    }
+
+    @TruffleBoundary
     public int size() {
         removeStaleEntries();
         return map.size();
     }
 
+    @TruffleBoundary
+    public Set<Key> keys() {
+        removeStaleEntries();
+        return map.keySet();
+    }
+
+    @TruffleBoundary
     public Collection<Value> values() {
         removeStaleEntries();
         final Collection<Value> values = new ArrayList<>(map.size());
@@ -109,6 +129,17 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         }
 
         return values;
+    }
+
+    @TruffleBoundary
+    public Collection<Entry<Key, Value>> entries() {
+        removeStaleEntries();
+        return map
+                .entrySet()
+                .stream()
+                .filter(e -> e.getValue() != null)
+                .map(WeakMapEntry::new)
+                .collect(Collectors.toList());
     }
 
     public void rehash() {
@@ -130,11 +161,40 @@ public class WeakValueCache<Key, Value> implements ReHashable {
 
     }
 
+    /** Note that this class makes a strong reference on its value!
+     *
+     * @see #entries() */
+    public static class WeakMapEntry<Key, Value> implements Map.Entry<Key, Value> {
+        public final Key key;
+        public final Value value;
+
+        private WeakMapEntry(Entry<Key, KeyedReference<Key, Value>> e) {
+            this.key = e.getKey();
+            this.value = e.getValue().get();
+        }
+
+        @Override
+        public Key getKey() {
+            return key;
+        }
+
+        @Override
+        public Value getValue() {
+            return value;
+        }
+
+        @Override
+        public Value setValue(Value value) {
+            throw new UnsupportedOperationException("weak map entries are immutable");
+        }
+    }
+
     private void removeStaleEntries() {
         KeyedReference<?, ?> ref;
         while ((ref = (KeyedReference<?, ?>) deadRefs.poll()) != null) {
             // Remove key, but only if the entry is still referencing the GC'd value.
             // Another valid entry for key could have been added since the old value was GC'd.
+            //noinspection SuspiciousMethodCalls
             map.remove(ref.key, ref);
         }
     }
