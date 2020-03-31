@@ -118,6 +118,7 @@ Compatibility:
 * Implemented `rb_to_symbol`.
 * Implemented `rb_class_instance_methods`, `rb_class_public_instance_methods`, `rb_class_protected_instance_methods`, and `rb_class_private_instance_methods`. 
 * Implemented `rb_tracepoint_new`, `rb_tracepoint_disable`, `rb_tracepoint_enable`, and `rb_tracepoint_enabled_p` (#1450). 
+* Implemented `RbConfig::CONFIG['AR']` and `RbConfig::CONFIG['STRIP']` (#1973).
 
 Changes:
 

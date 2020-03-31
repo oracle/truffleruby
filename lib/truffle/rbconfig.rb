@@ -183,6 +183,9 @@ module RbConfig
     cc = Truffle::Boot.tool_path(:CC)
     cxx = Truffle::Boot.tool_path(:CXX)
 
+    expanded['AR'] = mkconfig['AR'] = Truffle::Boot.tool_path(:AR)
+    expanded['STRIP'] = mkconfig['STRIP'] = Truffle::Boot.tool_path(:STRIP)
+
     expanded['CC'] = mkconfig['CC'] = cc
     expanded['CXX'] = mkconfig['CXX'] = cxx
 
