@@ -81,6 +81,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             throws UnsupportedMessageException, InvalidArrayIndexException, UnknownIdentifierException,
             UnsupportedTypeException, ArityException;
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unsupportedMessageExceptionClass",
             limit = "1")
@@ -97,6 +98,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         throw interopException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().invalidArrayIndexExceptionClass",
             limit = "1")
@@ -113,6 +115,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         throw interopException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unknownIdentifierExceptionClass",
             limit = "1")
@@ -129,6 +132,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         throw interopException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unsupportedTypeExceptionClass",
             limit = "1")
@@ -145,6 +149,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         throw interopException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().arityExceptionClass",
             limit = "1")

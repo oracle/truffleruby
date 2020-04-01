@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.Utils;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 
@@ -96,7 +97,8 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         @Override
         public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject,
                 Object[] argumentsObjects) {
-            throw new AssertionError("never called");
+            // Can't boundarize a method with a VirtualFrame parameter.
+            throw Utils.assertionError("never called");
         }
 
         @Override

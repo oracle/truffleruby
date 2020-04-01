@@ -69,7 +69,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             @Cached BigDecimalCastNode bigDecimalCastNode) {
         BigDecimal bigDecimal = round(
                 (BigDecimal) bigDecimalCastNode.execute(value, digits, getRoundMode()),
-                new MathContext(digits, getRoundMode()));
+                BigDecimalOps.newMathContext(digits, getRoundMode()));
         return createNormalBigDecimal(bigDecimal);
     }
 
@@ -96,7 +96,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             @Cached BigDecimalCastNode bigDecimalCastNode) {
         final RoundingMode roundMode = getRoundMode();
         final BigDecimal bigDecimal = (BigDecimal) bigDecimalCastNode.execute(value, digits, roundMode);
-        return createNormalBigDecimal(round(bigDecimal, new MathContext(digits, roundMode)));
+        return createNormalBigDecimal(round(bigDecimal, BigDecimalOps.newMathContext(digits, roundMode)));
     }
 
     @Specialization(guards = "!isFinite(value)")
@@ -162,7 +162,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization
     protected DynamicObject create(BigDecimal value, int digits, boolean strict) {
-        return createNormalBigDecimal(round(value, new MathContext(digits, getRoundMode())));
+        return createNormalBigDecimal(round(value, BigDecimalOps.newMathContext(digits, getRoundMode())));
     }
 
     @Specialization(guards = "isRubyBignum(value)")
@@ -173,7 +173,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization(guards = "isRubyBignum(value)")
     protected DynamicObject createBignum(DynamicObject value, int digits, boolean strict) {
         return createNormalBigDecimal(
-                round(BigDecimalOps.fromBigInteger(value), new MathContext(digits, getRoundMode())));
+                round(BigDecimalOps.fromBigInteger(value), BigDecimalOps.newMathContext(digits, getRoundMode())));
     }
 
     @Specialization(guards = "isRubyBigDecimal(value)")
@@ -184,7 +184,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization(guards = "isRubyBigDecimal(value)")
     protected DynamicObject createBigDecimal(DynamicObject value, int digits, boolean strict) {
         return createNormalBigDecimal(
-                round(Layouts.BIG_DECIMAL.getValue(value), new MathContext(digits, getRoundMode())));
+                round(Layouts.BIG_DECIMAL.getValue(value), BigDecimalOps.newMathContext(digits, getRoundMode())));
     }
 
     @Specialization(guards = "isRubyString(value)")

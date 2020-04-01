@@ -162,7 +162,7 @@ public class Backtrace {
         return root instanceof RubyRootNode
                 // Ruby backtraces do not include the class name for MRI compatibility.
                 ? ((RubyRootNode) root).getSharedMethodInfo().getName()
-                : root.getName();
+                : getRootName(root);
     }
 
     public static String baseLabelFor(TruffleStackTraceElement e) {
@@ -170,7 +170,12 @@ public class Backtrace {
         return root instanceof RubyRootNode
                 // Ruby backtraces do not include the class name for MRI compatibility.
                 ? ((RubyRootNode) root).getSharedMethodInfo().getMethodName()
-                : root.getName();
+                : getRootName(root);
+    }
+
+    @TruffleBoundary // string concatenation in RootNode#getName
+    private static String getRootName(RootNode root) {
+        return root.getName();
     }
 
     // endregion

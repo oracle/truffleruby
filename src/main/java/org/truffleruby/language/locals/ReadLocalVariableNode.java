@@ -52,7 +52,7 @@ public class ReadLocalVariableNode extends ReadLocalNode {
                 }
 
             default:
-                throw Utils.unsupportedOperation("didn't expect local type " + type);
+                throw Utils.unsupportedOperation("didn't expect local type ", type);
         }
     }
 

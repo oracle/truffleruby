@@ -11,15 +11,27 @@
 package org.truffleruby.utils;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /** General purpose utility functions that do not fit in other utility classes. */
 public final class Utils {
-    /** Build a {@link UnsupportedOperationException} behind a {@link TruffleBoundary} so as to avoid performance
-     * warnings from the call to {@link Throwable#fillInStackTrace()}. */
+
+    /** Build a {@link UnsupportedOperationException} behind a {@link TruffleBoundary} so as to avoid the
+     * SVM-blacklisted {@link Throwable#fillInStackTrace()}. */
     @TruffleBoundary
     public static UnsupportedOperationException unsupportedOperation(String msg) {
         return new UnsupportedOperationException(msg);
+    }
+
+    /** Build a {@link UnsupportedOperationException} behind a {@link TruffleBoundary} so as to avoid the
+     * SVM-blacklisted {@link Throwable#fillInStackTrace()} and the implicit {@link StringBuffer} or {@link String}
+     * methods. */
+    @TruffleBoundary
+    public static UnsupportedOperationException unsupportedOperation(Object... msgParts) {
+        return new UnsupportedOperationException(concat(msgParts));
     }
 
     /** Performs {@link Objects#equals(Object, Object)} behind a {@link TruffleBoundary} so as to avoid performance
@@ -27,5 +39,19 @@ public final class Utils {
     @TruffleBoundary
     public static boolean equals(Object a, Object b) {
         return Objects.equals(a, b);
+    }
+
+    /** Converts the {@code parts} to strings and concatenate them behind a {@link TruffleBoundary}, so as to avoid the
+     * implicit calls to SVM-blacklisted {@link StringBuffer} or {@link String} methods. */
+    @TruffleBoundary
+    public static String concat(Object... parts) {
+        return Arrays.stream(parts).map(Object::toString).collect(Collectors.joining());
+    }
+
+    /** Returns a {@link AssertionError} behind a {@link TruffleBoundary} so as to to avoid the SVM-blacklisted
+     * {@link Throwable#fillInStackTrace()}. */
+    @TruffleBoundary
+    public static AssertionError assertionError(String msg) {
+        return new AssertionError(msg);
     }
 }

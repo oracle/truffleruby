@@ -1,5 +1,6 @@
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
@@ -32,6 +33,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             Object receiver,
             Object[] args);
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             UnsupportedMessageException exception,
@@ -46,6 +48,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         return raiseException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             InvalidArrayIndexException exception,
@@ -61,6 +64,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         return raiseException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             UnknownIdentifierException exception,
@@ -89,6 +93,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         return raiseException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             UnsupportedTypeException exception,
@@ -104,6 +109,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         return raiseException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(ArityException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {

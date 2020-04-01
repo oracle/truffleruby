@@ -1285,7 +1285,9 @@ public abstract class RopeNodes {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        getContext().getCoreExceptions().argumentError("invalid byte sequence in " + encoding, null));
+                        getContext().getCoreExceptions().argumentError(
+                                Utils.concat("invalid byte sequence in ", encoding),
+                                null));
             }
 
             return mbcToCode(actualEncoding, bytes, index, rope.byteLength());

@@ -815,7 +815,7 @@ public abstract class BigDecimalNodes {
                 @Cached("createBinaryProfile()") ConditionProfile positiveValueProfile) {
             final BigDecimal valueBigDecimal = Layouts.BIG_DECIMAL.getValue(a);
             if (positiveValueProfile.profile(BigDecimalOps.signum(valueBigDecimal) >= 0)) {
-                return createBigDecimal(sqrt(valueBigDecimal, new MathContext(precision, getRoundMode())));
+                return createBigDecimal(sqrt(valueBigDecimal, BigDecimalOps.newMathContext(precision, getRoundMode())));
             } else {
                 throw new RaiseException(getContext(), coreExceptions().floatDomainErrorSqrtNegative(this));
             }
@@ -839,7 +839,8 @@ public abstract class BigDecimalNodes {
                     throw new RaiseException(getContext(), coreExceptions().floatDomainErrorSqrtNegative(this));
                 case NEGATIVE_ZERO:
                     negZeroProfile.enter();
-                    return createBigDecimal(sqrt(BigDecimal.ZERO, new MathContext(precision, getRoundMode())));
+                    return createBigDecimal(
+                            sqrt(BigDecimal.ZERO, BigDecimalOps.newMathContext(precision, getRoundMode())));
                 default:
                     CompilerDirectives.transferToInterpreterAndInvalidate();
                     throw new UnsupportedOperationException(

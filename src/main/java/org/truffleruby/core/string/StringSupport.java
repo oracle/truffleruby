@@ -76,7 +76,7 @@ public final class StringSupport {
                     return preciseLength(encoding, bytes, byteOffset, byteEnd);
                 }
             default:
-                throw Utils.unsupportedOperation("unknown code range value: " + codeRange);
+                throw Utils.unsupportedOperation("unknown code range value: ", codeRange);
         }
     }
 
