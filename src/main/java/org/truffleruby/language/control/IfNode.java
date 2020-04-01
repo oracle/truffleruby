@@ -26,8 +26,7 @@ public class IfNode extends RubyContextSourceNode {
     private final ConditionProfile conditionProfile = ConditionProfile.createCountingProfile();
 
     public IfNode(RubyNode condition, RubyNode thenBody) {
-        this.condition = BooleanCastNodeGen.create(condition);
-        this.thenBody = thenBody;
+        this(BooleanCastNodeGen.create(condition), thenBody);
     }
 
     private IfNode(BooleanCastNode condition, RubyNode thenBody) {

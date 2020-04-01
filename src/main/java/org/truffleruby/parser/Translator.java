@@ -58,7 +58,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         } else if (flattened.size() == 1) {
             return flattened.get(0);
         } else {
-            final RubyNode[] flatSequence = flattened.toArray(new RubyNode[flattened.size()]);
+            final RubyNode[] flatSequence = flattened.toArray(RubyNode.EMPTY_ARRAY);
 
             final SourceIndexLength enclosingSourceSection = enclosing(sourceSection, flatSequence);
             return withSourceSection(enclosingSourceSection, new SequenceNode(flatSequence));
@@ -104,7 +104,7 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
                 flattened.addAll(flatten(Arrays.asList(((SequenceNode) node).getSequence()), lastNode));
             } else if (node.canSubsumeFollowing() && !lastNode) {
                 List<RubyNode> rest = flattenFromN(sequence, allowTrailingNil, n + 1);
-                flattened.add(node.subsumeFollowing(new SequenceNode(rest.toArray(new RubyNode[rest.size()]))));
+                flattened.add(node.subsumeFollowing(new SequenceNode(rest.toArray(RubyNode.EMPTY_ARRAY))));
                 return flattened;
             } else {
                 flattened.add(node);
