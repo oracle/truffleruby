@@ -29,6 +29,11 @@ public class UnlessNode extends RubyContextSourceNode {
         this.thenBody = thenBody;
     }
 
+    public UnlessNode(BooleanCastNode condition, RubyNode thenBody) {
+        this.condition = condition;
+        this.thenBody = thenBody;
+    }
+
     @Override
     public Object execute(VirtualFrame frame) {
         if (!conditionProfile.profile(condition.executeBoolean(frame))) {
@@ -38,4 +43,18 @@ public class UnlessNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public boolean canSubsumeFollowing() {
+        return !thenBody.isContinuable();
+    }
+
+    @Override
+    public RubyNode subsumeFollowing(RubyNode following) {
+        return new IfElseNode(condition, following, thenBody).copySourceSection(this);
+    }
+
+    @Override
+    public RubyNode simplifyAsTailExpression() {
+        return new UnlessNode(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
+    }
 }

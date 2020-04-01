@@ -27,4 +27,13 @@ public class LocalReturnNode extends RubyContextSourceNode {
         throw new LocalReturnException(value.execute(frame));
     }
 
+    @Override
+    public boolean isContinuable() {
+        return false;
+    }
+
+    @Override
+    public RubyNode simplifyAsTailExpression() {
+        return value;
+    }
 }

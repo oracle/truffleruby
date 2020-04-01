@@ -25,7 +25,11 @@ public class IfNode extends RubyContextSourceNode {
     private final ConditionProfile conditionProfile = ConditionProfile.createCountingProfile();
 
     public IfNode(RubyNode condition, RubyNode thenBody) {
-        this.condition = BooleanCastNodeGen.create(condition);
+        this(BooleanCastNodeGen.create(condition), thenBody);
+    }
+
+    private IfNode(BooleanCastNode condition, RubyNode thenBody) {
+        this.condition = condition;
         this.thenBody = thenBody;
     }
 
@@ -38,4 +42,18 @@ public class IfNode extends RubyContextSourceNode {
         }
     }
 
+    @Override
+    public boolean canSubsumeFollowing() {
+        return !thenBody.isContinuable();
+    }
+
+    @Override
+    public RubyNode subsumeFollowing(RubyNode following) {
+        return new IfElseNode(condition, thenBody, following).copySourceSection(this);
+    }
+
+    @Override
+    public RubyNode simplifyAsTailExpression() {
+        return new IfNode(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
+    }
 }

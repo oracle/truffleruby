@@ -136,6 +136,7 @@ Performance:
 * `ArrayBuilderNode` now uses a new Truffle library for manipulating array stores.
 * Ruby objects passed to C extensions are now converted less often to native handles.
 * Calling blocking system calls and running C code with unblocking actions has been refactored to remove some optimisation boundaries.
+* `return` expressions are now rewritten as implicit return expressions where control flow allows this to be safely done as a tail optimisation. This can improve interpreter performance by up to 50% in some benchmarks, and can be applied to approximately 80% of return nodes seen in Rails and its dependencies (#1977).
 
 # 20.0.0
 

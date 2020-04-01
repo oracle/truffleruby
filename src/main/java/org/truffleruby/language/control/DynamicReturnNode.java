@@ -30,4 +30,8 @@ public class DynamicReturnNode extends RubyContextSourceNode {
         throw new DynamicReturnException(returnID, value.execute(frame));
     }
 
+    @Override
+    public boolean isContinuable() {
+        return false;
+    }
 }

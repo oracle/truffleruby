@@ -87,7 +87,7 @@ copyright 2011 Evan Phoenix, and in other cases copyright 2007-2015 Evan Phoenix
 and contributors, and released under the 3-clause BSD license. We have included
 licence headers in these files which weren't in the original ones.
 
-Some parts of the Truffle Java code (such as the implementation of Rubinius
+Some parts of the TruffleRuby Java code (such as the implementation of Rubinius
 primitives) are derived from Rubinius C++ code which is copyright 2007-2015,
 Evan Phoenix and contributors, and released under the 3-clause BSD license.
 

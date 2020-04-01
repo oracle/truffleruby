@@ -103,6 +103,14 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         }
     }
 
+    public RubyNode copySourceSection(RubyNode from) {
+        if (from.hasSource()) {
+            setSourceCharIndex(from.getSourceCharIndex());
+            setSourceLength(from.getSourceLength());
+        }
+        return this;
+    }
+
     public SourceIndexLength getSourceIndexLength() {
         if (!hasSource()) {
             return null;
@@ -271,5 +279,29 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         default int getDefaultCacheLimit() {
             return getContext().getOptions().DEFAULT_CACHE;
         }
+    }
+
+    /** Return whether nodes following this one can ever be executed. In most cases this will be true, but some nodes
+     * such as those representing a return or other control flow may wish to override this. */
+    public boolean isContinuable() {
+        return true;
+    }
+
+    /** Indicates whether this node can return a new version of itself combined with the next node, which may help with
+     * analysis and optimisation. */
+    public boolean canSubsumeFollowing() {
+        return false;
+    }
+
+    /** Combine this node with the next node. Any node which returns true for {@link #canSubsumeFollowing} must override
+     * this method. Any new node created in this method should use {@link #copySourceSection(RubyNode)}. */
+    public RubyNode subsumeFollowing(RubyNode following) {
+        throw new UnsupportedOperationException();
+    }
+
+    /** Return a possibly simplified version of this node. This is only called if the node is in tail position. Any new
+     * node created in this method should use {@link #copySourceSection(RubyNode)}. */
+    public RubyNode simplifyAsTailExpression() {
+        return this;
     }
 }
