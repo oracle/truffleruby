@@ -694,6 +694,11 @@ int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, 
   return result;
 }
 
+// Needed to gem install cbor
+VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
+  rb_tr_error("rb_integer_unpack not implemented");
+}
+
 size_t rb_absint_size(VALUE value, int *nlz_bits_ret) {
   int size = polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_absint_bit_length", value));
   if (nlz_bits_ret != NULL) {
