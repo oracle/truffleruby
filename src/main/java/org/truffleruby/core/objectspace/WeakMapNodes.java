@@ -18,7 +18,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -31,7 +30,6 @@ import java.util.Map.Entry;
 
 /** Note that WeakMap uses identity comparison semantics. See top comment in src/main/ruby/truffleruby/core/weakmap.rb
  * for more information. */
-@SuppressWarnings("rawtypes")
 @CoreModule(value = "ObjectSpace::WeakMap", isClass = true)
 public abstract class WeakMapNodes {
 
@@ -149,7 +147,8 @@ public abstract class WeakMapNodes {
         @Specialization
         protected DynamicObject each(DynamicObject map, DynamicObject block) {
 
-            for (Entry e : entries(Layouts.WEAK_MAP.getWeakMapStorage(map))) {
+            for (@SuppressWarnings("rawtypes")
+            Entry e : entries(Layouts.WEAK_MAP.getWeakMapStorage(map))) {
                 yieldPair(block, e.getKey(), e.getValue());
             }
 
@@ -167,18 +166,19 @@ public abstract class WeakMapNodes {
     }
 
     @TruffleBoundary
-    private static Object[] keys(WeakValueCache cache) {
-        return cache.keys().toArray();
+    private static Object[] keys(WeakMapStorage storage) {
+        return storage.keys().toArray();
     }
 
     @TruffleBoundary
-    private static Object[] values(WeakValueCache cache) {
-        return cache.values().toArray();
+    private static Object[] values(WeakMapStorage storage) {
+        return storage.values().toArray();
     }
 
+    @SuppressWarnings("rawtypes")
     @TruffleBoundary
-    private static Entry[] entries(WeakValueCache cache) {
-        return (Entry[]) cache.entries().toArray(new Entry[0]);
+    private static Entry[] entries(WeakMapStorage storage) {
+        return storage.entries().toArray(new Entry[0]);
     }
 
     private static DynamicObject eachNoBlockProvided(YieldingCoreMethodNode node, DynamicObject map) {

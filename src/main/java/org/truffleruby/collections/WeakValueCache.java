@@ -137,8 +137,8 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         return map
                 .entrySet()
                 .stream()
-                .filter(e -> e.getValue() != null)
                 .map(WeakMapEntry::new)
+                .filter(e -> e.getValue() != null)
                 .collect(Collectors.toList());
     }
 
