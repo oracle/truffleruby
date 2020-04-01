@@ -1892,6 +1892,11 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ivar_lookup", rb_tr_unwrap(object), name, rb_tr_unwrap(default_value)));
 }
 
+// Needed to gem install oj
+void rb_ivar_foreach(VALUE obj, int (*func)(ANYARGS), st_data_t arg) {
+  rb_tr_error("rb_ivar_foreach not implemented");
+}
+
 VALUE rb_attr_get(VALUE object, ID name) {
   return RUBY_CEXT_INVOKE("rb_ivar_lookup", object, name, Qnil);
 }
