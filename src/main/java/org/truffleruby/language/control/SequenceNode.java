@@ -50,7 +50,7 @@ public final class SequenceNode extends RubyContextSourceNode {
 
     @Override
     public boolean isContinuable() {
-        for (int n = 0; n < body.length - 1; n++) {
+        for (int n = 0; n < body.length; n++) {
             if (!body[n].isContinuable()) {
                 return false;
             }
