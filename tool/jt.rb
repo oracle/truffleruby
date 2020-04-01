@@ -1075,6 +1075,9 @@ module Commands
                       else
                         "#{MRI_TEST_CEXT_DIR}/#{cext_name.gsub('_', '-')}"
                       end
+        # Remove depend files copied from MRI as they hardcode header locations
+        FileUtils::Verbose.rm_f("#{compile_dir}/depend")
+
         name = File.basename(match[1])
         target_dir = if match[1].include?('/')
                        File.dirname(match[1])
