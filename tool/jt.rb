@@ -1068,19 +1068,16 @@ module Commands
       match = File.read(test_path).match(/\brequire ['"]c\/(.*?)["']/)
       if match
         cext_name = match[1]
-        compile_dir = if cext_name.include?('/')
-                        if Dir.exist?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
-                          "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
-                        else
-                          "#{MRI_TEST_CEXT_DIR}/#{File.dirname(cext_name)}"
-                        end
+        compile_dir = if Dir.exist?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
+                        "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
+                      elsif cext_name.include?('/')
+                        "#{MRI_TEST_CEXT_DIR}/#{File.dirname(cext_name)}"
                       else
-                        if Dir.exist?("#{MRI_TEST_CEXT_DIR}/#{cext_name}")
-                          "#{MRI_TEST_CEXT_DIR}/#{cext_name}"
-                        else
-                          "#{MRI_TEST_CEXT_DIR}/#{cext_name.gsub('_', '-')}"
-                        end
+                        "#{MRI_TEST_CEXT_DIR}/#{cext_name.gsub('_', '-')}"
                       end
+        # Remove depend files copied from MRI as they hardcode header locations
+        FileUtils::Verbose.rm_f("#{compile_dir}/depend")
+
         name = File.basename(match[1])
         target_dir = if match[1].include?('/')
                        File.dirname(match[1])
