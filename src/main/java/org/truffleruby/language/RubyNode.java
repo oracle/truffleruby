@@ -103,6 +103,14 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         }
     }
 
+    public RubyNode copySourceSection(RubyNode from) {
+        if (from.hasSource()) {
+            setSourceCharIndex(from.getSourceCharIndex());
+            setSourceLength(from.getSourceLength());
+        }
+        return this;
+    }
+
     public SourceIndexLength getSourceIndexLength() {
         if (!hasSource()) {
             return null;
@@ -286,12 +294,13 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     }
 
     /** Combine this node with the next node. Any node which returns true for {@link #canSubsumeFollowing} must override
-     * this method. */
+     * this method. Any new node created in this method should use {@link #copySourceSection(RubyNode)}. */
     public RubyNode subsumeFollowing(RubyNode following) {
         throw new UnsupportedOperationException();
     }
 
-    /** Return a possibly simplified version of this node. This is only called if the node is in tail position. */
+    /** Return a possibly simplified version of this node. This is only called if the node is in tail position. Any new
+     * node created in this method should use {@link #copySourceSection(RubyNode)}. */
     public RubyNode simplifyAsTailExpression() {
         return this;
     }

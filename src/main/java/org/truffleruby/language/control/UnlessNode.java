@@ -51,21 +51,11 @@ public class UnlessNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode subsumeFollowing(RubyNode following) {
-        RubyNode newNode = new IfElseNode(condition, following, thenBody);
-        SourceSection source = getSourceSection();
-        if (source != null) {
-            newNode.unsafeSetSourceSection(source);
-        }
-        return newNode;
+        return new IfElseNode(condition, following, thenBody).copySourceSection(this);
     }
 
     @Override
     public RubyNode simplifyAsTailExpression() {
-        final UnlessNode unlessNode = new UnlessNode(condition, thenBody.simplifyAsTailExpression());
-        SourceSection source = getSourceSection();
-        if (source != null) {
-            unlessNode.unsafeSetSourceSection(source);
-        }
-        return unlessNode;
+        return new UnlessNode(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
     }
 }

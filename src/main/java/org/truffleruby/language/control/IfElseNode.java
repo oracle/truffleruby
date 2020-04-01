@@ -56,11 +56,6 @@ public class IfElseNode extends RubyContextSourceNode {
     public RubyNode simplifyAsTailExpression() {
         final RubyNode newThen = thenBody.simplifyAsTailExpression();
         final RubyNode newElse = elseBody.simplifyAsTailExpression();
-        final IfElseNode ifNode = new IfElseNode(condition, newThen, newElse);
-        SourceSection source = getSourceSection();
-        if (source != null) {
-            ifNode.unsafeSetSourceSection(source);
-        }
-        return ifNode;
+        return new IfElseNode(condition, newThen, newElse).copySourceSection(this);
     }
 }

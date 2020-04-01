@@ -51,21 +51,11 @@ public class IfNode extends RubyContextSourceNode {
 
     @Override
     public RubyNode subsumeFollowing(RubyNode following) {
-        RubyNode newNode = new IfElseNode(condition, thenBody, following);
-        SourceSection source = getSourceSection();
-        if (source != null) {
-            newNode.unsafeSetSourceSection(source);
-        }
-        return newNode;
+        return new IfElseNode(condition, thenBody, following).copySourceSection(this);
     }
 
     @Override
     public RubyNode simplifyAsTailExpression() {
-        final IfNode ifNode = new IfNode(condition, thenBody.simplifyAsTailExpression());
-        SourceSection source = getSourceSection();
-        if (source != null) {
-            ifNode.unsafeSetSourceSection(source);
-        }
-        return ifNode;
+        return new IfNode(condition, thenBody.simplifyAsTailExpression()).copySourceSection(this);
     }
 }
