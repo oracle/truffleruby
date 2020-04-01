@@ -273,7 +273,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         }
     }
 
-    /** Return whether nodes following this one can ever be executed In most cases this will be true, but some nodes
+    /** Return whether nodes following this one can ever be executed. In most cases this will be true, but some nodes
      * such as those representing a return or other control flow may wish to override this. */
     public boolean isContinuable() {
         return true;
@@ -285,13 +285,13 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         return false;
     }
 
-    /** Combine this node with the next node. Any node which returns true for public RubyNode subsumeFollowing(RubyNode
-     * following) {@link #canSubsumeFollowing} must override this method. */
+    /** Combine this node with the next node. Any node which returns true for {@link #canSubsumeFollowing} must override
+     * this method. */
     public RubyNode subsumeFollowing(RubyNode following) {
         throw new UnsupportedOperationException();
     }
 
-    /** Return a possibly simplified version of this node that may only be valid as a tail optimisation. */
+    /** Return a possibly simplified version of this node. This is only called if the node is in tail position. */
     public RubyNode simplifyAsTailExpression() {
         return this;
     }
