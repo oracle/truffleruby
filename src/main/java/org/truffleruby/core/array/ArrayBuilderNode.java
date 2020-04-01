@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -202,7 +203,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         public abstract void executeAppend(BuilderState array, int index, Object value);
 
         @Specialization(
-                guards = "arrays.acceptsValue(state.store, value)",
+                guards = "acceptsValue(arrays, state.store, value)",
                 limit = "1")
         protected void appendCompatibleType(BuilderState state, int index, Object value,
                 @CachedLibrary("state.store") ArrayStoreLibrary arrays) {
@@ -264,7 +265,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         public abstract void executeAppend(BuilderState state, int index, DynamicObject value);
 
         @Specialization(
-                guards = { "arrays.acceptsAllValues(state.store, getStore(other))" },
+                guards = { "acceptsAllValues(arrays, state.store, getStore(other))" },
                 limit = "1")
         protected void appendCompatibleStrategy(BuilderState state, int index, DynamicObject other,
                 @CachedLibrary("state.store") ArrayStoreLibrary arrays,

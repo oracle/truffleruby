@@ -9,7 +9,9 @@
  */
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -47,5 +49,15 @@ public class ArrayGuards {
 
     public static int getSize(DynamicObject array) {
         return Layouts.ARRAY.getSize(array);
+    }
+
+    @TruffleBoundary // virtual call
+    public static boolean acceptsValue(ArrayStoreLibrary arrays, Object store, Object value) {
+        return arrays.acceptsValue(store, value);
+    }
+
+    @TruffleBoundary // virtual call
+    public static boolean acceptsAllValues(ArrayStoreLibrary arrays, Object store, Object otherStore) {
+        return arrays.acceptsAllValues(store, otherStore);
     }
 }

@@ -12,6 +12,7 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyNode;
@@ -42,7 +43,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     // Append of the correct type
 
     @Specialization(
-            guards = { "stores.acceptsValue(getStore(array), value)" },
+            guards = { "acceptsValue(stores, getStore(array), value)" },
             limit = "STORAGE_STRATEGIES")
     protected DynamicObject appendOneSameType(DynamicObject array, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
@@ -69,7 +70,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     // Append forcing a generalization
 
     @Specialization(
-            guards = "!currentStores.acceptsValue(getStore(array), value)",
+            guards = "!acceptsValue(currentStores, getStore(array), value)",
             limit = "ARRAY_STRATEGIES")
     protected DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary currentStores,
@@ -81,11 +82,16 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         final int newCapacity = newSize > oldCapacity
                 ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity)
                 : oldCapacity;
-        final Object newStore = currentStores.generalizeForValue(currentStore, value).allocate(newCapacity);
+        final Object newStore = allocateArray(currentStores.generalizeForValue(currentStore, value), newCapacity);
         currentStores.copyContents(currentStore, 0, newStore, 0, oldSize);
         propagateSharingNode.executePropagate(array, value);
         newStores.write(newStore, oldSize, value);
         setStoreAndSize(array, newStore, newSize);
         return array;
+    }
+
+    @TruffleBoundary
+    private Object allocateArray(ArrayStoreLibrary.ArrayAllocator allocator, int capacity) {
+        return allocator.allocate(capacity);
     }
 }
