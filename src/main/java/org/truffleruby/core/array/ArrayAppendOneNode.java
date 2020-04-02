@@ -43,7 +43,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     // Append of the correct type
 
     @Specialization(
-            guards = { "acceptsValue(stores, getStore(array), value)" },
+            guards = { "stores.acceptsValue(getStore(array), value)" },
             limit = "STORAGE_STRATEGIES")
     protected DynamicObject appendOneSameType(DynamicObject array, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
@@ -70,7 +70,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     // Append forcing a generalization
 
     @Specialization(
-            guards = "!acceptsValue(currentStores, getStore(array), value)",
+            guards = "!currentStores.acceptsValue(getStore(array), value)",
             limit = "ARRAY_STRATEGIES")
     protected DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary currentStores,
