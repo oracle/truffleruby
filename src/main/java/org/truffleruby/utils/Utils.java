@@ -10,11 +10,10 @@
 
 package org.truffleruby.utils;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /** General purpose utility functions that do not fit in other utility classes. */
 public final class Utils {
@@ -27,8 +26,7 @@ public final class Utils {
     }
 
     /** Build a {@link UnsupportedOperationException} behind a {@link TruffleBoundary} so as to avoid the
-     * SVM-blacklisted {@link Throwable#fillInStackTrace()} and the implicit {@link StringBuffer} or {@link String}
-     * methods. */
+     * SVM-blacklisted {@link Throwable#fillInStackTrace()} and the implicit {@link String} methods. */
     @TruffleBoundary
     public static UnsupportedOperationException unsupportedOperation(Object... msgParts) {
         return new UnsupportedOperationException(concat(msgParts));
@@ -41,17 +39,42 @@ public final class Utils {
         return Objects.equals(a, b);
     }
 
-    /** Converts the {@code parts} to strings and concatenate them behind a {@link TruffleBoundary}, so as to avoid the
-     * implicit calls to SVM-blacklisted {@link StringBuffer} or {@link String} methods. */
+    /** Converts the arguments to strings and concatenate them behind a {@link TruffleBoundary}, so as to avoid the
+     * implicit calls to SVM-blacklisted {@link String} methods. */
     @TruffleBoundary
-    public static String concat(Object... parts) {
-        return Arrays.stream(parts).map(Object::toString).collect(Collectors.joining());
+    public static String concat(Object one, Object two) {
+        return String.valueOf(one) + two;
     }
 
-    /** Returns a {@link AssertionError} behind a {@link TruffleBoundary} so as to to avoid the SVM-blacklisted
-     * {@link Throwable#fillInStackTrace()}. */
+    /** Converts the {@code parts} to strings and concatenate them behind a {@link TruffleBoundary}, so as to avoid the
+     * implicit calls to SVM-blacklisted {@link String} methods. */
     @TruffleBoundary
-    public static AssertionError assertionError(String msg) {
-        return new AssertionError(msg);
+    public static String concat(Object... parts) {
+        StringBuilder builder = new StringBuilder();
+        for (Object part : parts) {
+            builder.append(part);
+        }
+        return builder.toString();
+    }
+
+    /** Returns a exception to be thrown in unreachable code paths and calls
+     * {@link CompilerDirectives#transferToInterpreterAndInvalidate()}. */
+    public static UnreachableCodeException unreachable() {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        return new UnreachableCodeException();
+    }
+
+    /** Returns a exception to be thrown in unreachable code paths and calls
+     * {@link CompilerDirectives#transferToInterpreterAndInvalidate()}. */
+    public static UnreachableCodeException unreachable(String msg) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        return new UnreachableCodeException(msg);
+    }
+
+    /** Returns a exception to be thrown in unreachable code paths and calls
+     * {@link CompilerDirectives#transferToInterpreterAndInvalidate()}. */
+    public static UnreachableCodeException unreachable(String... msgParts) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        return new UnreachableCodeException(concat(msgParts));
     }
 }

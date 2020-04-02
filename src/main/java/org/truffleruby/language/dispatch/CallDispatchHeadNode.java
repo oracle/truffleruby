@@ -97,8 +97,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         @Override
         public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject,
                 Object[] argumentsObjects) {
-            // Can't boundarize a method with a VirtualFrame parameter.
-            throw Utils.assertionError("never called");
+            throw Utils.unreachable();
         }
 
         @Override
