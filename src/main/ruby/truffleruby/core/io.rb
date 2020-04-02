@@ -466,7 +466,7 @@ class IO
         @from.close if @from.kind_of? IO
       end
 
-      @to.close if @to.kind_of? IO unless @to_io
+      @to.close if !@to_io and @to.kind_of?(IO)
     end
   end
 
