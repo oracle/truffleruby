@@ -28,9 +28,10 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
-import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
+import org.truffleruby.core.array.library.NativeArrayStorage;
+import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
@@ -1574,7 +1575,8 @@ public abstract class ArrayNodes {
         @Specialization(limit = "STORAGE_STRATEGIES")
         protected Object rejectOther(DynamicObject array, DynamicObject block,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-                @Cached ArrayBuilderNode arrayBuilder) {
+                @Cached ArrayBuilderNode arrayBuilder,
+                @Cached BooleanCastNode booleanCastNode) {
             final Object store = Layouts.ARRAY.getStore(array);
             final int size = Layouts.ARRAY.getSize(array);
 
@@ -1586,7 +1588,7 @@ public abstract class ArrayNodes {
                 for (; n < size; n++) {
                     final Object value = stores.read(store, n);
 
-                    if (!yieldIsTruthy(block, value)) {
+                    if (!booleanCastNode.executeToBoolean(yield(block, value))) {
                         arrayBuilder.appendValue(state, selectedSize, value);
                         selectedSize++;
                     }
@@ -1606,6 +1608,8 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
     public abstract static class RejectInPlaceNode extends YieldingCoreMethodNode {
+
+        @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization(guards = "stores.isMutable(getStore(array))", limit = "STORAGE_STRATEGIES")
         protected Object rejectInPlaceMutable(DynamicObject array, DynamicObject block,
@@ -1631,7 +1635,7 @@ public abstract class ArrayNodes {
             try {
                 for (; n < getSize(array); n++) {
                     final Object value = stores.read(store, n);
-                    if (yieldIsTruthy(block, value)) {
+                    if (booleanCastNode.executeToBoolean(yield(block, value))) {
                         continue;
                     }
 
@@ -1826,7 +1830,8 @@ public abstract class ArrayNodes {
         @Specialization(limit = "STORAGE_STRATEGIES")
         protected Object selectOther(DynamicObject array, DynamicObject block,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-                @Cached ArrayBuilderNode arrayBuilder) {
+                @Cached ArrayBuilderNode arrayBuilder,
+                @Cached BooleanCastNode booleanCastNode) {
             final Object store = Layouts.ARRAY.getStore(array);
 
             BuilderState state = arrayBuilder.start(Layouts.ARRAY.getSize(array));
@@ -1837,7 +1842,7 @@ public abstract class ArrayNodes {
                 for (; n < Layouts.ARRAY.getSize(array); n++) {
                     final Object value = stores.read(store, n);
 
-                    if (yieldIsTruthy(block, value)) {
+                    if (booleanCastNode.executeToBoolean(yield(block, value))) {
                         arrayBuilder.appendValue(state, selectedSize, value);
                         selectedSize++;
                     }
