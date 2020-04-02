@@ -77,8 +77,8 @@ describe "ObjectSpace::WeakMap" do
     k1 = "a".upcase; k2 = "b".upcase
     v1 = "x".upcase; v2 = "y".upcase
 
-    # NOTE: We must avoid using lambda, because lambda capture seems to prevent GC of the local variables when running the
-    # spec. So define helper methods on the iso object instead.
+    # NOTE: We avoided using lambda, as lambda capture seems to prevent GC of the local variables when running the
+    # spec on MRI. So define helper methods on the iso object instead.
     iso = Struct.new(:arr, :map).new([], map)
 
     def iso.collector(*x)
@@ -91,12 +91,13 @@ describe "ObjectSpace::WeakMap" do
 
     def iso.test_iter(method, result)
       map.send(method, &method(:collector)).should == map
-      # Important to sort in-place and clear, to help the MRI GC.
+      # Note: this somewhat involved way to do things was designed to help the GC, but it doesn't suffice.
       arr.sort_by!(&method(:sorter))
       matcher = arr.should
       matcher == result
       matcher.initialize []
       matcher = nil
+      matcher == nil # inhibit useless assignment warning
       arr.clear
       self.arr = [] # at the end to not retain refs!
     end
@@ -119,13 +120,8 @@ describe "ObjectSpace::WeakMap" do
     iso.test_iter(:each_key, [k1, k2])
     iso.test_iter(:each_value, [v1, v2])
 
-    v2 = nil
-    GC.start
-    map.key?(k2).should == false
-    iso.test_iter(:each, [[k1, v1]])
-    iso.test_iter(:each_pair, [[k1, v1]])
-    iso.test_iter(:each_key, [k1])
-    iso.test_iter(:each_value, [v1])
+    # Ideally, we'd test that the iteration methods behave proplery after GC here, but the GC trigger is too
+    # unreliable on MRI for this to work well.
   end
 
   it "has iterator methods that must take a block, except when empty" do
