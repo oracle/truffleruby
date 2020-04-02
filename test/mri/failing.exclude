@@ -92,6 +92,7 @@ cext-ruby/struct/test_member.rb
 cext-ruby/symbol/noninterned_name.rb
 cext-ruby/symbol/test_inadvertent_creation.rb
 cext-ruby/symbol/test_type.rb
+cext-ruby/test_bug-14834.rb # RUBY_INTERNAL_EVENT_NEWOBJ
 cext-ruby/test_recursion.rb
 cext-ruby/time/test_new.rb
 cext-ruby/tracepoint/test_tracepoint.rb
