@@ -449,6 +449,7 @@ class IO
       begin
         while data = @from.__send__(@method, size, +'')
           @to.write data
+          @to.flush if @to.kind_of? IO
           bytes += data.bytesize
 
           break if @length && bytes >= @length
