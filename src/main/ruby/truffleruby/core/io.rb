@@ -952,7 +952,7 @@ class IO
     end
 
     if readables
-      readables = Truffle::Type.coerce_to(readables, Array, :to_ary)
+      readables = Truffle::Type.coerce_to(readables, Array, :to_ary).dup
       readable_ios = readables.map do |obj|
         io = Truffle::Type.coerce_to(obj, IO, :to_io)
         raise IOError, 'closed stream' if io.closed?
@@ -965,7 +965,7 @@ class IO
     end
 
     if writables
-      writables = Truffle::Type.coerce_to(writables, Array, :to_ary)
+      writables = Truffle::Type.coerce_to(writables, Array, :to_ary).dup
       writable_ios = writables.map do |obj|
         io = Truffle::Type.coerce_to(obj, IO, :to_io)
         raise IOError, 'closed stream' if io.closed?
@@ -977,7 +977,7 @@ class IO
     end
 
     if errorables
-      errorables = Truffle::Type.coerce_to(errorables, Array, :to_ary)
+      errorables = Truffle::Type.coerce_to(errorables, Array, :to_ary).dup
       errorable_ios = errorables.map do |obj|
         io = Truffle::Type.coerce_to(obj, IO, :to_io)
         raise IOError, 'closed stream' if io.closed?

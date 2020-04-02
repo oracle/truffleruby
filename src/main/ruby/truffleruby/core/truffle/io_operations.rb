@@ -139,19 +139,20 @@ module Truffle
     end
 
     def self.select(readables, readable_ios, writables, writable_ios, errorables, errorable_ios, timeout, remaining_timeout)
-      readables_pointer, writables_pointer, errorables_pointer =
-          Truffle::FFI::Pool.stack_alloc(:int, readables.size, :int, writables.size, :int, errorables.size)
-
-      to_fds(readable_ios, readables_pointer)
-      to_fds(writable_ios, writables_pointer)
-      to_fds(errorable_ios, errorables_pointer)
-
       if timeout
         start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
       end
 
+      readables_pointer, writables_pointer, errorables_pointer = nil, nil, nil
       begin
         primitive_result = Primitive.thread_run_blocking_nfi_system_call -> do
+          readables_pointer, writables_pointer, errorables_pointer =
+              Truffle::FFI::Pool.stack_alloc(:int, readables.size, :int, writables.size, :int, errorables.size)
+
+          to_fds(readable_ios, readables_pointer)
+          to_fds(writable_ios, writables_pointer)
+          to_fds(errorable_ios, errorables_pointer)
+
           Truffle::POSIX.truffleposix_select(readables.size, readables_pointer,
                                              writables.size, writables_pointer,
                                              errorables.size, errorables_pointer,
@@ -179,7 +180,7 @@ module Truffle
                  else
                    primitive_result
                  end
-      end while (result == :retry)
+      end while result == :retry
 
       if result == 0
         nil # timeout

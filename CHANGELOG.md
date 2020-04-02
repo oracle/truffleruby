@@ -71,6 +71,7 @@ Bug fixes:
 * Core library methods part of the Native Image heap are no longer added in the compilation queue on the first call, but after they reach the thresholds like other methods.
 * Fix `RbConfig::CONFIG['LIBRUBY_SO']` file extension.
 * Fix `char`, `short`, `unsigned char`,  `unsigned int`, and `unsigned short` types in `Fiddle` (#1971).
+* Fix `IO#select` to reallocate its buffer if it is interrupted by a signal.
 
 Compatibility:
 
