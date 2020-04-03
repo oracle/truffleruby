@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;

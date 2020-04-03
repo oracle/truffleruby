@@ -15,7 +15,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 
-import java.lang.ref.WeakReference;
 import java.util.Objects;
 
 /** General purpose utility functions that do not fit in other utility classes. */
@@ -76,9 +75,11 @@ public final class Utils {
 
     /** Returns a exception to be thrown in unreachable code paths and calls
      * {@link CompilerDirectives#transferToInterpreterAndInvalidate()}. */
+    @SuppressWarnings("RedundantCast")
     public static UnreachableCodeException unreachable(String... msgParts) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
-        return new UnreachableCodeException(concat(msgParts));
+        // The cast avoids ECJ complaining about ambiguity.
+        return new UnreachableCodeException(concat((Object[]) msgParts));
     }
 
     // TODO review - fill Truffle issue?
@@ -103,7 +104,7 @@ public final class Utils {
     /** Calls {@link DynamicObjectFactory#newInstance(Object...)}} behind a {@link TruffleBoundary} because of a
      * potential call to the blacklisted {@link Object#equals(Object)}. */
     @TruffleBoundary
-    public static DynamicObject newInstance (DynamicObjectFactory factory, Object... initialValues) {
+    public static DynamicObject newInstance(DynamicObjectFactory factory, Object... initialValues) {
         return factory.newInstance(initialValues);
     }
 }
