@@ -1,0 +1,1 @@
+slow:IO.copy_stream does not use buffering when writing to STDOUT

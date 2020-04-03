@@ -29,7 +29,7 @@ class MSpecScript
   end
 
   if child_process?
-    system_ruby = `which ruby`.chomp
+    system_ruby = ENV['SYSTEM_RUBY'] || `which ruby`.chomp
     if !system_ruby.empty? and `#{system_ruby} --version`.start_with?('ruby ')
       SYSTEM_RUBY = system_ruby
     end

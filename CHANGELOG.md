@@ -123,6 +123,7 @@ Compatibility:
 * Implemented `RbConfig::CONFIG['AR']` and `RbConfig::CONFIG['STRIP']` (#1973).
 * Not yet implemented C API functions are now correctly detected as missing via `mkmf`'s `have_func` (#1980).
 * Do not define unsupported C-API TracePoint events to let C extensions detect it (#1983).
+* `IO.copy_stream(in, STDOUT)` now writes to `STDOUT` without buffering like MRI.
 
 Changes:
 

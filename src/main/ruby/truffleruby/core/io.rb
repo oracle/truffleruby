@@ -447,8 +447,10 @@ class IO
       bytes = 0
 
       begin
+        # Use the buffer form here like MRI, since read/readpartial might be defined by the user
         while data = @from.__send__(@method, size, +'')
           @to.write data
+          @to.flush if @to.kind_of? IO
           bytes += data.bytesize
 
           break if @length && bytes >= @length
@@ -466,7 +468,7 @@ class IO
         @from.close if @from.kind_of? IO
       end
 
-      @to.close if @to.kind_of? IO unless @to_io
+      @to.close if !@to_io and @to.kind_of?(IO)
     end
   end
 
