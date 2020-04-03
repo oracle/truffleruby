@@ -21,6 +21,7 @@ import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import org.truffleruby.utils.Utils;
 
 @GenerateUncached
 abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
@@ -81,7 +82,6 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             throws UnsupportedMessageException, InvalidArrayIndexException, UnknownIdentifierException,
             UnsupportedTypeException, ArityException;
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unsupportedMessageExceptionClass",
             limit = "1")
@@ -94,11 +94,10 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnsupportedMessageException {
 
         UnsupportedMessageException interopException = UnsupportedMessageException.create();
-        interopException.initCause(exception);
+        initCause(interopException, exception);
         throw interopException;
     }
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().invalidArrayIndexExceptionClass",
             limit = "1")
@@ -111,11 +110,10 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws InvalidArrayIndexException {
 
         InvalidArrayIndexException interopException = InvalidArrayIndexException.create(index);
-        interopException.initCause(exception);
+        initCause(interopException, exception);
         throw interopException;
     }
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unknownIdentifierExceptionClass",
             limit = "1")
@@ -128,11 +126,10 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnknownIdentifierException {
 
         UnknownIdentifierException interopException = UnknownIdentifierException.create(identifier);
-        interopException.initCause(exception);
+        initCause(interopException, exception);
         throw interopException;
     }
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().unsupportedTypeExceptionClass",
             limit = "1")
@@ -145,11 +142,10 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             @Cached @Shared("logicalClassNode") LogicalClassNode logicalClassNode) throws UnsupportedTypeException {
 
         UnsupportedTypeException interopException = UnsupportedTypeException.create(arguments);
-        interopException.initCause(exception);
+        initCause(interopException, exception);
         throw interopException;
     }
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization(
             guards = "logicalClassNode.executeLogicalClass(exception.getException()) == context.getCoreLibrary().arityExceptionClass",
             limit = "1")
@@ -166,7 +162,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         int expected = Math
                 .toIntExact(longCastNode.executeCastLong(dispatch.call(exception.getException(), "expected")));
         ArityException interopException = ArityException.create(expected, arguments.length);
-        interopException.initCause(exception);
+        initCause(interopException, exception);
         throw interopException;
     }
 
@@ -175,16 +171,20 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         throw exception;
     }
 
-    @TruffleBoundary
     protected AssertionError handleBadErrorType(InteropException e) {
         RubyContext context = RubyLanguage.getCurrentContext();
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().runtimeError(
-                        "Wrong exception raised from a Ruby method implementing polyglot behavior: " + e.toString(),
+                        Utils.concat("Wrong exception raised from a Ruby method implementing polyglot behavior: ", e),
                         this));
-        raiseException.initCause(e);
+        initCause(raiseException, e);
         throw raiseException;
+    }
+
+    @TruffleBoundary
+    private static void initCause(Exception e, Exception cause) {
+        e.initCause(cause);
     }
 
 }

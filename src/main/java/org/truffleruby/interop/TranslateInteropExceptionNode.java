@@ -33,7 +33,6 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
             Object receiver,
             Object[] args);
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             UnsupportedMessageException exception,
@@ -44,11 +43,10 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().unsupportedMessageError(exception.getMessage(), this));
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
     }
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             InvalidArrayIndexException exception,
@@ -60,11 +58,10 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().indexErrorInvalidArrayIndexException(exception, this));
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
     }
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             UnknownIdentifierException exception,
@@ -89,7 +86,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
                     context.getCoreExceptions().nameErrorUnknownIdentifierException(exception, receiver, this));
         }
 
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
     }
 
@@ -105,11 +102,10 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().typeErrorUnsupportedTypeException(exception, this));
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
     }
 
-    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(ArityException exception, boolean inInvokeMember, Object receiver, Object[] args,
             @CachedContext(RubyLanguage.class) RubyContext context) {
@@ -120,7 +116,12 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
                         exception.getActualArity(),
                         exception.getExpectedArity(),
                         this));
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
+    }
+
+    @TruffleBoundary
+    private static void initCause(Exception e, Exception cause) {
+        e.initCause(cause);
     }
 }
