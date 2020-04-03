@@ -130,6 +130,7 @@ public class ValueWrapperManager {
         return wrapper.getObject();
     }
 
+    @TruffleBoundary
     @SuppressWarnings("unchecked")
     public synchronized ValueWrapper getWrapperFromHandleMap(long handle) {
         final int index = HandleBlock.getHandleIndex(handle);

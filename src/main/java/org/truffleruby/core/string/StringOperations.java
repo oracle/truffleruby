@@ -55,6 +55,15 @@ public abstract class StringOperations {
         return context.getCoreLibrary().stringFactory.newInstance(Layouts.STRING.build(false, false, rope));
     }
 
+    public static DynamicObject createStringBehindBoundary(RubyContext context, Rope rope) {
+        return createStringBehindBoundaryHelper(context, Layouts.STRING.build(false, false, rope));
+    }
+
+    @TruffleBoundary
+    private static DynamicObject createStringBehindBoundaryHelper(RubyContext context, Object[] initialValues) {
+        return context.getCoreLibrary().stringFactory.newInstance(initialValues);
+    }
+
     public static DynamicObject createFrozenString(RubyContext context, Rope rope) {
         return context.getCoreLibrary().stringFactory.newInstance(Layouts.STRING.build(true, false, rope));
     }
