@@ -401,7 +401,7 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        private boolean doJoinMillis(final DynamicObject thread, final int timeoutInMillis) {
+        private boolean doJoinMillis(DynamicObject thread, int timeoutInMillis) {
             final long start = System.currentTimeMillis();
 
             final boolean joined = getContext().getThreadManager().runUntilResult(this, () -> {
@@ -418,7 +418,7 @@ public abstract class ThreadNodes {
                 final DynamicObject exception = Layouts.THREAD.getException(thread);
                 if (exception != null) {
                     getContext().getCoreExceptions().showExceptionIfDebug(exception);
-                    throw new RaiseException(getContext(), exception);
+                    VMRaiseExceptionNode.reRaiseException(getContext(), exception);
                 }
             }
 
