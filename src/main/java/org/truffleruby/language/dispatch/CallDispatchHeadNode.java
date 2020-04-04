@@ -102,12 +102,12 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
 
         @Override
         public void reset(String reason) {
-            throw new AssertionError("never called");
+            throw Utils.unreachable();
         }
 
         @Override
         public DispatchNode getFirstDispatchNode() {
-            throw new AssertionError("never called");
+            throw Utils.unreachable();
         }
 
         @Override
