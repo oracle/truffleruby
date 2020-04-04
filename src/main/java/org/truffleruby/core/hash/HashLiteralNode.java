@@ -108,7 +108,6 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
                 }
             }
 
-            // TODO (norswap, 04 Apr 2020): This is a blacklisted method warning, cf. GR-22198
             return coreLibrary().hashFactory.newInstance(
                     Layouts.HASH.build(store, size, null, null, nil, nil, false));
         }
@@ -157,7 +156,6 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
             }
 
             final Entry[] newEntries = new Entry[bucketsCount];
-            // TODO (norswap, 04 Apr 2020): This is a blacklisted method warning, cf. GR-22198
             final DynamicObject hash = coreLibrary().hashFactory.newInstance(
                     Layouts.HASH.build(newEntries, 0, null, null, nil, nil, false));
 

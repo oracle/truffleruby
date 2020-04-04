@@ -51,7 +51,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class StringOperations {
 
-    // TODO (norswap, 04 Apr 2020): This can lead to a blacklisted method warning, cf. GR-22198
     public static DynamicObject createString(RubyContext context, Rope rope) {
         return context.getCoreLibrary().stringFactory.newInstance(Layouts.STRING.build(false, false, rope));
     }

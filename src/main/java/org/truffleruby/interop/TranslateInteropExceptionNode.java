@@ -121,7 +121,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private static void initCause(Exception e, Exception cause) {
+    private static void initCause(Throwable e, Exception cause) {
         e.initCause(cause);
     }
 }

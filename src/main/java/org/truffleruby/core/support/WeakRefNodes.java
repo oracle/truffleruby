@@ -58,7 +58,7 @@ public abstract class WeakRefNodes {
         }
     }
 
-    @TruffleBoundary
+    @TruffleBoundary // TODO GR-22214
     private static Object weakReferenceGet(WeakReference<Object> weakReference) {
         return weakReference.get();
     }

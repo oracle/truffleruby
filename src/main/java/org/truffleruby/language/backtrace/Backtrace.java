@@ -173,7 +173,7 @@ public class Backtrace {
                 : getRootName(root);
     }
 
-    @TruffleBoundary // string concatenation in RootNode#getName
+    @TruffleBoundary
     private static String getRootName(RootNode root) {
         return root.getName();
     }
