@@ -80,7 +80,7 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                     .getConstant("INTERACTIVE_BINDING")
                     .getValue();
             return context
-                    .send(interactiveBinding, "eval", StringOperations.createStringBehindBoundary(context, sourceRope));
+                    .send(interactiveBinding, "eval", StringOperations.createString(context, sourceRope));
         }
 
         if (cachedContext == null) {

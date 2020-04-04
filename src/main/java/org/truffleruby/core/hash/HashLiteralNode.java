@@ -21,7 +21,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.utils.Utils;
 
 public abstract class HashLiteralNode extends RubyContextSourceNode {
 
@@ -109,8 +108,8 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
                 }
             }
 
-            return Utils.newInstance(
-                    coreLibrary().hashFactory,
+            // TODO (norswap, 04 Apr 2020): This is a blacklisted method warning, cf. GR-22198
+            return coreLibrary().hashFactory.newInstance(
                     Layouts.HASH.build(store, size, null, null, nil, nil, false));
         }
 
@@ -158,8 +157,8 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
             }
 
             final Entry[] newEntries = new Entry[bucketsCount];
-            final DynamicObject hash = Utils.newInstance(
-                    coreLibrary().hashFactory,
+            // TODO (norswap, 04 Apr 2020): This is a blacklisted method warning, cf. GR-22198
+            final DynamicObject hash = coreLibrary().hashFactory.newInstance(
                     Layouts.HASH.build(newEntries, 0, null, null, nil, nil, false));
 
             for (int n = 0; n < keyValues.length; n += 2) {
