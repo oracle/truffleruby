@@ -65,9 +65,6 @@ class MSpecScript
     # Trying to enable breaks a lot of things
     "^spec/ruby/library/net",
 
-    # Unsupported
-    "^spec/ruby/library/win32ole",
-
     # Tested separately as they need Sulong
     *library_cext_specs.map { |path| "^#{path}" }
   ]
