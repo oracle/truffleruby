@@ -40,28 +40,33 @@ module RbConfig
   raise 'The TruffleRuby home needs to be set to require RbConfig' unless ruby_home
   TOPDIR = ruby_home
 
-  host_os  = Truffle::System.host_os
+  host_os = Truffle::System.host_os
   host_cpu = Truffle::System.host_cpu
   host_vendor = 'unknown'
   # Some config entries report linux-gnu rather than simply linux.
-  if host_os == 'linux'
-    host_os_full = 'linux-gnu'
-  else
-    host_os_full = host_os
-  end
+  host_os_full = host_os == 'linux' ? 'linux-gnu' : host_os
   # Host should match the target triplet for clang or GCC, otherwise some C extension builds will fail.
-  host         = "#{host_cpu}-#{host_vendor}-#{host_os_full}"
+  host = "#{host_cpu}-#{host_vendor}-#{host_os_full}"
 
   ruby_install_name = 'truffleruby'
-
   ruby_base_name = 'ruby'
 
   # The full TruffleRuby version, so C extensions from one TruffleRuby version
   # are not reused with another TruffleRuby version.
   ruby_abi_version = RUBY_ENGINE_VERSION
 
-  arch     = "#{host_cpu}-#{host_os}"
-  libs     = ''
+  arch = "#{host_cpu}-#{host_os}"
+  libs = ''
+
+  prefix = ruby_home
+
+  graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
+  extra_bindirs = if graalvm_home
+                    jre_bin = "#{graalvm_home}/jre/bin"
+                    ["#{graalvm_home}/bin", *(jre_bin if File.directory?(jre_bin))]
+                  else
+                    []
+                  end
 
   # Sorted alphabetically using sort(1)
   CONFIG = {
@@ -79,10 +84,12 @@ module RbConfig
     'EXECUTABLE_EXTS'   => '',
     'exeext'            => '',
     'EXEEXT'            => '',
+    'extra_bindirs'     => extra_bindirs.join(File::PATH_SEPARATOR),
     'host_alias'        => '',
     'host_cpu'          => host_cpu,
     'host'              => host,
     'host_os'           => host_os_full,
+    'includedir'        => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
     'libdirname'        => 'libdir',
     'LIBEXT'            => 'a',
     'LIBRUBY'           => '',
@@ -94,13 +101,16 @@ module RbConfig
     'OBJEXT'            => 'o',
     'OUTFLAG'           => '-o ',
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR.dup,
-    'prefix'            => '',
+    'prefix'            => prefix,
     'RM'                => 'rm -f',
     'RUBY_BASE_NAME'    => ruby_base_name,
     'ruby_install_name' => ruby_install_name,
     'RUBY_INSTALL_NAME' => ruby_install_name,
     'ruby_version'      => ruby_abi_version.dup,
+    'rubyarchhdrdir'    => "#{prefix}/lib/cext/include",
+    'rubyhdrdir'        => "#{prefix}/lib/cext/include",
     'SOEXT'             => Truffle::Platform::SOEXT.dup,
+    'sysconfdir'        => "#{prefix}/etc", # doesn't exist, as in MRI
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
     'UNICODE_VERSION'   => '12.0.0',
@@ -115,35 +125,12 @@ module RbConfig
   expanded['RUBY_SO_NAME'] = ruby_base_name
   mkconfig['RUBY_SO_NAME'] = '$(RUBY_BASE_NAME)'
 
-  prefix        = ruby_home
-  bindir        = "#{prefix}/bin"
-  graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
-  extra_bindirs = if graalvm_home
-                    jre_bin = "#{graalvm_home}/jre/bin"
-                    [
-                        "#{graalvm_home}/bin",
-                        *(jre_bin if File.directory?(jre_bin))
-                    ]
-                  else
-                    []
-                  end
-
-  common = {
-    'prefix' => prefix,
-    'bindir' => bindir,
-    'extra_bindirs' => extra_bindirs.join(File::PATH_SEPARATOR),
-    'hdrdir' => "#{prefix}/lib/cext/include",
-    'rubyhdrdir' => "#{prefix}/lib/cext/include",
-    'rubyarchhdrdir' => "#{prefix}/lib/cext/include",
-    'includedir' => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
-    'sysconfdir' => "#{prefix}/etc", # doesn't exist, as in MRI
-  }
-  expanded.merge!(common)
-  mkconfig.merge!(common)
-
   exec_prefix = \
   expanded['exec_prefix'] = prefix
   mkconfig['exec_prefix'] = '$(prefix)'
+  bindir = \
+  expanded['bindir'] = "#{exec_prefix}/bin"
+  mkconfig['bindir'] = '$(exec_prefix)/bin'
   libdir = \
   expanded['libdir'] = "#{exec_prefix}/lib"
   mkconfig['libdir'] = '$(exec_prefix)/lib'
