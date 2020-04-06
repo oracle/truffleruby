@@ -32,6 +32,11 @@ describe "Ruby character strings" do
     "#@my_ip".should == 'xxx'
   end
 
+  it "does not interpolate invalid variable names" do
+    "#@".should == '#@'
+    "#$%".should == '#$%'
+  end
+
   it "has characters [.(=?!# end simple # interpolation" do
     "#@ip[".should == 'xxx['
     "#@ip.".should == 'xxx.'

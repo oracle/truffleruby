@@ -72,6 +72,7 @@ Bug fixes:
 * Fix `RbConfig::CONFIG['LIBRUBY_SO']` file extension.
 * Fix `char`, `short`, `unsigned char`,  `unsigned int`, and `unsigned short` types in `Fiddle` (#1971).
 * Fix `IO#select` to reallocate its buffer if it is interrupted by a signal.
+* Fix issue where interpolated string matched `#` within string as being a variable (#1495).
 
 Compatibility:
 
