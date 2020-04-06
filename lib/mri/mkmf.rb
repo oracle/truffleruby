@@ -8,6 +8,47 @@ require 'fileutils'
 require 'shellwords'
 
 if defined?(::TruffleRuby)
+  # Set RbConfig::CONFIG['COMPILE_C'] and 'COMPILE_CXX' to call the preprocessor only when needed.
+  # This avoids the cost of an extra process just for patching C files when most C files don't need patching.
+  # 'COMPILE_C' and 'COMPILE_CXX' are not defined in rbconfig.rb in MRI, so it is OK to define them only here.
+  require 'truffle/cext_preprocessor'
+
+  # We use -I$(<D) (the directory portion of the prerequisite - i.e. the
+  # C or C++ file) to add the file's path as the first entry on the
+  # include path. This is to ensure that files from the source file's
+  # directory are included in preference to others on the include path,
+  # and is required because we are actually piping the file into the
+  # compiler which disables this standard behaviour of the C preprocessor.
+  begin
+    cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
+
+    with_conditional_preprocessing = proc do |command1, command2|
+      Truffle::CExt::Preprocessor.makefile_matcher(command1, command2)
+    end
+
+    for_file = proc do |compiler, flags|
+      "#{compiler} #{flags} $(CSRCFLAG)$<"
+    end
+
+    for_pipe = proc do |compiler, flags|
+      language_flag = '$(CXX)' == compiler ? '-xc++' : '-xc'
+      "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} -"
+    end
+
+    c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c'
+    cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c'
+
+    RbConfig::MAKEFILE_CONFIG['COMPILE_C'] = with_conditional_preprocessing.call(
+        for_pipe.call('$(CC)', c_flags),
+        for_file.call('$(CC)', c_flags))
+
+    RbConfig::MAKEFILE_CONFIG['COMPILE_CXX'] = with_conditional_preprocessing.call(
+        for_pipe.call('$(CXX)', cxx_flags),
+        for_file.call('$(CXX)', cxx_flags))
+  end
+end
+
+if defined?(::TruffleRuby)
   # Always use the system libxml/libxslt for Nokogiri on TruffleRuby.  This is
   # currently required as TruffleRuby cannot yet link to static libraries.
   ENV['NOKOGIRI_USE_SYSTEM_LIBRARIES'] = 'true'

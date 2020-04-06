@@ -34,8 +34,6 @@
 #  RbConfig.expand method imported from MRI sources
 #
 
-require_relative 'truffle/cext_preprocessor.rb'
-
 module RbConfig
 
   ruby_home = Truffle::Boot.ruby_home
@@ -292,42 +290,6 @@ module RbConfig
   cppflags_hardcoded = Truffle::Platform.darwin? ? ' -D_DARWIN_C_SOURCE' : ''
   expanded['CPPFLAGS'] = "#{cppflags_hardcoded} #{defs} #{cppflags}"
   mkconfig['CPPFLAGS'] = "#{cppflags_hardcoded} $(DEFS) $(cppflags)"
-
-  # We use -I$(<D) (the directory portion of the prerequisite - i.e. the
-  # C or C++ file) to add the file's path as the first entry on the
-  # include path. This is to ensure that files from the source file's
-  # directory are included in preference to others on the include path,
-  # and is required because we are actually piping the file into the
-  # compiler which disables this standard behaviour of the C preprocessor.
-  begin
-    with_conditional_preprocessing = proc do |command1, command2|
-      Truffle::CExt::Preprocessor.makefile_matcher(command1, command2)
-    end
-
-    for_file = proc do |compiler, flags|
-      "#{compiler} #{flags} $(CSRCFLAG)$<"
-    end
-
-    for_pipe = proc do |compiler, flags|
-      language_flag = '$(CXX)' == compiler ? '-xc++' : '-xc'
-      "#{RbConfig.ruby} #{cext_dir}/preprocess.rb $< | #{compiler} -I$(<D) #{flags} #{language_flag} -"
-    end
-
-    c_flags = '$(INCFLAGS) $(CPPFLAGS) $(CFLAGS) $(COUTFLAG)$@ -c'
-    cxx_flags = '$(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) $(COUTFLAG)$@ -c'
-
-    mkconfig['COMPILE_C'] = with_conditional_preprocessing.call(
-        for_pipe.call('$(CC)', c_flags),
-        for_file.call('$(CC)', c_flags))
-
-    mkconfig['COMPILE_CXX'] = with_conditional_preprocessing.call(
-        for_pipe.call('$(CXX)', cxx_flags),
-        for_file.call('$(CXX)', cxx_flags))
-  end
-
-  %w[COMPILE_C COMPILE_CXX].each do |key|
-    expanded[key] = mkconfig[key].gsub(/\$\((\w+)\)/) { expanded.fetch($1) { $& } }
-  end
 
   launcher = Truffle::Boot.get_option 'launcher'
   if launcher.empty?
