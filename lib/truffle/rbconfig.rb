@@ -278,10 +278,10 @@ module RbConfig
       if !(v = $1 || $2)
         '$'
       elsif key = config[v = v[/\A[^:]+(?=(?::(.*?)=(.*))?\z)/]]
-        pat, sub  = $1, $2
+        pat, sub = $1, $2
         config[v] = false
         config[v] = RbConfig.expand(key, config)
-        key       = key.gsub(/#{Regexp.quote(pat)}(?=\s|\z)/n) {sub} if pat
+        key = key.gsub(/#{Regexp.quote(pat)}(?=\s|\z)/n) { sub } if pat
         key
       else
         var
