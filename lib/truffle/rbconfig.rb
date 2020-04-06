@@ -59,7 +59,6 @@ module RbConfig
   libs = ''
 
   prefix = ruby_home
-
   graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
   extra_bindirs = if graalvm_home
                     jre_bin = "#{graalvm_home}/jre/bin"
@@ -68,18 +67,87 @@ module RbConfig
                     []
                   end
 
+  cc = Truffle::Boot.tool_path(:CC)
+  cxx = Truffle::Boot.tool_path(:CXX)
+  ar = Truffle::Boot.tool_path(:AR)
+  strip = Truffle::Boot.tool_path(:STRIP)
+
+  # Determine the various flags for native compilation
+  optflags = ''
+  debugflags = ''
+  warnflags = [
+    '-Wimplicit-function-declaration', # To make missing C ext functions clear
+    '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
+    '-Wno-int-to-pointer-cast',        # Same as above
+    '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
+    '-Wno-format-invalid-specifier',   # Our PRIsVALUE generates this because compilers ignore printf extensions
+    '-Wno-format-extra-args',          # Our PRIsVALUE generates this because compilers ignore printf extensions
+    '-ferror-limit=500'
+  ]
+
+  defs = ''
+  cppflags = ''
+  ldflags = ''
+  dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress' : ''
+
+  cext_dir = "#{prefix}/lib/cext"
+  dlext = Truffle::Platform::DLEXT
+
+  # Make C extensions use the same libssl as the one used for the openssl C extension
+  if Truffle::Platform.darwin?
+    require 'truffle/openssl-prefix'
+    openssl_prefix = ENV['OPENSSL_PREFIX']
+    if openssl_prefix
+      # Change the same variables as MRI's --with-opt-dir configure option would
+      cppflags << " -I#{openssl_prefix}/include"
+      ldflags << " -L#{openssl_prefix}/lib"
+      dldflags << " -L#{openssl_prefix}/lib"
+    end
+  end
+
+  # Set extra flags needed for --building-core-cexts
+  if Truffle::Boot.get_option 'building-core-cexts'
+    libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
+
+    relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
+    cppflags << relative_debug_paths
+
+    warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
+    warnflags << '-Werror' # Make sure there are no warnings in core C extensions
+  else
+    libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
+
+    # GR-19453: workaround for finding libc++.so when using NFI on the library since the toolchain does not pass -rpath automatically
+    rpath_libcxx = " -rpath #{File.expand_path("../../lib", cc)}"
+    ldflags << rpath_libcxx
+    dldflags << rpath_libcxx
+  end
+
+  # Link to libtruffleruby by absolute path
+  libtruffleruby_dir = File.dirname(libtruffleruby)
+  librubyarg = "-L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby -lpolyglot-mock"
+
+  warnflags = warnflags.join(' ')
+
   # Sorted alphabetically using sort(1)
   CONFIG = {
+    'AR'                => ar,
     'arch'              => arch,
     'ARCH_FLAG'         => '',
     'build'             => host,
     'build_os'          => host_os_full,
     'configure_args'    => ' ',
+    'CC'                => cc,
     'CCDLFLAGS'         => '-fPIC',
+    'CXX'               => cxx,
     'COUTFLAG'          => '-o ',
+    'cppflags'          => cppflags,
     'CPPOUTFILE'        => '-o conftest.i',
+    'debugflags'        => debugflags,
+    'DEFS'              => defs,
+    'DLDFLAGS'          => dldflags,
     'DLDLIBS'           => '',
-    'DLEXT'             => Truffle::Platform::DLEXT.dup,
+    'DLEXT'             => dlext.dup,
     'ENABLE_SHARED'     => 'yes', # We use a dynamic library for libruby
     'EXECUTABLE_EXTS'   => '',
     'exeext'            => '',
@@ -90,15 +158,19 @@ module RbConfig
     'host'              => host,
     'host_os'           => host_os_full,
     'includedir'        => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
+    'LDFLAGS'           => ldflags,
     'libdirname'        => 'libdir',
     'LIBEXT'            => 'a',
     'LIBRUBY'           => '',
     'LIBRUBY_A'         => '',
+    'LIBRUBYARG'        => librubyarg,
+    'LIBRUBYARG_SHARED' => librubyarg,
     'LIBRUBYARG_STATIC' => '',
     'LIBRUBY_SO'        => "cext/libtruffleruby.#{Truffle::Platform::SOEXT}",
     'LIBS'              => libs,
     'NULLCMD'           => ':',
     'OBJEXT'            => 'o',
+    'optflags'          => optflags,
     'OUTFLAG'           => '-o ',
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR.dup,
     'prefix'            => prefix,
@@ -110,11 +182,13 @@ module RbConfig
     'rubyarchhdrdir'    => "#{prefix}/lib/cext/include",
     'rubyhdrdir'        => "#{prefix}/lib/cext/include",
     'SOEXT'             => Truffle::Platform::SOEXT.dup,
+    'STRIP'             => strip,
     'sysconfdir'        => "#{prefix}/etc", # doesn't exist, as in MRI
     'target_cpu'        => host_cpu,
     'target_os'         => host_os,
     'UNICODE_VERSION'   => '12.0.0',
     'UNICODE_EMOJI_VERSION' => '12.0',
+    'warnflags'         => warnflags,
   }
 
   MAKEFILE_CONFIG = CONFIG.dup
@@ -166,16 +240,6 @@ module RbConfig
   expanded['ridir'] = "#{datarootdir}/ri"
   mkconfig['ridir'] = '$(datarootdir)/ri'
 
-  # Defined here for RubyInline
-  cc = Truffle::Boot.tool_path(:CC)
-  cxx = Truffle::Boot.tool_path(:CXX)
-
-  expanded['AR'] = mkconfig['AR'] = Truffle::Boot.tool_path(:AR)
-  expanded['STRIP'] = mkconfig['STRIP'] = Truffle::Boot.tool_path(:STRIP)
-
-  expanded['CC'] = mkconfig['CC'] = cc
-  expanded['CXX'] = mkconfig['CXX'] = cxx
-
   expanded['CPP'] = "#{cc} -E"
   mkconfig['CPP'] = '$(CC) -E'
   if Truffle::Platform.darwin?
@@ -190,78 +254,6 @@ module RbConfig
     mkconfig['LDSHAREDXX'] = '$(CXX) -shared'
   end
 
-  # Determine the various flags for native compilation
-  optflags = ''
-  debugflags = ''
-  warnflags = [
-      '-Wimplicit-function-declaration', # To make missing C ext functions clear
-      '-Wno-int-conversion',             # MRI has VALUE defined as long while we have it as void*
-      '-Wno-int-to-pointer-cast',        # Same as above
-      '-Wno-incompatible-pointer-types', # Fix byebug 8.2.1 compile (st_data_t error)
-      '-Wno-format-invalid-specifier',   # Our PRIsVALUE generates this because compilers ignore printf extensions
-      '-Wno-format-extra-args',          # Our PRIsVALUE generates this because compilers ignore printf extensions
-      '-ferror-limit=500'
-  ]
-
-  cppflags = ''
-  defs = ''
-  ldflags = ''
-  dldflags = Truffle::Platform.darwin? ? '-Wl,-undefined,dynamic_lookup -Wl,-multiply_defined,suppress' : ''
-
-  cext_dir = "#{RbConfig::CONFIG['libdir']}/cext"
-  dlext = RbConfig::CONFIG['DLEXT']
-
-  # Make C extensions use the same libssl as the one used for the openssl C extension
-  if Truffle::Platform.darwin?
-    require 'truffle/openssl-prefix'
-    openssl_prefix = ENV['OPENSSL_PREFIX']
-    if openssl_prefix
-      # Change the same variables as MRI's --with-opt-dir configure option would
-      cppflags << " -I#{openssl_prefix}/include"
-      ldflags << " -L#{openssl_prefix}/lib"
-      dldflags << " -L#{openssl_prefix}/lib"
-    end
-  end
-
-  # Set extra flags needed for --building-core-cexts
-  if Truffle::Boot.get_option 'building-core-cexts'
-    ruby_home = Truffle::Boot.ruby_home
-    libtruffleruby = "#{ruby_home}/src/main/c/cext/libtruffleruby.#{dlext}"
-
-    relative_debug_paths = "-fdebug-prefix-map=#{ruby_home}=."
-    cppflags << relative_debug_paths
-
-    warnflags << '-Wundef' # Warn for undefined preprocessor macros for core C extensions
-    warnflags << '-Werror' # Make sure there are no warnings in core C extensions
-  else
-    libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
-
-    # GR-19453: workaround for finding libc++.so when using NFI on the library since the toolchain does not pass -rpath automatically
-    rpath_libcxx = " -rpath #{File.expand_path("../../lib", RbConfig::CONFIG['CC'])}"
-    ldflags << rpath_libcxx
-    dldflags << rpath_libcxx
-  end
-
-  # Link to libtruffleruby by absolute path
-  libtruffleruby_dir = File.dirname(libtruffleruby)
-  librubyarg = "-L#{libtruffleruby_dir} -rpath #{libtruffleruby_dir} -ltruffleruby -lpolyglot-mock"
-
-  warnflags = warnflags.join(' ')
-
-  common = {
-      'optflags' => optflags,
-      'debugflags' => debugflags,
-      'warnflags' => warnflags,
-      'cppflags' => cppflags,
-      'DEFS' => defs,
-      'DLDFLAGS' => dldflags,
-      'LDFLAGS' => ldflags,
-      'LIBRUBYARG' => librubyarg,
-      'LIBRUBYARG_SHARED' => librubyarg,
-  }
-  expanded.merge!(common)
-  mkconfig.merge!(common)
-
   cflags = \
   expanded['cflags'] = "#{optflags} #{debugflags} #{warnflags}"
   mkconfig['cflags'] = '$(optflags) $(debugflags) $(warnflags)'
@@ -273,7 +265,6 @@ module RbConfig
   mkconfig['cxxflags'] = '$(optflags) $(debugflags) $(warnflags)'
   expanded['CXXFLAGS'] = cxxflags
   mkconfig['CXXFLAGS'] = '$(cxxflags)'
-  defs = ''
   cppflags_hardcoded = Truffle::Platform.darwin? ? ' -D_DARWIN_C_SOURCE' : ''
   expanded['CPPFLAGS'] = "#{cppflags_hardcoded} #{defs} #{cppflags}"
   mkconfig['CPPFLAGS'] = "#{cppflags_hardcoded} $(DEFS) $(cppflags)"
