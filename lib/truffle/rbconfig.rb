@@ -242,17 +242,12 @@ module RbConfig
 
   expanded['CPP'] = "#{cc} -E"
   mkconfig['CPP'] = '$(CC) -E'
-  if Truffle::Platform.darwin?
-    expanded['LDSHARED'] = "#{cc} -dynamic -bundle"
-    mkconfig['LDSHARED'] = '$(CC) -dynamic -bundle'
-    expanded['LDSHAREDXX'] = "#{cxx} -dynamic -bundle"
-    mkconfig['LDSHAREDXX'] = '$(CXX) -dynamic -bundle'
-  else
-    expanded['LDSHARED'] = "#{cc} -shared"
-    mkconfig['LDSHARED'] = '$(CC) -shared'
-    expanded['LDSHAREDXX'] = "#{cxx} -shared"
-    mkconfig['LDSHAREDXX'] = '$(CXX) -shared'
-  end
+
+  ldshared_flags = Truffle::Platform.darwin? ? '-dynamic -bundle' : '-shared'
+  expanded['LDSHARED'] = "#{cc} #{ldshared_flags}"
+  mkconfig['LDSHARED'] = "$(CC) #{ldshared_flags}"
+  expanded['LDSHAREDXX'] = "#{cxx} #{ldshared_flags}"
+  mkconfig['LDSHAREDXX'] = "$(CXX) #{ldshared_flags}"
 
   cflags = \
   expanded['cflags'] = "#{optflags} #{debugflags} #{warnflags}"
