@@ -145,10 +145,17 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
-    private boolean doRequire(String feature, String expandedPath, DynamicObject pathString) {
+    private boolean doRequire(String originalFeature, String expandedPath, DynamicObject pathString) {
         final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
         final ConcurrentMap<String, Boolean> patchFiles = getContext().getCoreLibrary().getPatchFiles();
-        Boolean patchLoaded = patchFiles.get(feature);
+        String relativeFeature = originalFeature;
+        if (new File(originalFeature).isAbsolute()) {
+            int i = originalFeature.lastIndexOf("/lib/");
+            if (i != -1) {
+                relativeFeature = originalFeature.substring(i + "/lib/".length());
+            }
+        }
+        Boolean patchLoaded = patchFiles.get(relativeFeature);
         final boolean isPatched = patchLoaded != null;
 
         while (true) {
@@ -159,7 +166,7 @@ public abstract class RequireNode extends RubyContextNode {
                     // it is loading the original of the patched file for the first time
                     // it has to allow this one case of circular require where the first require was the patch
                     patchLoaded = true;
-                    patchFiles.put(feature, true);
+                    patchFiles.put(relativeFeature, true);
                 } else {
                     warnCircularRequire(expandedPath);
                     return false;
@@ -172,16 +179,16 @@ public abstract class RequireNode extends RubyContextNode {
 
             try {
                 if (isPatched && !patchLoaded) {
-                    Path expandedPatchPath = Paths.get(getContext().getRubyHome(), "lib", "patches", feature + ".rb");
+                    Path expandedPatchPath = Paths.get(getContext().getRubyHome(), "lib", "patches", relativeFeature + ".rb");
                     RubyLanguage.LOGGER.config("patch file used: " + expandedPatchPath);
-                    final boolean loaded = parseAndCall(feature, expandedPatchPath.toString());
+                    final boolean loaded = parseAndCall(relativeFeature, expandedPatchPath.toString());
                     assert loaded;
 
-                    final boolean originalLoaded = patchFiles.get(feature);
+                    final boolean originalLoaded = patchFiles.get(relativeFeature);
                     if (!originalLoaded) {
                         addToLoadedFeatures(pathString);
                         // if original is not loaded make sure we set the patch to loaded
-                        patchFiles.put(feature, true);
+                        patchFiles.put(relativeFeature, true);
                     }
 
                     return true;
@@ -191,7 +198,7 @@ public abstract class RequireNode extends RubyContextNode {
                     return false;
                 }
 
-                if (!parseAndCall(feature, expandedPath)) {
+                if (!parseAndCall(originalFeature, expandedPath)) {
                     return false;
                 }
 
