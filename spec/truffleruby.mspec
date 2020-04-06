@@ -62,9 +62,6 @@ class MSpecScript
   set :library, [
     "spec/ruby/library",
 
-    # Trying to enable breaks a lot of things
-    "^spec/ruby/library/net",
-
     # Tested separately as they need Sulong
     *library_cext_specs.map { |path| "^#{path}" }
   ]
