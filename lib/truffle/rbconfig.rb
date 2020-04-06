@@ -240,6 +240,8 @@ module RbConfig
   mkconfig['datarootdir'] = '$(prefix)/share'
   expanded['ridir'] = "#{datarootdir}/ri"
   mkconfig['ridir'] = '$(datarootdir)/ri'
+  expanded['vendordir'] = "#{rubylibprefix}/vendor_ruby"
+  mkconfig['vendordir'] = '$(rubylibprefix)/vendor_ruby'
 
   expanded['CPP'] = "#{cc} -E"
   mkconfig['CPP'] = '$(CC) -E'
