@@ -8,9 +8,7 @@
 
 # Set OPENSSL_PREFIX in ENV to find the OpenSSL headers
 
-require 'rbconfig'
-
-macOS = RbConfig::CONFIG['host_os'].include?('darwin')
+macOS = RUBY_PLATFORM.include?('darwin')
 
 if macOS && !ENV['OPENSSL_PREFIX']
   homebrew = `brew --prefix 2>/dev/null`.strip
