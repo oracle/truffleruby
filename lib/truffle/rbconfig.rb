@@ -36,6 +36,10 @@
 
 module RbConfig
 
+  ruby_home = Truffle::Boot.ruby_home
+  raise 'The TruffleRuby home needs to be set to require RbConfig' unless ruby_home
+  TOPDIR = ruby_home
+
   host_os  = Truffle::System.host_os
   host_cpu = Truffle::System.host_cpu
   host_vendor = 'unknown'
@@ -111,97 +115,92 @@ module RbConfig
   expanded['RUBY_SO_NAME'] = ruby_base_name
   mkconfig['RUBY_SO_NAME'] = '$(RUBY_BASE_NAME)'
 
-  ruby_home = Truffle::Boot.ruby_home
-  TOPDIR = ruby_home
+  prefix        = ruby_home
+  bindir        = "#{prefix}/bin"
+  graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
+  extra_bindirs = if graalvm_home
+                    jre_bin = "#{graalvm_home}/jre/bin"
+                    [
+                        "#{graalvm_home}/bin",
+                        *(jre_bin if File.directory?(jre_bin))
+                    ]
+                  else
+                    []
+                  end
 
-  if ruby_home
-    prefix        = ruby_home
-    bindir        = "#{prefix}/bin"
-    graalvm_home = Truffle::System.get_java_property 'org.graalvm.home'
-    extra_bindirs = if graalvm_home
-                      jre_bin = "#{graalvm_home}/jre/bin"
-                      [
-                          "#{graalvm_home}/bin",
-                          *(jre_bin if File.directory?(jre_bin))
-                      ]
-                    else
-                      []
-                    end
+  common = {
+    'prefix' => prefix,
+    'bindir' => bindir,
+    'extra_bindirs' => extra_bindirs.join(File::PATH_SEPARATOR),
+    'hdrdir' => "#{prefix}/lib/cext/include",
+    'rubyhdrdir' => "#{prefix}/lib/cext/include",
+    'rubyarchhdrdir' => "#{prefix}/lib/cext/include",
+    'includedir' => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
+    'sysconfdir' => "#{prefix}/etc", # doesn't exist, as in MRI
+  }
+  expanded.merge!(common)
+  mkconfig.merge!(common)
 
-    common = {
-      'prefix' => prefix,
-      'bindir' => bindir,
-      'extra_bindirs' => extra_bindirs.join(File::PATH_SEPARATOR),
-      'hdrdir' => "#{prefix}/lib/cext/include",
-      'rubyhdrdir' => "#{prefix}/lib/cext/include",
-      'rubyarchhdrdir' => "#{prefix}/lib/cext/include",
-      'includedir' => "#{prefix}/lib/cext", # the parent dir of rubyhdrdir
-      'sysconfdir' => "#{prefix}/etc", # doesn't exist, as in MRI
-    }
-    expanded.merge!(common)
-    mkconfig.merge!(common)
+  exec_prefix = \
+  expanded['exec_prefix'] = prefix
+  mkconfig['exec_prefix'] = '$(prefix)'
+  libdir = \
+  expanded['libdir'] = "#{exec_prefix}/lib"
+  mkconfig['libdir'] = '$(exec_prefix)/lib'
+  rubylibprefix = \
+  expanded['rubylibprefix'] = "#{libdir}/#{ruby_base_name}"
+  mkconfig['rubylibprefix'] = '$(libdir)/$(RUBY_BASE_NAME)'
+  rubylibdir = \
+  expanded['rubylibdir'] = "#{libdir}/mri"
+  mkconfig['rubylibdir'] = '$(libdir)/mri'
+  rubyarchdir = \
+  expanded['rubyarchdir'] = rubylibdir
+  mkconfig['rubyarchdir'] = '$(rubylibdir)'
+  archdir = \
+  expanded['archdir'] = rubyarchdir
+  mkconfig['archdir'] = '$(rubyarchdir)'
+  sitearch = \
+  expanded['sitearch'] = arch
+  mkconfig['sitearch'] = '$(arch)'
+  sitedir = \
+  expanded['sitedir'] = "#{rubylibprefix}/site_ruby"
+  mkconfig['sitedir'] = '$(rubylibprefix)/site_ruby'
+  # Must be kept in sync with post.rb
+  sitelibdir = \
+  expanded['sitelibdir'] = "#{sitedir}/#{ruby_abi_version}"
+  mkconfig['sitelibdir'] = '$(sitedir)/$(ruby_version)'
+  expanded['sitearchdir'] = "#{sitelibdir}/#{sitearch}"
+  mkconfig['sitearchdir'] = '$(sitelibdir)/$(sitearch)'
+  expanded['topdir'] = archdir
+  mkconfig['topdir'] = '$(archdir)'
+  datarootdir = \
+  expanded['datarootdir'] = "#{prefix}/share"
+  mkconfig['datarootdir'] = '$(prefix)/share'
+  expanded['ridir'] = "#{datarootdir}/ri"
+  mkconfig['ridir'] = '$(datarootdir)/ri'
 
-    exec_prefix = \
-    expanded['exec_prefix'] = prefix
-    mkconfig['exec_prefix'] = '$(prefix)'
-    libdir = \
-    expanded['libdir'] = "#{exec_prefix}/lib"
-    mkconfig['libdir'] = '$(exec_prefix)/lib'
-    rubylibprefix = \
-    expanded['rubylibprefix'] = "#{libdir}/#{ruby_base_name}"
-    mkconfig['rubylibprefix'] = '$(libdir)/$(RUBY_BASE_NAME)'
-    rubylibdir = \
-    expanded['rubylibdir'] = "#{libdir}/mri"
-    mkconfig['rubylibdir'] = '$(libdir)/mri'
-    rubyarchdir = \
-    expanded['rubyarchdir'] = rubylibdir
-    mkconfig['rubyarchdir'] = '$(rubylibdir)'
-    archdir = \
-    expanded['archdir'] = rubyarchdir
-    mkconfig['archdir'] = '$(rubyarchdir)'
-    sitearch = \
-    expanded['sitearch'] = arch
-    mkconfig['sitearch'] = '$(arch)'
-    sitedir = \
-    expanded['sitedir'] = "#{rubylibprefix}/site_ruby"
-    mkconfig['sitedir'] = '$(rubylibprefix)/site_ruby'
-    # Must be kept in sync with post.rb
-    sitelibdir = \
-    expanded['sitelibdir'] = "#{sitedir}/#{ruby_abi_version}"
-    mkconfig['sitelibdir'] = '$(sitedir)/$(ruby_version)'
-    expanded['sitearchdir'] = "#{sitelibdir}/#{sitearch}"
-    mkconfig['sitearchdir'] = '$(sitelibdir)/$(sitearch)'
-    expanded['topdir'] = archdir
-    mkconfig['topdir'] = '$(archdir)'
-    datarootdir = \
-    expanded['datarootdir'] = "#{prefix}/share"
-    mkconfig['datarootdir'] = '$(prefix)/share'
-    expanded['ridir'] = "#{datarootdir}/ri"
-    mkconfig['ridir'] = '$(datarootdir)/ri'
+  # Defined here for RubyInline
+  cc = Truffle::Boot.tool_path(:CC)
+  cxx = Truffle::Boot.tool_path(:CXX)
 
-    # Defined here for RubyInline
-    cc = Truffle::Boot.tool_path(:CC)
-    cxx = Truffle::Boot.tool_path(:CXX)
+  expanded['AR'] = mkconfig['AR'] = Truffle::Boot.tool_path(:AR)
+  expanded['STRIP'] = mkconfig['STRIP'] = Truffle::Boot.tool_path(:STRIP)
 
-    expanded['AR'] = mkconfig['AR'] = Truffle::Boot.tool_path(:AR)
-    expanded['STRIP'] = mkconfig['STRIP'] = Truffle::Boot.tool_path(:STRIP)
+  expanded['CC'] = mkconfig['CC'] = cc
+  expanded['CXX'] = mkconfig['CXX'] = cxx
 
-    expanded['CC'] = mkconfig['CC'] = cc
-    expanded['CXX'] = mkconfig['CXX'] = cxx
-
-    expanded['CPP'] = "#{cc} -E"
-    mkconfig['CPP'] = '$(CC) -E'
-    if Truffle::Platform.darwin?
-      expanded['LDSHARED'] = "#{cc} -dynamic -bundle"
-      mkconfig['LDSHARED'] = '$(CC) -dynamic -bundle'
-      expanded['LDSHAREDXX'] = "#{cxx} -dynamic -bundle"
-      mkconfig['LDSHAREDXX'] = '$(CXX) -dynamic -bundle'
-    else
-      expanded['LDSHARED'] = "#{cc} -shared"
-      mkconfig['LDSHARED'] = '$(CC) -shared'
-      expanded['LDSHAREDXX'] = "#{cxx} -shared"
-      mkconfig['LDSHAREDXX'] = '$(CXX) -shared'
-    end
+  expanded['CPP'] = "#{cc} -E"
+  mkconfig['CPP'] = '$(CC) -E'
+  if Truffle::Platform.darwin?
+    expanded['LDSHARED'] = "#{cc} -dynamic -bundle"
+    mkconfig['LDSHARED'] = '$(CC) -dynamic -bundle'
+    expanded['LDSHAREDXX'] = "#{cxx} -dynamic -bundle"
+    mkconfig['LDSHAREDXX'] = '$(CXX) -dynamic -bundle'
+  else
+    expanded['LDSHARED'] = "#{cc} -shared"
+    mkconfig['LDSHARED'] = '$(CC) -shared'
+    expanded['LDSHAREDXX'] = "#{cxx} -shared"
+    mkconfig['LDSHAREDXX'] = '$(CXX) -shared'
   end
 
   launcher = Truffle::Boot.get_option 'launcher'
