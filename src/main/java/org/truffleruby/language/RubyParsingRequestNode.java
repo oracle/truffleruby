@@ -79,7 +79,8 @@ public class RubyParsingRequestNode extends RubyBaseRootNode implements Internal
                     .getFields(context.getCoreLibrary().truffleBootModule)
                     .getConstant("INTERACTIVE_BINDING")
                     .getValue();
-            return context.send(interactiveBinding, "eval", StringOperations.createString(context, sourceRope));
+            return context
+                    .send(interactiveBinding, "eval", StringOperations.createString(context, sourceRope));
         }
 
         if (cachedContext == null) {

@@ -114,6 +114,11 @@ public class ValueWrapperManager {
         }, null);
     }
 
+    @TruffleBoundary // TODO GR-22214
+    private static <T> T weakReferenceGet(WeakReference<T> weakReference) {
+        return weakReference.get();
+    }
+
     private Object[] ensureCapacity(Object[] map, int size) {
         if (size > map.length) {
             return ArrayUtils.grow(map, size);
@@ -143,7 +148,7 @@ public class ValueWrapperManager {
             return null;
         }
         HandleBlock block;
-        if ((block = ref.get()) == null) {
+        if ((block = weakReferenceGet(ref)) == null) {
             return null;
         }
         return block.getWrapper(handle);

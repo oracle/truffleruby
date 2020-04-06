@@ -81,6 +81,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         final int newCapacity = newSize > oldCapacity
                 ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity)
                 : oldCapacity;
+        // TODO (norswap, 03 Apr 2020): this is a performance warning (inlining a virtual call)
         final Object newStore = currentStores.generalizeForValue(currentStore, value).allocate(newCapacity);
         currentStores.copyContents(currentStore, 0, newStore, 0, oldSize);
         propagateSharingNode.executePropagate(array, value);

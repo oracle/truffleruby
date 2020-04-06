@@ -1,5 +1,6 @@
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
@@ -42,7 +43,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().unsupportedMessageError(exception.getMessage(), this));
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
     }
 
@@ -57,7 +58,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().indexErrorInvalidArrayIndexException(exception, this));
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
     }
 
@@ -85,10 +86,11 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
                     context.getCoreExceptions().nameErrorUnknownIdentifierException(exception, receiver, this));
         }
 
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
     }
 
+    @TruffleBoundary // Throwable#initCause
     @Specialization
     protected RuntimeException handle(
             UnsupportedTypeException exception,
@@ -100,7 +102,7 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
         RaiseException raiseException = new RaiseException(
                 context,
                 context.getCoreExceptions().typeErrorUnsupportedTypeException(exception, this));
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
     }
 
@@ -114,7 +116,12 @@ public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
                         exception.getActualArity(),
                         exception.getExpectedArity(),
                         this));
-        raiseException.initCause(exception);
+        initCause(raiseException, exception);
         return raiseException;
+    }
+
+    @TruffleBoundary
+    private static void initCause(Throwable e, Exception cause) {
+        e.initCause(cause);
     }
 }

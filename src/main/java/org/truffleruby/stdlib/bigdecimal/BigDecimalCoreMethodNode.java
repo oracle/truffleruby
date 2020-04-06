@@ -92,7 +92,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
             case 7:
                 return RoundingMode.HALF_EVEN;
             default:
-                throw Utils.unsupportedOperation("unknown value: " + constValue);
+                throw Utils.unsupportedOperation("unknown value: ", constValue);
         }
     }
 

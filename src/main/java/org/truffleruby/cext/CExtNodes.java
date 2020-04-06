@@ -105,6 +105,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.utils.Utils;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
@@ -547,7 +548,7 @@ public class CExtNodes {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().argumentError("invalid byte sequence in " + enc, this));
+                        coreExceptions().argumentError(Utils.concat("invalid byte sequence in ", enc), this));
             }
 
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
@@ -555,7 +556,6 @@ public class CExtNodes {
 
             return createArray(new Object[]{ len_p, codePoint }, 2);
         }
-
     }
 
     @CoreMethod(names = "rb_str_new_nul", onSingleton = true, required = 1, lowerFixnum = 1)

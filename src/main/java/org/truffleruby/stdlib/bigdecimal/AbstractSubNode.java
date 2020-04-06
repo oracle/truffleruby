@@ -30,7 +30,7 @@ public abstract class AbstractSubNode extends BigDecimalOpNode {
         if (precision == 0) {
             precision = getLimit();
         }
-        return createBigDecimal(subBigDecimal(a, b, new MathContext(precision, getRoundMode())));
+        return createBigDecimal(subBigDecimal(a, b, BigDecimalOps.newMathContext(precision, getRoundMode())));
     }
 
     protected Object subSpecial(DynamicObject a, DynamicObject b, int precision) {

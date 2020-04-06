@@ -108,8 +108,8 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
                 }
             }
 
-            return coreLibrary().hashFactory
-                    .newInstance(Layouts.HASH.build(store, size, null, null, nil, nil, false));
+            return coreLibrary().hashFactory.newInstance(
+                    Layouts.HASH.build(store, size, null, null, nil, nil, false));
         }
 
         private int hash(Object key) {
@@ -156,8 +156,8 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
             }
 
             final Entry[] newEntries = new Entry[bucketsCount];
-            final DynamicObject hash = coreLibrary().hashFactory
-                    .newInstance(Layouts.HASH.build(newEntries, 0, null, null, nil, nil, false));
+            final DynamicObject hash = coreLibrary().hashFactory.newInstance(
+                    Layouts.HASH.build(newEntries, 0, null, null, nil, nil, false));
 
             for (int n = 0; n < keyValues.length; n += 2) {
                 final Object key = keyValues[n].execute(frame);
@@ -167,7 +167,5 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
 
             return hash;
         }
-
     }
-
 }

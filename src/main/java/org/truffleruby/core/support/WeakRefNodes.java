@@ -11,6 +11,7 @@ package org.truffleruby.core.support;
 
 import java.lang.ref.WeakReference;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -47,7 +48,8 @@ public abstract class WeakRefNodes {
         @Specialization
         protected Object weakRefObject(DynamicObject weakRef) {
             @SuppressWarnings("unchecked")
-            final Object object = ((WeakReference<Object>) fieldNode.execute(weakRef, fieldName, EMPTY_WEAK_REF)).get();
+            final Object object = weakReferenceGet(
+                    (WeakReference<Object>) fieldNode.execute(weakRef, fieldName, EMPTY_WEAK_REF));
             if (object == null) {
                 return nil;
             } else {
@@ -56,4 +58,8 @@ public abstract class WeakRefNodes {
         }
     }
 
+    @TruffleBoundary // TODO GR-22214
+    private static Object weakReferenceGet(WeakReference<Object> weakReference) {
+        return weakReference.get();
+    }
 }
