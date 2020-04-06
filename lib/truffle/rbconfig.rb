@@ -161,6 +161,7 @@ module RbConfig
     'LDFLAGS'           => ldflags,
     'libdirname'        => 'libdir',
     'LIBEXT'            => 'a',
+    'LIBPATHENV'        => 'LD_LIBRARY_PATH',
     'LIBRUBY'           => '',
     'LIBRUBY_A'         => '',
     'LIBRUBYARG'        => librubyarg,
