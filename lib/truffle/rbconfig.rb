@@ -265,14 +265,7 @@ module RbConfig
   mkconfig['CPPFLAGS'] = "#{cppflags_hardcoded} $(DEFS) $(cppflags)"
 
   launcher = Truffle::Boot.get_option 'launcher'
-  if launcher.empty?
-    if ruby_home
-      launcher = "#{bindir}/#{ruby_install_name}"
-    else
-      launcher = ruby_install_name
-    end
-  end
-
+  launcher = "#{bindir}/#{ruby_install_name}" if launcher.empty?
   RUBY = launcher
 
   def self.ruby
