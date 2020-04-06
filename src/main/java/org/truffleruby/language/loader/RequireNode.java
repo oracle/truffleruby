@@ -11,8 +11,6 @@ package org.truffleruby.language.loader;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -179,9 +177,9 @@ public abstract class RequireNode extends RubyContextNode {
 
             try {
                 if (isPatched && !patchLoaded) {
-                    Path expandedPatchPath = Paths.get(getContext().getRubyHome(), "lib", "patches", relativeFeature + ".rb");
+                    String expandedPatchPath = getContext().getRubyHome() + "/lib/patches/" + relativeFeature + ".rb";
                     RubyLanguage.LOGGER.config("patch file used: " + expandedPatchPath);
-                    final boolean loaded = parseAndCall(relativeFeature, expandedPatchPath.toString());
+                    final boolean loaded = parseAndCall(relativeFeature, expandedPatchPath);
                     assert loaded;
 
                     final boolean originalLoaded = patchFiles.get(relativeFeature);
