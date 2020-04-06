@@ -828,6 +828,7 @@ class File < IO
       # StringValue gives us a direct object we shouldn't mutate
       first = Truffle::Type.coerce_to_path(first).dup
     end
+    Truffle::Type.check_null_safe(first)
 
     ret = first
 
@@ -846,6 +847,7 @@ class File < IO
       else
         value = Truffle::Type.coerce_to_path(el)
       end
+      Truffle::Type.check_null_safe(value)
 
       if value.start_with?(sep)
         ret.gsub!(/#{SEPARATOR}+\z/o, '') if ret.end_with?(sep)
