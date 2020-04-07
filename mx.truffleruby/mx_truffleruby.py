@@ -223,6 +223,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             main_class='org.truffleruby.launcher.RubyLauncher',
             build_args=[
                 '-H:+DetectUserDirectoriesInImageHeap',
+                '-H:+TruffleCheckBlackListedMethods',
             ],
             language='ruby',
             links=['bin/<exe:ruby>'],
