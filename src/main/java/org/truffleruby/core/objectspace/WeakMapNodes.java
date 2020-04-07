@@ -147,8 +147,7 @@ public abstract class WeakMapNodes {
         @Specialization
         protected DynamicObject each(DynamicObject map, DynamicObject block) {
 
-            for (@SuppressWarnings("rawtypes")
-            Entry e : entries(Layouts.WEAK_MAP.getWeakMapStorage(map))) {
+            for (Entry<Object, Object> e : Layouts.WEAK_MAP.getWeakMapStorage(map).entries()) {
                 yieldPair(block, e.getKey(), e.getValue());
             }
 
@@ -173,12 +172,6 @@ public abstract class WeakMapNodes {
     @TruffleBoundary
     private static Object[] values(WeakMapStorage storage) {
         return storage.values().toArray();
-    }
-
-    @SuppressWarnings("rawtypes")
-    @TruffleBoundary
-    private static Entry[] entries(WeakMapStorage storage) {
-        return storage.entries().toArray(new Entry[0]);
     }
 
     private static DynamicObject eachNoBlockProvided(YieldingCoreMethodNode node, DynamicObject map) {
