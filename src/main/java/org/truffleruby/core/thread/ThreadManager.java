@@ -18,7 +18,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
@@ -31,7 +30,6 @@ import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.DynamicReturnException;
@@ -77,11 +75,36 @@ public class ThreadManager {
     public final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
             .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
-    private final Map<Thread, AtomicReference<UnblockingAction>> unblockingActions = new ConcurrentHashMap<>();
-    public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = new UnblockingAction() {
-        @Override
-        void unblock() {
+    public static class UnblockingActionHolder {
+
+        private final Thread owner;
+        private volatile UnblockingAction action;
+
+        UnblockingActionHolder(Thread owner, UnblockingAction action) {
+            this.owner = owner;
+            this.action = action;
         }
+
+        public UnblockingAction get() {
+            return action;
+        }
+
+        // No need for an atomic swap here, only the current thread is allowed to change its UnblockingAction
+        UnblockingAction changeTo(UnblockingAction newAction) {
+            assert Thread.currentThread() == owner;
+            UnblockingAction oldAction = action;
+            this.action = newAction;
+            return oldAction;
+        }
+
+        void restore(UnblockingAction action) {
+            assert Thread.currentThread() == owner;
+            this.action = action;
+        }
+    }
+
+    private final Map<Thread, UnblockingActionHolder> unblockingActions = new ConcurrentHashMap<>();
+    public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal
@@ -424,8 +447,8 @@ public class ThreadManager {
         T block() throws InterruptedException;
     }
 
-    public static abstract class UnblockingAction {
-        abstract void unblock();
+    public interface UnblockingAction {
+        void unblock();
     }
 
     /** Only use when no context is available. */
@@ -466,9 +489,9 @@ public class ThreadManager {
 
     /** Runs {@code action} until it returns a non-null value. The given action should throw an
      * {@link InterruptedException} when {@link Thread#interrupt()} is called. Otherwise, the {@link SafepointManager}
-     * will not be able to interrupt this action. See
-     * {@link ThreadManager#runBlockingNFISystemCallUntilResult(Node, BlockingAction)} for blocking native calls. If the
-     * action throws an {@link InterruptedException}, it will be retried until it returns a non-null value.
+     * will not be able to interrupt this action. See {@link ThreadNodes.ThreadRunBlockingSystemCallNode} for blocking
+     * native calls. If the action throws an {@link InterruptedException}, it will be retried until it returns a
+     * non-null value.
      *
      * @param action must not touch any Ruby state
      * @return the first non-null return value from {@code action} */
@@ -509,45 +532,23 @@ public class ThreadManager {
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> blockingAction, UnblockingAction unblockingAction) {
         assert unblockingAction != null;
-        final Thread thread = Thread.currentThread();
+        final UnblockingActionHolder holder = getActionHolder(Thread.currentThread());
 
-        final AtomicReference<UnblockingAction> holder = getActionHolder(thread);
-        final UnblockingAction oldUnblockingAction = holder.getAndSet(unblockingAction);
+        final UnblockingAction oldUnblockingAction = holder.changeTo(unblockingAction);
         try {
             return runUntilResult(currentNode, blockingAction);
         } finally {
-            holder.set(oldUnblockingAction);
+            holder.restore(oldUnblockingAction);
         }
     }
 
     @TruffleBoundary
-    public AtomicReference<UnblockingAction> getActionHolder(Thread thread) {
-        return ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null));
+    UnblockingActionHolder getActionHolder(Thread thread) {
+        return ConcurrentOperations.getOrCompute(unblockingActions, thread, t -> new UnblockingActionHolder(t, null));
     }
 
     @TruffleBoundary
-    public UnblockingAction setUnblockingAction(Thread thread, UnblockingAction action) {
-        AtomicReference<UnblockingAction> holder = getActionHolder(thread);
-        return holder.getAndSet(action);
-    }
-
-    /** Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for blocking native calls. If
-     * the {@link SafepointManager} needs to interrupt the thread, it will send a SIGVTALRM to abort the blocking
-     * syscall and the action will return NotProvided if the syscall fails with errno=EINTR, meaning it was
-     * interrupted. */
-    @TruffleBoundary
-    public Object runBlockingNFISystemCallUntilResult(Node currentNode, BlockingAction<Object> action) {
-        return runUntilResult(currentNode, () -> {
-            final Object result = action.block();
-            if (result == NotProvided.INSTANCE) {
-                throw new InterruptedException("EINTR");
-            }
-            return result;
-        }, getNativeCallUnblockingAction());
-    }
-
-    @TruffleBoundary
-    public UnblockingAction getNativeCallUnblockingAction() {
+    UnblockingAction getNativeCallUnblockingAction() {
         return blockingNativeCallUnblockingAction.get();
     }
 
@@ -564,20 +565,10 @@ public class ThreadManager {
         if (pthread_self != null && isRubyManagedThread(thread)) {
             final Object pThreadID = pthread_self.call();
 
-            blockingNativeCallUnblockingAction.set(new UnblockingAction() {
-                @Override
-                void unblock() {
-                    pthread_kill.call(pThreadID, SIGVTALRM);
-                }
-            });
+            blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, new AtomicReference<>(new UnblockingAction() {
-            @Override
-            void unblock() {
-                thread.interrupt();
-            }
-        }));
+        unblockingActions.put(thread, new UnblockingActionHolder(thread, () -> thread.interrupt()));
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
@@ -706,7 +697,6 @@ public class ThreadManager {
     @TruffleBoundary
     public void interrupt(Thread thread) {
         final UnblockingAction action = getActionHolder(thread).get();
-
         if (action != null) {
             action.unblock();
         }
