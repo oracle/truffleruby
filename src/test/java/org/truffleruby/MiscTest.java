@@ -20,6 +20,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.truffleruby.shared.options.OptionsCatalog;
 
@@ -114,6 +115,18 @@ public class MiscTest {
                 Assert.assertEquals("[[...]]", recursiveArray.asString());
                 Assert.assertTrue(context.eval("ruby", "Thread.current.thread_variable_get('foo')").isNull());
                 Assert.assertTrue(context.eval("ruby", "rand").fitsInDouble());
+            });
+            thread.start();
+            thread.join();
+        }
+    }
+
+    @Ignore // TODO (eregon, 8 April 2020): not yet working
+    @Test
+    public void testIntegratorThreadContextClosedOnOtherThread() throws Throwable {
+        try (Context context = Context.newBuilder("ruby").allowCreateThread(true).build()) {
+            TestingThread thread = new TestingThread(() -> {
+                Assert.assertEquals(42, context.eval("ruby", "6 * 7").asInt());
             });
             thread.start();
             thread.join();
