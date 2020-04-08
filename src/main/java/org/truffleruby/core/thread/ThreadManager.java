@@ -200,8 +200,7 @@ public class ThreadManager {
     public DynamicObject createBootThread(String info) {
         final DynamicObject thread = context.getCoreLibrary().threadFactory
                 .newInstance(packThreadFields(Nil.INSTANCE, info));
-        setFiberManager(thread);
-        return thread;
+        return initializeThreadFields(thread);
     }
 
     public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode) {
@@ -210,8 +209,7 @@ public class ThreadManager {
         final DynamicObject thread = allocateObjectNode.allocate(
                 rubyClass,
                 packThreadFields(currentGroup, "<uninitialized>"));
-        setFiberManager(thread);
-        return thread;
+        return initializeThreadFields(thread);
     }
 
     public DynamicObject createForeignThread() {
@@ -219,7 +217,15 @@ public class ThreadManager {
         assert currentGroup != null;
         final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(
                 packThreadFields(currentGroup, "<foreign thread>"));
+        return initializeThreadFields(thread);
+    }
+
+    private DynamicObject initializeThreadFields(DynamicObject thread) {
         setFiberManager(thread);
+        /* This must be called when creating the Ruby Thread object, and not in #start(). Calling it in #start() would
+         * mean this code might be interrupted on the new thread (e.g. by a KillException) before it can handle such
+         * exceptions. (#start() is before the top try/catch). */
+        context.send(thread, "internal_thread_initialize");
         return thread;
     }
 

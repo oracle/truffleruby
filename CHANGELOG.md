@@ -74,6 +74,7 @@ Bug fixes:
 * Fix `IO#select` to reallocate its buffer if it is interrupted by a signal.
 * Fix issue where interpolated string matched `#` within string as being a variable (#1495).
 * Fix `File.join` to raise error on strings with null bytes.
+* Fix initialization of Ruby Thread for foreign thread created in Java.
 
 Compatibility:
 

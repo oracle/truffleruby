@@ -218,7 +218,6 @@ class Thread
       Kernel.raise ArgumentError, 'tried to create Proc object without a block' unless block
 
       thread = Primitive.thread_allocate(self)
-      thread.send(:internal_thread_initialize)
       Primitive.thread_initialize(thread, args, block)
       thread
     end
@@ -235,7 +234,6 @@ class Thread
     if Primitive.thread_initialized?(self)
       Kernel.raise ThreadError, 'already initialized thread'
     end
-    internal_thread_initialize
     Primitive.thread_initialize(self, args, block)
   end
 

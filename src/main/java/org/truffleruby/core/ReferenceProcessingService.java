@@ -169,7 +169,6 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         protected void createProcessingThread(Class<?> owner) {
             final ThreadManager threadManager = context.getThreadManager();
             processingThread = threadManager.createBootThread(threadName());
-            context.send(processingThread, "internal_thread_initialize");
             final String sharingReason = "creating " + threadName() + " thread for " + owner.getSimpleName();
 
             threadManager.initialize(processingThread, null, threadName(), sharingReason, () -> {

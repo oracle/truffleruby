@@ -104,4 +104,20 @@ public class MiscTest {
         }
     }
 
+    @Test
+    public void testIntegratorThreadRubyThreadInitialization() throws Throwable {
+        try (Context context = Context.newBuilder("ruby").allowCreateThread(true).build()) {
+            context.initialize("ruby");
+            TestingThread thread = new TestingThread(() -> {
+                // Run code that requires the Ruby Thread object to be initialized
+                Value recursiveArray = context.eval("ruby", "a = [0]; a[0] = a; a.inspect"); // Access @recursive_objects
+                Assert.assertEquals("[[...]]", recursiveArray.asString());
+                Assert.assertTrue(context.eval("ruby", "Thread.current.thread_variable_get('foo')").isNull());
+                Assert.assertTrue(context.eval("ruby", "rand").fitsInDouble());
+            });
+            thread.start();
+            thread.join();
+        }
+    }
+
 }
