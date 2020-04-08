@@ -70,6 +70,7 @@ import org.truffleruby.core.thread.ThreadManager.UnblockingActionHolder;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
+import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.KillException;
@@ -755,6 +756,10 @@ public abstract class ThreadNodes {
         }
     }
 
+    /** Similar to {@link ThreadManager#runUntilResult(Node, ThreadManager.BlockingAction)} but purposed for blocking
+     * native calls. If the {@link SafepointManager} needs to interrupt the thread, it will send a SIGVTALRM to abort
+     * the blocking syscall and the action will return NotProvided if the syscall fails with errno=EINTR, meaning it was
+     * interrupted. */
     @Primitive(name = "thread_run_blocking_nfi_system_call")
     public static abstract class ThreadRunBlockingSystemCallNode extends PrimitiveArrayArgumentsNode {
 

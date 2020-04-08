@@ -30,7 +30,6 @@ import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.DynamicReturnException;
@@ -485,9 +484,9 @@ public class ThreadManager {
 
     /** Runs {@code action} until it returns a non-null value. The given action should throw an
      * {@link InterruptedException} when {@link Thread#interrupt()} is called. Otherwise, the {@link SafepointManager}
-     * will not be able to interrupt this action. See
-     * {@link ThreadManager#runBlockingNFISystemCallUntilResult(Node, BlockingAction)} for blocking native calls. If the
-     * action throws an {@link InterruptedException}, it will be retried until it returns a non-null value.
+     * will not be able to interrupt this action. See {@link ThreadNodes.ThreadRunBlockingSystemCallNode} for blocking
+     * native calls. If the action throws an {@link InterruptedException}, it will be retried until it returns a
+     * non-null value.
      *
      * @param action must not touch any Ruby state
      * @return the first non-null return value from {@code action} */
@@ -539,27 +538,12 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public UnblockingActionHolder getActionHolder(Thread thread) {
+    UnblockingActionHolder getActionHolder(Thread thread) {
         return ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new UnblockingActionHolder(null));
     }
 
-    /** Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for blocking native calls. If
-     * the {@link SafepointManager} needs to interrupt the thread, it will send a SIGVTALRM to abort the blocking
-     * syscall and the action will return NotProvided if the syscall fails with errno=EINTR, meaning it was
-     * interrupted. */
     @TruffleBoundary
-    public Object runBlockingNFISystemCallUntilResult(Node currentNode, BlockingAction<Object> action) {
-        return runUntilResult(currentNode, () -> {
-            final Object result = action.block();
-            if (result == NotProvided.INSTANCE) {
-                throw new InterruptedException("EINTR");
-            }
-            return result;
-        }, getNativeCallUnblockingAction());
-    }
-
-    @TruffleBoundary
-    public UnblockingAction getNativeCallUnblockingAction() {
+    UnblockingAction getNativeCallUnblockingAction() {
         return blockingNativeCallUnblockingAction.get();
     }
 
@@ -579,9 +563,7 @@ public class ThreadManager {
             blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, new UnblockingActionHolder(() -> {
-            thread.interrupt();
-        }));
+        unblockingActions.put(thread, new UnblockingActionHolder(() -> thread.interrupt()));
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
