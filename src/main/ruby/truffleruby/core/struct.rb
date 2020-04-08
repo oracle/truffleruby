@@ -88,7 +88,7 @@ class Struct
       const_set :KEYWORD_INIT, keyword_init
     end
 
-    Struct.const_set klass_name, klass if klass_name
+    const_set klass_name, klass if klass_name
 
     klass.module_eval(&block) if block
 
