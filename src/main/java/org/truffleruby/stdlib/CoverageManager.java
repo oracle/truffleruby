@@ -143,10 +143,6 @@ public class CoverageManager {
     }
 
     private AtomicLongArray getCounters(Source source) {
-        if (source.getName() == null) {
-            return null;
-        }
-
         return ConcurrentOperations.getOrCompute(counters, source, s -> {
             long[] initialValues = new long[s.getLineCount()];
             Arrays.fill(initialValues, NO_CODE);
