@@ -76,9 +76,12 @@ public class ThreadManager {
             .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
     public static class UnblockingActionHolder {
+
+        private final Thread owner;
         private volatile UnblockingAction action;
 
-        UnblockingActionHolder(UnblockingAction action) {
+        UnblockingActionHolder(Thread owner, UnblockingAction action) {
+            this.owner = owner;
             this.action = action;
         }
 
@@ -88,12 +91,14 @@ public class ThreadManager {
 
         // No need for an atomic swap here, only the current thread is allowed to change its UnblockingAction
         UnblockingAction changeTo(UnblockingAction newAction) {
+            assert Thread.currentThread() == owner;
             UnblockingAction oldAction = action;
             this.action = newAction;
             return oldAction;
         }
 
         void restore(UnblockingAction action) {
+            assert Thread.currentThread() == owner;
             this.action = action;
         }
     }
@@ -539,7 +544,7 @@ public class ThreadManager {
 
     @TruffleBoundary
     UnblockingActionHolder getActionHolder(Thread thread) {
-        return ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new UnblockingActionHolder(null));
+        return ConcurrentOperations.getOrCompute(unblockingActions, thread, t -> new UnblockingActionHolder(t, null));
     }
 
     @TruffleBoundary
@@ -563,7 +568,7 @@ public class ThreadManager {
             blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, new UnblockingActionHolder(() -> thread.interrupt()));
+        unblockingActions.put(thread, new UnblockingActionHolder(thread, () -> thread.interrupt()));
     }
 
     public void cleanupValuesForJavaThread(Thread thread) {
