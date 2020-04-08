@@ -18,7 +18,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
@@ -77,7 +76,30 @@ public class ThreadManager {
     public final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
             .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
-    private final Map<Thread, AtomicReference<UnblockingAction>> unblockingActions = new ConcurrentHashMap<>();
+    public static class UnblockingActionHolder {
+        private volatile UnblockingAction action;
+
+        UnblockingActionHolder(UnblockingAction action) {
+            this.action = action;
+        }
+
+        public UnblockingAction get() {
+            return action;
+        }
+
+        // No need for an atomic swap here, only the current thread is allowed to change its UnblockingAction
+        UnblockingAction changeTo(UnblockingAction newAction) {
+            UnblockingAction oldAction = action;
+            this.action = newAction;
+            return oldAction;
+        }
+
+        void restore(UnblockingAction action) {
+            this.action = action;
+        }
+    }
+
+    private final Map<Thread, UnblockingActionHolder> unblockingActions = new ConcurrentHashMap<>();
     public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
@@ -506,26 +528,19 @@ public class ThreadManager {
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> blockingAction, UnblockingAction unblockingAction) {
         assert unblockingAction != null;
-        final Thread thread = Thread.currentThread();
+        final UnblockingActionHolder holder = getActionHolder(Thread.currentThread());
 
-        final AtomicReference<UnblockingAction> holder = getActionHolder(thread);
-        final UnblockingAction oldUnblockingAction = holder.getAndSet(unblockingAction);
+        final UnblockingAction oldUnblockingAction = holder.changeTo(unblockingAction);
         try {
             return runUntilResult(currentNode, blockingAction);
         } finally {
-            holder.set(oldUnblockingAction);
+            holder.restore(oldUnblockingAction);
         }
     }
 
     @TruffleBoundary
-    public AtomicReference<UnblockingAction> getActionHolder(Thread thread) {
-        return ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new AtomicReference<>(null));
-    }
-
-    @TruffleBoundary
-    public UnblockingAction setUnblockingAction(Thread thread, UnblockingAction action) {
-        AtomicReference<UnblockingAction> holder = getActionHolder(thread);
-        return holder.getAndSet(action);
+    public UnblockingActionHolder getActionHolder(Thread thread) {
+        return ConcurrentOperations.getOrCompute(unblockingActions, thread, k -> new UnblockingActionHolder(null));
     }
 
     /** Similar to {@link ThreadManager#runUntilResult(Node, BlockingAction)} but purposed for blocking native calls. If
@@ -564,7 +579,7 @@ public class ThreadManager {
             blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, new AtomicReference<>(() -> {
+        unblockingActions.put(thread, new UnblockingActionHolder(() -> {
             thread.interrupt();
         }));
     }
@@ -695,7 +710,6 @@ public class ThreadManager {
     @TruffleBoundary
     public void interrupt(Thread thread) {
         final UnblockingAction action = getActionHolder(thread).get();
-
         if (action != null) {
             action.unblock();
         }
