@@ -33,6 +33,12 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     public final int length;
 
     @ExportMessage
+    public static boolean accepts(DelegatedArrayStorage store,
+                                  @CachedLibrary(limit="1") ArrayStoreLibrary backingStores) {
+        return backingStores.accepts(store.storage);
+    }
+
+    @ExportMessage
     protected Object read(int index,
             @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.read(storage, index + offset);
