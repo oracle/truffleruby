@@ -78,10 +78,7 @@ public class ThreadManager {
             .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
     private final Map<Thread, AtomicReference<UnblockingAction>> unblockingActions = new ConcurrentHashMap<>();
-    public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = new UnblockingAction() {
-        @Override
-        void unblock() {
-        }
+    public static final UnblockingAction EMPTY_UNBLOCKING_ACTION = () -> {
     };
 
     private final ThreadLocal<UnblockingAction> blockingNativeCallUnblockingAction = ThreadLocal
@@ -424,8 +421,8 @@ public class ThreadManager {
         T block() throws InterruptedException;
     }
 
-    public static abstract class UnblockingAction {
-        abstract void unblock();
+    public interface UnblockingAction {
+        void unblock();
     }
 
     /** Only use when no context is available. */
@@ -564,19 +561,11 @@ public class ThreadManager {
         if (pthread_self != null && isRubyManagedThread(thread)) {
             final Object pThreadID = pthread_self.call();
 
-            blockingNativeCallUnblockingAction.set(new UnblockingAction() {
-                @Override
-                void unblock() {
-                    pthread_kill.call(pThreadID, SIGVTALRM);
-                }
-            });
+            blockingNativeCallUnblockingAction.set(() -> pthread_kill.call(pThreadID, SIGVTALRM));
         }
 
-        unblockingActions.put(thread, new AtomicReference<>(new UnblockingAction() {
-            @Override
-            void unblock() {
-                thread.interrupt();
-            }
+        unblockingActions.put(thread, new AtomicReference<>(() -> {
+            thread.interrupt();
         }));
     }
 

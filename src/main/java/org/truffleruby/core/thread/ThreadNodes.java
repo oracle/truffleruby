@@ -561,12 +561,7 @@ public abstract class ThreadNodes {
         private UnblockingAction makeUnblockingAction(Object unblocker) {
             assert RubyGuards.isRubyProc(unblocker);
             final DynamicObject unblockerProc = (DynamicObject) unblocker;
-            return new UnblockingAction() {
-                @Override
-                void unblock() {
-                    yield(unblockerProc);
-                }
-            };
+            return () -> yield(unblockerProc);
         }
 
     }
