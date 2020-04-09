@@ -42,5 +42,5 @@ runtime execution.
 Debugging on the JVM can be achieved with:
 
 ```
-jt ruby --jvm --vm.Dpolyglot.image-build-time.PreinitializeContexts=ruby --log.level=FINE -e 'p :hi'
+jt ruby --jvm --vm.Dpolyglot.image-build-time.PreinitializeContexts=ruby --log.level=FINE --no-core-load-path-e 'p :hi'
 ```

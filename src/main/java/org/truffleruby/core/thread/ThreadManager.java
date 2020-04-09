@@ -66,10 +66,9 @@ public class ThreadManager {
     private final ThreadLocal<DynamicObject> currentThread = ThreadLocal
             .withInitial(() -> foreignThreadMap.get(Thread.currentThread()));
 
-    private final Set<DynamicObject> runningRubyThreads = Collections
-            .newSetFromMap(new ConcurrentHashMap<DynamicObject, Boolean>());
+    private final Set<DynamicObject> runningRubyThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
+    private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public final Map<Thread, DynamicObject> rubyFiberForeignMap = new ConcurrentHashMap<>();
     public final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
@@ -143,7 +142,6 @@ public class ThreadManager {
     public void restartMainThread(Thread mainJavaThread) {
         rootJavaThread = mainJavaThread;
 
-        start(rootThread, mainJavaThread);
         Layouts.THREAD.setStatus(rootThread, ThreadStatus.RUN);
         Layouts.THREAD.setFinishedLatch(rootThread, new CountDownLatch(1));
 
@@ -608,12 +606,16 @@ public class ThreadManager {
 
     public void registerThread(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
-        runningRubyThreads.add(thread);
+        if (!runningRubyThreads.add(thread)) {
+            throw new UnsupportedOperationException(thread + " was already registered");
+        }
     }
 
     public void unregisterThread(DynamicObject thread) {
         assert RubyGuards.isRubyThread(thread);
-        runningRubyThreads.remove(thread);
+        if (!runningRubyThreads.remove(thread)) {
+            throw new UnsupportedOperationException(thread + " was not registered");
+        }
     }
 
     private void checkCalledInMainThreadRootFiber() {

@@ -39,7 +39,7 @@ public class SafepointManager {
 
     private final RubyContext context;
 
-    private final Set<Thread> runningThreads = Collections.newSetFromMap(new ConcurrentHashMap<Thread, Boolean>());
+    private final Set<Thread> runningThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -64,11 +64,15 @@ public class SafepointManager {
 
     @TruffleBoundary
     public void enterThread() {
+        final Thread thread = Thread.currentThread();
+
         lock.lock();
         try {
             int phase = phaser.register();
             assert phase >= 0 : "Phaser terminated";
-            runningThreads.add(Thread.currentThread());
+            if (!runningThreads.add(thread)) {
+                throw new UnsupportedOperationException(thread + " was already registered");
+            }
         } finally {
             lock.unlock();
         }
@@ -76,8 +80,12 @@ public class SafepointManager {
 
     @TruffleBoundary
     public void leaveThread() {
+        final Thread thread = Thread.currentThread();
+
         phaser.arriveAndDeregister();
-        runningThreads.remove(Thread.currentThread());
+        if (!runningThreads.remove(thread)) {
+            throw new UnsupportedOperationException(thread + " was not registered");
+        }
     }
 
     public void poll(Node currentNode) {
