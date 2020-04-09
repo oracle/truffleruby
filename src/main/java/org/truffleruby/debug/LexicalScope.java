@@ -9,20 +9,24 @@
  */
 package org.truffleruby.debug;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Scope;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -32,39 +36,57 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class LexicalScope {
 
-    public static Iterable<Scope> getLexicalScopeFor(RubyContext context, Node node, Frame frame) {
-        final RootNode root = node.getRootNode();
+    public static Iterable<Scope> getLexicalScopeFor(RubyContext context, Node node, MaterializedFrame frame) {
+        if (frame != null) {
+            final List<Scope> scopes = new ArrayList<>();
+            scopes.add(scopeForFrame(context, node, frame));
 
-        final Object receiver;
-
-        if (frame == null) {
-            receiver = Nil.INSTANCE;
+            frame = RubyArguments.getDeclarationFrame(frame);
+            while (frame != null) {
+                scopes.add(scopeForFrame(context, null, frame));
+                frame = RubyArguments.getDeclarationFrame(frame);
+            }
+            return scopes;
         } else {
-            receiver = RubyArguments.getSelf(frame);
+            return Collections.singletonList(scopeForFrame(context, node, null));
         }
-
-        final Scope topScope = Scope
-                .newBuilder(root.getName(), getVariables(root, frame))
-                .node(root)
-                .receiver("self", receiver)
-                .arguments(getArguments(frame))
-                .build();
-
-        // TODO CS 22-Apr-19 we only support the top-most scope at the moment - not scopes captured in blocks
-
-        return Collections.singletonList(topScope);
     }
 
-    private static Object getVariables(RootNode root, Frame frame) {
-        final FrameDescriptor frameDescriptor;
+    private static Scope scopeForFrame(RubyContext context, Node node, MaterializedFrame frame) {
+        final RootNode root = node != null ? node.getRootNode() : null;
+        final String name = root != null ? root.getName() : "parent scope";
 
-        if (frame == null) {
-            frameDescriptor = root.getFrameDescriptor();
+        if (frame != null) {
+            final Object self = RubyArguments.getSelf(frame);
+            final InternalMethod method = RubyArguments.getMethod(frame);
+            final DynamicObject boundMethod = Layouts.METHOD
+                    .createMethod(context.getCoreLibrary().methodFactory, self, method);
+            return Scope
+                    .newBuilder(name, getVariables(root, frame))
+                    .node(node)
+                    .receiver("self", self)
+                    .arguments(getArguments(frame))
+                    .rootInstance(boundMethod)
+                    .build();
         } else {
+            return Scope
+                    .newBuilder(name, getVariables(root, null))
+                    .node(node)
+                    .receiver("self", Nil.INSTANCE)
+                    .build();
+        }
+    }
+
+    private static Object getVariables(RootNode root, MaterializedFrame frame) {
+        final FrameDescriptor frameDescriptor;
+        if (frame != null) {
             frameDescriptor = frame.getFrameDescriptor();
+        } else {
+            frameDescriptor = root.getFrameDescriptor();
         }
 
         final Map<String, FrameSlot> slots = new HashMap<>();
@@ -78,16 +100,8 @@ public class LexicalScope {
         return new LocalVariablesObject(slots, frame);
     }
 
-    private static Object getArguments(Frame frame) {
-        final Object[] args;
-
-        if (frame == null) {
-            args = new Object[0];
-        } else {
-            args = RubyArguments.getArguments(frame);
-        }
-
-        return new ArgumentsArrayObject(args);
+    private static Object getArguments(MaterializedFrame frame) {
+        return new ArgumentsArrayObject(RubyArguments.getArguments(frame));
     }
 
     private static boolean isInternal(FrameSlot slot) {
@@ -98,9 +112,9 @@ public class LexicalScope {
     public static class LocalVariablesObject implements TruffleObject {
 
         private final Map<String, ? extends FrameSlot> slots;
-        private final Frame frame;
+        private final MaterializedFrame frame;
 
-        private LocalVariablesObject(Map<String, ? extends FrameSlot> slots, Frame frame) {
+        private LocalVariablesObject(Map<String, ? extends FrameSlot> slots, MaterializedFrame frame) {
             this.slots = slots;
             this.frame = frame;
         }
@@ -129,7 +143,7 @@ public class LexicalScope {
         @ExportMessage
         @TruffleBoundary
         protected Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
-            return new VariableNamesObject(slots.keySet().toArray(new String[slots.size()]));
+            return new VariableNamesObject(slots.keySet().toArray(new String[0]));
         }
 
         @ExportMessage
@@ -165,7 +179,6 @@ public class LexicalScope {
         protected boolean isMemberInsertable(@SuppressWarnings("unused") String member) {
             return false;
         }
-
     }
 
     @ExportLibrary(InteropLibrary.class)

@@ -273,7 +273,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected Iterable<Scope> findLocalScopes(RubyContext context, Node node, Frame frame) {
-        return LexicalScope.getLexicalScopeFor(context, node, frame);
+        return LexicalScope.getLexicalScopeFor(context, node, frame == null ? null : frame.materialize());
     }
 
     @Override
