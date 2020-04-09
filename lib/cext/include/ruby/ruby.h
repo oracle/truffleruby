@@ -966,11 +966,15 @@ enum ruby_fl_type {
 };
 
 struct RUBY_ALIGNAS(SIZEOF_VALUE) RBasic {
-#ifndef TRUFFLERUBY
     VALUE flags;
+#ifndef TRUFFLERUBY
     const VALUE klass;
 #endif
 };
+
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RBasic)
+#endif
 
 VALUE rb_obj_hide(VALUE obj);
 VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change klass information */
@@ -1382,7 +1386,11 @@ int rb_big_sign(VALUE);
 #define RBIGNUM_NEGATIVE_P(b) (RBIGNUM_SIGN(b)==0)
 
 #define R_CAST(st)   (struct st*)
+#ifdef TRUFFLERUBY
+#define RBASIC(obj) (polyglot_as_RBasic(polyglot_invoke(RUBY_CEXT, "RBASIC", rb_tr_unwrap(obj))))
+#else
 #define RBASIC(obj)  (R_CAST(RBasic)(obj))
+#endif
 #define ROBJECT(obj) (R_CAST(RObject)(obj))
 #define RCLASS(obj)  (R_CAST(RClass)(obj))
 #define RMODULE(obj) RCLASS(obj)

@@ -10,6 +10,7 @@
 
 require_relative 'cext_ruby'
 require_relative 'cext_constants'
+require_relative 'cext_rbasic'
 
 module Truffle::CExt
 
