@@ -180,6 +180,7 @@ public class ThreadManager {
                 Layouts.FIBER.getInitializedLatch(fiber).countDown();
             } catch (Throwable t) {
                 t.initCause(throwable);
+                t.printStackTrace();
                 Thread.getDefaultUncaughtExceptionHandler().uncaughtException(javaThread, t);
             }
         });
