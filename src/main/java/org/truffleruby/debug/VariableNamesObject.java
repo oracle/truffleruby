@@ -47,7 +47,6 @@ public class VariableNamesObject implements TruffleObject {
     }
 
     @ExportMessage
-    @TruffleBoundary
     protected boolean isArrayElementReadable(long index) {
         return index >= 0 && index < names.length;
     }
