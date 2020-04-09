@@ -27,7 +27,9 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.support.RandomizerNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
@@ -149,6 +151,8 @@ public class ThreadManager {
         final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(rootThread).getRootFiber();
         Layouts.FIBER.setAlive(rootFiber, true);
         Layouts.FIBER.setFinishedLatch(rootFiber, new CountDownLatch(1));
+
+        RandomizerNodes.resetSeed(context, Layouts.THREAD.getRandomizer(rootThread));
     }
 
     // spawning Thread => Fiber object
@@ -222,10 +226,6 @@ public class ThreadManager {
 
     private DynamicObject initializeThreadFields(DynamicObject thread) {
         setFiberManager(thread);
-        /* This must be called when creating the Ruby Thread object, and not in #start(). Calling it in #start() would
-         * mean this code might be interrupted on the new thread (e.g. by a KillException) before it can handle such
-         * exceptions. (#start() is before the top try/catch). */
-        context.send(thread, "internal_thread_initialize");
         return thread;
     }
 
@@ -242,6 +242,10 @@ public class ThreadManager {
                 new ArrayList<>(),
                 null,
                 new CountDownLatch(1),
+                HashOperations.newEmptyHash(context),
+                HashOperations.newEmptyHash(context),
+                RandomizerNodes.newRandomizer(context),
+                getGlobalReportOnException(),
                 getGlobalAbortOnException(),
                 null,
                 null,
@@ -252,6 +256,11 @@ public class ThreadManager {
                 currentGroup,
                 info,
                 Nil.INSTANCE);
+    }
+
+    private boolean getGlobalReportOnException() {
+        final DynamicObject threadClass = context.getCoreLibrary().threadClass;
+        return (boolean) ReadObjectFieldNodeGen.getUncached().execute(threadClass, "@report_on_exception", null);
     }
 
     private boolean getGlobalAbortOnException() {
@@ -365,8 +374,7 @@ public class ThreadManager {
             final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context
                     .getCoreLibrary().systemExitClass;
 
-            if (!isSystemExit &&
-                    (boolean) ReadObjectFieldNodeGen.getUncached().execute(thread, "@report_on_exception", true)) {
+            if (!isSystemExit && Layouts.THREAD.getReportOnException(thread)) {
                 context.send(
                         context.getCoreLibrary().truffleThreadOperationsModule,
                         "report_exception",

@@ -59,6 +59,18 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
 
+    public static DynamicObject newRandomizer(RubyContext context) {
+        final BigInteger seed = RandomizerGenSeedNode.randomSeedBigInteger(context);
+        final Randomizer randomizer = RandomizerSetSeedPrimitiveNode.randomFromBigInteger(seed);
+        return Layouts.RANDOMIZER.createRandomizer(context.getCoreLibrary().randomizerFactory, randomizer);
+    }
+
+    public static void resetSeed(RubyContext context, DynamicObject random) {
+        final BigInteger seed = RandomizerGenSeedNode.randomSeedBigInteger(context);
+        final Randomizer randomizer = RandomizerSetSeedPrimitiveNode.randomFromBigInteger(seed);
+        Layouts.RANDOMIZER.setRandomizer(random, randomizer);
+    }
+
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 

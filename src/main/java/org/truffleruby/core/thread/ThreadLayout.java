@@ -30,6 +30,12 @@ import com.oracle.truffle.api.object.dsl.Volatile;
 @Layout
 public interface ThreadLayout extends BasicObjectLayout {
 
+    String THREAD_LOCAL_VARIABLES_IDENTIFIER = "@thread_local_variables";
+    String RECURSIVE_OBJECTS_IDENTIFIER = "@recursive_objects";
+    String RANDOMIZER_IDENTIFIER = "@randomizer";
+    String REPORT_ON_EXCEPTION_IDENTIFIER = "@report_on_exception";
+    String ABORT_ON_EXCEPTION_IDENTIFIER = "@abort_on_exception";
+
     DynamicObjectFactory createThreadShape(
             DynamicObject logicalClass,
             DynamicObject metaClass);
@@ -41,6 +47,10 @@ public interface ThreadLayout extends BasicObjectLayout {
             List<Lock> ownedLocks,
             @Nullable FiberManager fiberManager,
             CountDownLatch finishedLatch,
+            DynamicObject threadLocalVariables,
+            DynamicObject recursiveObjects,
+            DynamicObject randomizer,
+            boolean reportOnException,
             boolean abortOnException,
             @Nullable @Volatile Thread thread,
             @Nullable @Volatile DynamicObject exception,
@@ -67,6 +77,10 @@ public interface ThreadLayout extends BasicObjectLayout {
     ThreadLocalGlobals getThreadLocalGlobals(DynamicObject object);
 
     List<Lock> getOwnedLocks(DynamicObject object);
+
+    DynamicObject getRandomizer(DynamicObject object);
+
+    boolean getReportOnException(DynamicObject object);
 
     boolean getAbortOnException(DynamicObject object);
 

@@ -563,27 +563,6 @@ public abstract class ThreadNodes {
 
     }
 
-    @CoreMethod(names = "abort_on_exception")
-    public abstract static class AbortOnExceptionNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean abortOnException(DynamicObject self) {
-            return Layouts.THREAD.getAbortOnException(self);
-        }
-
-    }
-
-    @CoreMethod(names = "abort_on_exception=", required = 1)
-    public abstract static class SetAbortOnExceptionNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object setAbortOnException(DynamicObject self, boolean abortOnException) {
-            Layouts.THREAD.setAbortOnException(self, abortOnException);
-            return nil;
-        }
-
-    }
-
     @CoreMethod(names = "list", onSingleton = true)
     public abstract static class ListNode extends CoreMethodArrayArgumentsNode {
 
