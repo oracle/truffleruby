@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 import org.truffleruby.core.hash.ReHashable;
 
@@ -134,12 +133,16 @@ public class WeakValueCache<Key, Value> implements ReHashable {
     @TruffleBoundary
     public Collection<Entry<Key, Value>> entries() {
         removeStaleEntries();
-        return map
-                .entrySet()
-                .stream()
-                .map(WeakMapEntry::new)
-                .filter(e -> e.getValue() != null)
-                .collect(Collectors.toList());
+        final Collection<Entry<Key, Value>> entries = new ArrayList<>(map.size());
+
+        for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
+            final Value value = e.getValue().get();
+            if (value != null) {
+                entries.add(new WeakMapEntry<>(e.getKey(), value));
+            }
+        }
+
+        return entries;
     }
 
     public void rehash() {
@@ -168,9 +171,9 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         public final Key key;
         public final Value value;
 
-        private WeakMapEntry(Entry<Key, KeyedReference<Key, Value>> e) {
-            this.key = e.getKey();
-            this.value = e.getValue().get();
+        private WeakMapEntry(Key key, Value value) {
+            this.key = key;
+            this.value = value;
         }
 
         @Override
