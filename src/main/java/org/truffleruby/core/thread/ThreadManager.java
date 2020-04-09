@@ -118,7 +118,6 @@ public class ThreadManager {
     public ThreadManager(RubyContext context) {
         this.context = context;
         this.rootThread = createBootThread("main");
-        this.rootJavaThread = Thread.currentThread();
         this.fiberPool = Executors.newCachedThreadPool(this::createFiberJavaThread);
     }
 
@@ -127,7 +126,10 @@ public class ThreadManager {
             setupSignalHandler(nfi, nativeConfiguration);
             setupNativeThreadSupport(nfi, nativeConfiguration);
         }
+    }
 
+    public void initializeMainThread(Thread mainJavaThread) {
+        rootJavaThread = mainJavaThread;
         rubyManagedThreads.add(rootJavaThread);
         start(rootThread, rootJavaThread);
     }
@@ -135,12 +137,11 @@ public class ThreadManager {
     public void resetMainThread() {
         cleanup(rootThread, rootJavaThread);
         rubyManagedThreads.remove(rootJavaThread);
-
         rootJavaThread = null;
     }
 
     public void restartMainThread(Thread mainJavaThread) {
-        rootJavaThread = mainJavaThread;
+        initializeMainThread(mainJavaThread);
 
         Layouts.THREAD.setStatus(rootThread, ThreadStatus.RUN);
         Layouts.THREAD.setFinishedLatch(rootThread, new CountDownLatch(1));
