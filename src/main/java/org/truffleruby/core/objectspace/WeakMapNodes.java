@@ -136,8 +136,6 @@ public abstract class WeakMapNodes {
     @CoreMethod(names = { "each", "each_pair" }, needsBlock = true)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        private final ConditionProfile arityMoreThanOne = ConditionProfile.createBinaryProfile();
-
         @Specialization
         protected DynamicObject each(DynamicObject map, NotProvided block) {
             return eachNoBlockProvided(this, map);
@@ -148,19 +146,10 @@ public abstract class WeakMapNodes {
         protected DynamicObject each(DynamicObject map, DynamicObject block) {
 
             for (Entry<Object, Object> e : Layouts.WEAK_MAP.getWeakMapStorage(map).entries()) {
-                yieldPair(block, e.getKey(), e.getValue());
+                yield(block, e.getKey(), e.getValue());
             }
 
             return map;
-        }
-
-        private void yieldPair(DynamicObject block, Object key, Object value) {
-            // MRI behavior, see rb_hash_each_pair()
-            if (arityMoreThanOne.profile(Layouts.PROC.getSharedMethodInfo(block).getArity().getArityNumber() > 1)) {
-                yield(block, key, value);
-            } else {
-                yield(block, createArray(new Object[]{ key, value }, 2));
-            }
         }
     }
 
