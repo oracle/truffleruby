@@ -483,6 +483,7 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(symbolClass, symbolFactory);
 
         threadClass = defineClass("Thread");
+        threadClass.define("@report_on_exception", true);
         threadClass.define("@abort_on_exception", false);
         threadFactory = Layouts.THREAD.createThreadShape(threadClass, threadClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(threadClass, threadFactory);

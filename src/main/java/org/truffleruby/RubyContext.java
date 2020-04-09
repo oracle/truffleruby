@@ -220,6 +220,7 @@ public class RubyContext {
         Metrics.printTime("before-thread-manager");
         threadManager = new ThreadManager(this);
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
+        threadManager.initializeMainThread(Thread.currentThread());
         Metrics.printTime("after-thread-manager");
 
         Metrics.printTime("before-instruments");
@@ -298,8 +299,8 @@ public class RubyContext {
         this.truffleNFIPlatform = createNativePlatform();
         encodingManager.initializeDefaultEncodings(truffleNFIPlatform, nativeConfiguration);
 
-        threadManager.restartMainThread(Thread.currentThread());
         threadManager.initialize(truffleNFIPlatform, nativeConfiguration);
+        threadManager.restartMainThread(Thread.currentThread());
 
         Metrics.printTime("before-rehash");
         preInitializationManager.rehash();

@@ -199,6 +199,7 @@ class Thread
     current.__send__ :handle_interrupt, exception, timing, &block
   end
 
+  # Already set in CoreLibrary, but for clarity also defined here
   @abort_on_exception = false
   @report_on_exception = true
 
@@ -218,7 +219,6 @@ class Thread
       Kernel.raise ArgumentError, 'tried to create Proc object without a block' unless block
 
       thread = Primitive.thread_allocate(self)
-      thread.send(:internal_thread_initialize)
       Primitive.thread_initialize(thread, args, block)
       thread
     end
@@ -228,22 +228,14 @@ class Thread
   # Instance methods
 
   attr_reader :recursive_objects, :randomizer
-  attr_accessor :report_on_exception
+  attr_accessor :abort_on_exception, :report_on_exception
 
   def initialize(*args, &block)
     Kernel.raise ThreadError, 'must be called with a block' unless block
     if Primitive.thread_initialized?(self)
       Kernel.raise ThreadError, 'already initialized thread'
     end
-    internal_thread_initialize
     Primitive.thread_initialize(self, args, block)
-  end
-
-  private def internal_thread_initialize
-    @thread_local_variables = {}
-    @recursive_objects = {}
-    @randomizer = Truffle::Randomizer.new
-    @report_on_exception = Thread.report_on_exception
   end
 
   def freeze
@@ -420,10 +412,6 @@ class Thread
     omit, length = Truffle::KernelOperations.normalize_backtrace_args(omit, length)
     Primitive.thread_backtrace_locations(self, omit, length)
   end
-end
-
-Truffle::Boot.redo do
-  Thread.current.send :internal_thread_initialize
 end
 
 class ThreadGroup
