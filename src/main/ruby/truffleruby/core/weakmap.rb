@@ -39,9 +39,10 @@ module ObjectSpace
     def inspect
       str = "#<ObjectSpace::WeakMap:0x#{Primitive.kernel_to_hex(object_id)}"
       entries = self.entries
-      str += ':' if entries.length > 0
+      str += ': ' if entries.length > 0
       entries.each do |k, v|
-        str += " #{Truffle::Type.rb_any_to_s(k)} => #{Truffle::Type.rb_any_to_s(v)}"
+        str += ', ' unless str[-2] == ':'
+        str += "#{Truffle::Type.rb_any_to_s(k)} => #{Truffle::Type.rb_any_to_s(v)}"
       end
       str + '>'
     end

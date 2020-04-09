@@ -66,10 +66,18 @@ describe "ObjectSpace::WeakMap" do
 
   it "displays object pointers in #inspect output" do
     map = ObjectSpace::WeakMap.new
-    k = BasicObject.new # very important to test with BasicObject (without Kernel) here
-    v = Object.new
-    map[k] = v
-    map.inspect.should =~ /\A\#<#{map.class.name}:[^:]+:\s\#<BasicObject:[^:]*>\s=>\s\#<Object:[^:]*>>\z/
+    k1 = BasicObject.new # important to test with BasicObject (without Kernel) here to test edge cases
+    v1 = Object.new
+    k2 = Object.new
+    v2 = BasicObject.new
+
+    map.inspect.should =~ /\A\#<ObjectSpace::WeakMap:0x\h+>\z/
+
+    map[k1] = v1
+    map.inspect.should =~ /\A\#<ObjectSpace::WeakMap:0x\h+: \#<BasicObject:0x\h+> => \#<Object:0x\h+>>\z/
+
+    map[k2] = v2
+    map.inspect.should =~ /\A\#<ObjectSpace::WeakMap:0x\h+: \#<BasicObject:0x\h+> => \#<Object:0x\h+>, \#<Object:0x\h+> => \#<BasicObject:0x\h+>>\z/
   end
 
   it "can be iterated on" do
