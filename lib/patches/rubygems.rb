@@ -8,9 +8,11 @@ unless RbConfig::CONFIG['extra_bindirs'].empty?
 end
 
 # Make sure we don't use foreign gem directories
-require 'rubygems/gem_dirs_verification'
-Gem::GemDirsVerification.verify(Gem.path)
-Gem::GemDirsVerification.install_hook
+unless Truffle::Boot.get_option 'testing-rubygems'
+  require 'rubygems/gem_dirs_verification'
+  Gem::GemDirsVerification.verify(Gem.path)
+  Gem::GemDirsVerification.install_hook
+end
 
 # We register did_you_mean only here because it was required directly
 # without RubyGems in post-boot.rb.
