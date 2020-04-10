@@ -114,6 +114,8 @@ class Truffle::CExt::RBasic
     case name
     when 'flags'
       compute_flags
+    when 'klass'
+      Truffle::CExt.rb_class_of(@object)
     else
       raise Truffle::Interop::UnknownIdentifierException
     end
@@ -133,7 +135,7 @@ class Truffle::CExt::RBasic
   end
 
   def polyglot_member_readable?(name)
-    name == 'flags'
+    name == 'flags' || name == 'klass'
   end
 
   def polyglot_member_modifiable?(name)
