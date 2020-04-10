@@ -76,3 +76,20 @@ for SVG files. While loading the file in such an application make render a graph
 will not handle the interactive components of the flame graph. Firefox may work as well,
 but Chromium-based browsers seem to have better support and performance for the flame graph
 files as of this writing (Dec. 2018).
+
+### Require Profiling
+The `--metrics-profile-require` option can be used to profile the time used for searching, parsing, translating and loading files during require.
+
+For example, the `summary` view provides an overview of where time is spent:
+```
+$ jt ruby --experimental-options --cpusampler --cpusampler.Mode=roots --metrics-profile-require=summary -e 'require "rubygems"' |& grep "metrics "
+ metrics execute                                                      |       1122ms  99.6% |   0.0% ||        212ms  18.8% |   0.0% | (metrics)~1:0 
+ metrics parsing                                                      |         71ms   6.3% |   0.0% ||         71ms   6.3% |   0.0% | (metrics)~1:0 
+ metrics translating                                                  |         60ms   5.3% |   0.0% ||         60ms   5.3% |   0.0% | (metrics)~1:0 
+ metrics require                                                      |       1123ms  99.7% |   0.0% ||         37ms   3.3% |   0.0% | (metrics)~1:0 
+ metrics searching                                                    |          6ms   0.5% |   0.0% ||          6ms   0.5% |   0.0% | (metrics)~1:0 
+```
+
+This feature can also be used to generate a flame graph with detailed require timings:
+
+`$ jt profile --experimental-options --cpusampler --cpusampler.Mode=roots --metrics-profile-require=detail -e 'require "rubygems"'`
