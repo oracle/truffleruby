@@ -32,16 +32,16 @@ describe "ObjectSpace::WeakMap" do
     map = ObjectSpace::WeakMap.new
     x = Object.new
     -> { map[true] = x }.should raise_error(ArgumentError)
-    -> { map[true] = x}.should raise_error(ArgumentError)
-    -> { map[false] = x}.should raise_error(ArgumentError)
-    -> { map[nil] = x}.should raise_error(ArgumentError)
-    -> { map[42] = x}.should raise_error(ArgumentError)
-    -> { map[:foo] = x}.should raise_error(ArgumentError)
-    -> { map[x] = true}.should raise_error(ArgumentError)
-    -> { map[x] = false}.should raise_error(ArgumentError)
-    -> { map[x] = nil}.should raise_error(ArgumentError)
-    -> { map[x] = 42}.should raise_error(ArgumentError)
-    -> { map[x] = :foo}.should raise_error(ArgumentError)
+    -> { map[true] = x }.should raise_error(ArgumentError)
+    -> { map[false] = x }.should raise_error(ArgumentError)
+    -> { map[nil] = x }.should raise_error(ArgumentError)
+    -> { map[42] = x }.should raise_error(ArgumentError)
+    -> { map[:foo] =  x}.should raise_error(ArgumentError)
+    -> { map[x] = true }.should raise_error(ArgumentError)
+    -> { map[x] = false }.should raise_error(ArgumentError)
+    -> { map[x] = nil }.should raise_error(ArgumentError)
+    -> { map[x] = 42 }.should raise_error(ArgumentError)
+    -> { map[x] = :foo }.should raise_error(ArgumentError)
 
     y = Object.new.freeze
     -> { map[x] = y}.should raise_error(FrozenError)
@@ -101,14 +101,7 @@ describe "ObjectSpace::WeakMap" do
 
     def iso.test_iter(method, result)
       map.send(method, &method(:collector)).should == map
-      # Note: this somewhat involved way to do things was designed to help the GC, but it doesn't suffice.
-      arr.sort_by!(&method(:sorter))
-      matcher = arr.should
-      matcher == result
-      matcher.initialize []
-      matcher = nil
-      matcher == nil # inhibit useless assignment warning
-      arr.clear
+      arr.sort_by(&method(:sorter)).should == result
       self.arr = [] # at the end to not retain refs!
     end
 
@@ -130,8 +123,8 @@ describe "ObjectSpace::WeakMap" do
     iso.test_iter(:each_key, [k1, k2])
     iso.test_iter(:each_value, [v1, v2])
 
-    # Ideally, we'd test that the iteration methods behave proplery after GC here, but the GC trigger is too
-    # unreliable on MRI for this to work well.
+    # Ideally, we'd test that the iteration methods behave proplery after GC here, but the GC is presumably to
+    # conservative on MRI to get this to work reliably.
   end
 
   it "has iterator methods that must take a block, except when empty" do

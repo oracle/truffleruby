@@ -102,7 +102,8 @@ import com.oracle.truffle.api.source.SourceSection;
  *
  * <li>If the class includes some Java-defined modules, perform the inclusion by calling
  * `Layouts.MODULE.getFields(myClassClass).include(context, node, myModule)` inside the `CoreLibrary#includeModules`
- * method.
+ * method. (This can also, or additionally, be done in Ruby code. Doing it here saves a few invalidations. If done both
+ * here and in Ruby code, it should be done at the top of the Ruby class.)
  * </ul>
 */
 public class CoreLibrary {

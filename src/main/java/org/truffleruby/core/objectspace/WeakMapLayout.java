@@ -15,7 +15,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.dsl.Layout;
 
-@SuppressWarnings("rawtypes")
 @Layout
 public interface WeakMapLayout extends BasicObjectLayout {
 
