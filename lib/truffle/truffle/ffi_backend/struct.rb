@@ -118,7 +118,7 @@ module FFI
         unless FFI::StructLayout === layout
           raise RuntimeError, "invalid Struct layout for #{self.class}"
         end
-        unless @pointer
+        unless defined?(@pointer) and @pointer
           @pointer = MemoryPointer.new(layout.size, 1, true)
         end
         @layout = layout
