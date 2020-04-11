@@ -55,12 +55,7 @@ module Truffle::FFI
       SIZE
     end
 
-    def initialize(type, address = undefined)
-      if Primitive.undefined? address
-        address = type
-        type = nil
-      end
-
+    def initialize(type = nil, address)
       if Truffle::Interop.pointer?(address)
         address = Truffle::Interop.as_pointer(address)
       end
