@@ -6,46 +6,12 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-require 'rbconfig'
-
-module FFI
-  AbstractMemory = ::Truffle::FFI::AbstractMemory
-  Pointer = ::Truffle::FFI::Pointer
-  MemoryPointer = ::Truffle::FFI::MemoryPointer
-  NullPointerError = ::Truffle::FFI::NullPointerError
-
-  # Redefine Pointer.find_type_size to consider FFI types
-  class Pointer
-    def self.find_type_size(type)
-      ::FFI.type_size(::FFI.find_type(type))
-    end
-  end
-
-  module Platform
-    # eregon: I would like to use rbconfig/sizeof here, but the linker requires
-    # ffi, and the linker is needed to build the rbconfig/sizeof C extension,
-    # so we need to break the cycle.
-    ADDRESS_SIZE = 64
-    LONG_SIZE = 64
-
-    if ::Truffle::Platform.linux?
-      # Set it so FFI::Library finds the right file directly, like on MRI,
-      # and does not need to try and fail to load the /lib64/libc.so loader script.
-      GNU_LIBC = 'libc.so.6'
-    end
-  end
-
-  TypeDefs = {}
-end
+# This file is only used if the ffi gem is not activated, when using FFI as a
+# stdlib. Note that older versions of the FFI gem would end up removing itself
+# from $LOAD_PATH and then require this file.
 
 # Require the pure-Ruby Truffle NFI backend
-require_relative 'truffle/ffi_backend/last_error'
-require_relative 'truffle/ffi_backend/type'
-require_relative 'truffle/ffi_backend/struct_layout'
-require_relative 'truffle/ffi_backend/struct'
-require_relative 'truffle/ffi_backend/buffer'
-require_relative 'truffle/ffi_backend/function'
-require_relative 'truffle/ffi_backend/dynamic_library'
+require_relative 'truffle/ffi_backend'
 
-# Require the FFI gem Ruby files
+# Require our copy in stdlib of the FFI gem Ruby files
 require_relative 'ffi/ffi'
