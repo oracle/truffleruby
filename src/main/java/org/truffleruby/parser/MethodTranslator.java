@@ -251,13 +251,7 @@ public class MethodTranslator extends BodyTranslator {
         return body;
     }
 
-    /* This method exists solely to be substituted to support lazy method parsing. The substitution returns a node which
-     * performs the parsing lazily and then calls doCompileMethodBody. */
     public RubyNode compileMethodBody(SourceIndexLength sourceSection, ParseNode bodyNode) {
-        return doCompileMethodBody(sourceSection, bodyNode);
-    }
-
-    public RubyNode doCompileMethodBody(SourceIndexLength sourceSection, ParseNode bodyNode) {
         declareArguments();
         final Arity arity = argsNode.getArity();
 
