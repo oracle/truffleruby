@@ -83,7 +83,7 @@ public class Options {
     public final boolean CORE_AS_INTERNAL;
     /** --stdlib-as-internal=true */
     public final boolean STDLIB_AS_INTERNAL;
-    /** --lazy-translation-user=false */
+    /** --lazy-translation-user=DEFAULT_LAZY */
     public final boolean LAZY_TRANSLATION_USER;
     /** --exceptions-store-java=false */
     public final boolean EXCEPTIONS_STORE_JAVA;
@@ -313,7 +313,7 @@ public class Options {
         COVERAGE_GLOBAL = options.get(OptionsCatalog.COVERAGE_GLOBAL_KEY);
         CORE_AS_INTERNAL = options.get(OptionsCatalog.CORE_AS_INTERNAL_KEY);
         STDLIB_AS_INTERNAL = options.get(OptionsCatalog.STDLIB_AS_INTERNAL_KEY);
-        LAZY_TRANSLATION_USER = options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY);
+        LAZY_TRANSLATION_USER = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_USER_KEY) : DEFAULT_LAZY;
         EXCEPTIONS_STORE_JAVA = options.get(OptionsCatalog.EXCEPTIONS_STORE_JAVA_KEY);
         EXCEPTIONS_PRINT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_JAVA_KEY);
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY);

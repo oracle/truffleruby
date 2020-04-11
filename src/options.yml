@@ -43,7 +43,7 @@ EXPERT:
     # Options helpful in for debugging, potentially also for user code
     CORE_AS_INTERNAL: [core-as-internal, boolean, true, 'Mark core library sources as internal']
     STDLIB_AS_INTERNAL: [stdlib-as-internal, boolean, true, 'Mark stdlib sources as internal']
-    LAZY_TRANSLATION_USER: [lazy-translation-user, boolean, false, 'Lazily translation of stdlib, gem and user source files']
+    LAZY_TRANSLATION_USER: [lazy-translation-user, boolean, DEFAULT_LAZY, 'Lazily translation of stdlib, gem and user source files']
 
     # Options to tweak backtraces
     EXCEPTIONS_STORE_JAVA: [exceptions-store-java, boolean, false, Store the Java exception with the Ruby backtrace]
