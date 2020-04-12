@@ -20,7 +20,7 @@ local restrict_builds_to = [];
 # and it would still work.
 local utils = import "utils.libsonnet";
 
-local jdks = (import "common.json").jdks;
+local common = (import "common.json");
 
 # All builds are composed **directly** from **independent disjunct composable**
 # jsonnet objects defined in here. Use `+:` to make the objects or arrays
@@ -204,19 +204,19 @@ local part_definitions = {
 
     v8: with_path {
       downloads+: {
-        JAVA_HOME: jdks.oraclejdk8,
+        JAVA_HOME: common.jdks.oraclejdk8,
       },
     },
 
     v11: with_path {
       downloads+: {
-        JAVA_HOME: jdks["labsjdk-ce-11"],
+        JAVA_HOME: common.jdks["labsjdk-ce-11"],
       },
     },
   },
 
   platform: {
-    linux: {
+    linux: common.sulong.deps.linux + {
       platform_name:: "Linux",
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
@@ -229,7 +229,7 @@ local part_definitions = {
         binutils: ">=2.30",
       },
     },
-    darwin: {
+    darwin: common.sulong.deps.darwin + {
       platform_name:: "Darwin",
       "$.cap":: {
         normal_machine: ["darwin_mojave", "amd64"],
