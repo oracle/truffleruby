@@ -306,7 +306,7 @@ describe "The launcher" do
         "--engine.BackgroundCompilation=false",
       ].join(" ")
       out = ruby_exe("2000.times {}", options: options, args: "2>&1")
-      out.should include("[truffle] opt done")
+      out.should =~ /\[(truffle|engine)\] opt done/
     end
   end
 
