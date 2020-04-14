@@ -10,7 +10,7 @@
 
 require_relative 'cext_ruby'
 require_relative 'cext_constants'
-require_relative 'cext_rbasic'
+require_relative 'cext_structs'
 
 module Truffle::CExt
 
@@ -21,96 +21,6 @@ module Truffle::CExt
   ALLOCATOR_FUNC = Object.new
 
   extend self
-
-  class DataHolder
-    attr_accessor :data
-
-    def initialize(data)
-      @data = data
-    end
-  end
-
-  class RData
-    def initialize(object)
-      @object = object
-    end
-
-    private
-
-    def polyglot_has_members?
-      true
-    end
-
-    def polyglot_members(internal)
-      %w[data type typed_flag]
-    end
-
-    def polyglot_read_member(name)
-      case name
-      when 'data'
-        data_holder.data
-      when 'type'
-        type
-      when 'typed_flag'
-        type ? 1 : 0
-      else
-        raise Truffle::Interop::UnknownIdentifierException
-      end
-    end
-
-    def polyglot_write_member(name, value)
-      raise Truffle::Interop::UnknownIdentifierException unless name == 'data'
-      data_holder.data = value
-    end
-
-    def polyglot_remove_member(name)
-      raise Truffle::Interop::UnsupportedMessageException
-    end
-
-    def polyglot_invoke_member(name, *args)
-      raise Truffle::Interop::UnsupportedMessageException
-    end
-
-    def polyglot_member_readable?(name)
-      name == 'data' or name == 'type' or name == 'typed_flag'
-    end
-
-    def polyglot_member_modifiable?(name)
-      name == 'data'
-    end
-
-    def polyglot_member_removable?(name)
-      false
-    end
-
-    def polyglot_member_insertable?(name)
-      false
-    end
-
-    def polyglot_member_invocable?(name)
-      false
-    end
-
-    def polyglot_member_internal?(name)
-      false
-    end
-
-    def polyglot_has_member_read_side_effects?(name)
-      false
-    end
-
-    def polyglot_has_member_write_side_effects?(name)
-      false
-    end
-
-    def data_holder
-      Primitive.object_hidden_var_get(@object, DATA_HOLDER)
-    end
-
-    def type
-      Primitive.object_hidden_var_get(@object, DATA_TYPE)
-    end
-  end
 
   class RbEncoding
     ENCODING_CACHE = {} # Encoding => RbEncoding
@@ -223,129 +133,6 @@ module Truffle::CExt
 
     def polyglot_as_pointer
       @pointer.address
-    end
-  end
-
-  class RbIO
-    def initialize(io)
-      @io = io
-    end
-
-    private
-
-    def polyglot_has_members?
-      true
-    end
-
-    def polyglot_members(internal)
-      ['fd', 'mode']
-    end
-
-    def polyglot_read_member(name)
-      case name
-      when 'fd'
-        @io.instance_variable_get(:@descriptor)
-      when 'mode'
-        @io.instance_variable_get(:@mode)
-      else
-        raise Truffle::Interop::UnknownIdentifierException
-      end
-    end
-
-    def polyglot_write_member(name, value)
-      raise Truffle::Interop::UnsupportedMessageException
-    end
-
-    def polyglot_remove_member(name)
-      raise Truffle::Interop::UnsupportedMessageException
-    end
-
-    def polyglot_invoke_member(name, *args)
-      raise Truffle::Interop::UnsupportedMessageException
-    end
-
-    def polyglot_member_readable?(name)
-      name == 'fd' || name == 'mode'
-    end
-
-    def polyglot_member_modifiable?(name)
-      false
-    end
-
-    def polyglot_member_removable?(name)
-      false
-    end
-
-    def polyglot_member_insertable?(name)
-      false
-    end
-
-    def polyglot_member_invocable?(name)
-      false
-    end
-
-    def polyglot_member_internal?(name)
-      false
-    end
-
-    def polyglot_has_member_read_side_effects?(name)
-      false
-    end
-
-    def polyglot_has_member_write_side_effects?(name)
-      false
-    end
-  end
-
-  class RArrayPtr
-    attr_reader :array
-
-    def initialize(array)
-      @array = array
-    end
-
-    def polyglot_pointer?
-      Primitive.array_store_native?(@array)
-    end
-
-    def polyglot_as_pointer
-      Primitive.array_store_address(@array)
-    end
-
-    def polyglot_to_native
-      Primitive.array_store_to_native(@array)
-    end
-
-    def polyglot_has_array_elements?
-      true
-    end
-
-    def polyglot_array_size
-      @array.size
-    end
-
-    def polyglot_read_array_element(index)
-      Primitive.cext_wrap(@array[index])
-    end
-
-    def polyglot_write_array_element(index, value)
-      @array[index] = Primitive.cext_unwrap(value)
-    end
-
-    def polyglot_array_element_readable?(index)
-      index >= 0 && index < @array.size
-    end
-
-    def polyglot_array_element_modifiable?(index)
-      index >= 0 && index < @array.size
-    end
-
-    def polyglot_array_element_insertable?(index)
-      false
-    end
-
-    def polyglot_array_element_removable?(index)
-      false
     end
   end
 
@@ -1200,10 +987,6 @@ module Truffle::CExt
     []
   end
 
-  def RARRAY_PTR(array)
-    RArrayPtr.new(array)
-  end
-
   def rb_hash_new
     {}
   end
@@ -2033,11 +1816,6 @@ module Truffle::CExt
 
   def rb_tr_log_warning(message)
     Truffle::Debug.log_warning message if LOG_WARNING
-  end
-
-  def RDATA(object)
-    rb_check_type(object, T_DATA)
-    RData.new(object)
   end
 
   def rb_convert_to_encoding(encoding)
