@@ -130,6 +130,7 @@ Compatibility:
 * Accept `RUBY_INTERNAL_EVENT_{NEWOBJ,FREEOBJ}` events but warn they are not triggered (#1978, #1983).
 * `IO.copy_stream(in, STDOUT)` now writes to `STDOUT` without buffering like MRI.
 * Implemented `RbConfig['vendordir']`.
+* Support `(struct RBasic *)->flags` and `->klass` from `ruby.h` (#1891, #1884, #1978).
 
 Changes:
 
