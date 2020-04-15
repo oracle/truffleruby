@@ -52,11 +52,13 @@ class Truffle::CExt::RData
   end
 
   def polyglot_members(internal)
-    %w[data type typed_flag]
+    %w[basic data type typed_flag]
   end
 
   def polyglot_read_member(name)
     case name
+    when 'basic'
+      get_basic
     when 'data'
       data_holder.data
     when 'type'
@@ -82,7 +84,7 @@ class Truffle::CExt::RData
   end
 
   def polyglot_member_readable?(name)
-    name == 'data' or name == 'type' or name == 'typed_flag'
+    name == 'basic' or name == 'data' or name == 'type' or name == 'typed_flag'
   end
 
   def polyglot_member_modifiable?(name)
@@ -111,6 +113,10 @@ class Truffle::CExt::RData
 
   def polyglot_has_member_write_side_effects?(name)
     false
+  end
+
+  def get_basic
+    @basic ||= Truffle::CExt::RBasic.new(@object)
   end
 
   def data_holder

@@ -1246,10 +1246,7 @@ struct RFile {
 };
 
 struct RData {
-#ifndef TRUFFLERUBY
-    // TruffleRuby: RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
     struct RBasic basic;
-#endif
     void (*dmark)(void*);
     void (*dfree)(void*);
     void *data;
