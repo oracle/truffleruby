@@ -496,7 +496,7 @@ class Range
     end
   end
 
-  def collect(&block)
+  def map(&block)
     ary = Primitive.range_integer_map(self, block)
     if !Primitive.undefined?(ary)
       ary
@@ -504,7 +504,7 @@ class Range
       super(&block)
     end
   end
-  alias_method :map, :collect
+  alias_method :collect, :map
 
   private def to_a_internal # MODIFIED called from java to_a
     return to_a_from_enumerable unless self.begin.kind_of? Integer and self.end.kind_of? Integer
