@@ -57,4 +57,11 @@ describe :rbasic, shared: true do
     @object.copy_flags(obj2, obj1)
     @object.get_flags(obj2).should == 0
   end
+
+  it "supports retrieving the (meta)class" do
+    obj, _ = @object.data
+    @object.get_klass(obj).should == obj.class
+    meta = (class << obj; self; end)
+    @object.get_klass(obj).should == meta
+  end
 end

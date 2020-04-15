@@ -30,6 +30,10 @@ VALUE rbasic_spec_copy_flags(VALUE self, VALUE to, VALUE from) {
   return INT2FIX(RBASIC(to)->flags);
 }
 
+VALUE rbasic_spec_get_klass(VALUE self, VALUE val) {
+  return rb_tr_wrap(RBASIC(val)->klass);
+}
+
 VALUE rbasic_rdata_spec_get_flags(VALUE self, VALUE structure) {
   return INT2FIX(RDATA(structure)->basic.flags);
 }
@@ -44,6 +48,10 @@ VALUE rbasic_rdata_spec_copy_flags(VALUE self, VALUE to, VALUE from) {
   return INT2FIX(RDATA(to)->basic.flags);
 }
 
+VALUE rbasic_rdata_spec_get_klass(VALUE self, VALUE structure) {
+  return rb_tr_wrap(RDATA(structure)->basic.klass);
+}
+
 void Init_rbasic_spec(void) {
   VALUE cls = rb_define_class("CApiRBasicSpecs", rb_cObject);
   rb_define_method(cls, "taint_flag", rbasic_spec_taint_flag, 0);
@@ -51,11 +59,13 @@ void Init_rbasic_spec(void) {
   rb_define_method(cls, "get_flags", rbasic_spec_get_flags, 1);
   rb_define_method(cls, "set_flags", rbasic_spec_set_flags, 2);
   rb_define_method(cls, "copy_flags", rbasic_spec_copy_flags, 2);
+  rb_define_method(cls, "get_klass", rbasic_spec_get_klass, 1);
 
   cls = rb_define_class("CApiRBasicRDataSpecs", rb_cObject);
   rb_define_method(cls, "get_flags", rbasic_rdata_spec_get_flags, 1);
   rb_define_method(cls, "set_flags", rbasic_rdata_spec_set_flags, 2);
   rb_define_method(cls, "copy_flags", rbasic_rdata_spec_copy_flags, 2);
+  rb_define_method(cls, "get_klass", rbasic_rdata_spec_get_klass, 1);
 }
 
 #ifdef __cplusplus
