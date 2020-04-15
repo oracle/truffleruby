@@ -989,7 +989,6 @@ VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change kl
      OBJ_WB_UNPROTECT((VALUE)(obj)) : ((VALUE)(obj)))
 #endif
 
-// TODO review: eliminate ifdef? we probably want to keep rb_class_of anyhow
 #ifdef TRUFFLERUBY
 #define RBASIC_CLASS(obj) (rb_class_of(obj))
 #else

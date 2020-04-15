@@ -19,7 +19,7 @@ module Truffle::CExt
   end
 
   def RBASIC(object)
-    if Truffle::Type::object_class(object).include? ImmediateValue
+    if ImmediateValue === object
       raise TypeError, "immediate values don't include the RBasic struct"
     end
     RBasic.new(object)
@@ -141,11 +141,11 @@ class Truffle::CExt::RBasic
   RUBY_FL_TAINT     = (1<<8)
   RUBY_FL_FREEZE    = (1<<11)
 
-  private
-
   RUBY_FL_USHIFT = 12
   USER_FLAGS_MASK = (1 << (RUBY_FL_USHIFT + 19)) - (1 << (RUBY_FL_USHIFT))
   private_constant :RUBY_FL_USHIFT, :USER_FLAGS_MASK
+
+  private
 
   def user_flags
     Primitive.object_hidden_var_get(@object, USER_FLAGS) || 0
@@ -185,10 +185,11 @@ class Truffle::CExt::RBasic
           ushift && (i == 2 || i == 3) ||
           promoted && (i == 5 || i == 6)
     end
+    decoded = decoded.map { |i| 1 << i}
 
     decoded << (1<<5 | 1<<6) if promoted
     decoded << (1<<2 | 1<<3) if ushift
-    decoded.map(&:flag_to_string)
+    decoded.map(&method(:flag_to_string))
   end
 
   def set_flags(flags)
@@ -198,7 +199,6 @@ class Truffle::CExt::RBasic
     elsif @object.tainted?
       @object.untaint
     end
-
 
     set_user_flags(flags & USER_FLAGS_MASK)
     flags &= ~USER_FLAGS_MASK
