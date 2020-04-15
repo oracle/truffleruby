@@ -124,7 +124,7 @@ public abstract class ArrayNodes {
             final int aSize = Layouts.ARRAY.getSize(a);
             final int bSize = Layouts.ARRAY.getSize(b);
             final int combinedSize = aSize + bSize;
-            Object newStore = as.generalizeForStore(getStore(a), getStore(b)).allocate(combinedSize);
+            Object newStore = as.allocateForNewStore(getStore(a), getStore(b), combinedSize);
             as.copyContents(getStore(a), 0, newStore, 0, aSize);
             bs.copyContents(getStore(b), 0, newStore, aSize, bSize);
             return createArray(newStore, combinedSize);
@@ -2088,8 +2088,6 @@ public abstract class ArrayNodes {
             final Object a = Layouts.ARRAY.getStore(array);
             final Object b = Layouts.ARRAY.getStore(other);
 
-            final ArrayAllocator pairAllocator = aStores.generalizeForStore(a, b);
-
             final int bSize = Layouts.ARRAY.getSize(other);
             final int zippedLength = Layouts.ARRAY.getSize(array);
 
@@ -2097,7 +2095,7 @@ public abstract class ArrayNodes {
 
             for (int n = 0; n < zippedLength; n++) {
                 if (bNotSmallerProfile.profile(n < bSize)) {
-                    final Object pair = pairAllocator.allocate(2);
+                    final Object pair = aStores.allocateForNewStore(a, b, 2);
                     pairs.write(pair, 0, aStores.read(a, n));
                     pairs.write(pair, 1, bStores.read(b, n));
                     zipped[n] = createArray(pair, 2);

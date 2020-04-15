@@ -223,6 +223,62 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
+    static class AllocateForNewValue {
+
+        @Specialization
+        protected static Object allocateForNewValue(int[] store, int newValue, int length) {
+            return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocateForNewValue(int[] store, long newValue, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocateForNewValue(int[] store, double newValue, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Fallback
+        protected static Object allocateForNewValue(int[] store, Object newValue, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+    }
+
+    @ExportMessage
+    @ImportStatic(ArrayGuards.class)
+    static class AllocateForNewStore {
+
+        @Specialization
+        protected static Object allocate(int[] store, int[] newStore, int length) {
+            return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(int[] store, long[] newStore, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(int[] store, double[] newStore, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(int[] store, Object[] newStore, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization(limit = "STORAGE_STRATEGIES")
+        protected static Object allocate(int[] store, Object newStore, int length,
+                @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
+            return newStores.allocateForNewStore(newStore, store, length);
+        }
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(int[] store) {
         return INTEGER_ARRAY_ALLOCATOR;
     }

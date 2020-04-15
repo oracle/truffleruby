@@ -113,6 +113,18 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected Object allocateForNewValue(Object newValue, int length,
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+        return stores.allocateForNewValue(storage, newValue, length);
+    }
+
+    @ExportMessage
+    protected Object allocateForNewStore(Object newStore, int length,
+            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+        return stores.allocateForNewStore(storage, newStore, length);
+    }
+
+    @ExportMessage
     protected ArrayAllocator allocator(
             @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
         return stores.allocator(storage);

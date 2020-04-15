@@ -154,6 +154,47 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
+    static class AllocateForNewValue {
+
+        @Specialization
+        protected static Object allocateForNewValue(ZeroLengthArrayStore store, int newValue, int length) {
+            return IntegerArrayStore.INTEGER_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocateForNewValue(ZeroLengthArrayStore store, long newValue, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocateForNewValue(ZeroLengthArrayStore store, double newValue, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Fallback
+        protected static Object allocateForNewValue(ZeroLengthArrayStore store, Object newValue, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+    }
+
+    @ExportMessage
+    @ImportStatic(ArrayGuards.class)
+    static class AllocateForNewStore {
+
+        @Specialization
+        protected static Object allocateForNewStore(ZeroLengthArrayStore store, ZeroLengthArrayStore newStore, int length) {
+            return ZERO_LENGTH_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization(limit = "STORAGE_STRATEGIES")
+        protected static Object allocateForNewStore(ZeroLengthArrayStore store, Object newStore, int length,
+                @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
+            return newStores.allocateForNewStore(newStore, newStore, length);
+        }
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(ZeroLengthArrayStore store) {
         return ZERO_LENGTH_ALLOCATOR;
     }

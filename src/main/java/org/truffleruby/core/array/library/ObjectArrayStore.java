@@ -148,6 +148,16 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
+    protected static Object allocateForNewValue(Object[] store, Object newValue, int length) {
+        return OBJECT_ARRAY_ALLOCATOR.allocate(length);
+    }
+
+    @ExportMessage
+    protected static Object allocateForNewStore(Object[] store, Object newValue, int length) {
+        return OBJECT_ARRAY_ALLOCATOR.allocate(length);
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(Object[] store) {
         return OBJECT_ARRAY_ALLOCATOR;
     }

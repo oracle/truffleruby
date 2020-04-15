@@ -236,6 +236,61 @@ public class LongArrayStore {
     }
 
     @ExportMessage
+    static class AllocateForNewValue {
+
+        @Specialization
+        protected static Object allocateForNewStore(long[] store, int newValue, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocateForNewStore(long[] store, long newValue, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocateForNewStore(long[] store, double newValue, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Fallback
+        protected static Object allocateForNewStore(long[] store, Object newValue, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+    }
+
+    @ExportMessage
+    @ImportStatic(ArrayGuards.class)
+    static class AllocateForNewStore {
+
+        @Specialization
+        protected static Object allocate(long[] store, int[] newStore, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(long[] store, long[] newStore, int length) {
+            return LongArrayStore.LONG_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(long[] store, double[] newStore, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(long[] store, Object[] newStore, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization(limit = "STORAGE_STRATEGIES")
+        protected static Object allocate(long[] store, Object newStore, int length,
+                @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
+            return newStores.allocateForNewValue(newStore, store, length);
+        }
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(long[] store) {
         return LONG_ARRAY_ALLOCATOR;
     }
