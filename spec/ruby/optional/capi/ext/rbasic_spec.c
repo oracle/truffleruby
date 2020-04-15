@@ -1,8 +1,6 @@
 #include "ruby.h"
 #include "rubyspec.h"
 
-#include <string.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
