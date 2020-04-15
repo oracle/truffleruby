@@ -32,12 +32,12 @@
 module FFI
   class Struct
     class << self
-      alias :alloc_in :new
-      alias :alloc_out :new
-      alias :alloc_inout :new
-      alias :new_in :new
-      alias :new_out :new
-      alias :new_inout :new
+      alias_method :alloc_in, :new
+      alias_method :alloc_out, :new
+      alias_method :alloc_inout, :new
+      alias_method :new_in, :new
+      alias_method :new_out, :new
+      alias_method :new_inout, :new
     end
 
     attr_reader :pointer, :layout

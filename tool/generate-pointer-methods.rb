@@ -71,7 +71,7 @@ SIZEOF = {
 
     add_aliases = -> meth {
       aliases.each do |as|
-        code << "  alias :#{meth}_#{as} :#{meth}_#{type}\n"
+        code << "  alias_method :#{meth}_#{as}, :#{meth}_#{type}\n"
       end
       code << "\n"
     }

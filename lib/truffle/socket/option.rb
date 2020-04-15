@@ -117,6 +117,6 @@ class Socket < BasicSocket
       [onoff, linger.linger]
     end
 
-    alias :to_s :data
+    alias_method :to_s, :data
   end
 end

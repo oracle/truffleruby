@@ -110,7 +110,7 @@ module FFI
 
     class Mapped < Type
       attr_reader :native_type
-      alias :type :native_type
+      alias_method :type, :native_type
 
       def initialize(converter)
         %i[native_type to_native from_native].each do |meth|
