@@ -1,5 +1,5 @@
 require_relative '../../spec_helper'
-require_relative 'fixtures/weakmap_iterators.rb'
+require_relative 'fixtures/weakmap_iterators'
 
 describe "ObjectSpace::WeakMap" do
 
