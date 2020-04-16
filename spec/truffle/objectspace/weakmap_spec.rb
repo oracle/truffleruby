@@ -1,7 +1,5 @@
 # truffleruby_primitives: true
-
 require_relative '../../ruby/spec_helper'
-require_relative 'fixtures/weakmap_iterators'
 
 describe "ObjectSpace::WeakMap" do
 
@@ -30,8 +28,10 @@ describe "ObjectSpace::WeakMap" do
     # of the references eagerly enough.
 
     map = ObjectSpace::WeakMap.new
-    k1 = "a".upcase; k2 = "b".upcase
-    v1 = "x".upcase; v2 = "y".upcase
+    k1, k2 = %w[a b].map &:upcase
+    # Interestingly, `v1, v2 = %w[x y].map &:upcase` causes the tests to fail.
+    v1 = "x".upcase
+    v2 = "y".upcase
     map[k1] = v1
     map[k2] = v2
     v2 = nil
@@ -39,10 +39,26 @@ describe "ObjectSpace::WeakMap" do
     Primitive.gc_force
 
     map.key?(k2).should == false
-    ObjectSpaceFixtures.test_iter(map, :each, [[k1, v1]])
-    ObjectSpaceFixtures.test_iter(map, :each_pair, [[k1, v1]])
-    ObjectSpaceFixtures.test_iter(map, :each_key, [k1])
-    ObjectSpaceFixtures.test_iter(map, :each_value, [v1])
+
+    a = []
+    map.each { |k,v| a << "#{k}#{v}" }
+    a.should == ["AX"]
+
+    a = []
+    map.each_pair { |k,v| a << "#{k}#{v}" }
+    a.should == ["AX"]
+
+    a = []
+    map.each_pair { |k,v| a << "#{k}#{v}" }
+    a.should == ["AX"]
+
+    a = []
+    map.each_key { |k| a << k }
+    a.should == ["A"]
+
+    a = []
+    map.each_value { |v| a << v }
+    a.should == ["X"]
 
     # Avoid unused warning on v2 assignment above.
     if v2 == nil; end
