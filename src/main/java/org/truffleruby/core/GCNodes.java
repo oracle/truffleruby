@@ -20,6 +20,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.collections.WeakValueCache;
 
 @CoreModule("GC")
 public abstract class GCNodes {
@@ -36,6 +37,41 @@ public abstract class GCNodes {
         }
 
     }
+
+    /**
+     * Attempts to run the garbage collector. This cannot be guaranteed in general, but calling this method
+     * should be much more likely to actually trigger GC than calling {@link System#gc()} or Ruby's {@link
+     * GCStartPrimitiveNode}.
+     *
+     * <p>In particular, this attempts to trigger the GC. by waiting until a weak reference has been cleared.
+     *
+     * <p>Note that even when GC is triggered, there is not guarantee that the all the garbage has been cleared or
+     * all the memory reclaimed.
+     */
+    @Primitive(name = "gc_force")
+    public static abstract class GCForce extends PrimitiveArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected Object force() {
+            getContext().getMarkingService().queueMarking();
+            Object key = new Object(), value = new Object();
+
+            // NOTE(norswap, 16 Apr 20): We could have used a WeakReference here, but the hope is that the extra
+            // indirection will prevent the compiler to optimize this method away (assuming JIT compilation, and
+            // the fact that such an optimizaton is permitted and possible, both of which are unlikely).
+            WeakValueCache<Object, Object> cache = new WeakValueCache<>();
+            cache.put(key, value);
+            value = null;
+
+            do {
+                System.gc();
+            } while (cache.get(key) != null);
+
+            return nil;
+        }
+    }
+
 
     @CoreMethod(names = "count", onSingleton = true)
     public abstract static class CountNode extends CoreMethodArrayArgumentsNode {

@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 require_relative '../../ruby/spec_helper'
 require_relative '../../ruby/core/objectspace/fixtures/weakmap_iterators'
 
@@ -15,7 +17,7 @@ describe "ObjectSpace::WeakMap" do
     map[k2] = v2
     v2 = nil
 
-    GC.start
+    Primitive.gc_force
 
     map.key?(k2).should == false
     ObjectSpaceFixtures.test_iter(map, :each, [[k1, v1]])
