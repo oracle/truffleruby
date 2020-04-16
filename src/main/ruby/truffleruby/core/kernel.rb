@@ -266,7 +266,7 @@ module Kernel
     expanded_path = Primitive.find_file(path)
     Truffle::KernelOperations.raise_load_error(path) unless expanded_path
 
-    Primitive.load_feature(feature, expanded_path)
+    Primitive.load_feature(expanded_path, expanded_path)
   end
   module_function :require_relative
 
