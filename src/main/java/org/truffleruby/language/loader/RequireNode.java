@@ -60,25 +60,16 @@ public abstract class RequireNode extends RubyContextNode {
     @Child private GetConstantNode getConstantNode;
     @Child private LookupConstantNode lookupConstantNode;
 
-    public static RequireNode create() {
-        return RequireNodeGen.create();
-    }
-
-    public abstract boolean executeRequire(String feature, Object expandedPath);
+    public abstract boolean executeRequire(String feature, DynamicObject expandedPath);
 
     @Specialization
-    protected boolean require(String feature, Object expandedPathString,
-            @Cached BranchProfile notFoundProfile,
+    protected boolean require(String feature, DynamicObject expandedPathString,
             @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile) {
-        if (expandedPathString == nil) {
-            notFoundProfile.enter();
-            throw new RaiseException(getContext(), getContext().getCoreExceptions().loadErrorCannotLoad(feature, this));
-        }
-        final String expandedPath = StringOperations.getString((DynamicObject) expandedPathString);
-        if (isLoadedProfile.profile(isFeatureLoaded((DynamicObject) expandedPathString))) {
+        final String expandedPath = StringOperations.getString(expandedPathString);
+        if (isLoadedProfile.profile(isFeatureLoaded(expandedPathString))) {
             return false;
         } else {
-            return requireWithMetrics(feature, expandedPath, (DynamicObject) expandedPathString);
+            return requireWithMetrics(feature, expandedPath, expandedPathString);
         }
     }
 
