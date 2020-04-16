@@ -17,13 +17,14 @@ import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jcodings.Encoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
-import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -362,8 +363,7 @@ public class FeatureLoader {
     }
 
     @TruffleBoundary
-    public void ensureCExtImplementationLoaded(String feature, RequireNode requireNode,
-            KernelNodes.FindFileNode findFileNode) {
+    public void ensureCExtImplementationLoaded(String feature, RequireNode requireNode) {
         synchronized (cextImplementationLock) {
             if (cextImplementationLoaded) {
                 return;
@@ -389,8 +389,10 @@ public class FeatureLoader {
 
             Metrics.printTime("before-load-cext-support");
             try {
-                final Object expandedPath = findFileNode.executeFind("truffle/cext");
-                requireNode.executeRequire("truffle/cext", expandedPath);
+                final DynamicObject cextRb = StringOperations
+                        .createString(context, StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
+                context.send(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
+
                 final DynamicObject truffleModule = context.getCoreLibrary().truffleModule;
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 

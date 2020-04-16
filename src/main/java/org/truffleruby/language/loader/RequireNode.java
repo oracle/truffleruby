@@ -17,7 +17,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -46,7 +45,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -61,7 +59,6 @@ public abstract class RequireNode extends RubyContextNode {
 
     @Child private GetConstantNode getConstantNode;
     @Child private LookupConstantNode lookupConstantNode;
-    @Child private KernelNodes.FindFileNode findFileNode;
 
     public static RequireNode create() {
         return RequireNodeGen.create();
@@ -261,7 +258,7 @@ public abstract class RequireNode extends RubyContextNode {
         final TruffleObject library;
 
         try {
-            featureLoader.ensureCExtImplementationLoaded(feature, this, getFindFileNode());
+            featureLoader.ensureCExtImplementationLoaded(feature, this);
 
             if (getContext().getOptions().CEXTS_LOG_LOAD) {
                 RubyLanguage.LOGGER
@@ -424,14 +421,6 @@ public abstract class RequireNode extends RubyContextNode {
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
             addToLoadedFeatures.call(loadedFeatures, "<<", feature);
         }
-    }
-
-    private KernelNodes.FindFileNode getFindFileNode() {
-        if (findFileNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            findFileNode = insert(KernelNodes.FindFileNode.create());
-        }
-        return findFileNode;
     }
 
     private void warnCircularRequire(String path) {

@@ -242,12 +242,6 @@ public abstract class KernelNodes {
     @Primitive(name = "find_file")
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
-        public static FindFileNode create() {
-            return KernelNodesFactory.FindFileNodeFactory.create(null);
-        }
-
-        public abstract Object executeFind(Object featureString);
-
         @Specialization
         protected Object findFile(DynamicObject featureString,
                 @Cached BranchProfile notFoundProfile,
