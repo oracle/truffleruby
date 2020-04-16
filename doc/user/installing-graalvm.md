@@ -45,6 +45,15 @@ $ gu install ruby
 This command will show a message mentioning to run a post-install script.
 This is necessary to make the Ruby openssl C extension work with your system libssl.
 Please run that script now.
+The path of the script will be:
+```bash
+# Java 8
+jre/languages/ruby/lib/truffle/post_install_hook.sh
+# Java 11+
+languages/ruby/lib/truffle/post_install_hook.sh
+# Generic
+$(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')/lib/truffle/post_install_hook.sh
+```
 
 You can also download the Ruby component (`ruby-installable-...`) manually from
 https://github.com/oracle/truffleruby/releases. Then install it with
