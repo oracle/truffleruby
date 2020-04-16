@@ -38,16 +38,15 @@ public abstract class GCNodes {
 
     }
 
-    /**
-     * Attempts to run the garbage collector. This cannot be guaranteed in general, but calling this method
-     * should be much more likely to actually trigger GC than calling {@link System#gc()} or Ruby's {@link
-     * GCStartPrimitiveNode}.
+    /** Attempts to run the garbage collector. This cannot be guaranteed in general, but calling this method should be
+     * much more likely to actually trigger GC than calling {@link System#gc()} or Ruby's {@link GCStartPrimitiveNode}.
      *
-     * <p>In particular, this attempts to trigger the GC. by waiting until a weak reference has been cleared.
+     * <p>
+     * In particular, this attempts to trigger the GC. by waiting until a weak reference has been cleared.
      *
-     * <p>Note that even when GC is triggered, there is not guarantee that the all the garbage has been cleared or
-     * all the memory reclaimed.
-     */
+     * <p>
+     * Note that even when GC is triggered, there is not guarantee that the all the garbage has been cleared or all the
+     * memory reclaimed. */
     @Primitive(name = "gc_force")
     public static abstract class GCForce extends PrimitiveArrayArgumentsNode {
 

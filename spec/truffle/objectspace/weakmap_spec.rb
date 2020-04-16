@@ -1,4 +1,7 @@
 # truffleruby_primitives: true
+# rubocop:disable Lint/UselessAssignment
+#   (to nil out references to make unreachable)
+
 require_relative '../../ruby/spec_helper'
 
 describe "ObjectSpace::WeakMap" do
@@ -28,7 +31,7 @@ describe "ObjectSpace::WeakMap" do
     # of the references eagerly enough.
 
     map = ObjectSpace::WeakMap.new
-    k1, k2 = %w[a b].map &:upcase
+    k1, k2 = %w[a b].map(&:upcase)
     # Interestingly, `v1, v2 = %w[x y].map &:upcase` causes the tests to fail.
     v1 = "x".upcase
     v2 = "y".upcase
@@ -59,8 +62,5 @@ describe "ObjectSpace::WeakMap" do
     a = []
     map.each_value { |v| a << v }
     a.should == ["X"]
-
-    # Avoid unused warning on v2 assignment above.
-    if v2 == nil; end
   end
 end
