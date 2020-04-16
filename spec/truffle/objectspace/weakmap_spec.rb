@@ -1,11 +1,11 @@
 # truffleruby_primitives: true
 
 require_relative '../../ruby/spec_helper'
-require_relative '../../ruby/core/objectspace/fixtures/weakmap_iterators'
+require_relative 'fixtures/weakmap_iterators'
 
 describe "ObjectSpace::WeakMap" do
 
-  it "can be iterated on" do
+  it "has iterators methods that exclude unreferenced objects" do
 
     # This spec does not pass on MRI because the garbage collector is presumably too conservative and will not get rid
     # of the references eagerly enough.
