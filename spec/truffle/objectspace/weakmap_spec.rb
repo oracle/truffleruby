@@ -5,6 +5,25 @@ require_relative 'fixtures/weakmap_iterators'
 
 describe "ObjectSpace::WeakMap" do
 
+  it "gets rid of unreferenced objects" do
+    map = ObjectSpace::WeakMap.new
+    key = "a".upcase
+    ref = "x"
+    map[key] = ref
+    ref = nil
+
+    Primitive.gc_force
+
+    map[key].should == nil
+    map.key?(key).should == false
+    map.include?(key).should == false
+    map.member?(key).should == false
+    map.values.should == []
+    map.keys.should == []
+    map.size.should == 0
+    map.length.should == 0
+  end
+
   it "has iterators methods that exclude unreferenced objects" do
 
     # This spec does not pass on MRI because the garbage collector is presumably too conservative and will not get rid
