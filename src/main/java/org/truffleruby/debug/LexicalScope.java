@@ -67,7 +67,7 @@ public class LexicalScope {
                     .createMethod(context.getCoreLibrary().methodFactory, self, method);
             return Scope
                     .newBuilder(name, getVariables(root, frame))
-                    .node(node)
+                    .node(root)
                     .receiver("self", self)
                     .arguments(getArguments(frame))
                     .rootInstance(boundMethod)
