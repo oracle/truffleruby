@@ -17,6 +17,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -24,8 +25,6 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-
-import java.util.Map.Entry;
 
 /** Note that WeakMap uses identity comparison semantics. See top comment in src/main/ruby/truffleruby/core/weakmap.rb
  * for more information. */
@@ -140,11 +139,10 @@ public abstract class WeakMapNodes {
             return eachNoBlockProvided(this, map);
         }
 
-        @TruffleBoundary
         @Specialization
         protected DynamicObject each(DynamicObject map, DynamicObject block) {
 
-            for (Entry<Object, Object> e : Layouts.WEAK_MAP.getWeakMapStorage(map).entries()) {
+            for (WeakValueCache.WeakMapEntry<?, ?> e : entries(Layouts.WEAK_MAP.getWeakMapStorage(map))) {
                 yield(block, e.getKey(), e.getValue());
             }
 
@@ -160,6 +158,11 @@ public abstract class WeakMapNodes {
     @TruffleBoundary
     private static Object[] values(WeakMapStorage storage) {
         return storage.values().toArray();
+    }
+
+    @TruffleBoundary
+    private static WeakValueCache.WeakMapEntry<?, ?>[] entries(WeakMapStorage storage) {
+        return storage.entries().toArray(new WeakValueCache.WeakMapEntry[storage.size()]);
     }
 
     private static DynamicObject eachNoBlockProvided(YieldingCoreMethodNode node, DynamicObject map) {

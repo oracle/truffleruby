@@ -131,9 +131,9 @@ public class WeakValueCache<Key, Value> implements ReHashable {
     }
 
     @TruffleBoundary
-    public Collection<Entry<Key, Value>> entries() {
+    public Collection<WeakMapEntry<Key, Value>> entries() {
         removeStaleEntries();
-        final Collection<Entry<Key, Value>> entries = new ArrayList<>(map.size());
+        final Collection<WeakMapEntry<Key, Value>> entries = new ArrayList<>(map.size());
 
         for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
             final Value value = e.getValue().get();
