@@ -30,6 +30,7 @@ import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
+import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
@@ -2068,6 +2069,19 @@ public abstract class ArrayNodes {
             Layouts.ARRAY.setSize(other, 0);
 
             return array;
+        }
+
+    }
+
+    @Primitive(name = "array_storage_equal?")
+    public abstract static class ArrayStorageEqualNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean storageEqual(DynamicObject array, DynamicObject other) {
+            final Object arrayStore = Layouts.ARRAY.getStore(array);
+            final Object otherStore = Layouts.ARRAY.getStore(array);
+            return arrayStore instanceof DelegatedArrayStorage && otherStore instanceof DelegatedArrayStorage &&
+                    ((DelegatedArrayStorage) arrayStore).storage == ((DelegatedArrayStorage) otherStore).storage;
         }
 
     }
