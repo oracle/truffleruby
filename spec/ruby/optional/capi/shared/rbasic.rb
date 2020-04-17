@@ -8,33 +8,32 @@ describe :rbasic, shared: true do
 
   it "reports the appropriate FREEZE and TAINT flags for the object when reading" do
     obj, _ = @data.call
-    @specs.get_flags(obj).should == 0
+    initial = @specs.get_flags(obj)
     obj.taint
-    @specs.get_flags(obj).should == @taint
+    @specs.get_flags(obj).should == @taint | initial
     obj.untaint
-    @specs.get_flags(obj).should == 0
+    @specs.get_flags(obj).should == initial
     obj.freeze
-    @specs.get_flags(obj).should == @freeze
+    @specs.get_flags(obj).should == @freeze | initial
 
     obj, _ = @data.call
     obj.taint
     obj.freeze
-    @specs.get_flags(obj).should == @freeze | @taint
+    @specs.get_flags(obj).should == @freeze | @taint | initial
   end
 
   it "supports setting the FREEZE and TAINT flags" do
     obj, _ = @data.call
-    @specs.set_flags(obj, @taint).should == @taint
+    initial = @specs.get_flags(obj)
+    @specs.set_flags(obj, @taint | initial).should == @taint | initial
     obj.tainted?.should == true
-    @specs.set_flags(obj, 0).should == 0
+    @specs.set_flags(obj, initial).should == initial
     obj.tainted?.should == false
-    @specs.set_flags(obj, @freeze).should == @freeze
+    @specs.set_flags(obj, @freeze | initial).should == @freeze | initial
     obj.frozen?.should == true
 
-    @specs.get_flags(obj).should == @freeze
-
     obj, _ = @data.call
-    @specs.set_flags(obj, @freeze | @taint).should == @freeze | @taint
+    @specs.set_flags(obj, @freeze | @taint | initial).should == @freeze | @taint | initial
     obj.tainted?.should == true
     obj.frozen?.should == true
   end
