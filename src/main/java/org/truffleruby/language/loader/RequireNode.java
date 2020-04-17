@@ -66,11 +66,7 @@ public abstract class RequireNode extends RubyContextNode {
     protected boolean require(String feature, DynamicObject expandedPathString,
             @Cached ConditionProfile isLoadedProfile) {
         final String expandedPath = StringOperations.getString(expandedPathString);
-        if (isLoadedProfile.profile(isFeatureLoaded(expandedPathString))) {
-            return false;
-        } else {
-            return requireWithMetrics(feature, expandedPath, expandedPathString);
-        }
+        return requireWithMetrics(feature, expandedPath, expandedPathString);
     }
 
     @TruffleBoundary(transferToInterpreterOnException = false)
@@ -183,9 +179,6 @@ public abstract class RequireNode extends RubyContextNode {
                     return true;
                 }
 
-                if (isFeatureLoaded(pathString)) {
-                    return false;
-                }
 
                 if (!parseAndCall(originalFeature, expandedPath)) {
                     return false;
@@ -405,15 +398,15 @@ public abstract class RequireNode extends RubyContextNode {
         final DynamicObject loadedFeatures = getContext().getCoreLibrary().getLoadedFeatures();
         final Object included;
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            included = isInLoadedFeatures.call(loadedFeatures, "include?", feature);
+            included = isInLoadedFeatures
+                    .call(coreLibrary().truffleKernelOperationsModule, "feature_provided?", feature);
         }
         return booleanCastNode.executeToBoolean(included);
     }
 
     private void addToLoadedFeatures(DynamicObject feature) {
-        final DynamicObject loadedFeatures = coreLibrary().getLoadedFeatures();
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            addToLoadedFeatures.call(loadedFeatures, "<<", feature);
+            addToLoadedFeatures.call(coreLibrary().truffleKernelOperationsModule, "provide_feature", feature);
         }
     }
 

@@ -225,9 +225,10 @@ module Kernel
   # and skip the method below once RubyGems is loaded.
   private def gem_original_require(feature)
     feature = Truffle::Type.coerce_to_path(feature)
-
+    return false if Truffle::KernelOperations.feature_provided?(feature)
     path = Primitive.find_file(feature)
     raise Truffle::KernelOperations.load_error(feature) unless path
+    return false if Truffle::KernelOperations.feature_provided?(path)
 
     Primitive.load_feature(feature, path)
   end
@@ -268,6 +269,7 @@ module Kernel
     expanded_path = Primitive.find_file(path)
     raise Truffle::KernelOperations.load_error(path) unless expanded_path
 
+    return false if Truffle::KernelOperations.feature_provided?(expanded_path)
     Primitive.load_feature(expanded_path, expanded_path)
   end
   module_function :require_relative

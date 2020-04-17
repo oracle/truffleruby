@@ -163,6 +163,107 @@ module Truffle
       Primitive.vm_raise_exception exc, internal
     end
 
+    @@loaded_features_index = {}
+    @@loaded_features_copy = []
+
+    # MRI: rb_feature_p
+    def self.feature_provided?(feature)
+      loaded_features_index = get_loaded_features_index
+      loaded_features_index.has_key?(feature) &&
+          loaded_features_index[feature].any? do |i|
+            loaded_feature = $LOADED_FEATURES[i]
+            if feature == loaded_feature
+              feature
+            else
+              loaded_feature_path(loaded_feature, feature, $LOAD_PATH)
+            end
+          end
+    end
+
+    def self.has_extension?(path)
+      !path.nil? && path.rindex('.') && (path.rindex('/').nil? || path.rindex('.') >  path.rindex('/'))
+    end
+
+    # MRI: get_loaded_features_index
+    def self.get_loaded_features_index
+      if @@loaded_features_copy && !Primitive.array_storage_equal?(@@loaded_features_copy, $LOADED_FEATURES)
+        @@loaded_features_index.clear
+        $LOADED_FEATURES.map! do |val|
+          val = StringValue(val)
+          val.freeze
+          val
+        end
+        $LOADED_FEATURES.each_with_index do |val, idx|
+          features_index_add(val, idx)
+        end
+        update_loaded_features_snapshot
+      end
+      @@loaded_features_index
+    end
+
+    # MRI: rb_provide_feature
+    def self.provide_feature(feature)
+      raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
+      feature.freeze
+      $LOADED_FEATURES << feature
+      features_index_add(feature, $LOADED_FEATURES.size - 1)
+      update_loaded_features_snapshot
+    end
+
+    # MRI: loaded_feature_path
+    def self.loaded_feature_path(name, feature, load_path)
+      name_ext = extension(name)
+      load_path.find do |p|
+        name == "#{p}/#{feature}#{name_ext}" || name == "#{p}/#{feature}"
+      end
+    end
+
+    def self.extension(path)
+      if !path.nil? && path.rindex('.') && (path.rindex('/').nil? || path.rindex('.') >  path.rindex('/'))
+        path[(path.rindex('.'))..-1]
+      else
+        nil
+      end
+    end
+
+    def self.update_loaded_features_snapshot
+      @@loaded_features_copy = $LOADED_FEATURES.dup
+    end
+
+    # MRI: features_index_add
+    def self.features_index_add(feature, index)
+      feature, ext = if feature.rindex('.') && (feature.rindex('/').nil? || feature.rindex('.') > feature.rindex('/'))
+                       [feature[0...feature.rindex('.')], feature[feature.rindex('.')..-1]]
+                     else
+                       [feature, nil]
+                     end
+      starting_slash = feature.start_with?('/')
+      feature_split = feature.split('/').delete_if(&:empty?)
+      path = []
+      feature_split.reverse_each do |part|
+        path.unshift part
+        features_index_add_single(path.join('/'), index)
+        if ext
+          features_index_add_single("#{path.join('/')}#{ext}", index)
+        end
+      end
+      if starting_slash
+        features_index_add_single("/#{path.join('/')}", index)
+        if ext
+          features_index_add_single("/#{path.join('/')}#{ext}", index)
+        end
+      end
+    end
+
+    # MRI: features_index_add_single
+    def self.features_index_add_single(feature, offset)
+      if @@loaded_features_index.has_key?(feature)
+        @@loaded_features_index[feature] << offset
+      else
+        @@loaded_features_index[feature] = [offset]
+      end
+    end
+
     def self.check_last_line(line)
       unless Primitive.object_kind_of? line, String
         raise TypeError, "$_ value need to be String (#{Truffle::ExceptionOperations.to_class_name(line)} given)"
