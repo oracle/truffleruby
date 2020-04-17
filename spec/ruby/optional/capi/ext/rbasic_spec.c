@@ -29,7 +29,7 @@ VALUE rbasic_spec_copy_flags(VALUE self, VALUE to, VALUE from) {
 }
 
 VALUE rbasic_spec_get_klass(VALUE self, VALUE val) {
-  return rb_tr_wrap(RBASIC(val)->klass);
+  return RBASIC(val)->klass;
 }
 
 VALUE rbasic_rdata_spec_get_flags(VALUE self, VALUE structure) {
@@ -47,7 +47,7 @@ VALUE rbasic_rdata_spec_copy_flags(VALUE self, VALUE to, VALUE from) {
 }
 
 VALUE rbasic_rdata_spec_get_klass(VALUE self, VALUE structure) {
-  return rb_tr_wrap(RDATA(structure)->basic.klass);
+  return RDATA(structure)->basic.klass;
 }
 
 void Init_rbasic_spec(void) {
