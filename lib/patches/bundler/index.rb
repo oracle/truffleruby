@@ -1,4 +1,4 @@
-require 'bundler/index'
+gem_original_require 'bundler/index'
 
 module Bundler
   class Index
