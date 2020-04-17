@@ -166,12 +166,12 @@ class Truffle::CExt::RBasic
     case flag
     when 1<<5;        'RUBY_FL_WB_PROTECTED (1<<5)'
     when 1<<6;        'RUBY_FL_PROMOTED1 (1<<6)'
-    when 1<<5 | 1<<6; 'RUBY_FL_PROMOTED (1<<5 + 1<<6)'
+    when 1<<5 | 1<<6; 'RUBY_FL_PROMOTED (1<<5 | 1<<6)'
     when 1<<7;        'RUBY_FL_FINALIZE (1<<7)'
     when 1<<8;        'RUBY_FL_FREEZE (1<<8)'
     when 1<<10;       'RUBY_FL_EXIVAR (1<<10)'
     when 1<<11;       'RUBY_FL_TAINT (1<<11)'
-    when 1<<2 | 1<<3; 'RUBY_FL_USHIFT (1<<2 + 1<<3)'
+    when 1<<2 | 1<<3; 'RUBY_FL_USHIFT (1<<2 | 1<<3)'
     else;             "unknown flag (#{flag})"
     end
   end
@@ -189,7 +189,7 @@ class Truffle::CExt::RBasic
 
     decoded << (1<<5 | 1<<6) if promoted
     decoded << (1<<2 | 1<<3) if ushift
-    decoded.map(&method(:flag_to_string))
+    decoded.map(&method(:flag_to_string)).join(', ')
   end
 
   def set_flags(flags)
@@ -211,7 +211,8 @@ class Truffle::CExt::RBasic
       raise ArgumentError, "can't unfreeze object"
     end
 
-    raise ArgumentError "unsupported remaining flags: #{flags_to_string(flags)}" if flags != 0
+
+    raise ArgumentError, "unsupported remaining flags: #{flags_to_string(flags)}" if flags != 0
   end
 
   def polyglot_has_members?
