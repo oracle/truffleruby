@@ -1,71 +1,69 @@
 describe :rbasic, shared: true do
 
   before :all do
-    class << self
-      specs = CApiRBasicSpecs.new
-      define_method(:_TAINT) { specs.taint_flag }
-      define_method(:_FREEZE) { specs.freeze_flag }
-    end
+    specs = CApiRBasicSpecs.new
+    @taint = specs.taint_flag
+    @freeze = specs.freeze_flag
   end
 
   it "reports the appropriate FREEZE and TAINT flags for the object when reading" do
-    obj, _ = @object.data
-    @object.get_flags(obj).should == 0
+    obj, _ = @data.call
+    @specs.get_flags(obj).should == 0
     obj.taint
-    @object.get_flags(obj).should == _TAINT
+    @specs.get_flags(obj).should == @taint
     obj.untaint
-    @object.get_flags(obj).should == 0
+    @specs.get_flags(obj).should == 0
     obj.freeze
-    @object.get_flags(obj).should == _FREEZE
+    @specs.get_flags(obj).should == @freeze
 
-    obj, _ = @object.data
+    obj, _ = @data.call
     obj.taint
     obj.freeze
-    @object.get_flags(obj).should == _FREEZE | _TAINT
+    @specs.get_flags(obj).should == @freeze | @taint
   end
 
   it "supports setting the FREEZE and TAINT flags" do
-    obj, _ = @object.data
-    @object.set_flags(obj, _TAINT).should == _TAINT
+    obj, _ = @data.call
+    @specs.set_flags(obj, @taint).should == @taint
     obj.tainted?.should == true
-    @object.set_flags(obj, 0).should == 0
+    @specs.set_flags(obj, 0).should == 0
     obj.tainted?.should == false
-    @object.set_flags(obj, _FREEZE).should == _FREEZE
+    @specs.set_flags(obj, @freeze).should == @freeze
     obj.frozen?.should == true
 
-    @object.get_flags(obj).should == _FREEZE
+    @specs.get_flags(obj).should == @freeze
 
-    obj, _ = @object.data
-    @object.set_flags(obj, _FREEZE | _TAINT).should == _FREEZE | _TAINT
+    obj, _ = @data.call
+    @specs.set_flags(obj, @freeze | @taint).should == @freeze | @taint
     obj.tainted?.should == true
     obj.frozen?.should == true
   end
 
   it "supports user flags" do
-    obj, _ = @object.data
-    @object.get_flags(obj) == 0
-    @object.set_flags(obj, 1 << 14 | 1 << 16).should == 1 << 14 | 1 << 16
+    obj, _ = @data.call
+    @specs.get_flags(obj) == 0
+    @specs.set_flags(obj, 1 << 14 | 1 << 16).should == 1 << 14 | 1 << 16
     obj.taint
-    @object.get_flags(obj).should == _TAINT | 1 << 14 | 1 << 16
+    @specs.get_flags(obj).should == @taint | 1 << 14 | 1 << 16
     obj.untaint
-    @object.get_flags(obj).should == 1 << 14 | 1 << 16
-    @object.set_flags(obj, 0).should == 0
+    @specs.get_flags(obj).should == 1 << 14 | 1 << 16
+    @specs.set_flags(obj, 0).should == 0
   end
 
   it "supports copying the flags from one object over to the other" do
-    obj1, obj2 = @object.data
-    @object.set_flags(obj1, _TAINT | 1 << 14 | 1 << 16)
-    @object.copy_flags(obj2, obj1)
-    @object.get_flags(obj2).should == _TAINT | 1 << 14 | 1 << 16
-    @object.set_flags(obj1, 0)
-    @object.copy_flags(obj2, obj1)
-    @object.get_flags(obj2).should == 0
+    obj1, obj2 = @data.call
+    @specs.set_flags(obj1, @taint | 1 << 14 | 1 << 16)
+    @specs.copy_flags(obj2, obj1)
+    @specs.get_flags(obj2).should == @taint | 1 << 14 | 1 << 16
+    @specs.set_flags(obj1, 0)
+    @specs.copy_flags(obj2, obj1)
+    @specs.get_flags(obj2).should == 0
   end
 
   it "supports retrieving the (meta)class" do
-    obj, _ = @object.data
-    @object.get_klass(obj).should == obj.class
+    obj, _ = @data.call
+    @specs.get_klass(obj).should == obj.class
     meta = (class << obj; self; end)
-    @object.get_klass(obj).should == meta
+    @specs.get_klass(obj).should == meta
   end
 end
