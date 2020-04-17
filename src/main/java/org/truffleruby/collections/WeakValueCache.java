@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.truffleruby.core.hash.ReHashable;
@@ -110,9 +109,21 @@ public class WeakValueCache<Key, Value> implements ReHashable {
     }
 
     @TruffleBoundary
-    public Set<Key> keys() {
+    public Collection<Key> keys() {
         removeStaleEntries();
-        return map.keySet();
+        final Collection<Key> keys = new ArrayList<>(map.size());
+
+        // NOTE(norswap, 17 Apr 2020):
+        //  This seems necessary despite the removeStaleEntries call.
+        //  If not present, it's possible to obseve a call to values() returning an empty collection while a later
+        //  call to keys() (with no intervening insertions) contains a key.
+        for (Key key : map.keySet()) {
+            if (get(key) != null) {
+                keys.add(key);
+            }
+        }
+
+        return keys;
     }
 
     @TruffleBoundary
