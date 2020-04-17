@@ -93,6 +93,7 @@ import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
+import org.truffleruby.language.loader.RequireNodeGen;
 import org.truffleruby.language.locals.FindDeclarationVariableNodes.FindAndReadDeclarationVariableNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
@@ -242,12 +243,6 @@ public abstract class KernelNodes {
     @Primitive(name = "find_file")
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
-        public static FindFileNode create() {
-            return KernelNodesFactory.FindFileNodeFactory.create(null);
-        }
-
-        public abstract Object executeFind(Object featureString);
-
         @Specialization
         protected Object findFile(DynamicObject featureString,
                 @Cached BranchProfile notFoundProfile,
@@ -322,7 +317,7 @@ public abstract class KernelNodes {
     @Primitive(name = "load_feature")
     public abstract static class LoadFeatureNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private RequireNode requireNode = RequireNode.create();
+        @Child private RequireNode requireNode = RequireNodeGen.create();
 
         @Specialization
         protected boolean loadFeature(DynamicObject featureString, DynamicObject expandedPathString) {
