@@ -190,10 +190,14 @@ public class ZeroLengthArrayStore {
             return ZERO_LENGTH_ALLOCATOR.allocate(length);
         }
 
-        @Specialization(limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = "!zeroLengthStore(newStore)", limit = "STORAGE_STRATEGIES")
         protected static Object allocateForNewStore(ZeroLengthArrayStore store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.allocateForNewStore(newStore, newStore, length);
+        }
+
+        protected static boolean zeroLengthStore(Object store) {
+            return store instanceof ZeroLengthArrayStore;
         }
     }
 
