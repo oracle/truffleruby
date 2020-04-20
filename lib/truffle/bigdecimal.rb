@@ -261,7 +261,7 @@ class BigDecimal < Numeric
   private_constant :ORIGINAL_TO_S
 
   def inspect
-    str = ORIGINAL_TO_S.bind(self).call
+    str = ORIGINAL_TO_S.bind_call(self)
     finite? ? str.downcase : str
   end
 

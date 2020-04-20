@@ -232,7 +232,7 @@ module Marshal
       if @user_class
         cls = get_user_class
         if cls < String
-          obj = STRING_ALLOCATE.bind(cls).call
+          obj = STRING_ALLOCATE.bind_call(cls)
         else
           allocate = cls.method(:__allocate__)
           if allocate.unbind == STRING_ALLOCATE
@@ -678,7 +678,7 @@ module Marshal
       if @user_class
         cls = get_user_class()
         if cls < Array
-          obj = ARRAY_ALLOCATE.bind(cls).call
+          obj = ARRAY_ALLOCATE.bind_call(cls)
         else
           # This is what MRI does, it's weird.
           obj = cls.allocate
@@ -691,7 +691,7 @@ module Marshal
       store_unique_object obj
 
       construct_integer.times do |_i|
-        ARRAY_APPEND.bind(obj).call(construct)
+        ARRAY_APPEND.bind_call(obj, construct)
       end
 
       obj
