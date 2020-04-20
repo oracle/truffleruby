@@ -36,12 +36,12 @@ describe "Truffle::Interop.members" do
   end
 
   it "returns an empty array for a proc" do
-    proc = proc {}
+    proc = proc { }
     Truffle::Interop.members(proc).should include(*proc.public_methods.map!(&:to_s))
   end
 
   it "returns an empty array for a lambda" do
-    lambda = -> {}
+    lambda = -> { }
     Truffle::Interop.members(lambda).should include(*lambda.public_methods.map!(&:to_s))
   end
 

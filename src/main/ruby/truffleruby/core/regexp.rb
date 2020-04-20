@@ -101,7 +101,7 @@ class Regexp
   end
 
   def self.compatible?(*patterns)
-    encodings = patterns.map{ |r| convert(r).encoding }
+    encodings = patterns.map { |r| convert(r).encoding }
     last_enc = encodings.pop
     encodings.each do |encoding|
       raise ArgumentError, "incompatible encodings: #{encoding} and #{last_enc}" unless Encoding.compatible?(last_enc, encoding)
@@ -419,26 +419,26 @@ Truffle::KernelOperations.define_hooked_variable(
   :'$`',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.pre_match if match },
-  -> { raise SyntaxError, "Can't set variable $`"},
+  -> { raise SyntaxError, "Can't set variable $`" },
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :"$'",
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.post_match if match },
-  -> { raise SyntaxError, "Can't set variable $'"},
+  -> { raise SyntaxError, "Can't set variable $'" },
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$&',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match[0] if match },
-  -> { raise SyntaxError, "Can't set variable $&"},
+  -> { raise SyntaxError, "Can't set variable $&" },
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
 
 Truffle::KernelOperations.define_hooked_variable(
   :'$+',
   -> b { match = Truffle::RegexpOperations.last_match(b)
          match.captures.reverse.find { |m| !m.nil? } if match },
-  -> { raise SyntaxError, "Can't set variable $+"},
+  -> { raise SyntaxError, "Can't set variable $+" },
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })
