@@ -122,10 +122,10 @@ module Truffle
         Primitive.global_variable_set :$stderr, v
       })
 
-    def self.raise_load_error(name)
+    def self.load_error(name)
       load_error = LoadError.new("cannot load such file -- #{name}")
       load_error.path = name
-      raise load_error
+      load_error
     end
 
     def self.internal_raise(exc, msg, ctx, internal)

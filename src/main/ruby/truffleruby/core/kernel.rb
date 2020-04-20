@@ -227,7 +227,7 @@ module Kernel
     feature = Truffle::Type.coerce_to_path(feature)
 
     path = Primitive.find_file(feature)
-    Truffle::KernelOperations.raise_load_error(feature) unless path
+    raise Truffle::KernelOperations.load_error(feature) unless path
 
     Primitive.load_feature(feature, path)
   end
@@ -251,7 +251,7 @@ module Kernel
         end
         new_require.bind(self).call(feature)
       else
-        Truffle::KernelOperations.raise_load_error(feature)
+        raise Truffle::KernelOperations.load_error(feature)
       end
     end
   end
@@ -264,7 +264,7 @@ module Kernel
     path = Primitive.get_caller_path(feature)
 
     expanded_path = Primitive.find_file(path)
-    Truffle::KernelOperations.raise_load_error(path) unless expanded_path
+    raise Truffle::KernelOperations.load_error(path) unless expanded_path
 
     Primitive.load_feature(expanded_path, expanded_path)
   end
