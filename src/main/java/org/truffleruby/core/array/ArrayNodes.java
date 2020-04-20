@@ -977,25 +977,25 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "size >= 0", "wasProvided(fillingValue)", "allocator.specializesFor(fillingValue)" },
+                guards = { "size >= 0", "wasProvided(fillingValue)" },
                 limit = "storageStrategyLimit()")
         protected DynamicObject initializeWithSizeAndValue(
                 DynamicObject array,
                 int size,
                 Object fillingValue,
                 NotProvided block,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary stores,
-                @Cached("allocatorForValue(fillingValue)") ArrayAllocator allocator,
+                @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary allocatedStores,
                 @Cached ConditionProfile needsFill,
                 @Cached PropagateSharingNode propagateSharingNode) {
-            final Object store = allocator.allocate(size);
-            if (needsFill.profile(!allocator.isDefaultValue(fillingValue))) {
+            final Object allocatedStore = stores.allocateForNewValue(getStore(array), fillingValue, size);
+            if (needsFill.profile(!allocatedStores.allocator(allocatedStore).isDefaultValue(fillingValue))) {
                 propagateSharingNode.executePropagate(array, fillingValue);
                 for (int i = 0; i < size; i++) {
-                    stores.write(store, i, fillingValue);
+                    allocatedStores.write(allocatedStore, i, fillingValue);
                 }
             }
-            setStoreAndSize(array, store, size);
+            setStoreAndSize(array, allocatedStore, size);
             return array;
         }
 
