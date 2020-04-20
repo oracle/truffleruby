@@ -135,7 +135,7 @@ public class RubyDebugTest {
 
         context.eval(factorial);
         assertExecutedOK("Algorithm loaded");
-        Assert.assertFalse("all methods are lazily translated (by the option)", breakpoint.isResolved());
+        Assert.assertTrue("breakpoint should be resolved by materializeInstrumentableNodes()", breakpoint.isResolved());
 
         assertLocation(
                 13,
@@ -153,10 +153,8 @@ public class RubyDebugTest {
 
         final Value main = context.getPolyglotBindings().getMember("main");
         assertNotNull("main method found", main);
-        Assert.assertFalse("not yet translated", breakpoint.isResolved());
         assertTrue(main.canExecute());
         Value value = main.execute();
-        Assert.assertTrue("breakpoint must have stopped first execution", breakpoint.isResolved());
         int n = value.asInt();
         assertEquals("Factorial computed OK", 2, n);
         assertExecutedOK("Algorithm computed OK: " + n + "; Checking if it stopped at the breakpoint");
