@@ -124,9 +124,10 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         final Collection<Key> keys = new ArrayList<>(map.size());
 
         // Filter out keys for null values.
-        for (Key key : map.keySet()) {
-            if (get(key) != null) {
-                keys.add(key);
+        for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
+            final Value value = e.getValue().get();
+            if (value != null) {
+                keys.add(e.getKey());
             }
         }
 
