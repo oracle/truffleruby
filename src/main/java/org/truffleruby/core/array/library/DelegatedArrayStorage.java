@@ -33,27 +33,27 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     public final int length;
 
     @ExportMessage
-    public static boolean accepts(DelegatedArrayStorage store,
-                                  @CachedLibrary(limit="1") ArrayStoreLibrary backingStores) {
+    protected static boolean accepts(DelegatedArrayStorage store,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary backingStores) {
         return backingStores.accepts(store.storage);
     }
 
     @ExportMessage
     protected Object read(int index,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.read(storage, index + offset);
     }
 
     @ExportMessage
     protected boolean isPrimitive(
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.isPrimitive(storage);
     }
 
     @ExportMessage
     @TruffleBoundary
     protected String toString(
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return String.format("Delegate of (%s)", stores.toString(storage));
     }
 
@@ -74,13 +74,13 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected Object[] boxedCopyOfRange(int start, int length,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.boxedCopyOfRange(storage, offset + start, length);
     }
 
     @ExportMessage
     protected void copyContents(int srcStart, Object destStore, int destStart, int length,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary srcStores,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
             @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary destStores) {
         for (int i = 0; i < length; i++) {
             destStores.write(destStore, i + destStart, srcStores.read(storage, srcStart + offset + i));
@@ -89,7 +89,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected Object toJavaArrayCopy(int length,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         Object newStore = stores.allocator(storage).allocate(length);
         stores.copyContents(storage, 0, newStore, offset, length);
         return newStore;
@@ -102,37 +102,37 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected Iterable<Object> getIterable(int from, int length,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.getIterable(storage, from + offset, length);
     }
 
     @ExportMessage
     protected ArrayAllocator generalizeForValue(Object newValue,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.generalizeForValue(storage, newValue);
     }
 
     @ExportMessage
     protected ArrayAllocator generalizeForStore(Object newStore,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.generalizeForStore(newStore, storage);
     }
 
     @ExportMessage
     protected Object allocateForNewValue(Object newValue, int length,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.allocateForNewValue(storage, newValue, length);
     }
 
     @ExportMessage
     protected Object allocateForNewStore(Object newStore, int length,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.allocateForNewStore(storage, newStore, length);
     }
 
     @ExportMessage
     protected ArrayAllocator allocator(
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.allocator(storage);
     }
 
