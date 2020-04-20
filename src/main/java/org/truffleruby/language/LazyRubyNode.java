@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
@@ -18,6 +19,9 @@ import org.truffleruby.RubyLanguage;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.NodeUtil;
 
 public class LazyRubyNode extends RubyContextSourceNode {
@@ -44,6 +48,18 @@ public class LazyRubyNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
         return resolve().isDefined(frame, context);
+    }
+
+    @Override
+    public InstrumentableNode materializeInstrumentableNodes(Set<Class<? extends Tag>> materializedTags) {
+        for (Class<? extends Tag> tag : materializedTags) {
+            if (tag == StandardTags.StatementTag.class || tag == StandardTags.CallTag.class) {
+                resolve();
+                return this;
+            }
+        }
+
+        return this;
     }
 
     public RubyNode resolve() {

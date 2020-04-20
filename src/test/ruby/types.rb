@@ -11,7 +11,7 @@
 def temperature_in_city(name)
   cityArray = name.bytes
   citySum = cityArray.reduce(0, :+)
-  weatherTemperature = citySum.modulo(36)
+  weatherTemperature = citySum % 36
   blt = true
   blf = false
   null = nil
@@ -24,7 +24,15 @@ def temperature_in_city(name)
   symbol = :symbolic
   arr = [1, '2', 3.56, blt, nil, str]
   hash = {:a => 1, 'b' => 2}
-  nme + nm1
+  struct = Struct.new(:a, :b).new(1, 2)
+  res = nme + nm1
+  res
 end
 
 temperature_in_city('Panama')
+
+def types_main
+  temperature_in_city('Panama')
+end
+
+Polyglot.export_method :types_main
