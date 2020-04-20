@@ -104,8 +104,18 @@ public class WeakValueCache<Key, Value> implements ReHashable {
 
     @TruffleBoundary
     public int size() {
+        int size = 0;
         removeStaleEntries();
-        return map.size();
+
+        // Filter out null entries.
+        for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
+            final Value value = e.getValue().get();
+            if (value != null) {
+                ++size;
+            }
+        }
+
+        return size;
     }
 
     @TruffleBoundary
@@ -113,10 +123,7 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         removeStaleEntries();
         final Collection<Key> keys = new ArrayList<>(map.size());
 
-        // NOTE(norswap, 17 Apr 2020):
-        //  This seems necessary despite the removeStaleEntries call.
-        //  If not present, it's possible to obseve a call to values() returning an empty collection while a later
-        //  call to keys() (with no intervening insertions) contains a key.
+        // Filter out keys for null values.
         for (Key key : map.keySet()) {
             if (get(key) != null) {
                 keys.add(key);
@@ -131,6 +138,7 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         removeStaleEntries();
         final Collection<Value> values = new ArrayList<>(map.size());
 
+        // Filter out null values.
         for (WeakReference<Value> reference : map.values()) {
             final Value value = reference.get();
             if (value != null) {
@@ -146,6 +154,7 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         removeStaleEntries();
         final Collection<WeakMapEntry<Key, Value>> entries = new ArrayList<>(map.size());
 
+        // Filter out null values.
         for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
             final Value value = e.getValue().get();
             if (value != null) {
@@ -203,6 +212,12 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         }
     }
 
+    /** Attempts to remove map entries whose values have been made unreachable by the GC.
+     *
+     * <p>
+     * This relies on the underlying {@link WeakReference} instance being enqueued to the {@link #deadRefs} queue. It is
+     * possible that the map still contains {@link WeakReference} instance whose value has been nulled out after a call
+     * to this method (the reference not having been enqueued yet)! */
     private void removeStaleEntries() {
         KeyedReference<?, ?> ref;
         while ((ref = (KeyedReference<?, ?>) deadRefs.poll()) != null) {
