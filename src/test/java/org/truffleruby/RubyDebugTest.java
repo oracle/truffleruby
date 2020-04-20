@@ -32,7 +32,6 @@ import org.graalvm.polyglot.Value;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -46,8 +45,6 @@ import com.oracle.truffle.api.debug.DebuggerSession;
 import com.oracle.truffle.api.debug.SuspendedEvent;
 
 public class RubyDebugTest {
-
-    private static final int BREAKPOINT_LINE = 13;
 
     private Debugger debugger;
     private DebuggerSession debuggerSession;
@@ -120,12 +117,13 @@ public class RubyDebugTest {
 
     @Test
     public void testBreakpoint() throws Throwable {
-        final Source factorial = getSource("factorial.rb");
+        Source factorial = getSource("factorial.rb");
+        int breakpointLine = 13;
 
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
-            breakpoint = Breakpoint.newBuilder(getSourceImpl(factorial)).lineIs(BREAKPOINT_LINE).build();
+            breakpoint = Breakpoint.newBuilder(getSourceImpl(factorial)).lineIs(breakpointLine).build();
             debuggerSession.install(breakpoint);
         });
 
@@ -138,7 +136,7 @@ public class RubyDebugTest {
         Assert.assertTrue("breakpoint should be resolved by materializeInstrumentableNodes()", breakpoint.isResolved());
 
         assertLocation(
-                13,
+                breakpointLine,
                 "1",
                 "n",
                 "1",
@@ -284,19 +282,21 @@ public class RubyDebugTest {
         assertExecutedOK("OK");
     }
 
-    @Ignore
     @Test
     public void testProperties() throws Throwable {
         Source source = getSource("types.rb");
+        int breakpointLine = 28;
+
         run.addLast(() -> {
             assertNull(suspendedEvent);
             assertNotNull(debuggerSession);
-            breakpoint = Breakpoint.newBuilder(getSourceImpl(source)).lineIs(27).build();
+            breakpoint = Breakpoint.newBuilder(getSourceImpl(source)).lineIs(breakpointLine).build();
             debuggerSession.install(breakpoint);
         });
+
         assertLocation(
-                27,
-                "nme + nm1",
+                breakpointLine,
+                "res = nme + nm1",
                 "name",
                 "\"Panama\"", // Possible bug: should really the quotes be included?
                 "cityArray",
@@ -328,27 +328,41 @@ public class RubyDebugTest {
                 "arr",
                 "[1, \"2\", 3.56, true, nil, \"A String\"]",
                 "hash",
-                "{:a=>1, \"b\"=>2}");
+                "{:a=>1, \"b\"=>2}",
+                "struct",
+                "#<struct a=1, b=2>",
+                "res",
+                "nil");
+
         run.addLast(() -> {
             final DebugStackFrame frame = suspendedEvent.getTopStackFrame();
             DebugValue value = frame.getScope().getDeclaredValue("name");
             Collection<DebugValue> properties = value.getProperties();
-            assertTrue("String has " + properties.size() + " properties.", properties.size() > 0); // BUG: String have no properties
-            value = frame.getScope().getDeclaredValue("hash");
+            assertTrue("String has " + properties.size() + " properties.", properties.size() > 0);
+            value = frame.getScope().getDeclaredValue("struct");
             properties = value.getProperties();
-            assertEquals(2, properties.size()); // 'hash' has two properties
-            try {
-                properties.iterator().next().toDisplayString();
-            } catch (IllegalStateException ex) {
-                "Value is not readable".equals(ex.getMessage()); // BUG
-                Assert.fail(ex.getMessage());
+            assertTrue("struct has " + properties.size() + " properties.", properties.size() >= 2);
+            for (DebugValue propertyValue : properties) {
+                propertyValue.toDisplayString();
             }
-            assertNotNull(value.getProperty("a")); // == null, BUG
-            assertEquals(0, frame.getScope().getDeclaredValue("symbol").getProperties().size());
+            assertEquals(1, value.getProperty("a").asInt());
+            assertEquals(2, value.getProperty("b").asInt());
+            properties = frame.getScope().getDeclaredValue("symbol").getProperties();
+            assertTrue("Symbol has " + properties.size() + " properties.", properties.size() > 0);
             assertEquals(6, frame.getScope().getDeclaredValue("arr").getArray().size());
         });
+
         performWork();
+        Assert.assertFalse("source not yet loaded", breakpoint.isResolved());
         context.eval(source);
+        Assert.assertTrue("breakpoint should be resolved by materializeInstrumentableNodes()", breakpoint.isResolved());
+
+        final Value main = context.getPolyglotBindings().getMember("types_main");
+        assertNotNull("main method found", main);
+        assertTrue(main.canExecute());
+        Value value = main.execute();
+        Assert.assertTrue(value.fitsInDouble());
+
         assertExecutedOK("OK");
     }
 
