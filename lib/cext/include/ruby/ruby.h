@@ -967,10 +967,10 @@ enum ruby_fl_type {
 
 struct RUBY_ALIGNAS(SIZEOF_VALUE) RBasic {
     VALUE flags;
-#ifndef TRUFFLERUBY
-    const VALUE klass;
-#else
+#ifdef TRUFFLERUBY
     VALUE klass;
+#else
+    const VALUE klass;
 #endif
 };
 

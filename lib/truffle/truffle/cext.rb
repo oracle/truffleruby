@@ -13,7 +13,6 @@ require_relative 'cext_constants'
 require_relative 'cext_structs'
 
 module Truffle::CExt
-
   DATA_TYPE = Object.new
   DATA_HOLDER = Object.new
   DATA_MEMSIZER = Object.new

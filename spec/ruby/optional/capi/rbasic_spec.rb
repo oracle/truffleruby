@@ -1,8 +1,8 @@
 require_relative 'spec_helper'
+require_relative 'shared/rbasic'
 load_extension("rbasic")
 load_extension("data")
 load_extension("array")
-require_relative 'shared/rbasic'
 
 describe "RBasic support for regular objects" do
   before :all do

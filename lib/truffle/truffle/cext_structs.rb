@@ -8,11 +8,10 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-# This file includes the Ruby definition of C defined in "ruby.h" (or made available through it, for instance as
-# function return value).
+# This file includes the Ruby definition of C structs defined in ruby headers (or made available through it, for
+# instance as function return value).
 
 module Truffle::CExt
-
   def RDATA(object)
     rb_check_type(object, T_DATA)
     RData.new(object)
@@ -138,8 +137,8 @@ class Truffle::CExt::RBasic
   USER_FLAGS        = Object.new
 
   # RUBY_FL* values are from ruby.h
-  RUBY_FL_TAINT     = (1<<8)
-  RUBY_FL_FREEZE    = (1<<11)
+  RUBY_FL_TAINT = (1<<8)
+  RUBY_FL_FREEZE = (1<<11)
 
   RUBY_FL_USHIFT = 12
   USER_FLAGS_MASK = (1 << (RUBY_FL_USHIFT + 19)) - (1 << (RUBY_FL_USHIFT))
@@ -185,7 +184,7 @@ class Truffle::CExt::RBasic
           ushift && (i == 2 || i == 3) ||
           promoted && (i == 5 || i == 6)
     end
-    decoded = decoded.map { |i| 1 << i}
+    decoded = decoded.map { |i| 1 << i }
 
     decoded << (1<<5 | 1<<6) if promoted
     decoded << (1<<2 | 1<<3) if ushift

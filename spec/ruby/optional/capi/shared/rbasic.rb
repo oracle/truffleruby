@@ -62,7 +62,7 @@ describe :rbasic, shared: true do
   it "supports retrieving the (meta)class" do
     obj, _ = @data.call
     @specs.get_klass(obj).should == obj.class
-    meta = (class << obj; self; end)
-    @specs.get_klass(obj).should == meta
+    obj.singleton_class # ensure the singleton class exists
+    @specs.get_klass(obj).should == obj.singleton_class
   end
 end

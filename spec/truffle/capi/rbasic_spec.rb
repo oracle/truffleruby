@@ -14,14 +14,17 @@ describe "RBasic support" do
     specs = CApiTruffleRubyRBasicSpecs.new
     obj = Object.new
 
-    -> { specs.set_flags(obj, specs.finalize_flag) }.should(
-        raise_error(ArgumentError, 'unsupported remaining flags: RUBY_FL_FINALIZE (1<<7)'))
+    -> {
+      specs.set_flags(obj, specs.finalize_flag)
+    }.should raise_error(ArgumentError, 'unsupported remaining flags: RUBY_FL_FINALIZE (1<<7)')
 
-    -> { specs.set_flags(obj, specs.promoted_flag) }.should(
-        raise_error(ArgumentError, 'unsupported remaining flags: RUBY_FL_PROMOTED (1<<5 | 1<<6)'))
+    -> {
+      specs.set_flags(obj, specs.promoted_flag)
+    }.should raise_error(ArgumentError, 'unsupported remaining flags: RUBY_FL_PROMOTED (1<<5 | 1<<6)')
 
-    -> { specs.set_flags(obj, 1 << 3) }.should(
-        raise_error(ArgumentError, 'unsupported remaining flags: unknown flag (8)'))
+    -> {
+      specs.set_flags(obj, 1 << 3)
+    }.should raise_error(ArgumentError, 'unsupported remaining flags: unknown flag (8)')
   end
 
   it "should raise an ArgumentError when trying to unfreeze an object" do
@@ -29,7 +32,6 @@ describe "RBasic support" do
     obj = Object.new
     obj.freeze
 
-    -> { specs.set_flags(obj, 0) }.should(
-        raise_error(ArgumentError, 'can\'t unfreeze object'))
+    -> { specs.set_flags(obj, 0) }.should(raise_error(ArgumentError, 'can\'t unfreeze object'))
   end
 end
