@@ -16,7 +16,10 @@ cd "$root"
 function recompile_openssl() {
   cd src/main/c/openssl
   "$root/bin/truffleruby" -w extconf.rb
-  make
+  if [ -z "$CORES" ]; then
+    CORES=$(getconf _NPROCESSORS_ONLN || echo 1)
+  fi
+  make "--jobs=$CORES"
   cp "openssl.$(ruby -e "print RbConfig::CONFIG['DLEXT']")" "$root/lib/mri"
 }
 
