@@ -46,6 +46,10 @@ public class TraceManager {
     public static class ClassTag extends Tag {
     }
 
+    /** A tag which applies to no Node, but is useful to handle not-yet-implemented TracePoint events. */
+    public static class NeverTag extends Tag {
+    }
+
     private final RubyContext context;
     private final Instrumenter instrumenter;
     private final CyclicAssumption unusedAssumption;

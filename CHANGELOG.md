@@ -127,7 +127,7 @@ Compatibility:
 * Implemented `rb_tracepoint_new`, `rb_tracepoint_disable`, `rb_tracepoint_enable`, and `rb_tracepoint_enabled_p` (#1450). 
 * Implemented `RbConfig::CONFIG['AR']` and `RbConfig::CONFIG['STRIP']` (#1973).
 * Not yet implemented C API functions are now correctly detected as missing via `mkmf`'s `have_func` (#1980).
-* Do not define unsupported C-API TracePoint events to let C extensions detect it (#1983).
+* Accept `RUBY_INTERNAL_EVENT_{NEWOBJ,FREEOBJ}` events but warn they are not triggered (#1978, #1983).
 * `IO.copy_stream(in, STDOUT)` now writes to `STDOUT` without buffering like MRI.
 * Implemented `RbConfig['vendordir']`.
 
