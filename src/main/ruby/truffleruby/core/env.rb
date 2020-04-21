@@ -201,7 +201,7 @@ class << ENV
   alias_method :value?, :has_value?
 
   def values_at(*params)
-    params.map{ |k| lookup(k) }
+    params.map { |k| lookup(k) }
   end
 
   def index(value)

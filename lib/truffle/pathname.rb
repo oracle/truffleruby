@@ -197,9 +197,9 @@ class Pathname
   TO_PATH = :to_path
 
   SAME_PATHS = if File::FNM_SYSCASE.nonzero?
-                 proc {|a, b| a.casecmp(b).zero?}
+                 proc { |a, b| a.casecmp(b).zero? }
                else
-                 proc {|a, b| a == b}
+                 proc { |a, b| a == b }
                end
 
   # :startdoc:
@@ -515,7 +515,7 @@ class Pathname
   def each_filename # :yield: filename
     return to_enum(__method__) unless block_given?
     _, names = split_names(@path)
-    names.each {|filename| yield filename }
+    names.each { |filename| yield filename }
     nil
   end
 
@@ -542,8 +542,8 @@ class Pathname
   def descend
     return to_enum :descend unless block_given?
     vs = []
-    ascend {|v| vs << v }
-    vs.reverse_each {|v| yield v }
+    ascend { |v| vs << v }
+    vs.reverse_each { |v| yield v }
     nil
   end
 
@@ -877,7 +877,7 @@ class Pathname    # * File *
 
   # See <tt>File.split</tt>.  Returns the #dirname and the #basename in an
   # Array.
-  def split() File.split(@path).map {|f| self.class.new(f) } end
+  def split() File.split(@path).map { |f| self.class.new(f) } end
 end
 
 
@@ -961,9 +961,9 @@ class Pathname    # * Dir *
   # See <tt>Dir.glob</tt>.  Returns or yields Pathname objects.
   def Pathname.glob(*args) # :yield: pathname
     if block_given?
-      Dir.glob(*args) {|f| yield self.new(f) }
+      Dir.glob(*args) { |f| yield self.new(f) }
     else
-      Dir.glob(*args).map {|f| self.new(f) }
+      Dir.glob(*args).map { |f| self.new(f) }
     end
   end
 
@@ -973,14 +973,14 @@ class Pathname    # * Dir *
 
   # Return the entries (files and subdirectories) in the directory, each as a
   # Pathname object.
-  def entries() Dir.entries(@path).map {|f| self.class.new(f) } end
+  def entries() Dir.entries(@path).map { |f| self.class.new(f) } end
 
   # Iterates over the entries (files and subdirectories) in the directory.  It
   # yields a Pathname object for each entry.
   #
   # This method has existed since 1.8.1.
   def each_entry(&block) # :yield: pathname
-    Dir.foreach(@path) {|f| yield self.class.new(f) }
+    Dir.foreach(@path) { |f| yield self.class.new(f) }
   end
 
   # See <tt>Dir.mkdir</tt>.  Create the referenced directory.
@@ -1010,9 +1010,9 @@ class Pathname    # * Find *
   def find(&block) # :yield: pathname
     require 'find'
     if @path == '.'
-      Find.find(@path) {|f| yield self.class.new(f.sub(%r{\A\./}, '')) }
+      Find.find(@path) { |f| yield self.class.new(f.sub(%r{\A\./}, '')) }
     else
-      Find.find(@path) {|f| yield self.class.new(f) }
+      Find.find(@path) { |f| yield self.class.new(f) }
     end
   end
 end

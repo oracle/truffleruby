@@ -43,7 +43,7 @@ module Enumerable
         block = original_block
       else
         duplicated_initial_state = initial_state.dup
-        block = Proc.new{ |val| original_block.yield(val, duplicated_initial_state)}
+        block = Proc.new { |val| original_block.yield(val, duplicated_initial_state) }
       end
       each do |val|
         key = block.yield(val)
@@ -194,7 +194,7 @@ module Enumerable
       raise ArgumentError, 'both pattern and block are given' if has_arg
     else
       raise ArgumentError, 'wrong number of arguments (0 for 1)' unless has_arg
-      block = Proc.new{ |elem| arg === elem }
+      block = Proc.new { |elem| arg === elem }
     end
     Enumerator.new do |yielder|
       accumulator = nil
@@ -222,7 +222,7 @@ module Enumerable
       end
     else
       raise ArgumentError, 'wrong number of arguments (0 for 1)' if Primitive.undefined? arg
-      block = Proc.new{ |elem| arg === elem }
+      block = Proc.new { |elem| arg === elem }
     end
     Enumerator.new do |yielder|
       init = arg.dup if has_init

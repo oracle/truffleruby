@@ -19,7 +19,7 @@ describe "Truffle::Interop.has_array_elements?" do
     string: "",
     integer: 1,
     method: nil.method(:inspect),
-    lambda: -> {},
+    lambda: -> { },
     class: Hash,
     struct: Struct.new(:a).new(:v)
   }.each do |name, v|

@@ -374,3 +374,15 @@ Style/StringLiterals:
 Style/UnlessElse:
   Description: Checks for unless expressions with else clauses.
   Enabled: true
+
+# Supports --auto-correct
+Layout/SpaceBeforeBlockBraces:
+  Enabled: true
+  EnforcedStyle: space
+  EnforcedStyleForEmptyBraces: space
+
+# Supports --auto-correct
+Layout/SpaceInsideBlockBraces:
+  Enabled: true
+  EnforcedStyle: space
+  EnforcedStyleForEmptyBraces: space

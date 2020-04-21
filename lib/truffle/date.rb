@@ -249,7 +249,7 @@ class Date
   ABBR_DAYNAMES = %w(Sun Mon Tue Wed Thu Fri Sat)
 
   [MONTHNAMES, DAYNAMES, ABBR_MONTHNAMES, ABBR_DAYNAMES].each do |xs|
-    xs.each{|x| x.freeze unless x.nil?}.freeze
+    xs.each { |x| x.freeze unless x.nil? }.freeze
   end
 
   class Infinity < Numeric # :nodoc:
@@ -887,9 +887,9 @@ class Date
          [nil, [:cwyear, :cweek, :wday, :hour, :min, :sec]],
          [nil, [:year, :wnum0, :cwday, :hour, :min, :sec]],
          [nil, [:year, :wnum1, :cwday, :hour, :min, :sec]]].
-      collect{ |k, a| e = elem.values_at(*a).compact; [k, a, e]}.
-      select{ |_, _, e| e.size > 0}.
-      sort_by{ |_, _, e| [e.size, i -= 1]}.last
+      collect { |k, a| e = elem.values_at(*a).compact; [k, a, e] }.
+      select { |_, _, e| e.size > 0 }.
+      sort_by { |_, _, e| [e.size, i -= 1] }.last
 
     d = nil
 
@@ -1260,7 +1260,7 @@ class Date
 =end
 
   DAYNAMES.each_with_index do |n, i|
-    define_method(n.downcase + '?'){wday == i}
+    define_method(n.downcase + '?') { wday == i }
   end
 
   def nth_kday? (n, k)
