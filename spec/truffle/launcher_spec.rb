@@ -305,8 +305,13 @@ describe "The launcher" do
         "--experimental-options",
         "--engine.BackgroundCompilation=false",
       ].join(" ")
-      out = ruby_exe("2000.times {}", options: options, args: "2>&1")
-      out.should =~ /\[(truffle|engine)\] opt done/
+      err = tmp("err.txt")
+      begin
+        ruby_exe("2000.times {}", options: options, args: "2>#{err}")
+        File.read(err).should include "[engine] opt done"
+      ensure
+        rm_r err
+      end
     end
   end
 
