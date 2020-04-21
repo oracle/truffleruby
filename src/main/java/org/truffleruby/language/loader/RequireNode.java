@@ -394,15 +394,6 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
-    public boolean isFeatureLoaded(DynamicObject feature) {
-        final DynamicObject loadedFeatures = getContext().getCoreLibrary().getLoadedFeatures();
-        final Object included;
-        synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            included = isInLoadedFeatures
-                    .call(coreLibrary().truffleKernelOperationsModule, "feature_provided?", feature);
-        }
-        return booleanCastNode.executeToBoolean(included);
-    }
 
     private void addToLoadedFeatures(DynamicObject feature) {
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {

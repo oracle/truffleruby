@@ -163,31 +163,131 @@ module Truffle
       Primitive.vm_raise_exception exc, internal
     end
 
-    @@loaded_features_index = {}
-    @@loaded_features_copy = []
+    @loaded_features_index = {}
+    @loaded_features_copy = []
 
-    # MRI: rb_feature_p
-    def self.feature_provided?(feature)
-      loaded_features_index = get_loaded_features_index
-      loaded_features_index.has_key?(feature) &&
-          loaded_features_index[feature].any? do |i|
-            loaded_feature = $LOADED_FEATURES[i]
-            if feature == loaded_feature
-              feature
+    def self.is_so_ext(ext)
+      ext == '.so' || ext == '.o'
+    end
+
+    def self.is_dl_ext(ext)
+      ext == '.bundle'
+    end
+
+    # MRI: search_required
+    def self.find_feature_or_file(feature)
+      feature_ext = extension(feature)
+      if feature_ext
+        if feature_ext == '.rb'
+          if Truffle::KernelOperations.feature_provided?(feature, false)
+            return [:feature_loaded, nil]
+          end
+          path = Primitive.find_file(feature)
+          if path
+            if Truffle::KernelOperations.feature_provided?(path, true)
+              return [:feature_loaded, nil]
             else
-              loaded_feature_path(loaded_feature, feature, $LOAD_PATH)
+              return [:feature_found, path]
             end
           end
+          return [:not_found, nil]
+        elsif is_so_ext(feature_ext)
+          if Truffle::KernelOperations.feature_provided?(feature, false)
+            return [:feature_loaded, nil]
+          else
+            feature_no_ext = [0...(-feature_ext.size)]
+            path = Primitive.find_file(feature_no_ext)
+            if path
+              return [:feature_found, path]
+            end
+          end
+        elsif is_dl_ext(feature_ext)
+          if Truffle::KernelOperations.feature_provided?(feature, false)
+            return [:feature_loaded, nil]
+          else
+            path = Primitive.find_file(feature)
+            if path
+              return [:feature_found, path]
+            end
+          end
+        end
+      else
+        if (found = Truffle::KernelOperations.feature_provided?(feature, false)) == :r
+          return [:feature_loaded, nil]
+        end
+      end
+      path = Primitive.find_file(feature)
+      if path
+        if Truffle::KernelOperations.feature_provided?(path, true)
+          return [:feature_loaded, nil]
+        else
+          return [:feature_found, path]
+        end
+      else
+        if found
+          return [:feature_loaded, nil]
+        end
+        return [:not_found, nil]
+      end
+    end
+
+    # MRI: rb_feature_p
+    def self.feature_provided?(feature, expanded)
+      feature_has_rb_ext = feature.end_with?('.rb')
+      feature_has_ext = has_extension?(feature)
+      loaded_features_index = get_loaded_features_index
+      if loaded_features_index.has_key?(feature)
+        loaded_features_index[feature].each do |i|
+          loaded_feature = $LOADED_FEATURES[i]
+          next if loaded_feature.size < feature.size
+          feature_path = if loaded_feature.start_with?(feature)
+                           feature
+                         else
+                           if expanded
+                             nil
+                           else
+                             loaded_feature_path(loaded_feature, feature, $LOAD_PATH)
+                           end
+                         end
+          if feature_path
+            if !has_extension?(loaded_feature)
+              if feature_has_ext
+                false
+              else
+                return :u
+              end
+            else
+              loaded_feature_ext = extension(loaded_feature)
+              if (!feature_has_rb_ext || !feature_has_ext) && is_binary_ext(loaded_feature_ext)
+                return :s
+              end
+              if (feature_has_rb_ext || !feature_has_ext) && loaded_feature_ext == '.rb'
+                return :r
+              end
+            end
+          else
+            false
+          end
+        end
+        false
+      else
+        false
+      end
+    end
+
+    def self.is_binary_ext(ext)
+      ext == '.so' || ext == '.bundle' || ext == '.o'
     end
 
     def self.has_extension?(path)
-      !path.nil? && path.rindex('.') && (path.rindex('/').nil? || path.rindex('.') >  path.rindex('/'))
+      !path.nil? && path.rindex('.') && (path.rindex('/').nil? || path.rindex('.') > path.rindex('/'))
     end
 
     # MRI: get_loaded_features_index
     def self.get_loaded_features_index
-      if @@loaded_features_copy && !Primitive.array_storage_equal?(@@loaded_features_copy, $LOADED_FEATURES)
-        @@loaded_features_index.clear
+      #if !Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
+      if @loaded_features_copy.hash != $LOADED_FEATURES.hash
+        @loaded_features_index.clear
         $LOADED_FEATURES.map! do |val|
           val = StringValue(val)
           val.freeze
@@ -198,7 +298,7 @@ module Truffle
         end
         update_loaded_features_snapshot
       end
-      @@loaded_features_index
+      @loaded_features_index
     end
 
     # MRI: rb_provide_feature
@@ -227,7 +327,7 @@ module Truffle
     end
 
     def self.update_loaded_features_snapshot
-      @@loaded_features_copy = $LOADED_FEATURES.dup
+      @loaded_features_copy = $LOADED_FEATURES.dup
     end
 
     # MRI: features_index_add
@@ -257,10 +357,10 @@ module Truffle
 
     # MRI: features_index_add_single
     def self.features_index_add_single(feature, offset)
-      if @@loaded_features_index.has_key?(feature)
-        @@loaded_features_index[feature] << offset
+      if @loaded_features_index.has_key?(feature)
+        @loaded_features_index[feature] << offset
       else
-        @@loaded_features_index[feature] = [offset]
+        @loaded_features_index[feature] = [offset]
       end
     end
 

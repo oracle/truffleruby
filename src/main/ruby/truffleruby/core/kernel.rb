@@ -225,12 +225,16 @@ module Kernel
   # and skip the method below once RubyGems is loaded.
   private def gem_original_require(feature)
     feature = Truffle::Type.coerce_to_path(feature)
-    return false if Truffle::KernelOperations.feature_provided?(feature)
-    path = Primitive.find_file(feature)
-    raise Truffle::KernelOperations.load_error(feature) unless path
-    return false if Truffle::KernelOperations.feature_provided?(path)
 
-    Primitive.load_feature(feature, path)
+    status, path = Truffle::KernelOperations.find_feature_or_file(feature)
+    case status
+    when :feature_loaded
+      return false
+    when :feature_found
+      Primitive.load_feature(feature, path)
+    when :not_found
+      raise Truffle::KernelOperations.load_error(feature)
+    end
   end
 
   # A #require which lazily loads rubygems when needed.
@@ -241,7 +245,10 @@ module Kernel
     lazy_rubygems = Truffle::Boot.get_option_or_default('lazy-rubygems', false)
     upgraded_default_gem = lazy_rubygems && Truffle::GemUtil.upgraded_default_gem?(feature)
 
-    if !upgraded_default_gem and path = Primitive.find_file(feature)
+    status, path = Truffle::KernelOperations.find_feature_or_file(feature)
+    if status == :feature_loaded
+      return false
+    elsif !upgraded_default_gem && status == :feature_found
       Primitive.load_feature(feature, path)
     else
       if lazy_rubygems
@@ -265,12 +272,7 @@ module Kernel
   def require_relative(feature)
     feature = Truffle::Type.coerce_to_path(feature)
     path = Primitive.get_caller_path(feature)
-
-    expanded_path = Primitive.find_file(path)
-    raise Truffle::KernelOperations.load_error(path) unless expanded_path
-
-    return false if Truffle::KernelOperations.feature_provided?(expanded_path)
-    Primitive.load_feature(expanded_path, expanded_path)
+    gem_original_require(path)
   end
   module_function :require_relative
 

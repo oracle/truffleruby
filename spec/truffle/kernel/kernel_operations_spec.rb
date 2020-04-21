@@ -10,7 +10,7 @@ require_relative '../../ruby/spec_helper'
 
 describe "Truffle::KernelOperations.features_index_add" do
   it "creates correct entries in @@loaded_features_index" do
-    current_index = Truffle::KernelOperations.class_variable_get(:@@loaded_features_index)
+    current_index = Truffle::KernelOperations.instance_variable_get(:@loaded_features_index)
     current_index_backup = current_index.dup
     current_index.clear
 
@@ -34,7 +34,7 @@ describe "Truffle::KernelOperations.features_index_add" do
     current_index.should == {'foo' => [0], 'foo.rb' => [0], 'two/foo' => [0], 'two/foo.rb' => [0], '/two/foo.rb' => [0], '/two/foo' => [0] }
     current_index.clear
 
-    Truffle::KernelOperations.class_variable_set(:@@loaded_features_index, current_index_backup)
+    Truffle::KernelOperations.instance_variable_set(:@loaded_features_index, current_index_backup)
   end
 end
 
