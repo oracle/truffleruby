@@ -763,7 +763,9 @@ public abstract class ModuleNodes {
         protected Object classExec(DynamicObject self, Object[] args, DynamicObject block) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
-                    new FixedDefaultDefinee(self));
+                    new FixedDefaultDefinee(self),
+                    Layouts.PROC.getDeclarationContext(block).getRefinements());
+
             return callBlockNode.executeCallBlock(declarationContext, block, self, Layouts.PROC.getBlock(block), args);
         }
 

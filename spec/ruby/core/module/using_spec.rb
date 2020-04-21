@@ -243,6 +243,46 @@ describe "Module#using" do
       mod.call_foo(c).should == "foo from refinement"
     end
 
+    it "is active for module defined via initializer" do
+      refinement = Module.new do
+        refine Integer do
+          def foo; "foo from refinement"; end
+        end
+      end
+
+      result = nil
+
+      Module.new do
+        using refinement
+
+        Module.new do
+          result = 1.foo
+        end
+      end
+
+      result.should == "foo from refinement"
+    end
+
+    it "is active for class defined via initializer" do
+      refinement = Module.new do
+        refine Integer do
+          def foo; "foo from refinement"; end
+        end
+      end
+
+      result = nil
+
+      Class.new do
+        using refinement
+
+        Module.new do
+          result = 1.foo
+        end
+      end
+
+      result.should == "foo from refinement"
+    end
+
     it "is not active if `using` call is not evaluated" do
       result = nil
 
