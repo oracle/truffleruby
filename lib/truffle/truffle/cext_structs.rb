@@ -403,3 +403,118 @@ class Truffle::CExt::RbIO
     false
   end
 end
+
+# encoding.h: `struct rb_encoding`
+class Truffle::CExt::RbEncoding
+  ENCODING_CACHE = {} # Encoding => RbEncoding
+  NATIVE_CACHE = {} # RbEncoding address => RbEncoding
+  ENCODING_CACHE_MUTEX = Mutex.new
+
+  private_class_method :new
+
+  def self.get(encoding)
+    ENCODING_CACHE_MUTEX.synchronize do
+      ENCODING_CACHE.fetch(encoding) { |key| ENCODING_CACHE[key] = new(encoding) }
+    end
+  end
+
+  def self.get_encoding_from_native(rbencoding_ptr)
+    ENCODING_CACHE_MUTEX.synchronize do
+      NATIVE_CACHE[rbencoding_ptr].encoding
+    end
+  end
+
+  attr_reader :encoding
+
+  def initialize(encoding)
+    @encoding = encoding
+    @pointer = nil
+    @name = nil
+  end
+
+  private
+
+  def polyglot_has_members?
+    true
+  end
+
+  def polyglot_members(internal)
+    ['name']
+  end
+
+  def polyglot_read_member(name)
+    raise Truffle::Interop::UnknownIdentifierException unless name == 'name'
+    @name or raise '@name not set'
+  end
+
+  def polyglot_write_member(name, value)
+    raise Truffle::Interop::UnknownIdentifierException unless name == 'name'
+    @name = value
+  end
+
+  def polyglot_remove_member(name)
+    raise Truffle::Interop::UnsupportedMessageException
+  end
+
+  def polyglot_invoke_member(name, *args)
+    raise Truffle::Interop::UnsupportedMessageException
+  end
+
+  def polyglot_member_readable?(name)
+    name == 'name'
+  end
+
+  def polyglot_member_modifiable?(name)
+    name == 'name'
+  end
+
+  def polyglot_member_removable?(name)
+    false
+  end
+
+  def polyglot_member_insertable?(name)
+    false
+  end
+
+  def polyglot_member_invocable?(name)
+    false
+  end
+
+  def polyglot_member_internal?(name)
+    false
+  end
+
+  def polyglot_has_member_read_side_effects?(name)
+    false
+  end
+
+  def polyglot_has_member_write_side_effects?(name)
+    false
+  end
+
+  def polyglot_pointer?
+    !@pointer.nil?
+  end
+
+  def polyglot_to_native
+    name = @name or raise '@name not set'
+    unless Truffle::Interop.pointer?(name)
+      Truffle::Interop.to_native(name)
+      raise "#{name.inspect} could not be converted to native" unless Truffle::Interop.pointer?(name)
+    end
+    name_address = Truffle::Interop.as_pointer(name)
+
+    ENCODING_CACHE_MUTEX.synchronize do
+      unless @pointer
+        @pointer = Truffle::FFI::MemoryPointer.new(:pointer, 1)
+        @pointer.write_pointer name_address
+
+        NATIVE_CACHE[@pointer.address] = self
+      end
+    end
+  end
+
+  def polyglot_as_pointer
+    @pointer.address
+  end
+end
