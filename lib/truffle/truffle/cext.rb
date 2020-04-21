@@ -928,14 +928,26 @@ module Truffle::CExt
 
   def events_to_events_array(events)
     events_ary = []
-    if events & 0x0001 != 0
+    if events.anybits? 0x0001
       events ^= 0x0001
       events_ary << :line
     end
-    if events & 0x0002 != 0
+    if events.anybits? 0x0002
       events ^= 0x0002
       events_ary << :class
     end
+
+    if events.anybits? 0x100000
+      events ^= 0x100000
+      warn 'warning: rb_tracepoint_new(RUBY_INTERNAL_EVENT_NEWOBJ) is not yet implemented' if $VERBOSE
+      events_ary << :never
+    end
+    if events.anybits? 0x200000
+      events ^= 0x200000
+      warn 'warning: rb_tracepoint_new(RUBY_INTERNAL_EVENT_FREEOBJ) is not yet implemented' if $VERBOSE
+      events_ary << :never
+    end
+
     raise ArgumentError, "unknown event #{'%#x' % events}" unless events == 0
     events_ary
   end
