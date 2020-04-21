@@ -74,6 +74,8 @@ public abstract class TracePointNodes {
                 return new TracePointEvent(TraceManager.LineTag.class, eventSymbol);
             } else if (eventSymbol == coreStrings().CLASS.getSymbol()) {
                 return new TracePointEvent(TraceManager.ClassTag.class, eventSymbol);
+            } else if (eventSymbol == coreStrings().NEVER.getSymbol()) {
+                return new TracePointEvent(TraceManager.NeverTag.class, eventSymbol);
             } else {
                 throw new UnsupportedOperationException(Layouts.SYMBOL.getString(eventSymbol));
             }

@@ -58,6 +58,7 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
         TraceManager.CallTag.class,
         TraceManager.ClassTag.class,
         TraceManager.LineTag.class,
+        TraceManager.NeverTag.class,
         StandardTags.RootTag.class,
         StandardTags.StatementTag.class,
         StandardTags.CallTag.class

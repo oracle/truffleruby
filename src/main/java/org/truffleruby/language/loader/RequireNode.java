@@ -152,6 +152,9 @@ public abstract class RequireNode extends RubyContextNode {
             if (i != -1) {
                 relativeFeature = originalFeature.substring(i + "/lib/".length());
             }
+            if (relativeFeature.endsWith(".rb")) {
+                relativeFeature = relativeFeature.substring(0, relativeFeature.length() - ".rb".length());
+            }
         }
         Boolean patchLoaded = patchFiles.get(relativeFeature);
         final boolean isPatched = patchLoaded != null;

@@ -4,24 +4,12 @@ New features:
 
 * Nightly builds of TruffleRuby are now available, see the README for details (#1483).
 * `||=` will not compile the right-hand-side if it's only executed once, to match the idiomatic lazy-initialisation use-case (#1887, @kipply).
-* The implicit interface for allowing Ruby objects to behave as polyglot arrays with `#size`, `#[]` methods has been removed and replaced with an explicit interface where each method starts with `polyglot_*`.
-* Hash keys are no longer reported as polyglot members.
-* All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods.
-* Rename dynamic API to match InteropLibrary. All the methods keep the name as it is in InteropLibrary with following changes: use snake_case, add `polyglot_` prefix, drop `get` and `is` prefix, append `?` on all predicates.  
-* Many nodes that manipulate arrays have been converted to use `ArrayStoreLibrary`.
-* Split `Truffle::Interop.write` into `.write_array_element` and `.write_member` methods.
-* Rename `Truffle::Interop.size` to `.array_size`.
-* Rename `Truffle::Interop.is_boolean?` to `.boolean?`.
-* Split `Truffle::Interop.read` into `.read_member` and `.read_array_element`.
-* Drop `is_` prefix in `Truffle::Interop.is_array_element_*` predicates.
-* The old array strategy code has been removed and all remaining nodes converted to the new `ArrayStoreLibrary`.
-* `Truffle::Interop.hash_keys_as_members` has been added to treat a Ruby Hash as a polyglot object with the Hash keys as members.
 * Added `--metrics-profile-require` option to profile searching, parsing, translating and loading files.
 * Added support for captured variables for the Truffle instruments (e.g. Chrome debugger).
 
 Bug fixes:
 
-* Fixed `Exception#dup` to copy exception backtrace string array.
+* Fixed `Exception#dup` to copy the `Exception#backtrace` string array.
 * Fixed `rb_warn` and `rb_warning` when used as statements (#1886, @chrisseaton).
 * Fixed `NameError.new` and `NoMethodError.new` `:receiver` argument.
 * Correctly handle large numbers of arguments to `rb_funcall` (#1882).
@@ -30,7 +18,7 @@ Bug fixes:
 * Fixed `SystemCallError.new` parameter conversion.
 * Fixed `File#{chmod, umask}` argument conversion check.
 * Added warning in `Hash.[]` for non-array elements.
-* Fixed `File.lchmod` raises `NotImplementedError` when not available.
+* Fixed `File.lchmod` to raise `NotImplementedError` when not available.
 * `RSTRING_PTR()` now always returns a native pointer, resolving two bugs `memcpy`ing to (#1822) and from (#1772) Ruby Strings.
 * Fixed issue with duping during splat (#1883).
 * Fixed `Dir#children` implementation.
@@ -50,12 +38,12 @@ Bug fixes:
 * Updated `Kernel.Float()` to return given string in error message (#1945).
 * Parameters and arity of methods derived from `method_missing` should now match MRI (#1921).
 * Fixed compile error in `RB_FLOAT_TYPE_P` macro (#1928).
-* Fixed `Symbol#match` to call block with match data (#1933).
+* Fixed `Symbol#match` to call the block with the `MatchData` (#1933).
 * Fixed `Digest::SHA2.hexdigest` error with long messages (#1922).
 * Fixed `Date.parse` to dup the coerced string to not modify original (#1946).
 * Update `Comparable` error messages for special constant values (#1941).
 * Fixed `File.ftype` parameter conversion (#1961).
-* Fixed `Digest::Instance#file` to not modify string literal (#1964).
+* Fixed `Digest::Instance#file` to not modify string literals (#1964).
 * Make sure that string interpolation returns a `String`, and not a subclass (#1950).
 * `alias_method` and `instance_methods` should now work correctly inside a refinement (#1942).
 * Fixed `Regexp.union` parameter conversion (#1963).
@@ -64,7 +52,7 @@ Bug fixes:
 * `rb_encoding->name` can now be read even if the `rb_encoding` is stored in native memory.
 * Detect and cut off recursion when inspecting a foreign object, substituting an ellipsis instead.
 * Fixed feature lookup order on load path.
-* Fixed feature lookup order to check every `$LOAD_PATH` path entry for `.rb`, then every entry for native extension when require called with no extension.
+* Fixed feature lookup order to check every `$LOAD_PATH` path entry for `.rb`, then every entry for native extension when `require` is called with no extension.
 * Define the `_DARWIN_C_SOURCE` macro in extension makefiles (#1592).
 * Change handling of var args in `rb_rescue2` to handle usage in C extensions (#1823).
 * Fixed incorrect `Encoding::CompatibilityError` raised for some interpolated Regexps (#1967).
@@ -76,7 +64,6 @@ Bug fixes:
 * Fix issue where interpolated string matched `#` within string as being a variable (#1495).
 * Fix `File.join` to raise error on strings with null bytes.
 * Fix initialization of Ruby Thread for foreign thread created in Java.
-* Fix circular require in `bundler/index` patch.
 
 Compatibility:
 
@@ -127,16 +114,25 @@ Compatibility:
 * Implemented `rb_tracepoint_new`, `rb_tracepoint_disable`, `rb_tracepoint_enable`, and `rb_tracepoint_enabled_p` (#1450). 
 * Implemented `RbConfig::CONFIG['AR']` and `RbConfig::CONFIG['STRIP']` (#1973).
 * Not yet implemented C API functions are now correctly detected as missing via `mkmf`'s `have_func` (#1980).
-* Do not define unsupported C-API TracePoint events to let C extensions detect it (#1983).
+* Accept `RUBY_INTERNAL_EVENT_{NEWOBJ,FREEOBJ}` events but warn they are not triggered (#1978, #1983).
 * `IO.copy_stream(in, STDOUT)` now writes to `STDOUT` without buffering like MRI.
 * Implemented `RbConfig['vendordir']`.
+* Implemented `Enumerator::ArithmeticSequence`.
 
 Changes:
 
 * `TRUFFLERUBY_RESILIENT_GEM_HOME` has been removed. Unset `GEM_HOME` and `GEM_PATH` instead if you need to.
-* Implemented `Enumerator::ArithmeticSequence`.
-* `Truffle::System.full_memory_barrier`, `Truffle::Primitive.logical_processors`, and  `Truffle::AtomicReference` have been removed.
-* Updated `nil` to be a global immutable singleton (#1835).
+* The deprecated `Truffle::System.full_memory_barrier`, `Truffle::Primitive.logical_processors`, and  `Truffle::AtomicReference` have been removed.
+* The implicit interface for allowing Ruby objects to behave as polyglot arrays with `#size`, `#[]` methods has been removed and replaced with an explicit interface where each method starts with `polyglot_*`.
+* Hash keys are no longer reported as polyglot members.
+* All remaining implicit polyglot behaviour for `#[]` method was replaced with `polyglot_*` methods.
+* Rename dynamic API to match InteropLibrary. All the methods keep the name as it is in InteropLibrary with the following changes: use snake_case, add `polyglot_` prefix, drop `get` and `is` prefix, append `?` on all predicates.
+* Split `Truffle::Interop.write` into `.write_array_element` and `.write_member` methods.
+* Rename `Truffle::Interop.size` to `.array_size`.
+* Rename `Truffle::Interop.is_boolean?` to `.boolean?`.
+* Split `Truffle::Interop.read` into `.read_member` and `.read_array_element`.
+* Drop `is_` prefix in `Truffle::Interop.is_array_element_*` predicates.
+* `Truffle::Interop.hash_keys_as_members` has been added to treat a Ruby Hash as a polyglot object with the Hash keys as members.
 
 Performance:
 
@@ -146,6 +142,8 @@ Performance:
 * Ruby objects passed to C extensions are now converted less often to native handles.
 * Calling blocking system calls and running C code with unblocking actions has been refactored to remove some optimisation boundaries.
 * `return` expressions are now rewritten as implicit return expressions where control flow allows this to be safely done as a tail optimisation. This can improve interpreter performance by up to 50% in some benchmarks, and can be applied to approximately 80% of return nodes seen in Rails and its dependencies (#1977).
+* The old array strategy code has been removed and all remaining nodes converted to the new `ArrayStoreLibrary`.
+* Updated `nil` to be a global immutable singleton (#1835).
 
 # 20.0.0
 
