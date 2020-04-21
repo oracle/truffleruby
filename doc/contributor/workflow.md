@@ -121,7 +121,7 @@ Specs under `spec/ruby` are supposed to pass on both Truffle and MRI.
 To run the tests or specs on MRI, pass `--use ruby`:
 ```bash
 jt --use ruby test path/to/spec.rb # assumes you have MRI in your PATH
-jt --use /full/path/to/bin/ruby path/to/spec.rb test
+jt --use /full/path/to/bin/ruby test path/to/spec.rb
 ```
 
 ## Options

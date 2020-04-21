@@ -9,6 +9,10 @@ Performance:
 
 * Enable lazy translation from the parser AST to the Truffle AST for user code by default. This should improve application startup time (#1992).
 
+Bug fixes:
+
+* Fix `#class_exec`, `#module_exec`, `#instance_eval`, and `instance_exec` to use activated refinements (#1988, @ssnickolay).
+
 # 20.1.0
 
 New features:

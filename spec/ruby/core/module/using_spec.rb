@@ -243,7 +243,7 @@ describe "Module#using" do
       mod.call_foo(c).should == "foo from refinement"
     end
 
-    it "is active for module defined via initializer" do
+    it "is active for module defined via Module.new {}" do
       refinement = Module.new do
         refine Integer do
           def foo; "foo from refinement"; end
@@ -263,7 +263,7 @@ describe "Module#using" do
       result.should == "foo from refinement"
     end
 
-    it "is active for class defined via initializer" do
+    it "is active for class defined via Class.new {}" do
       refinement = Module.new do
         refine Integer do
           def foo; "foo from refinement"; end
@@ -272,10 +272,10 @@ describe "Module#using" do
 
       result = nil
 
-      Class.new do
+      Module.new do
         using refinement
 
-        Module.new do
+        Class.new do
           result = 1.foo
         end
       end
@@ -295,7 +295,7 @@ describe "Module#using" do
 
         def abc
           block = -> {
-            result = 1.foo
+            1.foo
           }
 
           self.instance_exec(&block)
