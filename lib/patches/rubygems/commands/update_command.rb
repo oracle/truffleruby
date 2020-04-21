@@ -31,4 +31,4 @@ class Gem::Commands::UpdateCommand
     end
   end
 
-end
+end unless Truffle::Boot.get_option 'testing-rubygems'
