@@ -108,8 +108,8 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         removeStaleEntries();
 
         // Filter out null entries.
-        for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
-            final Value value = e.getValue().get();
+        for (KeyedReference<Key, Value> ref : map.values()) {
+            final Value value = ref.get();
             if (value != null) {
                 ++size;
             }

@@ -1,3 +1,9 @@
+# 20.2.0
+
+Compatibility:
+
+* Implemented `ObjectSpace::WeakMap` (#1385, #1958).
+
 # 20.1.0
 
 New features:
@@ -130,7 +136,6 @@ Compatibility:
 * Do not define unsupported C-API TracePoint events to let C extensions detect it (#1983).
 * `IO.copy_stream(in, STDOUT)` now writes to `STDOUT` without buffering like MRI.
 * Implemented `RbConfig['vendordir']`.
-* Implemented `ObjectSpace::WeakMap` (#1385, #1958).
 
 Changes:
 

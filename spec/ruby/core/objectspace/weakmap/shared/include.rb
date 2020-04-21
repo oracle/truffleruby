@@ -1,4 +1,4 @@
-describe :include?, shared: true do
+describe :weakmap_include?, shared: true do
   it "recognizes keys in use" do
     map = ObjectSpace::WeakMap.new
     key1, key2 = %w[a b].map(&:upcase)
@@ -12,7 +12,7 @@ describe :include?, shared: true do
     map.send(@method, key2).should == true
   end
 
-  it "matches using identity seqantics" do
+  it "matches using identity semantics" do
     map = ObjectSpace::WeakMap.new
     key1, key2 = %w[a a].map &:upcase
     ref = "x"

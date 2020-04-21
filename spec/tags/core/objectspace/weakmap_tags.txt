@@ -1,2 +1,0 @@
-slow:ObjectSpace::WeakMap gets rid of unreferenced objects
-slow:ObjectSpace::WeakMap can be iterated on

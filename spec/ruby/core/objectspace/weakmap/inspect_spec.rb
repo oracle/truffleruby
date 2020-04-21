@@ -12,9 +12,14 @@ describe "ObjectSpace::WeakMap#inspect" do
     map[key1] = ref1
     map.inspect.should =~ /\A\#<ObjectSpace::WeakMap:0x\h+: \#<BasicObject:0x\h+> => \#<BasicObject:0x\h+>>\z/
     map[key2] = ref2
+
+    regexp1 = /\A\#<ObjectSpace::WeakMap:0x\h+: \#<BasicObject:0x\h+> => \#<BasicObject:0x\h+>, \#<Object:0x\h+> => \#<Object:0x\h+>>\z/
+    regexp2 = /\A\#<ObjectSpace::WeakMap:0x\h+: \#<Object:0x\h+> => \#<Object:0x\h+>, \#<BasicObject:0x\h+> => \#<BasicObject:0x\h+>>\z/
     str = map.inspect
-    match1 = str =~ /\A\#<ObjectSpace::WeakMap:0x\h+: \#<BasicObject:0x\h+> => \#<BasicObject:0x\h+>, \#<Object:0x\h+> => \#<Object:0x\h+>>\z/
-    match2 = str =~ /\A\#<ObjectSpace::WeakMap:0x\h+: \#<Object:0x\h+> => \#<Object:0x\h+>, \#<BasicObject:0x\h+> => \#<BasicObject:0x\h+>>\z/
-    (match1 == 0 || match2 == 0).should == true
+    if str =~ regexp1
+      str.should =~ regexp1
+    else
+      str.should =~ regexp2
+    end
   end
 end

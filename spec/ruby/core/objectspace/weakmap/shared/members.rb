@@ -1,4 +1,4 @@
-describe :members, shared: true do
+describe :weakmap_members, shared: true do
   it "is correct" do
     map = ObjectSpace::WeakMap.new
     key1, key2 = %w[a b].map(&:upcase)
