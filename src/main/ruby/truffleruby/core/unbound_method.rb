@@ -16,4 +16,7 @@ class UnboundMethod
 
   alias_method :to_s, :inspect
 
+  def bind_call(recv, *args, &block)
+    bind(recv).call(*args, &block)
+  end
 end

@@ -92,6 +92,7 @@ class MSpecScript
   set :next, %w[
     spec/ruby/core/file/absolute_path_spec.rb
     spec/ruby/core/matchdata/allocate_spec.rb
+    spec/ruby/core/unboundmethod/bind_call_spec.rb
   ]
 
   set :tags_patterns, [

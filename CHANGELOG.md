@@ -1,3 +1,9 @@
+# 20.2.0
+
+Compatibility:
+
+* Implement `UnboundMethod#bind_call`.
+
 # 20.1.0
 
 New features:
