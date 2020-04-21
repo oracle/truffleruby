@@ -3410,9 +3410,12 @@ int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optiona
   return extracted;
 }
 
+FILE *rb_io_stdio_file(rb_io_t *fptr) {
+  rb_tr_error("rb_io_stdio_file not yet implemented");
+}
+
 #ifndef HAVE_GNU_QSORT_R
 typedef int (cmpfunc_t)(const void*, const void*, void*);
-
 #endif
 
 #undef rb_intern
