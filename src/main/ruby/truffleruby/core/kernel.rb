@@ -249,7 +249,7 @@ module Kernel
         if new_require == Truffle::KernelOperations::ORIGINAL_REQUIRE
           raise 'RubyGems did not redefine #require as expected, make sure $LOAD_PATH and home are set correctly'
         end
-        new_require.bind(self).call(feature)
+        new_require.bind_call(self, feature)
       else
         raise Truffle::KernelOperations.load_error(feature)
       end
