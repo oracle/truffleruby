@@ -45,6 +45,7 @@ public class CoreStrings {
     public final CoreString MULTIPLY;
     public final CoreString NEGATIVE_ARRAY_SIZE;
     public final CoreString NEGATIVE_STRING_SIZE;
+    public final CoreString NEVER;
     public final CoreString NIL;
     public final CoreString ONE_HASH_REQUIRED;
     public final CoreString PIPE;
@@ -102,6 +103,7 @@ public class CoreStrings {
         MULTIPLY = new CoreString(context, "*");
         NEGATIVE_ARRAY_SIZE = new CoreString(context, "negative array size");
         NEGATIVE_STRING_SIZE = new CoreString(context, "negative string size (or size too big)");
+        NEVER = new CoreString(context, "never");
         NIL = new CoreString(context, "nil");
         ONE_HASH_REQUIRED = new CoreString(context, "one hash required");
         PIPE = new CoreString(context, "|");
