@@ -2456,10 +2456,8 @@ int ruby_native_thread_p(void);
 #define RUBY_INTERNAL_EVENT_SWITCH          0x040000
 #define RUBY_EVENT_SWITCH                   0x040000 /* obsolete name. this macro is for compatibility */
                                          /* 0x080000 */
-#ifndef TRUFFLERUBY
 #define RUBY_INTERNAL_EVENT_NEWOBJ          0x100000
 #define RUBY_INTERNAL_EVENT_FREEOBJ         0x200000
-#endif
 #define RUBY_INTERNAL_EVENT_GC_START        0x400000
 #define RUBY_INTERNAL_EVENT_GC_END_MARK     0x800000
 #define RUBY_INTERNAL_EVENT_GC_END_SWEEP   0x1000000
