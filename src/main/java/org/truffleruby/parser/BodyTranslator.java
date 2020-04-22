@@ -2555,11 +2555,7 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, ret);
     }
 
-    private ParseNode write(
-            OpElementAsgnParseNode node,
-            ParseNode readReceiverFromTemp,
-            ParseNode value) {
-
+    private ParseNode write(OpElementAsgnParseNode node, ParseNode readReceiverFromTemp, ParseNode value) {
         final ParseNode readArguments = node.getArgsNode();
         final ParseNode writeArguments;
         // Like ParserSupport#arg_add, but copy the first node
