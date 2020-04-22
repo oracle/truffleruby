@@ -3,6 +3,7 @@
 Compatibility:
 
 * Implement `UnboundMethod#bind_call`.
+* Implemented `ObjectSpace::WeakMap` (#1385, #1958).
 
 # 20.1.0
 

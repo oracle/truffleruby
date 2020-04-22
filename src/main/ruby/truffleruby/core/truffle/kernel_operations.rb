@@ -190,5 +190,15 @@ module Truffle
       end
       [omit, length]
     end
+
+    KERNEL_FROZEN = Kernel.instance_method(:frozen?)
+    private_constant :KERNEL_FROZEN
+
+    # Returns whether the value is frozen, even if the value's class does not include `Kernel`.
+    def self.value_frozen?(value)
+      KERNEL_FROZEN.bind(value).call
+    end
+
+    # To get the class even if the value's class does not inlucde `Kernel`, use `Truffle::Type.object_class`.
   end
 end

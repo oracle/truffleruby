@@ -47,17 +47,19 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
  * Callers must hold to the returned value. The entry will stay in the map as long as the value is referenced. */
 public class WeakValueCache<Key, Value> implements ReHashable {
 
-    private Map<Key, KeyedReference<Key, Value>> map = new ConcurrentHashMap<>();
+    private Map<Key, KeyedReference<Key, Value>> map;
     private final ReferenceQueue<Value> deadRefs = new ReferenceQueue<>();
 
+    @TruffleBoundary
+    public WeakValueCache() {
+        this.map = new ConcurrentHashMap<>();
+    }
+
+    @TruffleBoundary
     public Value get(Key key) {
         removeStaleEntries();
         final KeyedReference<Key, Value> reference = map.get(key);
-        if (reference == null) {
-            return null;
-        }
-
-        return reference.get();
+        return reference == null ? null : reference.get();
     }
 
     /** Returns the value in the cache (existing or added). Similar to a putIfAbsent() but always return the value in
@@ -83,24 +85,61 @@ public class WeakValueCache<Key, Value> implements ReHashable {
                     // A stale entry, replace it with a new entry
                     if (map.replace(key, oldRef, newRef)) {
                         return newValue;
-                    } else {
-                        // Some other thread replaced or removed the stale entry, try again from the start.
-                        continue;
                     }
+                    // else continue: Some other thread replaced or removed the stale entry, try again from the start.
                 }
             }
         }
     }
 
-    public int size() {
+
+    /** Sets the value in the cache, always returns the added value. */
+    @TruffleBoundary
+    public Value put(Key key, Value value) {
         removeStaleEntries();
-        return map.size();
+        final KeyedReference<Key, Value> ref = new KeyedReference<>(value, key, deadRefs);
+        map.put(key, ref);
+        return value;
     }
 
+    @TruffleBoundary
+    public int size() {
+        int size = 0;
+        removeStaleEntries();
+
+        // Filter out null entries.
+        for (KeyedReference<Key, Value> ref : map.values()) {
+            final Value value = ref.get();
+            if (value != null) {
+                ++size;
+            }
+        }
+
+        return size;
+    }
+
+    @TruffleBoundary
+    public Collection<Key> keys() {
+        removeStaleEntries();
+        final Collection<Key> keys = new ArrayList<>(map.size());
+
+        // Filter out keys for null values.
+        for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
+            final Value value = e.getValue().get();
+            if (value != null) {
+                keys.add(e.getKey());
+            }
+        }
+
+        return keys;
+    }
+
+    @TruffleBoundary
     public Collection<Value> values() {
         removeStaleEntries();
         final Collection<Value> values = new ArrayList<>(map.size());
 
+        // Filter out null values.
         for (WeakReference<Value> reference : map.values()) {
             final Value value = reference.get();
             if (value != null) {
@@ -109,6 +148,22 @@ public class WeakValueCache<Key, Value> implements ReHashable {
         }
 
         return values;
+    }
+
+    @TruffleBoundary
+    public Collection<WeakMapEntry<Key, Value>> entries() {
+        removeStaleEntries();
+        final Collection<WeakMapEntry<Key, Value>> entries = new ArrayList<>(map.size());
+
+        // Filter out null values.
+        for (Entry<Key, KeyedReference<Key, Value>> e : map.entrySet()) {
+            final Value value = e.getValue().get();
+            if (value != null) {
+                entries.add(new WeakMapEntry<>(e.getKey(), value));
+            }
+        }
+
+        return entries;
     }
 
     public void rehash() {
@@ -130,11 +185,46 @@ public class WeakValueCache<Key, Value> implements ReHashable {
 
     }
 
+    /** Note that this class makes a strong reference on its value!
+     *
+     * @see #entries() */
+    public static class WeakMapEntry<Key, Value> implements Map.Entry<Key, Value> {
+        public final Key key;
+        public final Value value;
+
+        private WeakMapEntry(Key key, Value value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        @Override
+        public Key getKey() {
+            return key;
+        }
+
+        @Override
+        public Value getValue() {
+            return value;
+        }
+
+        @Override
+        public Value setValue(Value value) {
+            throw new UnsupportedOperationException("weak map entries are immutable");
+        }
+    }
+
+    /** Attempts to remove map entries whose values have been made unreachable by the GC.
+     *
+     * <p>
+     * This relies on the underlying {@link WeakReference} instance being enqueued to the {@link #deadRefs} queue. It is
+     * possible that the map still contains {@link WeakReference} instance whose value has been nulled out after a call
+     * to this method (the reference not having been enqueued yet)! */
     private void removeStaleEntries() {
         KeyedReference<?, ?> ref;
         while ((ref = (KeyedReference<?, ?>) deadRefs.poll()) != null) {
             // Remove key, but only if the entry is still referencing the GC'd value.
             // Another valid entry for key could have been added since the old value was GC'd.
+            //noinspection SuspiciousMethodCalls
             map.remove(ref.key, ref);
         }
     }
