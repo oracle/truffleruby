@@ -48,4 +48,9 @@ public class ArrayGuards {
     public static int getSize(DynamicObject array) {
         return Layouts.ARRAY.getSize(array);
     }
+
+    public static boolean basicStore(Object store) {
+        return store instanceof int[] || store instanceof long[] || store instanceof double[] ||
+                store instanceof Object[];
+    }
 }

@@ -255,7 +255,7 @@ public class DoubleArrayStore {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
-        @Specialization(limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = "!basicStore(newStore)", limit = "STORAGE_STRATEGIES")
         protected static Object allocate(double[] store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.allocateForNewStore(newStore, store, length);
