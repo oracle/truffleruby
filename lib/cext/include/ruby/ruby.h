@@ -966,11 +966,17 @@ enum ruby_fl_type {
 };
 
 struct RUBY_ALIGNAS(SIZEOF_VALUE) RBasic {
-#ifndef TRUFFLERUBY
     VALUE flags;
+#ifdef TRUFFLERUBY
+    VALUE klass;
+#else
     const VALUE klass;
 #endif
 };
+
+#ifdef TRUFFLERUBY
+POLYGLOT_DECLARE_STRUCT(RBasic)
+#endif
 
 VALUE rb_obj_hide(VALUE obj);
 VALUE rb_obj_reveal(VALUE obj, VALUE klass); /* do not use this API to change klass information */
@@ -1243,10 +1249,7 @@ struct RFile {
 };
 
 struct RData {
-#ifndef TRUFFLERUBY
-    // TruffleRuby: RBasic is an empty struct. clang makes it size 0 for C, but size 1 for C++. That difference affects field offsets, so we comment out the reference to ensure the size is always 0.
     struct RBasic basic;
-#endif
     void (*dmark)(void*);
     void (*dfree)(void*);
     void *data;
@@ -1382,7 +1385,11 @@ int rb_big_sign(VALUE);
 #define RBIGNUM_NEGATIVE_P(b) (RBIGNUM_SIGN(b)==0)
 
 #define R_CAST(st)   (struct st*)
+#ifdef TRUFFLERUBY
+#define RBASIC(obj) (polyglot_as_RBasic(polyglot_invoke(RUBY_CEXT, "RBASIC", rb_tr_unwrap(obj))))
+#else
 #define RBASIC(obj)  (R_CAST(RBasic)(obj))
+#endif
 #define ROBJECT(obj) (R_CAST(RObject)(obj))
 #define RCLASS(obj)  (R_CAST(RClass)(obj))
 #define RMODULE(obj) RCLASS(obj)

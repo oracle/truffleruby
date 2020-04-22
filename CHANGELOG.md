@@ -125,6 +125,7 @@ Compatibility:
 * `IO.copy_stream(in, STDOUT)` now writes to `STDOUT` without buffering like MRI.
 * Implemented `RbConfig['vendordir']`.
 * Implemented `Enumerator::ArithmeticSequence`.
+* Support `(struct RBasic *)->flags` and `->klass` from `ruby.h` (#1891, #1884, #1978).
 
 Changes:
 
