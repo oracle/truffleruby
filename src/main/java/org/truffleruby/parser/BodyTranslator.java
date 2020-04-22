@@ -284,7 +284,6 @@ public class BodyTranslator extends Translator {
             ParserContext parserContext,
             Node currentNode) {
         super(context, source, parserContext, currentNode);
-        this.parserSupport = new ParserSupport(context, context.getPath(source), null);
         this.parent = parent;
         this.environment = environment;
     }
@@ -1516,13 +1515,18 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, translated);
     }
 
-    private final ParserSupport parserSupport;
-
-    private ParseNode setRHS(ParseNode node, ParseNode rhs) {
-        if (node instanceof AssignableParseNode || node instanceof IArgumentNode) {
-            return parserSupport.node_assign(node, rhs);
+    /** Same as {@link ParserSupport#node_assign(ParseNode, ParseNode)} but without needing a ParserSupport instance.
+     * {@code checkExpression(rhs)} was already done during parsing, no need to re-check it. */
+    private ParseNode setRHS(ParseNode lhs, ParseNode rhs) {
+        if (lhs instanceof AssignableParseNode) {
+            ((AssignableParseNode) lhs).setValueNode(rhs);
+            return lhs;
+        } else if (lhs instanceof IArgumentNode) {
+            IArgumentNode invokableNode = (IArgumentNode) lhs;
+            return invokableNode
+                    .setArgsNode(ParserSupport.arg_add(lhs.getPosition(), invokableNode.getArgsNode(), rhs));
         } else {
-            throw new UnsupportedOperationException("Don't know how to set the RHS of a " + node.getClass().getName());
+            throw new UnsupportedOperationException("Don't know how to set the RHS of a " + lhs.getClass().getName());
         }
     }
 
