@@ -63,8 +63,7 @@ public abstract class RequireNode extends RubyContextNode {
     public abstract boolean executeRequire(String feature, DynamicObject expandedPath);
 
     @Specialization
-    protected boolean require(String feature, DynamicObject expandedPathString,
-            @Cached ConditionProfile isLoadedProfile) {
+    protected boolean require(String feature, DynamicObject expandedPathString) {
         final String expandedPath = StringOperations.getString(expandedPathString);
         return requireWithMetrics(feature, expandedPath, expandedPathString);
     }
@@ -397,7 +396,7 @@ public abstract class RequireNode extends RubyContextNode {
 
     private void addToLoadedFeatures(DynamicObject feature) {
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            addToLoadedFeatures.call(coreLibrary().truffleKernelOperationsModule, "provide_feature", feature);
+            addToLoadedFeatures.call(coreLibrary().truffleFeatureLoaderModule, "provide_feature", feature);
         }
     }
 

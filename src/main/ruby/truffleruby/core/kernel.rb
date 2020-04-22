@@ -226,7 +226,7 @@ module Kernel
   private def gem_original_require(feature)
     feature = Truffle::Type.coerce_to_path(feature)
 
-    status, path = Truffle::KernelOperations.find_feature_or_file(feature)
+    status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
     case status
     when :feature_loaded
       return false
@@ -245,7 +245,7 @@ module Kernel
     lazy_rubygems = Truffle::Boot.get_option_or_default('lazy-rubygems', false)
     upgraded_default_gem = lazy_rubygems && Truffle::GemUtil.upgraded_default_gem?(feature)
 
-    status, path = Truffle::KernelOperations.find_feature_or_file(feature)
+    status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
     if status == :feature_loaded
       return false
     elsif !upgraded_default_gem && status == :feature_found

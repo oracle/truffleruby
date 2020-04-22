@@ -210,6 +210,7 @@ public class CoreLibrary {
     public final DynamicObject unknownIdentifierExceptionClass;
     public final DynamicObject unsupportedTypeExceptionClass;
     public final DynamicObject arityExceptionClass;
+    public final DynamicObject truffleFeatureLoaderModule;
     public final DynamicObject truffleKernelOperationsModule;
     public final DynamicObject truffleRegexpOperationsModule;
     public final DynamicObject truffleThreadOperationsModule;
@@ -617,6 +618,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
         defineModule(truffleModule, "System");
+        truffleFeatureLoaderModule = defineModule(truffleModule, "FeatureLoader");
         truffleKernelOperationsModule = defineModule(truffleModule, "KernelOperations");
         defineModule(truffleModule, "Binding");
         defineModule(truffleModule, "POSIX");
@@ -1143,6 +1145,7 @@ public class CoreLibrary {
             "/core/string.rb",
             "/core/random.rb",
             "/core/truffle/kernel_operations.rb",
+            "/core/truffle/feature_loader.rb",
             "/core/truffle/gem_util.rb",
             "/core/thread.rb",
             "/core/true.rb",
