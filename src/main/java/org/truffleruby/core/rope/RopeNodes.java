@@ -1457,11 +1457,8 @@ public abstract class RopeNodes {
         protected boolean canBeCached(Rope a, Rope b) {
             if (getContext().isPreInitializing()) {
                 final String home = getContext().getRubyHome();
-                if (a.byteLength() < home.length() && b.byteLength() < home.length()) {
-                    return true;
-                }
-                return !RopeOperations.decodeOrEscapeBinaryRope(a).contains(home) &&
-                        !RopeOperations.decodeOrEscapeBinaryRope(b).contains(home);
+                return !RopeOperations.anyChildContains(a, home) &&
+                        !RopeOperations.anyChildContains(b, home);
             } else {
                 return true;
             }

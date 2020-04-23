@@ -229,7 +229,7 @@ module Kernel
     status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
     case status
     when :feature_loaded
-      return false
+      false
     when :feature_found
       Primitive.load_feature(feature, path)
     when :not_found
@@ -247,7 +247,7 @@ module Kernel
 
     status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
     if status == :feature_loaded
-      return false
+      false
     elsif !upgraded_default_gem && status == :feature_found
       Primitive.load_feature(feature, path)
     else
@@ -271,8 +271,17 @@ module Kernel
 
   def require_relative(feature)
     feature = Truffle::Type.coerce_to_path(feature)
-    path = Primitive.get_caller_path(feature)
-    gem_original_require(path)
+    feature = Primitive.get_caller_path(feature)
+
+    status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
+    case status
+    when :feature_loaded
+      false
+    when :feature_found
+      Primitive.load_feature(feature, path)
+    when :not_found
+      raise Truffle::KernelOperations.load_error(feature)
+    end
   end
   module_function :require_relative
 

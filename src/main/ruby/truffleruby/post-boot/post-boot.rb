@@ -54,6 +54,9 @@ if Truffle::Boot.preinitializing?
     end
     old_home = nil # Avoid capturing the old home in the blocks below
 
+    Truffle::FeatureLoader.instance_variable_get(:@loaded_features_index).clear
+    Truffle::FeatureLoader.instance_variable_get(:@loaded_features_copy).clear
+
     Truffle::Boot.delay do
       new_home = Truffle::Boot.ruby_home
       paths_starting_with_home.each do |path|
