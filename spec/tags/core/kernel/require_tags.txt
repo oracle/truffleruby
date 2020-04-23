@@ -1,7 +1,3 @@
-fails:Kernel#require (shell expansion) performs tilde expansion on a .rb file before storing paths in $LOADED_FEATURES
-fails:Kernel#require (shell expansion) performs tilde expansion on a non-extensioned file before storing paths in $LOADED_FEATURES
-fails:Kernel.require (shell expansion) performs tilde expansion on a .rb file before storing paths in $LOADED_FEATURES
-fails:Kernel.require (shell expansion) performs tilde expansion on a non-extensioned file before storing paths in $LOADED_FEATURES
 slow:Kernel#require (concurrently) blocks based on the path
 slow:Kernel.require (concurrently) blocks based on the path
 slow:Kernel#require ($LOADED_FEATURES) complex, enumerator, rational and thread are already required

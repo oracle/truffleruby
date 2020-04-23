@@ -12,6 +12,11 @@ module Truffle
       ext == ".#{Truffle::Platform::DLEXT}"
     end
 
+    def self.find_file(feature)
+      feature = File.expand_path(feature) if feature.start_with?('~')
+      Primitive.find_file(feature)
+    end
+
     # MRI: search_required
     def self.find_feature_or_file(feature)
       feature_ext = extension(feature)
@@ -20,7 +25,7 @@ module Truffle
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           end
-          path = Primitive.find_file(feature)
+          path = find_file(feature)
           if path
             if feature_provided?(path, true)
               return [:feature_loaded, nil]
@@ -34,7 +39,7 @@ module Truffle
             return [:feature_loaded, nil]
           else
             feature_no_ext = feature[0...(-feature_ext.size)]
-            path = Primitive.find_file("#{feature_no_ext}.#{Truffle::Platform::DLEXT}")
+            path = find_file("#{feature_no_ext}.#{Truffle::Platform::DLEXT}")
             if path
               if feature_provided?(path, true)
                 return [:feature_loaded, nil]
@@ -47,7 +52,7 @@ module Truffle
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           else
-            path = Primitive.find_file(feature)
+            path = find_file(feature)
             if path
               if feature_provided?(path, true)
                 return [:feature_loaded, nil]
@@ -62,7 +67,7 @@ module Truffle
           return [:feature_loaded, nil]
         end
       end
-      path = Primitive.find_file(feature)
+      path = find_file(feature)
       if path
         if feature_provided?(path, true)
           return [:feature_loaded, nil]
