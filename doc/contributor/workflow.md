@@ -3,12 +3,15 @@
 ## Requirements
 
 See the [Dependencies in the README](../../README.md#dependencies).
-Additionally, you will need:
-
-* Ruby >= 2.4
 
 The requirements include a [C compiler](../user/installing-llvm.md). Because it's a common issue, we remind macOS users
 they might need to add `export SDKROOT=$(xcrun --show-sdk-path)` to their shell profile.
+
+Additionally, you will need:
+
+* Ruby >= 2.4
+* [CMake](https://cmake.org/), for building Sulong (GraalVM's LLVM support)
+  CMake can be installed via the usual methods: `dnf`, `apt-get`, `brew`, ...)
 
 ## Workspace directory
 
