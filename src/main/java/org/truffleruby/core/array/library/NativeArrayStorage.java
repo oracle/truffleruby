@@ -220,6 +220,16 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
     }
 
+    @ExportMessage
+    protected Object allocateForNewValue(Object newValue, int length) {
+        return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+    }
+
+    @ExportMessage
+    protected Object allocateForNewStore(Object newValue, int length) {
+        return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+    }
+
     public long readElement(int index) {
         return pointer.readLong(index * Pointer.SIZE);
     }

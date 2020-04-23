@@ -218,6 +218,51 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
+    static class AllocateForNewValue {
+
+        @Specialization
+        protected static Object allocateForNewStore(double[] store, double newValue, int length) {
+            return DOUBLE_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Fallback
+        protected static Object allocateForNewStore(double[] store, Object newValue, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+    }
+
+    @ExportMessage
+    @ImportStatic(ArrayGuards.class)
+    static class AllocateForNewStore {
+
+        @Specialization
+        protected static Object allocate(double[] store, int[] newStore, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(double[] store, long[] newStore, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(double[] store, double[] newStore, int length) {
+            return DOUBLE_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization
+        protected static Object allocate(double[] store, Object[] newStore, int length) {
+            return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
+        }
+
+        @Specialization(guards = "!basicStore(newStore)", limit = "STORAGE_STRATEGIES")
+        protected static Object allocate(double[] store, Object newStore, int length,
+                @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
+            return newStores.allocateForNewStore(newStore, store, length);
+        }
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(double[] store) {
         return DOUBLE_ARRAY_ALLOCATOR;
     }

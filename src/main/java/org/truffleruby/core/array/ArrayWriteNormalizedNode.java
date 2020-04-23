@@ -59,7 +59,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
         final int size = getSize(array);
         final Object store = getStore(array);
-        final Object newStore = arrays.generalizeForValue(store, value).allocate(size);
+        final Object newStore = arrays.allocateForNewValue(store, value, size);
         arrays.copyContents(store, 0, newStore, 0, size);
         propagateSharingNode.executePropagate(array, value);
         newArrays.write(newStore, index, value);
@@ -88,7 +88,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
         final int newSize = index + 1;
         Object store = getStore(array);
-        final Object objectStore = arrays.generalizeForValue(store, nil).allocate(newSize);
+        final Object objectStore = arrays.allocateForNewValue(store, nil, newSize);
         int oldSize = getSize(array);
         arrays.copyContents(store, 0, objectStore, 0, oldSize);
         for (int n = oldSize; n < index; n++) {

@@ -80,7 +80,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
         final int newSize = oldSize + otherSize;
         final Object store = Layouts.ARRAY.getStore(array);
         final Object otherStore = Layouts.ARRAY.getStore(other);
-        final Object newStore = stores.generalizeForStore(store, otherStore).allocate(newSize);
+        final Object newStore = stores.allocateForNewStore(store, otherStore, newSize);
 
         propagateSharingNode.executePropagate(array, other);
         stores.copyContents(store, 0, newStore, 0, oldSize);
