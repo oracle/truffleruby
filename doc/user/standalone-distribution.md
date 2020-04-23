@@ -72,7 +72,7 @@ Set `TRUFFLERUBY_VERSION` to the latest TruffleRuby version from
 
 ```bash
 $ export TRUFFLERUBY_VERSION=<desired_version>
-$ curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
+$ curl -L https://github.com/oracle/truffleruby/archive/$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
 $ export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
 $ $PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/lib/truffle/post_install_hook.sh
 $ ruby -v # => truffleruby 20.0.0, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
