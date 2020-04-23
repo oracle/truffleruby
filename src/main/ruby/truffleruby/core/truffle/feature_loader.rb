@@ -133,7 +133,10 @@ module Truffle
     def self.get_loaded_features_index
       #if !Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
       if @loaded_features_copy.hash != $LOADED_FEATURES.hash
-        @loaded_features_index.clear
+        TruffleRuby.synchronized(@loaded_features_index) do
+          @loaded_features_index.clear
+        end
+
         $LOADED_FEATURES.map! do |val|
           val = StringValue(val)
           #val.freeze # TODO freeze these but post-boot.rb issue using replace
@@ -201,10 +204,12 @@ module Truffle
 
     # MRI: features_index_add_single
     def self.features_index_add_single(feature, offset)
-      if @loaded_features_index.has_key?(feature)
-        @loaded_features_index[feature] << offset
-      else
-        @loaded_features_index[feature] = [offset]
+      TruffleRuby.synchronized(@loaded_features_index) do
+        if @loaded_features_index.has_key?(feature)
+          @loaded_features_index[feature] << offset
+        else
+          @loaded_features_index[feature] = [offset]
+        end
       end
     end
 

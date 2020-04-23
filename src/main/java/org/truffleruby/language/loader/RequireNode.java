@@ -178,6 +178,9 @@ public abstract class RequireNode extends RubyContextNode {
                     return true;
                 }
 
+                if (isFeatureLoaded(pathString)) {
+                    return false;
+                }
 
                 if (!parseAndCall(originalFeature, expandedPath)) {
                     return false;
@@ -393,6 +396,14 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
+    public boolean isFeatureLoaded(DynamicObject feature) {
+        final Object included;
+        synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
+            included = isInLoadedFeatures
+                    .call(coreLibrary().truffleFeatureLoaderModule, "feature_provided?", feature, true);
+        }
+        return booleanCastNode.executeToBoolean(included);
+    }
 
     private void addToLoadedFeatures(DynamicObject feature) {
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
