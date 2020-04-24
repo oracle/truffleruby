@@ -33,9 +33,9 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     @Child private CallDispatchHeadNode toIntNode;
     @Child private FloatNodes.ToINode floatToIntNode;
 
-    private final ConditionProfile wasInteger = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile wasLong = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile wasLongInRange = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile wasInteger = ConditionProfile.create();
+    private final ConditionProfile wasLong = ConditionProfile.create();
+    private final ConditionProfile wasLongInRange = ConditionProfile.create();
 
     private final BranchProfile errorProfile = BranchProfile.create();
 

@@ -87,7 +87,7 @@ public abstract class VMPrimitiveNodes {
         @Specialization
         protected Object doCatch(Object tag, DynamicObject block,
                 @Cached BranchProfile catchProfile,
-                @Cached("createBinaryProfile()") ConditionProfile matchProfile,
+                @Cached ConditionProfile matchProfile,
                 @Cached ReferenceEqualNode referenceEqualNode,
                 @Cached YieldNode dispatchNode) {
             try {
@@ -121,7 +121,7 @@ public abstract class VMPrimitiveNodes {
         protected Object vmExtendedModules(Object object, DynamicObject block,
                 @Cached MetaClassNode metaClassNode,
                 @Cached YieldNode yieldNode,
-                @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile) {
+                @Cached ConditionProfile isSingletonProfile) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(object);
 
             if (isSingletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
@@ -168,7 +168,7 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "isRubyException(exception)")
         protected DynamicObject vmRaiseException(DynamicObject exception, boolean internal,
-                @Cached("createBinaryProfile()") ConditionProfile reRaiseProfile) {
+                @Cached ConditionProfile reRaiseProfile) {
             final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
             if (reRaiseProfile.profile(backtrace != null && backtrace.getRaiseException() != null)) {
                 // We need to rethrow the existing RaiseException, otherwise we would lose the
@@ -433,9 +433,9 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = "!isRubyNumber(salt)")
         protected Object startHashNotNumber(Object salt,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
-                @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+                @Cached ConditionProfile isIntegerProfile,
+                @Cached ConditionProfile isLongProfile,
+                @Cached ConditionProfile isBignumProfile) {
             Object result = coerceToIntNode.call(coreLibrary().truffleTypeModule, "coerce_to_int", salt);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return getContext().getHashing(this).start((int) result);
@@ -466,9 +466,9 @@ public abstract class VMPrimitiveNodes {
         @Specialization(guards = "!isRubyNumber(value)")
         protected Object updateHash(long hash, Object value,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
-                @Cached("createBinaryProfile()") ConditionProfile isIntegerProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isLongProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isBignumProfile) {
+                @Cached ConditionProfile isIntegerProfile,
+                @Cached ConditionProfile isLongProfile,
+                @Cached ConditionProfile isBignumProfile) {
             Object result = coerceToIntNode.call(coreLibrary().truffleTypeModule, "coerce_to_int", value);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return Hashing.update(hash, (int) result);

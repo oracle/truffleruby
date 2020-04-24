@@ -86,7 +86,7 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
         private final int required;
         @CompilationFinal(dimensions = 1) private final DynamicObject[] allowedKeywords;
 
-        private final ConditionProfile isSymbolProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile isSymbolProfile = ConditionProfile.create();
         private final BranchProfile tooManyKeywordsProfile = BranchProfile.create();
         private final BranchProfile unknownKeywordProfile;
 

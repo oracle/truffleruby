@@ -21,10 +21,10 @@ import org.truffleruby.core.numeric.BigDecimalOps;
 
 public abstract class AbstractAddNode extends BigDecimalOpNode {
 
-    private final ConditionProfile nanProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile posInfinityProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile negInfinityProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile normalProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile nanProfile = ConditionProfile.create();
+    private final ConditionProfile posInfinityProfile = ConditionProfile.create();
+    private final ConditionProfile negInfinityProfile = ConditionProfile.create();
+    private final ConditionProfile normalProfile = ConditionProfile.create();
 
     protected Object add(DynamicObject a, DynamicObject b, int precision) {
         if (precision == 0) {

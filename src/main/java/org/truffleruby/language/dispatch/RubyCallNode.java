@@ -182,13 +182,13 @@ public class RubyCallNode extends RubyContextSourceNode {
         // TODO CS-10-Apr-17 see below
         // @Child private LookupMethodNode lookupMethodNode = LookupMethodNodeGen.create(ignoreVisibility, false, null, null);
 
-        private final ConditionProfile receiverDefinedProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile receiverDefinedProfile = ConditionProfile.create();
         private final BranchProfile argumentNotDefinedProfile = BranchProfile.create();
         private final BranchProfile allArgumentsDefinedProfile = BranchProfile.create();
         private final BranchProfile receiverExceptionProfile = BranchProfile.create();
-        private final ConditionProfile methodNotFoundProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile methodUndefinedProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile methodNotVisibleProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile methodNotFoundProfile = ConditionProfile.create();
+        private final ConditionProfile methodUndefinedProfile = ConditionProfile.create();
+        private final ConditionProfile methodNotVisibleProfile = ConditionProfile.create();
 
         @ExplodeLoop
         public Object isDefined(VirtualFrame frame, RubyContext context) {

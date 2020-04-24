@@ -106,16 +106,16 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached MetaClassNode metaClassNode,
             @Cached(value = "ignoreVisibility", allowUncached = true) boolean cachedIgnoreVisibility,
             @Cached(value = "onlyLookupPublic", allowUncached = true) boolean cachedOnlyLookupPublic,
-            @Cached("createBinaryProfile()") ConditionProfile noCallerMethodProfile,
-            @Cached("createBinaryProfile()") ConditionProfile isSendProfile,
+            @Cached ConditionProfile noCallerMethodProfile,
+            @Cached ConditionProfile isSendProfile,
             @Cached BranchProfile foreignProfile,
-            @Cached("createBinaryProfile()") ConditionProfile noPrependedModulesProfile,
-            @Cached("createBinaryProfile()") ConditionProfile onMetaClassProfile,
-            @Cached("createBinaryProfile()") ConditionProfile isRefinedProfile,
-            @Cached("createBinaryProfile()") ConditionProfile notFoundProfile,
-            @Cached("createBinaryProfile()") ConditionProfile publicProfile,
-            @Cached("createBinaryProfile()") ConditionProfile privateProfile,
-            @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile) {
+            @Cached ConditionProfile noPrependedModulesProfile,
+            @Cached ConditionProfile onMetaClassProfile,
+            @Cached ConditionProfile isRefinedProfile,
+            @Cached ConditionProfile notFoundProfile,
+            @Cached ConditionProfile publicProfile,
+            @Cached ConditionProfile privateProfile,
+            @Cached ConditionProfile isVisibleProfile) {
 
         assert this != LookupMethodNodeGen.getUncached() || frame == null;
 

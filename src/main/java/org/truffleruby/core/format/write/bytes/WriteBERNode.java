@@ -64,7 +64,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 @NodeChild("value")
 public abstract class WriteBERNode extends FormatNode {
 
-    private final ConditionProfile cantCompressProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile cantCompressProfile = ConditionProfile.create();
 
     private final BigInteger BIG_128 = BigInteger.valueOf(128);
 

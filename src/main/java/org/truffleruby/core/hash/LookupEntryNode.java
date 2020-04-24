@@ -20,7 +20,7 @@ public class LookupEntryNode extends RubyContextNode {
     @Child HashNode hashNode = new HashNode();
     @Child CompareHashKeysNode compareHashKeysNode = new CompareHashKeysNode();
 
-    private final ConditionProfile byIdentityProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile byIdentityProfile = ConditionProfile.create();
 
     public HashLookupResult lookup(DynamicObject hash, Object key) {
         final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));

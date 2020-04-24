@@ -376,7 +376,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected Object isCompatible(Object first, Object second,
-                @Cached("createBinaryProfile()") ConditionProfile noNegotiatedEncodingProfile) {
+                @Cached ConditionProfile noNegotiatedEncodingProfile) {
             final Encoding negotiatedEncoding = negotiateCompatibleEncodingNode.executeNegotiate(first, second);
 
             if (noNegotiatedEncodingProfile.profile(negotiatedEncoding == null)) {
@@ -650,7 +650,7 @@ public abstract class EncodingNodes {
 
         @Specialization(guards = "isRubyRegexp(object)")
         protected Object encodingGetObjectEncodingRegexp(DynamicObject object,
-                @Cached("createBinaryProfile()") ConditionProfile hasRegexpSource) {
+                @Cached ConditionProfile hasRegexpSource) {
             final Rope regexpSource = Layouts.REGEXP.getSource(object);
 
             if (hasRegexpSource.profile(regexpSource != null)) {

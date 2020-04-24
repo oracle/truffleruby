@@ -22,7 +22,7 @@ import org.truffleruby.core.numeric.BigDecimalOps;
 
 public abstract class AbstractDivNode extends BigDecimalOpNode {
 
-    private final ConditionProfile normalZero = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile normalZero = ConditionProfile.create();
 
     private Object divBigDecimalConsideringSignum(DynamicObject a, DynamicObject b, MathContext mathContext) {
         final BigDecimal aBigDecimal = Layouts.BIG_DECIMAL.getValue(a);

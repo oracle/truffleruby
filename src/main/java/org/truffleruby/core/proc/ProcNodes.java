@@ -343,8 +343,8 @@ public abstract class ProcNodes {
 
         @Specialization
         protected Object singleBlockArg(VirtualFrame frame,
-                @Cached("createBinaryProfile()") ConditionProfile emptyArgsProfile,
-                @Cached("createBinaryProfile()") ConditionProfile singleArgProfile) {
+                @Cached ConditionProfile emptyArgsProfile,
+                @Cached ConditionProfile singleArgProfile) {
 
             /* In Rubinius, this method inspects the values yielded to the block, regardless of whether the block
              * captures the values, and returns the first value in the list of values yielded to the block.

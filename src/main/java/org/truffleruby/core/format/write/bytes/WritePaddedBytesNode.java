@@ -21,7 +21,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChild("value")
 public abstract class WritePaddedBytesNode extends FormatNode {
 
-    private final ConditionProfile leftJustifiedProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile leftJustifiedProfile = ConditionProfile.create();
     private final boolean leftJustified;
 
     public WritePaddedBytesNode(boolean leftJustified) {

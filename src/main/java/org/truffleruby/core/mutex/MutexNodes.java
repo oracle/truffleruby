@@ -101,7 +101,7 @@ public abstract class MutexNodes {
         @Specialization
         protected boolean tryLock(VirtualFrame frame, DynamicObject mutex,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("createBinaryProfile()") ConditionProfile heldByCurrentThreadProfile) {
+                @Cached ConditionProfile heldByCurrentThreadProfile) {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
             final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
 

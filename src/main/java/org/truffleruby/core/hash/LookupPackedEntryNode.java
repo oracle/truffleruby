@@ -100,7 +100,7 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
             int hashed,
             BiFunctionNode defaultValueNode,
             @Cached BranchProfile notInHashProfile,
-            @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+            @Cached ConditionProfile byIdentityProfile) {
         final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
 
         final Object[] store = (Object[]) Layouts.HASH.getStore(hash);

@@ -198,7 +198,7 @@ public class TruffleRegexpNodes {
                 int startPos,
                 int range,
                 boolean onlyMatchAtStart,
-                @Cached("createBinaryProfile()") ConditionProfile matchesProfile) {
+                @Cached ConditionProfile matchesProfile) {
             assert RubyGuards.isRubyRegexp(regexp);
             assert RubyGuards.isRubyString(string);
 

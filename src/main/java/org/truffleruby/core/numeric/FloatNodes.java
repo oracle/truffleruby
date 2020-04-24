@@ -136,7 +136,7 @@ public abstract class FloatNodes {
         @Child private CallDispatchHeadNode complexConvertNode;
         @Child private CallDispatchHeadNode complexPowNode;
 
-        private final ConditionProfile complexProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile complexProfile = ConditionProfile.create();
 
         @Specialization(
                 guards = { "exponent == cachedExponent", "cachedExponent >= 0", "cachedExponent < 10" },
@@ -215,7 +215,7 @@ public abstract class FloatNodes {
     @CoreMethod(names = "%", required = 1)
     public abstract static class ModNode extends CoreMethodArrayArgumentsNode {
 
-        private final ConditionProfile lessThanZeroProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile lessThanZeroProfile = ConditionProfile.create();
         private final BranchProfile zeroProfile = BranchProfile.create();
 
         public static ModNode create() {

@@ -43,7 +43,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     @Specialization
     @ReportPolymorphism.Exclude
     protected Object set(DynamicObject array, int index, Object value, NotProvided unused,
-            @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
+            @Cached ConditionProfile negativeIndexProfile) {
         final int normalizedIndex = ArrayOperations.normalizeIndex(getSize(array), index, negativeIndexProfile);
         checkIndex(array, index, normalizedIndex);
         return write(array, normalizedIndex, value);
@@ -70,7 +70,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     @Specialization(guards = { "isRubyArray(replacement)", "length == getArraySize(replacement)" })
     @ReportPolymorphism.Exclude
     protected Object setOtherArraySameLength(DynamicObject array, int start, int length, DynamicObject replacement,
-            @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
+            @Cached ConditionProfile negativeIndexProfile) {
         final int normalizedIndex = ArrayOperations.normalizeIndex(getSize(array), start, negativeIndexProfile);
         checkIndex(array, start, normalizedIndex);
 
@@ -91,15 +91,15 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
-            @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
-            @Cached("createBinaryProfile()") ConditionProfile recursiveProfile,
-            @Cached("createBinaryProfile()") ConditionProfile emptyProfile,
-            @Cached("createBinaryProfile()") ConditionProfile tailProfile,
-            @Cached("createBinaryProfile()") ConditionProfile moveElementsProfile,
-            @Cached("createBinaryProfile()") ConditionProfile moveLeftProfile,
-            @Cached("createBinaryProfile()") ConditionProfile emptyReplacementProfile,
-            @Cached("createBinaryProfile()") ConditionProfile growProfile,
-            @Cached("createBinaryProfile()") ConditionProfile shrinkProfile) {
+            @Cached ConditionProfile negativeIndexProfile,
+            @Cached ConditionProfile recursiveProfile,
+            @Cached ConditionProfile emptyProfile,
+            @Cached ConditionProfile tailProfile,
+            @Cached ConditionProfile moveElementsProfile,
+            @Cached ConditionProfile moveLeftProfile,
+            @Cached ConditionProfile emptyReplacementProfile,
+            @Cached ConditionProfile growProfile,
+            @Cached ConditionProfile shrinkProfile) {
         checkLengthPositive(length);
         final int start = ArrayOperations.normalizeIndex(getSize(array), rawStart, negativeIndexProfile);
         checkIndex(array, rawStart, start);
@@ -193,8 +193,8 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
 
     @Specialization(guards = { "isIntRange(range)", "isRubyArray(value)" })
     protected Object setRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused,
-            @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
-            @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
+            @Cached ConditionProfile negativeBeginProfile,
+            @Cached ConditionProfile negativeEndProfile,
             @Cached BranchProfile errorProfile) {
         final int size = getSize(array);
         final int begin = Layouts.INT_RANGE.getBegin(range);

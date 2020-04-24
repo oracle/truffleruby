@@ -26,7 +26,7 @@ public class TaintResultNode extends RubyContextSourceNode {
 
     private final boolean taintFromSelf;
     private final int taintFromParameter;
-    private final ConditionProfile taintProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile taintProfile = ConditionProfile.create();
 
     @Child private RubyNode method;
     @Child private IsTaintedNode isTaintedNode;

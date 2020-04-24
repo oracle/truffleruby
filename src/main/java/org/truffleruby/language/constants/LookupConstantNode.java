@@ -59,7 +59,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
             @Cached("isValidConstantName(cachedName)") boolean isValidConstantName,
             @Cached("doLookup(cachedModule, cachedName)") ConstantLookupResult constant,
             @Cached("isVisible(cachedModule, constant)") boolean isVisible,
-            @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
+            @Cached ConditionProfile sameNameProfile) {
         if (!isValidConstantName) {
             throw new RaiseException(getContext(), coreExceptions().nameErrorWrongConstantName(cachedName, this));
         } else if (!isVisible) {
@@ -73,9 +73,9 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
 
     @Specialization
     protected RubyConstant lookupConstantUncached(DynamicObject module, String name,
-            @Cached("createBinaryProfile()") ConditionProfile isValidConstantNameProfile,
-            @Cached("createBinaryProfile()") ConditionProfile isVisibleProfile,
-            @Cached("createBinaryProfile()") ConditionProfile isDeprecatedProfile) {
+            @Cached ConditionProfile isValidConstantNameProfile,
+            @Cached ConditionProfile isVisibleProfile,
+            @Cached ConditionProfile isDeprecatedProfile) {
         ConstantLookupResult constant = doLookup(module, name);
         boolean isVisible = isVisible(module, constant);
 

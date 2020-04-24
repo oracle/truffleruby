@@ -29,7 +29,7 @@ public abstract class ReadHashValueNode extends FormatNode {
 
     @Child private CallDispatchHeadNode fetchNode;
 
-    private final ConditionProfile oneHashProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile oneHashProfile = ConditionProfile.create();
 
     public ReadHashValueNode(Object key) {
         this.key = key;

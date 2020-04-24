@@ -242,8 +242,8 @@ public class RubyObjectMessages {
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Cached @Exclusive CallDispatchHeadNode dispatch,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
-            @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException, UnsupportedMessageException {
@@ -277,7 +277,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException, UnsupportedMessageException {
@@ -310,7 +310,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached CallDispatchHeadNode removeInstanceVariableNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
             @Cached @Shared("frozen") IsFrozenNode isFrozenNode)
@@ -348,7 +348,7 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchDynamic,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchMember,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
@@ -381,8 +381,8 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
-            @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile) {
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
         Object dynamic = dispatchNode.call(receiver, "polyglot_member_readable?", rubyName);
@@ -404,7 +404,7 @@ public class RubyObjectMessages {
             @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
@@ -425,7 +425,7 @@ public class RubyObjectMessages {
             @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
@@ -462,7 +462,7 @@ public class RubyObjectMessages {
             @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
@@ -485,8 +485,8 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
-            @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile) {
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
         Object dynamic = dispatchNode.call(receiver, "polyglot_member_invocable?", rubyName);
@@ -510,8 +510,8 @@ public class RubyObjectMessages {
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
-            @Shared("ivarFoundProfile") @Cached("createBinaryProfile()") ConditionProfile ivarFoundProfile) {
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
         Object dynamic = dispatchNode.call(receiver, "polyglot_member_internal?", rubyName);
@@ -533,7 +533,7 @@ public class RubyObjectMessages {
     protected static boolean hasMemberReadSideEffects(DynamicObject receiver, String name,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
@@ -549,7 +549,7 @@ public class RubyObjectMessages {
     protected static boolean hasMemberWriteSideEffects(DynamicObject receiver, String name,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
-            @Shared("dynamicProfile") @Cached("createBinaryProfile()") ConditionProfile dynamicProfile,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Exclusive @Cached BooleanCastNode booleanCastNode) {
 
         Object rubyName = nameToRubyNode.executeConvert(name);

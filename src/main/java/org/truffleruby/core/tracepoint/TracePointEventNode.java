@@ -20,7 +20,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 class TracePointEventNode extends TraceBaseEventNode {
 
-    private final ConditionProfile inTracePointProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile inTracePointProfile = ConditionProfile.create();
 
     private final DynamicObject tracePoint;
     private final DynamicObject proc;

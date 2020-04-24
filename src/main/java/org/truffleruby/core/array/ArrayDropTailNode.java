@@ -36,7 +36,7 @@ public abstract class ArrayDropTailNode extends RubyContextSourceNode {
     protected DynamicObject dropTail(DynamicObject array,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
             @Cached ArrayCopyOnWriteNode cowNode,
-            @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {
+            @Cached ConditionProfile indexLargerThanSize) {
         final int size = Layouts.ARRAY.getSize(array);
         if (indexLargerThanSize.profile(index >= size)) {
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);

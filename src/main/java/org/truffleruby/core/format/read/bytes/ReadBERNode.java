@@ -66,7 +66,7 @@ public abstract class ReadBERNode extends FormatNode {
     private static final long UL_MASK = 0xFE000000;
     private static final BigInteger BIG_128 = BigInteger.valueOf(128);
 
-    private final ConditionProfile simpleProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile simpleProfile = ConditionProfile.create();
 
     @Specialization
     protected Object encode(VirtualFrame frame, byte[] source) {

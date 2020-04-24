@@ -158,7 +158,7 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
 
-        private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile sameProfile = ConditionProfile.create();
 
         public static SameOrEqualNode create() {
             return SameOrEqualNodeFactory.create(null);
@@ -210,7 +210,7 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode eqlNode;
         @Child private BooleanCastNode booleanCastNode;
 
-        private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile sameProfile = ConditionProfile.create();
 
         public abstract boolean executeSameOrEql(Object a, Object b);
 
@@ -370,7 +370,7 @@ public abstract class KernelNodes {
         @Specialization
         protected boolean blockGiven(VirtualFrame frame,
                 @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode,
-                @Cached("createBinaryProfile()") ConditionProfile blockProfile) {
+                @Cached ConditionProfile blockProfile) {
             MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             return blockProfile
                     .profile(readNode.execute(callerFrame, TranslatorEnvironment.METHOD_BLOCK_NAME) != nil);
@@ -528,10 +528,10 @@ public abstract class KernelNodes {
 
         @Specialization(guards = { "!isRubyBignum(self)", "!isRubySymbol(self)" })
         protected DynamicObject clone(DynamicObject self, boolean freeze,
-                @Cached("createBinaryProfile()") ConditionProfile isSingletonProfile,
-                @Cached("createBinaryProfile()") ConditionProfile freezeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isFrozenProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isRubyClass) {
+                @Cached ConditionProfile isSingletonProfile,
+                @Cached ConditionProfile freezeProfile,
+                @Cached ConditionProfile isFrozenProfile,
+                @Cached ConditionProfile isRubyClass) {
             final DynamicObject newObject = copyNode.executeCopy(self);
 
             // Copy the singleton class if any.
@@ -563,7 +563,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object cloneBoolean(boolean self, boolean freeze,
-                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+                @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(self);
             }
@@ -572,7 +572,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object cloneInteger(int self, boolean freeze,
-                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+                @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(self);
             }
@@ -581,7 +581,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object cloneLong(long self, boolean freeze,
-                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+                @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(self);
             }
@@ -590,7 +590,7 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object cloneFloat(double self, boolean freeze,
-                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+                @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(self);
             }
@@ -599,7 +599,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isNil(nil)")
         protected Object cloneNil(Object nil, boolean freeze,
-                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+                @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(nil);
             }
@@ -608,7 +608,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isRubyBignum(object)")
         protected Object cloneBignum(DynamicObject object, boolean freeze,
-                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+                @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(object);
             }
@@ -617,7 +617,7 @@ public abstract class KernelNodes {
 
         @Specialization(guards = "isRubySymbol(symbol)")
         protected Object cloneSymbol(DynamicObject symbol, boolean freeze,
-                @Cached("createBinaryProfile()") ConditionProfile freezeProfile) {
+                @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(symbol);
             }
@@ -645,7 +645,7 @@ public abstract class KernelNodes {
         @Specialization
         protected Object dup(Object self,
                 @Cached IsImmutableObjectNode isImmutableObjectNode,
-                @Cached("createBinaryProfile()") ConditionProfile immutableProfile,
+                @Cached ConditionProfile immutableProfile,
                 @Cached CopyNode copyNode,
                 @Cached("createPrivate()") CallDispatchHeadNode initializeDupNode) {
             if (immutableProfile.profile(isImmutableObjectNode.execute(self))) {
@@ -1251,8 +1251,8 @@ public abstract class KernelNodes {
 
         @Specialization
         protected DynamicObject methods(VirtualFrame frame, Object self, DynamicObject name,
-                @Cached("createBinaryProfile()") ConditionProfile notFoundProfile,
-                @Cached("createBinaryProfile()") ConditionProfile respondToMissingProfile) {
+                @Cached ConditionProfile notFoundProfile,
+                @Cached ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
             InternalMethod method = lookupMethodNode
                     .lookup(frame, self, normalizedName, ignoreVisibility, !ignoreVisibility);
@@ -1531,9 +1531,9 @@ public abstract class KernelNodes {
         @Child private DoesRespondDispatchHeadNode dispatchRespondToMissing;
         @Child private CallDispatchHeadNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
-        private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile isTrueProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile respondToMissingProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
+        private final ConditionProfile isTrueProfile = ConditionProfile.create();
+        private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
 
         public RespondToNode() {
             dispatch = DoesRespondDispatchHeadNode.create(DoesRespondDispatchHeadNode.PUBLIC);
@@ -1678,8 +1678,8 @@ public abstract class KernelNodes {
         @Specialization
         protected DynamicObject singletonMethod(Object self, String name,
                 @Cached BranchProfile errorProfile,
-                @Cached("createBinaryProfile()") ConditionProfile singletonProfile,
-                @Cached("createBinaryProfile()") ConditionProfile methodProfile) {
+                @Cached ConditionProfile singletonProfile,
+                @Cached ConditionProfile methodProfile) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             if (singletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
@@ -1800,7 +1800,7 @@ public abstract class KernelNodes {
                 .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile resizeProfile = ConditionProfile.create();
 
         @Specialization(
                 guards = {

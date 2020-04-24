@@ -28,7 +28,7 @@ public class CatchForMethodNode extends RubyContextSourceNode {
     @Child private RubyNode body;
 
     private final BranchProfile localReturnProfile = BranchProfile.create();
-    private final ConditionProfile matchingReturnProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile matchingReturnProfile = ConditionProfile.create();
     private final BranchProfile retryProfile = BranchProfile.create();
 
     public CatchForMethodNode(ReturnID returnID, RubyNode body) {

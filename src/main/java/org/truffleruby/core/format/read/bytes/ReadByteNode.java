@@ -20,7 +20,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadByteNode extends FormatNode {
 
-    private final ConditionProfile rangeProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile rangeProfile = ConditionProfile.create();
 
     @Specialization(guards = "isNull(source)")
     protected void read(VirtualFrame frame, Object source) {

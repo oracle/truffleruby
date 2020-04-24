@@ -32,8 +32,8 @@ public class DefineClassNode extends RubyContextSourceNode {
     @Child private LookupForExistingModuleNode lookupForExistingModuleNode;
     @Child private CallDispatchHeadNode inheritedNode;
 
-    private final ConditionProfile needToDefineProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile noSuperClassSupplied = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile needToDefineProfile = ConditionProfile.create();
+    private final ConditionProfile noSuperClassSupplied = ConditionProfile.create();
     private final BranchProfile errorProfile = BranchProfile.create();
 
     public DefineClassNode(

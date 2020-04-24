@@ -422,7 +422,7 @@ public abstract class ArrayNodes {
                 @Cached("createInternal()") ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
-                @Cached("createBinaryProfile()") ConditionProfile selfArgProfile) {
+                @Cached ConditionProfile selfArgProfile) {
             int size = Layouts.ARRAY.getSize(array);
             DynamicObject copy = createArray(cowNode.execute(array, 0, size), size);
             DynamicObject result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
@@ -443,7 +443,7 @@ public abstract class ArrayNodes {
                 @Cached("createInternal()") ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
-                @Cached("createBinaryProfile()") ConditionProfile selfArgProfile) {
+                @Cached ConditionProfile selfArgProfile) {
             final int size = Layouts.ARRAY.getSize(array);
             Object store = cowNode.execute(array, 0, size);
 
@@ -578,8 +578,8 @@ public abstract class ArrayNodes {
                 limit = "STORAGE_STRATEGIES")
         protected Object deleteAt(DynamicObject array, int index,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
-                @Cached("createBinaryProfile()") ConditionProfile notInBoundsProfile) {
+                @Cached ConditionProfile negativeIndexProfile,
+                @Cached ConditionProfile notInBoundsProfile) {
             final int size = Layouts.ARRAY.getSize(array);
             final int i = ArrayOperations.normalizeIndex(size, index, negativeIndexProfile);
 
@@ -600,8 +600,8 @@ public abstract class ArrayNodes {
                 limit = "ARRAY_STRATEGIES")
         protected Object deleteAtCopying(DynamicObject array, int index,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
-                @Cached("createBinaryProfile()") ConditionProfile notInBoundsProfile) {
+                @Cached ConditionProfile negativeIndexProfile,
+                @Cached ConditionProfile notInBoundsProfile) {
             final int size = Layouts.ARRAY.getSize(array);
             final int i = ArrayOperations.normalizeIndex(size, index, negativeIndexProfile);
 
@@ -671,9 +671,9 @@ public abstract class ArrayNodes {
                 limit = "STORAGE_STRATEGIES")
         protected boolean equalSamePrimitiveType(VirtualFrame frame, DynamicObject a, DynamicObject b,
                 @CachedLibrary("getStore(a)") ArrayStoreLibrary stores,
-                @Cached("createBinaryProfile()") ConditionProfile sameProfile,
+                @Cached ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile sameSizeProfile,
+                @Cached ConditionProfile sameSizeProfile,
                 @Cached BranchProfile trueProfile,
                 @Cached BranchProfile falseProfile) {
 
@@ -737,9 +737,9 @@ public abstract class ArrayNodes {
                 limit = "STORAGE_STRATEGIES")
         protected boolean eqlSamePrimitiveType(DynamicObject a, DynamicObject b,
                 @CachedLibrary("getStore(a)") ArrayStoreLibrary stores,
-                @Cached("createBinaryProfile()") ConditionProfile sameProfile,
+                @Cached ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile sameSizeProfile,
+                @Cached ConditionProfile sameSizeProfile,
                 @Cached BranchProfile trueProfile,
                 @Cached BranchProfile falseProfile) {
 
@@ -986,7 +986,7 @@ public abstract class ArrayNodes {
                 NotProvided block,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary stores,
                 @Cached("allocatorForValue(fillingValue)") ArrayAllocator allocator,
-                @Cached("createBinaryProfile()") ConditionProfile needsFill,
+                @Cached ConditionProfile needsFill,
                 @Cached PropagateSharingNode propagateSharingNode) {
             final Object store = allocator.allocate(size);
             if (needsFill.profile(!allocator.isDefaultValue(fillingValue))) {
@@ -1336,7 +1336,7 @@ public abstract class ArrayNodes {
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile resizeProfile = ConditionProfile.create();
 
         @CreateCast("format")
         protected RubyNode coerceFormat(RubyNode format) {
@@ -1477,7 +1477,7 @@ public abstract class ArrayNodes {
                 limit = "STORAGE_STRATEGIES")
         protected Object popNotEmptySharedStorage(DynamicObject array, int n,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-                @Cached("createBinaryProfile()") ConditionProfile minProfile) {
+                @Cached ConditionProfile minProfile) {
             final int size = Layouts.ARRAY.getSize(array);
             final int numPop = minProfile.profile(size < n) ? size : n;
             final Object store = Layouts.ARRAY.getStore(array);
@@ -1496,7 +1496,7 @@ public abstract class ArrayNodes {
                 limit = "STORAGE_STRATEGIES")
         protected Object popNotEmptyUnsharedStorage(DynamicObject array, int n,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-                @Cached("createBinaryProfile()") ConditionProfile minProfile) {
+                @Cached ConditionProfile minProfile) {
             final int size = Layouts.ARRAY.getSize(array);
             final int numPop = minProfile.profile(size < n) ? size : n;
             final Object store = Layouts.ARRAY.getStore(array);
@@ -1913,7 +1913,7 @@ public abstract class ArrayNodes {
                 limit = "STORAGE_STRATEGIES")
         protected Object shiftMany(DynamicObject array, int n,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-                @Cached("createBinaryProfile()") ConditionProfile minProfile) {
+                @Cached ConditionProfile minProfile) {
             final int size = Layouts.ARRAY.getSize(array);
             final int numShift = minProfile.profile(size < n) ? size : n;
             final Object store = Layouts.ARRAY.getStore(array);
@@ -2098,7 +2098,7 @@ public abstract class ArrayNodes {
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary aStores,
                 @CachedLibrary("getStore(other)") ArrayStoreLibrary bStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary pairs,
-                @Cached("createBinaryProfile()") ConditionProfile bNotSmallerProfile) {
+                @Cached ConditionProfile bNotSmallerProfile) {
             final Object a = Layouts.ARRAY.getStore(array);
             final Object b = Layouts.ARRAY.getStore(other);
 

@@ -51,8 +51,8 @@ public class ReadOptionalArgumentNode extends RubyContextSourceNode {
             this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(requiredForKWArgs);
         }
 
-        this.hasKeywordsProfile = considerRejectedKWArgs ? ConditionProfile.createBinaryProfile() : null;
-        this.hasRejectedKwargs = considerRejectedKWArgs ? ConditionProfile.createBinaryProfile() : null;
+        this.hasKeywordsProfile = considerRejectedKWArgs ? ConditionProfile.create() : null;
+        this.hasRejectedKwargs = considerRejectedKWArgs ? ConditionProfile.create() : null;
     }
 
     @Override

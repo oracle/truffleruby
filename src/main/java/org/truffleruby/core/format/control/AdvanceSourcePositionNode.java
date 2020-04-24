@@ -19,7 +19,7 @@ public class AdvanceSourcePositionNode extends FormatNode {
 
     private final boolean toEnd;
 
-    private final ConditionProfile rangeProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile rangeProfile = ConditionProfile.create();
 
     public AdvanceSourcePositionNode(boolean toEnd) {
         this.toEnd = toEnd;

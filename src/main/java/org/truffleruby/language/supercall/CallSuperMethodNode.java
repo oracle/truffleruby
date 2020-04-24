@@ -24,7 +24,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class CallSuperMethodNode extends FrameSendingNode {
 
-    private final ConditionProfile missingProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile missingProfile = ConditionProfile.create();
 
     @Child private CallInternalMethodNode callMethodNode;
     @Child private CallDispatchHeadNode callMethodMissingNode;

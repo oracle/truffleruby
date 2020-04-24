@@ -20,7 +20,7 @@ public class SetSourcePositionNode extends FormatNode {
 
     private final int position;
 
-    private final ConditionProfile rangeProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile rangeProfile = ConditionProfile.create();
 
     public SetSourcePositionNode(int position) {
         this.position = position;

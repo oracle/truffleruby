@@ -31,7 +31,7 @@ public class CatchBreakNode extends RubyContextSourceNode {
         this.isWhile = isWhile;
         this.breakID = breakID;
         this.body = body;
-        this.anyBlockProfile = isWhile ? null : ConditionProfile.createBinaryProfile();
+        this.anyBlockProfile = isWhile ? null : ConditionProfile.create();
     }
 
     @Override

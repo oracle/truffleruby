@@ -21,7 +21,7 @@ public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNod
 
     private final Object valueIfAbsent;
 
-    private final ConditionProfile nullProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile nullProfile = ConditionProfile.create();
 
     public ReadBlockFromCurrentFrameArgumentsNode(Object valueIfAbsent) {
         this.valueIfAbsent = valueIfAbsent;

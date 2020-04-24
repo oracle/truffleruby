@@ -26,7 +26,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadCallerFrameNode extends RubyContextNode {
 
-    private final ConditionProfile callerFrameProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile callerFrameProfile = ConditionProfile.create();
     @CompilationFinal private volatile boolean deoptWhenNotPassedCallerFrame = true;
     @Child private NotOptimizedWarningNode notOptimizedNode = null;
 

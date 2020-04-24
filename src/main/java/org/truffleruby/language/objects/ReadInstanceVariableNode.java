@@ -30,7 +30,7 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
     @Child private WarningNode warningNode;
     @Child private HasFieldNode hasFieldNode;
 
-    private final ConditionProfile objectProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile objectProfile = ConditionProfile.create();
 
     private final boolean warnIfUndefined;
 

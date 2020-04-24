@@ -26,7 +26,7 @@ public abstract class ReadBytesNode extends FormatNode {
     private final int count;
     private final boolean consumePartial;
 
-    private final ConditionProfile rangeProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile rangeProfile = ConditionProfile.create();
 
     public ReadBytesNode(int count, boolean consumePartial) {
         this.count = count;

@@ -22,7 +22,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public class ReadKeywordArgumentNode extends RubyContextSourceNode implements BiFunctionNode {
 
     private final DynamicObject name;
-    private final ConditionProfile defaultProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile defaultProfile = ConditionProfile.create();
 
     @Child private RubyNode defaultValue;
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;

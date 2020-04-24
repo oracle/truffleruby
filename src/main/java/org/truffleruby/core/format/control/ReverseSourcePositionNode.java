@@ -19,7 +19,7 @@ public class ReverseSourcePositionNode extends FormatNode {
 
     private boolean star;
 
-    private final ConditionProfile rangeProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile rangeProfile = ConditionProfile.create();
 
     public ReverseSourcePositionNode(boolean star) {
         this.star = star;

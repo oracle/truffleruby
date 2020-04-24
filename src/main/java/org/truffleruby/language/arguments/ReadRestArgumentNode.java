@@ -50,8 +50,8 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
             this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimumForKWargs);
         }
 
-        this.hasKeywordsProfile = keywordArguments ? ConditionProfile.createBinaryProfile() : null;
-        this.hasRejectedKwargs = keywordArguments ? ConditionProfile.createBinaryProfile() : null;
+        this.hasKeywordsProfile = keywordArguments ? ConditionProfile.create() : null;
+        this.hasRejectedKwargs = keywordArguments ? ConditionProfile.create() : null;
     }
 
     @Override

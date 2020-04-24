@@ -533,13 +533,13 @@ public abstract class MathNodes {
 
         @Specialization
         protected int min(int a, int b,
-                @Cached("createBinaryProfile()") ConditionProfile profile) {
+                @Cached ConditionProfile profile) {
             return profile.profile(a < b) ? a : b;
         }
 
         @Specialization
         protected long min(long a, long b,
-                @Cached("createBinaryProfile()") ConditionProfile profile) {
+                @Cached ConditionProfile profile) {
             return profile.profile(a < b) ? a : b;
         }
 

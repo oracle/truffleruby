@@ -54,8 +54,8 @@ public abstract class ArrayIndexNode extends ArrayCoreMethodNode {
 
     @Specialization(guards = "isIntRange(range)")
     protected Object slice(DynamicObject array, DynamicObject range, NotProvided len,
-            @Cached("createBinaryProfile()") ConditionProfile negativeBeginProfile,
-            @Cached("createBinaryProfile()") ConditionProfile negativeEndProfile,
+            @Cached ConditionProfile negativeBeginProfile,
+            @Cached ConditionProfile negativeEndProfile,
             @Cached ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
         final int size = getSize(array);
         final int normalizedBegin = ArrayOperations

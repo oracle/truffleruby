@@ -69,7 +69,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         protected int getByte(DynamicObject bytes, int index,
-                @Cached("createBinaryProfile()") ConditionProfile nullByteIndexProfile) {
+                @Cached ConditionProfile nullByteIndexProfile) {
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
 
             // Handling out-of-bounds issues like this is non-standard. In Rubinius, it would raise an exception instead.
@@ -223,7 +223,7 @@ public abstract class ByteArrayNodes {
         protected Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
-                @Cached("createBinaryProfile()") ConditionProfile notFoundProfile) {
+                @Cached ConditionProfile notFoundProfile) {
             final Rope patternRope = StringOperations.rope(pattern);
             final int index = indexOf(
                     Layouts.BYTE_ARRAY.getBytes(bytes),

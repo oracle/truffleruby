@@ -309,7 +309,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "specialToInteropMethod(cachedName)", allowUncached = true) String interopMethodName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached @Shared("dispatch") CallDispatchHeadNode callDispatchHeadNode,
-            @Cached("createBinaryProfile()") ConditionProfile errorProfile) {
+            @Cached ConditionProfile errorProfile) {
 
         if (errorProfile.profile(args.length == cachedArity)) {
             final Object[] arguments = ArrayUtils.unshift(args, receiver);

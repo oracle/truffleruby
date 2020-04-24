@@ -28,7 +28,7 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
     // Use an arrayBuilderNode to stabilize the array type for a given location.
     @Child private ArrayBuilderNode arrayBuilderNode;
 
-    private final ConditionProfile isArrayProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isArrayProfile = ConditionProfile.create();
 
     public ArrayConcatNode(RubyNode[] children) {
         assert children.length > 1;

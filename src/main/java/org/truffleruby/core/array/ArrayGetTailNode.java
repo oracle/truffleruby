@@ -36,7 +36,7 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
     protected DynamicObject getTail(DynamicObject array,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @Cached ArrayCopyOnWriteNode cowNode,
-            @Cached("createBinaryProfile()") ConditionProfile indexLargerThanSize) {
+            @Cached ConditionProfile indexLargerThanSize) {
         final int size = Layouts.ARRAY.getSize(array);
         if (indexLargerThanSize.profile(index >= size)) {
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);

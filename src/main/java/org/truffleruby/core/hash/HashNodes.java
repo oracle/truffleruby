@@ -171,7 +171,7 @@ public abstract class HashNodes {
                 BiFunctionNode defaultValueNode,
                 @Cached LookupPackedEntryNode lookupPackedEntryNode,
                 @Cached("new()") HashNode hashNode,
-                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached ConditionProfile byIdentityProfile) {
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
             int hashed = hashNode.hash(key, compareByIdentity); // Call key.hash only once
             return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed, defaultValueNode);
@@ -290,7 +290,7 @@ public abstract class HashNodes {
     @CoreMethod(names = "compare_by_identity?")
     public abstract static class IsCompareByIdentityNode extends CoreMethodArrayArgumentsNode {
 
-        private final ConditionProfile profile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile profile = ConditionProfile.create();
 
         @Specialization
         protected boolean compareByIdentity(DynamicObject hash) {
@@ -343,7 +343,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isPackedHash(hash)")
         protected Object deletePackedArray(DynamicObject hash, Object key, Object maybeBlock,
-                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
             final int hashed = hashNode.hash(key, compareByIdentity);
@@ -433,7 +433,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        private final ConditionProfile arityMoreThanOne = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
 
         @Specialization(guards = "isNullHash(hash)")
         protected DynamicObject eachNull(DynamicObject hash, DynamicObject block) {
@@ -649,7 +649,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
-        private final ConditionProfile arityMoreThanOne = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
 
         @Specialization(guards = "isNullHash(hash)")
         protected DynamicObject mapNull(DynamicObject hash, DynamicObject block) {
@@ -874,7 +874,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isPackedHash(hash)")
         protected DynamicObject rehashPackedArray(DynamicObject hash,
-                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
@@ -897,7 +897,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isBucketHash(hash)")
         protected DynamicObject rehashBuckets(DynamicObject hash,
-                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));

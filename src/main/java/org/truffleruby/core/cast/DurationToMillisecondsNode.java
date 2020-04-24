@@ -25,7 +25,7 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
 
     @Child NumericToFloatNode floatCastNode;
 
-    private final ConditionProfile durationLessThanZeroProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile durationLessThanZeroProfile = ConditionProfile.create();
     private final boolean acceptsNil;
 
     public DurationToMillisecondsNode(boolean acceptsNil) {

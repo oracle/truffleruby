@@ -75,7 +75,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
 
     @Specialization
     protected DynamicObject create(double value, NotProvided digits, boolean strict,
-            @Cached("createBinaryProfile()") ConditionProfile finiteValueProfile,
+            @Cached ConditionProfile finiteValueProfile,
             @Cached BranchProfile nanProfile,
             @Cached BranchProfile positiveInfinityProfile,
             @Cached BranchProfile negativeInfinityProfile) {
@@ -112,7 +112,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             @Cached BooleanCastNode booleanCastNode,
             @Cached GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
-            @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
+            @Cached ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
         final int exceptionConstant = getIntegerConstantNode
@@ -133,7 +133,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
             @Cached BooleanCastNode booleanCastNode,
             @Cached GetIntegerConstantNode getIntegerConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
-            @Cached("createBinaryProfile()") ConditionProfile raiseProfile) {
+            @Cached ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
         final int exceptionConstant = getIntegerConstantNode.executeGetIntegerConstant(
@@ -201,7 +201,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     @Specialization(guards = { "!isRubyBignum(value)", "!isRubyBigDecimal(value)", "!isRubyString(value)" })
     protected DynamicObject create(DynamicObject value, int digits, boolean strict,
             @Cached BigDecimalCastNode bigDecimalCastNode,
-            @Cached("createBinaryProfile()") ConditionProfile castProfile) {
+            @Cached ConditionProfile castProfile) {
         final Object castedValue = bigDecimalCastNode.execute(value, digits, getRoundMode());
 
         if (castProfile.profile(castedValue instanceof BigDecimal)) {

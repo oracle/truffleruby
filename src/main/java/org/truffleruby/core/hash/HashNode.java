@@ -25,12 +25,12 @@ public class HashNode extends RubyContextNode {
     @Child private ObjectIDNode objectIDNode;
     @Child private CallDispatchHeadNode coerceToIntNode;
 
-    private final ConditionProfile isIntegerProfile1 = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile isLongProfile1 = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile isBignumProfile1 = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile isIntegerProfile2 = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile isLongProfile2 = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile isBignumProfile2 = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isIntegerProfile1 = ConditionProfile.create();
+    private final ConditionProfile isLongProfile1 = ConditionProfile.create();
+    private final ConditionProfile isBignumProfile1 = ConditionProfile.create();
+    private final ConditionProfile isIntegerProfile2 = ConditionProfile.create();
+    private final ConditionProfile isLongProfile2 = ConditionProfile.create();
+    private final ConditionProfile isBignumProfile2 = ConditionProfile.create();
 
     public int hash(Object key, boolean compareByIdentity) {
         final Object hashedObject;

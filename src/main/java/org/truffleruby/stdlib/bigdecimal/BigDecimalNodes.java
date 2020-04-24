@@ -166,9 +166,9 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "!isNormal(value)")
         protected Object negSpecial(DynamicObject value,
-                @Cached("createBinaryProfile()") ConditionProfile nanProfile,
-                @Cached("createBinaryProfile()") ConditionProfile negZeroProfile,
-                @Cached("createBinaryProfile()") ConditionProfile infProfile) {
+                @Cached ConditionProfile nanProfile,
+                @Cached ConditionProfile negZeroProfile,
+                @Cached ConditionProfile infProfile) {
             final BigDecimalType type = Layouts.BIG_DECIMAL.getType(value);
 
             if (nanProfile.profile(type == BigDecimalType.NAN)) {
@@ -297,7 +297,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object div(DynamicObject a, DynamicObject b, NotProvided precision,
-                @Cached("createBinaryProfile()") ConditionProfile bZeroProfile,
+                @Cached ConditionProfile bZeroProfile,
                 @Cached("createPrivate()") CallDispatchHeadNode floorNode) {
             if (bZeroProfile.profile(isNormalZero(b))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
@@ -309,7 +309,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object div(DynamicObject a, DynamicObject b, int precision,
-                @Cached("createBinaryProfile()") ConditionProfile zeroPrecisionProfile) {
+                @Cached ConditionProfile zeroPrecisionProfile) {
             final int newPrecision;
 
             if (zeroPrecisionProfile.profile(precision == 0)) {
@@ -326,8 +326,8 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object divNormalSpecial(DynamicObject a, DynamicObject b, NotProvided precision,
-                @Cached("createBinaryProfile()") ConditionProfile negativeZeroProfile,
-                @Cached("createBinaryProfile()") ConditionProfile nanProfile) {
+                @Cached ConditionProfile negativeZeroProfile,
+                @Cached ConditionProfile nanProfile) {
             if (negativeZeroProfile.profile(Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NEGATIVE_ZERO)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (nanProfile.profile(Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NAN)) {
@@ -345,9 +345,9 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "!isNormal(a)", "isNormalRubyBigDecimal(b)" })
         protected Object divSpecialNormal(DynamicObject a, DynamicObject b, NotProvided precision,
-                @Cached("createBinaryProfile()") ConditionProfile zeroDivisionProfile,
-                @Cached("createBinaryProfile()") ConditionProfile nanProfile,
-                @Cached("createBinaryProfile()") ConditionProfile infinityProfile) {
+                @Cached ConditionProfile zeroDivisionProfile,
+                @Cached ConditionProfile nanProfile,
+                @Cached ConditionProfile infinityProfile) {
             if (zeroDivisionProfile.profile(isNormalZero(b))) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (nanProfile.profile(Layouts.BIG_DECIMAL.getType(a) == BigDecimalType.NAN)) {
@@ -369,8 +369,8 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "!isNormal(a)", "isSpecialRubyBigDecimal(b)" })
         protected Object divSpecialSpecial(DynamicObject a, DynamicObject b, NotProvided precision,
-                @Cached("createBinaryProfile()") ConditionProfile negZeroProfile,
-                @Cached("createBinaryProfile()") ConditionProfile nanProfile) {
+                @Cached ConditionProfile negZeroProfile,
+                @Cached ConditionProfile nanProfile) {
             if (negZeroProfile.profile(Layouts.BIG_DECIMAL.getType(b) == BigDecimalType.NEGATIVE_ZERO)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else if (nanProfile.profile(
@@ -440,10 +440,10 @@ public abstract class BigDecimalNodes {
         protected Object divmodSpecial(DynamicObject a, DynamicObject b,
                 @Cached("createPrivate()") CallDispatchHeadNode signCall,
                 @Cached IntegerCastNode signIntegerCast,
-                @Cached("createBinaryProfile()") ConditionProfile nanProfile,
-                @Cached("createBinaryProfile()") ConditionProfile normalNegProfile,
-                @Cached("createBinaryProfile()") ConditionProfile negNormalProfile,
-                @Cached("createBinaryProfile()") ConditionProfile infinityProfile) {
+                @Cached ConditionProfile nanProfile,
+                @Cached ConditionProfile normalNegProfile,
+                @Cached ConditionProfile negNormalProfile,
+                @Cached ConditionProfile infinityProfile) {
             final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
@@ -520,7 +520,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object remainderSpecial(DynamicObject a, DynamicObject b,
-                @Cached("createBinaryProfile()") ConditionProfile zeroProfile) {
+                @Cached ConditionProfile zeroProfile) {
             final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
@@ -564,11 +564,11 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isRubyBigDecimal(b)", "!isNormal(a) || !isNormal(b)" })
         protected Object moduloSpecial(DynamicObject a, DynamicObject b,
-                @Cached("createBinaryProfile()") ConditionProfile nanProfile,
-                @Cached("createBinaryProfile()") ConditionProfile normalNegProfile,
-                @Cached("createBinaryProfile()") ConditionProfile negNormalProfile,
-                @Cached("createBinaryProfile()") ConditionProfile posNegInfProfile,
-                @Cached("createBinaryProfile()") ConditionProfile negPosInfProfile) {
+                @Cached ConditionProfile nanProfile,
+                @Cached ConditionProfile normalNegProfile,
+                @Cached ConditionProfile negNormalProfile,
+                @Cached ConditionProfile posNegInfProfile,
+                @Cached ConditionProfile negPosInfProfile) {
             final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
@@ -628,9 +628,9 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = "isNormal(a)")
         protected Object power(DynamicObject a, int exponent, int precision,
-                @Cached("createBinaryProfile()") ConditionProfile positiveExponentProfile,
-                @Cached("createBinaryProfile()") ConditionProfile zeroProfile,
-                @Cached("createBinaryProfile()") ConditionProfile zeroExponentProfile) {
+                @Cached ConditionProfile positiveExponentProfile,
+                @Cached ConditionProfile zeroProfile,
+                @Cached ConditionProfile zeroExponentProfile) {
             final BigDecimal aBigDecimal = Layouts.BIG_DECIMAL.getValue(a);
             final boolean positiveExponent = positiveExponentProfile.profile(exponent >= 0);
 
@@ -812,7 +812,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(a)", "precision > 0" })
         protected Object sqrt(DynamicObject a, int precision,
-                @Cached("createBinaryProfile()") ConditionProfile positiveValueProfile) {
+                @Cached ConditionProfile positiveValueProfile) {
             final BigDecimal valueBigDecimal = Layouts.BIG_DECIMAL.getValue(a);
             if (positiveValueProfile.profile(BigDecimalOps.signum(valueBigDecimal) >= 0)) {
                 return createBigDecimal(sqrt(valueBigDecimal, BigDecimalOps.newMathContext(precision, getRoundMode())));
@@ -999,7 +999,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(value)", "!isNormalZero(value)" })
         protected int signNormal(DynamicObject value,
-                @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
+                @Cached ConditionProfile positiveProfile) {
             final String name;
 
             if (positiveProfile.profile(BigDecimalOps.signum(value) > 0)) {

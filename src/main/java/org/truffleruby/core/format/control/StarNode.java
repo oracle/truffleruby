@@ -36,7 +36,7 @@ public class StarNode extends FormatNode {
 
         @Child private FormatNode child;
 
-        private final ConditionProfile conditionProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile conditionProfile = ConditionProfile.create();
 
         public StarRepeatingNode(FormatNode child) {
             this.child = child;
