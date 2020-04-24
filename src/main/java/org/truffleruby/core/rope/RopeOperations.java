@@ -643,7 +643,7 @@ public class RopeOperations {
                     anyChildContains(((ConcatRope) rope).getRight(), value);
         }
         if (rope.byteLength() < value.length()) {
-            return true;
+            return false;
         }
         if (RopeOperations.decodeRope(rope).contains(value)) {
             return true;

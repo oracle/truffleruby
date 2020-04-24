@@ -25,4 +25,22 @@ describe "array_storage_equal primitive" do
     a << "three"
     Primitive.array_storage_equal?(a, b).should == false
   end
+
+  it "returns false for unequal array" do
+    loaded_features = ["one", "two"]
+
+    # spec setup
+    features_save = loaded_features.clone
+
+    # spec modifies features
+    loaded_features << "three"
+
+    # cache a copy
+    cache_copy = loaded_features.dup
+
+    # spec cleanup
+    loaded_features.replace features_save
+
+    Primitive.array_storage_equal?(loaded_features, cache_copy).should == false
+  end
 end

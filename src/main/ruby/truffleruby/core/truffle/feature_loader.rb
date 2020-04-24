@@ -1,16 +1,20 @@
+# frozen_string_literal: true
+
+# Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 2.0, or
+# GNU General Public License version 2, or
+# GNU Lesser General Public License version 2.1.
+
 module Truffle
   module FeatureLoader
 
+    DOT_DLEXT = ".#{Truffle::Platform::DLEXT}"
+
     @loaded_features_index = {}
     @loaded_features_copy = []
-
-    def self.so_ext?(ext)
-      ext == '.so'
-    end
-
-    def self.dl_ext?(ext)
-      ext == ".#{Truffle::Platform::DLEXT}"
-    end
 
     def self.find_file(feature)
       feature = File.expand_path(feature) if feature.start_with?('~')
@@ -26,40 +30,22 @@ module Truffle
             return [:feature_loaded, nil]
           end
           path = find_file(feature)
-          if path
-            if feature_provided?(path, true)
-              return [:feature_loaded, nil]
-            else
-              return [:feature_found, path]
-            end
-          end
+          return expanded_path_provided(path) if path
           return [:not_found, nil]
-        elsif so_ext?(feature_ext)
+        elsif feature_ext == '.so'
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           else
             feature_no_ext = feature[0...(-feature_ext.size)]
             path = find_file("#{feature_no_ext}.#{Truffle::Platform::DLEXT}")
-            if path
-              if feature_provided?(path, true)
-                return [:feature_loaded, nil]
-              else
-                return [:feature_found, path]
-              end
-            end
+            return expanded_path_provided(path) if path
           end
-        elsif dl_ext?(feature_ext)
+        elsif feature_ext == DOT_DLEXT
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           else
             path = find_file(feature)
-            if path
-              if feature_provided?(path, true)
-                return [:feature_loaded, nil]
-              else
-                return [:feature_found, path]
-              end
-            end
+            return expanded_path_provided(path) if path
           end
         end
       else
@@ -126,8 +112,16 @@ module Truffle
       end
     end
 
+    def self.expanded_path_provided(path)
+      if feature_provided?(path, true)
+        [:feature_loaded, nil]
+      else
+        [:feature_found, path]
+      end
+    end
+
     def self.binary_ext?(ext)
-      so_ext?(ext) || dl_ext?(ext)
+      ext == '.so' || ext == DOT_DLEXT
     end
 
     def self.has_extension?(path)
@@ -136,8 +130,7 @@ module Truffle
 
     # MRI: get_loaded_features_index
     def self.get_loaded_features_index
-      #if !Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
-      if @loaded_features_copy.hash != $LOADED_FEATURES.hash
+      if !Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
         TruffleRuby.synchronized(@loaded_features_index) do
           @loaded_features_index.clear
         end
@@ -159,6 +152,7 @@ module Truffle
     def self.provide_feature(feature)
       raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
       #feature.freeze # TODO freeze these but post-boot.rb issue using replace
+      get_loaded_features_index
       $LOADED_FEATURES << feature
       features_index_add(feature, $LOADED_FEATURES.size - 1)
       update_loaded_features_snapshot
