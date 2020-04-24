@@ -71,7 +71,8 @@ public class FindDeclarationVariableNodes {
         }
 
         @Specialization(
-                guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode != null" })
+                guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode != null" },
+                assumptions = "cachedDescriptor.getVersion()")
         protected Object getVariable(MaterializedFrame frame, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
@@ -81,7 +82,8 @@ public class FindDeclarationVariableNodes {
         }
 
         @Specialization(
-                guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode == null" })
+                guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode == null" },
+                assumptions = "cachedDescriptor.getVersion()")
         protected Object getVariableDefaultValue(MaterializedFrame frame, String name,
                 @Cached("name") String cachedName,
                 @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
