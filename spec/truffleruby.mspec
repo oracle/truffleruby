@@ -62,12 +62,6 @@ class MSpecScript
   set :library, [
     "spec/ruby/library",
 
-    # Trying to enable breaks a lot of things
-    "^spec/ruby/library/net",
-
-    # Unsupported
-    "^spec/ruby/library/win32ole",
-
     # Tested separately as they need Sulong
     *library_cext_specs.map { |path| "^#{path}" }
   ]
@@ -145,25 +139,6 @@ end
 
 if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_process?
   require 'mspec'
-
-  class SlowSpecsTagger
-    def initialize
-      MSpec.register :exception, self
-    end
-
-    def exception(state)
-      if state.exception.is_a? SlowSpecException
-        tag = SpecTag.new
-        tag.tag = 'slow'
-        tag.description = "#{state.describe} #{state.it}"
-        MSpec.write_tag(tag)
-      end
-    end
-  end
-
-  class SlowSpecException < Exception
-  end
-
   require 'timeout'
 
   slow_methods = [
@@ -175,29 +150,24 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
     [Timeout.singleton_class, [:timeout]],
   ]
 
-  module Kernel
-    alias_method :mspec_old_system, :system
-    private :mspec_old_system
-
-    alias_method :"mspec_old_`", :`
-    private :"mspec_old_`"
-  end
-
   slow_methods.each do |klass, meths|
     klass.class_exec do
       meths.each do |meth|
+        original = instance_method(meth)
         define_method(meth) do |*args, &block|
-          if MSpec.current && MSpec.current.state # an example is running
-            raise SlowSpecException, "Was tagged as slow as it uses #{meth}(). Rerun specs."
-          else
-            send("mspec_old_#{meth}", *args, &block)
+          if MSpec.current and state = MSpec.current.state # an example is running
+            tag = SpecTag.new
+            tag.tag = 'slow'
+            tag.description = "#{state.describe} #{state.it}"
+            MSpec.write_tag(tag)
+            STDERR.puts "Added slow tag for #{tag.description}"
           end
+
+          original.bind(self).call(*args, &block)
         end
         # Keep visibility for Kernel instance methods
         private meth if klass == Kernel
       end
     end
   end
-
-  SlowSpecsTagger.new
 end
