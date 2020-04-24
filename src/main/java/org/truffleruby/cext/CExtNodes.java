@@ -120,7 +120,7 @@ public class CExtNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached BranchProfile exceptionProfile,
-                @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
+                @Cached ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
             if (getContext().getOptions().CEXT_LOCK) {
@@ -186,7 +186,7 @@ public class CExtNodes {
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile,
-                @Cached("createBinaryProfile()") ConditionProfile ownedProfile) {
+                @Cached ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
             if (getContext().getOptions().CEXT_LOCK) {
@@ -232,7 +232,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object ulong2num(long num,
-                @Cached("createBinaryProfile()") ConditionProfile positiveProfile) {
+                @Cached ConditionProfile positiveProfile) {
             if (positiveProfile.profile(num >= 0)) {
                 return num;
             } else {
@@ -528,7 +528,7 @@ public class CExtNodes {
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
-                @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile,
+                @Cached ConditionProfile sameEncodingProfile,
                 @Cached BranchProfile errorProfile) {
             final Rope rope = rope(string);
             final byte[] bytes = bytesNode.execute(rope);
@@ -588,7 +588,7 @@ public class CExtNodes {
         @Specialization
         protected DynamicObject strSetLen(DynamicObject string, int newByteLength,
                 @Cached StringToNativeNode stringToNativeNode,
-                @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile) {
+                @Cached ConditionProfile asciiOnlyProfile) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
             final CodeRange newCodeRange;
@@ -997,7 +997,7 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         protected NativeRope toNative(DynamicObject string,
-                @Cached("createBinaryProfile()") ConditionProfile convertProfile,
+                @Cached ConditionProfile convertProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode) {
@@ -1065,8 +1065,8 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         protected Object read(DynamicObject string, int index,
-                @Cached("createBinaryProfile()") ConditionProfile nativeRopeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile inBoundsProfile,
+                @Cached ConditionProfile nativeRopeProfile,
+                @Cached ConditionProfile inBoundsProfile,
                 @Cached RopeNodes.GetByteNode getByteNode) {
             final Rope rope = rope(string);
 
@@ -1085,7 +1085,7 @@ public class CExtNodes {
 
         @Specialization(guards = "isRubyString(string)")
         protected int write(DynamicObject string, int index, int value,
-                @Cached("createBinaryProfile()") ConditionProfile newRopeProfile,
+                @Cached ConditionProfile newRopeProfile,
                 @Cached RopeNodes.SetByteNode setByteNode) {
             final Rope rope = rope(string);
 
@@ -1193,8 +1193,8 @@ public class CExtNodes {
 
         @Specialization
         protected Object executeThrow(CapturedException captured,
-                @Cached("createBinaryProfile()") ConditionProfile runtimeExceptionProfile,
-                @Cached("createBinaryProfile()") ConditionProfile errorProfile) {
+                @Cached ConditionProfile runtimeExceptionProfile,
+                @Cached ConditionProfile errorProfile) {
             final Throwable e = captured.getException();
             if (runtimeExceptionProfile.profile(e instanceof RuntimeException)) {
                 throw (RuntimeException) e;
@@ -1272,7 +1272,7 @@ public class CExtNodes {
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         protected Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
-                @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
+                @Cached ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
             final Rope rope = StringOperations.rope(str);
             final Encoding ropeEncoding = rope.getEncoding();
@@ -1313,7 +1313,7 @@ public class CExtNodes {
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
         protected Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
-                @Cached("createBinaryProfile()") ConditionProfile sameEncodingProfile) {
+                @Cached ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
             final Rope rope = StringOperations.rope(str);
             final CodeRange cr;

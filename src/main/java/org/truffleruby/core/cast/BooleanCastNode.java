@@ -75,7 +75,7 @@ public abstract class BooleanCastNode extends RubyBaseNode {
     @Specialization(guards = "isForeignObject(object)", limit = "getCacheLimit()")
     protected boolean doForeignObject(TruffleObject object,
             @CachedLibrary("object") InteropLibrary objects,
-            @Cached("createBinaryProfile()") ConditionProfile profile,
+            @Cached ConditionProfile profile,
             @Cached BranchProfile failed) {
         if (profile.profile(objects.isBoolean(object))) {
             try {

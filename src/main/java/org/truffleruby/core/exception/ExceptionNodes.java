@@ -146,8 +146,8 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected Object backtrace(DynamicObject exception,
-                @Cached("createBinaryProfile()") ConditionProfile hasCustomBacktraceProfile,
-                @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile) {
+                @Cached ConditionProfile hasCustomBacktraceProfile,
+                @Cached ConditionProfile hasBacktraceProfile) {
             final Object customBacktrace = getReadCustomBacktraceNode()
                     .execute(exception, CUSTOM_BACKTRACE_FIELD, null);
 
@@ -183,8 +183,8 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected Object backtraceLocations(DynamicObject exception,
-                @Cached("createBinaryProfile()") ConditionProfile hasBacktraceProfile,
-                @Cached("createBinaryProfile()") ConditionProfile hasLocationsProfile) {
+                @Cached ConditionProfile hasBacktraceProfile,
+                @Cached ConditionProfile hasLocationsProfile) {
             if (hasBacktraceProfile.profile(Layouts.EXCEPTION.getBacktrace(exception) != null)) {
                 Object backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
                 if (hasLocationsProfile.profile(backtraceLocations == null)) {

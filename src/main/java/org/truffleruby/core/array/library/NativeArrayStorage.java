@@ -98,7 +98,7 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         protected static void write(NativeArrayStorage storage, int index, Object value,
                 @CachedLibrary(limit = "1") InteropLibrary wrappers,
                 @Cached WrapNode wrapNode,
-                @Cached("createBinaryProfile()") ConditionProfile isPointerProfile,
+                @Cached ConditionProfile isPointerProfile,
                 @Cached BranchProfile errorProfile) {
             final ValueWrapper wrapper = wrapNode.execute(value);
             if (!isPointerProfile.profile(wrappers.isPointer(wrapper))) {

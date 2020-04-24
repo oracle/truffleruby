@@ -119,7 +119,7 @@ public abstract class FiberNodes {
         @Specialization
         protected Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("createBinaryProfile()") ConditionProfile sameFiberProfile) {
+                @Cached ConditionProfile sameFiberProfile) {
 
             Layouts.FIBER.setTransferred(fiber, true);
 
@@ -146,8 +146,8 @@ public abstract class FiberNodes {
         @Specialization
         protected Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
-                @Cached("createBinaryProfile()") ConditionProfile doubleResumeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile transferredProfile) {
+                @Cached ConditionProfile doubleResumeProfile,
+                @Cached ConditionProfile transferredProfile) {
 
             final DynamicObject parentFiber = Layouts.FIBER.getLastResumedByFiber(fiber);
             final FiberManager fiberToResumeManager = Layouts.THREAD

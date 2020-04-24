@@ -55,7 +55,7 @@ public abstract class RangeNodes {
         protected DynamicObject map(DynamicObject range, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached YieldNode yieldNode,
-                @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
+                @Cached ConditionProfile noopProfile) {
             final int begin = Layouts.INT_RANGE.getBegin(range);
             final int end = Layouts.INT_RANGE.getEnd(range);
             final boolean excludedEnd = Layouts.INT_RANGE.getExcludedEnd(range);

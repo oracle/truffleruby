@@ -105,7 +105,7 @@ public abstract class TruffleSystemNodes {
         protected Object javaGetEnv(DynamicObject name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
-                @Cached("createBinaryProfile()") ConditionProfile nullValueProfile) {
+                @Cached ConditionProfile nullValueProfile) {
             final String javaName = toJavaStringNode.executeToJavaString(name);
             final String value = getEnv(javaName);
 

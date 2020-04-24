@@ -54,7 +54,7 @@ public abstract class ToJavaStringNode extends RubySourceNode {
 
     @Specialization(guards = "isRubyString(value)", replaces = "stringCached")
     protected String stringUncached(DynamicObject value,
-            @Cached("createBinaryProfile()") ConditionProfile asciiOnlyProfile,
+            @Cached ConditionProfile asciiOnlyProfile,
             @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
             @Cached RopeNodes.BytesNode bytesNode) {
         final Rope rope = StringOperations.rope(value);

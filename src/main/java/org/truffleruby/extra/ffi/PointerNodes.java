@@ -276,7 +276,7 @@ public abstract class PointerNodes {
 
         @Specialization
         protected DynamicObject readBytes(long address, int length,
-                @Cached("createBinaryProfile()") ConditionProfile zeroProfile,
+                @Cached ConditionProfile zeroProfile,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                 @Cached AllocateObjectNode allocateObjectNode) {
             final Pointer ptr = new Pointer(address);

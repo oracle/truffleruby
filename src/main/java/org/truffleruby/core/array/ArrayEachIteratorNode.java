@@ -71,7 +71,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
             int startAt,
             ArrayElementConsumerNode consumerNode,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
-            @Cached("createBinaryProfile()") ConditionProfile strategyMatchProfile) {
+            @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;
         try {
             for (; i < Layouts.ARRAY.getSize(array); i++) {

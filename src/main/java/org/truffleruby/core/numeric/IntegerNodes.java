@@ -329,7 +329,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object divIntFallback(int a, int b,
-                @Cached("createBinaryProfile()") ConditionProfile zeroProfile) {
+                @Cached ConditionProfile zeroProfile) {
             if (zeroProfile.profile(b == 0)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
@@ -370,7 +370,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object divLongFallback(long a, long b,
-                @Cached("createBinaryProfile()") ConditionProfile zeroProfile) {
+                @Cached ConditionProfile zeroProfile) {
             if (zeroProfile.profile(b == 0)) {
                 throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
             } else {
@@ -450,7 +450,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object idiv(Object a, Object b,
-                @Cached("createBinaryProfile()") ConditionProfile zeroProfile) {
+                @Cached ConditionProfile zeroProfile) {
             Object quotient = divNode.executeDiv(a, b);
             if (quotient instanceof Double) {
                 if (zeroProfile.profile((double) b == 0.0)) {
@@ -778,8 +778,8 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected int compare(int a, int b,
-                @Cached("createBinaryProfile()") ConditionProfile smallerProfile,
-                @Cached("createBinaryProfile()") ConditionProfile equalProfile) {
+                @Cached ConditionProfile smallerProfile,
+                @Cached ConditionProfile equalProfile) {
             if (smallerProfile.profile(a < b)) {
                 return -1;
             } else if (equalProfile.profile(a == b)) {
@@ -791,8 +791,8 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected int compare(long a, long b,
-                @Cached("createBinaryProfile()") ConditionProfile smallerProfile,
-                @Cached("createBinaryProfile()") ConditionProfile equalProfile) {
+                @Cached ConditionProfile smallerProfile,
+                @Cached ConditionProfile equalProfile) {
             if (smallerProfile.profile(a < b)) {
                 return -1;
             } else if (equalProfile.profile(a == b)) {
@@ -1131,7 +1131,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object leftShift(DynamicObject a, int b,
-                @Cached("createBinaryProfile()") ConditionProfile bPositive) {
+                @Cached ConditionProfile bPositive) {
             if (bPositive.profile(b >= 0)) {
                 return fixnumOrBignum(BigIntegerOps.shiftLeft(Layouts.BIGNUM.getValue(a), b));
             } else {
@@ -1189,7 +1189,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "b >= 0")
         protected int rightShift(int a, int b,
-                @Cached("createBinaryProfile()") ConditionProfile profile) {
+                @Cached ConditionProfile profile) {
             if (profile.profile(b >= Integer.SIZE - 1)) {
                 return a < 0 ? -1 : 0;
             } else {
@@ -1199,7 +1199,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "b >= 0")
         protected Object rightShift(long a, int b,
-                @Cached("createBinaryProfile()") ConditionProfile profile) {
+                @Cached ConditionProfile profile) {
             if (profile.profile(b >= Long.SIZE - 1)) {
                 return a < 0 ? -1 : 0; // int
             } else {
@@ -1239,7 +1239,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object rightShift(DynamicObject a, int b,
-                @Cached("createBinaryProfile()") ConditionProfile bPositive) {
+                @Cached ConditionProfile bPositive) {
             if (bPositive.profile(b >= 0)) {
                 return fixnumOrBignum(BigIntegerOps.shiftRight(Layouts.BIGNUM.getValue(a), b));
             } else {
@@ -1548,7 +1548,7 @@ public abstract class IntegerNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyBignum(b)")
         protected long uLongFromBignum(DynamicObject b,
-                @Cached("createBinaryProfile()") ConditionProfile doesNotNeedsConversion) {
+                @Cached ConditionProfile doesNotNeedsConversion) {
             final BigInteger value = Layouts.BIGNUM.getValue(b);
             assert value.signum() >= 0;
             if (doesNotNeedsConversion.profile(value.compareTo(LONG_MAX) < 1)) {
@@ -1653,7 +1653,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object powDouble(long base, double exponent,
-                @Cached("createBinaryProfile()") ConditionProfile complexProfile) {
+                @Cached ConditionProfile complexProfile) {
             if (complexProfile.profile(base < 0)) {
                 return FAILURE;
             } else {
@@ -1695,8 +1695,8 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object pow(DynamicObject base, long exponent,
-                @Cached("createBinaryProfile()") ConditionProfile negativeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile maybeTooBigProfile,
+                @Cached ConditionProfile negativeProfile,
+                @Cached ConditionProfile maybeTooBigProfile,
                 @Cached("new()") WarnNode warnNode) {
             if (negativeProfile.profile(exponent < 0)) {
                 return FAILURE;

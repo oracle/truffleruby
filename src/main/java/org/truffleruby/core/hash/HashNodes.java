@@ -171,7 +171,7 @@ public abstract class HashNodes {
                 BiFunctionNode defaultValueNode,
                 @Cached LookupPackedEntryNode lookupPackedEntryNode,
                 @Cached("new()") HashNode hashNode,
-                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached ConditionProfile byIdentityProfile) {
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
             int hashed = hashNode.hash(key, compareByIdentity); // Call key.hash only once
             return lookupPackedEntryNode.executePackedLookup(frame, hash, key, hashed, defaultValueNode);
@@ -343,7 +343,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isPackedHash(hash)")
         protected Object deletePackedArray(DynamicObject hash, Object key, Object maybeBlock,
-                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
             final int hashed = hashNode.hash(key, compareByIdentity);
@@ -874,7 +874,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isPackedHash(hash)")
         protected DynamicObject rehashPackedArray(DynamicObject hash,
-                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
@@ -897,7 +897,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "isBucketHash(hash)")
         protected DynamicObject rehashBuckets(DynamicObject hash,
-                @Cached("createBinaryProfile()") ConditionProfile byIdentityProfile) {
+                @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));

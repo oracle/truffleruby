@@ -29,7 +29,7 @@ public abstract class ArrayReadDenormalizedNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object read(DynamicObject array, int index,
-            @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
+            @Cached ConditionProfile negativeIndexProfile) {
         final int normalizedIndex = ArrayOperations
                 .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);
 

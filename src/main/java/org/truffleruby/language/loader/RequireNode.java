@@ -64,7 +64,7 @@ public abstract class RequireNode extends RubyContextNode {
 
     @Specialization
     protected boolean require(String feature, DynamicObject expandedPathString,
-            @Cached("createBinaryProfile()") ConditionProfile isLoadedProfile) {
+            @Cached ConditionProfile isLoadedProfile) {
         final String expandedPath = StringOperations.getString(expandedPathString);
         if (isLoadedProfile.profile(isFeatureLoaded(expandedPathString))) {
             return false;

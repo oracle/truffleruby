@@ -35,7 +35,7 @@ public abstract class ToStringObjectNode extends FormatNode {
     @Specialization(guards = "isRubyString(string)")
     protected Object toStringString(VirtualFrame frame, DynamicObject string,
             @Cached IsTaintedNode isTaintedNode,
-            @Cached("createBinaryProfile()") ConditionProfile taintedProfile) {
+            @Cached ConditionProfile taintedProfile) {
         if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {
             setTainted(frame);
         }
@@ -45,7 +45,7 @@ public abstract class ToStringObjectNode extends FormatNode {
 
     @Specialization(guards = "!isRubyString(object)")
     protected Object toString(VirtualFrame frame, Object object,
-            @Cached("createBinaryProfile()") ConditionProfile notStringProfile,
+            @Cached ConditionProfile notStringProfile,
             @Cached ToStrNode toStrNode) {
         final Object value = toStrNode.executeToStr(frame, object);
 

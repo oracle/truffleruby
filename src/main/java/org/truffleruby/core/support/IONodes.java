@@ -487,7 +487,7 @@ public abstract class IONodes {
         protected DynamicObject getThreadBuffer(VirtualFrame frame, long size,
                 @Cached AllocateObjectNode allocateObjectNode,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
-                @Cached("createBinaryProfile()") ConditionProfile sizeProfile) {
+                @Cached ConditionProfile sizeProfile) {
             DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
             return allocateObjectNode
                     .allocate(

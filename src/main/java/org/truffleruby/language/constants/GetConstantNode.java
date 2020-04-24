@@ -160,7 +160,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
             @Cached("getSymbol(name)") DynamicObject symbolName,
-            @Cached("createBinaryProfile()") ConditionProfile sameNameProfile) {
+            @Cached ConditionProfile sameNameProfile) {
         return doMissingConstant(module, name, symbolName);
     }
 

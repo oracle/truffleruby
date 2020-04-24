@@ -173,7 +173,7 @@ public abstract class TruffleKernelNodes {
 
         @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
         protected Object executeGetValue(DynamicObject name, DynamicObject binding,
-                @Cached("createBinaryProfile()") ConditionProfile sameThreadProfile) {
+                @Cached ConditionProfile sameThreadProfile) {
             return threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).get(sameThreadProfile);
         }
 
@@ -186,7 +186,7 @@ public abstract class TruffleKernelNodes {
 
         @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
         protected Object executeGetValue(DynamicObject name, DynamicObject binding, Object value,
-                @Cached("createBinaryProfile()") ConditionProfile sameThreadProfile) {
+                @Cached ConditionProfile sameThreadProfile) {
             threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).set(value, sameThreadProfile);
             return value;
         }

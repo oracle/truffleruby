@@ -46,7 +46,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
     protected DynamicObject appendManySameType(DynamicObject array, DynamicObject other,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores,
-            @Cached("createBinaryProfile()") ConditionProfile extendProfile) {
+            @Cached ConditionProfile extendProfile) {
         final int oldSize = Layouts.ARRAY.getSize(array);
         final int otherSize = Layouts.ARRAY.getSize(other);
         final int newSize = oldSize + otherSize;

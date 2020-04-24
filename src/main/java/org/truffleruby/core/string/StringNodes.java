@@ -434,7 +434,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "isRubyString(b)")
         protected int compare(DynamicObject a, DynamicObject b,
-                @Cached("createBinaryProfile()") ConditionProfile sameRopeProfile,
+                @Cached ConditionProfile sameRopeProfile,
                 @Cached RopeNodes.CompareRopesNode compareNode) {
             // Taken from org.jruby.RubyString#op_cmp
 
@@ -483,7 +483,7 @@ public abstract class StringNodes {
         protected Object concatMany(DynamicObject string, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached ConcatNode argConcatNode,
-                @Cached("createBinaryProfile()") ConditionProfile selfArgProfile) {
+                @Cached ConditionProfile selfArgProfile) {
             Rope rope = StringOperations.rope(string);
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (int i = 0; i < cachedLength; ++i) {
@@ -499,7 +499,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "wasProvided(first)", "rest.length > 0" }, replaces = "concatMany")
         protected Object concatManyGeneral(DynamicObject string, Object first, Object[] rest,
                 @Cached ConcatNode argConcatNode,
-                @Cached("createBinaryProfile()") ConditionProfile selfArgProfile) {
+                @Cached ConditionProfile selfArgProfile) {
             Rope rope = StringOperations.rope(string);
             Object result = argConcatNode.executeConcat(string, first, EMPTY_ARGUMENTS);
             for (Object arg : rest) {
@@ -1151,8 +1151,8 @@ public abstract class StringNodes {
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile dummyEncodingProfile,
+                @Cached ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
@@ -1181,8 +1181,8 @@ public abstract class StringNodes {
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile dummyEncodingProfile,
+                @Cached ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
@@ -1217,7 +1217,7 @@ public abstract class StringNodes {
         protected DynamicObject eachByte(DynamicObject string, DynamicObject block,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.BytesNode updatedBytesNode,
-                @Cached("createBinaryProfile()") ConditionProfile ropeChangedProfile) {
+                @Cached ConditionProfile ropeChangedProfile) {
             Rope rope = rope(string);
             byte[] bytes = bytesNode.execute(rope);
 
@@ -1346,8 +1346,8 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object getByte(DynamicObject string, int index,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
-                @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile) {
+                @Cached ConditionProfile negativeIndexProfile,
+                @Cached ConditionProfile indexOutOfBoundsProfile) {
             final Rope rope = rope(string);
             final int normalizedIndex = normalizeIndexNode.executeNormalize(index, rope.byteLength());
 
@@ -1486,7 +1486,7 @@ public abstract class StringNodes {
         protected Object lstripBangSingleByte(DynamicObject string,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
-                @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
+                @Cached ConditionProfile noopProfile) {
             // Taken from org.jruby.RubyString#lstrip_bang19 and org.jruby.RubyString#singleByteLStrip.
 
             final Rope rope = rope(string);
@@ -1602,7 +1602,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "!isEmpty(string)", "isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBangSingleByte(DynamicObject string,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
+                @Cached ConditionProfile noopProfile) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#singleByteRStrip19.
 
             final Rope rope = rope(string);
@@ -1633,7 +1633,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "!isEmpty(string)", "!isSingleByteOptimizable(string, singleByteOptimizableNode)" })
         protected Object rstripBang(DynamicObject string,
                 @Cached EncodingNodes.GetActualEncodingNode getActualEncodingNode,
-                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile) {
+                @Cached ConditionProfile dummyEncodingProfile) {
             // Taken from org.jruby.RubyString#rstrip_bang19 and org.jruby.RubyString#multiByteRStrip19.
 
             final Rope rope = rope(string);
@@ -1850,8 +1850,8 @@ public abstract class StringNodes {
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile dummyEncodingProfile,
+                @Cached ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             final Rope rope = rope(string);
@@ -1882,8 +1882,8 @@ public abstract class StringNodes {
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile dummyEncodingProfile,
+                @Cached ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#swapcase_bang19.
 
             final Rope rope = rope(string);
@@ -2137,7 +2137,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected int setByte(DynamicObject string, int index, int value,
-                @Cached("createBinaryProfile()") ConditionProfile newRopeProfile) {
+                @Cached ConditionProfile newRopeProfile) {
             final Rope rope = rope(string);
             final int normalizedIndex = checkIndexNode.executeCheck(index, rope.byteLength());
 
@@ -2157,7 +2157,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected int checkIndex(int index, int length,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
+                @Cached ConditionProfile negativeIndexProfile,
                 @Cached BranchProfile errorProfile) {
             if (index >= length) {
                 errorProfile.enter();
@@ -2191,7 +2191,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected int normalizeIndex(int index, int length,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile) {
+                @Cached ConditionProfile negativeIndexProfile) {
             if (negativeIndexProfile.profile(index < 0)) {
                 return index + length;
             }
@@ -2850,7 +2850,7 @@ public abstract class StringNodes {
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("createBinaryProfile()") ConditionProfile noopProfile) {
+                @Cached ConditionProfile noopProfile) {
             final Rope rope = rope(string);
 
             final byte[] bytes = bytesNode.execute(rope);
@@ -2891,8 +2891,8 @@ public abstract class StringNodes {
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile dummyEncodingProfile,
+                @Cached ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
@@ -2921,8 +2921,8 @@ public abstract class StringNodes {
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached("createBinaryProfile()") ConditionProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile dummyEncodingProfile,
+                @Cached ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding encoding = rope.getEncoding();
 
@@ -2976,10 +2976,10 @@ public abstract class StringNodes {
         @Specialization(guards = "isSingleByteCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeSingleByte(DynamicObject string, int caseMappingOptions,
                 @Cached("createUpperToLower()") InvertAsciiCaseBytesNode invertAsciiCaseNode,
-                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
-                @Cached("createBinaryProfile()") ConditionProfile firstCharIsLowerProfile,
-                @Cached("createBinaryProfile()") ConditionProfile otherCharsAlreadyLowerProfile,
-                @Cached("createBinaryProfile()") ConditionProfile mustCapitalizeFirstCharProfile) {
+                @Cached ConditionProfile emptyStringProfile,
+                @Cached ConditionProfile firstCharIsLowerProfile,
+                @Cached ConditionProfile otherCharsAlreadyLowerProfile,
+                @Cached ConditionProfile mustCapitalizeFirstCharProfile) {
             final Rope rope = rope(string);
 
             if (emptyStringProfile.profile(rope.isEmpty())) {
@@ -3025,8 +3025,8 @@ public abstract class StringNodes {
         @Specialization(guards = "isSimpleAsciiCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeMultiByteAsciiSimple(DynamicObject string, int caseMappingOptions,
                 @Cached BranchProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile emptyStringProfile,
+                @Cached ConditionProfile modifiedProfile) {
             // Taken from org.jruby.RubyString#capitalize_bang19.
 
             final Rope rope = rope(string);
@@ -3064,8 +3064,8 @@ public abstract class StringNodes {
         @Specialization(guards = "isComplexCaseMapping(string, caseMappingOptions, singleByteOptimizableNode)")
         protected Object capitalizeMultiByteComplex(DynamicObject string, int caseMappingOptions,
                 @Cached BranchProfile dummyEncodingProfile,
-                @Cached("createBinaryProfile()") ConditionProfile emptyStringProfile,
-                @Cached("createBinaryProfile()") ConditionProfile modifiedProfile) {
+                @Cached ConditionProfile emptyStringProfile,
+                @Cached ConditionProfile modifiedProfile) {
             final Rope rope = rope(string);
             final Encoding enc = rope.getEncoding();
 
@@ -3140,7 +3140,7 @@ public abstract class StringNodes {
 
         @Specialization
         protected boolean isCharacterPrintable(DynamicObject character,
-                @Cached("createBinaryProfile()") ConditionProfile is7BitProfile,
+                @Cached ConditionProfile is7BitProfile,
                 @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
                 @Cached RopeNodes.GetCodePointNode getCodePointNode) {
             final Rope rope = rope(character);
@@ -3194,9 +3194,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = "is7Bit(string, codeRangeNode)")
         protected DynamicObject stringAwkSplitSingleByte(DynamicObject string, int limit,
-                @Cached("createBinaryProfile()") ConditionProfile growArrayProfile,
-                @Cached("createBinaryProfile()") ConditionProfile trailingSubstringProfile,
-                @Cached("createBinaryProfile()") ConditionProfile trailingEmptyStringProfile) {
+                @Cached ConditionProfile growArrayProfile,
+                @Cached ConditionProfile trailingSubstringProfile,
+                @Cached ConditionProfile trailingEmptyStringProfile) {
             Object[] ret = new Object[10];
             int storeIndex = 0;
 
@@ -3244,8 +3244,8 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = "!is7Bit(string, codeRangeNode)")
         protected DynamicObject stringAwkSplit(DynamicObject string, int limit,
-                @Cached("createBinaryProfile()") ConditionProfile growArrayProfile,
-                @Cached("createBinaryProfile()") ConditionProfile trailingSubstringProfile) {
+                @Cached ConditionProfile growArrayProfile,
+                @Cached ConditionProfile trailingSubstringProfile) {
             Object[] ret = new Object[10];
             int storeIndex = 0;
 
@@ -3328,11 +3328,11 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object stringByteSubstring(DynamicObject string, int index, NotProvided length,
-                @Cached("createBinaryProfile()") ConditionProfile negativeLengthProfile,
-                @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile,
-                @Cached("createBinaryProfile()") ConditionProfile lengthTooLongProfile,
-                @Cached("createBinaryProfile()") ConditionProfile nilSubstringProfile,
-                @Cached("createBinaryProfile()") ConditionProfile emptySubstringProfile) {
+                @Cached ConditionProfile negativeLengthProfile,
+                @Cached ConditionProfile indexOutOfBoundsProfile,
+                @Cached ConditionProfile lengthTooLongProfile,
+                @Cached ConditionProfile nilSubstringProfile,
+                @Cached ConditionProfile emptySubstringProfile) {
             final Object subString = stringByteSubstring(
                     string,
                     index,
@@ -3354,9 +3354,9 @@ public abstract class StringNodes {
 
         @Specialization
         protected Object stringByteSubstring(DynamicObject string, int index, int length,
-                @Cached("createBinaryProfile()") ConditionProfile negativeLengthProfile,
-                @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile,
-                @Cached("createBinaryProfile()") ConditionProfile lengthTooLongProfile) {
+                @Cached ConditionProfile negativeLengthProfile,
+                @Cached ConditionProfile indexOutOfBoundsProfile,
+                @Cached ConditionProfile lengthTooLongProfile) {
             if (negativeLengthProfile.profile(length < 0)) {
                 return nil;
             }
@@ -3705,9 +3705,9 @@ public abstract class StringNodes {
                         "isSimple(code, rubyEncoding)",
                         "isCodepoint(code)" })
         protected DynamicObject stringFromCodepointSimple(long code, DynamicObject rubyEncoding,
-                @Cached("createBinaryProfile()") ConditionProfile isUTF8Profile,
-                @Cached("createBinaryProfile()") ConditionProfile isUSAsciiProfile,
-                @Cached("createBinaryProfile()") ConditionProfile isAscii8BitProfile) {
+                @Cached ConditionProfile isUTF8Profile,
+                @Cached ConditionProfile isUSAsciiProfile,
+                @Cached ConditionProfile isAscii8BitProfile) {
             final int intCode = (int) code; // isSimple() guarantees this is OK
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
             final Rope rope;
@@ -3832,7 +3832,7 @@ public abstract class StringNodes {
                         "canMemcmp(string, pattern, singleByteNode)" })
         protected Object stringIndexSingleBytePattern(DynamicObject string, DynamicObject pattern, int byteOffset,
                 @Cached RopeNodes.BytesNode bytesNode,
-                @Cached("createBinaryProfile()") ConditionProfile offsetTooLargeProfile) {
+                @Cached ConditionProfile offsetTooLargeProfile) {
             assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
@@ -3901,7 +3901,7 @@ public abstract class StringNodes {
                 @Cached ByteIndexFromCharIndexNode byteIndexFromCharIndexNode,
                 @Cached StringByteCharacterIndexNode byteIndexToCharIndexNode,
                 @Cached NormalizeIndexNode normalizeIndexNode,
-                @Cached("createBinaryProfile()") ConditionProfile badIndexProfile) {
+                @Cached ConditionProfile badIndexProfile) {
             assert byteOffset >= 0;
 
             checkEncoding(string, pattern);
@@ -4246,8 +4246,8 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isSingleByteOptimizable(rope)", "!isFixedWidthEncoding(rope)" })
         protected int multiBytes(Rope rope, int startByteOffset, int characterIndex,
-                @Cached("createBinaryProfile()") ConditionProfile indexTooLargeProfile,
-                @Cached("createBinaryProfile()") ConditionProfile invalidByteProfile,
+                @Cached ConditionProfile indexTooLargeProfile,
+                @Cached ConditionProfile invalidByteProfile,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode) {
@@ -4331,7 +4331,7 @@ public abstract class StringNodes {
                         "isFixedWidthEncoding(string)" })
         protected int fixedWidthEncoding(DynamicObject string, int index,
                 @Cached RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode,
-                @Cached("createBinaryProfile()") ConditionProfile firstCharacterProfile) {
+                @Cached ConditionProfile firstCharacterProfile) {
             final Encoding encoding = encoding(string);
 
             // TODO (nirvdrum 11-Apr-16) Determine whether we need to be bug-for-bug compatible with Rubinius.
@@ -4673,8 +4673,8 @@ public abstract class StringNodes {
                 int spliceByteIndex,
                 int byteCountToReplace,
                 DynamicObject rubyEncoding,
-                @Cached("createBinaryProfile()") ConditionProfile insertStringIsEmptyProfile,
-                @Cached("createBinaryProfile()") ConditionProfile splitRightIsEmptyProfile,
+                @Cached ConditionProfile insertStringIsEmptyProfile,
+                @Cached ConditionProfile splitRightIsEmptyProfile,
                 @Cached RopeNodes.SubstringNode leftSubstringNode,
                 @Cached RopeNodes.SubstringNode rightSubstringNode,
                 @Cached RopeNodes.ConcatNode leftConcatNode,
@@ -4790,8 +4790,8 @@ public abstract class StringNodes {
                         "!indexTriviallyOutOfBounds(string, characterLengthNode, index, length)",
                         "noCharacterSearch(string, singleByteOptimizableNode)" })
         protected Object stringSubstringSingleByte(DynamicObject string, int index, int length,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
-                @Cached("createBinaryProfile()") ConditionProfile tooLargeTotalProfile) {
+                @Cached ConditionProfile negativeIndexProfile,
+                @Cached ConditionProfile tooLargeTotalProfile) {
             final Rope rope = rope(string);
             final int ropeCharacterLength = characterLengthNode.execute(rope);
             final int normalizedIndex = normalizeIndexNode.executeNormalize(index, ropeCharacterLength);
@@ -4813,9 +4813,9 @@ public abstract class StringNodes {
                         "!indexTriviallyOutOfBounds(string, characterLengthNode, index, length)",
                         "!noCharacterSearch(string, singleByteOptimizableNode)" })
         protected Object stringSubstringGeneric(DynamicObject string, int index, int length,
-                @Cached("createBinaryProfile()") ConditionProfile negativeIndexProfile,
-                @Cached("createBinaryProfile()") ConditionProfile tooLargeTotalProfile,
-                @Cached("createBinaryProfile()") ConditionProfile foundSingleByteOptimizableDescendentProfile,
+                @Cached ConditionProfile negativeIndexProfile,
+                @Cached ConditionProfile tooLargeTotalProfile,
+                @Cached ConditionProfile foundSingleByteOptimizableDescendentProfile,
                 @Cached BranchProfile singleByteOptimizableBaseProfile,
                 @Cached BranchProfile leafBaseProfile,
                 @Cached BranchProfile slowSearchProfile,

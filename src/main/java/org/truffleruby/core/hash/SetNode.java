@@ -63,7 +63,7 @@ public abstract class SetNode extends RubyContextNode {
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(guards = "isPackedHash(hash)")
     protected Object setPackedArray(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
-            @Cached("createBinaryProfile()") ConditionProfile strategyProfile) {
+            @Cached ConditionProfile strategyProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
@@ -105,10 +105,10 @@ public abstract class SetNode extends RubyContextNode {
 
     @Specialization(guards = "isBucketHash(hash)")
     protected Object setBuckets(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
-            @Cached("createBinaryProfile()") ConditionProfile foundProfile,
-            @Cached("createBinaryProfile()") ConditionProfile bucketCollisionProfile,
-            @Cached("createBinaryProfile()") ConditionProfile appendingProfile,
-            @Cached("createBinaryProfile()") ConditionProfile resizeProfile) {
+            @Cached ConditionProfile foundProfile,
+            @Cached ConditionProfile bucketCollisionProfile,
+            @Cached ConditionProfile appendingProfile,
+            @Cached ConditionProfile resizeProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);

@@ -234,9 +234,9 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object getIndex(DynamicObject matchData, int index, NotProvided length,
-                @Cached("createBinaryProfile()") ConditionProfile normalizedIndexProfile,
-                @Cached("createBinaryProfile()") ConditionProfile indexOutOfBoundsProfile,
-                @Cached("createBinaryProfile()") ConditionProfile hasValueProfile) {
+                @Cached ConditionProfile normalizedIndexProfile,
+                @Cached ConditionProfile indexOutOfBoundsProfile,
+                @Cached ConditionProfile hasValueProfile) {
             final DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             final Rope sourceRope = StringOperations.rope(source);
             final Region region = Layouts.MATCH_DATA.getRegion(matchData);
@@ -624,7 +624,7 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected DynamicObject regexp(DynamicObject matchData,
-                @Cached("createBinaryProfile()") ConditionProfile profile,
+                @Cached ConditionProfile profile,
                 @Cached("createPrivate()") CallDispatchHeadNode stringToRegexp) {
             final DynamicObject value = Layouts.MATCH_DATA.getRegexp(matchData);
             if (profile.profile(Layouts.REGEXP.isRegexp(value))) {

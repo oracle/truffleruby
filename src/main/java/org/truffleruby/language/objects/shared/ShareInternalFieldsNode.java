@@ -90,7 +90,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
             limit = "CACHE_LIMIT")
     protected void shareCachedQueue(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
-            @Cached("createBinaryProfile()") ConditionProfile profileEmpty,
+            @Cached ConditionProfile profileEmpty,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
         final UnsizedQueue queue = Layouts.QUEUE.getQueue(object);
         if (!profileEmpty.profile(queue.isEmpty())) {
