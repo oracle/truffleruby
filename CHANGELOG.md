@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fix `#class_exec`, `#module_exec`, `#instance_eval`, and `instance_exec` to use activated refinements (#1988, @ssnickolay).
+* Fixed missing method error for FFI calls with `blocking: true` when interrupted.
 
 Compatibility:
 
