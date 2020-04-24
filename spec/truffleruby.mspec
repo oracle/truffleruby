@@ -182,7 +182,7 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
       meths.each do |meth|
         define_method(meth) do |*args, &block|
           if MSpec.current && MSpec.current.state # an example is running
-            raise SlowSpecException, "Was tagged as slow as it uses #{meth}(). Rerun specs."
+            Thread.main.raise SlowSpecException, "Was tagged as slow as it uses #{meth}(). Rerun specs."
           else
             send("mspec_old_#{meth}", *args, &block)
           end
