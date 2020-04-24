@@ -496,7 +496,7 @@ module Utilities
           warn "warning: JAVA_HOME=#{java_home} is not the same JVMCI version as in common.json (#{jvmci_version})"
           :use_env_java_home
         else
-          raise '$JAVA_HOME does not seem to point to a JVMCI-enabled JDK'
+          raise "$JAVA_HOME does not seem to point to a JVMCI-enabled JDK (#{java_home.inspect} does not contain 'jvmci')"
         end
       else
         raise '$JAVA_HOME should be set in CI' if ci?
