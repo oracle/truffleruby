@@ -17,7 +17,6 @@ import java.util.concurrent.locks.Lock;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -57,7 +56,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             @Nullable @Volatile Object value,
             AtomicBoolean wakeUp,
             @Volatile int priority,
-            Pointer ioBuffer,
+            ThreadLocalBuffer ioBuffer,
             Object threadGroup,
             String sourceLocation,
             Object name);
@@ -112,9 +111,9 @@ public interface ThreadLayout extends BasicObjectLayout {
 
     void setPriority(DynamicObject object, int value);
 
-    Pointer getIoBuffer(DynamicObject object);
+    ThreadLocalBuffer getIoBuffer(DynamicObject object);
 
-    void setIoBuffer(DynamicObject object, Pointer value);
+    void setIoBuffer(DynamicObject object, ThreadLocalBuffer value);
 
     Object getThreadGroup(DynamicObject object);
 

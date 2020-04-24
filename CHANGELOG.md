@@ -64,6 +64,7 @@ Bug fixes:
 * Fix issue where interpolated string matched `#` within string as being a variable (#1495).
 * Fix `File.join` to raise error on strings with null bytes.
 * Fix initialization of Ruby Thread for foreign thread created in Java.
+* Thread local IO buffers are now allocated using a stack to ensure safe operating if a signal handler uses one during an IO operation.
 
 Compatibility:
 
