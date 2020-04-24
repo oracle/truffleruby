@@ -1,0 +1,1 @@
+slow:Net::HTTP#set_debug_output when passed io sets the passed io as output stream for debugging
