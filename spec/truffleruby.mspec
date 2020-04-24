@@ -139,25 +139,6 @@ end
 
 if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_process?
   require 'mspec'
-
-  class SlowSpecsTagger
-    def initialize
-      MSpec.register :exception, self
-    end
-
-    def exception(state)
-      if state.exception.is_a? SlowSpecException
-        tag = SpecTag.new
-        tag.tag = 'slow'
-        tag.description = "#{state.describe} #{state.it}"
-        MSpec.write_tag(tag)
-      end
-    end
-  end
-
-  class SlowSpecException < Exception
-  end
-
   require 'timeout'
 
   slow_methods = [
@@ -174,17 +155,19 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
       meths.each do |meth|
         original = instance_method(meth)
         define_method(meth) do |*args, &block|
-          if MSpec.current && MSpec.current.state # an example is running
-            Thread.main.raise SlowSpecException, "Was tagged as slow as it uses #{meth}(). Rerun specs."
-          else
-            original.bind(self).call(*args, &block)
+          if MSpec.current and state = MSpec.current.state # an example is running
+            tag = SpecTag.new
+            tag.tag = 'slow'
+            tag.description = "#{state.describe} #{state.it}"
+            MSpec.write_tag(tag)
+            STDERR.puts "Added slow tag for #{tag.description}"
           end
+
+          original.bind(self).call(*args, &block)
         end
         # Keep visibility for Kernel instance methods
         private meth if klass == Kernel
       end
     end
   end
-
-  SlowSpecsTagger.new
 end
