@@ -3187,4 +3187,9 @@ public class BodyTranslator extends Translator {
         return node;
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + " " + environment.getSharedMethodInfo();
+    }
+
 }
