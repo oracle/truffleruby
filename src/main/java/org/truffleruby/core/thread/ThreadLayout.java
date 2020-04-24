@@ -57,7 +57,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             @Nullable @Volatile Object value,
             AtomicBoolean wakeUp,
             @Volatile int priority,
-            Pointer ioBuffer,
+            ThreadLocalBuffer ioBuffer,
             Object threadGroup,
             String sourceLocation,
             Object name);
@@ -112,9 +112,9 @@ public interface ThreadLayout extends BasicObjectLayout {
 
     void setPriority(DynamicObject object, int value);
 
-    Pointer getIoBuffer(DynamicObject object);
+    ThreadLocalBuffer getIoBuffer(DynamicObject object);
 
-    void setIoBuffer(DynamicObject object, Pointer value);
+    void setIoBuffer(DynamicObject object, ThreadLocalBuffer value);
 
     Object getThreadGroup(DynamicObject object);
 

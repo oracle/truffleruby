@@ -943,11 +943,15 @@ class File < IO
       path = expand_path(path, basedir)
     end
 
-    buffer = Primitive.io_get_thread_buffer(Truffle::Platform::PATH_MAX)
-    if ptr = Truffle::POSIX.realpath(path, buffer) and !ptr.null?
-      real = ptr.read_string
-    else
-      Errno.handle(path)
+    buffer = Primitive.io_thread_buffer_allocate(Truffle::Platform::PATH_MAX)
+    begin
+      if ptr = Truffle::POSIX.realpath(path, buffer) and !ptr.null?
+        real = ptr.read_string
+      else
+        Errno.handle(path)
+      end
+    ensure
+      Primitive.io_thread_buffer_free(buffer)
     end
 
     unless exist? real

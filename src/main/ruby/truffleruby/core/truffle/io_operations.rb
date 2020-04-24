@@ -143,52 +143,56 @@ module Truffle
         start = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
       end
 
-      readables_pointer, writables_pointer, errorables_pointer = nil, nil, nil
+      readables_pointer, writables_pointer, errorables_pointer =
+          Truffle::FFI::Pool.stack_alloc(:int, readables.size, :int, writables.size, :int, errorables.size)
+
       begin
-        primitive_result = Primitive.thread_run_blocking_nfi_system_call -> do
-          readables_pointer, writables_pointer, errorables_pointer =
-              Truffle::FFI::Pool.stack_alloc(:int, readables.size, :int, writables.size, :int, errorables.size)
+        to_fds(readable_ios, readables_pointer)
+        to_fds(writable_ios, writables_pointer)
+        to_fds(errorable_ios, errorables_pointer)
 
-          to_fds(readable_ios, readables_pointer)
-          to_fds(writable_ios, writables_pointer)
-          to_fds(errorable_ios, errorables_pointer)
+        begin
+          primitive_result = Primitive.thread_run_blocking_nfi_system_call -> do
+            Truffle::POSIX.truffleposix_select(readables.size, readables_pointer,
+                                               writables.size, writables_pointer,
+                                               errorables.size, errorables_pointer,
+                                               remaining_timeout)
+          end
 
-          Truffle::POSIX.truffleposix_select(readables.size, readables_pointer,
-                                             writables.size, writables_pointer,
-                                             errorables.size, errorables_pointer,
-                                             remaining_timeout)
-        end
-
-        result = if primitive_result < 0
-                   if Errno.errno == Errno::EINTR::Errno
-                     if timeout
-                       # Update timeout
-                       now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
-                       waited = now - start
-                       if waited >= timeout
-                         nil # timeout
+          result = if primitive_result < 0
+                     if Errno.errno == Errno::EINTR::Errno
+                       if timeout
+                         # Update timeout
+                         now = Process.clock_gettime(Process::CLOCK_MONOTONIC, :microsecond)
+                         waited = now - start
+                         if waited >= timeout
+                           nil # timeout
+                         else
+                           remaining_timeout = timeout - waited
+                           :retry
+                         end
                        else
-                         remaining_timeout = timeout - waited
                          :retry
                        end
                      else
-                       :retry
+                       Errno.handle
                      end
                    else
-                     Errno.handle
+                     primitive_result
                    end
-                 else
-                   primitive_result
-                 end
-      end while result == :retry
+        end while result == :retry
 
-      if result == 0
-        nil # timeout
-      else
-        [mark_ready(readables, readables_pointer),
-         mark_ready(writables, writables_pointer),
-         mark_ready(errorables, errorables_pointer)]
+        if result == 0
+          nil # timeout
+        else
+          [mark_ready(readables, readables_pointer),
+           mark_ready(writables, writables_pointer),
+           mark_ready(errorables, errorables_pointer)]
+        end
+      ensure
+        Truffle::FFI::Pool.stack_free(readables_pointer)
       end
+
     end
 
   end

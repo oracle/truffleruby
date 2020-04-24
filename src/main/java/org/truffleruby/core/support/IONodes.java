@@ -82,8 +82,10 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.ThreadLocalBuffer;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
@@ -480,7 +482,7 @@ public abstract class IONodes {
 
     }
 
-    @Primitive(name = "io_get_thread_buffer")
+    @Primitive(name = "io_thread_buffer_allocate")
     public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
@@ -496,23 +498,27 @@ public abstract class IONodes {
         }
 
         public static Pointer getBuffer(DynamicObject rubyThread, long size, ConditionProfile sizeProfile) {
-            final Pointer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
-
-            if (sizeProfile.profile(buffer.getSize() >= size)) {
-                return buffer;
-            } else {
-                return reallocateBuffer(size, rubyThread, buffer);
-            }
-        }
-
-        @TruffleBoundary
-        private static Pointer reallocateBuffer(long size, final DynamicObject rubyThread, final Pointer buffer) {
-            buffer.freeNoAutorelease();
-            final Pointer newBuffer = Pointer.malloc(Math.max(size * 2, 1024));
+            final ThreadLocalBuffer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
+            final ThreadLocalBuffer newBuffer = buffer.allocate(size, sizeProfile);
             Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
-            return newBuffer;
+            return newBuffer.start;
         }
 
+    }
+
+    @Primitive(name = "io_thread_buffer_free")
+    public static abstract class ThreadBufferFreeNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected Object getThreadBuffer(VirtualFrame frame, DynamicObject pointer,
+                @Cached GetCurrentRubyThreadNode currentThreadNode,
+                @Cached("createBinaryProfile()") ConditionProfile sizeProfile) {
+            DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
+            final ThreadLocalBuffer threadBuffer = Layouts.THREAD.getIoBuffer(thread);
+            assert threadBuffer.start.getAddress() == Layouts.POINTER.getPointer(pointer).getAddress();
+            Layouts.THREAD.setIoBuffer(thread, threadBuffer.free());
+            return nil;
+        }
     }
 
 }
