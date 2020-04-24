@@ -158,7 +158,7 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode equalNode;
         @Child private BooleanCastNode booleanCastNode;
 
-        private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile sameProfile = ConditionProfile.create();
 
         public static SameOrEqualNode create() {
             return SameOrEqualNodeFactory.create(null);
@@ -210,7 +210,7 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode eqlNode;
         @Child private BooleanCastNode booleanCastNode;
 
-        private final ConditionProfile sameProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile sameProfile = ConditionProfile.create();
 
         public abstract boolean executeSameOrEql(Object a, Object b);
 
@@ -1531,9 +1531,9 @@ public abstract class KernelNodes {
         @Child private DoesRespondDispatchHeadNode dispatchRespondToMissing;
         @Child private CallDispatchHeadNode respondToMissingNode;
         @Child private BooleanCastNode booleanCastNode;
-        private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile isTrueProfile = ConditionProfile.createBinaryProfile();
-        private final ConditionProfile respondToMissingProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile ignoreVisibilityProfile = ConditionProfile.create();
+        private final ConditionProfile isTrueProfile = ConditionProfile.create();
+        private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
 
         public RespondToNode() {
             dispatch = DoesRespondDispatchHeadNode.create(DoesRespondDispatchHeadNode.PUBLIC);
@@ -1800,7 +1800,7 @@ public abstract class KernelNodes {
                 .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile resizeProfile = ConditionProfile.create();
 
         @Specialization(
                 guards = {

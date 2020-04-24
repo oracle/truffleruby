@@ -31,7 +31,7 @@ public abstract class SetNode extends RubyContextNode {
     @Child private FreezeHashKeyIfNeededNode freezeHashKeyIfNeededNode = FreezeHashKeyIfNeededNodeGen.create();
     @Child private PropagateSharingNode propagateSharingKeyNode = PropagateSharingNode.create();
     @Child private PropagateSharingNode propagateSharingValueNode = PropagateSharingNode.create();
-    private final ConditionProfile byIdentityProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile byIdentityProfile = ConditionProfile.create();
 
     public static SetNode create() {
         return SetNodeGen.create();

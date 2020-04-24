@@ -836,7 +836,7 @@ public abstract class StringNodes {
                 .create();
         @Child RopeNodes.SingleByteOptimizableNode singleByteOptimizableNode = RopeNodes.SingleByteOptimizableNode
                 .create();
-        private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile incompatibleEncodingProfile = ConditionProfile.create();
 
         @CreateCast("other")
         protected RubyNode coerceOtherToString(RubyNode other) {
@@ -1298,7 +1298,7 @@ public abstract class StringNodes {
     public abstract static class ForceEncodingNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.WithEncodingNode withEncodingNode = RopeNodes.WithEncodingNode.create();
-        private final ConditionProfile differentEncodingProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile differentEncodingProfile = ConditionProfile.create();
 
         @Specialization(guards = "isRubyString(encoding)")
         protected DynamicObject forceEncodingString(DynamicObject string, DynamicObject encoding,
@@ -2224,7 +2224,7 @@ public abstract class StringNodes {
     public abstract static class SqueezeBangNode extends CoreMethodArrayArgumentsNode {
 
         @Child private CheckEncodingNode checkEncodingNode;
-        private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile singleByteOptimizableProfile = ConditionProfile.create();
 
         @Specialization(guards = "isEmpty(string)")
         protected Object squeezeBangEmptyString(DynamicObject string, Object[] args) {

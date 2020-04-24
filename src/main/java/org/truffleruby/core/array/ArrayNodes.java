@@ -1336,7 +1336,7 @@ public abstract class ArrayNodes {
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
-        private final ConditionProfile resizeProfile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile resizeProfile = ConditionProfile.create();
 
         @CreateCast("format")
         protected RubyNode coerceFormat(RubyNode format) {

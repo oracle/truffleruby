@@ -31,7 +31,7 @@ public abstract class ReadLongOrBigIntegerNode extends FormatNode {
 
     @Child private ToLongNode toLongNode;
 
-    private final ConditionProfile bignumProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile bignumProfile = ConditionProfile.create();
 
     @Specialization(limit = "STORAGE_STRATEGIES")
     protected Object read(VirtualFrame frame, Object source,

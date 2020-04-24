@@ -27,7 +27,7 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode {
     @Child private RubyNode rhs;
     @Child private WriteObjectFieldNode writeNode;
 
-    private final ConditionProfile objectProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile objectProfile = ConditionProfile.create();
 
     public WriteInstanceVariableNode(String name, RubyNode receiver, RubyNode rhs) {
         this.name = name;

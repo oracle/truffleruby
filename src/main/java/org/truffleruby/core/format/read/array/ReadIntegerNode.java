@@ -30,7 +30,7 @@ public abstract class ReadIntegerNode extends FormatNode {
 
     @Child private ToIntegerNode toIntegerNode;
 
-    private final ConditionProfile convertedTypeProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile convertedTypeProfile = ConditionProfile.create();
 
     @Specialization(limit = "STORAGE_STRATEGIES")
     protected Object read(VirtualFrame frame, Object source,

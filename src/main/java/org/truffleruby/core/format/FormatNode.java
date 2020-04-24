@@ -26,10 +26,10 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @ImportStatic(FormatGuards.class)
 public abstract class FormatNode extends RubyContextNode {
 
-    private final ConditionProfile writeMoreThanZeroBytes = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile tooFewArgumentsProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile sourceRangeProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile codeRangeIncreasedProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile writeMoreThanZeroBytes = ConditionProfile.create();
+    private final ConditionProfile tooFewArgumentsProfile = ConditionProfile.create();
+    private final ConditionProfile sourceRangeProfile = ConditionProfile.create();
+    private final ConditionProfile codeRangeIncreasedProfile = ConditionProfile.create();
 
     public abstract Object execute(VirtualFrame frame);
 

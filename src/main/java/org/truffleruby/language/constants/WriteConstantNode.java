@@ -31,7 +31,7 @@ public class WriteConstantNode extends RubyContextSourceNode {
     @Child private RubyNode valueNode;
     @Child private WarnAlreadyInitializedNode warnAlreadyInitializedNode;
 
-    private final ConditionProfile moduleProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile moduleProfile = ConditionProfile.create();
 
     public WriteConstantNode(String name, RubyNode moduleNode, RubyNode valueNode) {
         this.name = name;

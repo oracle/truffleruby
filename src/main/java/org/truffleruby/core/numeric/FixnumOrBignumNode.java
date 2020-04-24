@@ -26,11 +26,11 @@ public class FixnumOrBignumNode extends RubyContextNode {
     public FixnumOrBignumNode() {
     }
 
-    private final ConditionProfile lowerProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile intProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile lowerProfile = ConditionProfile.create();
+    private final ConditionProfile intProfile = ConditionProfile.create();
 
-    private final ConditionProfile integerFromDoubleProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile longFromDoubleProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile integerFromDoubleProfile = ConditionProfile.create();
+    private final ConditionProfile longFromDoubleProfile = ConditionProfile.create();
 
     @TruffleBoundary
     public Object fixnumOrBignum(BigDecimal value) {

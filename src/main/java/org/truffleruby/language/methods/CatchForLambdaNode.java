@@ -33,8 +33,8 @@ public class CatchForLambdaNode extends RubyContextSourceNode {
     @Child private RubyNode body;
 
     private final BranchProfile localReturnProfile = BranchProfile.create();
-    private final ConditionProfile matchingReturnProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile matchingBreakProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile matchingReturnProfile = ConditionProfile.create();
+    private final ConditionProfile matchingBreakProfile = ConditionProfile.create();
     private final BranchProfile retryProfile = BranchProfile.create();
     private final BranchProfile redoProfile = BranchProfile.create();
     private final BranchProfile nextProfile = BranchProfile.create();

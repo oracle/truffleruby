@@ -24,7 +24,7 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
     @Child private RubyNode method;
     @Child private CallDispatchHeadNode toEnumWithSize;
 
-    private final ConditionProfile noBlockProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile noBlockProfile = ConditionProfile.create();
 
     private final DynamicObject methodName;
     private final DynamicObject sizeMethodName;

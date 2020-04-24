@@ -130,7 +130,7 @@ public class TraceManager {
 
     private class BaseEventEventNode extends TraceBaseEventNode {
 
-        protected final ConditionProfile inTraceFuncProfile = ConditionProfile.createBinaryProfile();
+        protected final ConditionProfile inTraceFuncProfile = ConditionProfile.create();
 
         protected final DynamicObject traceFunc;
         protected final Object event;

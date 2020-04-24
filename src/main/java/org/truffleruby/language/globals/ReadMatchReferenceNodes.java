@@ -26,7 +26,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
         @Child private CallDispatchHeadNode getIndexNode;
         private final int index;
 
-        protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
+        protected final ConditionProfile matchNilProfile = ConditionProfile.create();
 
         public ReadNthMatchNode(RubyNode readMatchNode, int index) {
             this.readMatchNode = readMatchNode;
@@ -68,7 +68,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
         @Children private final RubyNode[] setters;
         @Children private final RubyNode[] nilSetters;
 
-        protected final ConditionProfile matchNilProfile = ConditionProfile.createBinaryProfile();
+        protected final ConditionProfile matchNilProfile = ConditionProfile.create();
 
         public SetNamedVariablesMatchNode(
                 RubyNode matchDataNode,

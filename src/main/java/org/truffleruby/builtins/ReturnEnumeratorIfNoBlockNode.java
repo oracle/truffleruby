@@ -27,7 +27,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
     @Child private RubyNode method;
     @Child private CallDispatchHeadNode toEnumNode;
     @CompilationFinal private DynamicObject methodSymbol;
-    private final ConditionProfile noBlockProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile noBlockProfile = ConditionProfile.create();
 
     public ReturnEnumeratorIfNoBlockNode(String methodName, RubyNode method) {
         this.methodName = methodName;

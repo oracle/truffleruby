@@ -290,7 +290,7 @@ public abstract class HashNodes {
     @CoreMethod(names = "compare_by_identity?")
     public abstract static class IsCompareByIdentityNode extends CoreMethodArrayArgumentsNode {
 
-        private final ConditionProfile profile = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile profile = ConditionProfile.create();
 
         @Specialization
         protected boolean compareByIdentity(DynamicObject hash) {
@@ -433,7 +433,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
-        private final ConditionProfile arityMoreThanOne = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
 
         @Specialization(guards = "isNullHash(hash)")
         protected DynamicObject eachNull(DynamicObject hash, DynamicObject block) {
@@ -649,7 +649,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
-        private final ConditionProfile arityMoreThanOne = ConditionProfile.createBinaryProfile();
+        private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
 
         @Specialization(guards = "isNullHash(hash)")
         protected DynamicObject mapNull(DynamicObject hash, DynamicObject block) {

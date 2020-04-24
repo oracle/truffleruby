@@ -31,8 +31,8 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
     @Child private SetNode setNode = SetNode.create();
 
-    private final ConditionProfile noHash = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile isSymbolProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile noHash = ConditionProfile.create();
+    private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 
     public ReadKeywordRestArgumentNode(int minimum, Arity arity) {
         this.excludedKeywords = keywordsAsSymbols(arity);

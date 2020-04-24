@@ -43,7 +43,7 @@ public abstract class ToStringNode extends FormatNode {
     @Child private KernelNodes.ToSNode inspectNode;
     @Child private IsTaintedNode isTaintedNode;
 
-    private final ConditionProfile taintedProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile taintedProfile = ConditionProfile.create();
 
     public ToStringNode(
             boolean convertNumbersToStrings,

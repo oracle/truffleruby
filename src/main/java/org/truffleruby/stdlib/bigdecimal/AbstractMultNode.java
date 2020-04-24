@@ -23,7 +23,7 @@ import org.truffleruby.utils.Utils;
 
 public abstract class AbstractMultNode extends BigDecimalOpNode {
 
-    private final ConditionProfile zeroNormal = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile zeroNormal = ConditionProfile.create();
 
     private Object multBigDecimalConsideringSignum(DynamicObject a, DynamicObject b, MathContext mathContext) {
         final BigDecimal bBigDecimal = Layouts.BIG_DECIMAL.getValue(b);

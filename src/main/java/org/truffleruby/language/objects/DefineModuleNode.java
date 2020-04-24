@@ -30,7 +30,7 @@ public abstract class DefineModuleNode extends RubyContextSourceNode {
 
     @Child LookupForExistingModuleNode lookupForExistingModuleNode;
 
-    private final ConditionProfile needToDefineProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile needToDefineProfile = ConditionProfile.create();
     private final BranchProfile errorProfile = BranchProfile.create();
 
     public DefineModuleNode(String name) {

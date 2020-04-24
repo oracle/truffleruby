@@ -17,7 +17,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReverseOutputPositionNode extends FormatNode {
 
-    private final ConditionProfile rangeProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile rangeProfile = ConditionProfile.create();
 
     @Override
     public Object execute(VirtualFrame frame) {

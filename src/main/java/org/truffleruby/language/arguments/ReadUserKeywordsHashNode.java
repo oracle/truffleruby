@@ -26,10 +26,10 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
     @Child private DoesRespondDispatchHeadNode respondToToHashNode;
     @Child private CallDispatchHeadNode callToHashNode;
 
-    private final ConditionProfile notEnoughArgumentsProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile lastArgumentIsHashProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile respondsToToHashProfile = ConditionProfile.createBinaryProfile();
-    private final ConditionProfile convertedIsHashProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile notEnoughArgumentsProfile = ConditionProfile.create();
+    private final ConditionProfile lastArgumentIsHashProfile = ConditionProfile.create();
+    private final ConditionProfile respondsToToHashProfile = ConditionProfile.create();
+    private final ConditionProfile convertedIsHashProfile = ConditionProfile.create();
 
     public ReadUserKeywordsHashNode(int minArgumentCount) {
         this.minArgumentCount = minArgumentCount;

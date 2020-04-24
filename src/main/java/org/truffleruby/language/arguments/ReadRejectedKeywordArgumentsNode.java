@@ -26,7 +26,7 @@ public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements
     @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
     @Child private SetNode setNode = SetNode.create();
 
-    private final ConditionProfile isSymbolProfile = ConditionProfile.createBinaryProfile();
+    private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 
     public DynamicObject extractRejectedKwargs(VirtualFrame frame, DynamicObject kwargsHash) {
         final DynamicObject rejectedKwargs = HashOperations.newEmptyHash(getContext());
