@@ -68,7 +68,7 @@ public class TraceManager {
     }
 
     @TruffleBoundary
-    public void setTraceFunc(DynamicObject traceFunc) {
+    public synchronized void setTraceFunc(DynamicObject traceFunc) {
         assert traceFunc == null || RubyGuards.isRubyProc(traceFunc);
 
         if (instruments != null) {
