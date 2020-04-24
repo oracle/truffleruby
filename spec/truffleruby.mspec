@@ -169,22 +169,15 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
     [Timeout.singleton_class, [:timeout]],
   ]
 
-  module Kernel
-    alias_method :mspec_old_system, :system
-    private :mspec_old_system
-
-    alias_method :"mspec_old_`", :`
-    private :"mspec_old_`"
-  end
-
   slow_methods.each do |klass, meths|
     klass.class_exec do
       meths.each do |meth|
+        original = instance_method(meth)
         define_method(meth) do |*args, &block|
           if MSpec.current && MSpec.current.state # an example is running
             Thread.main.raise SlowSpecException, "Was tagged as slow as it uses #{meth}(). Rerun specs."
           else
-            send("mspec_old_#{meth}", *args, &block)
+            original.bind(self).call(*args, &block)
           end
         end
         # Keep visibility for Kernel instance methods
