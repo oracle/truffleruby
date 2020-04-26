@@ -33,8 +33,8 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     private final List<String> parameters = new ArrayList<>();
 
-    public List<String> getParameters() {
-        return new ArrayList<>(parameters);
+    public Iterable<String> getParameters() {
+        return parameters;
     }
 
     @Override

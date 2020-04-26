@@ -5,6 +5,10 @@ Compatibility:
 * Implement `UnboundMethod#bind_call`.
 * Implemented `ObjectSpace::WeakMap` (#1385, #1958).
 
+Performance:
+
+* Enable lazy translation from the parser AST to the Truffle AST for user code by default. This should improve application startup time (#1992).
+
 # 20.1.0
 
 New features:

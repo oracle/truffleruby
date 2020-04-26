@@ -414,7 +414,7 @@ public class ParserSupport {
         }
     }
 
-    public ParseNode arg_add(SourceIndexLength position, ParseNode node1, ParseNode node2) {
+    public static ParseNode arg_add(SourceIndexLength position, ParseNode node1, ParseNode node2) {
         if (node1 == null) {
             if (node2 == null) {
                 return new ArrayParseNode(position, NilImplicitParseNode.NIL);

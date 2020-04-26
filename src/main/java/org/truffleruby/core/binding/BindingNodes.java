@@ -257,6 +257,7 @@ public abstract class BindingNodes {
                         "!isHiddenVariable(cachedName)",
                         "getFrameDescriptor(binding) == cachedFrameDescriptor",
                         "cachedFrameSlot != null" },
+                assumptions = "cachedFrameDescriptor.getVersion()",
                 limit = "getCacheLimit()")
         protected Object localVariableSetCached(DynamicObject binding, String name, Object value,
                 @Cached("name") String cachedName,
@@ -273,6 +274,7 @@ public abstract class BindingNodes {
                         "!isHiddenVariable(cachedName)",
                         "getFrameDescriptor(binding) == cachedFrameDescriptor",
                         "cachedFrameSlot == null" },
+                assumptions = "cachedFrameDescriptor.getVersion()",
                 limit = "getCacheLimit()")
         protected Object localVariableSetNewCached(DynamicObject binding, String name, Object value,
                 @Cached("name") String cachedName,
@@ -323,7 +325,10 @@ public abstract class BindingNodes {
     @ImportStatic(BindingNodes.class)
     public abstract static class LocalVariablesNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "getFrameDescriptor(binding) == cachedFrameDescriptor", limit = "getCacheLimit()")
+        @Specialization(
+                guards = "getFrameDescriptor(binding) == cachedFrameDescriptor",
+                assumptions = "cachedFrameDescriptor.getVersion()",
+                limit = "getCacheLimit()")
         protected DynamicObject localVariablesCached(DynamicObject binding,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
                 @Cached("listLocalVariables(getContext(), getFrame(binding))") DynamicObject names) {
