@@ -162,7 +162,7 @@ public abstract class WeakMapNodes {
 
     @TruffleBoundary
     private static WeakValueCache.WeakMapEntry<?, ?>[] entries(WeakMapStorage storage) {
-        return storage.entries().toArray(new WeakValueCache.WeakMapEntry[0]);
+        return storage.entries().toArray(new WeakValueCache.WeakMapEntry<?, ?>[0]);
     }
 
     private static DynamicObject eachNoBlockProvided(YieldingCoreMethodNode node, DynamicObject map) {
