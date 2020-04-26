@@ -14,6 +14,7 @@ Bug fixes:
 * Fixed `TracePoint` thread-safety by storing the state on the Ruby `Thread` (like MRI) instead of inside the `TracePoint` instance.
 * Make `require 'rubygems/package'` succeed and define `Gem::Deprecate` correctly (#2014).
 * Fix `MBCLEN_CHARFOUND_P` error.
+* The output for `--engine.TraceCompilation` is now significantly easier to read, by having shorter method names and source names (oracle/graal#2052).
 
 Compatibility:
 

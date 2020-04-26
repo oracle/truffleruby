@@ -922,18 +922,18 @@ public class CoreLibrary {
         }
     }
 
-    public RubySource loadCoreFile(String feature) throws IOException {
-        if (feature.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
+    public RubySource loadCoreFile(String path) throws IOException {
+        if (path.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             if (TruffleOptions.AOT || ParserCache.INSTANCE != null) {
-                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(feature);
-                return new RubySource(rootParseNode.getSource());
+                final RootParseNode rootParseNode = ParserCache.INSTANCE.get(path);
+                return new RubySource(rootParseNode.getSource(), path);
             } else {
                 final ResourceLoader resourceLoader = new ResourceLoader();
-                return resourceLoader.loadResource(feature, context.getOptions().CORE_AS_INTERNAL);
+                return resourceLoader.loadResource(path, context.getOptions().CORE_AS_INTERNAL);
             }
         } else {
             final FileLoader fileLoader = new FileLoader(context);
-            return fileLoader.loadFile(context.getEnv(), feature);
+            return fileLoader.loadFile(context.getEnv(), path);
         }
     }
 

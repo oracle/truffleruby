@@ -73,7 +73,7 @@ public abstract class DebugHelpers {
 
         final RubyRootNode rootNode = context
                 .getCodeLoader()
-                .parse(new RubySource(source), ParserContext.INLINE, evalFrame, null, true, null);
+                .parse(new RubySource(source, "debug-eval"), ParserContext.INLINE, evalFrame, null, true, null);
 
         final CodeLoader.DeferredCall deferredCall = context.getCodeLoader().prepareExecute(
                 ParserContext.INLINE,

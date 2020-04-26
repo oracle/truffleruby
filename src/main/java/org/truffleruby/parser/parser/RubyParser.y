@@ -150,7 +150,7 @@ public class RubyParser {
     protected final RubyLexer lexer;
 
     public RubyParser(RubyContext context, LexerSource source, RubyWarnings warnings) {
-        this.support = new ParserSupport(context, source.getSource().getName(), warnings);
+        this.support = new ParserSupport(context, source, warnings);
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }

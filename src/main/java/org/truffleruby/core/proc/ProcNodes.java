@@ -11,6 +11,7 @@ package org.truffleruby.core.proc;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -286,7 +287,7 @@ public abstract class ProcNodes {
             SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
 
             if (!sourceSection.isAvailable() ||
-                    sourceSection.getSource().getName().endsWith("/lib/truffle/truffle/cext.rb")) {
+                    RubyContext.getAbsolutePath(sourceSection.getSource()).endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil;
             } else {
                 final DynamicObject file = makeStringNode.executeMake(

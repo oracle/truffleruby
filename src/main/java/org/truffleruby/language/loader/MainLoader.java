@@ -38,7 +38,7 @@ public class MainLoader {
 
     public RubySource loadFromCommandLineArgument(String code) {
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, code, "-e").build();
-        return new RubySource(source);
+        return new RubySource(source, "-e");
     }
 
     public RubySource loadFromStandardIn(Node currentNode, String path) throws IOException {
@@ -49,7 +49,7 @@ public class MainLoader {
                 TruffleRuby.LANGUAGE_ID,
                 RopeOperations.decodeOrEscapeBinaryRope(sourceRope),
                 path).build();
-        return new RubySource(source, sourceRope);
+        return new RubySource(source, path, sourceRope);
     }
 
     private Rope transformScript(Node currentNode, String path, byte[] sourceBytes) {
@@ -80,10 +80,10 @@ public class MainLoader {
         return byteStream.toByteArray();
     }
 
-    public RubySource loadFromFile(Env env, Node currentNode, String path) throws IOException {
+    public RubySource loadFromFile(Env env, Node currentNode, String mainPath) throws IOException {
         final FileLoader fileLoader = new FileLoader(context);
 
-        final TruffleFile file = env.getPublicTruffleFile(path);
+        final TruffleFile file = env.getPublicTruffleFile(mainPath);
         fileLoader.ensureReadable(file);
 
         /* We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
@@ -91,12 +91,12 @@ public class MainLoader {
          * and pass them down to the lexer and to the Source. */
 
         byte[] sourceBytes = file.readAllBytes();
-        final Rope sourceRope = transformScript(currentNode, path, sourceBytes);
+        final Rope sourceRope = transformScript(currentNode, mainPath, sourceBytes);
 
-        final Source source = fileLoader.buildSource(file, path, sourceRope, false);
-        context.setMainSource(source, file.getAbsoluteFile().getPath());
+        final Source mainSource = fileLoader.buildSource(file, sourceRope, false);
+        context.setMainSource(mainSource, mainPath);
 
-        return new RubySource(source, sourceRope);
+        return new RubySource(mainSource, mainPath, sourceRope);
     }
 
 }

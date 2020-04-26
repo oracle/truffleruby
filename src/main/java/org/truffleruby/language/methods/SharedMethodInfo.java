@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language.methods;
 
+import java.util.Arrays;
+
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
-
-import java.util.Arrays;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -175,8 +176,8 @@ public class SharedMethodInfo {
             if (sourceSection == null || !sourceSection.isAvailable()) {
                 descriptiveNameAndSource = descriptiveName;
             } else {
-                descriptiveNameAndSource = descriptiveName + " " + sourceSection.getSource().getName() + ":" +
-                        sourceSection.getStartLine();
+                descriptiveNameAndSource = descriptiveName + " " +
+                        RubyContext.getAbsolutePath(sourceSection.getSource()) + ":" + sourceSection.getStartLine();
             }
         }
 

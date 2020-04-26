@@ -48,7 +48,7 @@ public class CreateEvalSourceNode extends RubyContextNode {
 
         final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, sourceString, file).build();
 
-        return new RubySource(source, sourceRope);
+        return new RubySource(source, file, sourceRope);
     }
 
     private static Rope createEvalRope(Rope source, String method, String file, int line) {

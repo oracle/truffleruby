@@ -140,7 +140,7 @@ public class RubyContext {
     private volatile boolean finalizing;
 
     private Source mainSource = null;
-    private String mainSourceAbsolutePath = null;
+    private String mainSourcePath = null;
 
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
@@ -764,22 +764,22 @@ public class RubyContext {
     /** Returns the path of a Source. Returns the short path for the main script (the file argument given to "ruby").
      * The path of eval(code, nil, filename) is just filename. */
     public String getPath(Source source) {
-        final String name = source.getName();
-
-        if (preInitialized && name.startsWith(RubyLanguage.RUBY_HOME_SCHEME)) {
-            return rubyHome + "/" + name.substring(RubyLanguage.RUBY_HOME_SCHEME.length());
+        if (source == mainSource) {
+            return mainSourcePath;
         } else {
-            return name;
+            return getAbsolutePath(source);
         }
     }
 
     /** Returns the path of a Source. Returns the canonical path for the main script. Note however that the path of
      * eval(code, nil, filename) is just filename and might not be absolute. */
-    public String getAbsolutePath(Source source) {
-        if (source == mainSource) {
-            return mainSourceAbsolutePath;
+    public static String getAbsolutePath(Source source) {
+        final String path = source.getPath();
+        if (path != null) {
+            return path;
         } else {
-            return getPath(source);
+            // non-file sources: eval(), main_boot_source, etc
+            return source.getName();
         }
     }
 
@@ -806,9 +806,9 @@ public class RubyContext {
         }
     }
 
-    public void setMainSource(Source mainSource, String mainSourceAbsolutePath) {
+    public void setMainSource(Source mainSource, String mainSourcePath) {
         this.mainSource = mainSource;
-        this.mainSourceAbsolutePath = mainSourceAbsolutePath;
+        this.mainSourcePath = mainSourcePath;
     }
 
 }

@@ -286,11 +286,7 @@ public abstract class KernelNodes {
                         .getEncapsulatingSourceSection()
                         .getSource();
 
-                String sourcePath = getContext().getAbsolutePath(source);
-                if (sourcePath == null) {
-                    // Use the filename passed to eval as basepath
-                    sourcePath = source.getName();
-                }
+                String sourcePath = RubyContext.getAbsolutePath(source);
 
                 if (sourcePath == null) {
                     throw new RaiseException(

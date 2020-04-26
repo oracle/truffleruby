@@ -465,7 +465,7 @@ public class RubyLexer implements MagicCommentHandler {
 
             final String description;
 
-            if (src.getSource().getName().equals("-e")) {
+            if (src.getSourcePath().equals("-e")) {
                 description = "program from an -e argument";
             } else {
                 description = "Polyglot API Source";
@@ -2921,7 +2921,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public String getFile() {
-        return src.getSource().getName();
+        return src.getSourcePath();
     }
 
     public int getHeredocIndent() {

@@ -13,22 +13,32 @@ import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.source.Source;
 
+import java.util.Objects;
+
 public class RubySource {
 
     private final Source source;
+    /** Same as {@link org.truffleruby.RubyContext#getAbsolutePath(Source)} except for the main file. */
+    private final String sourcePath;
     private final Rope sourceRope;
 
-    public RubySource(Source source) {
-        this(source, null);
+    public RubySource(Source source, String sourcePath) {
+        this(source, sourcePath, null);
     }
 
-    public RubySource(Source source, Rope sourceRope) {
-        this.source = source;
+    public RubySource(Source source, String sourcePath, Rope sourceRope) {
+        this.source = Objects.requireNonNull(source);
+        //intern() to improve footprint
+        this.sourcePath = Objects.requireNonNull(sourcePath).intern();
         this.sourceRope = sourceRope;
     }
 
     public Source getSource() {
         return source;
+    }
+
+    public String getSourcePath() {
+        return sourcePath;
     }
 
     public Rope getRope() {
