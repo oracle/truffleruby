@@ -17,7 +17,6 @@ import java.util.concurrent.locks.Lock;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.fiber.FiberManager;
-import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.object.DynamicObject;

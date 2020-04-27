@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.thread;
 
-import java.util.concurrent.atomic.AtomicLong;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -26,7 +24,12 @@ public final class ThreadLocalBuffer {
     final long tailSize;
     final ThreadLocalBuffer parent;
 
-    private ThreadLocalBuffer(boolean isBlockStart, Pointer start, long bufferSize, long tailSize, ThreadLocalBuffer parent) {
+    private ThreadLocalBuffer(
+            boolean isBlockStart,
+            Pointer start,
+            long bufferSize,
+            long tailSize,
+            ThreadLocalBuffer parent) {
         this.isBlockStart = isBlockStart;
         this.start = start;
         this.bufferSize = bufferSize;
@@ -51,7 +54,12 @@ public final class ThreadLocalBuffer {
 
     public ThreadLocalBuffer allocate(long size, ConditionProfile allocationPoProfile) {
         if (allocationPoProfile.profile(tailSize >= size)) {
-            return new ThreadLocalBuffer(false, new Pointer(this.start.getAddress() + this.bufferSize, size), size, tailSize - size, this);
+            return new ThreadLocalBuffer(
+                    false,
+                    new Pointer(this.start.getAddress() + this.bufferSize, size),
+                    size,
+                    tailSize - size,
+                    this);
         } else {
             return allocateNewBlock(size);
         }
@@ -68,8 +76,18 @@ public final class ThreadLocalBuffer {
             this.free();
             // Create new bigger block
             final long blockSize = Math.max(size, 1024);
-            final ThreadLocalBuffer newParent = new ThreadLocalBuffer(true, Pointer.malloc(blockSize), 0, blockSize, null);
-            return new ThreadLocalBuffer(false, new Pointer(newParent.start.getAddress(), size), size, blockSize - size, newParent);
+            final ThreadLocalBuffer newParent = new ThreadLocalBuffer(
+                    true,
+                    Pointer.malloc(blockSize),
+                    0,
+                    blockSize,
+                    null);
+            return new ThreadLocalBuffer(
+                    false,
+                    new Pointer(newParent.start.getAddress(), size),
+                    size,
+                    blockSize - size,
+                    newParent);
         }
     }
 }
