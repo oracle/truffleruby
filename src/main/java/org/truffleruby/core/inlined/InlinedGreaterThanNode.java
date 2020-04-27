@@ -19,6 +19,7 @@ public abstract class InlinedGreaterThanNode extends BinaryInlinedOperationNode 
 
     public InlinedGreaterThanNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerGreaterThanAssumption);
     }

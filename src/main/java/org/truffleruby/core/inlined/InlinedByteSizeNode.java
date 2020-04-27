@@ -24,7 +24,7 @@ public abstract class InlinedByteSizeNode extends UnaryInlinedOperationNode {
     protected static final String METHOD = "bytesize";
 
     public InlinedByteSizeNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters);
+        super(context, callNodeParameters);
     }
 
     @Specialization(

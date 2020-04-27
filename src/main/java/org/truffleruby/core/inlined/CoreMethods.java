@@ -168,7 +168,7 @@ public class CoreMethods {
                     break;
                 case "block_given?":
                     if (callParameters.isIgnoreVisibility()) {
-                        return InlinedBlockGivenNodeGen.create(callParameters, environment, self);
+                        return InlinedBlockGivenNodeGen.create(context, callParameters, environment, self);
                     }
                     break;
                 case "nil?":

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.inlined;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodNode;
@@ -24,8 +25,11 @@ public abstract class InlinedBlockGivenNode extends UnaryInlinedOperationNode {
 
     @Child protected RubyNode readMethodBlockNode;
 
-    public InlinedBlockGivenNode(RubyCallNodeParameters callNodeParameters, TranslatorEnvironment environment) {
-        super(callNodeParameters);
+    public InlinedBlockGivenNode(
+            RubyContext context,
+            RubyCallNodeParameters callNodeParameters,
+            TranslatorEnvironment environment) {
+        super(context, callNodeParameters);
         this.readMethodBlockNode = environment.findLocalVarOrNilNode(TranslatorEnvironment.METHOD_BLOCK_NAME, null);
     }
 

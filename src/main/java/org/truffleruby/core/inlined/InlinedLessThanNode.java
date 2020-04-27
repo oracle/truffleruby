@@ -19,6 +19,7 @@ public abstract class InlinedLessThanNode extends BinaryInlinedOperationNode {
 
     public InlinedLessThanNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerLessThanAssumption);
     }

@@ -19,6 +19,7 @@ public abstract class InlinedEqualNode extends BinaryInlinedOperationNode {
 
     public InlinedEqualNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerEqualAssumption);
     }

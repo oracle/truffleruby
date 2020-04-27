@@ -26,6 +26,7 @@ public abstract class InlinedModNode extends BinaryInlinedOperationNode {
 
     public InlinedModNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerModAssumption,
                 context.getCoreMethods().floatModAssumption);

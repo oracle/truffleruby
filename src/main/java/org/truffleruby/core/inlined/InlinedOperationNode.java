@@ -30,11 +30,14 @@ public abstract class InlinedOperationNode extends RubyContextSourceNode {
 
     private RubyCallNode replacedBy = null;
 
-    public InlinedOperationNode(RubyCallNodeParameters callNodeParameters, Assumption... assumptions) {
+    public InlinedOperationNode(
+            RubyContext context,
+            RubyCallNodeParameters callNodeParameters,
+            Assumption... assumptions) {
         this.callNodeParameters = callNodeParameters;
 
         this.assumptions = new Assumption[1 + assumptions.length];
-        this.assumptions[0] = getContext().getTraceManager().getUnusedAssumption();
+        this.assumptions[0] = context.getTraceManager().getUnusedAssumption();
         ArrayUtils.arraycopy(assumptions, 0, this.assumptions, 1, assumptions.length);
     }
 

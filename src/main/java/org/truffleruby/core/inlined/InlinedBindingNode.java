@@ -25,7 +25,7 @@ public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
     protected static final String METHOD = "binding";
 
     public InlinedBindingNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters);
+        super(context, callNodeParameters);
     }
 
     @Specialization(

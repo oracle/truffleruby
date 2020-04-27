@@ -24,6 +24,7 @@ public abstract class InlinedLeftShiftNode extends BinaryInlinedOperationNode {
 
     public InlinedLeftShiftNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerLeftShiftAssumption);
     }

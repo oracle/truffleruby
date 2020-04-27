@@ -24,6 +24,7 @@ public abstract class InlinedRightShiftNode extends BinaryInlinedOperationNode {
 
     public InlinedRightShiftNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerRightShiftAssumption);
     }

@@ -23,7 +23,7 @@ public abstract class InlinedNotNode extends UnaryInlinedOperationNode {
     protected static final String METHOD = "!";
 
     public InlinedNotNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
-        super(callNodeParameters);
+        super(context, callNodeParameters);
     }
 
     @Specialization(
