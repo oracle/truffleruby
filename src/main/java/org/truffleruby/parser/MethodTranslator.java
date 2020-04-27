@@ -297,7 +297,7 @@ public class MethodTranslator extends BodyTranslator {
         if (shouldLazyTranslate) {
             final TranslatorState state = getCurrentState();
 
-            body = new LazyRubyNode(() -> {
+            body = new LazyRubyNode(context, () -> {
                 restoreState(state);
                 return compileMethodBody(sourceSection, bodyNode);
             });

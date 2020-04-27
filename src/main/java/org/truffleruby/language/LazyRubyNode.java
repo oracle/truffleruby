@@ -26,6 +26,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 
 public class LazyRubyNode extends RubyContextSourceNode {
 
+    private final RubyContext context;
     private Supplier<RubyNode> resolver;
     private final ReentrantLock lock;
     /** Not a direct RubyNode field as we want to share the resolution between split LazyRubyNodes. We use
@@ -34,7 +35,8 @@ public class LazyRubyNode extends RubyContextSourceNode {
 
     @Child volatile RubyNode resolved;
 
-    public LazyRubyNode(Supplier<RubyNode> resolver) {
+    public LazyRubyNode(RubyContext context, Supplier<RubyNode> resolver) {
+        this.context = context;
         this.resolver = resolver;
         this.lock = new ReentrantLock();
         this.resolutionMaster = new AtomicReference<>();
@@ -90,10 +92,10 @@ public class LazyRubyNode extends RubyContextSourceNode {
         try {
             masterResolution = resolutionMaster.get();
             if (masterResolution == null) {
-                if (getContext().getOptions().LAZY_TRANSLATION_LOG) {
+                if (context.getOptions().LAZY_TRANSLATION_LOG) {
                     RubyLanguage.LOGGER.info(
                             () -> "lazy translating " +
-                                    getContext().fileLine(getParent().getEncapsulatingSourceSection()) + " in " +
+                                    context.fileLine(getParent().getEncapsulatingSourceSection()) + " in " +
                                     getRootNode());
                 }
 

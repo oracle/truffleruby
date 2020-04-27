@@ -148,6 +148,7 @@ public class CoreMethodNodeManager {
         final Function<SharedMethodInfo, RubyNode> methodNodeFactory;
         if (!TruffleOptions.AOT && context.getOptions().LAZY_CORE_METHOD_NODES) {
             methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(
+                    context,
                     () -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo));
         } else {
             methodNodeFactory = sharedMethodInfo -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo);
@@ -171,7 +172,7 @@ public class CoreMethodNodeManager {
         final DynamicObject module = getModule(moduleName, isClass);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
-        final Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(() -> {
+        Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(context, () -> {
             final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod methodAnnotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
             return createCoreMethodNode(nodeFactory, methodAnnotation, sharedMethodInfo);
