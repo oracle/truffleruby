@@ -53,10 +53,10 @@ module NetHTTPSpecs
     end
   end
 
-  class << self
-    @server = nil
-    @server_thread = nil
+  @server = nil
+  @server_thread = nil
 
+  class << self
     def port
       raise "server not started" unless @server
       @server.config[:Port]
