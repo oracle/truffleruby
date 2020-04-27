@@ -1418,7 +1418,7 @@ class IO
     if @descriptor != -1
       "#<#{self.class}:fd #{@descriptor}>"
     else
-      "#<#{self.class}:(closed)"
+      "#<#{self.class}:(closed)>"
     end
   end
 
