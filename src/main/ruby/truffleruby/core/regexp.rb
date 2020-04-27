@@ -51,38 +51,6 @@ class Regexp
 
   OPTION_MASK = IGNORECASE | EXTENDED | MULTILINE | FIXEDENCODING | NOENCODING | DONT_CAPTURE_GROUP | CAPTURE_GROUP
 
-  ESCAPE_TABLE = Array.new(256)
-
-  # Seed it with direct replacements
-  i = 0
-  while i < 256
-    ESCAPE_TABLE[i] = i.chr
-    i += 1
-  end
-
-  ESCAPE_TABLE[9]   = '\\t'
-  ESCAPE_TABLE[10]  = '\\n'
-  ESCAPE_TABLE[11]  = '\\v'
-  ESCAPE_TABLE[12]  = '\\f'
-  ESCAPE_TABLE[13]  = '\\r'
-  ESCAPE_TABLE[32]  = '\\ '
-  ESCAPE_TABLE[35]  = '\\#'
-  ESCAPE_TABLE[36]  = '\\$'
-  ESCAPE_TABLE[40]  = '\\('
-  ESCAPE_TABLE[41]  = '\\)'
-  ESCAPE_TABLE[42]  = '\\*'
-  ESCAPE_TABLE[43]  = '\\+'
-  ESCAPE_TABLE[45]  = '\\-'
-  ESCAPE_TABLE[46]  = '\\.'
-  ESCAPE_TABLE[63]  = '\\?'
-  ESCAPE_TABLE[91]  = '\\['
-  ESCAPE_TABLE[92]  = '\\\\'
-  ESCAPE_TABLE[93]  = '\\]'
-  ESCAPE_TABLE[94]  = '\\^'
-  ESCAPE_TABLE[123] = '\\{'
-  ESCAPE_TABLE[124] = '\\|'
-  ESCAPE_TABLE[125] = '\\}'
-
   class << self
     alias_method :compile, :new
   end
