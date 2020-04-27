@@ -16,6 +16,45 @@ module Truffle
     @loaded_features_index = {}
     @loaded_features_copy = []
 
+    class FeatureEntry
+      attr_reader :feature, :ext, :key, :feature_no_ext
+
+      def initialize(feature, key)
+        @key = key
+        @ext = Truffle::FeatureLoader.extension(feature)
+        @feature = feature
+        @feature_no_ext =  if @ext
+                             feature[0...(-@ext.size)]
+                           else
+                             feature
+                           end
+        @base = @feature_no_ext.split('/').last
+      end
+
+      def ==(other)
+        if other.key
+          if self.ext
+            other.feature.end_with?(self.feature)
+          else
+            other.feature_no_ext.end_with?(self.feature)
+          end
+        else
+          if other.ext
+            @feature.end_with?(other.feature)
+          else
+            @feature_no_ext.end_with?(other.feature)
+          end
+        end
+      end
+
+      alias eql? ==
+
+      def hash
+        @base.hash
+      end
+
+    end
+
     def self.find_file(feature)
       feature = File.expand_path(feature) if feature.start_with?('~')
       Primitive.find_file(feature)
@@ -73,8 +112,9 @@ module Truffle
       feature_has_rb_ext = feature.end_with?('.rb')
       feature_has_ext = has_extension?(feature)
       loaded_features_index = get_loaded_features_index
-      if loaded_features_index.has_key?(feature)
-        loaded_features_index[feature].each do |i|
+      feature_entry = FeatureEntry.new(feature, false)
+      if loaded_features_index.has_key?(feature_entry)
+        loaded_features_index[feature_entry].each do |i|
           loaded_feature = $LOADED_FEATURES[i]
           next if loaded_feature.size < feature.size
           feature_path = if loaded_feature.start_with?(feature)
@@ -180,34 +220,13 @@ module Truffle
     end
 
     # MRI: features_index_add
-    def self.features_index_add(feature, index)
-      ext = extension(feature)
-      feature = feature[0...(-ext.size)] if ext
-      starting_slash = feature.start_with?('/')
-      feature_split = feature.split('/').delete_if(&:empty?)
-      path = []
-      feature_split.reverse_each do |part|
-        path.unshift part
-        features_index_add_single(path.join('/'), index)
-        if ext
-          features_index_add_single("#{path.join('/')}#{ext}", index)
-        end
-      end
-      if starting_slash
-        features_index_add_single("/#{path.join('/')}", index)
-        if ext
-          features_index_add_single("/#{path.join('/')}#{ext}", index)
-        end
-      end
-    end
-
-    # MRI: features_index_add_single
-    def self.features_index_add_single(feature, offset)
+    def self.features_index_add(feature, offset)
       TruffleRuby.synchronized(@loaded_features_index) do
-        if @loaded_features_index.has_key?(feature)
-          @loaded_features_index[feature] << offset
+        feature_entry = FeatureEntry.new(feature, true)
+        if @loaded_features_index.has_key?(feature_entry)
+          @loaded_features_index[feature_entry] << offset
         else
-          @loaded_features_index[feature] = [offset]
+          @loaded_features_index[feature_entry] = [offset]
         end
       end
     end
