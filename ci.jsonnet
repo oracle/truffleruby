@@ -246,8 +246,11 @@ local part_definitions = {
       targets+: ["gate"],
       notify_emails: false,
     },
-    bench: { capabilities+: self["$.cap"].bench_machine },
-    daily: { targets+: ["bench", "daily"] },
+    bench: {
+      capabilities+: self["$.cap"].bench_machine,
+      targets+: ["bench"],
+    },
+    daily: { targets+: ["daily"] },
     weekly: { targets+: ["weekly"] },
     manual: {
       capabilities+: self["$.cap"].normal_machine,
