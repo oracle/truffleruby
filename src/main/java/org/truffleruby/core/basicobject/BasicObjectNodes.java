@@ -368,7 +368,8 @@ public abstract class BasicObjectNodes {
         protected Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
-                    new SingletonClassOfSelfDefaultDefinee(receiver));
+                    new SingletonClassOfSelfDefaultDefinee(receiver),
+                    Layouts.PROC.getDeclarationContext(block).getRefinements());
             return callBlockNode
                     .executeCallBlock(declarationContext, block, receiver, Layouts.PROC.getBlock(block), arguments);
         }

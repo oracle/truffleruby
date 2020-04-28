@@ -1,5 +1,9 @@
 # 20.2.0
 
+Bug fixes:
+
+* Fix `#class_exec`, `#module_exec`, `#instance_eval`, and `instance_exec` to use activated refinements (#1988, @ssnickolay).
+
 Compatibility:
 
 * Implement `UnboundMethod#bind_call`.
@@ -112,7 +116,7 @@ Compatibility:
 * Silence `ruby_dep` warnings since that gem is unmaintained.
 * Clarify error message for not implemented `Process.daemon` (#1962).
 * Allow multiple assignments in conditionals (#1513).
-* Update `NoMethodError#message` to match MRI (#1957). 
+* Update `NoMethodError#message` to match MRI (#1957).
 * Make `StringIO` work with `--enable-frozen-string-literal` (#1969).
 * Support `NULL` for the status of `rb_protect()`.
 * Ensure `BigDecimal#inspect` does not call `BigDecimal#to_s` to avoid behaviour change on `to_s` override (#1960).
@@ -121,8 +125,8 @@ Compatibility:
 * Implemented `RTYPEDDATA_*()` macros and `rb_str_tmp_new()` (#1975).
 * Implemented `rb_set_end_proc` (#1959).
 * Implemented `rb_to_symbol`.
-* Implemented `rb_class_instance_methods`, `rb_class_public_instance_methods`, `rb_class_protected_instance_methods`, and `rb_class_private_instance_methods`. 
-* Implemented `rb_tracepoint_new`, `rb_tracepoint_disable`, `rb_tracepoint_enable`, and `rb_tracepoint_enabled_p` (#1450). 
+* Implemented `rb_class_instance_methods`, `rb_class_public_instance_methods`, `rb_class_protected_instance_methods`, and `rb_class_private_instance_methods`.
+* Implemented `rb_tracepoint_new`, `rb_tracepoint_disable`, `rb_tracepoint_enable`, and `rb_tracepoint_enabled_p` (#1450).
 * Implemented `RbConfig::CONFIG['AR']` and `RbConfig::CONFIG['STRIP']` (#1973).
 * Not yet implemented C API functions are now correctly detected as missing via `mkmf`'s `have_func` (#1980).
 * Accept `RUBY_INTERNAL_EVENT_{NEWOBJ,FREEOBJ}` events but warn they are not triggered (#1978, #1983).
