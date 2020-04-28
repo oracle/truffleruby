@@ -472,8 +472,6 @@ public abstract class RangeNodes {
     @NodeChild(value = "excludeEnd", type = RubyNode.class)
     public abstract static class NewNode extends CoreMethodNode {
 
-        protected final DynamicObject rangeClass = getContext().getCoreLibrary().rangeClass;
-
         @Child private CallDispatchHeadNode cmpNode;
         @Child private AllocateObjectNode allocateNode;
 
@@ -482,22 +480,22 @@ public abstract class RangeNodes {
             return BooleanCastWithDefaultNodeGen.create(false, excludeEnd);
         }
 
-        @Specialization(guards = "rubyClass == rangeClass")
+        @Specialization(guards = "rubyClass == getRangeClass()")
         protected DynamicObject intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludeEnd, begin, end);
         }
 
-        @Specialization(guards = { "rubyClass == rangeClass", "fitsIntoInteger(begin)", "fitsIntoInteger(end)" })
+        @Specialization(guards = { "rubyClass == getRangeClass()", "fitsIntoInteger(begin)", "fitsIntoInteger(end)" })
         protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludeEnd, (int) begin, (int) end);
         }
 
-        @Specialization(guards = { "rubyClass == rangeClass", "!fitsIntoInteger(begin) || !fitsIntoInteger(end)" })
+        @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsIntoInteger(begin) || !fitsIntoInteger(end)" })
         protected DynamicObject longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
             return Layouts.LONG_RANGE.createLongRange(coreLibrary().longRangeFactory, excludeEnd, begin, end);
         }
 
-        @Specialization(guards = { "rubyClass != rangeClass || (!isIntOrLong(begin) || !isIntOrLong(end))" })
+        @Specialization(guards = { "rubyClass != getRangeClass() || (!isIntOrLong(begin) || !isIntOrLong(end))" })
         protected Object objectRange(
                 VirtualFrame frame,
                 DynamicObject rubyClass,
@@ -518,6 +516,10 @@ public abstract class RangeNodes {
             }
 
             return allocateNode.allocate(rubyClass, excludeEnd, begin, end);
+        }
+
+        protected DynamicObject getRangeClass() {
+            return coreLibrary().rangeClass;
         }
 
         protected boolean fitsIntoInteger(long value) {
