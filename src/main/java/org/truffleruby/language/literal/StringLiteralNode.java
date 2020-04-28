@@ -33,7 +33,6 @@ public class StringLiteralNode extends RubyContextSourceNode {
     private final Rope rope;
 
     public StringLiteralNode(Rope rope) {
-        assert getContext().getRopeCache().contains(rope);
         this.rope = rope;
     }
 
