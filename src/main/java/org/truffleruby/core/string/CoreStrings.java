@@ -25,7 +25,6 @@ public class CoreStrings {
     public final CoreString DEFAULT;
     public final CoreString DIVIDE;
     public final CoreString DIVMOD;
-    public final CoreString EMPTY_STRING;
     public final CoreString EVAL_FILENAME_STRING;
     public final CoreString EXPRESSION;
     public final CoreString FAILED_TO_ALLOCATE_MEMORY;
@@ -83,7 +82,6 @@ public class CoreStrings {
         DEFAULT = new CoreString(context, "default");
         DIVIDE = new CoreString(context, "/");
         DIVMOD = new CoreString(context, "divmod");
-        EMPTY_STRING = new CoreString(context, "");
         EVAL_FILENAME_STRING = new CoreString(context, "(eval)");
         EXPRESSION = new CoreString(context, "expression");
         FAILED_TO_ALLOCATE_MEMORY = new CoreString(context, "failed to allocate memory");
