@@ -348,12 +348,12 @@ public class CoreMethodNodeManager {
         return argument;
     }
 
-    private static RubyNode transformResult(CoreMethod method, RubyNode node) {
+    private RubyNode transformResult(CoreMethod method, RubyNode node) {
         if (!method.enumeratorSize().isEmpty()) {
             assert !method
                     .returnsEnumeratorIfNoBlock() : "Only one of enumeratorSize or returnsEnumeratorIfNoBlock can be specified";
             // TODO BF 6-27-2015 Handle multiple method names correctly
-            node = new EnumeratorSizeNode(method.enumeratorSize(), method.names()[0], node);
+            node = new EnumeratorSizeNode(context, method.enumeratorSize(), method.names()[0], node);
         } else if (method.returnsEnumeratorIfNoBlock()) {
             // TODO BF 3-18-2015 Handle multiple method names correctly
             node = new ReturnEnumeratorIfNoBlockNode(method.names()[0], node);
