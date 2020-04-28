@@ -290,7 +290,7 @@ describe "Module#using" do
         end
       end
 
-      A = Class.new do
+      c = Class.new do
         using refinement
 
         def abc
@@ -302,7 +302,7 @@ describe "Module#using" do
         end
       end
 
-      A.new.abc.should == "foo from refinement"
+      c.new.abc.should == "foo from refinement"
     end
 
     it "is active for block called via instance_eval" do
@@ -312,7 +312,7 @@ describe "Module#using" do
         end
       end
 
-      A = Class.new do
+      c = Class.new do
         using refinement
 
         def initialize
@@ -330,7 +330,7 @@ describe "Module#using" do
         end
       end
 
-      A.new.abc.should == "1703: foo from refinement"
+      c.new.abc.should == "1703: foo from refinement"
     end
 
     it "is not active if `using` call is not evaluated" do
