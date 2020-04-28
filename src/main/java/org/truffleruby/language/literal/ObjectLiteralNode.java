@@ -9,15 +9,11 @@
  */
 package org.truffleruby.language.literal;
 
-import org.truffleruby.Layouts;
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeInfo(cost = NodeCost.NONE)
 public class ObjectLiteralNode extends RubyContextSourceNode {
@@ -25,7 +21,6 @@ public class ObjectLiteralNode extends RubyContextSourceNode {
     private final Object object;
 
     public ObjectLiteralNode(Object object) {
-        assert objectInRopeTable(object);
         this.object = object;
     }
 
@@ -36,22 +31,6 @@ public class ObjectLiteralNode extends RubyContextSourceNode {
 
     public Object getObject() {
         return object;
-    }
-
-    private boolean objectInRopeTable(Object object) {
-        final Rope rope;
-
-        if (RubyGuards.isRubyString(object)) {
-            rope = Layouts.STRING.getRope((DynamicObject) object);
-        } else if (RubyGuards.isRubySymbol(object)) {
-            rope = Layouts.SYMBOL.getRope((DynamicObject) object);
-        } else {
-            return true;
-        }
-
-        assert getContext().getRopeCache().contains(rope);
-
-        return true;
     }
 
 }
