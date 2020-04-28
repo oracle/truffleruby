@@ -302,7 +302,7 @@ public class LoadArgumentsTranslator extends Translator {
             defaultValue = translateNodeOrNil(sourceSection, asgnNode.getValueNode());
         }
 
-        final RubyNode readNode = new ReadKeywordArgumentNode(required, name, defaultValue);
+        final RubyNode readNode = new ReadKeywordArgumentNode(context, required, name, defaultValue);
 
         return new WriteLocalVariableNode(slot, readNode);
     }

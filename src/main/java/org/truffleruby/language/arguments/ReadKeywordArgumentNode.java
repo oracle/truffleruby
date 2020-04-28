@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.hash.HashNodes.HashLookupOrExecuteDefaultNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -28,8 +29,8 @@ public class ReadKeywordArgumentNode extends RubyContextSourceNode implements Bi
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private HashLookupOrExecuteDefaultNode hashLookupNode;
 
-    public ReadKeywordArgumentNode(int minimum, String name, RubyNode defaultValue) {
-        this.name = getSymbol(name);
+    public ReadKeywordArgumentNode(RubyContext context, int minimum, String name, RubyNode defaultValue) {
+        this.name = context.getSymbolTable().getSymbol(name);
         this.defaultValue = defaultValue;
         readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
     }

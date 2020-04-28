@@ -263,7 +263,7 @@ public class CoreMethodNodeManager {
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
-    public static RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method,
+    public RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method,
             SharedMethodInfo sharedMethodInfo) {
         final RubyNode[] argumentsNodes = new RubyNode[nodeFactory.getExecutionSignature().size()];
         int i = 0;
@@ -300,6 +300,7 @@ public class CoreMethodNodeManager {
             }
 
             argumentsNodes[i++] = new ReadKeywordArgumentNode(
+                    context,
                     required,
                     method.keywordAsOptional(),
                     new NotProvidedNode());
