@@ -265,6 +265,12 @@ describe "Ruby String literals" do
 end
 
 describe "Ruby String interpolation" do
+  it "permits an empty expression" do
+    s = "#{}"
+    s.should.empty?
+    s.should_not.frozen?
+  end
+
   it "returns a string with the source encoding by default" do
     "a#{"b"}c".encoding.should == Encoding::BINARY
     eval('"a#{"b"}c"'.force_encoding("us-ascii")).encoding.should == Encoding::US_ASCII
