@@ -435,8 +435,7 @@ end
 
 class KeyError < IndexError
 
-  attr_reader :receiver
-  attr_reader :key
+  attr_reader :receiver, :key
 
   def initialize(message = nil, receiver: nil, key: nil)
     @receiver = receiver
@@ -447,7 +446,7 @@ end
 
 class SignalException < Exception
 
-  alias :signm :message
+  alias_method :signm, :message
   attr_reader :signo
 
   def initialize(sig, message = undefined)

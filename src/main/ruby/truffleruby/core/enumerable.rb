@@ -97,7 +97,7 @@ module Enumerable
     end
   end
 
-  def collect(&block)
+  def map(&block)
     if block
       ary = []
       b = Primitive.proc_create_same_arity(block, -> *o { ary << yield(*o) })
@@ -107,8 +107,7 @@ module Enumerable
       to_enum(:collect) { enumerator_size }
     end
   end
-
-  alias_method :map, :collect
+  alias_method :collect, :map
 
   def count(item = undefined)
     seq = 0

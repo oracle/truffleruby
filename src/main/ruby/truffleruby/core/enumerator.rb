@@ -430,7 +430,7 @@ class Enumerator
     end
     alias_method :collect, :map
 
-    def collect_concat
+    def flat_map
       raise ArgumentError, 'Lazy#{collect_concat,flat_map} requires a block' unless block_given?
 
       Lazy.new(self, nil) do |yielder, *args|
@@ -453,7 +453,7 @@ class Enumerator
         end
       end
     end
-    alias_method :flat_map, :collect_concat
+    alias_method :collect_concat, :flat_map
 
     def zip(*lists)
       return super(*lists) { |entry| yield entry } if block_given?
