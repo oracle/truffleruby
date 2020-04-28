@@ -1,0 +1,2 @@
+slow:Tools --coverage is available and works
+slow:Tools --coverage works for internal sources
