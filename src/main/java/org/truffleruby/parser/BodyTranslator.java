@@ -1317,9 +1317,9 @@ public class BodyTranslator extends Translator {
     public RubyNode visitEvStrNode(EvStrParseNode node) {
         final RubyNode ret;
 
-        if (node.getBody() == null) {
+        if (node.getBody() == null) { // "#{}"
             final SourceIndexLength sourceSection = node.getPosition();
-            ret = new ObjectLiteralNode(StringOperations.createString(context, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+            ret = new ObjectLiteralNode(context.getFrozenStringLiteral(RopeConstants.EMPTY_ASCII_8BIT_ROPE));
             ret.unsafeSetSourceSection(sourceSection);
         } else {
             ret = node.getBody().accept(this);
