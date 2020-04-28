@@ -60,7 +60,6 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -2062,6 +2061,7 @@ public class BodyTranslator extends Translator {
             /* Create a sequence of instructions, with the first being the literal array assigned to the temp. */
 
             final RubyNode splatCastNode = SplatCastNodeGen.create(
+                    context,
                     translatingNextExpression
                             ? SplatCastNode.NilBehavior.EMPTY_ARRAY
                             : SplatCastNode.NilBehavior.ARRAY_WITH_NIL,
@@ -2163,6 +2163,7 @@ public class BodyTranslator extends Translator {
             sequence.add(writeTempRHS);
 
             final SplatCastNode rhsSplatCast = SplatCastNodeGen.create(
+                    context,
                     nilBehavior,
                     true,
                     environment.findLocalVarNode(tempRHSName, sourceSection));
@@ -2220,6 +2221,7 @@ public class BodyTranslator extends Translator {
 
 
             final RubyNode splatCastNode = SplatCastNodeGen.create(
+                    context,
                     translatingNextExpression
                             ? SplatCastNode.NilBehavior.EMPTY_ARRAY
                             : SplatCastNode.NilBehavior.ARRAY_WITH_NIL,
@@ -2867,7 +2869,7 @@ public class BodyTranslator extends Translator {
             rescueBodyTranslated = rescueBody.getBodyNode().accept(this);
         }
 
-        return withSourceSection(sourceSection, new RescueSplatNode(splatTranslated, rescueBodyTranslated));
+        return withSourceSection(sourceSection, new RescueSplatNode(context, splatTranslated, rescueBodyTranslated));
     }
 
     @Override
@@ -2945,7 +2947,7 @@ public class BodyTranslator extends Translator {
         final SourceIndexLength sourceSection = node.getPosition();
 
         final RubyNode value = translateNodeOrNil(sourceSection, node.getValue());
-        final RubyNode ret = SplatCastNodeGen.create(SplatCastNode.NilBehavior.CONVERT, false, value);
+        final RubyNode ret = SplatCastNodeGen.create(context, SplatCastNode.NilBehavior.CONVERT, false, value);
         ret.unsafeSetSourceSection(sourceSection);
         return addNewlineIfNeeded(node, ret);
     }
