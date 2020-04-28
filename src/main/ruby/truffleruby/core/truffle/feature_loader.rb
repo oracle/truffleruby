@@ -111,44 +111,46 @@ module Truffle
     def self.feature_provided?(feature, expanded)
       feature_has_rb_ext = feature.end_with?('.rb')
       feature_has_ext = has_extension?(feature)
-      loaded_features_index = get_loaded_features_index
-      feature_entry = FeatureEntry.new(feature, false)
-      if loaded_features_index.has_key?(feature_entry)
-        loaded_features_index[feature_entry].each do |i|
-          loaded_feature = $LOADED_FEATURES[i]
-          next if loaded_feature.size < feature.size
-          feature_path = if loaded_feature.start_with?(feature)
-                           feature
-                         else
-                           if expanded
-                             nil
+      with_synchronized_features do
+        get_loaded_features_index
+        feature_entry = FeatureEntry.new(feature, false)
+        if @loaded_features_index.has_key?(feature_entry)
+          @loaded_features_index[feature_entry].each do |i|
+            loaded_feature = $LOADED_FEATURES[i]
+            next if loaded_feature.size < feature.size
+            feature_path = if loaded_feature.start_with?(feature)
+                             feature
                            else
-                             loaded_feature_path(loaded_feature, feature, $LOAD_PATH)
+                             if expanded
+                               nil
+                             else
+                               loaded_feature_path(loaded_feature, feature, $LOAD_PATH)
+                             end
                            end
-                         end
-          if feature_path
-            if !has_extension?(loaded_feature)
-              if feature_has_ext
-                false
+            if feature_path
+              if !has_extension?(loaded_feature)
+                if feature_has_ext
+                  false
+                else
+                  return :unknown
+                end
               else
-                return :unknown
+                loaded_feature_ext = extension(loaded_feature)
+                if (!feature_has_rb_ext || !feature_has_ext) && binary_ext?(loaded_feature_ext)
+                  return :so
+                end
+                if (feature_has_rb_ext || !feature_has_ext) && loaded_feature_ext == '.rb'
+                  return :rb
+                end
               end
             else
-              loaded_feature_ext = extension(loaded_feature)
-              if (!feature_has_rb_ext || !feature_has_ext) && binary_ext?(loaded_feature_ext)
-                return :so
-              end
-              if (feature_has_rb_ext || !feature_has_ext) && loaded_feature_ext == '.rb'
-                return :rb
-              end
+              false
             end
-          else
-            false
           end
+          false
+        else
+          false
         end
-        false
-      else
-        false
       end
     end
 
@@ -171,10 +173,7 @@ module Truffle
     # MRI: get_loaded_features_index
     def self.get_loaded_features_index
       if !Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
-        TruffleRuby.synchronized(@loaded_features_index) do
-          @loaded_features_index.clear
-        end
-
+        @loaded_features_index.clear
         $LOADED_FEATURES.map! do |val|
           val = StringValue(val)
           #val.freeze # TODO freeze these but post-boot.rb issue using replace
@@ -192,10 +191,18 @@ module Truffle
     def self.provide_feature(feature)
       raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
       #feature.freeze # TODO freeze these but post-boot.rb issue using replace
-      get_loaded_features_index
-      $LOADED_FEATURES << feature
-      features_index_add(feature, $LOADED_FEATURES.size - 1)
-      update_loaded_features_snapshot
+      with_synchronized_features do
+        get_loaded_features_index
+        $LOADED_FEATURES << feature
+        features_index_add(feature, $LOADED_FEATURES.size - 1)
+        update_loaded_features_snapshot
+      end
+    end
+
+    def self.with_synchronized_features
+      TruffleRuby.synchronized($LOADED_FEATURES) do
+        yield
+      end
     end
 
     # MRI: loaded_feature_path
@@ -221,13 +228,11 @@ module Truffle
 
     # MRI: features_index_add
     def self.features_index_add(feature, offset)
-      TruffleRuby.synchronized(@loaded_features_index) do
-        feature_entry = FeatureEntry.new(feature, true)
-        if @loaded_features_index.has_key?(feature_entry)
-          @loaded_features_index[feature_entry] << offset
-        else
-          @loaded_features_index[feature_entry] = [offset]
-        end
+      feature_entry = FeatureEntry.new(feature, true)
+      if @loaded_features_index.has_key?(feature_entry)
+        @loaded_features_index[feature_entry] << offset
+      else
+        @loaded_features_index[feature_entry] = [offset]
       end
     end
 
