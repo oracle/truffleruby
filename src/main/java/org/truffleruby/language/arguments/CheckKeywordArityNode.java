@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.language.RubyContextNode;
@@ -37,11 +38,11 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
     private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
     private final BranchProfile basicArityCheckFailedProfile = BranchProfile.create();
 
-    public CheckKeywordArityNode(Arity arity, RubyNode body) {
+    public CheckKeywordArityNode(RubyContext context, Arity arity, RubyNode body) {
         this.arity = arity;
         this.body = body;
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
-        this.checkKeywordArgumentsNode = new CheckKeywordArgumentsNode(arity);
+        this.checkKeywordArgumentsNode = new CheckKeywordArgumentsNode(context, arity);
         this.eachKeyNode = EachKeyValueNode.create();
 
     }
@@ -90,11 +91,11 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
         private final BranchProfile tooManyKeywordsProfile = BranchProfile.create();
         private final BranchProfile unknownKeywordProfile;
 
-        public CheckKeywordArgumentsNode(Arity arity) {
+        public CheckKeywordArgumentsNode(RubyContext context, Arity arity) {
             checkAllowedKeywords = !arity.hasKeywordsRest();
             doesNotAcceptExtraArguments = !arity.hasRest() && arity.getOptional() == 0;
             required = arity.getRequired();
-            allowedKeywords = checkAllowedKeywords ? keywordsAsSymbols(arity) : null;
+            allowedKeywords = checkAllowedKeywords ? keywordsAsSymbols(context, arity) : null;
             unknownKeywordProfile = checkAllowedKeywords ? BranchProfile.create() : null;
         }
 
@@ -125,11 +126,11 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             return false;
         }
 
-        private DynamicObject[] keywordsAsSymbols(Arity arity) {
+        private static DynamicObject[] keywordsAsSymbols(RubyContext context, Arity arity) {
             final String[] names = arity.getKeywordArguments();
             final DynamicObject[] symbols = new DynamicObject[names.length];
             for (int i = 0; i < names.length; i++) {
-                symbols[i] = getSymbol(names[i]);
+                symbols[i] = context.getSymbolTable().getSymbol(names[i]);
             }
             return symbols;
         }

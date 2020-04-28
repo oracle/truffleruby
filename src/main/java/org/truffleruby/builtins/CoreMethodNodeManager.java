@@ -305,7 +305,7 @@ public class CoreMethodNodeManager {
         RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
         node = transformResult(method, node);
 
-        node = Translator.createCheckArityNode(sharedMethodInfo.getArity(), node);
+        node = Translator.createCheckArityNode(context, sharedMethodInfo.getArity(), node);
 
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
