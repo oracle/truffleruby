@@ -13,6 +13,9 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
+/** Instances of this class represent the Ruby lexical scope for constants, which is only changed by `class Name`,
+ * `module Name` and `class << expr`. Other lexical scope features such as refinement and the default definee are
+ * handled in {@link org.truffleruby.language.methods.DeclarationContext}. */
 public class LexicalScope {
 
     public static final LexicalScope NONE = null;
