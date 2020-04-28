@@ -102,7 +102,6 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     # Options to debug the implementation
     PREINITIALIZATION: [preinit, boolean, true, Use the pre-initialized context when available]
     LAZY_BUILTINS: [lazy-builtins, boolean, DEFAULT_LAZY, Load builtin classes (core methods & primitives) lazily on first use]
-    LAZY_CORE_METHOD_NODES: [lazy-core-method-nodes, boolean, DEFAULT_LAZY, Lazily create core method nodes]
     LAZY_TRANSLATION_CORE: [lazy-translation-core, boolean, DEFAULT_LAZY, Lazily translation of core source files]
 
     # Options to help debugging the implementation performance

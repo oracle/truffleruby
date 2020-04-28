@@ -165,8 +165,6 @@ public class Options {
     public final boolean PREINITIALIZATION;
     /** --lazy-builtins=DEFAULT_LAZY */
     public final boolean LAZY_BUILTINS;
-    /** --lazy-core-method-nodes=DEFAULT_LAZY */
-    public final boolean LAZY_CORE_METHOD_NODES;
     /** --lazy-translation-core=DEFAULT_LAZY */
     public final boolean LAZY_TRANSLATION_CORE;
     /** --basic-ops-inline=true */
@@ -354,7 +352,6 @@ public class Options {
         ROPE_PRINT_INTERN_STATS = options.get(OptionsCatalog.ROPE_PRINT_INTERN_STATS_KEY);
         PREINITIALIZATION = options.get(OptionsCatalog.PREINITIALIZATION_KEY);
         LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : DEFAULT_LAZY;
-        LAZY_CORE_METHOD_NODES = options.hasBeenSet(OptionsCatalog.LAZY_CORE_METHOD_NODES_KEY) ? options.get(OptionsCatalog.LAZY_CORE_METHOD_NODES_KEY) : DEFAULT_LAZY;
         LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : DEFAULT_LAZY;
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
         DEFAULT_CACHE = options.get(OptionsCatalog.DEFAULT_CACHE_KEY);
@@ -558,8 +555,6 @@ public class Options {
                 return PREINITIALIZATION;
             case "ruby.lazy-builtins":
                 return LAZY_BUILTINS;
-            case "ruby.lazy-core-method-nodes":
-                return LAZY_CORE_METHOD_NODES;
             case "ruby.lazy-translation-core":
                 return LAZY_TRANSLATION_CORE;
             case "ruby.basic-ops-inline":

@@ -145,14 +145,10 @@ public class CoreMethodNodeManager {
         final Arity arity = createArity(method.required(), method.optional(), method.rest(), keywordAsOptional);
 
         final NodeFactory<? extends RubyNode> nodeFactory = methodDetails.getNodeFactory();
-        final Function<SharedMethodInfo, RubyNode> methodNodeFactory;
-        if (!TruffleOptions.AOT && context.getOptions().LAZY_CORE_METHOD_NODES) {
-            methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(
-                    context,
-                    () -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo));
-        } else {
-            methodNodeFactory = sharedMethodInfo -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo);
-        }
+        final Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> createCoreMethodNode(
+                nodeFactory,
+                method,
+                sharedMethodInfo);
 
         final boolean onSingleton = method.onSingleton() || method.constructor();
         addMethods(

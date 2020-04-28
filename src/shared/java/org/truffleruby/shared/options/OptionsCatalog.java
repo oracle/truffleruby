@@ -91,7 +91,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> ROPE_PRINT_INTERN_STATS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> PREINITIALIZATION_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
-    public static final OptionKey<Boolean> LAZY_CORE_METHOD_NODES_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
     public static final OptionKey<Integer> DEFAULT_CACHE_KEY = new OptionKey<>(8);
@@ -647,13 +646,6 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor LAZY_CORE_METHOD_NODES = OptionDescriptor
-            .newBuilder(LAZY_CORE_METHOD_NODES_KEY, "ruby.lazy-core-method-nodes")
-            .help("Lazily create core method nodes")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static final OptionDescriptor LAZY_TRANSLATION_CORE = OptionDescriptor
             .newBuilder(LAZY_TRANSLATION_CORE_KEY, "ruby.lazy-translation-core")
             .help("Lazily translation of core source files")
@@ -1197,8 +1189,6 @@ public class OptionsCatalog {
                 return PREINITIALIZATION;
             case "ruby.lazy-builtins":
                 return LAZY_BUILTINS;
-            case "ruby.lazy-core-method-nodes":
-                return LAZY_CORE_METHOD_NODES;
             case "ruby.lazy-translation-core":
                 return LAZY_TRANSLATION_CORE;
             case "ruby.basic-ops-inline":
@@ -1391,7 +1381,6 @@ public class OptionsCatalog {
             ROPE_PRINT_INTERN_STATS,
             PREINITIALIZATION,
             LAZY_BUILTINS,
-            LAZY_CORE_METHOD_NODES,
             LAZY_TRANSLATION_CORE,
             BASICOPS_INLINE,
             DEFAULT_CACHE,
