@@ -68,7 +68,7 @@ and run the post-install script.
 ### Latest Release
 
 Set `TRUFFLERUBY_VERSION` to the latest TruffleRuby version from
-[GitHub releases](https://github.com/oracle/truffleruby/releases).
+[GitHub releases](https://github.com/oracle/truffleruby/releases/latest).
 
 ```bash
 $ export TRUFFLERUBY_VERSION=<desired_version>
