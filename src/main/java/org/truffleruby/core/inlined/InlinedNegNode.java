@@ -24,6 +24,7 @@ public abstract class InlinedNegNode extends UnaryInlinedOperationNode {
 
     public InlinedNegNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerNegAssumption,
                 context.getCoreMethods().floatNegAssumption);

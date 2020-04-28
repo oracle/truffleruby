@@ -298,23 +298,6 @@ describe "The launcher" do
     out.should_not include('RubyLauncher.main')
   end
 
-  guard -> { TruffleRuby.jit? } do
-    it "applies Truffle options" do
-      options = [
-        "--engine.TraceCompilation",
-        "--experimental-options",
-        "--engine.BackgroundCompilation=false",
-      ].join(" ")
-      err = tmp("err.txt")
-      begin
-        ruby_exe("2000.times {}", options: options, args: "2>#{err}")
-        File.read(err).should include "[engine] opt done"
-      ensure
-        rm_r err
-      end
-    end
-  end
-
   it "ignores --jit... options with a warning and a hint to look at Graal documentation" do
     [
       "--jit",

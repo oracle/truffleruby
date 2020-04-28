@@ -130,11 +130,11 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    public static RubyNode createCheckArityNode(Arity arity, RubyNode body) {
+    public static RubyNode createCheckArityNode(RubyContext context, Arity arity, RubyNode body) {
         if (!arity.acceptsKeywords()) {
             return new CheckArityNode(arity, body);
         } else {
-            return new CheckKeywordArityNode(arity, body);
+            return new CheckKeywordArityNode(context, arity, body);
         }
     }
 

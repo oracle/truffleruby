@@ -24,6 +24,7 @@ public abstract class InlinedSubNode extends BinaryInlinedOperationNode {
 
     public InlinedSubNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerSubAssumption,
                 context.getCoreMethods().floatSubAssumption);

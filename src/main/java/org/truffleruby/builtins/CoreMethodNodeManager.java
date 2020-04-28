@@ -145,13 +145,10 @@ public class CoreMethodNodeManager {
         final Arity arity = createArity(method.required(), method.optional(), method.rest(), keywordAsOptional);
 
         final NodeFactory<? extends RubyNode> nodeFactory = methodDetails.getNodeFactory();
-        final Function<SharedMethodInfo, RubyNode> methodNodeFactory;
-        if (!TruffleOptions.AOT && context.getOptions().LAZY_CORE_METHOD_NODES) {
-            methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(
-                    () -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo));
-        } else {
-            methodNodeFactory = sharedMethodInfo -> createCoreMethodNode(nodeFactory, method, sharedMethodInfo);
-        }
+        final Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> createCoreMethodNode(
+                nodeFactory,
+                method,
+                sharedMethodInfo);
 
         final boolean onSingleton = method.onSingleton() || method.constructor();
         addMethods(
@@ -171,7 +168,7 @@ public class CoreMethodNodeManager {
         final DynamicObject module = getModule(moduleName, isClass);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
-        final Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(() -> {
+        Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(context, () -> {
             final NodeFactory<? extends RubyNode> nodeFactory = loadNodeFactory(nodeFactoryName);
             final CoreMethod methodAnnotation = nodeFactory.getNodeClass().getAnnotation(CoreMethod.class);
             return createCoreMethodNode(nodeFactory, methodAnnotation, sharedMethodInfo);
@@ -262,7 +259,7 @@ public class CoreMethodNodeManager {
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
-    public static RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method,
+    public RubyNode createCoreMethodNode(NodeFactory<? extends RubyNode> nodeFactory, CoreMethod method,
             SharedMethodInfo sharedMethodInfo) {
         final RubyNode[] argumentsNodes = new RubyNode[nodeFactory.getExecutionSignature().size()];
         int i = 0;
@@ -299,6 +296,7 @@ public class CoreMethodNodeManager {
             }
 
             argumentsNodes[i++] = new ReadKeywordArgumentNode(
+                    context,
                     required,
                     method.keywordAsOptional(),
                     new NotProvidedNode());
@@ -307,7 +305,7 @@ public class CoreMethodNodeManager {
         RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
         node = transformResult(method, node);
 
-        node = Translator.createCheckArityNode(sharedMethodInfo.getArity(), node);
+        node = Translator.createCheckArityNode(context, sharedMethodInfo.getArity(), node);
 
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
@@ -350,12 +348,12 @@ public class CoreMethodNodeManager {
         return argument;
     }
 
-    private static RubyNode transformResult(CoreMethod method, RubyNode node) {
+    private RubyNode transformResult(CoreMethod method, RubyNode node) {
         if (!method.enumeratorSize().isEmpty()) {
             assert !method
                     .returnsEnumeratorIfNoBlock() : "Only one of enumeratorSize or returnsEnumeratorIfNoBlock can be specified";
             // TODO BF 6-27-2015 Handle multiple method names correctly
-            node = new EnumeratorSizeNode(method.enumeratorSize(), method.names()[0], node);
+            node = new EnumeratorSizeNode(context, method.enumeratorSize(), method.names()[0], node);
         } else if (method.returnsEnumeratorIfNoBlock()) {
             // TODO BF 3-18-2015 Handle multiple method names correctly
             node = new ReturnEnumeratorIfNoBlockNode(method.names()[0], node);

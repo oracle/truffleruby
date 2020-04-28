@@ -23,9 +23,10 @@ public class RescueSplatNode extends RescueNode {
 
     @Child private RubyNode splatCastNode;
 
-    public RescueSplatNode(RubyNode handlingClassesArray, RubyNode rescueBody) {
+    public RescueSplatNode(RubyContext context, RubyNode handlingClassesArray, RubyNode rescueBody) {
         super(rescueBody);
         this.splatCastNode = SplatCastNodeGen.create(
+                context,
                 SplatCastNode.NilBehavior.EMPTY_ARRAY,
                 true,
                 handlingClassesArray);

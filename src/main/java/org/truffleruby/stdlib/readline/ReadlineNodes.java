@@ -155,7 +155,7 @@ public abstract class ReadlineNodes {
 
         @CreateCast("prompt")
         protected RubyNode coercePromptToJavaString(RubyNode prompt) {
-            return ToJavaStringWithDefaultNodeGen.create(coreStrings().EMPTY_STRING.toString(), prompt);
+            return ToJavaStringWithDefaultNodeGen.create("", prompt);
         }
 
         @CreateCast("addToHistory")

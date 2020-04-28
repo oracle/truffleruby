@@ -23,6 +23,7 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
 
     public InlinedIsNilNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().nilClassIsNilAssumption);
     }

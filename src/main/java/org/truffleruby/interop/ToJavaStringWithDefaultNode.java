@@ -9,10 +9,11 @@
  */
 package org.truffleruby.interop;
 
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 
@@ -21,21 +22,19 @@ import com.oracle.truffle.api.dsl.Specialization;
 public abstract class ToJavaStringWithDefaultNode extends RubyContextSourceNode {
 
     private final String defaultValue;
-    @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();
 
     public ToJavaStringWithDefaultNode(String defaultValue) {
         this.defaultValue = defaultValue;
     }
 
-    public abstract String executeString(Object value);
-
     @Specialization
     protected String doDefault(NotProvided value) {
-        return toJavaStringNode.executeToJavaString(defaultValue);
+        return defaultValue;
     }
 
     @Specialization(guards = "wasProvided(value)")
-    protected String doProvided(Object value) {
+    protected String doProvided(Object value,
+            @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
 

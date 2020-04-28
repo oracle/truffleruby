@@ -423,7 +423,7 @@ public abstract class ModuleNodes {
                 accessInstanceVariable = new WriteInstanceVariableNode(ivar, self, readArgument);
             }
 
-            final RubyNode body = Translator.createCheckArityNode(arity, accessInstanceVariable);
+            final RubyNode body = Translator.createCheckArityNode(getContext(), arity, accessInstanceVariable);
             final RubyRootNode rootNode = new RubyRootNode(
                     getContext(),
                     sourceSection,

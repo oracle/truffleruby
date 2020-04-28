@@ -19,6 +19,7 @@ public abstract class InlinedLessOrEqualNode extends BinaryInlinedOperationNode 
 
     public InlinedLessOrEqualNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerLessOrEqualAssumption);
     }

@@ -24,6 +24,7 @@ public abstract class InlinedBitOrNode extends BinaryInlinedOperationNode {
 
     public InlinedBitOrNode(RubyContext context, RubyCallNodeParameters callNodeParameters) {
         super(
+                context,
                 callNodeParameters,
                 context.getCoreMethods().integerBitOrAssumption);
     }
