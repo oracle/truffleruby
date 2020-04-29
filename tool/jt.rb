@@ -1277,11 +1277,7 @@ EOS
       exit 1
     end
 
-    # run launchers first before any gem is installed, which may break the test
-    # since it alters executables of default gems when they are updated
-    if (launchers = candidates.find { |c| c.end_with?('launchers.sh') })
-      candidates.unshift candidates.delete launchers
-    end
+    mspec 'test/truffle/ecosystem/launcher_spec.rb'
 
     success = candidates.all? do |test_script|
       next true if test_script.end_with? 'shared.sh'
