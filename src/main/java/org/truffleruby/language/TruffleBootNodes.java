@@ -9,12 +9,16 @@
  */
 package org.truffleruby.language;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.graalvm.options.OptionDescriptor;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -41,6 +45,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.LanguageInfo;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.llvm.api.Toolchain;
@@ -375,33 +380,68 @@ public abstract class TruffleBootNodes {
 
     }
 
-    @CoreMethod(names = "tool_path", onSingleton = true, required = 1)
-    public abstract static class ToolPathNode extends CoreMethodArrayArgumentsNode {
+    @CoreMethod(names = "toolchain_executable", onSingleton = true, required = 1)
+    public abstract static class ToolchainExecutableNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(toolName)")
-        protected Object toolPath(DynamicObject toolName,
+        @Specialization(guards = "isRubySymbol(executable)")
+        protected Object toolchainExecutable(DynamicObject executable,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final LanguageInfo llvmInfo = getContext().getEnv().getInternalLanguages().get("llvm");
-            if (llvmInfo == null) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().runtimeError("Could not find Sulong in internal languages", this));
-            }
-            final Toolchain toolchain = getContext().getEnv().lookup(llvmInfo, Toolchain.class);
-            if (toolchain == null) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().runtimeError("Could not find the LLVM Toolchain", this));
-            }
-            final TruffleFile path = toolchain.getToolPath(Layouts.SYMBOL.getString(toolName));
+            final String name = Layouts.SYMBOL.getString(executable);
+            final Toolchain toolchain = getToolchain(getContext(), this);
+            final TruffleFile path = toolchain.getToolPath(name);
             if (path != null) {
                 return makeStringNode.executeMake(path.getPath(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             } else {
-                return nil;
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentError("Toolchain executable " + name + " not found", this));
             }
         }
 
+    }
+
+    @CoreMethod(names = "toolchain_paths", onSingleton = true, required = 1)
+    public abstract static class ToolchainPathsNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubySymbol(pathName)")
+        protected Object toolchainPaths(DynamicObject pathName,
+                @Cached StringNodes.MakeStringNode makeStringNode) {
+            final String name = Layouts.SYMBOL.getString(pathName);
+            final Toolchain toolchain = getToolchain(getContext(), this);
+            final List<TruffleFile> paths = toolchain.getPaths(name);
+            if (paths != null) {
+                String path = paths
+                        .stream()
+                        .map(file -> file.getPath())
+                        .collect(Collectors.joining(File.pathSeparator));
+                return makeStringNode.executeMake(path, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            } else {
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().argumentError("Toolchain path " + name + " not found", this));
+            }
+        }
+
+    }
+
+    private static Toolchain getToolchain(RubyContext context, Node currentNode) {
+        final LanguageInfo llvmInfo = context.getEnv().getInternalLanguages().get("llvm");
+        if (llvmInfo == null) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().runtimeError(
+                            "Could not find Sulong in internal languages",
+                            currentNode));
+        }
+        final Toolchain toolchain = context.getEnv().lookup(llvmInfo, Toolchain.class);
+        if (toolchain == null) {
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().runtimeError("Could not find the LLVM Toolchain", currentNode));
+        }
+        return toolchain;
     }
 
 }
