@@ -10,7 +10,6 @@
 package org.truffleruby;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -149,8 +148,6 @@ public class RubyContext {
     private String mainSourceAbsolutePath = null;
 
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
-
-    private static final boolean LIBPOLYGLOT = Boolean.getBoolean("graalvm.libpolyglot");
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
         Metrics.printTime("before-context-constructor");
@@ -728,12 +725,8 @@ public class RubyContext {
             RubyLanguage.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
         }
 
-        if (!LIBPOLYGLOT) {
-            // We have no way to ever find home automatically in libpolyglot, so don't clutter with warnings
-            RubyLanguage.LOGGER.warning(
-                    "could not determine TruffleRuby's home - the standard library will not be available - use --log.level=CONFIG to see details");
-        }
-
+        RubyLanguage.LOGGER.warning(
+                "could not determine TruffleRuby's home - the standard library will not be available - use --log.level=CONFIG to see details");
         return null;
     }
 
