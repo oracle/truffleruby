@@ -60,8 +60,6 @@ GraalVM containing only the Ruby language. The built GraalVM can be found in the
 There are multiple *build configurations* available to build TruffleRuby:
 * `jvm`: the default, JVM-only, no GraalVM compiler (Ruby code is always interpreted)
 * `jvm-ce`: JVM-only, with the GraalVM compiler
-* `jvm-ee`: JVM-only, with the GraalVM compiler, using the proprietary entreprise edition of GraalVM, which includes
-            additional optimizations
 * `native`: Builds a native image of TruffleRuby using SubstrateVM, including the GraalVM compiler
 
 All `jvm*` build configurations can only run the `--jvm` [runtime configuration][rt-confs].  
@@ -74,7 +72,13 @@ To build one of these build configurations, pass `--env` to the build command:
 $ jt build [--env BUILD_CONFIGURATION]
 ```
 
-The GraalVM build will be created in `mxbuild/truffleruby-${BUILD_CONFIGURATION}`.
+You can create a new build configuration by creating a [mx env file] in `mx.truffleruby`.
+
+[mx env file]: https://github.com/graalvm/mx/blob/master/README.md#environment-variable-processing
+
+Builds are created in the `mxbuild/truffleruby-${BUILD_NAME}` directory. By default, the *build name* is the
+name of the build configuration, but you can specify a different name with `--name BUILD_NAME`. This enables
+you to store multiple builds that use the same configuration.
 
 Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
@@ -102,14 +106,21 @@ If you are running a Ruby environment manager like `rvm`, `rbenv`, or `chruby`
 please run `rvm use system`, `rbenv system`, or `chruby system` to clear their
 environment variables, so that the correct gems are picked up.
 
-If you want to run the TruffleRuby with another [build configuration][build-confs] than `jvm`, pass
-the configuration name after `--use`:
+By default, `jt ruby` runs the `jvm` build of TruffleRuby (that is, built with the `--jvm` [build
+configuration](#building) and using the default build name) and aborts if this build doesn't exist.
+
+You can also use `jt` to run other TruffleRuby builds (see the [Building](#bulding) section), just
+pass the buld name after `--use`:
 
 ```bash
-$ jt [--use BUILD_CONFIGURATION] ruby ...
+$ jt --use BUILD_NAME ruby ...
 ```
 
-[build-confs]: #building
+You can also pass the path to a ruby executable after `--use`, e.g.:
+
+```bash
+$ jt --use /usr/bin/ruby ruby ...
+```
 
 ## Testing
 
