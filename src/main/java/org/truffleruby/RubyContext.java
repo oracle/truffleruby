@@ -697,12 +697,7 @@ public class RubyContext {
     }
 
     private String findRubyHome(Options options) {
-        final String home;
-        try {
-            home = searchRubyHome(options);
-        } catch (IOException e) {
-            throw new JavaException(e);
-        }
+        final String home = searchRubyHome(options);
         if (RubyLanguage.LOGGER.isLoggable(Level.CONFIG)) {
             RubyLanguage.LOGGER.config("home: " + home);
         }
@@ -710,24 +705,18 @@ public class RubyContext {
     }
 
     // Returns a canonical path to the home
-    @TruffleBoundary
-    private String searchRubyHome(Options options) throws IOException {
+    private String searchRubyHome(Options options) {
         if (options.NO_HOME_PROVIDED) {
             RubyLanguage.LOGGER.config("--ruby.no-home-provided set");
             return null;
         }
 
-        // Use the Truffle reported home
-
         final String truffleReported = language.getTruffleLanguageHome();
-
         if (truffleReported != null) {
             final File home = new File(truffleReported);
-            RubyLanguage.LOGGER.config(() -> String.format(
-                    "trying Truffle-reported home %s, expanded to %s, as the Ruby home",
-                    truffleReported,
-                    home));
             if (isRubyHome(home)) {
+                RubyLanguage.LOGGER.config(
+                        () -> String.format("Using Truffle-reported home %s as the Ruby home", truffleReported));
                 return truffleReported;
             } else {
                 RubyLanguage.LOGGER.warning(
@@ -737,29 +726,6 @@ public class RubyContext {
             }
         } else {
             RubyLanguage.LOGGER.config("Truffle-reported home not set, cannot determine home from it");
-        }
-
-        // Use the path relative to the launcher
-
-        if (!options.LAUNCHER.isEmpty()) {
-            final File canonicalLauncherPath = new File(options.LAUNCHER).getCanonicalFile();
-            final File launcherDir = canonicalLauncherPath.getParentFile();
-            final File candidate = launcherDir == null ? null : launcherDir.getParentFile();
-            RubyLanguage.LOGGER.config(() -> String.format(
-                    "trying home %s guessed from executable %s, as the Ruby home",
-                    candidate,
-                    options.LAUNCHER));
-            if (candidate != null && isRubyHome(candidate)) {
-                return candidate.getCanonicalPath();
-            } else {
-                RubyLanguage.LOGGER.warning(
-                        String.format(
-                                "home %s guessed from executable %s does not look like TruffleRuby's home",
-                                candidate,
-                                options.LAUNCHER));
-            }
-        } else {
-            RubyLanguage.LOGGER.config("no launcher set, cannot determine home from it");
         }
 
         if (!LIBPOLYGLOT) {

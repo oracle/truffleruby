@@ -102,14 +102,9 @@ switches as in standard Ruby.
 
 TruffleRuby needs to know where to locate files such as the standard library.
 These are stored in the TruffleRuby home directory.
+The Ruby home is always the one that the Truffle framework reports.
 
-The search priority for finding Ruby home is:
-
-* The home that the Truffle framework reports.
-* The parent of the directory containing the Ruby launcher executable.
-
-Each path is tried until one is found that appears to be a
-correct home location. If none appears to be correct a warning will be given but
+If the Ruby home appears to not be correct or is unset a warning will be given but
 the program will continue and you will not be able to require standard
 libraries. You can tell TruffleRuby not to try to find a home at all using the
 `no-home-provided` option.
