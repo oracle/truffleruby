@@ -79,6 +79,7 @@ Bug fixes:
 * Fix issue where interpolated string matched `#` within string as being a variable (#1495).
 * Fix `File.join` to raise error on strings with null bytes.
 * Fix initialization of Ruby Thread for foreign thread created in Java.
+* Fix registration of default specs in RubyGems (#1987).
 
 Compatibility:
 

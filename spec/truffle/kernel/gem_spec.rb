@@ -9,13 +9,13 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Kernel#gem" do
-  it "returns true for included gems" do
+  it "does not raise an error for included gems" do
     require "rubygems"
-    gem("json").should == true
-    gem("minitest").should == true
-    gem("power_assert").should == true
-    gem("psych").should == true
-    gem("rake").should == true
-    gem("rdoc").should == true
+    gem("json").should be_true_or_false
+    gem("minitest").should be_true_or_false
+    gem("power_assert").should be_true_or_false
+    gem("psych").should be_true_or_false
+    gem("rake").should be_true_or_false
+    gem("rdoc").should be_true_or_false
   end
 end
