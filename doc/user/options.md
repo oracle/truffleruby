@@ -105,12 +105,10 @@ These are stored in the TruffleRuby home directory.
 
 The search priority for finding Ruby home is:
 
-* The value of the TruffleRuby `home` option (i.e., `--home=path/to/truffleruby_home`).
 * The home that the Truffle framework reports.
 * The parent of the directory containing the Ruby launcher executable.
 
-If the `home` option is set, it's used even if it doesn't appear to be a correct
-home location. Other options are tried until one is found that appears to be a
+Each path is tried until one is found that appears to be a
 correct home location. If none appears to be correct a warning will be given but
 the program will continue and you will not be able to require standard
 libraries. You can tell TruffleRuby not to try to find a home at all using the

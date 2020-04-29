@@ -169,7 +169,7 @@ describe "The launcher" do
   it "prints available expert options for --help:languages --help:expert" do
     out = ruby_exe(nil, options: "--help:languages --help:expert")
     $?.success?.should == true
-    out.should include("--ruby.home")
+    out.should include("--ruby.cexts-log-load")
   end
 
   it "prints available internal options for --help:languages --help:internal" do
@@ -197,13 +197,13 @@ describe "The launcher" do
   it "sets the log level using --log.level=" do
     out = ruby_exe("14", options: "--experimental-options --options-log --log.level=CONFIG", args: "2>&1")
     $?.success?.should == true
-    out.should include("CONFIG: option home=")
+    out.should include("CONFIG: option default-cache=")
   end
 
   it "sets the log level using --log.ruby.level=" do
     out = ruby_exe("14", options: "--experimental-options --options-log --log.ruby.level=CONFIG", args: "2>&1")
     $?.success?.should == true
-    out.should include("CONFIG: option home=")
+    out.should include("CONFIG: option default-cache=")
   end
 
   describe 'StringArray option' do

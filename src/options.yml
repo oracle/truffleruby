@@ -13,7 +13,6 @@ USER:
 EXPERT:
   EXPERIMENTAL:
     # Setting home and launcher, useful for embedding
-    HOME: [home, string, '', The location of the TruffleRuby installation files]
     NO_HOME_PROVIDED: [no-home-provided, boolean, false, set to true to explicitly state that no home is provided (silences the warnings)]
     LAUNCHER: [launcher, string, '', The location of the TruffleRuby launcher program]
     CORE_LOAD_PATH: [core-load-path, string, 'resource:/truffleruby', Location to load the Truffle core library from]
