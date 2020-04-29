@@ -20,25 +20,25 @@ public final class ThreadLocalBuffer {
 
     final boolean isBlockStart;
     public final Pointer start;
-    final long bufferSize;
-    final long tailSize;
+    final long used;
+    final long remaining;
     final ThreadLocalBuffer parent;
 
     private ThreadLocalBuffer(
             boolean isBlockStart,
             Pointer start,
-            long bufferSize,
-            long tailSize,
+            long used,
+            long remaining,
             ThreadLocalBuffer parent) {
         this.isBlockStart = isBlockStart;
         this.start = start;
-        this.bufferSize = bufferSize;
-        this.tailSize = tailSize;
+        this.used = used;
+        this.remaining = remaining;
         this.parent = parent;
     }
 
-    public ThreadLocalBuffer free() {
-        if (isBlockStart) {
+    public ThreadLocalBuffer free(ConditionProfile freeProfile) {
+        if (freeProfile.profile(isBlockStart)) {
             start.freeNoAutorelease();
         }
         return parent;
@@ -47,18 +47,18 @@ public final class ThreadLocalBuffer {
     public void freeAll() {
         ThreadLocalBuffer current = this;
         while (current != null) {
-            current.free();
+            current.free(ConditionProfile.getUncached());
             current = current.parent;
         }
     }
 
-    public ThreadLocalBuffer allocate(long size, ConditionProfile allocationPoProfile) {
-        if (allocationPoProfile.profile(tailSize >= size)) {
+    public ThreadLocalBuffer allocate(long size, ConditionProfile allocationProfile) {
+        if (allocationProfile.profile(remaining >= size)) {
             return new ThreadLocalBuffer(
                     false,
-                    new Pointer(this.start.getAddress() + this.bufferSize, size),
+                    new Pointer(this.start.getAddress() + this.used, size),
                     size,
-                    tailSize - size,
+                    remaining - size,
                     this);
         } else {
             return allocateNewBlock(size);
@@ -68,14 +68,13 @@ public final class ThreadLocalBuffer {
     @TruffleBoundary
     private ThreadLocalBuffer allocateNewBlock(long size) {
         // Allocate a new buffer. Chain it if we aren't the default thread buffer, otherwise make a new default buffer.
+        final long blockSize = Math.max(size, 1024);
         if (this.parent != null) {
-            final long blockSize = Math.max(size, 1024);
             return new ThreadLocalBuffer(true, Pointer.malloc(blockSize), size, blockSize - size, this);
         } else {
             // Free the old block
-            this.free();
+            this.free(ConditionProfile.getUncached());
             // Create new bigger block
-            final long blockSize = Math.max(size, 1024);
             final ThreadLocalBuffer newParent = new ThreadLocalBuffer(
                     true,
                     Pointer.malloc(blockSize),

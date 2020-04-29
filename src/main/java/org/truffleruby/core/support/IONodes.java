@@ -511,11 +511,11 @@ public abstract class IONodes {
         @Specialization
         protected Object getThreadBuffer(VirtualFrame frame, DynamicObject pointer,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
-                @Cached("createBinaryProfile()") ConditionProfile sizeProfile) {
+                @Cached("createBinaryProfile()") ConditionProfile freeProfile) {
             DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
             final ThreadLocalBuffer threadBuffer = Layouts.THREAD.getIoBuffer(thread);
             assert threadBuffer.start.getAddress() == Layouts.POINTER.getPointer(pointer).getAddress();
-            Layouts.THREAD.setIoBuffer(thread, threadBuffer.free());
+            Layouts.THREAD.setIoBuffer(thread, threadBuffer.free(freeProfile));
             return nil;
         }
     }
