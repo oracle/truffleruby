@@ -420,6 +420,7 @@ public class ThreadManager {
         fiberManager.shutdown(javaThread);
 
         Layouts.THREAD.getIoBuffer(thread).freeAll();
+        Layouts.THREAD.setIoBuffer(thread, ThreadLocalBuffer.NULL_BUFFER);
 
         unregisterThread(thread);
         Layouts.THREAD.setThread(thread, null);
