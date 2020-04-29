@@ -4,6 +4,8 @@ If you're attempting to experiment with deploying TruffleRuby to production we'd
 encourage you to contact us so we can help you understand what is possible at
 the moment and to help solve any issues for you.
 
+This document details TruffleRuby's different *runtime* configurations.
+
 ## TruffleRuby Configurations
 
 There are two main configurations of TruffleRuby - *Native* and *JVM*. It's
@@ -23,6 +25,11 @@ and it becomes fast in less time than the *JVM* configuration. The disadvantages
 are that you can't use Java tools like VisualVM, it is less convenient for Java
 interoperability, and *peak performance may be lower than on the JVM*. You can
 select the Native configuration by passing `--native`.
+
+When building from source, you'll need to select the `--native` [build configuration]
+to be able to use the runtime native configuration.
+
+[build configuration]: ../contributor/workflow.md#building
 
 ### JVM Configuration
 

@@ -54,17 +54,24 @@ By default the `jt build` command builds a small JVM-only (no native images)
 GraalVM containing only the Ruby language. The built GraalVM can be found in the
 `mxbuild/truffleruby-jvm` directory.
 
-There are multiple *configurations* available to build TruffleRuby:
-* `jvm`: the default, JVM-only, no GraalVM compiler
+There are multiple *build configurations* available to build TruffleRuby:
+* `jvm`: the default, JVM-only, no GraalVM compiler (Ruby code is always interpreted)
 * `jvm-ce`: JVM-only, with the GraalVM compiler
-* `native`: Builds a native image of TruffleRuby using SubstrateVM
+* `jvm-ee`: JVM-only, with the GraalVM compiler, using the proprietary entreprise edition of GraalVM, which includes
+            additional optimizations
+* `native`: Builds a native image of TruffleRuby using SubstrateVM, including the GraalVM compiler
 
-To build one of these configurations, pass `--env` to the build command:
+All `jvm*` build configurations can only run the `--jvm` [runtime configuration][rt-confs].  
+The `native` build configuration can run both the `--native` and `--jvm` [runtime configurations][rt-confs].
+
+[rt-confs]: ../../README.md#TruffleRuby-Runtime-Configurations
+
+To build one of these build configurations, pass `--env` to the build command:
 ```bash
-$ jt build [--env CONFIGURATION]
+$ jt build [--env BUILD_CONFIGURATION]
 ```
 
-The GraalVM build will be created in `mxbuild/truffleruby-${configuration}`.
+The GraalVM build will be created in `mxbuild/truffleruby-${BUILD_CONFIGURATION}`.
 
 Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
@@ -92,11 +99,14 @@ If you are running a Ruby environment manager like `rvm`, `rbenv`, or `chruby`
 please run `rvm use system`, `rbenv system`, or `chruby system` to clear their
 environment variables, so that the correct gems are picked up.
 
-If you want to run the TruffleRuby with another configuration than `jvm`, pass
+If you want to run the TruffleRuby with another [build configuration][build-confs] than `jvm`, pass
 the configuration name after `--use`:
+
 ```bash
-$ jt [--use CONFIGURATION] ruby ...
+$ jt [--use BUILD_CONFIGURATION] ruby ...
 ```
+
+[build-confs]: #building
 
 ## Testing
 
@@ -111,7 +121,7 @@ The basic test to run every time you make changes is the "fast specs", a subset
 of specs which runs in reasonable time.
 
 ```bash
-$ jt [--use CONFIGURATION] test fast
+$ jt [--use BUILD_CONFIGURATION] test fast
 ```
 
 Other tests take longer and require more setup, so we don't normally run them
