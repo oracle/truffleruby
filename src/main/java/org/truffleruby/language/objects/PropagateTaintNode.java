@@ -11,30 +11,26 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.language.RubyBaseNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.Specialization;
 
-public class PropagateTaintNode extends RubyBaseNode {
-
-    @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
-    @Child private TaintNode taintNode;
+@GenerateUncached
+public abstract class PropagateTaintNode extends RubyBaseNode {
 
     public static PropagateTaintNode create() {
-        return new PropagateTaintNode();
+        return PropagateTaintNodeGen.create();
     }
 
-    public void propagate(DynamicObject source, Object target) {
+    public abstract void executePropagate(Object source, Object target);
+
+    @Specialization
+    protected void propagate(Object source, Object target,
+            @Cached IsTaintedNode isTaintedNode,
+            @Cached TaintNode taintNode) {
         if (isTaintedNode.executeIsTainted(source)) {
-            taint(target);
+            taintNode.executeTaint(target);
         }
-    }
-
-    private void taint(Object target) {
-        if (taintNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            taintNode = insert(TaintNode.create());
-        }
-        taintNode.executeTaint(target);
     }
 
 }

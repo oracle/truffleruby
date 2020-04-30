@@ -9,19 +9,24 @@
  */
 package org.truffleruby.interop.messages;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
@@ -40,6 +45,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectMessages {
@@ -48,6 +54,102 @@ public class RubyObjectMessages {
         return null;
     }
 
+    @ExportMessage
+    protected static boolean hasLanguage(DynamicObject receiver) {
+        return true;
+    }
+
+    @ExportMessage
+    protected static Class<RubyLanguage> getLanguage(DynamicObject receiver) {
+        return RubyLanguage.class;
+    }
+
+    @ExportMessage
+    protected static DynamicObject toDisplayString(DynamicObject receiver, boolean allowSideEffects,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
+            @Cached KernelNodes.ToSNode kernelToSNode) {
+        if (allowSideEffects) {
+            Object inspect = dispatchNode.call(receiver, "inspect");
+            if (RubyGuards.isRubyString(inspect)) {
+                return (DynamicObject) inspect;
+            } else {
+                return kernelToSNode.executeToS(receiver);
+            }
+        } else {
+            return kernelToSNode.executeToS(receiver);
+        }
+    }
+
+    // region MetaObject
+    @ExportMessage
+    protected static boolean hasMetaObject(DynamicObject receiver) {
+        return true;
+    }
+
+    @ExportMessage
+    protected static DynamicObject getMetaObject(DynamicObject receiver,
+            @Cached LogicalClassNode classNode) {
+        return classNode.executeLogicalClass(receiver);
+    }
+
+    @ExportMessage
+    protected static boolean isMetaObject(DynamicObject receiver) {
+        return RubyGuards.isRubyClass(receiver);
+    }
+
+    @ExportMessage
+    protected static String getMetaQualifiedName(DynamicObject rubyClass) throws UnsupportedMessageException {
+        if (isMetaObject(rubyClass)) {
+            return Layouts.MODULE.getFields(rubyClass).getName();
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    protected static String getMetaSimpleName(DynamicObject rubyClass) throws UnsupportedMessageException {
+        if (isMetaObject(rubyClass)) {
+            return Layouts.MODULE.getFields(rubyClass).getSimpleName();
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    protected static boolean isMetaInstance(DynamicObject rubyClass, Object instance,
+            @Cached IsANode isANode) throws UnsupportedMessageException {
+        if (isMetaObject(rubyClass)) {
+            return isANode.executeIsA(instance, rubyClass);
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+    // endregion
+
+    // region SourceLocation
+    @ExportMessage
+    protected static boolean hasSourceLocation(DynamicObject receiver) {
+        return RubyGuards.isRubyModule(receiver) || RubyGuards.isRubyMethod(receiver) ||
+                RubyGuards.isRubyUnboundMethod(receiver) || RubyGuards.isRubyProc(receiver);
+    }
+
+    @ExportMessage
+    protected static SourceSection getSourceLocation(DynamicObject receiver) throws UnsupportedMessageException {
+        if (RubyGuards.isRubyModule(receiver)) {
+            return Layouts.CLASS.getFields(receiver).getSourceSection();
+        } else if (RubyGuards.isRubyMethod(receiver)) {
+            return Layouts.METHOD.getMethod(receiver).getSharedMethodInfo().getSourceSection();
+        } else if (RubyGuards.isRubyUnboundMethod(receiver)) {
+            return Layouts.UNBOUND_METHOD.getMethod(receiver).getSharedMethodInfo().getSourceSection();
+        } else if (RubyGuards.isRubyProc(receiver)) {
+            return Layouts.PROC.getMethod(receiver).getSharedMethodInfo().getSourceSection();
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+    // endregion
+
+    // region Array elements
     @ExportMessage
     protected static boolean hasArrayElements(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
@@ -171,7 +273,9 @@ public class RubyObjectMessages {
         Object value = dispatchNode.call(receiver, "polyglot_array_element_removable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
+    // endregion
 
+    // region Pointer
     @ExportMessage
     protected static boolean isPointer(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
@@ -209,7 +313,9 @@ public class RubyObjectMessages {
         dispatchNode.call(receiver, "polyglot_to_native");
         // we ignore the method missing, toNative never throws
     }
+    // endregion
 
+    // region Members
     @ExportMessage
     protected static boolean hasMembers(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
@@ -560,7 +666,9 @@ public class RubyObjectMessages {
             return booleanCastNode.executeToBoolean(dynamic);
         }
     }
+    // endregion
 
+    // region Instantiable
     @ExportMessage
     protected static boolean isInstantiable(DynamicObject receiver,
             @Exclusive @Cached(parameters = "PUBLIC") DoesRespondDispatchHeadNode doesRespond) {
@@ -583,5 +691,6 @@ public class RubyObjectMessages {
         }
         return instance;
     }
+    // endregion
 
 }

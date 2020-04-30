@@ -145,7 +145,7 @@ public abstract class ArrayNodes {
         protected DynamicObject mulZero(DynamicObject array, int count) {
             final DynamicObject result = allocateObjectNode
                     .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStoreLibrary.INITIAL_STORE, 0);
-            propagateTaintNode.propagate(array, result);
+            propagateTaintNode.executePropagate(array, result);
             return result;
         }
 
@@ -170,7 +170,7 @@ public abstract class ArrayNodes {
 
             final DynamicObject result = allocateObjectNode
                     .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), newStore, newSize);
-            propagateTaintNode.propagate(array, result);
+            propagateTaintNode.executePropagate(array, result);
             return result;
         }
 
@@ -188,7 +188,7 @@ public abstract class ArrayNodes {
         protected DynamicObject mulEmpty(DynamicObject array, long count) {
             final DynamicObject result = allocateObjectNode
                     .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStoreLibrary.INITIAL_STORE, 0);
-            propagateTaintNode.propagate(array, result);
+            propagateTaintNode.executePropagate(array, result);
             return result;
         }
 

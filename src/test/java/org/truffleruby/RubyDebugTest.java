@@ -316,7 +316,7 @@ public class RubyDebugTest {
                 "nm11",
                 "1.111",
                 "nme",
-                "3.5e+46",
+                "3.5E46", // TODO (eregon, 30 April 2020): should be "3.5e+46", we need to implement getLanguageView()
                 "nc",
                 "(2+3i)",
                 "nr",
