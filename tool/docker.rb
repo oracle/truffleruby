@@ -2,6 +2,8 @@ class JT
   class Docker
     include Utilities
 
+    DOCKER = ENV['DOCKER'] || 'docker'
+
     def docker(*args)
       command = args.shift
       case command
@@ -24,7 +26,7 @@ class JT
       end
       docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
       File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
-      sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
+      sh DOCKER, 'build', '-t', image_name, '.', chdir: docker_dir
     end
 
     private def docker_test(*args)
@@ -104,8 +106,15 @@ class JT
       packages << distro.fetch('openssl')
       packages << distro.fetch('cext')
 
+      proxy_vars = []
+      %w[http_proxy https_proxy no_proxy].each do |var|
+        value = ENV[var]
+        proxy_vars << "ENV #{var}=#{value}" if value
+      end
+
       lines = [
         "FROM #{distro.fetch('base')}",
+        *proxy_vars,
         [distro.fetch('install'), *packages.compact].join(' '),
         *distro.fetch('set-locale'),
       ]
