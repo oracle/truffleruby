@@ -9,7 +9,10 @@
  */
 package org.truffleruby.core.basicobject;
 
+import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -22,7 +25,9 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -47,7 +52,10 @@ import org.truffleruby.parser.RubySource;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateUncached;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
@@ -168,8 +176,15 @@ public abstract class BasicObjectNodes {
 
     }
 
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "value", type = RubyNode.class)
     @CoreMethod(names = "__id__")
-    public abstract static class ObjectIDNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ObjectIDNode extends RubySourceNode {
+
+        public static ObjectIDNode create() {
+            return BasicObjectNodesFactory.ObjectIDNodeFactory.create(null);
+        }
 
         public abstract Object executeObjectID(Object value);
 
@@ -198,29 +213,32 @@ public abstract class BasicObjectNodes {
             return ObjectIDOperations.smallFixnumToIDOverflow(value);
         }
 
-        @Specialization
-        protected Object objectID(long value,
-                @Cached("createCountingProfile()") ConditionProfile smallProfile) {
+        @Specialization(replaces = "objectIDSmallFixnumOverflow")
+        protected Object objectIDLong(long value,
+                @Cached("createCountingProfile()") ConditionProfile smallProfile,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             if (smallProfile.profile(ObjectIDOperations.isSmallFixnum(value))) {
                 return ObjectIDOperations.smallFixnumToID(value);
             } else {
-                return ObjectIDOperations.largeFixnumToID(getContext(), value);
+                return ObjectIDOperations.largeFixnumToID(context, value);
             }
         }
 
         @Specialization
-        protected Object objectID(double value) {
-            return ObjectIDOperations.floatToID(getContext(), value);
+        protected Object objectID(double value,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            return ObjectIDOperations.floatToID(context, value);
         }
 
         @Specialization
         protected long objectID(DynamicObject object,
                 @Cached ReadObjectFieldNode readObjectIdNode,
-                @Cached WriteObjectFieldNode writeObjectIdNode) {
+                @Cached WriteObjectFieldNode writeObjectIdNode,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
             final long id = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
 
             if (id == 0) {
-                final long newId = getContext().getObjectSpaceManager().getNextObjectID();
+                final long newId = context.getObjectSpaceManager().getNextObjectID();
                 writeObjectIdNode.write(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                 return newId;
             }

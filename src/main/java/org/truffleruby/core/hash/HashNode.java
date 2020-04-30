@@ -11,7 +11,6 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
-import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -78,7 +77,7 @@ public class HashNode extends RubyContextNode {
     private Object objectID(Object object) {
         if (objectIDNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            objectIDNode = insert(ObjectIDNodeFactory.create(null));
+            objectIDNode = insert(ObjectIDNode.create());
         }
         return objectIDNode.executeObjectID(object);
     }

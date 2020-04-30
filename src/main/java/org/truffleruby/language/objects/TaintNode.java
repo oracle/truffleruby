@@ -10,20 +10,21 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-public abstract class TaintNode extends RubyContextNode {
-
-    @Child private IsFrozenNode isFrozenNode;
-    @Child private IsTaintedNode isTaintedNode;
+@GenerateUncached
+public abstract class TaintNode extends RubyBaseNode {
 
     public static TaintNode create() {
         return TaintNodeGen.create();
@@ -63,24 +64,15 @@ public abstract class TaintNode extends RubyContextNode {
 
     @Specialization(guards = "!isRubySymbol(object)")
     protected Object taint(DynamicObject object,
+            @Cached IsFrozenNode isFrozenNode,
+            @Cached IsTaintedNode isTaintedNode,
             @Cached WriteObjectFieldNode writeTaintNode,
-            @Cached BranchProfile errorProfile) {
+            @Cached BranchProfile errorProfile,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
 
-        if (isTaintedNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            isTaintedNode = insert(IsTaintedNode.create());
-        }
-
-        if (!isTaintedNode.executeIsTainted(object)) {
-            if (isFrozenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isFrozenNode = insert(IsFrozenNode.create());
-            }
-
-            if (isFrozenNode.execute(object)) {
-                errorProfile.enter();
-                throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
-            }
+        if (!isTaintedNode.executeIsTainted(object) && isFrozenNode.execute(object)) {
+            errorProfile.enter();
+            throw new RaiseException(context, context.getCoreExceptions().frozenError(object, this));
         }
 
         writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, true);

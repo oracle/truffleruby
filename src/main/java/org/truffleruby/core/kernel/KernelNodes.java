@@ -34,14 +34,12 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
-import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ObjectIDNodeFactory;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
-import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.format.BytesResult;
@@ -53,7 +51,6 @@ import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
-import org.truffleruby.core.kernel.KernelNodesFactory.ToHexStringNodeFactory;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
@@ -64,7 +61,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
@@ -79,6 +76,7 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
+import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -126,6 +124,8 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.GenerateNodeFactory;
+import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
@@ -246,7 +246,7 @@ public abstract class KernelNodes {
         @Specialization
         protected Object findFile(DynamicObject featureString,
                 @Cached BranchProfile notFoundProfile,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             String feature = StringOperations.getString(featureString);
             return findFileString(feature, notFoundProfile, makeStringNode);
         }
@@ -254,7 +254,7 @@ public abstract class KernelNodes {
         @Specialization
         protected Object findFileString(String featureString,
                 @Cached BranchProfile notFoundProfile,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final String expandedPath = getContext().getFeatureLoader().findFeature(featureString);
             if (expandedPath == null) {
                 notFoundProfile.enter();
@@ -272,7 +272,7 @@ public abstract class KernelNodes {
         @Specialization
         @TruffleBoundary
         protected DynamicObject getCallerPath(DynamicObject feature,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final String featureString = StringOperations.getString(feature);
             final String featurePath;
             if (new File(featureString).isAbsolute()) {
@@ -543,7 +543,7 @@ public abstract class KernelNodes {
 
             initializeCloneNode.call(newObject, "initialize_clone", self);
 
-            propagateTaintNode.propagate(self, newObject);
+            propagateTaintNode.executePropagate(self, newObject);
 
             if (freezeProfile.profile(freeze) && isFrozenProfile.profile(isFrozenNode.execute(self))) {
                 if (freezeNode == null) {
@@ -1794,7 +1794,7 @@ public abstract class KernelNodes {
     @ReportPolymorphism
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode;
+        @Child private MakeStringNode makeStringNode;
         @Child private TaintNode taintNode;
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
                 .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
@@ -1856,7 +1856,7 @@ public abstract class KernelNodes {
 
             if (makeStringNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                makeStringNode = insert(StringNodes.MakeStringNode.create());
+                makeStringNode = insert(MakeStringNode.create());
             }
 
             final DynamicObject string = makeStringNode.executeMake(
@@ -1940,8 +1940,15 @@ public abstract class KernelNodes {
 
     }
 
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "value", type = RubyNode.class)
     @Primitive(name = "kernel_to_hex")
-    public abstract static class ToHexStringNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ToHexStringNode extends RubySourceNode {
+
+        public static ToHexStringNode create() {
+            return KernelNodesFactory.ToHexStringNodeFactory.create(null);
+        }
 
         public abstract String executeToHexString(Object value);
 
@@ -1962,30 +1969,32 @@ public abstract class KernelNodes {
 
     }
 
+    @GenerateUncached
+    @GenerateNodeFactory
+    @NodeChild(value = "self", type = RubyNode.class)
     @CoreMethod(names = { "to_s", "inspect" }) // Basic #inspect, refined later in core
-    public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class ToSNode extends RubySourceNode {
 
         public static ToSNode create() {
             return KernelNodesFactory.ToSNodeFactory.create(null);
         }
 
-        @Child private LogicalClassNode classNode = LogicalClassNode.create();
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private ObjectIDNode objectIDNode = ObjectIDNodeFactory.create(null);
-        @Child private TaintResultNode taintResultNode = new TaintResultNode();
-        @Child private ToHexStringNode toHexStringNode = ToHexStringNodeFactory.create(null);
-
         public abstract DynamicObject executeToS(Object self);
 
         @Specialization
-        protected DynamicObject toS(Object self) {
+        protected DynamicObject toS(Object self,
+                @Cached LogicalClassNode classNode,
+                @Cached MakeStringNode makeStringNode,
+                @Cached ObjectIDNode objectIDNode,
+                @Cached ToHexStringNode toHexStringNode,
+                @Cached PropagateTaintNode propagateTaintNode) {
             String className = Layouts.MODULE.getFields(classNode.executeLogicalClass(self)).getName();
             Object id = objectIDNode.executeObjectID(self);
             String hexID = toHexStringNode.executeToHexString(id);
 
             final DynamicObject string = makeStringNode
                     .executeMake("#<" + className + ":0x" + hexID + ">", UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-            taintResultNode.maybeTaint(self, string);
+            propagateTaintNode.executePropagate(self, string);
             return string;
         }
 
