@@ -144,8 +144,8 @@ module Utilities
       end
     else
       ci = File.read("#{TRUFFLERUBY_DIR}/common.json")
-      unless /{\s*"name"\s*:\s*"openjdk"\s*,\s*"version"\s*:\s*"8u(\d+)-(jvmci-[^"]+)"\s*,/ =~ ci
-        raise 'JVMCI version not found in jdks.json'
+      unless /{\s*"name"\s*:\s*"openjdk"\s*,\s*"version"\s*:\s*"8u(\d+(?:\+\d+)?)-(jvmci-[^"]+)"\s*,/ =~ ci
+        raise 'JVMCI version not found in common.json'
       end
     end
     update, jvmci = $1, $2
