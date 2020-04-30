@@ -186,11 +186,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     }
 
     @Override
-    public Object findMetaObject(RubyContext context, Object value) {
-        return context.getCoreLibrary().getLogicalClass(value);
-    }
-
-    @Override
     protected SourceSection findSourceLocation(RubyContext context, Object value) {
         if (RubyGuards.isRubyModule(value)) {
             return Layouts.CLASS.getFields((DynamicObject) value).getSourceSection();

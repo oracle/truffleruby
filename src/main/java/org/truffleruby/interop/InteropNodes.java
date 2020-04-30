@@ -55,6 +55,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -1223,12 +1224,22 @@ public abstract class InteropNodes {
     }
 
     @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
-    public abstract static class InteropMetaObjectNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class InteropMetaObjectNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @TruffleBoundary
-        @Specialization
-        protected Object metaObject(Object value) {
-            return getContext().getLanguage().findMetaObject(getContext(), value);
+        @Specialization(limit = "getCacheLimit()")
+        protected Object metaObject(Object value,
+                @CachedLibrary("value") InteropLibrary interop,
+                @Cached BranchProfile errorProfile) {
+            if (interop.hasMetaObject(value)) {
+                try {
+                    return interop.getMetaObject(value);
+                } catch (UnsupportedMessageException e) {
+                    errorProfile.enter();
+                    return coreLibrary().getLogicalClass(value);
+                }
+            } else {
+                return coreLibrary().getLogicalClass(value);
+            }
         }
 
     }

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.interop.messages;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -23,7 +24,9 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
@@ -76,6 +79,53 @@ public class RubyObjectMessages {
         }
     }
 
+    // region MetaObject
+    @ExportMessage
+    protected static boolean hasMetaObject(DynamicObject receiver) {
+        return true;
+    }
+
+    @ExportMessage
+    protected static DynamicObject getMetaObject(DynamicObject receiver,
+            @Cached LogicalClassNode classNode) {
+        return classNode.executeLogicalClass(receiver);
+    }
+
+    @ExportMessage
+    protected static boolean isMetaObject(DynamicObject receiver) {
+        return RubyGuards.isRubyClass(receiver);
+    }
+
+    @ExportMessage
+    protected static String getMetaQualifiedName(DynamicObject rubyClass) throws UnsupportedMessageException {
+        if (isMetaObject(rubyClass)) {
+            return Layouts.MODULE.getFields(rubyClass).getName();
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    protected static String getMetaSimpleName(DynamicObject rubyClass) throws UnsupportedMessageException {
+        if (isMetaObject(rubyClass)) {
+            return Layouts.MODULE.getFields(rubyClass).getSimpleName();
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+
+    @ExportMessage
+    protected static boolean isMetaInstance(DynamicObject rubyClass, Object instance,
+            @Cached IsANode isANode) throws UnsupportedMessageException {
+        if (isMetaObject(rubyClass)) {
+            return isANode.executeIsA(instance, rubyClass);
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+    // endregion
+
+    // region Array elements
     @ExportMessage
     protected static boolean hasArrayElements(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
@@ -199,7 +249,9 @@ public class RubyObjectMessages {
         Object value = dispatchNode.call(receiver, "polyglot_array_element_removable?", index);
         return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
     }
+    // endregion
 
+    // region Pointer
     @ExportMessage
     protected static boolean isPointer(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
@@ -237,7 +289,9 @@ public class RubyObjectMessages {
         dispatchNode.call(receiver, "polyglot_to_native");
         // we ignore the method missing, toNative never throws
     }
+    // endregion
 
+    // region Members
     @ExportMessage
     protected static boolean hasMembers(DynamicObject receiver,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
@@ -588,7 +642,9 @@ public class RubyObjectMessages {
             return booleanCastNode.executeToBoolean(dynamic);
         }
     }
+    // endregion
 
+    // region Instantiable
     @ExportMessage
     protected static boolean isInstantiable(DynamicObject receiver,
             @Exclusive @Cached(parameters = "PUBLIC") DoesRespondDispatchHeadNode doesRespond) {
@@ -611,5 +667,6 @@ public class RubyObjectMessages {
         }
         return instance;
     }
+    // endregion
 
 }

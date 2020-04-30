@@ -553,6 +553,17 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
+    public String getSimpleName() {
+        String name = getName();
+        int i = name.lastIndexOf("::");
+        if (i == -1) {
+            return name;
+        } else {
+            return name.substring(i + "::".length());
+        }
+    }
+
+    @TruffleBoundary
     private String getAnonymousName() {
         final String anonymousName = createAnonymousName();
         this.name = anonymousName;
