@@ -106,8 +106,15 @@ class JT
       packages << distro.fetch('openssl')
       packages << distro.fetch('cext')
 
+      proxy_vars = []
+      %w[http_proxy https_proxy no_proxy].each do |var|
+        value = ENV[var]
+        proxy_vars << "ENV #{var}=#{value}" if value
+      end
+
       lines = [
         "FROM #{distro.fetch('base')}",
+        *proxy_vars,
         [distro.fetch('install'), *packages.compact].join(' '),
         *distro.fetch('set-locale'),
       ]
