@@ -1962,7 +1962,7 @@ public abstract class KernelNodes {
 
     }
 
-    @CoreMethod(names = { "to_s", "inspect" }) // Basic inspect, refined later in core
+    @CoreMethod(names = { "to_s", "inspect" }) // Basic #inspect, refined later in core
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         public static ToSNode create() {

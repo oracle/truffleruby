@@ -9,6 +9,8 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.RubyLanguage;
+
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -23,13 +25,29 @@ public final class Nil implements TruffleObject {
     private Nil() {
     }
 
+    @Override
+    public String toString() {
+        return "nil";
+    }
+
+    @ExportMessage
+    protected boolean hasLanguage() {
+        return true;
+    }
+
+    @ExportMessage
+    protected Class<RubyLanguage> getLanguage() {
+        return RubyLanguage.class;
+    }
+
+    @ExportMessage
+    protected String toDisplayString(boolean allowSideEffects) {
+        return "nil";
+    }
+
     @ExportMessage
     protected boolean isNull() {
         return true;
     }
 
-    @Override
-    public String toString() {
-        return "nil";
-    }
 }

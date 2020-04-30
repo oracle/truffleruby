@@ -9,15 +9,18 @@
  */
 package org.truffleruby.cext;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
 import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
 import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
+import org.truffleruby.language.control.JavaException;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -53,6 +56,16 @@ public class ValueWrapper implements TruffleObject {
         this.handleBlock = handleBlock;
     }
 
+    @ExportMessage
+    protected boolean hasLanguage() {
+        return true;
+    }
+
+    @ExportMessage
+    protected Class<RubyLanguage> getLanguage() {
+        return RubyLanguage.class;
+    }
+
     @TruffleBoundary
     @Override
     public String toString() {
@@ -61,6 +74,21 @@ public class ValueWrapper implements TruffleObject {
         } else {
             assert ValueWrapperManager.isTaggedLong(handle);
             return Long.toString(ValueWrapperManager.untagTaggedLong(handle));
+        }
+    }
+
+    @TruffleBoundary
+    @ExportMessage
+    protected String toDisplayString(boolean allowSideEffects) {
+        if (object != null) {
+            final InteropLibrary interop = InteropLibrary.getUncached();
+            try {
+                return "VALUE: " + interop.asString(interop.toDisplayString(object, allowSideEffects));
+            } catch (UnsupportedMessageException e) {
+                throw new JavaException(e);
+            }
+        } else {
+            return "VALUE: " + toString();
         }
     }
 

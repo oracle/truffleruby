@@ -12,11 +12,9 @@ package org.truffleruby;
 import java.util.Arrays;
 
 import org.graalvm.options.OptionDescriptors;
-import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.debug.LexicalScope;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
@@ -184,29 +182,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return null;
         } else {
             return implicit;
-        }
-    }
-
-    @Override
-    protected boolean isObjectOfLanguage(Object object) {
-        return object instanceof ValueWrapper || object instanceof NotProvided ||
-                RubyGuards.isRubyBasicObject(object) || object instanceof Nil;
-    }
-
-    @Override
-    protected String toString(RubyContext context, Object value) {
-        if (value == null) {
-            return "<null>";
-        } else if (RubyGuards.isBoxedPrimitive(value) || RubyGuards.isRubyBasicObject(value) || value instanceof Nil) {
-            return context.send(value, "inspect").toString();
-        } else if (value instanceof NotProvided) {
-            return "<undefined>";
-        } else if (value instanceof ValueWrapper) {
-            return "VALUE: " + toString(context, ((ValueWrapper) value).getObject());
-        } else if (value instanceof String) {
-            return (String) value;
-        } else {
-            return "<foreign>";
         }
     }
 

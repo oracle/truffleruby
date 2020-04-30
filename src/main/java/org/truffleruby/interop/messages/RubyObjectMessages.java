@@ -15,8 +15,10 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -46,6 +48,32 @@ public class RubyObjectMessages {
 
     public final Class<?> dispatch() {
         return null;
+    }
+
+    @ExportMessage
+    protected static boolean hasLanguage(DynamicObject receiver) {
+        return true;
+    }
+
+    @ExportMessage
+    protected static Class<RubyLanguage> getLanguage(DynamicObject receiver) {
+        return RubyLanguage.class;
+    }
+
+    @ExportMessage
+    protected static DynamicObject toDisplayString(DynamicObject receiver, boolean allowSideEffects,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
+            @Cached KernelNodes.ToSNode kernelToSNode) {
+        if (allowSideEffects) {
+            Object inspect = dispatchNode.call(receiver, "inspect");
+            if (RubyGuards.isRubyString(inspect)) {
+                return (DynamicObject) inspect;
+            } else {
+                return kernelToSNode.executeToS(receiver);
+            }
+        } else {
+            return kernelToSNode.executeToS(receiver);
+        }
     }
 
     @ExportMessage
