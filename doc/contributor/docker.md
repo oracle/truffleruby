@@ -6,7 +6,8 @@ TruffleRuby on multiple Linux distributions in multiple configurations.
 We don't use Docker in a very Docker-like way - we could be using something like
 Vagrant instead.
 
-You need to have Docker installed.
+You need to have Docker or `podman` installed.
+When using `podman`, you need to set `DOCKER=podman`.
 
 Note that running a test will fail the `build` command, so building the image
 is itself a test. You can then also log into the image after it's successfully

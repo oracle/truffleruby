@@ -2,6 +2,8 @@ class JT
   class Docker
     include Utilities
 
+    DOCKER = ENV['DOCKER'] || 'docker'
+
     def docker(*args)
       command = args.shift
       case command
@@ -24,7 +26,7 @@ class JT
       end
       docker_dir = File.join(TRUFFLERUBY_DIR, 'tool', 'docker')
       File.write(File.join(docker_dir, 'Dockerfile'), dockerfile(*args))
-      sh 'docker', 'build', '-t', image_name, '.', chdir: docker_dir
+      sh DOCKER, 'build', '-t', image_name, '.', chdir: docker_dir
     end
 
     private def docker_test(*args)
