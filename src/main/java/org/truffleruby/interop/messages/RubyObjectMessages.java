@@ -45,6 +45,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectMessages {
@@ -119,6 +120,29 @@ public class RubyObjectMessages {
             @Cached IsANode isANode) throws UnsupportedMessageException {
         if (isMetaObject(rubyClass)) {
             return isANode.executeIsA(instance, rubyClass);
+        } else {
+            throw UnsupportedMessageException.create();
+        }
+    }
+    // endregion
+
+    // region SourceLocation
+    @ExportMessage
+    protected static boolean hasSourceLocation(DynamicObject receiver) {
+        return RubyGuards.isRubyModule(receiver) || RubyGuards.isRubyMethod(receiver) ||
+                RubyGuards.isRubyUnboundMethod(receiver) || RubyGuards.isRubyProc(receiver);
+    }
+
+    @ExportMessage
+    protected static SourceSection getSourceLocation(DynamicObject receiver) throws UnsupportedMessageException {
+        if (RubyGuards.isRubyModule(receiver)) {
+            return Layouts.CLASS.getFields(receiver).getSourceSection();
+        } else if (RubyGuards.isRubyMethod(receiver)) {
+            return Layouts.METHOD.getMethod(receiver).getSharedMethodInfo().getSourceSection();
+        } else if (RubyGuards.isRubyUnboundMethod(receiver)) {
+            return Layouts.UNBOUND_METHOD.getMethod(receiver).getSharedMethodInfo().getSourceSection();
+        } else if (RubyGuards.isRubyProc(receiver)) {
+            return Layouts.PROC.getMethod(receiver).getSharedMethodInfo().getSourceSection();
         } else {
             throw UnsupportedMessageException.create();
         }

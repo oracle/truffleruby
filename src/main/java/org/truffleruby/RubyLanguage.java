@@ -16,7 +16,6 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.debug.LexicalScope;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.platform.Platform;
@@ -39,7 +38,6 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 @TruffleLanguage.Registration(
@@ -182,21 +180,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return null;
         } else {
             return implicit;
-        }
-    }
-
-    @Override
-    protected SourceSection findSourceLocation(RubyContext context, Object value) {
-        if (RubyGuards.isRubyModule(value)) {
-            return Layouts.CLASS.getFields((DynamicObject) value).getSourceSection();
-        } else if (RubyGuards.isRubyMethod(value)) {
-            return Layouts.METHOD.getMethod((DynamicObject) value).getSharedMethodInfo().getSourceSection();
-        } else if (RubyGuards.isRubyUnboundMethod(value)) {
-            return Layouts.UNBOUND_METHOD.getMethod((DynamicObject) value).getSharedMethodInfo().getSourceSection();
-        } else if (RubyGuards.isRubyProc(value)) {
-            return Layouts.PROC.getMethod((DynamicObject) value).getSharedMethodInfo().getSourceSection();
-        } else {
-            return null;
         }
     }
 
