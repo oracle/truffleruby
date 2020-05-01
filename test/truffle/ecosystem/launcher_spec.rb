@@ -25,38 +25,6 @@ describe "The launcher" do
     Dir.chdir @old_cwd
   end
 
-  versions = JSON.parse(File.read(File.expand_path('../../../../versions.json', __FILE__)))
-
-  LAUNCHERS = { bundle:      /^Bundler version #{versions['gems']['default']['bundler']}$/,
-                bundler:     /^Bundler version #{versions['gems']['default']['bundler']}$/,
-                gem:         /^#{versions['gems']['default']['gem']}$/,
-                irb:         /^irb #{versions['gems']['default']['irb']}/,
-                rake:        /^rake, version #{versions['gems']['default']['rake']}/,
-                rdoc:        /^#{versions['gems']['default']['rdoc']}$/,
-                ri:          /^ri #{versions['gems']['default']['rdoc']}$/,
-                ruby:        /truffleruby .* like ruby #{versions['ruby']['version']}/,
-                truffleruby: /truffleruby .* like ruby #{versions['ruby']['version']}/ }
-
-  TRUFFLERUBY_S = './truffleruby -S '
-
-  def check_launchers(prefix: '', dir: nil)
-    LAUNCHERS.each do |launcher, test|
-      next if prefix == TRUFFLERUBY_S && [:ruby, :truffleruby].include?(launcher)
-      it "'#{prefix}#{launcher}' (#{kind dir}) works" do
-        Dir.chdir(dir ? dir : Dir.pwd) do
-          out = `#{prefix}#{launcher} --version`
-          out.should =~ test
-          $?.success?.should == true
-        end
-      end
-    end
-  end
-
-  def check_launchers_in_dir(dir)
-    check_launchers(prefix: './', dir: dir)
-    check_launchers(prefix: TRUFFLERUBY_S, dir: dir)
-  end
-
   def graalvm_home_check(path='')
     yield (RUBY_HOME + '/bin' + path)
     return if GRAALVM_HOME == nil # TODO test
@@ -65,8 +33,6 @@ describe "The launcher" do
       yield (GRAALVM_HOME + '/jre/bin' + path)
     end
   end
-
-  graalvm_home_check { |path| check_launchers_in_dir path }
 
   it " for gem can install the hello-world gem" do
     Dir.chdir(__dir__ + '/hello-world') do
@@ -92,6 +58,8 @@ describe "The launcher" do
       File.exist?(path).should == false
     end
   end
+
+  versions = JSON.parse(File.read(File.expand_path('../../../../versions.json', __FILE__)))
 
   # see doc/contributor/stdlib.md
   bundled_gems= [
