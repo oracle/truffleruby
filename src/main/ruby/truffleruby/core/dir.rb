@@ -54,7 +54,7 @@ class Dir
     @encoding = enc || Encoding.filesystem
 
     @ptr = Truffle::POSIX.opendir(@path)
-    Errno.handle if @ptr.null?
+    Errno.handle @path if @ptr.null?
   end
 
   private def ensure_open
