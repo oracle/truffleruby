@@ -7,19 +7,18 @@
 extern "C" {
 #endif
 
-static long callback_called = 0;
+static VALUE callback_called = Qnil;
 
 static void callback(VALUE tpval, void *data) {
-  callback_called = (long)data;
+  callback_called = (VALUE) data;
 }
 
 static VALUE tracepoint_spec_rb_tracepoint_new(VALUE self, VALUE data) {
-  long data_long = FIX2LONG(data);
-  return rb_tracepoint_new(Qnil, RUBY_EVENT_LINE, callback, (void *)data_long);
+  return rb_tracepoint_new(Qnil, RUBY_EVENT_LINE, callback, (void*) data);
 }
 
 static VALUE tracepoint_spec_callback_called(VALUE self){
-  return LONG2FIX(callback_called);
+  return callback_called;
 }
 
 static VALUE tracepoint_spec_rb_tracepoint_disable(VALUE self, VALUE trace) {

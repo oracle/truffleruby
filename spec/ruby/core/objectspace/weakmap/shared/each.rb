@@ -8,5 +8,3 @@ describe :weakmap_each, shared: true do
     -> { map.send(@method) }.should raise_error(LocalJumpError)
   end
 end
-
-

@@ -37,17 +37,22 @@ describe 'RbConfig::CONFIG' do
     RUBY
   end
 
-  platform_is_not :windows do
+  guard -> {RbConfig::TOPDIR} do
     it "libdir/LIBRUBY_SO is the path to libruby and it exists if and only if ENABLE_SHARED" do
-      if RbConfig::CONFIG['ENABLE_SHARED'] == 'yes'
-        libdir = RbConfig::CONFIG['libdir']
-        File.should.exist?("#{libdir}/#{RbConfig::CONFIG['LIBRUBY_SO']}")
-      elsif RbConfig::CONFIG['ENABLE_SHARED'] == 'no'
-        libdir = RbConfig::CONFIG['libdir']
-        File.should_not.exist?("#{libdir}/#{RbConfig::CONFIG['LIBRUBY_SO']}")
+      libdirname = RbConfig::CONFIG['LIBPATHENV'] == 'PATH' ? 'bindir' :
+                     RbConfig::CONFIG['libdirname']
+      libdir = RbConfig::CONFIG[libdirname]
+      libruby_so = "#{libdir}/#{RbConfig::CONFIG['LIBRUBY_SO']}"
+      case RbConfig::CONFIG['ENABLE_SHARED']
+      when 'yes'
+        File.should.exist?(libruby_so)
+      when 'no'
+        File.should_not.exist?(libruby_so)
       end
     end
+  end
 
+  platform_is :linux do
     it "['AR'] exists and can be executed" do
       ar = RbConfig::CONFIG.fetch('AR')
       out = `#{ar} --version`

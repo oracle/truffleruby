@@ -12,4 +12,3 @@ describe :weakmap_members, shared: true do
     @method.call(map).sort.should == @object
   end
 end
-
