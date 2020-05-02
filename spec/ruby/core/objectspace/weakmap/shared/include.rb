@@ -14,10 +14,21 @@ describe :weakmap_include?, shared: true do
 
   it "matches using identity semantics" do
     map = ObjectSpace::WeakMap.new
-    key1, key2 = %w[a a].map &:upcase
+    key1, key2 = %w[a a].map(&:upcase)
     ref = "x"
     map[key1] = ref
     map.send(@method, key2).should == false
   end
-end
 
+  ruby_version_is "2.7" do
+    ruby_bug "#16826", "2.7.0"..."2.8.1" do
+      it "reports true if the pair exists and the value is nil" do
+        map = ObjectSpace::WeakMap.new
+        key = Object.new
+        map[key] = nil
+        map.size.should == 1
+        map.send(@method, key).should == true
+      end
+    end
+  end
+end

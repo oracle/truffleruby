@@ -1,1 +1,1 @@
-slow:Struct::Group returns group id
+slow:Etc::Group returns group id

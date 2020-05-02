@@ -54,4 +54,3 @@ describe "CApiTracePointSpecs" do
     end
   end
 end
-

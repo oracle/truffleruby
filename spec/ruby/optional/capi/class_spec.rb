@@ -402,7 +402,7 @@ describe "C-API Class function" do
   end
 
   describe "rb_class_new" do
-    it "returns an new subclass of the superclass" do
+    it "returns a new subclass of the superclass" do
       subclass = @s.rb_class_new(CApiClassSpecs::NewClass)
       CApiClassSpecs::NewClass.should be_ancestor_of(subclass)
     end

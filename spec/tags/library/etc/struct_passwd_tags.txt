@@ -1,4 +1,4 @@
-slow:Struct::Passwd returns user name
-slow:Struct::Passwd returns user id
-darwin:Struct::Passwd returns user group id
-slow:Struct::Passwd returns user group id
+darwin:Etc::Passwd returns user group id
+slow:Etc::Passwd returns user name
+slow:Etc::Passwd returns user id
+slow:Etc::Passwd returns user group id

@@ -1,0 +1,1 @@
+fails:Enumerator#next restarts the enumerator if an exception terminated a previous iteration
