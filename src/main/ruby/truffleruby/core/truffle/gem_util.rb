@@ -1,0 +1,98 @@
+# frozen_string_literal: true
+
+# Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
+# code is released under a tri EPL/GPL/LGPL license. You can use it,
+# redistribute it and/or modify it under the terms of the:
+#
+# Eclipse Public License version 2.0, or
+# GNU General Public License version 2, or
+# GNU Lesser General Public License version 2.1.
+
+module Truffle::GemUtil
+  DEFAULT_GEMS = {
+    'bigdecimal' => true,
+    'bundler' => true,
+    'cmath' => true,
+    'csv' => true,
+    'date' => true,
+    'dbm' => true,
+    'e2mmap' => true,
+    'etc' => true,
+    'fcntl' => true,
+    'fiddle' => true,
+    'fileutils' => true,
+    'forwardable' => true,
+    'gdbm' => true,
+    'ipaddr' => true,
+    'irb' => true,
+    'json' => true,
+    'logger' => true,
+    'matrix' => true,
+    'mutex_m' => true,
+    'openssl' => true,
+    'ostruct' => true,
+    'prime' => true,
+    'psych' => true,
+    'rdoc' => true,
+    'rss' => true,
+    'scanf' => true,
+    'sdbm' => true,
+    'shell' => true,
+    'stringio' => true,
+    'strscan' => true,
+    'sync' => true,
+    'thwait' => true,
+    'tracer' => true,
+    'webrick' => true,
+    'zlib' => true
+  }
+
+  def self.upgraded_default_gem?(feature)
+    if i = feature.index('/')
+      first_component = feature[0...i]
+    else
+      first_component = feature
+    end
+
+    if DEFAULT_GEMS.include?(first_component)
+      matcher = "#{first_component}-"
+      gem_paths.each do |gem_dir|
+        spec_dir = "#{gem_dir}/specifications"
+        if File.directory?(spec_dir)
+          Dir.each_child(spec_dir) do |spec|
+            if spec.start_with?(matcher) and digit = spec[matcher.size] and '0' <= digit && digit <= '9'
+              return true
+            end
+          end
+        end
+      end
+    end
+
+    false
+  end
+
+  # Gem.path, without needing to load RubyGems
+  def self.gem_paths
+    @gem_paths ||= begin
+      home = ENV['GEM_HOME'] || "#{Truffle::Boot.ruby_home}/lib/gems"
+      paths = [home]
+
+      if gem_path = ENV['GEM_PATH']
+        paths.concat gem_path.split(File::PATH_SEPARATOR)
+      else
+        user_dir = "#{Dir.home}/.gem/truffleruby/#{RUBY_ENGINE_VERSION}"
+        paths << user_dir
+      end
+
+      paths.map { |path| expand(path) }.uniq
+    end
+  end
+
+  def self.expand(path)
+    if File.directory?(path)
+      File.realpath(path)
+    else
+      path
+    end
+  end
+end

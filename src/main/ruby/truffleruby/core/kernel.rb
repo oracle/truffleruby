@@ -236,12 +236,14 @@ module Kernel
   # The logic is inlined so there is no extra backtrace entry for lazy-rubygems.
   def require(feature)
     feature = Truffle::Type.coerce_to_path(feature)
+    lazy_rubygems = Truffle::Boot.get_option_or_default('lazy-rubygems', false)
 
     path = Primitive.find_file(feature)
-    if path
+    upgraded_default_gem = lazy_rubygems && Truffle::GemUtil.upgraded_default_gem?(feature)
+    if path and !upgraded_default_gem
       Primitive.load_feature(feature, path)
     else
-      if Truffle::Boot.get_option_or_default('lazy-rubygems', false)
+      if lazy_rubygems
         gem_original_require 'rubygems'
 
         # Check that #require was redefined by RubyGems, otherwise we would end up in infinite recursion

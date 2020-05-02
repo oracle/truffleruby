@@ -3,6 +3,7 @@
 Bug fixes:
 
 * Fix `#class_exec`, `#module_exec`, `#instance_eval`, and `instance_exec` to use activated refinements (#1988, @ssnickolay).
+* Use upgraded default gems when installed (#1956).
 
 Compatibility:
 
