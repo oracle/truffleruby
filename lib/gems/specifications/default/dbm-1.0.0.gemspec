@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
-  s.date = "2020-01-07"
+  s.date = "2020-05-04"
   s.description = "Provides a wrapper for the UNIX-style Database Manager Library".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/dbm/extconf.rb".freeze]

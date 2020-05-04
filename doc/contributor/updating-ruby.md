@@ -87,10 +87,10 @@ You need a clean install (e.g., no extra gems installed) of MRI for this.
 
 ```
 rm -rf lib/gems/gems
-cp -R ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/gems lib/gems
+cp -R ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.0/gems lib/gems
 
-rm -rf lib/gems/specifications/default
-cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.n/specifications/default lib/gems/specifications
+rm -rf lib/gems/specifications
+cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.0/specifications lib/gems
 ```
 
 ## Updating bundled gems
