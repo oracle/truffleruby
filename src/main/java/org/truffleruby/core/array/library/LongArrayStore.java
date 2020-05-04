@@ -126,7 +126,7 @@ public class LongArrayStore {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
-        @Specialization(guards = "!isLongStore(destStore)", limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = "!isLongStore(destStore)", limit = "storageStrategyLimit()")
         protected static void copyContents(long[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
             for (int i = srcStart; i < length; i++) {
@@ -228,7 +228,7 @@ public class LongArrayStore {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
         }
 
-        @Specialization(limit = "STORAGE_STRATEGIES")
+        @Specialization(limit = "storageStrategyLimit()")
         protected static ArrayAllocator generalize(long[] store, Object newStore,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.generalizeForStore(newStore, store);
@@ -283,7 +283,7 @@ public class LongArrayStore {
             return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR.allocate(length);
         }
 
-        @Specialization(guards = "!basicStore(newStore)", limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = "!basicStore(newStore)", limit = "storageStrategyLimit()")
         protected static Object allocate(long[] store, Object newStore, int length,
                 @CachedLibrary("newStore") ArrayStoreLibrary newStores) {
             return newStores.allocateForNewValue(newStore, store, length);

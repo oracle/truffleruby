@@ -32,7 +32,7 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
         this.index = index;
     }
 
-    @Specialization(limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "storageStrategyLimit()")
     protected DynamicObject getTail(DynamicObject array,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @Cached ArrayCopyOnWriteNode cowNode,

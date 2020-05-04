@@ -308,7 +308,7 @@ public abstract class TruffleDebugNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ArrayCapacityNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyArray(array)", limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = "isRubyArray(array)", limit = "storageStrategyLimit()")
         protected long arrayStorage(DynamicObject array,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
             return stores.capacity(Layouts.ARRAY.getStore(array));
@@ -645,7 +645,7 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(limit = "STORAGE_STRATEGIES")
+        @Specialization(limit = "storageStrategyLimit()")
         protected Object foreignArrayFromJava(TruffleObject array,
                 @CachedLibrary("hostObject(array)") ArrayStoreLibrary hostObjects) {
             final Object hostObject = hostObject(array);
@@ -685,7 +685,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization
         protected Object foreignArrayFromJava(TruffleObject array,
-                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             final Object hostObject = getContext().getEnv().asHostObject(array);
             final int size = stores.capacity(hostObject);
             return new ForeignPointerArrayFromJava(stores.boxedCopyOfRange(hostObject, 0, size));

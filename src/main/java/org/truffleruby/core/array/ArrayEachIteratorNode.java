@@ -43,7 +43,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
 
     @Specialization(
             guards = { "getSize(array) == 1", "startAt == 0" },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected DynamicObject iterateOne(
             DynamicObject array,
             DynamicObject block,
@@ -64,7 +64,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
 
     @Specialization(
             guards = { "getSize(array) != 1" },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected DynamicObject iterateMany(
             DynamicObject array,
             DynamicObject block,

@@ -42,7 +42,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
 
     @Specialization(
             guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(getStore(array), getStore(other))" },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected DynamicObject appendManySameType(DynamicObject array, DynamicObject other,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores,
@@ -71,7 +71,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
 
     @Specialization(
             guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(getStore(array), getStore(other))" },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected DynamicObject appendManyGeneralize(DynamicObject array, DynamicObject other,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores) {

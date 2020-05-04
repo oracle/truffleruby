@@ -34,7 +34,7 @@ public abstract class ArrayToObjectArrayNode extends RubyContextNode {
 
     public abstract Object[] executeToObjectArray(DynamicObject array);
 
-    @Specialization(limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "storageStrategyLimit()")
     protected Object[] toObjectArrayOther(DynamicObject array,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
         final int size = Layouts.ARRAY.getSize(array);

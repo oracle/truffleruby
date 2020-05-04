@@ -29,7 +29,7 @@ public abstract class ArrayGeneralizeNode extends RubyContextNode {
 
     public abstract Object[] executeGeneralize(DynamicObject array, int requiredCapacity);
 
-    @Specialization(limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "storageStrategyLimit()")
     protected Object[] generalize(DynamicObject array, int requiredCapacity,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {

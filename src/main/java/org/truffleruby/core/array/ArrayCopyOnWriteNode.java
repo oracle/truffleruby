@@ -30,7 +30,7 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
 
     public abstract Object execute(DynamicObject array, int start, int length);
 
-    @Specialization(guards = "stores.isMutable(getStore(array))", limit = "STORAGE_STRATEGIES")
+    @Specialization(guards = "stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
     protected Object extractFromMutableArray(DynamicObject array, int start, int length,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
         Object store = Layouts.ARRAY.getStore(array);
@@ -41,7 +41,7 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
         return range;
     }
 
-    @Specialization(guards = "!stores.isMutable(getStore(array))", limit = "STORAGE_STRATEGIES")
+    @Specialization(guards = "!stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
     protected Object extractFromNonMutableArray(DynamicObject array, int start, int length,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
         Object store = Layouts.ARRAY.getStore(array);

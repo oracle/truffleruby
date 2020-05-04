@@ -32,7 +32,7 @@ public abstract class ReadIntegerNode extends FormatNode {
 
     private final ConditionProfile convertedTypeProfile = ConditionProfile.create();
 
-    @Specialization(limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "storageStrategyLimit()")
     protected Object read(VirtualFrame frame, Object source,
             @CachedLibrary("source") ArrayStoreLibrary sources) {
         if (toIntegerNode == null) {

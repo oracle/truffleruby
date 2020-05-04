@@ -29,7 +29,7 @@ public abstract class ReadDoubleNode extends FormatNode {
 
     @Child private ToDoubleNode toDoubleNode;
 
-    @Specialization(limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "storageStrategyLimit()")
     protected Object read(VirtualFrame frame, Object source,
             @CachedLibrary("source") ArrayStoreLibrary sources) {
         if (toDoubleNode == null) {

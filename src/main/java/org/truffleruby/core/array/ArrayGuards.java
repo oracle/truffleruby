@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -25,6 +26,10 @@ public class ArrayGuards {
 
     // Enough to handle all combinations of two strategies.
     public static final int ARRAY_STRATEGIES = STORAGE_STRATEGIES * STORAGE_STRATEGIES;
+
+    public static int storageStrategyLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().ARRAY_STRATEGY_CACHE;
+    }
 
     // Storage strategies
 
