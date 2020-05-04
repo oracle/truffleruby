@@ -126,10 +126,9 @@ should read our [migration guide](doc/user/jruby-migration.md).
 Extensive user documentation is available in [`doc/user`](doc/user).
 
 See our [source code repository](https://github.com/oracle/truffleruby) and
-[contributor
-documentation](https://github.com/oracle/truffleruby/tree/master/doc/contributor)
-to contribute to TruffleRuby. In particular, you should start with the [contributor workflow]
-document, which contains crucial information on building and running TruffleRuby.
+[contributor documentation](CONTRIBUTING.md) to contribute to TruffleRuby.
+In particular, see the [contributor workflow](doc/contributor/workflow.md)
+document for how to build and run TruffleRuby.
 
 ## Contact
 

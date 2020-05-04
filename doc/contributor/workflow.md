@@ -72,7 +72,7 @@ To build one of these build configurations, pass `--env` to the build command:
 $ jt build [--env BUILD_CONFIGURATION]
 ```
 
-You can create a new build configuration by creating a [mx env file] in `mx.truffleruby`.
+You can create a new build configuration by creating an [mx env file] in `mx.truffleruby`.
 
 [mx env file]: https://github.com/graalvm/mx/blob/master/README.md#environment-variable-processing
 
@@ -109,14 +109,14 @@ environment variables, so that the correct gems are picked up.
 By default, `jt ruby` runs the `jvm` build of TruffleRuby (that is, built with the `--jvm` [build
 configuration](#building) and using the default build name) and aborts if this build doesn't exist.
 
-You can also use `jt` to run other TruffleRuby builds (see the [Building](#bulding) section), just
-pass the buld name after `--use`:
+You can also use `jt` to run other TruffleRuby builds (see the [Building](#building) section), just
+pass the build name after `--use`:
 
 ```bash
 $ jt --use BUILD_NAME ruby ...
 ```
 
-You can also pass the path to a ruby executable after `--use`, e.g.:
+You can also pass the path to a Ruby executable after `--use`, e.g.:
 
 ```bash
 $ jt --use /usr/bin/ruby ruby ...
