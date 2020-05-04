@@ -1277,7 +1277,7 @@ EOS
       exit 1
     end
 
-    mspec 'test/truffle/ecosystem/launcher_spec.rb'
+    mspec 'spec/truffle/launcher_spec.rb'
 
     success = candidates.all? do |test_script|
       next true if test_script.end_with? 'shared.sh'

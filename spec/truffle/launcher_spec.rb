@@ -42,37 +42,37 @@ describe "The launcher" do
       reduce({}) { |h, (dir, i)| h.update "RbConfig::CONFIG['extra_bindirs'][#{i}]" => dir }
   bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
 
-  # launchers.each do |launcher, (test, skip_success)|
-  #   unless [:ruby, :truffleruby].include?(launcher)
-  #     it "'#{launcher}' runs as an -S command" do
-  #       out = ruby_exe(nil, options: "-S#{launcher} --version")
-  #       out.should =~ test
-  #       $?.success?.should == true unless skip_success
-  #     end
-  #   end
-  #
-  #   bin_dirs.each do |name, bin_dir|
-  #     it "'#{launcher}' in `#{name}` directory runs" do
-  #       out = `#{bin_dir}/#{launcher} --version`
-  #       out.should =~ test
-  #       $?.success?.should == true unless skip_success
-  #     end
-  #
-  #     it "'#{launcher}' in `#{name}` directory runs when symlinked" do
-  #       require "tmpdir"
-  #       # Use the system tmp dir to not be under the Ruby home dir
-  #       Dir.mktmpdir do |path|
-  #         Dir.chdir(path) do
-  #           linkname = "linkto#{launcher}"
-  #           File.symlink("#{bin_dir}/#{launcher}", linkname)
-  #           out = `./#{linkname} --version 2>&1`
-  #           out.should =~ test
-  #           $?.success?.should == true unless skip_success
-  #         end
-  #       end
-  #     end
-  #   end
-  # end
+  launchers.each do |launcher, (test, skip_success)|
+    unless [:ruby, :truffleruby].include?(launcher)
+      it "'#{launcher}' runs as an -S command" do
+        out = ruby_exe(nil, options: "-S#{launcher} --version")
+        out.should =~ test
+        $?.success?.should == true unless skip_success
+      end
+    end
+
+    bin_dirs.each do |name, bin_dir|
+      it "'#{launcher}' in `#{name}` directory runs" do
+        out = `#{bin_dir}/#{launcher} --version`
+        out.should =~ test
+        $?.success?.should == true unless skip_success
+      end
+
+      it "'#{launcher}' in `#{name}` directory runs when symlinked" do
+        require "tmpdir"
+        # Use the system tmp dir to not be under the Ruby home dir
+        Dir.mktmpdir do |path|
+          Dir.chdir(path) do
+            linkname = "linkto#{launcher}"
+            File.symlink("#{bin_dir}/#{launcher}", linkname)
+            out = `./#{linkname} --version 2>&1`
+            out.should =~ test
+            $?.success?.should == true unless skip_success
+          end
+        end
+      end
+    end
+  end
 
   it " for gem can install the hello-world gem" do
     Dir.chdir(__dir__ + '/fixtures/hello-world') do
@@ -99,6 +99,29 @@ describe "The launcher" do
     $?.success?.should == true
     bin_dirs.each do |name, bin_dir|
       File.exist?(bin_dir + '/hello-world.rb').should == false
+    end
+  end
+
+  # see doc/contributor/stdlib.md
+  bundled_gems= [
+      "did_you_mean #{versions['gems']['bundled']['did_you_mean']}",
+      "minitest #{versions['gems']['bundled']['minitest']}",
+      "net-telnet #{versions['gems']['bundled']['net-telnet']}",
+      "power_assert #{versions['gems']['bundled']['power_assert']}",
+      "rake #{versions['gems']['bundled']['rake']}",
+      "test-unit #{versions['gems']['bundled']['test-unit']}",
+      "xmlrpc #{versions['gems']['bundled']['xmlrpc']}",
+  ]
+
+  gem_list = begin; `#{bindir}/gem list`; rescue; nil; end
+
+  bundled_gems.each do |gem|
+    gem_name = gem.split.first
+    it "for gem shows that #{gem_name} is installed" do
+      gem_list.should != nil
+      gem.gsub! '.', '\\.'
+      gem.sub! ' ', '.*'
+      gem_list.should =~ Regexp.new(gem)
     end
   end
 
