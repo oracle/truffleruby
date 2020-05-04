@@ -482,7 +482,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_thread_buffer_allocate")
-    public static abstract class GetThreadBufferNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class IOThreadBufferAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected DynamicObject getThreadBuffer(VirtualFrame frame, long size,
@@ -506,7 +506,7 @@ public abstract class IONodes {
     }
 
     @Primitive(name = "io_thread_buffer_free")
-    public static abstract class ThreadBufferFreeNode extends PrimitiveArrayArgumentsNode {
+    public static abstract class IOThreadBufferFreeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
         protected Object getThreadBuffer(VirtualFrame frame, DynamicObject pointer,

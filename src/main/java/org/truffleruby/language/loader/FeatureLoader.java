@@ -25,7 +25,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
+import org.truffleruby.core.support.IONodes.IOThreadBufferAllocateNode;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyConstant;
@@ -165,7 +165,7 @@ public class FeatureLoader {
         }
         final int bufferSize = PATH_MAX;
         final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
-        final Pointer buffer = GetThreadBufferNode.getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
+        final Pointer buffer = IOThreadBufferAllocateNode.getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
         try {
             final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
             if (address == 0) {
