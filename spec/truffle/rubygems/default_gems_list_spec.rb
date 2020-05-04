@@ -12,11 +12,8 @@ require 'rubygems'
 
 describe "Truffle::GemUtil::DEFAULT_GEMS" do
   it "is a Hash listing all default gem paths" do
-    default_spec_paths = Gem.instance_variable_get(:@path_to_default_spec_map).keys
     hash = Dir.children("#{Gem.default_dir}/specifications/default").sort.map do |spec|
       spec.rpartition("-").first
-    end.select do |name|
-      default_spec_paths.include?(name)
     end.to_h { |name| [name, true] }
 
     Truffle::GemUtil::DEFAULT_GEMS.should == hash
