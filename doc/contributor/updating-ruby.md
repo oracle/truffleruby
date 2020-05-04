@@ -91,6 +91,7 @@ cp -R ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.0/gems lib/gems
 
 rm -rf lib/gems/specifications
 cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.0/specifications lib/gems
+ruby tool/patch-default-gemspecs.rb
 ```
 
 ## Updating bundled gems

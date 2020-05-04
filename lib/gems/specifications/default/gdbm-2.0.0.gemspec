@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.description = "Ruby extension for GNU dbm.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/gdbm/extconf.rb".freeze]
-  s.files = ["ext/gdbm/extconf.rb".freeze, "gdbm.so".freeze]
+  s.files = ["ext/gdbm/extconf.rb".freeze, "gdbm.#{Truffle::Platform::DLEXT}".freeze]
   s.homepage = "https://github.com/ruby/gdbm".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

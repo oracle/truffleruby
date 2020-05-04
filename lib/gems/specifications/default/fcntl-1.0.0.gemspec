@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.description = "Loads constants defined in the OS fcntl.h C header file".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/fcntl/extconf.rb".freeze]
-  s.files = ["ext/fcntl/extconf.rb".freeze, "fcntl.so".freeze]
+  s.files = ["ext/fcntl/extconf.rb".freeze, "fcntl.#{Truffle::Platform::DLEXT}".freeze]
   s.homepage = "https://github.com/ruby/fcntl".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

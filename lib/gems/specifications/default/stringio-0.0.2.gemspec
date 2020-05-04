@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = "Pseudo `IO` class from/to `String`.".freeze
   s.email = "nobu@ruby-lang.org".freeze
   s.extensions = ["ext/stringio/extconf.rb".freeze]
-  s.files = ["ext/stringio/extconf.rb".freeze, "stringio.so".freeze]
+  s.files = ["ext/stringio/extconf.rb".freeze, "stringio.#{Truffle::Platform::DLEXT}".freeze]
   s.homepage = "https://github.com/ruby/stringio".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.2".freeze)

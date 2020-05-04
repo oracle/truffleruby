@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = "Provides a wrapper for the UNIX-style Database Manager Library".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/dbm/extconf.rb".freeze]
-  s.files = ["dbm.so".freeze, "ext/dbm/extconf.rb".freeze]
+  s.files = ["dbm.#{Truffle::Platform::DLEXT}".freeze, "ext/dbm/extconf.rb".freeze]
   s.homepage = "https://github.com/ruby/dbm".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = "Provides a simple file-based key-value store with String keys and values.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/sdbm/extconf.rb".freeze]
-  s.files = ["ext/sdbm/extconf.rb".freeze, "sdbm.so".freeze]
+  s.files = ["ext/sdbm/extconf.rb".freeze, "sdbm.#{Truffle::Platform::DLEXT}".freeze]
   s.homepage = "https://github.com/ruby/sdbm".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

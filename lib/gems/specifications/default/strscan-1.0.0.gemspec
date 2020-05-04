@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.description = "Provides lexical scanning operations on a String.".freeze
   s.email = [nil]
   s.extensions = ["ext/strscan/extconf.rb".freeze]
-  s.files = ["ext/strscan/extconf.rb".freeze, "strscan.so".freeze]
+  s.files = ["ext/strscan/extconf.rb".freeze, "strscan.#{Truffle::Platform::DLEXT}".freeze]
   s.homepage = "https://github.com/ruby/strscan".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.4.0".freeze)
