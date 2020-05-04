@@ -114,6 +114,14 @@ module Truffle
       end
     end
 
+    def self.expanded_path_provided(path)
+      if feature_provided?(path, true)
+        [:feature_loaded, nil]
+      else
+        [:feature_found, path]
+      end
+    end
+
     # MRI: rb_feature_p
     # Whether feature is already loaded, i.e., part of $LOADED_FEATURES,
     # using the @loaded_features_index to lookup faster.
@@ -159,11 +167,26 @@ module Truffle
       end
     end
 
-    def self.expanded_path_provided(path)
-      if feature_provided?(path, true)
-        [:feature_loaded, nil]
-      else
-        [:feature_found, path]
+    # MRI: loaded_feature_path
+    # Search if $LOAD_PATH[i]/feature corresponds to loaded_feature.
+    # Returns the $LOAD_PATH entry containing feature.
+    def self.loaded_feature_path(loaded_feature, feature, load_path)
+      name_ext = extension(loaded_feature)
+      load_path.find do |p|
+        loaded_feature == "#{p}/#{feature}#{name_ext}" || loaded_feature == "#{p}/#{feature}"
+      end
+    end
+
+    # MRI: rb_provide_feature
+    # Add feature to $LOADED_FEATURES and the index, called from RequireNode
+    def self.provide_feature(feature)
+      raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
+      #feature.freeze # TODO freeze these but post-boot.rb issue using replace
+      with_synchronized_features do
+        get_loaded_features_index
+        $LOADED_FEATURES << feature
+        features_index_add(feature, $LOADED_FEATURES.size - 1)
+        @loaded_features_copy = $LOADED_FEATURES.dup
       end
     end
 
@@ -184,7 +207,14 @@ module Truffle
       end
     end
 
+    def self.with_synchronized_features
+      TruffleRuby.synchronized($LOADED_FEATURES) do
+        yield
+      end
+    end
+
     # MRI: get_loaded_features_index
+    # always called inside #with_synchronized_features
     def self.get_loaded_features_index
       unless Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
         @loaded_features_index.clear
@@ -199,35 +229,6 @@ module Truffle
         @loaded_features_copy = $LOADED_FEATURES.dup
       end
       @loaded_features_index
-    end
-
-    # MRI: rb_provide_feature
-    # Add feature to $LOADED_FEATURES and the index
-    def self.provide_feature(feature)
-      raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
-      #feature.freeze # TODO freeze these but post-boot.rb issue using replace
-      with_synchronized_features do
-        get_loaded_features_index
-        $LOADED_FEATURES << feature
-        features_index_add(feature, $LOADED_FEATURES.size - 1)
-        @loaded_features_copy = $LOADED_FEATURES.dup
-      end
-    end
-
-    def self.with_synchronized_features
-      TruffleRuby.synchronized($LOADED_FEATURES) do
-        yield
-      end
-    end
-
-    # MRI: loaded_feature_path
-    # Search if $LOAD_PATH[i]/feature corresponds to loaded_feature.
-    # Returns the $LOAD_PATH entry containing feature.
-    def self.loaded_feature_path(loaded_feature, feature, load_path)
-      name_ext = extension(loaded_feature)
-      load_path.find do |p|
-        loaded_feature == "#{p}/#{feature}#{name_ext}" || loaded_feature == "#{p}/#{feature}"
-      end
     end
 
     # MRI: features_index_add
