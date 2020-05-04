@@ -84,3 +84,53 @@ describe "Truffle::FeatureLoader.loaded_feature_path" do
   end
 
 end
+
+describe "Truffle::FeatureLoaderFeatureEntry" do
+  it "only a nested path at the end should match" do
+    hash = {}
+    stored_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to/feature")
+    hash[stored_entry] = true
+    stored_entry.part_of_index = true
+
+    short_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("to/feature")
+    hash[short_lookup_entry].should be_true
+
+    exact_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to/feature")
+    hash[exact_lookup_entry].should be_true
+
+
+    longer_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("long/path/to/feature")
+    hash[longer_lookup_entry].should be_nil
+
+    prefix_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to")
+    hash[prefix_lookup_entry].should be_nil
+  end
+
+  describe "when stored has an extension" do
+    it "matches a lookup with or without extension" do
+      hash = {}
+      stored_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to/feature.so")
+      hash[stored_entry] = true
+      stored_entry.part_of_index = true
+
+
+      lookup_entry_no_ext = Truffle::FeatureLoader::FeatureEntry.new("to/feature")
+      hash[lookup_entry_no_ext].should be_true
+
+      lookup_entry_ext = Truffle::FeatureLoader::FeatureEntry.new("to/feature.so")
+      hash[lookup_entry_ext].should be_true
+
+      lookup_entry_wrong_ext = Truffle::FeatureLoader::FeatureEntry.new("to/feature.rb")
+      hash[lookup_entry_wrong_ext].should be_nil
+    end
+  end
+
+  it "raises an error when both keys are lookup" do
+    hash = {}
+    stored_entry = Truffle::FeatureLoader::FeatureEntry.new("path/to/feature")
+    hash[stored_entry] = true
+
+    short_lookup_entry = Truffle::FeatureLoader::FeatureEntry.new("to/feature")
+    -> { hash[short_lookup_entry] }.should raise_error
+  end
+end
