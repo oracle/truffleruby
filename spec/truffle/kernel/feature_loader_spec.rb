@@ -15,27 +15,27 @@ describe "Truffle::FeatureLoader.features_index_add" do
     current_index.clear
 
     Truffle::FeatureLoader.features_index_add('foo', 0)
-    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo', false)].should == [0]
+    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo')].should == [0]
 
     Truffle::FeatureLoader.features_index_add('foo', 1)
-    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo', false)].should == [0, 1]
+    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo')].should == [0, 1]
     current_index.clear
 
     Truffle::FeatureLoader.features_index_add('foo.rb', 0)
     Truffle::FeatureLoader.features_index_add('foo.rb', 1)
-    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo', false)].should == [0, 1]
-    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo.rb', false)].should == [0, 1]
+    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo')].should == [0, 1]
+    current_index[Truffle::FeatureLoader::FeatureEntry.new('foo.rb')].should == [0, 1]
     current_index.clear
 
     Truffle::FeatureLoader.features_index_add('one/two/foo.rb', 0)
     ['foo', 'foo.rb', 'two/foo', 'two/foo.rb', 'one/two/foo.rb', 'one/two/foo'].each do |feature|
-      current_index[Truffle::FeatureLoader::FeatureEntry.new(feature, false)].should == [0]
+      current_index[Truffle::FeatureLoader::FeatureEntry.new(feature)].should == [0]
     end
     current_index.clear
 
     Truffle::FeatureLoader.features_index_add('/two/foo.rb', 0)
     ['foo', 'foo.rb', 'two/foo', 'two/foo.rb', '/two/foo.rb', '/two/foo'].each do |feature|
-      current_index[Truffle::FeatureLoader::FeatureEntry.new(feature, false)].should == [0]
+      current_index[Truffle::FeatureLoader::FeatureEntry.new(feature)].should == [0]
     end
     current_index.clear
   ensure

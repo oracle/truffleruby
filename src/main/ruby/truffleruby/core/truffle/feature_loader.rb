@@ -13,33 +13,42 @@ module Truffle
 
     DOT_DLEXT = ".#{Truffle::Platform::DLEXT}"
 
+    # FeatureEntry => [*index_inside_$LOADED_FEATURES]
     @loaded_features_index = {}
+    # A snapshot of $LOADED_FEATURES, to check if the @loaded_features_index cache is up to date.
     @loaded_features_copy = []
 
     class FeatureEntry
-      attr_reader :feature, :ext, :key, :feature_no_ext
+      attr_reader :feature, :ext, :feature_no_ext
+      attr_accessor :part_of_index
 
-      def initialize(feature, key)
-        @key = key
+      def initialize(feature)
+        @part_of_index = false
         @ext = Truffle::FeatureLoader.extension(feature)
         @feature = feature
         @feature_no_ext = @ext ? feature[0...(-@ext.size)] : feature
-        @base = @feature_no_ext.split('/').last
+        @base = File.basename(@feature_no_ext)
       end
 
       def ==(other)
-        if other.key
-          if self.ext
-            other.feature.end_with?(self.feature)
-          else
-            other.feature_no_ext.end_with?(self.feature)
-          end
+        # The looked up feature has to be the trailing part of an already-part_of_index entry.
+        # We always want to check part_of_index_feature.end_with?(lookup_feature).
+        # We compare extensions only if the lookup_feature has an extension.
+
+        if @part_of_index
+          stored = self
+          lookup = other
+        elsif other.part_of_index
+          stored = other
+          lookup = self
         else
-          if other.ext
-            @feature.end_with?(other.feature)
-          else
-            @feature_no_ext.end_with?(other.feature)
-          end
+          raise 'Expected that at least one of the FeatureEntry instances is part of the index'
+        end
+
+        if lookup.ext
+          stored.feature.end_with?(lookup.feature)
+        else
+          stored.feature_no_ext.end_with?(lookup.feature_no_ext)
         end
       end
       alias_method :eql?, :==
@@ -106,15 +115,20 @@ module Truffle
     end
 
     # MRI: rb_feature_p
+    # Whether feature is already loaded, i.e., part of $LOADED_FEATURES,
+    # using the @loaded_features_index to lookup faster.
+    # expanded is true if feature is an expanded path (and exists).
     def self.feature_provided?(feature, expanded)
-      feature_has_rb_ext = feature.end_with?('.rb')
-      feature_has_ext = has_extension?(feature)
+      feature_ext = extension(feature)
+      feature_has_rb_ext = feature_ext == '.rb'
+
       with_synchronized_features do
         get_loaded_features_index
-        feature_entry = FeatureEntry.new(feature, false)
+        feature_entry = FeatureEntry.new(feature)
         if @loaded_features_index.key?(feature_entry)
           @loaded_features_index[feature_entry].each do |i|
             loaded_feature = $LOADED_FEATURES[i]
+
             next if loaded_feature.size < feature.size
             feature_path = if loaded_feature.start_with?(feature)
                              feature
@@ -127,28 +141,21 @@ module Truffle
                            end
             if feature_path
               if !has_extension?(loaded_feature)
-                if feature_has_ext
-                  false
-                else
-                  return :unknown
-                end
+                return :unknown unless feature_ext
               else
                 loaded_feature_ext = extension(loaded_feature)
-                if (!feature_has_rb_ext || !feature_has_ext) && binary_ext?(loaded_feature_ext)
+                if (!feature_has_rb_ext || !feature_ext) && binary_ext?(loaded_feature_ext)
                   return :so
                 end
-                if (feature_has_rb_ext || !feature_has_ext) && loaded_feature_ext == '.rb'
+                if (feature_has_rb_ext || !feature_ext) && loaded_feature_ext == '.rb'
                   return :rb
                 end
               end
-            else
-              false
             end
           end
-          false
-        else
-          false
         end
+
+        false
       end
     end
 
@@ -195,6 +202,7 @@ module Truffle
     end
 
     # MRI: rb_provide_feature
+    # Add feature to $LOADED_FEATURES and the index
     def self.provide_feature(feature)
       raise '$LOADED_FEATURES is frozen; cannot append feature' if $LOADED_FEATURES.frozen?
       #feature.freeze # TODO freeze these but post-boot.rb issue using replace
@@ -213,21 +221,24 @@ module Truffle
     end
 
     # MRI: loaded_feature_path
-    def self.loaded_feature_path(name, feature, load_path)
-      name_ext = extension(name)
+    # Search if $LOAD_PATH[i]/feature corresponds to loaded_feature.
+    # Returns the $LOAD_PATH entry containing feature.
+    def self.loaded_feature_path(loaded_feature, feature, load_path)
+      name_ext = extension(loaded_feature)
       load_path.find do |p|
-        name == "#{p}/#{feature}#{name_ext}" || name == "#{p}/#{feature}"
+        loaded_feature == "#{p}/#{feature}#{name_ext}" || loaded_feature == "#{p}/#{feature}"
       end
     end
 
     # MRI: features_index_add
     # always called inside #with_synchronized_features
     def self.features_index_add(feature, offset)
-      feature_entry = FeatureEntry.new(feature, true)
+      feature_entry = FeatureEntry.new(feature)
       if @loaded_features_index.key?(feature_entry)
         @loaded_features_index[feature_entry] << offset
       else
         @loaded_features_index[feature_entry] = [offset]
+        feature_entry.part_of_index = true
       end
     end
 
