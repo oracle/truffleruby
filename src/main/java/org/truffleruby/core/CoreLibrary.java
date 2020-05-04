@@ -1143,6 +1143,7 @@ public class CoreLibrary {
             "/core/string.rb",
             "/core/random.rb",
             "/core/truffle/kernel_operations.rb",
+            "/core/truffle/gem_util.rb",
             "/core/thread.rb",
             "/core/true.rb",
             "/core/type.rb",

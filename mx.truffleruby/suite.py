@@ -197,7 +197,7 @@ suite = {
                 "BSD-new",          # Rubinius
             ],
             "externalProjects": {
-                "ruby-core": {
+                "core-library": {
                     "type": "ruby",
                     "path": "truffleruby",
                     "source": ["core", "post-boot"],

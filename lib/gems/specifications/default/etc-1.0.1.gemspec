@@ -10,11 +10,11 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Yukihiro Matsumoto".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-01-07"
+  s.date = "2020-05-04"
   s.description = "Provides access to information typically stored in UNIX /etc directory.".freeze
   s.email = ["matz@ruby-lang.org".freeze]
   s.extensions = ["ext/etc/extconf.rb".freeze]
-  s.files = ["etc.so".freeze, "ext/etc/extconf.rb".freeze]
+  s.files = ["etc.#{Truffle::Platform::DLEXT}".freeze, "ext/etc/extconf.rb".freeze]
   s.homepage = "https://github.com/ruby/etc".freeze
   s.licenses = ["BSD-2-Clause".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.3.0".freeze)

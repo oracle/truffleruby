@@ -237,11 +237,13 @@ module Kernel
   def require(feature)
     feature = Truffle::Type.coerce_to_path(feature)
 
-    path = Primitive.find_file(feature)
-    if path
+    lazy_rubygems = Truffle::Boot.get_option_or_default('lazy-rubygems', false)
+    upgraded_default_gem = lazy_rubygems && Truffle::GemUtil.upgraded_default_gem?(feature)
+
+    if !upgraded_default_gem and path = Primitive.find_file(feature)
       Primitive.load_feature(feature, path)
     else
-      if Truffle::Boot.get_option_or_default('lazy-rubygems', false)
+      if lazy_rubygems
         gem_original_require 'rubygems'
 
         # Check that #require was redefined by RubyGems, otherwise we would end up in infinite recursion
