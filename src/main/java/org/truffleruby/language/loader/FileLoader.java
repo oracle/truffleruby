@@ -70,7 +70,7 @@ public class FileLoader {
         final byte[] sourceBytes = file.readAllBytes();
         final Rope sourceRope = RopeOperations.create(sourceBytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
-        final Source source = buildSource(file, sourceRope, isInternal(path));
+        final Source source = buildSource(file, path, sourceRope, isInternal(path));
 
         return new RubySource(source, path, sourceRope);
     }
@@ -118,7 +118,7 @@ public class FileLoader {
         return relativePathFromHome.startsWith("lib");
     }
 
-    Source buildSource(TruffleFile file, Rope sourceRope, boolean internal) {
+    Source buildSource(TruffleFile file, String path, Rope sourceRope, boolean internal) {
         /* I'm not sure why we need to explicitly set a MIME type here - we say it's Ruby and this is the only and
          * default MIME type that Ruby supports.
          *
@@ -128,12 +128,18 @@ public class FileLoader {
          * test/truffle/integration/tracing.sh (again, probably the values, and I'm not sure we were correct before,
          * it's just changed) */
 
-        return Source
+        assert file.getPath().equals(path);
+
+        final Source source = Source
                 .newBuilder(TruffleRuby.LANGUAGE_ID, file)
+                .canonicalizePath(false)
                 .mimeType(TruffleRuby.MIME_TYPE)
                 .content(RopeOperations.decodeOrEscapeBinaryRope(sourceRope))
                 .internal(internal)
                 .build();
+
+        assert source.getPath().equals(path) : "Source#getPath() = " + source.getPath() + " is not the same as " + path;
+        return source;
     }
 
     private boolean isInternal(String path) {
