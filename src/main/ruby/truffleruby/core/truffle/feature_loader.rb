@@ -23,11 +23,7 @@ module Truffle
         @key = key
         @ext = Truffle::FeatureLoader.extension(feature)
         @feature = feature
-        @feature_no_ext =  if @ext
-                             feature[0...(-@ext.size)]
-                           else
-                             feature
-                           end
+        @feature_no_ext = @ext ? feature[0...(-@ext.size)] : feature
         @base = @feature_no_ext.split('/').last
       end
 
@@ -46,13 +42,11 @@ module Truffle
           end
         end
       end
-
-      alias eql? ==
+      alias_method :eql?, :==
 
       def hash
         @base.hash
       end
-
     end
 
     def self.find_file(feature)
@@ -64,14 +58,15 @@ module Truffle
     def self.find_feature_or_file(feature)
       feature_ext = extension(feature)
       if feature_ext
-        if feature_ext == '.rb'
+        case feature_ext
+        when '.rb'
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           end
           path = find_file(feature)
           return expanded_path_provided(path) if path
           return [:not_found, nil]
-        elsif feature_ext == '.so'
+        when '.so'
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           else
@@ -79,7 +74,7 @@ module Truffle
             path = find_file("#{feature_no_ext}.#{Truffle::Platform::DLEXT}")
             return expanded_path_provided(path) if path
           end
-        elsif feature_ext == DOT_DLEXT
+        when DOT_DLEXT
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           else
@@ -88,22 +83,25 @@ module Truffle
           end
         end
       else
-        if (found = feature_provided?(feature, false)) == :rb
+        found = feature_provided?(feature, false)
+        if found == :rb
           return [:feature_loaded, nil]
         end
       end
+
       path = find_file(feature)
       if path
         if feature_provided?(path, true)
-          return [:feature_loaded, nil]
+          [:feature_loaded, nil]
         else
-          return [:feature_found, path]
+          [:feature_found, path]
         end
       else
         if found
-          return [:feature_loaded, nil]
+          [:feature_loaded, nil]
+        else
+          [:not_found, nil]
         end
-        return [:not_found, nil]
       end
     end
 
@@ -114,7 +112,7 @@ module Truffle
       with_synchronized_features do
         get_loaded_features_index
         feature_entry = FeatureEntry.new(feature, false)
-        if @loaded_features_index.has_key?(feature_entry)
+        if @loaded_features_index.key?(feature_entry)
           @loaded_features_index[feature_entry].each do |i|
             loaded_feature = $LOADED_FEATURES[i]
             next if loaded_feature.size < feature.size
@@ -170,9 +168,18 @@ module Truffle
       !path.nil? && !File.extname(path).empty?
     end
 
+    def self.extension(path)
+      if !path.nil?
+        ext = File.extname(path)
+        ext.empty? ? nil : ext
+      else
+        nil
+      end
+    end
+
     # MRI: get_loaded_features_index
     def self.get_loaded_features_index
-      if !Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
+      unless Primitive.array_storage_equal?(@loaded_features_copy, $LOADED_FEATURES)
         @loaded_features_index.clear
         $LOADED_FEATURES.map! do |val|
           val = StringValue(val)
@@ -182,7 +189,7 @@ module Truffle
         $LOADED_FEATURES.each_with_index do |val, idx|
           features_index_add(val, idx)
         end
-        update_loaded_features_snapshot
+        @loaded_features_copy = $LOADED_FEATURES.dup
       end
       @loaded_features_index
     end
@@ -195,7 +202,7 @@ module Truffle
         get_loaded_features_index
         $LOADED_FEATURES << feature
         features_index_add(feature, $LOADED_FEATURES.size - 1)
-        update_loaded_features_snapshot
+        @loaded_features_copy = $LOADED_FEATURES.dup
       end
     end
 
@@ -213,23 +220,11 @@ module Truffle
       end
     end
 
-    def self.extension(path)
-      if !path.nil?
-        ext = File.extname(path)
-        ext.empty? ? nil : ext
-      else
-        nil
-      end
-    end
-
-    def self.update_loaded_features_snapshot
-      @loaded_features_copy = $LOADED_FEATURES.dup
-    end
-
     # MRI: features_index_add
+    # always called inside #with_synchronized_features
     def self.features_index_add(feature, offset)
       feature_entry = FeatureEntry.new(feature, true)
-      if @loaded_features_index.has_key?(feature_entry)
+      if @loaded_features_index.key?(feature_entry)
         @loaded_features_index[feature_entry] << offset
       else
         @loaded_features_index[feature_entry] = [offset]
