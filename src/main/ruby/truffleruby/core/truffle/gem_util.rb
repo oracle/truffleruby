@@ -24,7 +24,7 @@ module Truffle::GemUtil
     'forwardable' => true,
     'gdbm' => true,
     'ipaddr' => true,
-    'io-console' => true,
+    'io' => true, # gem 'io-console', required as 'io/console'
     'irb' => true,
     'json' => true,
     'logger' => true,
@@ -57,6 +57,9 @@ module Truffle::GemUtil
     end
 
     if DEFAULT_GEMS.include?(first_component)
+      # No need to check for 'io/nonblock' and 'io/wait', just for 'io/console'
+      return false if first_component == 'io' and !feature.start_with?('io/console')
+
       matcher = "#{first_component}-"
       gem_paths.each do |gem_dir|
         spec_dir = "#{gem_dir}/specifications"

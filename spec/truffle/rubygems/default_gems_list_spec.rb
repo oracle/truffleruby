@@ -13,7 +13,7 @@ require 'rubygems'
 describe "Truffle::GemUtil::DEFAULT_GEMS" do
   it "is a Hash listing all default gem paths" do
     hash = Dir.children("#{Gem.default_dir}/specifications/default").sort.map do |spec|
-      spec.rpartition("-").first
+      spec.split("-").first # 'io' for gem 'io-console' required as 'io/console'
     end.to_h { |name| [name, true] }
 
     Truffle::GemUtil::DEFAULT_GEMS.should == hash
