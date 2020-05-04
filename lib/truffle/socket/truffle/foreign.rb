@@ -96,10 +96,8 @@ module Truffle
 
       def self.bind(descriptor, sockaddr)
         sockaddr_p = Truffle::FFI::Pool.stack_alloc(:char, sockaddr.bytesize)
-
         begin
           sockaddr_p.write_string(sockaddr, sockaddr.bytesize)
-
           _bind(descriptor, sockaddr_p, sockaddr.bytesize)
         ensure
           Truffle::FFI::Pool.stack_free(sockaddr_p)
