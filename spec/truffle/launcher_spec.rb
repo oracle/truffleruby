@@ -18,6 +18,15 @@ describe "The launcher" do
     File.binread(launcher, 2) == "#!"
   end
 
+  before :each do
+    @gem_home = ENV['GEM_HOME']
+    ENV['GEM_HOME'] = nil
+  end
+
+  after :each do
+    ENV['GEM_HOME'] = @gem_home
+  end
+
   bindir = File.expand_path(RbConfig::CONFIG['bindir'])
 
   it 'is in the bindir' do
