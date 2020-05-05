@@ -1117,6 +1117,10 @@ module Truffle::CExt
     Truffle::IOOperations.puts out, args
   end
 
+  def rb_equal(a, b)
+    Primitive.object_same_or_equal(a, b)
+  end
+
   def rb_obj_call_init(obj, args)
     obj.__send__ :initialize, *args
   end

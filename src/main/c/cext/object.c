@@ -95,9 +95,8 @@ VALUE rb_obj_id(VALUE object) {
 }
 
 // The semantics of SameOrEqualNode: a.equal?(b) || a == b
-// Kernel#=== is a convenient way to use that node
 VALUE rb_equal(VALUE a, VALUE b) {
-  return RUBY_INVOKE(a, "===", b);
+  return RUBY_CEXT_INVOKE("rb_equal", a, b);
 }
 
 void rb_obj_call_init(VALUE object, int argc, const VALUE *argv) {
