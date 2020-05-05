@@ -244,13 +244,18 @@ module Kernel
 
     lazy_rubygems = Truffle::Boot.get_option_or_default('lazy-rubygems', false)
     upgraded_default_gem = lazy_rubygems && Truffle::GemUtil.upgraded_default_gem?(feature)
-
-    status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
-    if status == :feature_loaded
-      false
-    elsif !upgraded_default_gem && status == :feature_found
-      Primitive.load_feature(feature, path)
+    if upgraded_default_gem
+      status, path = :not_found, nil # load RubyGems
     else
+      status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
+    end
+
+    case status
+    when :feature_loaded
+      false
+    when :feature_found
+      Primitive.load_feature(feature, path)
+    when :not_found
       if lazy_rubygems
         gem_original_require 'rubygems'
 
