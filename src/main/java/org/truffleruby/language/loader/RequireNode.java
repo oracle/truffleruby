@@ -36,7 +36,6 @@ import org.truffleruby.shared.Metrics;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -45,7 +44,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class RequireNode extends RubyContextNode {
@@ -63,14 +61,9 @@ public abstract class RequireNode extends RubyContextNode {
     public abstract boolean executeRequire(String feature, DynamicObject expandedPath);
 
     @Specialization
-    protected boolean require(String feature, DynamicObject expandedPathString,
-            @Cached ConditionProfile isLoadedProfile) {
+    protected boolean require(String feature, DynamicObject expandedPathString) {
         final String expandedPath = StringOperations.getString(expandedPathString);
-        if (isLoadedProfile.profile(isFeatureLoaded(expandedPathString))) {
-            return false;
-        } else {
-            return requireWithMetrics(feature, expandedPath, expandedPathString);
-        }
+        return requireWithMetrics(feature, expandedPath, expandedPathString);
     }
 
     @TruffleBoundary(transferToInterpreterOnException = false)
@@ -402,18 +395,17 @@ public abstract class RequireNode extends RubyContextNode {
     }
 
     public boolean isFeatureLoaded(DynamicObject feature) {
-        final DynamicObject loadedFeatures = getContext().getCoreLibrary().getLoadedFeatures();
         final Object included;
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            included = isInLoadedFeatures.call(loadedFeatures, "include?", feature);
+            included = isInLoadedFeatures
+                    .call(coreLibrary().truffleFeatureLoaderModule, "feature_provided?", feature, true);
         }
         return booleanCastNode.executeToBoolean(included);
     }
 
     private void addToLoadedFeatures(DynamicObject feature) {
-        final DynamicObject loadedFeatures = coreLibrary().getLoadedFeatures();
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
-            addToLoadedFeatures.call(loadedFeatures, "<<", feature);
+            addToLoadedFeatures.call(coreLibrary().truffleFeatureLoaderModule, "provide_feature", feature);
         }
     }
 

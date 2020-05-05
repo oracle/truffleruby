@@ -2079,7 +2079,7 @@ public abstract class ArrayNodes {
         @Specialization
         protected boolean storageEqual(DynamicObject array, DynamicObject other) {
             final Object arrayStore = Layouts.ARRAY.getStore(array);
-            final Object otherStore = Layouts.ARRAY.getStore(array);
+            final Object otherStore = Layouts.ARRAY.getStore(other);
             return arrayStore instanceof DelegatedArrayStorage && otherStore instanceof DelegatedArrayStorage &&
                     ((DelegatedArrayStorage) arrayStore).storage == ((DelegatedArrayStorage) otherStore).storage;
         }

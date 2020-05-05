@@ -226,10 +226,15 @@ module Kernel
   private def gem_original_require(feature)
     feature = Truffle::Type.coerce_to_path(feature)
 
-    path = Primitive.find_file(feature)
-    raise Truffle::KernelOperations.load_error(feature) unless path
-
-    Primitive.load_feature(feature, path)
+    status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
+    case status
+    when :feature_loaded
+      false
+    when :feature_found
+      Primitive.load_feature(feature, path)
+    when :not_found
+      raise Truffle::KernelOperations.load_error(feature)
+    end
   end
 
   # A #require which lazily loads rubygems when needed.
@@ -239,10 +244,18 @@ module Kernel
 
     lazy_rubygems = Truffle::Boot.get_option_or_default('lazy-rubygems', false)
     upgraded_default_gem = lazy_rubygems && Truffle::GemUtil.upgraded_default_gem?(feature)
-
-    if !upgraded_default_gem and path = Primitive.find_file(feature)
-      Primitive.load_feature(feature, path)
+    if upgraded_default_gem
+      status, path = :not_found, nil # load RubyGems
     else
+      status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
+    end
+
+    case status
+    when :feature_loaded
+      false
+    when :feature_found
+      Primitive.load_feature(feature, path)
+    when :not_found
       if lazy_rubygems
         gem_original_require 'rubygems'
 
@@ -263,12 +276,18 @@ module Kernel
 
   def require_relative(feature)
     feature = Truffle::Type.coerce_to_path(feature)
-    path = Primitive.get_caller_path(feature)
+    feature = Primitive.get_caller_path(feature)
 
-    expanded_path = Primitive.find_file(path)
-    raise Truffle::KernelOperations.load_error(path) unless expanded_path
-
-    Primitive.load_feature(expanded_path, expanded_path)
+    status, path = Truffle::FeatureLoader.find_feature_or_file(feature)
+    case status
+    when :feature_loaded
+      false
+    when :feature_found
+      # The first argument needs to be the expanded path here for patching to work correctly
+      Primitive.load_feature(path, path)
+    when :not_found
+      raise Truffle::KernelOperations.load_error(feature)
+    end
   end
   module_function :require_relative
 

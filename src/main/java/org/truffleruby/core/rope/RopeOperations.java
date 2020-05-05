@@ -634,4 +634,18 @@ public class RopeOperations {
         return attributes.getCodeRange() == CR_BROKEN;
     }
 
+    public static boolean anyChildContains(Rope rope, String value) {
+        if (rope instanceof SubstringRope) {
+            return anyChildContains(((SubstringRope) rope).getChild(), value);
+        } else if (rope instanceof ConcatRope) {
+            return anyChildContains(((ConcatRope) rope).getLeft(), value) ||
+                    anyChildContains(((ConcatRope) rope).getRight(), value);
+        } else {
+            if (rope.byteLength() < value.length()) {
+                return false;
+            }
+            return RopeOperations.decodeRope(rope).contains(value);
+        }
+    }
+
 }
