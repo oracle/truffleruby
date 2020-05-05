@@ -18,6 +18,11 @@ module Truffle
     # A snapshot of $LOADED_FEATURES, to check if the @loaded_features_index cache is up to date.
     @loaded_features_copy = []
 
+    def self.clear_cache
+      @loaded_features_index.clear
+      @loaded_features_copy.clear
+    end
+
     class FeatureEntry
       attr_reader :feature, :ext, :feature_no_ext
       attr_accessor :part_of_index
