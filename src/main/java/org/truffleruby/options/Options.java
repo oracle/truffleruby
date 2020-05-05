@@ -39,8 +39,6 @@ public class Options {
     public final String INTERNAL_ENCODING;
     /** --external-encoding="" */
     public final String EXTERNAL_ENCODING;
-    /** --home="" */
-    public final String HOME;
     /** --no-home-provided=false */
     public final boolean NO_HOME_PROVIDED;
     /** --launcher="" */
@@ -289,7 +287,6 @@ public class Options {
         SOURCE_ENCODING = options.get(OptionsCatalog.SOURCE_ENCODING_KEY);
         INTERNAL_ENCODING = options.get(OptionsCatalog.INTERNAL_ENCODING_KEY);
         EXTERNAL_ENCODING = options.get(OptionsCatalog.EXTERNAL_ENCODING_KEY);
-        HOME = options.get(OptionsCatalog.HOME_KEY);
         NO_HOME_PROVIDED = options.get(OptionsCatalog.NO_HOME_PROVIDED_KEY);
         LAUNCHER = options.get(OptionsCatalog.LAUNCHER_KEY);
         CORE_LOAD_PATH = options.get(OptionsCatalog.CORE_LOAD_PATH_KEY);
@@ -429,8 +426,6 @@ public class Options {
                 return INTERNAL_ENCODING;
             case "ruby.external-encoding":
                 return EXTERNAL_ENCODING;
-            case "ruby.home":
-                return HOME;
             case "ruby.no-home-provided":
                 return NO_HOME_PROVIDED;
             case "ruby.launcher":

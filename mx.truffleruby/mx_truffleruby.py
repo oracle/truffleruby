@@ -96,11 +96,11 @@ class TruffleRubyBootstrapLauncherBuildTask(mx.BuildTask):
         java = mx.get_jdk().java
         classpath_deps = [dep for dep in self.subject.buildDependencies if isinstance(dep, mx.ClasspathDependency)]
         jvm_args = [pipes.quote(arg) for arg in mx.get_runtime_jvm_args(classpath_deps)]
+        jvm_args.append('-Dorg.graalvm.language.ruby.home=' + root)
         main_class = 'org.truffleruby.launcher.RubyLauncher'
         ruby_options = [
             '--experimental-options',
             '--building-core-cexts',
-            '--home=' + root,
             '--launcher=' + result,
             '--disable-gems',
             '--disable-rubyopt',

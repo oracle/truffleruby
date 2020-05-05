@@ -28,7 +28,6 @@ public class OptionsCatalog {
     public static final OptionKey<String> SOURCE_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> INTERNAL_ENCODING_KEY = new OptionKey<>("");
     public static final OptionKey<String> EXTERNAL_ENCODING_KEY = new OptionKey<>("");
-    public static final OptionKey<String> HOME_KEY = new OptionKey<>("");
     public static final OptionKey<Boolean> NO_HOME_PROVIDED_KEY = new OptionKey<>(false);
     public static final OptionKey<String> LAUNCHER_KEY = new OptionKey<>("");
     public static final OptionKey<String> CORE_LOAD_PATH_KEY = new OptionKey<>("resource:/truffleruby");
@@ -203,13 +202,6 @@ public class OptionsCatalog {
             .help("External encoding (configured by the -E Ruby option)")
             .category(OptionCategory.USER)
             .stability(OptionStability.STABLE)
-            .build();
-
-    public static final OptionDescriptor HOME = OptionDescriptor
-            .newBuilder(HOME_KEY, "ruby.home")
-            .help("The location of the TruffleRuby installation files")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
             .build();
 
     public static final OptionDescriptor NO_HOME_PROVIDED = OptionDescriptor
@@ -1063,8 +1055,6 @@ public class OptionsCatalog {
                 return INTERNAL_ENCODING;
             case "ruby.external-encoding":
                 return EXTERNAL_ENCODING;
-            case "ruby.home":
-                return HOME;
             case "ruby.no-home-provided":
                 return NO_HOME_PROVIDED;
             case "ruby.launcher":
@@ -1318,7 +1308,6 @@ public class OptionsCatalog {
             SOURCE_ENCODING,
             INTERNAL_ENCODING,
             EXTERNAL_ENCODING,
-            HOME,
             NO_HOME_PROVIDED,
             LAUNCHER,
             CORE_LOAD_PATH,
