@@ -637,18 +637,15 @@ public class RopeOperations {
     public static boolean anyChildContains(Rope rope, String value) {
         if (rope instanceof SubstringRope) {
             return anyChildContains(((SubstringRope) rope).getChild(), value);
-        }
-        if (rope instanceof ConcatRope) {
+        } else if (rope instanceof ConcatRope) {
             return anyChildContains(((ConcatRope) rope).getLeft(), value) ||
                     anyChildContains(((ConcatRope) rope).getRight(), value);
+        } else {
+            if (rope.byteLength() < value.length()) {
+                return false;
+            }
+            return RopeOperations.decodeRope(rope).contains(value);
         }
-        if (rope.byteLength() < value.length()) {
-            return false;
-        }
-        if (RopeOperations.decodeRope(rope).contains(value)) {
-            return true;
-        }
-        return false;
     }
 
 }

@@ -46,13 +46,13 @@ end
 describe "Truffle::FeatureLoader.loaded_feature_path" do
   it "returns path for matching feature" do
     load_path = ["/path/ruby/lib/ruby/2.6.0"]
-    name = "/path/ruby/lib/ruby/2.6.0/benchmark.rb"
-    feature  = "benchmark"
-    path = Truffle::FeatureLoader.loaded_feature_path(name, feature, load_path)
+    loaded_feature = "/path/ruby/lib/ruby/2.6.0/benchmark.rb"
+    feature = "benchmark"
+    path = Truffle::FeatureLoader.loaded_feature_path(loaded_feature, feature, load_path)
     path.should == load_path[0]
 
-    feature  = "benchmark.rb"
-    path = Truffle::FeatureLoader.loaded_feature_path(name, feature, load_path)
+    feature = "benchmark.rb"
+    path = Truffle::FeatureLoader.loaded_feature_path(loaded_feature, feature, load_path)
     path.should == load_path[0]
   end
 
@@ -68,18 +68,18 @@ describe "Truffle::FeatureLoader.loaded_feature_path" do
 
   it "returns correct paths for non-rb paths" do
     load_path = ["/path/ruby/lib/ruby/2.6.0"]
-    name = "/path/ruby/lib/ruby/2.6.0/benchmark.so"
+    loaded_feature = "/path/ruby/lib/ruby/2.6.0/benchmark.so"
 
     feature = "benchmark"
-    path = Truffle::FeatureLoader.loaded_feature_path(name, feature, load_path)
+    path = Truffle::FeatureLoader.loaded_feature_path(loaded_feature, feature, load_path)
     path.should == load_path[0]
 
     feature = "benchmark.so"
-    path = Truffle::FeatureLoader.loaded_feature_path(name, feature, load_path)
+    path = Truffle::FeatureLoader.loaded_feature_path(loaded_feature, feature, load_path)
     path.should == load_path[0]
 
     feature = "benchmark.rb"
-    path = Truffle::FeatureLoader.loaded_feature_path(name, feature, load_path)
+    path = Truffle::FeatureLoader.loaded_feature_path(loaded_feature, feature, load_path)
     path.should == nil
   end
 
