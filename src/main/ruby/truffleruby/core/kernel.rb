@@ -278,7 +278,8 @@ module Kernel
     when :feature_loaded
       false
     when :feature_found
-      Primitive.load_feature(feature, path)
+      # The first argument needs to be the expanded path here for patching to work correctly
+      Primitive.load_feature(path, path)
     when :not_found
       raise Truffle::KernelOperations.load_error(feature)
     end
