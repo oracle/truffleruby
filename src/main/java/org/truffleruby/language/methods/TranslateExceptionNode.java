@@ -36,6 +36,7 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @GenerateUncached
 public abstract class TranslateExceptionNode extends RubyBaseNode {
@@ -215,7 +216,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             case ARGUMENT_ERROR:
                 return context.getCoreExceptions().argumentError(message, this, exception);
             default:
-                throw new UnsupportedOperationException();
+                throw new UnreachableCodeException();
         }
     }
 

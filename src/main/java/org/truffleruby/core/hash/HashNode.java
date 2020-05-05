@@ -17,6 +17,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 public class HashNode extends RubyContextNode {
 
@@ -61,7 +62,8 @@ public class HashNode extends RubyContextNode {
             } else if (isBignumProfile2.profile(Layouts.BIGNUM.isBignum(coercedHashedObject))) {
                 return BigIntegerOps.hashCode(coercedHashedObject);
             } else {
-                throw new UnsupportedOperationException();
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                throw new UnreachableCodeException();
             }
         }
     }

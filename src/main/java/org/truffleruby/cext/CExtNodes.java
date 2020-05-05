@@ -84,6 +84,7 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.utils.Utils;
+import org.truffleruby.utils.UnreachableCodeException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -744,7 +745,7 @@ public class CExtNodes {
                 case "module_function":
                     return callerVisibility.isModuleFunction();
                 default:
-                    throw new UnsupportedOperationException();
+                    throw new UnreachableCodeException();
             }
         }
 

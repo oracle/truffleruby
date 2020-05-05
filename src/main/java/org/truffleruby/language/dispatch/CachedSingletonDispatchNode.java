@@ -22,6 +22,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.UnreachableCodeException;
 
 /** Like {@link CachedBoxedDispatchNode}, but on singleton objects. Checking identity of the DynamicObject is therefore
  * faster than reading the Shape and checking the Shape identity. */
@@ -97,7 +98,7 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
 
             default:
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnsupportedOperationException();
+                throw new UnreachableCodeException();
         }
     }
 

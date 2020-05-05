@@ -40,6 +40,7 @@ package org.truffleruby.core;
 import java.io.PrintStream;
 import java.util.Map.Entry;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -77,6 +78,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "VMPrimitives", isClass = true)
 public abstract class VMPrimitiveNodes {
@@ -448,7 +450,8 @@ public abstract class VMPrimitiveNodes {
             } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
                 return getContext().getHashing(this).start(BigIntegerOps.hashCode(result));
             } else {
-                throw new UnsupportedOperationException();
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                throw new UnreachableCodeException();
             }
 
         }
@@ -481,7 +484,8 @@ public abstract class VMPrimitiveNodes {
             } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
                 return Hashing.update(hash, BigIntegerOps.hashCode(result));
             } else {
-                throw new UnsupportedOperationException();
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                throw new UnreachableCodeException();
             }
 
         }

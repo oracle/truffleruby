@@ -98,6 +98,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "IO", isClass = true)
 public abstract class IONodes {
@@ -460,7 +461,8 @@ public abstract class IONodes {
                     stream = getContext().getEnv().err();
                     break;
                 default:
-                    throw new UnsupportedOperationException();
+                    // already checked in the caller
+                    throw new UnreachableCodeException();
             }
 
             final Rope rope = rope(string);

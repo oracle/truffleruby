@@ -64,6 +64,7 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.BasicPlatform;
+import org.truffleruby.utils.UnreachableCodeException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
@@ -245,7 +246,8 @@ public abstract class TruffleSystemNodes {
             if (TruffleOptions.AOT) {
                 ProcessProperties.setArgumentVectorProgramName(StringOperations.getString(name));
             } else {
-                throw new UnsupportedOperationException();
+                // already checked in the caller
+                throw new UnreachableCodeException();
             }
             return name;
         }

@@ -26,6 +26,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.UnreachableCodeException;
 
 public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
@@ -63,7 +64,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         } else if (cachedName instanceof String) {
             cachedNameAsSymbol = context.getSymbol((String) cachedName);
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnreachableCodeException();
         }
     }
 
@@ -136,7 +137,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
             default:
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnsupportedOperationException();
+                throw new UnreachableCodeException();
         }
     }
 

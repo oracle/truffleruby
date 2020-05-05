@@ -23,6 +23,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.utils.UnreachableCodeException;
 
 public class CachedBoxedDispatchNode extends CachedDispatchNode {
 
@@ -100,7 +101,7 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
 
             default:
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnsupportedOperationException();
+                throw new UnreachableCodeException();
         }
     }
 
