@@ -73,12 +73,14 @@ module Truffle::POSIX
   EINTR = Errno::EINTR::Errno
 
   def self.to_nfi_type(type)
-    if found = TYPES[type]
-      found
-    elsif typedef = Truffle::Config.lookup("platform.typedef.#{type}")
-      TYPES[type] = to_nfi_type(typedef.to_sym)
-    else
-      TYPES[type] = type
+    TruffleRuby.synchronized(TYPES) do
+      if found = TYPES[type]
+        found
+      elsif typedef = Truffle::Config.lookup("platform.typedef.#{type}")
+        TYPES[type] = to_nfi_type(typedef.to_sym)
+      else
+        TYPES[type] = type
+      end
     end
   end
 
