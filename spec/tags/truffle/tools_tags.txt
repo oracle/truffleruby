@@ -1,2 +1,3 @@
 slow:Tools --coverage is available and works
 slow:Tools --coverage works for internal sources
+slow:Tools --engine.TraceCompilation works and outputs to STDERR

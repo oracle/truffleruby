@@ -1046,7 +1046,7 @@ module Commands
 
     truffle_args = []
     if truffleruby?
-      truffle_args += %w(--reveal --vm.Xmx2G --testing-rubygems=true)
+      truffle_args += %w(--reveal --vm.Xmx2G --testing-rubygems)
     end
 
     env_vars = {
