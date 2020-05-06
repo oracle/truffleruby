@@ -25,6 +25,10 @@ public abstract class ArrayReadDenormalizedNode extends RubyContextSourceNode {
 
     @Child private ArrayReadNormalizedNode readNode = ArrayReadNormalizedNode.create();
 
+    public static ArrayReadDenormalizedNode create() {
+        return ArrayReadDenormalizedNodeGen.create(null, null);
+    }
+
     public abstract Object executeRead(DynamicObject array, int index);
 
     @Specialization

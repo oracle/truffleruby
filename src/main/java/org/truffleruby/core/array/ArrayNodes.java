@@ -47,7 +47,6 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -235,6 +234,10 @@ public abstract class ArrayNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
+        public static ArrayReadSliceNormalizedNode create() {
+            return ArrayNodesFactory.ArrayReadSliceNormalizedNodeFactory.create(null);
+        }
+
         public abstract Object executeReadSlice(DynamicObject array, int index, int length);
 
         // Index out of bounds or negative length always gives you nil
@@ -304,29 +307,17 @@ public abstract class ArrayNodes {
             argumentNames = { "index_start_or_range", "length" })
     public abstract static class IndexNode extends ArrayCoreMethodNode {
 
-        @Child private ArrayReadDenormalizedNode readNode;
-        @Child private ArrayReadSliceDenormalizedNode readSliceNode;
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private CallDispatchHeadNode fallbackNode;
-
         @Specialization
-        protected Object index(DynamicObject array, int index, NotProvided length) {
-            if (readNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readNode = insert(ArrayReadDenormalizedNodeGen.create(null, null));
-            }
+        protected Object index(DynamicObject array, int index, NotProvided length,
+                @Cached ArrayReadDenormalizedNode readNode) {
             return readNode.executeRead(array, index);
         }
 
         @Specialization
-        protected Object slice(DynamicObject array, int start, int length) {
+        protected Object slice(DynamicObject array, int start, int length,
+                @Cached ArrayReadSliceDenormalizedNode readSliceNode) {
             if (length < 0) {
                 return nil;
-            }
-
-            if (readSliceNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readSliceNode = insert(ArrayReadSliceDenormalizedNodeGen.create());
             }
 
             return readSliceNode.executeReadSlice(array, start, length);
@@ -334,9 +325,10 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isIntRange(range)")
         protected Object slice(DynamicObject array, DynamicObject range, NotProvided len,
-                               @Cached ConditionProfile negativeBeginProfile,
-                               @Cached ConditionProfile negativeEndProfile,
-                               @Cached org.truffleruby.core.array.ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
+                @Cached ConditionProfile negativeBeginProfile,
+                @Cached ConditionProfile negativeEndProfile,
+                @Cached ArrayReadSliceNormalizedNode readNormalizedSliceNode,
+                @Cached AllocateObjectNode allocateObjectNode) {
             final int size = getSize(array);
             final int normalizedBegin = ArrayOperations
                     .normalizeIndex(size, Layouts.INT_RANGE.getBegin(range), negativeBeginProfile);
@@ -359,12 +351,8 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "isFallback(index, maybeLength)")
-        protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength) {
-            if (fallbackNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackNode = insert(CallDispatchHeadNode.createPrivate());
-            }
-
+        protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength,
+                @Cached CallDispatchHeadNode fallbackNode) {
             return fallbackNode.call(array, "element_reference_fallback", index, maybeLength);
         }
 
