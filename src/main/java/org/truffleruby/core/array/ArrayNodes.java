@@ -302,32 +302,75 @@ public abstract class ArrayNodes {
             optional = 1,
             lowerFixnum = { 1, 2 },
             argumentNames = { "index_start_or_range", "length" })
-    public abstract static class IndexNode extends ArrayIndexNode {
+    public abstract static class IndexNode extends ArrayCoreMethodNode {
 
+        @Child private ArrayReadDenormalizedNode readNode;
+        @Child private ArrayReadSliceDenormalizedNode readSliceNode;
+        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private CallDispatchHeadNode fallbackNode;
 
-        @Override
-        protected Object fallback(DynamicObject array, Object start, Object length) {
+        @Specialization
+        protected Object index(DynamicObject array, int index, NotProvided length) {
+            if (readNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                readNode = insert(ArrayReadDenormalizedNodeGen.create(null, null));
+            }
+            return readNode.executeRead(array, index);
+        }
+
+        @Specialization
+        protected Object slice(DynamicObject array, int start, int length) {
+            if (length < 0) {
+                return nil;
+            }
+
+            if (readSliceNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                readSliceNode = insert(ArrayReadSliceDenormalizedNodeGen.create());
+            }
+
+            return readSliceNode.executeReadSlice(array, start, length);
+        }
+
+        @Specialization(guards = "isIntRange(range)")
+        protected Object slice(DynamicObject array, DynamicObject range, NotProvided len,
+                               @Cached ConditionProfile negativeBeginProfile,
+                               @Cached ConditionProfile negativeEndProfile,
+                               @Cached org.truffleruby.core.array.ArrayReadSliceNormalizedNode readNormalizedSliceNode) {
+            final int size = getSize(array);
+            final int normalizedBegin = ArrayOperations
+                    .normalizeIndex(size, Layouts.INT_RANGE.getBegin(range), negativeBeginProfile);
+
+            if (normalizedBegin < 0 || normalizedBegin > size) {
+                return nil;
+            } else {
+                final int end = ArrayOperations
+                        .normalizeIndex(size, Layouts.INT_RANGE.getEnd(range), negativeEndProfile);
+                final int exclusiveEnd = ArrayOperations
+                        .clampExclusiveIndex(size, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
+
+                if (exclusiveEnd <= normalizedBegin) {
+                    return allocateObjectNode
+                            .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStoreLibrary.INITIAL_STORE, 0);
+                }
+
+                return readNormalizedSliceNode.executeReadSlice(array, normalizedBegin, exclusiveEnd - normalizedBegin);
+            }
+        }
+
+        @Specialization(guards = "isFallback(index, maybeLength)")
+        protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength) {
             if (fallbackNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 fallbackNode = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            return fallbackNode.call(array, "element_reference_fallback", start, length);
+            return fallbackNode.call(array, "element_reference_fallback", index, maybeLength);
         }
-    }
 
-    @Primitive(
-            name = "array_aref",
-            lowerFixnum = { 1, 2 },
-            argumentNames = { "index_start_or_range", "length" })
-    public abstract static class IndexPrimitiveNode extends ArrayIndexNode {
-
-        protected abstract RubyNode[] getArguments();
-
-        @Override
-        protected Object fallback(DynamicObject array, Object start, Object length) {
-            throw new UnsupportedSpecializationException(this, getArguments(), array, start, length);
+        protected boolean isFallback(Object index, Object length) {
+            return (!RubyGuards.isInteger(index) && !RubyGuards.isIntRange(index)) ||
+                    (RubyGuards.wasProvided(length) && !RubyGuards.isInteger(length));
         }
     }
 
