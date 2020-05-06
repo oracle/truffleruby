@@ -67,10 +67,10 @@ module RbConfig
                     []
                   end
 
-  cc = Truffle::Boot.tool_path(:CC)
-  cxx = Truffle::Boot.tool_path(:CXX)
-  ar = Truffle::Boot.tool_path(:AR)
-  strip = Truffle::Boot.tool_path(:STRIP)
+  cc = Truffle::Boot.toolchain_executable(:CC)
+  cxx = Truffle::Boot.toolchain_executable(:CXX)
+  ar = Truffle::Boot.toolchain_executable(:AR)
+  strip = Truffle::Boot.toolchain_executable(:STRIP)
 
   # Determine the various flags for native compilation
   optflags = ''
@@ -117,8 +117,10 @@ module RbConfig
   else
     libtruffleruby = "#{cext_dir}/libtruffleruby.#{dlext}"
 
-    # GR-19453: workaround for finding libc++.so when using NFI on the library since the toolchain does not pass -rpath automatically
-    rpath_libcxx = " -rpath #{File.expand_path("../../lib", cc)}"
+    # Needed to find libc++.so when using NFI on the library since the toolchain does not pass -rpath automatically
+    libcxx_dir = Truffle::Boot.toolchain_paths(:LD_LIBRARY_PATH)
+    raise 'libcxx_dir should not be empty' if libcxx_dir.empty?
+    rpath_libcxx = " -rpath #{libcxx_dir}"
     ldflags << rpath_libcxx
     dldflags << rpath_libcxx
   end
