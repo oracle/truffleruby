@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayIndexNodes.ReadNormalizedNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -23,7 +24,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChild(value = "index", type = RubyNode.class)
 public abstract class ArrayReadDenormalizedNode extends RubyContextSourceNode {
 
-    @Child private ArrayReadNormalizedNode readNode = ArrayReadNormalizedNode.create();
+    @Child private ReadNormalizedNode readNode = ReadNormalizedNode.create();
 
     public static ArrayReadDenormalizedNode create() {
         return ArrayReadDenormalizedNodeGen.create(null, null);

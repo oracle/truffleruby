@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.array.ArrayIndexNodes.ReadSliceNormalizedNode;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -19,7 +20,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ArrayReadSliceDenormalizedNode extends RubyContextNode {
 
-    @Child private ArrayReadSliceNormalizedNode readNode = ArrayReadSliceNormalizedNodeGen.create();
+    @Child private ReadSliceNormalizedNode readNode = ReadSliceNormalizedNode.create();
 
     public static ArrayReadSliceDenormalizedNode create() {
         return ArrayReadSliceDenormalizedNodeGen.create();

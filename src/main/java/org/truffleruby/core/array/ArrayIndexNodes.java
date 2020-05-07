@@ -11,6 +11,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
@@ -27,13 +28,17 @@ public abstract class ArrayIndexNodes
             return ArrayIndexNodesFactory.ReadNormalizedNodeFactory.create(null);
         }
 
+        public static ReadNormalizedNode create(RubyNode array, RubyNode index) {
+            return ArrayIndexNodesFactory.ReadNormalizedNodeFactory.create(new RubyNode[] { array, index });
+        }
+
         public abstract Object executeRead(DynamicObject array, int index);
 
         // Read within the bounds of an array with actual storage
 
         @Specialization(
                 guards = "isInBounds(array, index)",
-                limit = "STORAGE_STRATEGIES")
+                limit = "storageStrategyLimit()")
         protected Object readInBounds(DynamicObject array, int index,
                                       @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
             return arrays.read(Layouts.ARRAY.getStore(array), index);

@@ -19,7 +19,7 @@ public abstract class PrimitiveArrayNodeFactory {
         final RubyNode literalIndex = new IntegerFixnumLiteralNode(index);
 
         if (index >= 0) {
-            return ArrayReadNormalizedNodeGen.create(array, literalIndex);
+            return ArrayIndexNodes.ReadNormalizedNode.create(array, literalIndex);
         } else {
             return ArrayReadDenormalizedNodeGen.create(array, literalIndex);
         }

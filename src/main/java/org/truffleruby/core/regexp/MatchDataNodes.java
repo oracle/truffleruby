@@ -26,8 +26,8 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayOperations;
-import org.truffleruby.core.array.ArrayReadNormalizedNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.IntegerCastNode;
@@ -197,7 +197,7 @@ public abstract class MatchDataNodes {
         @Specialization
         protected Object create(DynamicObject regexp, DynamicObject string, DynamicObject starts, DynamicObject ends,
                 @Cached AllocateObjectNode allocateNode,
-                @Cached ArrayReadNormalizedNode readNode,
+                @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode) {
             final Region region = new Region(ArrayHelpers.getSize(starts));
             for (int i = 0; i < region.numRegs; i++) {

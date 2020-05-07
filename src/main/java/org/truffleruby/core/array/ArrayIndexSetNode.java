@@ -29,9 +29,9 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @ReportPolymorphism
 public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
 
-    @Child private ArrayReadNormalizedNode readNode;
+    @Child private ArrayIndexNodes.ReadNormalizedNode readNode;
     @Child private ArrayWriteNormalizedNode writeNode;
-    @Child private ArrayReadSliceNormalizedNode readSliceNode;
+    @Child private ArrayIndexNodes.ReadSliceNormalizedNode readSliceNode;
 
     private final BranchProfile negativeIndexProfile = BranchProfile.create();
     private final BranchProfile negativeLengthProfile = BranchProfile.create();
@@ -254,7 +254,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     private Object read(DynamicObject array, int index) {
         if (readNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readNode = insert(ArrayReadNormalizedNode.create());
+            readNode = insert(ArrayIndexNodes.ReadNormalizedNode.create());
         }
         return readNode.executeRead(array, index);
     }
@@ -270,7 +270,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
     private Object readSlice(DynamicObject array, int start, int length) {
         if (readSliceNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            readSliceNode = insert(ArrayReadSliceNormalizedNodeGen.create());
+            readSliceNode = insert(ArrayIndexNodes.ReadSliceNormalizedNode.create());
         }
         return readSliceNode.executeReadSlice(array, start, length);
     }
