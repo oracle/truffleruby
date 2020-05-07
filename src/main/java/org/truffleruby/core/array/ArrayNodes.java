@@ -207,7 +207,7 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object index(DynamicObject array, int index, NotProvided length,
-                @Cached ArrayReadDenormalizedNode readNode) {
+                @Cached ArrayIndexNodes.ReadDenormalizedNode readNode) {
             return readNode.executeRead(array, index);
         }
 

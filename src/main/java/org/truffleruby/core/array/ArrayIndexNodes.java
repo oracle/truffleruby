@@ -2,15 +2,18 @@ package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
@@ -121,6 +124,31 @@ public abstract class ArrayIndexNodes {
 
         protected static boolean endInBounds(DynamicObject array, int index, int length) {
             return index + length <= getSize(array);
+        }
+    }
+
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyNode.class)
+    public abstract static class ReadDenormalizedNode extends RubyContextSourceNode {
+
+        public static ReadDenormalizedNode create() {
+            return ArrayIndexNodesFactory.ReadDenormalizedNodeGen.create(null, null);
+        }
+
+        public static ReadDenormalizedNode create(RubyNode array, RubyNode index) {
+            return ArrayIndexNodesFactory.ReadDenormalizedNodeGen.create(array, index);
+        }
+
+        public abstract Object executeRead(DynamicObject array, int index);
+
+        @Specialization
+        protected Object read(DynamicObject array, int index,
+                @Cached ConditionProfile negativeIndexProfile,
+                @Cached ReadNormalizedNode readNode) {
+            final int normalizedIndex = ArrayOperations
+                    .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);
+
+            return readNode.executeRead(array, normalizedIndex);
         }
     }
 }

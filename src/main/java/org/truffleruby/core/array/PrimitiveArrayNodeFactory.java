@@ -21,7 +21,7 @@ public abstract class PrimitiveArrayNodeFactory {
         if (index >= 0) {
             return ArrayIndexNodes.ReadNormalizedNode.create(array, literalIndex);
         } else {
-            return ArrayReadDenormalizedNodeGen.create(array, literalIndex);
+            return ArrayIndexNodes.ReadDenormalizedNode.create(array, literalIndex);
         }
     }
 
