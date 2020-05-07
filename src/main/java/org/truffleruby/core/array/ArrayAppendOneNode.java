@@ -70,7 +70,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
 
     @Specialization(
             guards = "!currentStores.acceptsValue(getStore(array), value)",
-            limit = "ARRAY_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary currentStores,
             @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary newStores) {

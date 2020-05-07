@@ -111,7 +111,7 @@ public class TruffleRegexpNodes {
                 return false;
             } else {
                 for (int i = 0; i < cachedArgs.length; i++) {
-                    if (!sameOrEqualNode.executeSameOrEqual(frame, cachedArgs[i], args[i])) {
+                    if (!sameOrEqualNode.executeSameOrEqual(cachedArgs[i], args[i])) {
                         return false;
                     }
                 }

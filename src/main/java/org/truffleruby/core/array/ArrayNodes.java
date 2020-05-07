@@ -118,7 +118,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                limit = "ARRAY_STRATEGIES")
+                limit = "storageStrategyLimit()")
         protected DynamicObject addGeneralize(DynamicObject a, DynamicObject b,
                 @CachedLibrary("getStore(a)") ArrayStoreLibrary as,
                 @CachedLibrary("getStore(b)") ArrayStoreLibrary bs) {
@@ -482,7 +482,7 @@ public abstract class ArrayNodes {
             while (n < size) {
                 final Object stored = stores.read(store, n);
 
-                if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
+                if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
                     checkFrozen(array);
                     found = stored;
                     n++;
@@ -526,7 +526,7 @@ public abstract class ArrayNodes {
             while (n < size) {
                 final Object stored = oldStores.read(oldStore, n);
 
-                if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
+                if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
                     checkFrozen(array);
                     found = stored;
                     n++;
@@ -597,7 +597,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = "!stores.isMutable(getStore(array))",
-                limit = "ARRAY_STRATEGIES")
+                limit = "storageStrategyLimit()")
         protected Object deleteAtCopying(DynamicObject array, int index,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
                 @Cached ConditionProfile negativeIndexProfile,
@@ -693,7 +693,7 @@ public abstract class ArrayNodes {
 
             for (int i = 0; i < aSize; i++) {
                 if (!sameOrEqualNode
-                        .executeSameOrEqual(frame, stores.read(aStore, i), stores.read(bStore, i))) {
+                        .executeSameOrEqual(stores.read(aStore, i), stores.read(bStore, i))) {
                     falseProfile.enter();
                     return false;
                 }
@@ -878,14 +878,14 @@ public abstract class ArrayNodes {
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected boolean include(VirtualFrame frame, DynamicObject array, Object value,
+        protected boolean include(DynamicObject array, Object value,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
             final Object store = Layouts.ARRAY.getStore(array);
 
             for (int n = 0; n < getSize(array); n++) {
                 final Object stored = stores.read(store, n);
 
-                if (sameOrEqualNode.executeSameOrEqual(frame, stored, value)) {
+                if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
                     return true;
                 }
             }
@@ -2094,7 +2094,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "isRubyArray(other)" },
-                limit = "ARRAY_STRATEGIES")
+                limit = "storageStrategyLimit()")
         protected DynamicObject zipToPairs(DynamicObject array, DynamicObject other,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary aStores,
                 @CachedLibrary("getStore(other)") ArrayStoreLibrary bStores,
@@ -2128,7 +2128,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class StoreToNativeNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "!oldStores.isNative(getStore(array))", limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = "!oldStores.isNative(getStore(array))", limit = "storageStrategyLimit()")
         protected DynamicObject storeToNative(DynamicObject array,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary oldStores) {
             int size = Layouts.ARRAY.getSize(array);
@@ -2144,7 +2144,7 @@ public abstract class ArrayNodes {
             return array;
         }
 
-        @Specialization(guards = "oldStores.isNative(getStore(array))", limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = "oldStores.isNative(getStore(array))", limit = "storageStrategyLimit()")
         protected DynamicObject storeIsNative(DynamicObject array,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary oldStores) {
             return array;
@@ -2155,7 +2155,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class StoreAddressNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "oldStores.isNative(getStore(array))", limit = "ARRAY_STRATEGIES")
+        @Specialization(guards = "oldStores.isNative(getStore(array))", limit = "storageStrategyLimit()")
         protected long storeIsNative(DynamicObject array,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary oldStores) {
             NativeArrayStorage storage = (NativeArrayStorage) Layouts.ARRAY.getStore(array);
@@ -2167,7 +2167,7 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class IsStoreNativeNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(limit = "ARRAY_STRATEGIES")
+        @Specialization(limit = "storageStrategyLimit()")
         protected boolean IsStoreNative(DynamicObject array,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
             return stores.isNative(getStore(array));
