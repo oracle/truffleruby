@@ -266,8 +266,8 @@ local part_definitions = {
     },
 
     test_specs: {
-      run+: jt(["test", "specs"]) +
-            jt(["test", "specs", ":next"]) +
+      run+: jt(["test", "specs", "--timeout", "180", ":all"]) +
+            jt(["test", "specs", "--timeout", "180", ":next"]) +
             jt(["test", "basictest"]),
     },
 
@@ -309,7 +309,7 @@ local part_definitions = {
       is_after+:: ["$.use.common"],
       run+: [
         ["mx", "--dynamicimports", "/sulong", "ruby_testdownstream_sulong"],
-      ],
+      ] + jt(["test", "bundle"]),
     },
 
     testdownstream_aot: { run+: [["mx", "ruby_testdownstream_aot", "$RUBY_BIN"]] },

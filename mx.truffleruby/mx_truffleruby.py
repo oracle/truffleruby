@@ -156,12 +156,9 @@ def ruby_testdownstream_sulong(args):
     # Ensure Sulong is available
     mx.suite('sulong')
 
-    jt('test', 'specs', ':capi')
-    jt('test', 'specs', ':truffle_capi')
-    jt('test', 'specs', ':library_cext')
+    # Only what is not already tested in the GraalVM gates
     jt('test', 'mri', '--all-sulong')
     jt('test', 'cexts')
-    jt('test', 'bundle')
 
 def verify_ci(args):
     """Verify CI configuration"""
