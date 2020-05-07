@@ -27,10 +27,17 @@ describe "The launcher" do
     ENV['GEM_HOME'] = @gem_home
   end
 
-  bindir = File.expand_path(RbConfig::CONFIG['bindir'])
+  before :all do
+    @default_bindir = RbConfig::CONFIG['bindir']
+    @gem_list = begin; `#{@default_bindir}/gem list`; rescue; nil; end
+  end
 
-  it 'is in the bindir' do
-    File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
+  it "for gem produces a gem list" do
+    @gem_list.should != nil
+  end
+
+  it "is in the bindir" do
+    File.dirname(RbConfig.ruby).should == @default_bindir
   end
 
   versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
@@ -68,7 +75,7 @@ describe "The launcher" do
       end
 
       it "'#{launcher}' in `#{name}` directory runs when symlinked" do
-        require "tmpdir"
+        require 'tmpdir'
         # Use the system tmp dir to not be under the Ruby home dir
         Dir.mktmpdir do |path|
           Dir.chdir(path) do
@@ -83,28 +90,24 @@ describe "The launcher" do
     end
   end
 
-  it " for gem can install the hello-world gem" do
+  it "for gem can install the hello-world gem" do
     Dir.chdir(__dir__ + '/fixtures/hello-world') do
-      p "#{bindir}/gem build hello-world.gemspec"
-      `"#{bindir}/gem" build hello-world.gemspec`
+      `"#{@default_bindir}/gem" build hello-world.gemspec`
       $?.success?.should == true
-      `"#{bindir}/gem" install --local hello-world-0.0.1.gem`
+      `"#{@default_bindir}/gem" install --local hello-world-0.0.1.gem`
       $?.success?.should == true
     end
   end
-
-  version = begin; `#{bindir}/ruby -v`; rescue; nil end
 
   bin_dirs.each do |name, bin_dir|
-    it " for gem hello-world (#{name}) reports the correct ruby version" do
-      version.should != nil
+    it "for gem hello-world (#{name}) reports the correct ruby version" do
       out = `#{bin_dir}/hello-world.rb`
-      out.should == "Hello world! from #{version}"
+      out.should == "Hello world! from #{RUBY_DESCRIPTION}\n"
     end
   end
 
-  it " for gem can uninstall the hello-world gem" do
-    `#{bindir}/gem uninstall hello-world -x`
+  it "for gem can uninstall the hello-world gem" do
+    `#{@default_bindir}/gem uninstall hello-world -x`
     $?.success?.should == true
     bin_dirs.each do |name, bin_dir|
       File.exist?(bin_dir + '/hello-world.rb').should == false
@@ -112,25 +115,13 @@ describe "The launcher" do
   end
 
   # see doc/contributor/stdlib.md
-  bundled_gems= [
-      "did_you_mean #{versions['gems']['bundled']['did_you_mean']}",
-      "minitest #{versions['gems']['bundled']['minitest']}",
-      "net-telnet #{versions['gems']['bundled']['net-telnet']}",
-      "power_assert #{versions['gems']['bundled']['power_assert']}",
-      "rake #{versions['gems']['bundled']['rake']}",
-      "test-unit #{versions['gems']['bundled']['test-unit']}",
-      "xmlrpc #{versions['gems']['bundled']['xmlrpc']}",
-  ]
-
-  gem_list = begin; `#{bindir}/gem list`; rescue; nil; end
-
+  bundled_gems = versions['gems']['bundled'].map { |k, v| "#{k} #{v}" }
   bundled_gems.each do |gem|
     gem_name = gem.split.first
     it "for gem shows that #{gem_name} is installed" do
-      gem_list.should != nil
       gem.gsub! '.', '\\.'
       gem.sub! ' ', '.*'
-      gem_list.should =~ Regexp.new(gem)
+      @gem_list.should =~ Regexp.new(gem)
     end
   end
 
@@ -268,21 +259,21 @@ describe "The launcher" do
   end
 
   describe 'StringArray option' do
-    it 'appends multiple options' do
+    it "appends multiple options" do
       out = ruby_exe("puts $LOAD_PATH", options: "-I a -I b")
       $?.success?.should == true
       out.lines[0].should == "#{Dir.pwd}/a\n"
       out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
-    it 'parses ,' do
+    it "parses ," do
       out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a,b")
       $?.success?.should == true
       out.lines[0].should == "#{Dir.pwd}/a\n"
       out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
-    it 'parses , respecting escaping' do
+    it "parses , respecting escaping" do
       # \\\\ translates to one \
       out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a\\\\,b,,\\\\c")
       $?.success?.should == true
