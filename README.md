@@ -22,20 +22,22 @@ There are three ways to install TruffleRuby releases and nightly builds:
   using a Ruby manager.
 
 * Using the [standalone distribution](doc/user/standalone-distribution.md)
-  as a simple binary tarball. This distribution is also useful for
-  [testing TruffleRuby in CI](doc/user/standalone-distribution.md).
-  On [TravisCI](https://docs.travis-ci.com/user/languages/ruby#truffleruby), you can simply use:
-  ```yaml
-  language: ruby
-  rvm:
-    - truffleruby
-  ```
-  And on GitHub Actions:
-  ```yaml
-  - uses: ruby/setup-ruby@v1
-    with:
-      ruby-version: truffleruby
-  ```
+  as a simple binary tarball.
+
+Testing TruffleRuby in CI is easy:
+on [TravisCI](https://docs.travis-ci.com/user/languages/ruby#truffleruby), you can use:
+```yaml
+language: ruby
+rvm:
+  - truffleruby # or truffleruby-head
+```
+And on GitHub Actions:
+```yaml
+- uses: ruby/setup-ruby@v1
+  with:
+    ruby-version: truffleruby # or truffleruby-head
+```
+See [Testing TruffleRuby in CI](doc/user/standalone-distribution.md) for more details and other CIs.
 
 You can use `gem` and `bundle` to install Gems as normal.
 
