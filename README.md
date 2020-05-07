@@ -10,7 +10,7 @@ There are three ways to install TruffleRuby releases and nightly builds:
 
 * Via [GraalVM](doc/user/installing-graalvm.md), which includes support for
   other languages such as JavaScript, R and Python and supports both the
-  [*native* and *JVM* configurations](#truffleruby-configurations).
+  [*native* and *JVM* configurations](#truffleruby-runtime-configurations).
   Inside GraalVM will then be a `bin/ruby` command that runs TruffleRuby.
   We recommend that you use a [Ruby manager](doc/user/ruby-managers.md#configuring-ruby-managers-for-the-full-graalvm-distribution)
   to use TruffleRuby inside GraalVM.
@@ -55,9 +55,9 @@ TruffleRuby aims to:
 * Provide new tooling such as debuggers and monitoring that work across languages
 * All while maintaining very high compatibility with the standard implementation of Ruby
 
-## TruffleRuby Configurations
+## TruffleRuby Runtime Configurations
 
-There are two main configurations of TruffleRuby: *Native* and *JVM* which make different trade-offs.
+There are two main runtime configurations of TruffleRuby: *Native* and *JVM* which make different trade-offs.
 
 | Configuration: | Native (`--native`, default) | JVM (`--jvm`) |
 | ------------------ | ------------: | ------------: |
@@ -66,9 +66,9 @@ There are two main configurations of TruffleRuby: *Native* and *JVM* which make 
 | Peak performance (also considering GC) | good | best |
 | Java host interoperability | needs reflection configuration | just works |
 
-To find out which configuration is used, run `ruby --version` on the command line
+To find out which runtime configuration is used, run `ruby --version` on the command line
 or check the value of `RUBY_DESCRIPTION` or `TruffleRuby.native?` in Ruby code.
-Configurations are further detailed in [Deploying TruffleRuby](doc/user/deploying.md).
+Runtime configurations are further detailed in [Deploying TruffleRuby](doc/user/deploying.md).
 
 ## System compatibility
 
@@ -96,6 +96,10 @@ but this can only be done on a best effort basis.
 
 You may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md).
 
+See the [contributor workflow] document if you wish to build TruffleRuby from source.
+
+[contributor workflow]: doc/contributor/workflow.md
+
 ## Current status
 
 We recommend that people trying TruffleRuby on their gems and applications
@@ -122,9 +126,9 @@ should read our [migration guide](doc/user/jruby-migration.md).
 Extensive user documentation is available in [`doc/user`](doc/user).
 
 See our [source code repository](https://github.com/oracle/truffleruby) and
-[contributor
-documentation](https://github.com/oracle/truffleruby/tree/master/doc/contributor)
-to contribute to TruffleRuby.
+[contributor documentation](CONTRIBUTING.md) to contribute to TruffleRuby.
+In particular, see the [contributor workflow](doc/contributor/workflow.md)
+document for how to build and run TruffleRuby.
 
 ## Contact
 
