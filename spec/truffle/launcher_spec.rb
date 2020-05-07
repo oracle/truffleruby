@@ -18,8 +18,9 @@ describe "The launcher" do
     File.binread(launcher, 2) == "#!"
   end
 
+  bindir = File.expand_path(RbConfig::CONFIG['bindir'])
+
   it 'is in the bindir' do
-    bindir = File.expand_path(RbConfig::CONFIG['bindir'])
     File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
   end
 
@@ -35,41 +36,69 @@ describe "The launcher" do
                 ruby:        /truffleruby .* like ruby #{versions['ruby']['version']}/,
                 truffleruby: /truffleruby .* like ruby #{versions['ruby']['version']}/ }
 
-  launchers.each do |launcher, (test, skip_success)|
-    unless [:ruby, :truffleruby].include?(launcher)
-      it "'#{launcher}' runs as an -S command" do
-        out = ruby_exe(nil, options: "-S#{launcher} --version")
-        out.should =~ test
-        $?.success?.should == true unless skip_success
-      end
+  extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
+      split(File::PATH_SEPARATOR).
+      each_with_index.
+      reduce({}) { |h, (dir, i)| h.update "RbConfig::CONFIG['extra_bindirs'][#{i}]" => dir }
+  bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
+
+  # launchers.each do |launcher, (test, skip_success)|
+  #   unless [:ruby, :truffleruby].include?(launcher)
+  #     it "'#{launcher}' runs as an -S command" do
+  #       out = ruby_exe(nil, options: "-S#{launcher} --version")
+  #       out.should =~ test
+  #       $?.success?.should == true unless skip_success
+  #     end
+  #   end
+  #
+  #   bin_dirs.each do |name, bin_dir|
+  #     it "'#{launcher}' in `#{name}` directory runs" do
+  #       out = `#{bin_dir}/#{launcher} --version`
+  #       out.should =~ test
+  #       $?.success?.should == true unless skip_success
+  #     end
+  #
+  #     it "'#{launcher}' in `#{name}` directory runs when symlinked" do
+  #       require "tmpdir"
+  #       # Use the system tmp dir to not be under the Ruby home dir
+  #       Dir.mktmpdir do |path|
+  #         Dir.chdir(path) do
+  #           linkname = "linkto#{launcher}"
+  #           File.symlink("#{bin_dir}/#{launcher}", linkname)
+  #           out = `./#{linkname} --version 2>&1`
+  #           out.should =~ test
+  #           $?.success?.should == true unless skip_success
+  #         end
+  #       end
+  #     end
+  #   end
+  # end
+
+  it " for gem can install the hello-world gem" do
+    Dir.chdir(__dir__ + '/fixtures/hello-world') do
+      p "#{bindir}/gem build hello-world.gemspec"
+      `"#{bindir}/gem" build hello-world.gemspec`
+      $?.success?.should == true
+      `"#{bindir}/gem" install --local hello-world-0.0.1.gem`
+      $?.success?.should == true
     end
+  end
 
-    extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
-        split(File::PATH_SEPARATOR).
-        each_with_index.
-        reduce({}) { |h, (dir, i)| h.update "RbConfig::CONFIG['extra_bindirs'][#{i}]" => dir }
-    bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
+  version = begin; `#{bindir}/ruby -v`; rescue; nil end
 
+  bin_dirs.each do |name, bin_dir|
+    it " for gem hello-world (#{name}) reports the correct ruby version" do
+      version.should != nil
+      out = `#{bin_dir}/hello-world.rb`
+      out.should == "Hello world! from #{version}"
+    end
+  end
+
+  it " for gem can uninstall the hello-world gem" do
+    `#{bindir}/gem uninstall hello-world -x`
+    $?.success?.should == true
     bin_dirs.each do |name, bin_dir|
-      it "'#{launcher}' in `#{name}` directory runs" do
-        out = `#{bin_dir}/#{launcher} --version`
-        out.should =~ test
-        $?.success?.should == true unless skip_success
-      end
-
-      it "'#{launcher}' in `#{name}` directory runs when symlinked" do
-        require "tmpdir"
-        # Use the system tmp dir to not be under the Ruby home dir
-        Dir.mktmpdir do |path|
-          Dir.chdir(path) do
-            linkname = "linkto#{launcher}"
-            File.symlink("#{bin_dir}/#{launcher}", linkname)
-            out = `./#{linkname} --version 2>&1`
-            out.should =~ test
-            $?.success?.should == true unless skip_success
-          end
-        end
-      end
+      File.exist?(bin_dir + '/hello-world.rb').should == false
     end
   end
 

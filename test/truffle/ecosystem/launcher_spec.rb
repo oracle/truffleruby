@@ -34,31 +34,6 @@ describe "The launcher" do
     end
   end
 
-  it " for gem can install the hello-world gem" do
-    Dir.chdir(__dir__ + '/hello-world') do
-      `"#{RUBY_HOME}/bin/gem" build hello-world.gemspec`
-      $?.success?.should == true
-      `"#{RUBY_HOME}/bin/gem" install --local hello-world-0.0.1.gem`
-      $?.success?.should == true
-    end
-  end
-
-  graalvm_home_check '/hello-world.rb' do |path|
-    it " for gem hello-world (#{kind path}) reports the correct ruby version" do
-      version = `#{RUBY_HOME}/bin/ruby -v`
-      out = `#{path}`
-      out.should == "Hello world! from #{version}"
-    end
-  end
-
-  it " for gem can uninstall the hello-world gem" do
-    `#{RUBY_HOME}/bin/gem uninstall hello-world -x`
-    $?.success?.should == true
-    graalvm_home_check '/hello-world.rb' do |path|
-      File.exist?(path).should == false
-    end
-  end
-
   versions = JSON.parse(File.read(File.expand_path('../../../../versions.json', __FILE__)))
 
   # see doc/contributor/stdlib.md
