@@ -1801,7 +1801,9 @@ EOS
   def benchmark(*args)
     vm_args = []
     if truffleruby_compiler?
-      vm_args << '--experimental-options' << '--engine.CompilationFailureAction=ExitVM'
+      vm_args << '--experimental-options'
+      vm_args << '--engine.CompilationFailureAction=ExitVM'
+      vm_args << '--engine.TreatPerformanceWarningsAsErrors=all'
     end
     run_ruby(*vm_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
   end
