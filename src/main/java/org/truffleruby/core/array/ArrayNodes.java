@@ -213,11 +213,14 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object slice(DynamicObject array, int start, int length,
-                @Cached ArrayReadSliceDenormalizedNode readSliceNode) {
+                @Cached ArrayIndexNodes.ReadSliceNormalizedNode readSliceNode,
+                @Cached ConditionProfile negativeIndexProfile) {
             if (length < 0) {
                 return nil;
             }
-            return readSliceNode.executeReadSlice(array, start, length);
+            final int normalizedStart = ArrayOperations
+                    .normalizeIndex(Layouts.ARRAY.getSize(array), start, negativeIndexProfile);
+            return readSliceNode.executeReadSlice(array, normalizedStart, length);
         }
 
         @Specialization(guards = "!isInteger(index) || !isInteger(maybeLength)")

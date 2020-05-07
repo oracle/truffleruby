@@ -17,8 +17,8 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import static org.truffleruby.core.array.ArrayHelpers.getSize;
 
 @CoreModule(value = "Truffle::ArrayIndex", isClass = false)
-public abstract class ArrayIndexNodes
-{
+public abstract class ArrayIndexNodes {
+
     @Primitive(name = "array_read_normalized", lowerFixnum = { 1 }, argumentNames = { "index" })
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
@@ -29,7 +29,7 @@ public abstract class ArrayIndexNodes
         }
 
         public static ReadNormalizedNode create(RubyNode array, RubyNode index) {
-            return ArrayIndexNodesFactory.ReadNormalizedNodeFactory.create(new RubyNode[] { array, index });
+            return ArrayIndexNodesFactory.ReadNormalizedNodeFactory.create(new RubyNode[]{ array, index });
         }
 
         public abstract Object executeRead(DynamicObject array, int index);
@@ -40,7 +40,7 @@ public abstract class ArrayIndexNodes
                 guards = "isInBounds(array, index)",
                 limit = "storageStrategyLimit()")
         protected Object readInBounds(DynamicObject array, int index,
-                                      @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
+                @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
             return arrays.read(Layouts.ARRAY.getStore(array), index);
         }
 
@@ -90,7 +90,7 @@ public abstract class ArrayIndexNodes
                         "length >= 0",
                         "endInBounds(array, index, length)" })
         protected DynamicObject readInBounds(DynamicObject array, int index, int length,
-                                             @Cached ArrayCopyOnWriteNode cowNode) {
+                @Cached ArrayCopyOnWriteNode cowNode) {
             final Object slice = cowNode.execute(array, index, length);
             return createArrayOfSameClass(array, slice, length);
         }
@@ -103,7 +103,7 @@ public abstract class ArrayIndexNodes
                         "length >= 0",
                         "!endInBounds(array, index, length)" })
         protected DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
-                                                @Cached ArrayCopyOnWriteNode cowNode) {
+                @Cached ArrayCopyOnWriteNode cowNode) {
             final int end = Layouts.ARRAY.getSize(array);
             final Object slice = cowNode.execute(array, index, end - index);
             return createArrayOfSameClass(array, slice, end - index);
