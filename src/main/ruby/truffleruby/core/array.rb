@@ -153,41 +153,18 @@ class Array
 
   private def element_reference_fallback(start, length)
     if Primitive.undefined?(length)
-      arg = start
-      case arg
-      when Range
-        unless arg.begin.respond_to?(:to_int)
-          raise TypeError, "no implicit conversion of #{arg.begin.class} into Integer"
-        end
-        unless arg.end == nil || arg.end.respond_to?(:to_int)
-          raise TypeError, "no implicit conversion of #{arg.end.class} into Integer"
-        end
-        start_index = arg.begin.to_int
-        Truffle::Type.check_long(start_index)
-        start_index = Truffle::Type.clamp_to_int(start_index)
-        if arg.end == nil
-          end_index = arg.exclude_end? ? size : size - 1
-        else
-          end_index = arg.end.to_int
-          Truffle::Type.check_long(end_index)
-          end_index = Truffle::Type.clamp_to_int(end_index)
-        end
-        range = Range.new(start_index, end_index, arg.exclude_end?)
-        Primitive.array_aref(self, range, undefined)
+      if Range === start
+        # Note: a negative length is treated differently from a negative range ending.
+        start, length = Truffle::RangeOperations.normalized_start_length(start, size)
       else
-        arg = Truffle::Type.rb_num2long(arg)
-        return nil unless Truffle::Type.fits_into_int?(arg)
-        Primitive.array_aref(self, arg, undefined)
+        return at(start)
       end
     else
-      start_index = start.to_int
-      end_index = length.to_int
-      Truffle::Type.check_long(start_index)
-      Truffle::Type.check_long(end_index)
-      start_index = Truffle::Type.clamp_to_int(start_index)
-      end_index = Truffle::Type.clamp_to_int(end_index)
-      Primitive.array_aref(self, start_index, end_index)
+      start = Truffle::Type.rb_num2long(start)
+      start += size if start < 0
+      length = Truffle::Type.rb_num2long(length)
     end
+    Primitive.array_read_slice_normalized(self, start, length)
   end
 
   private def element_set_fallback(index, length, value)
