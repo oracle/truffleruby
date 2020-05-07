@@ -3,6 +3,8 @@
 Bug fixes:
 
 * Fix `#class_exec`, `#module_exec`, `#instance_eval`, and `instance_exec` to use activated refinements (#1988, @ssnickolay).
+* Thread local IO buffers are now allocated using a stack to ensure safe operating if a signal handler uses one during an IO operation.
+
 
 Compatibility:
 
