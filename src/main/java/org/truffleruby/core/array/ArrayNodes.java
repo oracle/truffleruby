@@ -200,7 +200,7 @@ public abstract class ArrayNodes {
     @Primitive(name = "array_read_normalized", lowerFixnum = { 1 }, argumentNames = { "index" })
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class ArrayReadNormalizedNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ReadNormalizedNode extends PrimitiveArrayArgumentsNode {
 
         public abstract Object executeRead(DynamicObject array, int index);
 
@@ -210,7 +210,7 @@ public abstract class ArrayNodes {
                 guards = "isInBounds(array, index)",
                 limit = "STORAGE_STRATEGIES")
         protected Object readInBounds(DynamicObject array, int index,
-                                      @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
+                @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
             return arrays.read(Layouts.ARRAY.getStore(array), index);
         }
 
@@ -230,12 +230,12 @@ public abstract class ArrayNodes {
 
     @Primitive(name = "array_read_slice_normalized", lowerFixnum = { 1, 2 }, argumentNames = { "index", "length" })
     @ImportStatic(ArrayGuards.class)
-    public abstract static class ArrayReadSliceNormalizedNode extends PrimitiveArrayArgumentsNode {
+    public abstract static class ReadSliceNormalizedNode extends PrimitiveArrayArgumentsNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        public static ArrayReadSliceNormalizedNode create() {
-            return ArrayNodesFactory.ArrayReadSliceNormalizedNodeFactory.create(null);
+        public static ReadSliceNormalizedNode create() {
+            return ArrayNodesFactory.ReadSliceNormalizedNodeFactory.create(null);
         }
 
         public abstract Object executeReadSlice(DynamicObject array, int index, int length);
@@ -319,46 +319,13 @@ public abstract class ArrayNodes {
             if (length < 0) {
                 return nil;
             }
-
             return readSliceNode.executeReadSlice(array, start, length);
         }
 
-        @Specialization(guards = "isIntRange(range)")
-        protected Object slice(DynamicObject array, DynamicObject range, NotProvided len,
-                @Cached ConditionProfile negativeBeginProfile,
-                @Cached ConditionProfile negativeEndProfile,
-                @Cached ArrayReadSliceNormalizedNode readNormalizedSliceNode,
-                @Cached AllocateObjectNode allocateObjectNode) {
-            final int size = getSize(array);
-            final int normalizedBegin = ArrayOperations
-                    .normalizeIndex(size, Layouts.INT_RANGE.getBegin(range), negativeBeginProfile);
-
-            if (normalizedBegin < 0 || normalizedBegin > size) {
-                return nil;
-            } else {
-                final int end = ArrayOperations
-                        .normalizeIndex(size, Layouts.INT_RANGE.getEnd(range), negativeEndProfile);
-                final int exclusiveEnd = ArrayOperations
-                        .clampExclusiveIndex(size, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
-
-                if (exclusiveEnd <= normalizedBegin) {
-                    return allocateObjectNode
-                            .allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), ArrayStoreLibrary.INITIAL_STORE, 0);
-                }
-
-                return readNormalizedSliceNode.executeReadSlice(array, normalizedBegin, exclusiveEnd - normalizedBegin);
-            }
-        }
-
-        @Specialization(guards = "isFallback(index, maybeLength)")
+        @Specialization(guards = "!isInteger(index) || !isInteger(maybeLength)")
         protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength,
                 @Cached CallDispatchHeadNode fallbackNode) {
             return fallbackNode.call(array, "element_reference_fallback", index, maybeLength);
-        }
-
-        protected boolean isFallback(Object index, Object length) {
-            return (!RubyGuards.isInteger(index) && !RubyGuards.isIntRange(index)) ||
-                    (RubyGuards.wasProvided(length) && !RubyGuards.isInteger(length));
         }
     }
 
