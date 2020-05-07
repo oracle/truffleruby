@@ -18,7 +18,7 @@ public final class ThreadLocalBuffer {
 
     public static final ThreadLocalBuffer NULL_BUFFER = new ThreadLocalBuffer(true, Pointer.NULL, 0, 0, null);
 
-    final boolean isBlockStart;
+    final boolean ownsBuffer;
     public final Pointer start;
     final long used;
     final long remaining;
@@ -30,7 +30,7 @@ public final class ThreadLocalBuffer {
             long used,
             long remaining,
             ThreadLocalBuffer parent) {
-        this.isBlockStart = isBlockStart;
+        this.ownsBuffer = isBlockStart;
         this.start = start;
         this.used = used;
         this.remaining = remaining;
@@ -38,7 +38,7 @@ public final class ThreadLocalBuffer {
     }
 
     public ThreadLocalBuffer free(ConditionProfile freeProfile) {
-        if (freeProfile.profile(isBlockStart)) {
+        if (freeProfile.profile(ownsBuffer)) {
             start.freeNoAutorelease();
         }
         return parent;
