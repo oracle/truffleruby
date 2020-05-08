@@ -11,8 +11,6 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.numeric.FloatNodes;
-import org.truffleruby.core.numeric.FloatNodesFactory;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -31,7 +29,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class ToIntNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode toIntNode;
-    @Child private FloatNodes.ToINode floatToIntNode;
 
     private final ConditionProfile wasInteger = ConditionProfile.create();
     private final ConditionProfile wasLong = ConditionProfile.create();
@@ -91,12 +88,14 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected Object coerceDouble(double value) {
-        if (floatToIntNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            floatToIntNode = insert(FloatNodesFactory.ToINodeFactory.create(null));
+    protected long coerceDouble(double value,
+            @Cached BranchProfile errorProfile) {
+        long longValue = (long) value;
+        if (longValue == Long.MAX_VALUE && value > Long.MAX_VALUE || longValue == Long.MIN_VALUE && value < Long.MIN_VALUE) {
+            errorProfile.enter();
+            coerceRubyBignum(null);
         }
-        return floatToIntNode.executeToI(value);
+        return longValue;
     }
 
     @Specialization
