@@ -12,10 +12,24 @@ require 'benchmark'
 require 'json'
 
 describe "The launcher" do
+  before :all do
+    @default_bindir = RbConfig::CONFIG['bindir']
 
-  def graalvm_bash_launcher?
-    launcher = RbConfig.ruby
-    File.binread(launcher, 2) == "#!"
+    @versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
+
+    @launchers = {
+      bundle: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
+      bundler: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
+      gem: /^#{Regexp.escape @versions['gems']['default']['gem']}$/,
+      irb: /^irb #{Regexp.escape @versions['gems']['default']['irb']}/,
+      rake: /^rake, version #{Regexp.escape @versions['gems']['default']['rake']}/,
+      rdoc: /^#{Regexp.escape @versions['gems']['default']['rdoc']}$/,
+      ri: /^ri #{Regexp.escape @versions['gems']['default']['rdoc']}$/,
+      ruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+      truffleruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+    }
+
+    @bin_dirs = [RbConfig::CONFIG['bindir'], *RbConfig::CONFIG['extra_bindirs'].split(File::PATH_SEPARATOR)]
   end
 
   before :each do
@@ -27,58 +41,47 @@ describe "The launcher" do
     ENV['GEM_HOME'] = @gem_home
   end
 
-  before :all do
-    @default_bindir = RbConfig::CONFIG['bindir']
+  def graalvm_bash_launcher?
+    launcher = RbConfig.ruby
+    File.binread(launcher, 2) == "#!"
   end
 
   it "is in the bindir" do
     File.dirname(RbConfig.ruby).should == @default_bindir
   end
 
-  versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
-
-  launchers = { bundle:      /^Bundler version #{Regexp.escape versions['gems']['default']['bundler']}$/,
-                bundler:     /^Bundler version #{Regexp.escape versions['gems']['default']['bundler']}$/,
-                gem:         /^#{Regexp.escape versions['gems']['default']['gem']}$/,
-                irb:         /^irb #{Regexp.escape versions['gems']['default']['irb']}/,
-                rake:        /^rake, version #{Regexp.escape versions['gems']['default']['rake']}/,
-                rdoc:        /^#{Regexp.escape versions['gems']['default']['rdoc']}$/,
-                ri:          /^ri #{Regexp.escape versions['gems']['default']['rdoc']}$/,
-                ruby:        /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
-                truffleruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/ }
-
-  extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
-      split(File::PATH_SEPARATOR).
-      each_with_index.
-      reduce({}) { |h, (dir, i)| h.update "RbConfig::CONFIG['extra_bindirs'][#{i}]" => dir }
-  bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
-
-  launchers.each do |launcher, (test, skip_success)|
-    unless [:ruby, :truffleruby].include?(launcher)
-      it "'#{launcher}' runs as an -S command" do
+  it "runs other launchers as an -S command" do
+    @launchers.each do |launcher, test|
+      unless [:ruby, :truffleruby].include?(launcher)
         out = ruby_exe(nil, options: "-S#{launcher} --version")
         out.should =~ test
-        $?.success?.should == true unless skip_success
+        $?.success?.should == true
       end
     end
+  end
 
-    bin_dirs.each do |name, bin_dir|
-      it "'#{launcher}' in `#{name}` directory runs" do
+  it "supports running any other launcher in any of the bin/ directories" do
+    @bin_dirs.each do |bin_dir|
+      @launchers.each do |launcher, test|
         out = `#{bin_dir}/#{launcher} --version`
         out.should =~ test
-        $?.success?.should == true unless skip_success
+        $?.success?.should == true
       end
+    end
+  end
 
-      it "'#{launcher}' in `#{name}` directory runs when symlinked" do
-        require 'tmpdir'
-        # Use the system tmp dir to not be under the Ruby home dir
-        Dir.mktmpdir do |path|
-          Dir.chdir(path) do
+  it "supports running any other launcher symlinked" do
+    require 'tmpdir'
+    @bin_dirs.each do |bin_dir|
+      # Use the system tmp dir to not be under the Ruby home dir
+      Dir.mktmpdir do |path|
+        Dir.chdir(path) do
+          @launchers.each do |launcher, test|
             linkname = "linkto#{launcher}"
             File.symlink("#{bin_dir}/#{launcher}", linkname)
             out = `./#{linkname} --version 2>&1`
             out.should =~ test
-            $?.success?.should == true unless skip_success
+            $?.success?.should == true
           end
         end
       end
@@ -96,7 +99,7 @@ describe "The launcher" do
 
     begin
       # check that hello-world launchers are created and work
-      bin_dirs.each do |_, bin_dir|
+      @bin_dirs.each do |bin_dir|
         out = `#{bin_dir}/hello-world.rb`
         out.should == "Hello world! from #{RUBY_DESCRIPTION}\n"
       end
@@ -104,7 +107,7 @@ describe "The launcher" do
       # uninstall
       `#{@default_bindir}/gem uninstall hello-world -x`
       $?.success?.should == true
-      bin_dirs.each do |_, bin_dir|
+      @bin_dirs.each do |bin_dir|
         File.exist?(bin_dir + '/hello-world.rb').should == false
       end
     end
@@ -114,7 +117,7 @@ describe "The launcher" do
     gem_list = `#{@default_bindir}/gem list`
     $?.success?.should == true
     # see doc/contributor/stdlib.md
-    versions['gems']['bundled'].each_pair do |gem, version|
+    @versions['gems']['bundled'].each_pair do |gem, version|
       gem_list.should =~ /#{Regexp.escape gem}.*#{Regexp.escape version}/
     end
   end
@@ -195,14 +198,14 @@ describe "The launcher" do
   end
 
   guard -> { !TruffleRuby.native? } do
-    ['--vm.classpath=',
-     '--vm.cp='
-    ].each do |option|
-      it "'#{option}' adds the jar" do
-        out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "#{option}does-not-exist.jar")
-        $?.success?.should == true
-        out.lines[0].should include(":does-not-exist.jar")
-      end
+    it "'--vm.cp=' or '--vm.classpath=' add the jar" do
+      out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.cp=does-not-exist.jar")
+      $?.success?.should == true
+      out.lines[0].should include(":does-not-exist.jar")
+
+      out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.classpath=does-not-exist.jar")
+      $?.success?.should == true
+      out.lines[0].should include(":does-not-exist.jar")
     end
   end
 
