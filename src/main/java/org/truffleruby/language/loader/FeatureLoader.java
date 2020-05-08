@@ -11,8 +11,10 @@ package org.truffleruby.language.loader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -57,7 +59,7 @@ public class FeatureLoader {
     private final ReentrantLockFreeingMap<String> fileLocks = new ReentrantLockFreeingMap<>();
     /** Maps basename without extension -> autoload path -> autoload constant, to detect when require-ing a file already
      * registered with autoload. */
-    private final Map<String, Map<String, RubyConstant>> registeredAutoloads = new HashMap<>();
+    private final Map<String, Map<String, List<RubyConstant>>> registeredAutoloads = new HashMap<>();
     private final ReentrantLock registeredAutoloadsLock = new ReentrantLock();
 
     private final Object cextImplementationLock = new Object();
@@ -85,36 +87,46 @@ public class FeatureLoader {
 
         registeredAutoloadsLock.lock();
         try {
-            final Map<String, RubyConstant> constants = ConcurrentOperations
+            final Map<String, List<RubyConstant>> constants = ConcurrentOperations
                     .getOrCompute(registeredAutoloads, basename, k -> new LinkedHashMap<>());
-            constants.put(autoloadPath, autoloadConstant);
+            ConcurrentOperations.getOrCompute(constants, autoloadPath, k -> new ArrayList<>()).add(autoloadConstant);
         } finally {
             registeredAutoloadsLock.unlock();
         }
     }
 
-    public RubyConstant isAutoloadPath(String expandedPath) {
+    public List<RubyConstant> getAutoloadConstants(String expandedPath) {
         final String basename = basenameWithoutExtension(expandedPath);
-        final RubyConstant[] constants;
+        final Map<String, List<RubyConstant>> constantsMap;
 
         registeredAutoloadsLock.lock();
         try {
-            final Map<String, RubyConstant> constantsMap = registeredAutoloads.get(basename);
-            if (constantsMap == null) {
+            constantsMap = registeredAutoloads.get(basename);
+            if (constantsMap == null || constantsMap.isEmpty()) {
                 return null;
             }
-            constants = constantsMap.values().toArray(new RubyConstant[0]);
         } finally {
             registeredAutoloadsLock.unlock();
         }
 
-        for (RubyConstant constant : constants) {
-            final String expandedAutoloadPath = findFeature(constant.getAutoloadConstant().getAutoloadPath());
+        final List<RubyConstant> constants = new ArrayList<>();
+        for (Map.Entry<String, List<RubyConstant>> entry : constantsMap.entrySet()) {
+            final String expandedAutoloadPath = findFeature(entry.getKey());
             if (expandedPath.equals(expandedAutoloadPath)) {
-                return constant;
+                for (RubyConstant constant : entry.getValue()) {
+                    // Do not autoload recursively from the #require call in GetConstantNode
+                    if (!constant.getAutoloadConstant().isAutoloading()) {
+                        constants.add(constant);
+                    }
+                }
             }
         }
-        return null;
+
+        if (constants.isEmpty()) {
+            return null;
+        } else {
+            return constants;
+        }
     }
 
     public void removeAutoload(RubyConstant constant) {
@@ -123,8 +135,11 @@ public class FeatureLoader {
 
         registeredAutoloadsLock.lock();
         try {
-            final Map<String, RubyConstant> constantsMap = registeredAutoloads.get(basename);
-            constantsMap.remove(autoloadPath, constant);
+            final Map<String, List<RubyConstant>> constantsMap = registeredAutoloads.get(basename);
+            List<RubyConstant> constants = constantsMap.get(autoloadPath);
+            if (constants != null) {
+                constants.remove(constant);
+            }
         } finally {
             registeredAutoloadsLock.unlock();
         }
