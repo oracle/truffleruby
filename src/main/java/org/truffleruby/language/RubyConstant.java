@@ -63,6 +63,8 @@ public class RubyConstant implements ObjectGraphNode {
             boolean isDeprecated,
             SourceSection sourceSection) {
         assert RubyGuards.isRubyModule(declaringModule);
+        assert !undefined || autoloadConstant == null : "undefined and autoload are exclusive";
+
         this.declaringModule = declaringModule;
         this.name = name;
         this.value = value;
