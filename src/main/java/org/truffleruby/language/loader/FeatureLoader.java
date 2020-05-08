@@ -165,7 +165,8 @@ public class FeatureLoader {
         }
         final int bufferSize = PATH_MAX;
         final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
-        final Pointer buffer = IOThreadBufferAllocateNode.getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
+        final Pointer buffer = IOThreadBufferAllocateNode
+                .getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
         try {
             final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
             if (address == 0) {
