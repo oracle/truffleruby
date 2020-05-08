@@ -801,7 +801,6 @@ public class CoreLibrary {
         setConstant(truffleFFIModule, "TYPE_VARARGS", NativeTypes.TYPE_VARARGS);
 
         setConstant(objectClass, "RUBY_VERSION", frozenUSASCIIString(TruffleRuby.LANGUAGE_VERSION));
-        setConstant(truffleModule, "RUBY_BASE_VERSION", frozenUSASCIIString(TruffleRuby.LANGUAGE_BASE_VERSION));
         setConstant(objectClass, "RUBY_PATCHLEVEL", 0);
         setConstant(objectClass, "RUBY_REVISION", TruffleRuby.LANGUAGE_REVISION);
         setConstant(objectClass, "RUBY_ENGINE", frozenUSASCIIString(TruffleRuby.ENGINE_ID));

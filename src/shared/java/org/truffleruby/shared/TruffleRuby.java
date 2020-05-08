@@ -19,7 +19,6 @@ public class TruffleRuby {
     public static final String EXTENSION = ".rb";
     public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = BuildInformationImpl.INSTANCE.getRubyVersion();
-    public static final String LANGUAGE_BASE_VERSION = BuildInformationImpl.INSTANCE.getRubyBaseVersion();
     public static final int LANGUAGE_REVISION = BuildInformationImpl.INSTANCE.getRubyRevision();
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2019 Oracle and/or its affiliates";
