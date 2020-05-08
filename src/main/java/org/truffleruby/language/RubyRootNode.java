@@ -13,7 +13,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.language.methods.SharedMethodInfo;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.CompilerOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
@@ -59,11 +58,6 @@ public class RubyRootNode extends RubyBaseRootNode {
     public Object execute(VirtualFrame frame) {
         context.getSafepointManager().poll(this);
         return body.execute(frame);
-    }
-
-    @Override
-    public CompilerOptions getCompilerOptions() {
-        return context.getCompilerOptions();
     }
 
     @Override
