@@ -6,6 +6,8 @@ Bug fixes:
 * Fixed missing method error for FFI calls with `blocking: true` when interrupted.
 * Use upgraded default gems when installed (#1956).
 * Fixed `NameError` when requiring an autoload path that does not define the autoload constant (#1905).
+* Thread local IO buffers are now allocated using a stack to ensure safe operating if a signal handler uses one during an IO operation.
+
 
 Compatibility:
 

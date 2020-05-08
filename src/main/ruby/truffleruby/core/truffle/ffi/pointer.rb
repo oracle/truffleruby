@@ -341,10 +341,13 @@ module Truffle::FFI
         offsets << [total_length, length]
         total_length += length
       end
-      buffer = Primitive.io_get_thread_buffer(total_length)
+      buffer = Primitive.io_thread_buffer_allocate(total_length)
       pointers = offsets.map { |offset, length| buffer.slice(offset, length) }
       pointers.size == 1 ? pointers[0] : pointers
     end
 
+    def self.stack_free(pointer)
+      Primitive.io_thread_buffer_free(pointer)
+    end
   end
 end

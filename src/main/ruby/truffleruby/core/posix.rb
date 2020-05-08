@@ -377,22 +377,26 @@ module Truffle::POSIX
 
   def self.read_string_native(io, length)
     fd = io.fileno
-    buffer = Primitive.io_get_thread_buffer(length)
-    bytes_read = Truffle::POSIX.read(fd, buffer, length)
-    if bytes_read < 0
-      buffer, bytes_read, errno = nil, bytes_read, Errno.errno
-    elsif bytes_read == 0 # EOF
-      buffer, bytes_read, errno = nil, 0, 0
-    else
-      buffer, bytes_read, errno = buffer, bytes_read, 0
-    end
+    buffer = Primitive.io_thread_buffer_allocate(length)
+    begin
+      bytes_read = Truffle::POSIX.read(fd, buffer, length)
+      if bytes_read < 0
+        bytes_read, errno = bytes_read, Errno.errno
+      elsif bytes_read == 0 # EOF
+        bytes_read, errno = 0, 0
+      else
+        bytes_read, errno = bytes_read, 0
+      end
 
-    if bytes_read < 0
-      [nil, errno]
-    elsif bytes_read == 0 # EOF
-      [nil, 0]
-    else
-      [buffer.read_string(bytes_read), 0]
+      if bytes_read < 0
+        [nil, errno]
+      elsif bytes_read == 0 # EOF
+        [nil, 0]
+      else
+        [buffer.read_string(bytes_read), 0]
+      end
+    ensure
+      Primitive.io_thread_buffer_free(buffer)
     end
   end
 
@@ -412,27 +416,31 @@ module Truffle::POSIX
   def self.write_string_native(io, string, continue_on_eagain)
     fd = io.fileno
     length = string.bytesize
-    buffer = Primitive.io_get_thread_buffer(length)
-    buffer.write_string string
+    buffer = Primitive.io_thread_buffer_allocate(length)
+    begin
+      buffer.write_string string
 
-    written = 0
-    while written < length
-      ret = Truffle::POSIX.write(fd, buffer + written, length - written)
-      if ret < 0
-        errno = Errno.errno
-        if TRY_AGAIN_ERRNOS.include? errno
-          if continue_on_eagain
-            IO.select([], [io])
+      written = 0
+      while written < length
+        ret = Truffle::POSIX.write(fd, buffer + written, length - written)
+        if ret < 0
+          errno = Errno.errno
+          if TRY_AGAIN_ERRNOS.include? errno
+            if continue_on_eagain
+              IO.select([], [io])
+            else
+              return written
+            end
           else
-            return written
+            Errno.handle
           end
-        else
-          Errno.handle
         end
+        written += ret
       end
-      written += ret
+      written
+    ensure
+      Primitive.io_thread_buffer_free(buffer)
     end
-    written
   end
 
   def self.write_string_polyglot(io, string, continue_on_eagain)
@@ -456,19 +464,23 @@ module Truffle::POSIX
   def self.write_string_nonblock_native(io, string)
     fd = io.fileno
     length = string.bytesize
-    buffer = Primitive.io_get_thread_buffer(length)
-    buffer.write_string string
-    written = Truffle::POSIX.write(fd, buffer, length)
+    buffer = Primitive.io_thread_buffer_allocate(length)
+    begin
+      buffer.write_string string
+      written = Truffle::POSIX.write(fd, buffer, length)
 
-    if written < 0
-      errno = Errno.errno
-      if TRY_AGAIN_ERRNOS.include? errno
-        raise IO::EAGAINWaitWritable
-      else
-        Errno.handle
+      if written < 0
+        errno = Errno.errno
+        if TRY_AGAIN_ERRNOS.include? errno
+          raise IO::EAGAINWaitWritable
+        else
+          Errno.handle
+        end
       end
+      written
+    ensure
+      Primitive.io_thread_buffer_free(buffer)
     end
-    written
   end
 
   def self.write_string_nonblock_polyglot(io, string)

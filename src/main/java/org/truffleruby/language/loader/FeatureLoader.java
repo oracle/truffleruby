@@ -27,7 +27,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.support.IONodes.GetThreadBufferNode;
+import org.truffleruby.core.support.IONodes.IOThreadBufferAllocateNode;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyConstant;
@@ -180,14 +180,21 @@ public class FeatureLoader {
         }
         final int bufferSize = PATH_MAX;
         final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
-        final Pointer buffer = GetThreadBufferNode.getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
-        final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
-        if (address == 0) {
-            context.send(context.getCoreLibrary().errnoModule, "handle");
+        final Pointer buffer = IOThreadBufferAllocateNode
+                .getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
+        try {
+            final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
+            if (address == 0) {
+                context.send(context.getCoreLibrary().errnoModule, "handle");
+            }
+            final byte[] bytes = buffer.readZeroTerminatedByteArray(context, 0);
+            final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();
+            return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
+        } finally {
+            Layouts.THREAD.setIoBuffer(
+                    rubyThread,
+                    Layouts.THREAD.getIoBuffer(rubyThread).free(ConditionProfile.getUncached()));
         }
-        final byte[] bytes = buffer.readZeroTerminatedByteArray(context, 0);
-        final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();
-        return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
     }
 
     /** Make a path absolute, by expanding relative to the context CWD. */
