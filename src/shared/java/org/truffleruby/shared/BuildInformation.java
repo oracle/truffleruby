@@ -14,12 +14,6 @@ import org.truffleruby.PopulateBuildInformation;
 @PopulateBuildInformation
 public interface BuildInformation {
 
-    String getRubyVersion();
-
-    String getRubyBaseVersion();
-
-    int getRubyRevision();
-
     String getRevision();
 
     String getCompileDate();

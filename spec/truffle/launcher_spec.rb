@@ -44,8 +44,8 @@ describe "The launcher" do
                 rake:        /^rake, version #{versions['gems']['default']['rake']}/,
                 rdoc:        /^#{versions['gems']['default']['rdoc']}$/,
                 ri:          /^ri #{versions['gems']['default']['rdoc']}$/,
-                ruby:        /truffleruby .* like ruby #{versions['ruby']['version']}/,
-                truffleruby: /truffleruby .* like ruby #{versions['ruby']['version']}/ }
+                ruby:        /truffleruby .* like ruby #{RUBY_VERSION}/,
+                truffleruby: /truffleruby .* like ruby #{RUBY_VERSION}/ }
 
   extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
       split(File::PATH_SEPARATOR).
