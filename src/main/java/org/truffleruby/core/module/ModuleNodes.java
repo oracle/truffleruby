@@ -409,7 +409,7 @@ public abstract class ModuleNodes {
                     module,
                     accessorName,
                     0,
-                    "attr_" + (isGetter ? "reader" : "writer"),
+                    isGetter ? "attr_reader" : "attr_writer",
                     null,
                     false);
 
