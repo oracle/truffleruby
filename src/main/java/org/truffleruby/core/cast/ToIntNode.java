@@ -28,8 +28,6 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToIntNode extends RubyContextSourceNode {
 
-    @Child private CallDispatchHeadNode toIntNode;
-
     private final ConditionProfile wasInteger = ConditionProfile.create();
     private final ConditionProfile wasLong = ConditionProfile.create();
     private final ConditionProfile wasLongInRange = ConditionProfile.create();
@@ -98,24 +96,10 @@ public abstract class ToIntNode extends RubyContextSourceNode {
         return longValue;
     }
 
-    @Specialization
-    protected Object coerceBoolean(boolean value,
-            @Cached BranchProfile errorProfile) {
-        return coerceObject(value, errorProfile);
-    }
-
     @Specialization(guards = "!isRubyBignum(object)")
-    protected Object coerceBasicObject(DynamicObject object,
+    protected Object coerceObject(Object object,
+            @Cached CallDispatchHeadNode toIntNode,
             @Cached BranchProfile errorProfile) {
-        return coerceObject(object, errorProfile);
-    }
-
-    private Object coerceObject(Object object, BranchProfile errorProfile) {
-        if (toIntNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(CallDispatchHeadNode.createPrivate());
-        }
-
         final Object coerced;
         try {
             coerced = toIntNode.call(object, "to_int");
@@ -139,5 +123,4 @@ public abstract class ToIntNode extends RubyContextSourceNode {
                     coreExceptions().typeErrorBadCoercion(object, "Integer", "to_int", coerced, this));
         }
     }
-
 }
