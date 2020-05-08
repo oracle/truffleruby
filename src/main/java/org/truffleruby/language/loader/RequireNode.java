@@ -101,6 +101,7 @@ public abstract class RequireNode extends RubyContextNode {
                 return doRequire(feature, expandedPath, pathString);
             } finally {
                 for (RubyConstant autoloadConstant : autoloadConstants) {
+                    GetConstantNode.autoloadUndefineConstantIfStillAutoload(autoloadConstant);
                     GetConstantNode.autoloadConstantStop(autoloadConstant);
                     featureLoader.removeAutoload(autoloadConstant);
                 }

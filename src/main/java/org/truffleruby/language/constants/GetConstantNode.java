@@ -46,6 +46,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
     }
 
+    // name is always the same as constant.getName(), but is needed as constant can be null.
     protected abstract Object executeGetConstant(LexicalScope lexicalScope, DynamicObject module, String name,
             Object constant, LookupConstantInterface lookupConstantNode);
 
@@ -134,6 +135,14 @@ public abstract class GetConstantNode extends RubyContextNode {
         autoloadConstant.getAutoloadConstant().stopAutoLoad();
     }
 
+    /** Subset of {@link #autoloadResolveConstant} which does not try to resolve the constant. */
+    @TruffleBoundary
+    public static void autoloadUndefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
+        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
+        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
+        fields.undefineConstantIfStillAutoload(autoloadConstant);
+    }
+
     @TruffleBoundary
     public Object autoloadResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name,
             RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode) {
@@ -149,7 +158,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             // all is good, just return that constant
         } else {
             // If the autoload constant was not set in the ancestors, undefine the constant
-            fields.undefineConstantIfStillAutoload(autoloadConstant, name);
+            fields.undefineConstantIfStillAutoload(autoloadConstant);
 
             // redo lookup, to consider the undefined constant
             resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);

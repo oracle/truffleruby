@@ -530,8 +530,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public boolean undefineConstantIfStillAutoload(RubyConstant autoloadConstant, String name) {
-        if (constants.replace(name, autoloadConstant, autoloadConstant.undefined())) {
+    public boolean undefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
+        if (constants.replace(autoloadConstant.getName(), autoloadConstant, autoloadConstant.undefined())) {
             newConstantsVersion();
             return true;
         } else {
