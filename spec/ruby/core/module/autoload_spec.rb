@@ -295,7 +295,7 @@ describe "Module#autoload" do
       @check.call.should == ["constant", nil]
     end
 
-    it "does not raise an error if the autload constant was not defined" do
+    it "does not raise an error if the autoload constant was not defined" do
       module ModuleSpecs::Autoload
         autoload :RequiredDirectlyNoConstant, fixture(__FILE__, "autoload_required_directly_no_constant.rb")
       end
