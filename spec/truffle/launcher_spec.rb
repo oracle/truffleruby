@@ -37,15 +37,15 @@ describe "The launcher" do
 
   versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
 
-  launchers = { bundle:      /^Bundler version #{versions['gems']['default']['bundler']}$/,
-                bundler:     /^Bundler version #{versions['gems']['default']['bundler']}$/,
-                gem:         /^#{versions['gems']['default']['gem']}$/,
-                irb:         /^irb #{versions['gems']['default']['irb']}/,
-                rake:        /^rake, version #{versions['gems']['default']['rake']}/,
-                rdoc:        /^#{versions['gems']['default']['rdoc']}$/,
-                ri:          /^ri #{versions['gems']['default']['rdoc']}$/,
-                ruby:        /truffleruby .* like ruby #{RUBY_VERSION}/,
-                truffleruby: /truffleruby .* like ruby #{RUBY_VERSION}/ }
+  launchers = { bundle:      /^Bundler version #{Regexp.escape versions['gems']['default']['bundler']}$/,
+                bundler:     /^Bundler version #{Regexp.escape versions['gems']['default']['bundler']}$/,
+                gem:         /^#{Regexp.escape versions['gems']['default']['gem']}$/,
+                irb:         /^irb #{Regexp.escape versions['gems']['default']['irb']}/,
+                rake:        /^rake, version #{Regexp.escape versions['gems']['default']['rake']}/,
+                rdoc:        /^#{Regexp.escape versions['gems']['default']['rdoc']}$/,
+                ri:          /^ri #{Regexp.escape versions['gems']['default']['rdoc']}$/,
+                ruby:        /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+                truffleruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/ }
 
   extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
       split(File::PATH_SEPARATOR).
@@ -114,8 +114,9 @@ describe "The launcher" do
     gem_list = `#{@default_bindir}/gem list`
     $?.success?.should == true
     # see doc/contributor/stdlib.md
-    bundled_gems_regexes = versions['gems']['bundled'].map { |k, v| /#{Regexp.escape k}.*#{Regexp.escape v}/ }
-    bundled_gems_regexes.each { |regex| gem_list.should =~ regex }
+    versions['gems']['bundled'].each_pair do |gem, version|
+      gem_list.should =~ /#{Regexp.escape gem}.*#{Regexp.escape version}/
+    end
   end
 
   def should_print_full_java_command(options, env: {})
