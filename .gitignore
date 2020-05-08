@@ -48,7 +48,6 @@ spec/ffi/.bundle/config
 test/truffle/cexts/**/Makefile
 test/truffle/cexts/**/extconf.h
 test/truffle/cexts/**/mkmf.log
-test/truffle/ecosystem/hello-world/*.gem
 
 test/mri/tests/cext-c/**/Makefile
 test/mri/tests/cext-c/**/depend

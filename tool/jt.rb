@@ -1277,12 +1277,6 @@ EOS
       exit 1
     end
 
-    # run launchers first before any gem is installed, which may break the test
-    # since it alters executables of default gems when they are updated
-    if (launchers = candidates.find { |c| c.end_with?('launchers.sh') })
-      candidates.unshift candidates.delete launchers
-    end
-
     success = candidates.all? do |test_script|
       next true if test_script.end_with? 'shared.sh'
       sh test_script, *(gem_test_pack if gem_test_pack?), continue_on_failure: true

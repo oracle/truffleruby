@@ -18,9 +18,21 @@ describe "The launcher" do
     File.binread(launcher, 2) == "#!"
   end
 
-  it 'is in the bindir' do
-    bindir = File.expand_path(RbConfig::CONFIG['bindir'])
-    File.expand_path(File.dirname(RbConfig.ruby)).should == bindir
+  before :each do
+    @gem_home = ENV['GEM_HOME']
+    ENV['GEM_HOME'] = nil
+  end
+
+  after :each do
+    ENV['GEM_HOME'] = @gem_home
+  end
+
+  before :all do
+    @default_bindir = RbConfig::CONFIG['bindir']
+  end
+
+  it "is in the bindir" do
+    File.dirname(RbConfig.ruby).should == @default_bindir
   end
 
   versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
@@ -35,6 +47,12 @@ describe "The launcher" do
                 ruby:        /truffleruby .* like ruby #{versions['ruby']['version']}/,
                 truffleruby: /truffleruby .* like ruby #{versions['ruby']['version']}/ }
 
+  extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
+      split(File::PATH_SEPARATOR).
+      each_with_index.
+      reduce({}) { |h, (dir, i)| h.update "RbConfig::CONFIG['extra_bindirs'][#{i}]" => dir }
+  bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
+
   launchers.each do |launcher, (test, skip_success)|
     unless [:ruby, :truffleruby].include?(launcher)
       it "'#{launcher}' runs as an -S command" do
@@ -44,12 +62,6 @@ describe "The launcher" do
       end
     end
 
-    extra_bin_dirs_described = RbConfig::CONFIG['extra_bindirs'].
-        split(File::PATH_SEPARATOR).
-        each_with_index.
-        reduce({}) { |h, (dir, i)| h.update "RbConfig::CONFIG['extra_bindirs'][#{i}]" => dir }
-    bin_dirs = { "RbConfig::CONFIG['bindir']" => RbConfig::CONFIG['bindir'] }.merge extra_bin_dirs_described
-
     bin_dirs.each do |name, bin_dir|
       it "'#{launcher}' in `#{name}` directory runs" do
         out = `#{bin_dir}/#{launcher} --version`
@@ -58,7 +70,7 @@ describe "The launcher" do
       end
 
       it "'#{launcher}' in `#{name}` directory runs when symlinked" do
-        require "tmpdir"
+        require 'tmpdir'
         # Use the system tmp dir to not be under the Ruby home dir
         Dir.mktmpdir do |path|
           Dir.chdir(path) do
@@ -71,6 +83,39 @@ describe "The launcher" do
         end
       end
     end
+  end
+
+  it "for gem can install and uninstall the hello-world gem" do
+    # install
+    Dir.chdir(__dir__ + '/fixtures/hello-world') do
+      `"#{@default_bindir}/gem" build hello-world.gemspec`
+      $?.success?.should == true
+      `"#{@default_bindir}/gem" install --local hello-world-0.0.1.gem`
+      $?.success?.should == true
+    end
+
+    begin
+      # check that hello-world launchers are created and work
+      bin_dirs.each do |_, bin_dir|
+        out = `#{bin_dir}/hello-world.rb`
+        out.should == "Hello world! from #{RUBY_DESCRIPTION}\n"
+      end
+    ensure
+      # uninstall
+      `#{@default_bindir}/gem uninstall hello-world -x`
+      $?.success?.should == true
+      bin_dirs.each do |_, bin_dir|
+        File.exist?(bin_dir + '/hello-world.rb').should == false
+      end
+    end
+  end
+
+  it "for gem shows that bundled gems are installed" do
+    gem_list = `#{@default_bindir}/gem list`
+    $?.success?.should == true
+    # see doc/contributor/stdlib.md
+    bundled_gems_regexes = versions['gems']['bundled'].map { |k, v| /#{Regexp.escape k}.*#{Regexp.escape v}/ }
+    bundled_gems_regexes.each { |regex| gem_list.should =~ regex }
   end
 
   def should_print_full_java_command(options, env: {})
@@ -207,21 +252,21 @@ describe "The launcher" do
   end
 
   describe 'StringArray option' do
-    it 'appends multiple options' do
+    it "appends multiple options" do
       out = ruby_exe("puts $LOAD_PATH", options: "-I a -I b")
       $?.success?.should == true
       out.lines[0].should == "#{Dir.pwd}/a\n"
       out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
-    it 'parses ,' do
+    it "parses ," do
       out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a,b")
       $?.success?.should == true
       out.lines[0].should == "#{Dir.pwd}/a\n"
       out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
-    it 'parses , respecting escaping' do
+    it "parses , respecting escaping" do
       # \\\\ translates to one \
       out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a\\\\,b,,\\\\c")
       $?.success?.should == true
