@@ -29,11 +29,6 @@ describe "The launcher" do
 
   before :all do
     @default_bindir = RbConfig::CONFIG['bindir']
-    @gem_list = begin; `#{@default_bindir}/gem list`; rescue; nil; end
-  end
-
-  it "for gem produces a gem list" do
-    @gem_list.should != nil
   end
 
   it "is in the bindir" do
@@ -90,39 +85,37 @@ describe "The launcher" do
     end
   end
 
-  it "for gem can install the hello-world gem" do
+  it "for gem can install and uninstall the hello-world gem" do
+    # install
     Dir.chdir(__dir__ + '/fixtures/hello-world') do
       `"#{@default_bindir}/gem" build hello-world.gemspec`
       $?.success?.should == true
       `"#{@default_bindir}/gem" install --local hello-world-0.0.1.gem`
       $?.success?.should == true
     end
-  end
 
-  bin_dirs.each do |name, bin_dir|
-    it "for gem hello-world (#{name}) reports the correct ruby version" do
-      out = `#{bin_dir}/hello-world.rb`
-      out.should == "Hello world! from #{RUBY_DESCRIPTION}\n"
+    begin
+      # check that hello-world launchers are created and work
+      bin_dirs.each do |_, bin_dir|
+        out = `#{bin_dir}/hello-world.rb`
+        out.should == "Hello world! from #{RUBY_DESCRIPTION}\n"
+      end
+    ensure
+      # uninstall
+      `#{@default_bindir}/gem uninstall hello-world -x`
+      $?.success?.should == true
+      bin_dirs.each do |_, bin_dir|
+        File.exist?(bin_dir + '/hello-world.rb').should == false
+      end
     end
   end
 
-  it "for gem can uninstall the hello-world gem" do
-    `#{@default_bindir}/gem uninstall hello-world -x`
+  it "for gem shows that bundled gems are installed" do
+    gem_list = `#{@default_bindir}/gem list`
     $?.success?.should == true
-    bin_dirs.each do |name, bin_dir|
-      File.exist?(bin_dir + '/hello-world.rb').should == false
-    end
-  end
-
-  # see doc/contributor/stdlib.md
-  bundled_gems = versions['gems']['bundled'].map { |k, v| "#{k} #{v}" }
-  bundled_gems.each do |gem|
-    gem_name = gem.split.first
-    it "for gem shows that #{gem_name} is installed" do
-      gem.gsub! '.', '\\.'
-      gem.sub! ' ', '.*'
-      @gem_list.should =~ Regexp.new(gem)
-    end
+    # see doc/contributor/stdlib.md
+    bundled_gems_regexes = versions['gems']['bundled'].map { |k, v| /#{Regexp.escape k}.*#{Regexp.escape v}/ }
+    bundled_gems_regexes.each { |regex| gem_list.should =~ regex }
   end
 
   def should_print_full_java_command(options, env: {})
