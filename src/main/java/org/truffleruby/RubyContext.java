@@ -76,8 +76,6 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.CompilerOptions;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
@@ -119,8 +117,6 @@ public class RubyContext {
     private final PreInitializationManager preInitializationManager;
     private final NativeConfiguration nativeConfiguration;
     private final ValueWrapperManager valueWrapperManager;
-
-    private final CompilerOptions compilerOptions = Truffle.getRuntime().createCompilerOptions();
 
     @CompilationFinal private SecureRandom random;
     private final Hashing hashing;
@@ -179,17 +175,6 @@ public class RubyContext {
 
         rubyHome = findRubyHome(options);
         rubyHomeTruffleFile = rubyHome == null ? null : env.getInternalTruffleFile(rubyHome);
-
-        // Stuff that needs to be loaded before we load any code
-
-        /* The Graal option InliningMaxCallerSize sets the maximum size of a method for where we consider to inline
-         * calls from that method. So it's the caller method we're talking about, not the called method. The default
-         * value doesn't produce good results for Ruby programs, but we aren't sure why yet. Perhaps it prevents a few
-         * key methods from the core library from inlining other methods. */
-
-        if (compilerOptions.supportsOption("MinInliningMaxCallerSize")) {
-            compilerOptions.setOption("MinInliningMaxCallerSize", 5000);
-        }
 
         // Load the core library classes
 
@@ -581,10 +566,6 @@ public class RubyContext {
 
     public LexicalScope getRootLexicalScope() {
         return rootLexicalScope;
-    }
-
-    public CompilerOptions getCompilerOptions() {
-        return compilerOptions;
     }
 
     public PrimitiveManager getPrimitiveManager() {
