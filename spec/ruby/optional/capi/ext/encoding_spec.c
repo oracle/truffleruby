@@ -219,6 +219,10 @@ static VALUE encoding_spec_rb_enc_str_asciionly_p(VALUE self, VALUE str) {
   }
 }
 
+static VALUE encoding_spec_rb_uv_to_utf8(VALUE self, VALUE buf, VALUE num) {
+  return INT2NUM(rb_uv_to_utf8(RSTRING_PTR(buf), NUM2INT(num)));
+}
+
 void Init_encoding_spec(void) {
   VALUE cls;
   native_rb_encoding_pointer = (rb_encoding**) malloc(sizeof(rb_encoding*));
@@ -271,6 +275,7 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_nth", encoding_spec_rb_enc_nth, 2);
   rb_define_method(cls, "rb_enc_codepoint_len", encoding_spec_rb_enc_codepoint_len, 1);
   rb_define_method(cls, "rb_enc_str_asciionly_p", encoding_spec_rb_enc_str_asciionly_p, 1);
+  rb_define_method(cls, "rb_uv_to_utf8", encoding_spec_rb_uv_to_utf8, 2);
 }
 
 #ifdef __cplusplus

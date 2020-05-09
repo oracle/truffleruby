@@ -497,4 +497,21 @@ describe "C-API Encoding function" do
       @s.rb_enc_str_asciionly_p("hüllo").should be_false
     end
   end
+
+  describe "rb_uv_to_utf8" do
+    it 'converts vectors to UTF-8 strings' do
+      str = '      '
+      {
+        0  => "\u0001",
+        0x7f => "\xC2\x80",
+        0x7ff => "\xE0\xA0\x80",
+        0xffff => "\xF0\x90\x80\x80",
+        0x1fffff => "\xF8\x88\x80\x80\x80",
+        0x3ffffff => "\xFC\x84\x80\x80\x80\x80",
+      }.each do |num, result|
+        len = @s.rb_uv_to_utf8(str, num + 1)
+        str[0..len-1].should == result
+      end
+    end
+  end
 end

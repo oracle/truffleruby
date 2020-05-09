@@ -263,3 +263,51 @@ void rb_enc_raise(rb_encoding *enc, VALUE exc, const char *fmt, ...) {
   va_end(args);
   rb_exc_raise(rb_exc_new_str(exc, RUBY_INVOKE(mesg, "force_encoding", rb_enc_from_encoding(enc))));
 }
+
+#define castchar(from) (char)((from) & 0xff)
+
+int rb_uv_to_utf8(char buf[6], unsigned long uv) {
+  if (uv <= 0x7f) {
+    buf[0] = (char)uv;
+    return 1;
+  }
+  if (uv <= 0x7ff) {
+    buf[0] = castchar(((uv>>6)&0xff)|0xc0);
+    buf[1] = castchar((uv&0x3f)|0x80);
+    return 2;
+  }
+  if (uv <= 0xffff) {
+    buf[0] = castchar(((uv>>12)&0xff)|0xe0);
+    buf[1] = castchar(((uv>>6)&0x3f)|0x80);
+    buf[2] = castchar((uv&0x3f)|0x80);
+    return 3;
+  }
+  if (uv <= 0x1fffff) {
+    buf[0] = castchar(((uv>>18)&0xff)|0xf0);
+    buf[1] = castchar(((uv>>12)&0x3f)|0x80);
+    buf[2] = castchar(((uv>>6)&0x3f)|0x80);
+    buf[3] = castchar((uv&0x3f)|0x80);
+    return 4;
+  }
+  if (uv <= 0x3ffffff) {
+    buf[0] = castchar(((uv>>24)&0xff)|0xf8);
+    buf[1] = castchar(((uv>>18)&0x3f)|0x80);
+    buf[2] = castchar(((uv>>12)&0x3f)|0x80);
+    buf[3] = castchar(((uv>>6)&0x3f)|0x80);
+    buf[4] = castchar((uv&0x3f)|0x80);
+    return 5;
+  }
+  if (uv <= 0x7fffffff) {
+    buf[0] = castchar(((uv>>30)&0xff)|0xfc);
+    buf[1] = castchar(((uv>>24)&0x3f)|0x80);
+    buf[2] = castchar(((uv>>18)&0x3f)|0x80);
+    buf[3] = castchar(((uv>>12)&0x3f)|0x80);
+    buf[4] = castchar(((uv>>6)&0x3f)|0x80);
+    buf[5] = castchar((uv&0x3f)|0x80);
+    return 6;
+  }
+
+  rb_raise(rb_eRangeError, "pack(U): value out of range");
+
+  UNREACHABLE_RETURN(Qnil);
+}
