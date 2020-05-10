@@ -33,6 +33,7 @@ Performance:
 
 * Enable lazy translation from the parser AST to the Truffle AST for user code by default. This should improve application startup time (#1992).
 * `instance variable ... not initialized` and similar warnings are now optimized to have no peak performance impact if they are not printed (depends on `$VERBOSE`).
+* Implement integer modular exponentiation using `BigInteger#mod_pow` (#1999)
 
 # 20.1.0
 

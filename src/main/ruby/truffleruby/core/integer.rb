@@ -121,9 +121,15 @@ class Integer < Numeric
   end
 
   def pow(e, m=undefined)
-    return self ** e if Primitive.undefined?(m)
-    raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.object_kind_of?(m, Integer)
-    (self ** e) % m
+    if Primitive.undefined?(m)
+      self ** e
+    else
+      raise TypeError, '2nd argument not allowed unless a 1st argument is integer' unless Primitive.object_kind_of?(e, Integer)
+      raise TypeError, '2nd argument not allowed unless all arguments are integers' unless Primitive.object_kind_of?(m, Integer)
+      raise RangeError, '1st argument cannot be negative when 2nd argument specified' if e.negative?
+
+      Primitive.mod_pow(self, e, m)
+    end
   end
 
   def times

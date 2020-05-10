@@ -17,10 +17,12 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.BigIntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
@@ -34,6 +36,7 @@ import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -42,6 +45,8 @@ import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -1774,6 +1779,46 @@ public abstract class IntegerNodes {
             return getContext().getOptions().POW_CACHE;
         }
 
+    }
+
+    @Primitive(name = "mod_pow")
+    @NodeChild(value = "base", type = RubyNode.class)
+    @NodeChild(value = "exponent", type = RubyNode.class)
+    @NodeChild(value = "modulo", type = RubyNode.class)
+    public abstract static class ModPowNode extends PrimitiveNode {
+        @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
+
+        @CreateCast("base")
+        protected RubyNode baseToBigInteger(RubyNode base) {
+            return BigIntegerCastNode.create(base);
+        }
+
+        @CreateCast("exponent")
+        protected RubyNode exponentToBigInteger(RubyNode exponent) {
+            return BigIntegerCastNode.create(exponent);
+        }
+
+        @CreateCast("modulo")
+        protected RubyNode moduloToBigInteger(RubyNode modulo) {
+            return BigIntegerCastNode.create(modulo);
+        }
+
+        @Specialization(guards = "modulo.signum() < 0")
+        protected Object mod_pow_neg(BigInteger base, BigInteger exponent, BigInteger modulo) {
+            BigInteger result = base.modPow(exponent, modulo.negate());
+            return fixnumOrBignum.fixnumOrBignum(result.signum() == 1 ? result.add(modulo) : result);
+        }
+
+        @Specialization(guards = "modulo.signum() > 0")
+        protected Object mod_pow_pos(BigInteger base, BigInteger exponent, BigInteger modulo) {
+            BigInteger result = base.modPow(exponent, modulo);
+            return fixnumOrBignum.fixnumOrBignum(result);
+        }
+
+        @Specialization(guards = "modulo.signum() == 0")
+        protected Object mod_pow_zero(BigInteger base, BigInteger exponent, BigInteger modulo) {
+            throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
+        }
     }
 
     @CoreMethod(
