@@ -1,0 +1,4 @@
+fails:C-API Util function strtod converts a string to a double and returns the remaining string
+fails:C-API Util function strtod returns 0 and the full string if there's no numerical value
+fails:C-API Util function ruby_strtod converts a string to a double and returns the remaining string
+fails:C-API Util function ruby_strtod returns 0 and the full string if there's no numerical value
