@@ -19,7 +19,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.shared.BuildInformationImpl;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.shared.options.OptionsCatalog;
@@ -44,7 +43,7 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
         name = "Ruby",
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,
-        version = BuildInformationImpl.RUBY_VERSION,
+        version = TruffleRuby.LANGUAGE_VERSION,
         characterMimeTypes = TruffleRuby.MIME_TYPE,
         defaultMimeType = TruffleRuby.MIME_TYPE,
         dependentLanguages = { "nfi", "llvm" },

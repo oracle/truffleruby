@@ -1,9 +1,4 @@
 {
-  "ruby": {
-    "version": "2.6.5",
-    "revision": 67812
-  },
-
   "gems": {
     "default": {
       "bundler": "1.17.2",
