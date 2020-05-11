@@ -41,11 +41,6 @@ describe "The launcher" do
     ENV['GEM_HOME'] = @gem_home
   end
 
-  def graalvm_bash_launcher?
-    launcher = RbConfig.ruby
-    File.binread(launcher, 2) == "#!"
-  end
-
   it "is in the bindir" do
     File.dirname(RbConfig.ruby).should == @default_bindir
   end
