@@ -21,7 +21,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ConvertToIntNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
@@ -1141,20 +1141,22 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object leftShift(DynamicObject a, DynamicObject b,
-                @Cached ToIntNode toIntNode) {
+                @Cached ConvertToIntNode toIntNode) {
             final BigInteger bBigInt = Layouts.BIGNUM.getValue(b);
             if (BigIntegerOps.signum(bBigInt) == -1) {
                 return 0;
             } else {
+                // We raise a RangeError.
                 // MRI would raise a NoMemoryError; JRuby would raise a coercion error.
-                return executeLeftShift(a, toIntNode.doInt(b));
+                return executeLeftShift(a, toIntNode.execute(b));
             }
         }
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object leftShiftCoerced(Object a, Object b,
-                @Cached ToIntNode toIntNode) {
-            return executeLeftShift(a, toIntNode.doInt(b));
+                @Cached ConvertToIntNode toIntNode) {
+            // TODO this shouldn't range limit, probably
+            return executeLeftShift(a, toIntNode.execute(b));
         }
 
         private Object absoluteValue(Object value) {
@@ -1260,8 +1262,9 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object rightShiftCoerced(Object a, Object b,
-                @Cached ToIntNode toIntNode) {
-            return executeRightShift(a, toIntNode.doInt(b));
+                @Cached ConvertToIntNode toIntNode) {
+            // TODO this shouldn't range limit, probably
+            return executeRightShift(a, toIntNode.execute(b));
         }
 
         protected static boolean isPositive(DynamicObject b) {

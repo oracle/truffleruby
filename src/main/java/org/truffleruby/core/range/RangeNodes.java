@@ -23,6 +23,7 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
+import org.truffleruby.core.cast.ConvertToIntNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -411,7 +412,7 @@ public abstract class RangeNodes {
     @Primitive(name = "range_to_int_range")
     public abstract static class ToIntRangeNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private ToIntNode toIntNode;
+        @Child private ConvertToIntNode toIntNode;
 
         @Specialization(guards = "isIntRange(range)")
         protected DynamicObject intRange(DynamicObject range, DynamicObject array) {
@@ -445,9 +446,9 @@ public abstract class RangeNodes {
         private int toInt(Object indexObject) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
+                toIntNode = insert(ConvertToIntNode.create());
             }
-            return toIntNode.doInt(indexObject);
+            return toIntNode.execute(indexObject);
         }
 
     }

@@ -21,6 +21,8 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -784,6 +786,10 @@ public abstract class FloatNodes {
 
     @CoreMethod(names = { "to_i", "to_int" })
     public abstract static class ToINode extends CoreMethodArrayArgumentsNode {
+
+        public static ToINode create() {
+            return FloatNodesFactory.ToINodeFactory.create(null);
+        }
 
         @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 

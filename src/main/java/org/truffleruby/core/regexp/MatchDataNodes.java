@@ -29,6 +29,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayReadNormalizedNode;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.ConvertToIntNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
@@ -220,7 +221,6 @@ public abstract class MatchDataNodes {
             argumentNames = { "index_start_range_or_name", "length" })
     public abstract static class GetIndexNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private ToIntNode toIntNode;
         @Child private RegexpNode regexpNode;
         @Child private ValuesNode getValuesNode = ValuesNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
@@ -301,13 +301,9 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization(guards = { "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
-        protected Object getIndex(DynamicObject matchData, Object index, NotProvided length) {
-            if (toIntNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
-            }
-
-            return executeGetIndex(matchData, toIntNode.doInt(index), NotProvided.INSTANCE);
+        protected Object getIndex(DynamicObject matchData, Object index, NotProvided length,
+                @Cached ConvertToIntNode toIntNode) {
+            return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);
         }
 
         @TruffleBoundary
