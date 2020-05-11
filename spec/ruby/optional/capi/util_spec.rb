@@ -293,7 +293,7 @@ describe "C-API Util function" do
     end
   end
 
-  # At least MRI redefines strtod via a macro to its own implementation
+  # ruby/util.h redefines strtod as a macro calling ruby_strtod
 
   describe "strtod" do
     it "converts a string to a double and returns the remaining string" do
