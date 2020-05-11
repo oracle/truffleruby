@@ -207,8 +207,9 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object index(DynamicObject array, int index, NotProvided length,
-                @Cached ArrayIndexNodes.ReadDenormalizedNode readNode) {
-            return readNode.executeRead(array, index);
+                @Cached ConditionProfile negativeIndexProfile,
+                @Cached ArrayIndexNodes.ReadNormalizedNode readNode) {
+            return ArrayIndexNodes.readDenormalized(array, index, negativeIndexProfile, readNode);
         }
 
         @Specialization

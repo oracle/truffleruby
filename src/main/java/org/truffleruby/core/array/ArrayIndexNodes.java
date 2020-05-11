@@ -127,6 +127,15 @@ public abstract class ArrayIndexNodes {
         }
     }
 
+    static Object readDenormalized(DynamicObject array, int index,
+            ConditionProfile negativeIndexProfile,
+            ReadNormalizedNode readNode) {
+        final int normalizedIndex = ArrayOperations
+                .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);
+
+        return readNode.executeRead(array, normalizedIndex);
+    }
+
     @NodeChild(value = "array", type = RubyNode.class)
     @NodeChild(value = "index", type = RubyNode.class)
     public abstract static class ReadDenormalizedNode extends RubyContextSourceNode {
@@ -145,10 +154,7 @@ public abstract class ArrayIndexNodes {
         protected Object read(DynamicObject array, int index,
                 @Cached ConditionProfile negativeIndexProfile,
                 @Cached ReadNormalizedNode readNode) {
-            final int normalizedIndex = ArrayOperations
-                    .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);
-
-            return readNode.executeRead(array, normalizedIndex);
+            return readDenormalized(array, index, negativeIndexProfile, readNode);
         }
     }
 }
