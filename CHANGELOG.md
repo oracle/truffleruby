@@ -23,7 +23,7 @@ Performance:
 New features:
 
 * Nightly builds of TruffleRuby are now available, see the README for details (#1483).
-* `||=` will not compile the right-hand-side if it's only executed once, to match the idiomatic lazy-initialisation use-case (#1887, @kipply).
+* `||=` will not compile the right-hand-side if it's only executed once, to match the idiomatic lazy-initialisation use-case ([blog post](https://engineering.shopify.com/blogs/engineering/optimizing-ruby-lazy-initialization-in-truffleruby-with-deoptimization), #1887, @kipply).
 * Added `--metrics-profile-require` option to profile searching, parsing, translating and loading files.
 * Added support for captured variables for the Truffle instruments (e.g. Chrome debugger).
 
@@ -71,7 +71,6 @@ Bug fixes:
 * Fixed `Random::DEFAULT.seed` to be different on boot (#1965, @kipply)
 * `rb_encoding->name` can now be read even if the `rb_encoding` is stored in native memory.
 * Detect and cut off recursion when inspecting a foreign object, substituting an ellipsis instead.
-* Fixed feature lookup order on load path.
 * Fixed feature lookup order to check every `$LOAD_PATH` path entry for `.rb`, then every entry for native extension when `require` is called with no extension.
 * Define the `_DARWIN_C_SOURCE` macro in extension makefiles (#1592).
 * Change handling of var args in `rb_rescue2` to handle usage in C extensions (#1823).
@@ -93,9 +92,7 @@ Compatibility:
 * Implemented `Thread#fetch`.
 * Implemented `Float#truncate` with `ndigits` argument.
 * Made `String#{byteslice, slice, slice!}` and `Symbol#slice` compatible with endless ranges.
-* Implemented `-p` CLI option.
 * Implemented "instance variable not initialized" warning.
-* Implemented `-p` and `-a` CLI options.
 * Make `Kernel#{caller, caller_locations}` and `Thread#backtrace_locations` compatible with endless ranges.
 * Implemented `Dir#each_child`.
 * Implemented `Kernel.{chomp, chop}` and `Kernel#{chomp, chop}`.
