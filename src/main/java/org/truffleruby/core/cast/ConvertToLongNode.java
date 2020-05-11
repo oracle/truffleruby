@@ -10,67 +10,29 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 // TODO: ToIntNode => ConvertToLongNode => ToLongNode, ConvertToIntNode => ToIntNode
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ToIntNode extends RubyContextSourceNode {
+public abstract class ConvertToLongNode extends RubyContextSourceNode {
 
-    private final ConditionProfile wasInteger = ConditionProfile.create();
-    private final ConditionProfile wasLong = ConditionProfile.create();
-    private final ConditionProfile wasLongInRange = ConditionProfile.create();
-
-    private final BranchProfile errorProfile = BranchProfile.create();
-
-    public static ToIntNode create() {
-        return ToIntNodeGen.create(null);
+    public static ConvertToLongNode create() {
+        return ConvertToLongNodeGen.create(null);
     }
 
-    public int doInt(Object object) {
-        // TODO CS 14-Nov-15 this code is crazy - should have separate nodes for ToRubyInteger and ToJavaInt
-
-        final Object integerObject = executeIntOrLong(object);
-
-        if (wasInteger.profile(integerObject instanceof Integer)) {
-            return (int) integerObject;
-        }
-
-        if (wasLong.profile(integerObject instanceof Long)) {
-            final long longValue = (long) integerObject;
-
-            if (wasLongInRange.profile(CoreLibrary.fitsIntoInteger(longValue))) {
-                return (int) longValue;
-            }
-        }
-
-        errorProfile.enter();
-        if (RubyGuards.isRubyBignum(object)) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().rangeError("bignum too big to convert into `long'", this));
-        } else {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException(object.getClass().toString());
-        }
-    }
-
-    public abstract Object executeIntOrLong(Object object);
+    public abstract long execute(Object object);
 
     @Specialization
-    protected int coerceInt(int value) {
+    protected long coerceInt(int value) {
         return value;
     }
 
@@ -80,7 +42,7 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    protected DynamicObject coerceRubyBignum(DynamicObject value) {
+    protected long coerceRubyBignum(DynamicObject value) {
         throw new RaiseException(
                 getContext(),
                 coreExceptions().rangeError("bignum too big to convert into `long'", this));
@@ -90,16 +52,20 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     protected long coerceDouble(double value,
             @Cached BranchProfile errorProfile) {
         long longValue = (long) value;
-        if (longValue == Long.MAX_VALUE && value > Long.MAX_VALUE || longValue == Long.MIN_VALUE && value < Long.MIN_VALUE) {
+        if (longValue == Integer.MAX_VALUE && value > Integer.MAX_VALUE ||
+                longValue == Integer.MIN_VALUE && value < Integer.MIN_VALUE) {
             errorProfile.enter();
-            coerceRubyBignum(null);
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().rangeError("bignum too big to convert into `long'", this));
         }
         return longValue;
     }
 
     @Specialization(guards = "!isRubyBignum(object)")
-    protected Object coerceObject(Object object,
+    protected long coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
+            @Cached ConvertToLongNode fitNode,
             @Cached BranchProfile errorProfile) {
         final Object coerced;
         try {
@@ -115,13 +81,13 @@ public abstract class ToIntNode extends RubyContextSourceNode {
             }
         }
 
-        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().integerClass) {
-            return coerced;
-        } else {
+        if (coreLibrary().getLogicalClass(coerced) != coreLibrary().integerClass) {
             errorProfile.enter();
             throw new RaiseException(
                     getContext(),
                     coreExceptions().typeErrorBadCoercion(object, "Integer", "to_int", coerced, this));
         }
+
+        return fitNode.execute(coerced);
     }
 }
