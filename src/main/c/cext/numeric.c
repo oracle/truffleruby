@@ -1,4 +1,5 @@
 #include <truffleruby-impl.h>
+#include <ruby/util.h>
 
 // Numeric conversions, rb_*num*, rb_fix2*
 
@@ -27,9 +28,10 @@ void rb_num_zerodiv(void) {
 // Conversions between numeric types and from/to String
 
 double ruby_strtod(const char *nptr, char **endptr) {
+  // See ruby/util.h
   #undef strtod
   return strtod(nptr, endptr);
-  #define strtod(s,e) ruby_strtod((s),(e))    
+  #define strtod(s,e) ruby_strtod((s),(e))
 }
 
 unsigned long rb_num2ulong(VALUE val) {
