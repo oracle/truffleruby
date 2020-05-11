@@ -21,62 +21,50 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-// TODO: ToIntNode => ConvertToLongNode => ToLongNode, ConvertToIntNode => ToIntNode
 @NodeChild(value = "child", type = RubyNode.class)
-public abstract class ConvertToIntNode extends RubyContextSourceNode {
+public abstract class ToLongNode extends RubyContextSourceNode {
 
-    public static ConvertToIntNode create() {
-        return ConvertToIntNodeGen.create(null);
+    public static ToLongNode create() {
+        return ToLongNodeGen.create(null);
     }
 
-    public static ConvertToIntNode create(RubyNode child) {
-        return ConvertToIntNodeGen.create(child);
-    }
-
-    public abstract int execute(Object object);
+    public abstract long execute(Object object);
 
     @Specialization
-    protected int coerceInt(int value) {
+    protected long coerceInt(int value) {
         return value;
     }
 
-    @Specialization(guards = "fitsInInteger(value)")
-    protected int corceFittingLong(long value) {
-        return (int) value;
-    }
-
-    @Specialization(guards = "!fitsInInteger(value)")
-    protected int coerceTooBigLong(long value) {
-        // MRI does not have this error
-        throw new RaiseException(
-                getContext(),
-                coreExceptions().argumentError("long too big to convert into `int'", this));
+    @Specialization
+    protected long coerceLong(long value) {
+        return value;
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    protected int coerceRubyBignum(DynamicObject value) {
-        // not `int' to stay as compatible as possible with MRI errors
+    protected long coerceRubyBignum(DynamicObject value) {
         throw new RaiseException(
                 getContext(),
                 coreExceptions().rangeError("bignum too big to convert into `long'", this));
     }
 
     @Specialization
-    protected int coerceDouble(double value,
+    protected long coerceDouble(double value,
             @Cached BranchProfile errorProfile) {
-        int intValue = (int) value;
-        if (intValue == Integer.MAX_VALUE && value > Integer.MAX_VALUE ||
-                intValue == Integer.MIN_VALUE && value < Integer.MIN_VALUE) {
+        long longValue = (long) value;
+        if (longValue == Integer.MAX_VALUE && value > Integer.MAX_VALUE ||
+                longValue == Integer.MIN_VALUE && value < Integer.MIN_VALUE) {
             errorProfile.enter();
-            coerceRubyBignum(null);
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().rangeError("bignum too big to convert into `long'", this));
         }
-        return intValue;
+        return longValue;
     }
 
     @Specialization(guards = "!isRubyBignum(object)")
-    protected int coerceObject(Object object,
+    protected long coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
-            @Cached ConvertToIntNode fitNode,
+            @Cached ToLongNode fitNode,
             @Cached BranchProfile errorProfile) {
         final Object coerced;
         try {

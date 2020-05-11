@@ -21,8 +21,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;

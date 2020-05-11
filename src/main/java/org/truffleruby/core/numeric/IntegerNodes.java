@@ -21,7 +21,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.ConvertToIntNode;
+import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
@@ -1141,7 +1141,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "isRubyBignum(b)")
         protected Object leftShift(DynamicObject a, DynamicObject b,
-                @Cached ConvertToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             final BigInteger bBigInt = Layouts.BIGNUM.getValue(b);
             if (BigIntegerOps.signum(bBigInt) == -1) {
                 return 0;
@@ -1154,7 +1154,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object leftShiftCoerced(Object a, Object b,
-                @Cached ConvertToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             // TODO this shouldn't range limit, probably
             return executeLeftShift(a, toIntNode.execute(b));
         }
@@ -1262,7 +1262,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object rightShiftCoerced(Object a, Object b,
-                @Cached ConvertToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             // TODO this shouldn't range limit, probably
             return executeRightShift(a, toIntNode.execute(b));
         }

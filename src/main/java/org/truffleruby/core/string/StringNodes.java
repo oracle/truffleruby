@@ -98,11 +98,10 @@ import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.ConvertToIntNode;
-import org.truffleruby.core.cast.ConvertToLongNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
-import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingNodes;
@@ -116,7 +115,6 @@ import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
-import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
@@ -367,7 +365,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isEmpty(string)", "!isInteger(times)" })
         protected DynamicObject multiply(DynamicObject string, Object times,
-                @Cached ConvertToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             // TODO probably needs no range restrictions (use ConvertToLongNode)
             return executeInt(string, toIntNode.execute(times));
         }
@@ -2108,12 +2106,12 @@ public abstract class StringNodes {
 
         @CreateCast("index")
         protected RubyNode coerceIndexToInt(RubyNode index) {
-            return ConvertToIntNode.create(index);
+            return ToIntNode.create(index);
         }
 
         @CreateCast("value")
         protected RubyNode coerceValueToInt(RubyNode value) {
-            return ConvertToIntNode.create(value);
+            return ToIntNode.create(value);
         }
 
         public abstract int executeSetByte(DynamicObject string, int index, Object value);
@@ -2377,7 +2375,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isInteger(bits)", "!isLong(bits)", "wasProvided(bits)" })
         protected Object sum(VirtualFrame frame, DynamicObject string, Object bits,
-                @Cached ConvertToLongNode toLongNode,
+                @Cached ToLongNode toLongNode,
                 @Cached SumNode sumNode) {
             return sumNode.executeSum(frame, string, toLongNode.execute(bits));
         }

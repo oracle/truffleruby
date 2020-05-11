@@ -29,9 +29,8 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayReadNormalizedNode;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.cast.ConvertToIntNode;
-import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -302,7 +301,7 @@ public abstract class MatchDataNodes {
 
         @Specialization(guards = { "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
         protected Object getIndex(DynamicObject matchData, Object index, NotProvided length,
-                @Cached ConvertToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);
         }
 

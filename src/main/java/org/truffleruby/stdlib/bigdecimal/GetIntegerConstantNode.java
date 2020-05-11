@@ -9,8 +9,6 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import org.truffleruby.core.cast.ConvertToIntNode;
-import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.LexicalScope;
@@ -33,7 +31,7 @@ public abstract class GetIntegerConstantNode extends RubyContextNode {
     protected int doInteger(DynamicObject module, String name,
             @Cached("createLookupConstantNode()") LookupConstantNode lookupConstantNode,
             @Cached GetConstantNode getConstantNode,
-            @Cached ConvertToIntNode toIntNode) {
+            @Cached ToIntNode toIntNode) {
         final Object value = getConstantNode
                 .lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         return toIntNode.execute(value);

@@ -33,8 +33,8 @@ import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
-import org.truffleruby.core.cast.ConvertToIntNode;
-import org.truffleruby.core.cast.ConvertToLongNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
@@ -569,7 +569,7 @@ public abstract class ArrayNodes {
 
         @CreateCast("index")
         protected RubyNode coerceOtherToInt(RubyNode index) {
-            return ConvertToIntNode.create(index);
+            return ToIntNode.create(index);
         }
 
         @Specialization(
@@ -839,7 +839,7 @@ public abstract class ArrayNodes {
         protected long hash(VirtualFrame frame, DynamicObject array,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
                 @Cached("createPrivate()") CallDispatchHeadNode toHashNode,
-                @Cached ConvertToLongNode toLongNode) {
+                @Cached ToLongNode toLongNode) {
             final int size = Layouts.ARRAY.getSize(array);
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
@@ -890,7 +890,7 @@ public abstract class ArrayNodes {
     @ImportStatic({ ArrayGuards.class, ArrayStoreLibrary.class })
     public abstract static class InitializeNode extends YieldingCoreMethodNode {
 
-        @Child private ConvertToIntNode toIntNode;
+        @Child private ToIntNode toIntNode;
         @Child private CallDispatchHeadNode toAryNode;
         @Child private KernelNodes.RespondToNode respondToToAryNode;
 
@@ -1075,7 +1075,7 @@ public abstract class ArrayNodes {
         protected int toInt(Object value) {
             if (toIntNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ConvertToIntNode.create());
+                toIntNode = insert(ToIntNode.create());
             }
             return toIntNode.execute(value);
         }
@@ -1493,7 +1493,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
         protected Object popNToInt(DynamicObject array, Object n,
-                @Cached ConvertToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             return executePop(array, toIntNode.execute(n));
         }
 
@@ -1837,7 +1837,7 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class ShiftNode extends CoreMethodNode {
 
-        @Child private ConvertToIntNode toIntNode;
+        @Child private ToIntNode toIntNode;
 
         public abstract Object executeShift(DynamicObject array, Object n);
 
@@ -1899,7 +1899,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
         protected Object shiftNToInt(DynamicObject array, Object n,
-                @Cached ConvertToIntNode toIntNode) {
+                @Cached ToIntNode toIntNode) {
             return executeShift(array, toIntNode.execute(n));
         }
 
