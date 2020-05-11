@@ -112,12 +112,14 @@ describe "Kernel#BigDecimal" do
     neg_inf.should < 0
   end
 
-  describe "with exception: false" do
-    it "returns nil for invalid strings" do
-      BigDecimal("invalid", exception: false).should be_nil
-      BigDecimal("0invalid", exception: false).should be_nil
-      BigDecimal("invalid0", exception: false).should be_nil
-      BigDecimal("0.", exception: false).should be_nil
+  ruby_version_is "2.6" do
+    describe "with exception: false" do
+      it "returns nil for invalid strings" do
+        BigDecimal("invalid", exception: false).should be_nil
+        BigDecimal("0invalid", exception: false).should be_nil
+        BigDecimal("invalid0", exception: false).should be_nil
+        BigDecimal("0.", exception: false).should be_nil
+      end
     end
   end
 
