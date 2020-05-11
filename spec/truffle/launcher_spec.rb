@@ -12,23 +12,22 @@ require 'benchmark'
 require 'json'
 
 describe "The launcher" do
+  @versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
+
+  @launchers = {
+    bundle: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
+    bundler: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
+    gem: /^#{Regexp.escape @versions['gems']['default']['gem']}$/,
+    irb: /^irb #{Regexp.escape @versions['gems']['default']['irb']}/,
+    rake: /^rake, version #{Regexp.escape @versions['gems']['default']['rake']}/,
+    rdoc: /^#{Regexp.escape @versions['gems']['default']['rdoc']}$/,
+    ri: /^ri #{Regexp.escape @versions['gems']['default']['rdoc']}$/,
+    ruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+    truffleruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
+  }
+
   before :all do
     @default_bindir = RbConfig::CONFIG['bindir']
-
-    @versions = JSON.parse(File.read(File.expand_path('../../../versions.json', __FILE__)))
-
-    @launchers = {
-      bundle: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
-      bundler: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
-      gem: /^#{Regexp.escape @versions['gems']['default']['gem']}$/,
-      irb: /^irb #{Regexp.escape @versions['gems']['default']['irb']}/,
-      rake: /^rake, version #{Regexp.escape @versions['gems']['default']['rake']}/,
-      rdoc: /^#{Regexp.escape @versions['gems']['default']['rdoc']}$/,
-      ri: /^ri #{Regexp.escape @versions['gems']['default']['rdoc']}$/,
-      ruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
-      truffleruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,
-    }
-
     @bin_dirs = [RbConfig::CONFIG['bindir'], *RbConfig::CONFIG['extra_bindirs'].split(File::PATH_SEPARATOR)]
   end
 
@@ -45,9 +44,9 @@ describe "The launcher" do
     File.dirname(RbConfig.ruby).should == @default_bindir
   end
 
-  it "runs other launchers as an -S command" do
-    @launchers.each do |launcher, test|
-      unless [:ruby, :truffleruby].include?(launcher)
+  @launchers.each do |launcher, test|
+    unless [:ruby, :truffleruby].include?(launcher)
+      it "runs #{launcher} as an -S command" do
         out = ruby_exe(nil, options: "-S#{launcher} --version")
         out.should =~ test
         $?.success?.should == true
@@ -55,9 +54,9 @@ describe "The launcher" do
     end
   end
 
-  it "supports running any other launcher in any of the bin/ directories" do
-    @bin_dirs.each do |bin_dir|
-      @launchers.each do |launcher, test|
+  @launchers.each do |launcher, test|
+    it "supports running #{launcher} in any of the bin/ directories" do
+      @bin_dirs.each do |bin_dir|
         out = `#{bin_dir}/#{launcher} --version`
         out.should =~ test
         $?.success?.should == true
@@ -65,13 +64,13 @@ describe "The launcher" do
     end
   end
 
-  it "supports running any other launcher symlinked" do
-    require 'tmpdir'
-    @bin_dirs.each do |bin_dir|
-      # Use the system tmp dir to not be under the Ruby home dir
-      Dir.mktmpdir do |path|
-        Dir.chdir(path) do
-          @launchers.each do |launcher, test|
+  @launchers.each do |launcher, test|
+    it "supports running #{launcher} symlinked" do
+      require 'tmpdir'
+      @bin_dirs.each do |bin_dir|
+        # Use the system tmp dir to not be under the Ruby home dir
+        Dir.mktmpdir do |path|
+          Dir.chdir(path) do
             linkname = "linkto#{launcher}"
             File.symlink("#{bin_dir}/#{launcher}", linkname)
             out = `./#{linkname} --version 2>&1`
