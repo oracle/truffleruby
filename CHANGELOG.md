@@ -13,6 +13,7 @@ Compatibility:
 
 * Implement `UnboundMethod#bind_call`.
 * Implemented `ObjectSpace::WeakMap` (#1385, #1958).
+* Implemented `strtod` and `ruby_strtod` (#2007).
 
 Performance:
 
