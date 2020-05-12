@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.tracepoint;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -28,6 +29,7 @@ import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
@@ -166,9 +168,15 @@ public abstract class TracePointNodes {
     private abstract static class TracePointCoreNode extends CoreMethodArrayArgumentsNode {
 
         @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode = GetCurrentRubyThreadNode.create();
+        private final BranchProfile errorProfile = BranchProfile.create();
 
         protected TracePointState getTracePointState() {
-            return Layouts.THREAD.getTracePointState(getCurrentRubyThreadNode.execute());
+            final TracePointState state = Layouts.THREAD.getTracePointState(getCurrentRubyThreadNode.execute());
+            if (!state.insideProc) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("access from outside", this));
+            }
+            return state;
         }
 
     }
