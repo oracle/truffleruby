@@ -52,7 +52,8 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
         return toINode.executeToI(value);
     }
 
-    @Specialization(guards = "!isRubyBignum(object)")
+    // object can't be a DynamicObject, because we must handle booleans.
+    @Specialization(guards = { "!isRubyInteger(object)", "!isDouble(object)" })
     protected Object coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
             @Cached ToIntNode fitNode,
