@@ -115,6 +115,7 @@ import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
+import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
@@ -185,6 +186,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
@@ -336,7 +338,7 @@ public abstract class StringNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        public abstract DynamicObject executeInt(DynamicObject string, int times);
+        public abstract DynamicObject executeInteger(DynamicObject string, Object times);
 
         @Specialization(guards = "times < 0")
         protected DynamicObject multiplyTimesNegative(DynamicObject string, long times) {
@@ -363,11 +365,22 @@ public abstract class StringNodes {
                     Layouts.STRING.build(false, false, repeated));
         }
 
-        @Specialization(guards = { "!isEmpty(string)", "!isInteger(times)" })
-        protected DynamicObject multiply(DynamicObject string, Object times,
+        // Specialization for long that do not fit in an int, and cannot be otherwise handled.
+        @TruffleBoundary
+        @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
+        protected DynamicObject multiplyNonEmpty(DynamicObject string, long times,
                 @Cached ToIntNode toIntNode) {
-            // TODO probably needs no range restrictions (use ConvertToLongNode)
-            return executeInt(string, toIntNode.execute(times));
+            // Will throw the proper conversion exception.
+            toIntNode.execute(times);
+            throw new UnreachableCodeException();
+        }
+
+        @Specialization(guards = { "!isBasicInteger(times)" })
+        protected DynamicObject multiplyObject(DynamicObject string, Object times,
+                @Cached ToLongNode toLongNode,
+                @Cached FixnumLowerNode lowerNode) {
+            // TODO review: @Cached MulNode here to avoid recursion?
+            return executeInteger(string, lowerNode.executeLower(toLongNode.execute(times)));
         }
     }
 

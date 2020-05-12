@@ -22,6 +22,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
@@ -48,6 +49,7 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "Integer", isClass = true)
 public abstract class IntegerNodes {
@@ -1148,15 +1150,16 @@ public abstract class IntegerNodes {
             } else {
                 // We raise a RangeError.
                 // MRI would raise a NoMemoryError; JRuby would raise a coercion error.
-                return executeLeftShift(a, toIntNode.execute(b));
+                toIntNode.execute(b);
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                throw new UnreachableCodeException();
             }
         }
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object leftShiftCoerced(Object a, Object b,
-                @Cached ToIntNode toIntNode) {
-            // TODO this shouldn't range limit, probably
-            return executeLeftShift(a, toIntNode.execute(b));
+                @Cached ToRubyIntegerNode toRubyIntNode) {
+            return executeLeftShift(a, toRubyIntNode.execute(b));
         }
 
         private Object absoluteValue(Object value) {
@@ -1262,9 +1265,8 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object rightShiftCoerced(Object a, Object b,
-                @Cached ToIntNode toIntNode) {
-            // TODO this shouldn't range limit, probably
-            return executeRightShift(a, toIntNode.execute(b));
+                @Cached ToRubyIntegerNode toRubyIntNode) {
+            return executeRightShift(a, toRubyIntNode.execute(b));
         }
 
         protected static boolean isPositive(DynamicObject b) {
