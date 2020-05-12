@@ -31,7 +31,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -60,7 +59,7 @@ public abstract class MutexNodes {
     public abstract static class LockNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject lock(VirtualFrame frame, DynamicObject mutex,
+        protected DynamicObject lock(DynamicObject mutex,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
@@ -70,7 +69,7 @@ public abstract class MutexNodes {
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }
 
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject thread = getCurrentRubyThreadNode.execute();
             MutexOperations.lock(getContext(), lock, thread, this);
             return mutex;
         }
@@ -99,11 +98,11 @@ public abstract class MutexNodes {
     public abstract static class TryLockNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected boolean tryLock(VirtualFrame frame, DynamicObject mutex,
+        protected boolean tryLock(DynamicObject mutex,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile heldByCurrentThreadProfile) {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject thread = getCurrentRubyThreadNode.execute();
 
             if (heldByCurrentThreadProfile.profile(lock.isHeldByCurrentThread())) {
                 return false;
@@ -128,11 +127,11 @@ public abstract class MutexNodes {
     public abstract static class UnlockNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject unlock(VirtualFrame frame, DynamicObject mutex,
+        protected DynamicObject unlock(DynamicObject mutex,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject thread = getCurrentRubyThreadNode.execute();
 
             MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
             MutexOperations.unlock(lock, thread);
@@ -145,11 +144,11 @@ public abstract class MutexNodes {
     public abstract static class SynchronizeNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object synchronize(VirtualFrame frame, DynamicObject mutex, DynamicObject block,
+        protected Object synchronize(DynamicObject mutex, DynamicObject block,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject thread = getCurrentRubyThreadNode.execute();
 
             if (lock.isHeldByCurrentThread()) {
                 errorProfile.enter();
@@ -178,11 +177,11 @@ public abstract class MutexNodes {
         }
 
         @Specialization
-        protected long sleep(VirtualFrame frame, DynamicObject mutex, long durationInMillis,
+        protected long sleep(DynamicObject mutex, long durationInMillis,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = Layouts.MUTEX.getLock(mutex);
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject thread = getCurrentRubyThreadNode.execute();
 
             MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
 

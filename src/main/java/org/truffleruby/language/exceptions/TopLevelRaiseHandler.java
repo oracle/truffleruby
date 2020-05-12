@@ -43,7 +43,7 @@ public class TopLevelRaiseHandler extends RubyContextSourceNode {
         } catch (RaiseException e) {
             DynamicObject rubyException = AtExitManager.handleAtExitException(getContext(), e);
             caughtException = rubyException;
-            setLastException(frame, rubyException);
+            setLastException(rubyException);
             exitCode = statusFromException(rubyException);
         } catch (ExitException e) {
             exitCode = e.getCode();
@@ -79,13 +79,13 @@ public class TopLevelRaiseHandler extends RubyContextSourceNode {
         return integerCastNode.executeCastInt(value);
     }
 
-    public void setLastException(VirtualFrame frame, DynamicObject exception) {
+    public void setLastException(DynamicObject exception) {
         if (setExceptionVariableNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             setExceptionVariableNode = insert(new SetExceptionVariableNode());
         }
 
-        setExceptionVariableNode.setLastException(frame, exception);
+        setExceptionVariableNode.setLastException(exception);
     }
 
     private void handleSignalException(DynamicObject exception) {

@@ -1744,7 +1744,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected long sleep(VirtualFrame frame, long durationInMillis,
+        protected long sleep(long durationInMillis,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             if (durationInMillis < 0) {
@@ -1754,7 +1754,7 @@ public abstract class KernelNodes {
                         coreExceptions().argumentError("time interval must be positive", this));
             }
 
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject thread = getCurrentRubyThreadNode.execute();
 
             // Clear the wakeUp flag, following Ruby semantics:
             // it should only be considered if we are inside the sleep when Thread#{run,wakeup} is called.

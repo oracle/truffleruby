@@ -14,13 +14,12 @@ import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(value = { RubyGuards.class })
 public abstract class SingleValueCastNode extends RubyContextNode {
 
-    public abstract Object executeSingleValue(VirtualFrame frame, Object[] args);
+    public abstract Object executeSingleValue(Object[] args);
 
     @Specialization(guards = "noArguments(args)")
     protected Object castNil(Object[] args) {
