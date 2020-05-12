@@ -21,6 +21,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+/** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToLongNode extends RubyContextSourceNode {
 

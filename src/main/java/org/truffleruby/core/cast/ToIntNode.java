@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.numeric.IntegerNodes.IntegerLowerNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -21,6 +22,21 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+/** Node used to convert a value into a 32-bits Java int, calling {@code to_int} if the value is not yet a Ruby integer.
+ * Use this whenever Ruby allows conversions using {@code to_int} and you need a 32-bits int for implementation reasons.
+ *
+ * <p>
+ * Alternatively, consider:
+ * <ul>
+ * <li>{@link ToLongNode}: similar, but for 64-bits Java long, often used similar to MRI where functions usually reject
+ * integers that do not fit into 64 bits</li>
+ * <li>{@link IntegerCastNode}, {@link LongCastNode}: whenever {@code to_int} conversion is not required.</li>
+ * <li>{@link ToRubyIntegerNode}: when only {@code to_int} conversion is needed, but the resulting value can be a
+ * Bignum.</li>
+ * <li>{@link IntegerLowerNode}: to lower {@code long} into {@code int} values if they fit. Can be useful conjointly
+ * with {@link ToLongNode}.</li>
+ * </ul>
+*/
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToIntNode extends RubyContextSourceNode {
 
