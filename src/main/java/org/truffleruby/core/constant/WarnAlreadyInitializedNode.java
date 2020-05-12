@@ -21,9 +21,14 @@ public class WarnAlreadyInitializedNode extends RubyContextNode {
 
     @Child private WarnNode warnNode = new WarnNode();
 
+    public boolean shouldWarn() {
+        return warnNode.shouldWarn();
+    }
+
     @TruffleBoundary
     public void warnAlreadyInitialized(DynamicObject module, String name, SourceSection sourceSection,
             SourceSection previousSourceSection) {
+        assert shouldWarn();
         final String constName = ModuleOperations.constantNameNoLeadingColon(getContext(), module, name);
         warnNode.warningMessage(sourceSection, "already initialized constant " + constName);
         if (previousSourceSection != null) {

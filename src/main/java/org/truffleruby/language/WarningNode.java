@@ -9,17 +9,14 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.source.SourceSection;
-
 /** Warns only if $VERBOSE is true. Corresponds to Kernel#warn(message, uplevel: 1) if $VERBOSE, but in Java with a
  * given SourceSection. */
 public class WarningNode extends WarnNode {
 
     @Override
-    public void warningMessage(SourceSection sourceSection, String message) {
-        if (coreLibrary().isVerbose()) {
-            callWarn(sourceSection, message);
-        }
+    public boolean shouldWarn() {
+        final Object verbosity = readVerboseNode.execute();
+        return verbosity == Boolean.TRUE;
     }
 
 }

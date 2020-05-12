@@ -61,7 +61,10 @@ public class WriteClassVariableNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());
         }
-        warnNode.warningMessage(getSourceSection(), "class variable access from toplevel");
+
+        if (warnNode.shouldWarn()) {
+            warnNode.warningMessage(getSourceSection(), "class variable access from toplevel");
+        }
     }
 
 }

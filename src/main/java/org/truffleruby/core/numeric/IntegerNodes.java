@@ -1684,9 +1684,11 @@ public abstract class IntegerNodes {
                 return FAILURE;
             }
 
-            warnNode.warningMessage(
-                    getContext().getCallStack().getTopMostUserSourceSection(),
-                    "in a**b, b may be too big");
+            if (warnNode.shouldWarn()) {
+                warnNode.warningMessage(
+                        getContext().getCallStack().getTopMostUserSourceSection(),
+                        "in a**b, b may be too big");
+            }
             // b >= 2**63 && (a > 1 || a < -1) => larger than largest double
             // MRI behavior/bug: always positive Infinity even if a negative and b odd (likely due
             // to libc pow(a, +inf)).
@@ -1708,9 +1710,11 @@ public abstract class IntegerNodes {
                 // We replicate the logic exactly so we match MRI's ranges.
                 if (maybeTooBigProfile
                         .profile(baseBitLength > BIGLEN_LIMIT || (baseBitLength * exponent > BIGLEN_LIMIT))) {
-                    warnNode.warningMessage(
-                            getContext().getCallStack().getTopMostUserSourceSection(),
-                            "in a**b, b may be too big");
+                    if (warnNode.shouldWarn()) {
+                        warnNode.warningMessage(
+                                getContext().getCallStack().getTopMostUserSourceSection(),
+                                "in a**b, b may be too big");
+                    }
                     return BigIntegerOps.pow(bigIntegerBase, /* as double */ exponent);
                 }
 

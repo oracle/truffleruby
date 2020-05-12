@@ -12,9 +12,11 @@ package org.truffleruby.language;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -23,20 +25,38 @@ import com.oracle.truffle.api.source.SourceSection;
  * given SourceSection. */
 public class WarnNode extends RubyContextNode {
 
-    @Child private CallDispatchHeadNode warnMethod = CallDispatchHeadNode.createPrivate();
-    @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+    @Child protected ReadSimpleGlobalVariableNode readVerboseNode = ReadSimpleGlobalVariableNode.create("$VERBOSE");
 
+    @Child private CallDispatchHeadNode callWarnNode;
+    @Child private MakeStringNode makeStringNode;
+
+    public boolean shouldWarn() {
+        final Object verbosity = readVerboseNode.execute();
+        return verbosity != nil;
+    }
+
+    /** Must only be called if {@link #shouldWarn()} is true, in order to avoid computing a SourceSection and message if
+     * not needed. */
     public void warningMessage(SourceSection sourceSection, String message) {
-        if (coreLibrary().warningsEnabled()) {
-            callWarn(sourceSection, message);
-        }
+        assert shouldWarn();
+        callWarn(sourceSection, message);
     }
 
     void callWarn(SourceSection sourceSection, String message) {
         final String warningMessage = buildWarningMessage(getContext(), sourceSection, message);
+
+        if (makeStringNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            makeStringNode = insert(MakeStringNode.create());
+        }
         final DynamicObject warningString = makeStringNode
                 .executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        warnMethod.call(getContext().getCoreLibrary().kernelModule, "warn", warningString);
+
+        if (callWarnNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            callWarnNode = insert(CallDispatchHeadNode.createPrivate());
+        }
+        callWarnNode.call(getContext().getCoreLibrary().kernelModule, "warn", warningString);
     }
 
     @TruffleBoundary

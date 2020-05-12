@@ -71,7 +71,10 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warningNode = insert(new WarningNode());
         }
-        warningNode.warningMessage(getSourceSection(), getWarningMessage());
+
+        if (warningNode.shouldWarn()) {
+            warningNode.warningMessage(getSourceSection(), getWarningMessage());
+        }
     }
 
     @TruffleBoundary

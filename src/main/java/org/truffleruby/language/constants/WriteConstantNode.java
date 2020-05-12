@@ -11,8 +11,8 @@ package org.truffleruby.language.constants;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -57,13 +57,15 @@ public class WriteConstantNode extends RubyContextSourceNode {
         return value;
     }
 
-    private void warnAlreadyInitializedConstant(DynamicObject module, String name,
-            SourceSection previousSourceSection) {
+    private void warnAlreadyInitializedConstant(DynamicObject module, String name, SourceSection prevSourceSection) {
         if (warnAlreadyInitializedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnAlreadyInitializedNode = insert(new WarnAlreadyInitializedNode());
         }
-        warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, getSourceSection(), previousSourceSection);
+
+        if (warnAlreadyInitializedNode.shouldWarn()) {
+            warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, getSourceSection(), prevSourceSection);
+        }
     }
 
 }

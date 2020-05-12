@@ -10,8 +10,8 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -29,9 +29,11 @@ public abstract class LookupConstantBaseNode extends RubyContextNode {
             warnNode = insert(new WarnNode());
         }
 
-        warnNode.warningMessage(
-                getSection(),
-                "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated");
+        if (warnNode.shouldWarn()) {
+            warnNode.warningMessage(
+                    getSection(),
+                    "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated");
+        }
     }
 
     @TruffleBoundary

@@ -478,8 +478,11 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 warnNode = insert(new WarningNode());
             }
-            final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-            warnNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
+
+            if (warnNode.shouldWarn()) {
+                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+                warnNode.warningMessage(sourceSection, "optional boolean argument is obsoleted");
+            }
         }
 
     }
@@ -1084,8 +1087,11 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 warnAlreadyInitializedNode = insert(new WarnAlreadyInitializedNode());
             }
-            final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-            warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, sourceSection, previousSourceSection);
+
+            if (warnAlreadyInitializedNode.shouldWarn()) {
+                final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+                warnAlreadyInitializedNode.warnAlreadyInitialized(module, name, sourceSection, previousSourceSection);
+            }
         }
 
     }
