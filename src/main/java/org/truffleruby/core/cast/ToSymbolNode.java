@@ -38,13 +38,13 @@ public abstract class ToSymbolNode extends RubyBaseNode {
     @Specialization(guards = "isRubyString(string)")
     protected DynamicObject toSymbolString(DynamicObject string,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getSymbolTable().getSymbol((StringOperations.rope(string)));
+        return context.getSymbol((StringOperations.rope(string)));
     }
 
     @Specialization
     protected DynamicObject toSymbol(String string,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getSymbolTable().getSymbol(string);
+        return context.getSymbol(string);
     }
 
 }

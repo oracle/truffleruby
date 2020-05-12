@@ -49,7 +49,7 @@ public abstract class CallSuperMethodNode extends FrameSendingNode {
         if (missingProfile.profile(superMethod == null)) {
             final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getName(); // use the original name
             final Object[] methodMissingArguments = ArrayUtils
-                    .unshift(arguments, getContext().getSymbolTable().getSymbol(name));
+                    .unshift(arguments, getContext().getSymbol(name));
             return callMethodMissing(frame, self, block, methodMissingArguments);
         }
 

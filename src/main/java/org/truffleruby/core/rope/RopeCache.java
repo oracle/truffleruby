@@ -10,25 +10,17 @@
 package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
-import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
-import org.truffleruby.core.Hashing;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class RopeCache {
-
-    private final Hashing hashing;
 
     private final WeakValueCache<BytesKey, Rope> bytesToRope = new WeakValueCache<>();
 
     private int byteArrayReusedCount;
     private int ropesReusedCount;
     private int ropeBytesSaved;
-
-    public RopeCache(RubyContext context) {
-        this.hashing = context.getHashing(bytesToRope);
-    }
 
     public Rope getRope(Rope string) {
         return getRope(string.getBytes(), string.getEncoding(), string.getCodeRange());
@@ -42,7 +34,7 @@ public class RopeCache {
     public Rope getRope(byte[] bytes, Encoding encoding, CodeRange codeRange) {
         assert encoding != null;
 
-        final BytesKey key = new BytesKey(bytes, encoding, hashing);
+        final BytesKey key = new BytesKey(bytes, encoding);
 
         final Rope rope = bytesToRope.get(key);
         if (rope != null) {
@@ -57,7 +49,7 @@ public class RopeCache {
         // reference equality optimizations. So, do another search but with a marker encoding. The only guarantee
         // we can make about the resulting rope is that it would have the same logical byte[], but that's good enough
         // for our purposes.
-        final Rope ropeWithSameBytesButDifferentEncoding = bytesToRope.get(new BytesKey(bytes, null, hashing));
+        final Rope ropeWithSameBytesButDifferentEncoding = bytesToRope.get(new BytesKey(bytes, null));
 
         final Rope newRope;
         if (ropeWithSameBytesButDifferentEncoding != null) {
@@ -70,12 +62,12 @@ public class RopeCache {
         }
 
         // Use the new Rope bytes in the cache, so we do not keep bytes alive unnecessarily.
-        final BytesKey newKey = new BytesKey(newRope.getBytes(), newRope.getEncoding(), hashing);
+        final BytesKey newKey = new BytesKey(newRope.getBytes(), newRope.getEncoding());
         return bytesToRope.addInCacheIfAbsent(newKey, newRope);
     }
 
     public boolean contains(Rope rope) {
-        final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding(), hashing);
+        final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding());
 
         return bytesToRope.get(key) != null;
     }

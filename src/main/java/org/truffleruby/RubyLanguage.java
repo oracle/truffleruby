@@ -13,6 +13,8 @@ import java.util.Arrays;
 
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.rope.RopeCache;
+import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.debug.LexicalScope;
 import org.truffleruby.language.NotProvided;
@@ -30,6 +32,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
 import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
@@ -41,6 +44,7 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 @TruffleLanguage.Registration(
         name = "Ruby",
+        contextPolicy = ContextPolicy.EXCLUSIVE,
         id = TruffleRuby.LANGUAGE_ID,
         implementationName = TruffleRuby.FORMAL_NAME,
         version = TruffleRuby.LANGUAGE_VERSION,
@@ -77,6 +81,14 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     private final CyclicAssumption tracingCyclicAssumption = new CyclicAssumption("object-space-tracing");
     @CompilationFinal private volatile Assumption tracingAssumption = tracingCyclicAssumption.getAssumption();
+
+    public final RopeCache ropeCache;
+    public final SymbolTable symbolTable;
+
+    public RubyLanguage() {
+        ropeCache = new RopeCache();
+        symbolTable = new SymbolTable(ropeCache);
+    }
 
     public Assumption getTracingAssumption() {
         return tracingAssumption;
@@ -174,7 +186,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
         Object implicit = context.send(
                 context.getCoreLibrary().truffleInteropModule,
                 "lookup_symbol",
-                context.getSymbolTable().getSymbol(symbolName));
+                symbolTable.getSymbol(symbolName, context.getCoreLibrary().symbolFactory));
         if (implicit == NotProvided.INSTANCE) {
             return null;
         } else {

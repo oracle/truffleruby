@@ -174,7 +174,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
     private class DefinedNode extends RubyBaseNode {
 
-        private final DynamicObject methodNameSymbol = getContext().getSymbolTable().getSymbol(methodName);
+        private final DynamicObject methodNameSymbol = getContext().getSymbol(methodName);
 
         @Child private CallDispatchHeadNode respondToMissing = CallDispatchHeadNode.createReturnMissing();
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);

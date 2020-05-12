@@ -130,7 +130,7 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             final String[] names = arity.getKeywordArguments();
             final DynamicObject[] symbols = new DynamicObject[names.length];
             for (int i = 0; i < names.length; i++) {
-                symbols[i] = context.getSymbolTable().getSymbol(names[i]);
+                symbols[i] = context.getSymbol(names[i]);
             }
             return symbols;
         }

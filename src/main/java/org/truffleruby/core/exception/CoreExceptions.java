@@ -746,7 +746,7 @@ public class CoreExceptions {
                 null,
                 null,
                 receiver,
-                context.getSymbolTable().getSymbol(name)));
+                context.getSymbol(name)));
     }
 
     public DynamicObject nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
@@ -763,7 +763,7 @@ public class CoreExceptions {
                         null,
                         null,
                         receiver,
-                        context.getSymbolTable().getSymbol(name)));
+                        context.getSymbol(name)));
         showExceptionIfDebug(exception, backtrace);
         return exception;
     }
@@ -787,7 +787,7 @@ public class CoreExceptions {
                         null,
                         null,
                         receiver,
-                        context.getSymbolTable().getSymbol(name),
+                        context.getSymbol(name),
                         argsArray));
     }
 
@@ -807,7 +807,7 @@ public class CoreExceptions {
                         null,
                         null,
                         receiver,
-                        context.getSymbolTable().getSymbol(name),
+                        context.getSymbol(name),
                         argsArray));
         showExceptionIfDebug(exception, backtrace);
         return exception;
@@ -832,7 +832,7 @@ public class CoreExceptions {
                 null,
                 null,
                 // FIXME: the name of the method is not known in this case currently
-                context.getSymbolTable().getSymbol("<unknown>")));
+                context.getSymbol("<unknown>")));
     }
 
     public DynamicObject noMethodErrorUnknownIdentifier(Object receiver, String name, Object[] args,

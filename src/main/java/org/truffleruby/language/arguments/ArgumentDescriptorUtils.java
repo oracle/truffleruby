@@ -49,12 +49,12 @@ public class ArgumentDescriptorUtils {
 
         if (argType.anonymous || name == null) {
             store = new Object[]{
-                    context.getSymbolTable().getSymbol(argType.symbolicName)
+                    context.getSymbol(argType.symbolicName)
             };
         } else {
             store = new Object[]{
-                    context.getSymbolTable().getSymbol(argType.symbolicName),
-                    context.getSymbolTable().getSymbol(name)
+                    context.getSymbol(argType.symbolicName),
+                    context.getSymbol(name)
             };
         }
 

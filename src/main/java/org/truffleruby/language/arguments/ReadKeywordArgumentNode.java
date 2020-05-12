@@ -30,7 +30,7 @@ public class ReadKeywordArgumentNode extends RubyContextSourceNode implements Bi
     @Child private HashLookupOrExecuteDefaultNode hashLookupNode;
 
     public ReadKeywordArgumentNode(RubyContext context, int minimum, String name, RubyNode defaultValue) {
-        this.name = context.getSymbolTable().getSymbol(name);
+        this.name = context.getSymbol(name);
         this.defaultValue = defaultValue;
         readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
     }

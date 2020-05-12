@@ -354,7 +354,7 @@ public abstract class BindingNodes {
         private static void addNamesFromFrame(RubyContext context, Frame frame, final Set<Object> names) {
             for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
                 if (!isHiddenVariable(slot.getIdentifier())) {
-                    names.add(context.getSymbolTable().getSymbol((String) slot.getIdentifier()));
+                    names.add(context.getSymbol((String) slot.getIdentifier()));
                 }
             }
         }

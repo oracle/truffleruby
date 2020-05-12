@@ -210,7 +210,7 @@ public class TraceManager {
                         event,
                         getFile(file),
                         line,
-                        context.getSymbolTable().getSymbol(RubyArguments.getMethod(frame).getName()),
+                        context.getSymbol(RubyArguments.getMethod(frame).getName()),
                         BindingNodes.createBinding(
                                 context,
                                 frame.materialize(),
