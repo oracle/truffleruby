@@ -12,6 +12,7 @@ package org.truffleruby.language.globals;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 
+/** A helper class to read global variables on the slow path, supporting the GlobalVariableStorage to be replaced. */
 public class GlobalVariableReader {
 
     private final String name;
