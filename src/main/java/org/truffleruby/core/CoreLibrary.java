@@ -671,7 +671,7 @@ public class CoreLibrary {
         emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
         argv = Layouts.ARRAY.createArray(arrayFactory, ArrayStoreLibrary.INITIAL_STORE, 0);
 
-        globalVariables = new GlobalVariables(Nil.INSTANCE);
+        globalVariables = new GlobalVariables();
 
         // No need for new version since it's null before which is not cached
         assert Layouts.CLASS.getSuperclass(basicObjectClass) == null;

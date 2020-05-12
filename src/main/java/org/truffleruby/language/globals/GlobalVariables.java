@@ -21,12 +21,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public class GlobalVariables {
 
-    private final Object defaultValue;
     private final ConcurrentMap<String, GlobalVariableStorage> variables = new ConcurrentHashMap<>();
-
-    public GlobalVariables(Object defaultValue) {
-        this.defaultValue = defaultValue;
-    }
 
     public boolean doesVariableExist(String name) {
         return variables.containsKey(name);
@@ -40,7 +35,7 @@ public class GlobalVariables {
         return ConcurrentOperations.getOrCompute(
                 variables,
                 name,
-                k -> new GlobalVariableStorage(defaultValue, null, null, null));
+                k -> new GlobalVariableStorage(null, null, null));
     }
 
     public GlobalVariableReader getReader(String name) {
@@ -48,12 +43,12 @@ public class GlobalVariables {
     }
 
     public GlobalVariableStorage define(String name, Object value) {
-        return define(name, new GlobalVariableStorage(value, defaultValue, null, null, null));
+        return define(name, new GlobalVariableStorage(value, null, null, null));
     }
 
     public GlobalVariableStorage define(String name, DynamicObject getter, DynamicObject setter,
             DynamicObject isDefined) {
-        return define(name, new GlobalVariableStorage(defaultValue, getter, setter, isDefined));
+        return define(name, new GlobalVariableStorage(getter, setter, isDefined));
     }
 
     private GlobalVariableStorage define(String name, GlobalVariableStorage storage) {
