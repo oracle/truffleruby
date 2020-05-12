@@ -17,6 +17,7 @@ import java.util.concurrent.locks.Lock;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -49,6 +50,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             DynamicObject threadLocalVariables,
             DynamicObject recursiveObjects,
             DynamicObject randomizer,
+            TracePointState tracePointState,
             boolean reportOnException,
             boolean abortOnException,
             @Nullable @Volatile Thread thread,
@@ -78,6 +80,8 @@ public interface ThreadLayout extends BasicObjectLayout {
     List<Lock> getOwnedLocks(DynamicObject object);
 
     DynamicObject getRandomizer(DynamicObject object);
+
+    TracePointState getTracePointState(DynamicObject object);
 
     boolean getReportOnException(DynamicObject object);
 
