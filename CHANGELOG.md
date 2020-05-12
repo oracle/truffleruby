@@ -7,7 +7,7 @@ Bug fixes:
 * Use upgraded default gems when installed (#1956).
 * Fixed `NameError` when requiring an autoload path that does not define the autoload constant (#1905).
 * Thread local IO buffers are now allocated using a stack to ensure safe operating if a signal handler uses one during an IO operation.
-
+* Fixed `TracePoint` thread-safety by storing the state on the Ruby `Thread` (like MRI) instead of inside the `TracePoint` instance.
 
 Compatibility:
 
