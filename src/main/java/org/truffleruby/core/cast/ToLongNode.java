@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -62,8 +63,17 @@ public abstract class ToLongNode extends RubyContextSourceNode {
         return longValue;
     }
 
+    @Specialization
+    protected long coerceNil(Nil nil) {
+        // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
+        // catch-all case.
+        throw new RaiseException(
+                getContext(),
+                coreExceptions().typeError("no implicit conversion form nil into to integer", this));
+    }
+
     // object can't be a DynamicObject, because we must handle booleans.
-    @Specialization(guards = { "!isRubyInteger(object)", "!isDouble(object)" })
+    @Specialization(guards = { "!isRubyInteger(object)", "!isDouble(object)", "!isNil(object)" })
     protected long coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
             @Cached ToLongNode fitNode,
