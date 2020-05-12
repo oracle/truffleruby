@@ -252,7 +252,6 @@ public class CoreLibrary {
     @CompilationFinal private SharedMethodInfo truffleBootMainInfo;
 
     @CompilationFinal private GlobalVariableReader loadPathReader;
-    @CompilationFinal private GlobalVariableReader loadedFeaturesReader;
     @CompilationFinal private GlobalVariableReader debugReader;
     @CompilationFinal private GlobalVariableReader verboseReader;
     @CompilationFinal private GlobalVariableReader stdinReader;
@@ -771,7 +770,6 @@ public class CoreLibrary {
 
     private void findGlobalVariableStorage() {
         loadPathReader = globalVariables.getReader("$LOAD_PATH");
-        loadedFeaturesReader = globalVariables.getReader("$LOADED_FEATURES");
         debugReader = globalVariables.getReader("$DEBUG");
         verboseReader = globalVariables.getReader("$VERBOSE");
         stdinReader = globalVariables.getReader("$stdin");
@@ -1042,10 +1040,6 @@ public class CoreLibrary {
 
     public DynamicObject getLoadPath() {
         return (DynamicObject) loadPathReader.getValue(globalVariables);
-    }
-
-    public DynamicObject getLoadedFeatures() {
-        return (DynamicObject) loadedFeaturesReader.getValue(globalVariables);
     }
 
     public Object getDebug() {
