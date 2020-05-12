@@ -82,6 +82,7 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
+import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -105,7 +106,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.utils.Utils;
 
 @CoreModule("Truffle::CExt")
 public class CExtNodes {
@@ -165,9 +165,9 @@ public class CExtNodes {
         @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
-        protected Object callCWithMutex(VirtualFrame frame, Object receiver, DynamicObject argsArray, Object block,
+        protected Object callCWithMutex(Object receiver, DynamicObject argsArray, Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            ExtensionCallStack extensionStack = getDataNode.execute(frame).getExtensionCallStack();
+            ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
             extensionStack.push(block);
 
             try {
@@ -637,9 +637,9 @@ public class CExtNodes {
     public abstract static class BlockProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object block(VirtualFrame frame,
+        protected Object block(
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
-            return getDataNode.execute(frame).getExtensionCallStack().getBlock();
+            return getDataNode.execute().getExtensionCallStack().getBlock();
         }
     }
 
