@@ -4,7 +4,7 @@ describe 'TracePoint#enable' do
   # def test; end
 
   describe 'without a block' do
-    it 'returns true if trace was enabled' do
+    it 'returns false if trace was disabled' do
       called = false
       trace = TracePoint.new(:line) do |tp|
         called = true
@@ -13,8 +13,9 @@ describe 'TracePoint#enable' do
       line_event = true
       called.should == false
 
-      trace.enable
+      ret = trace.enable
       begin
+        ret.should == false
         line_event = true
         called.should == true
       ensure
@@ -22,30 +23,26 @@ describe 'TracePoint#enable' do
       end
     end
 
-    it 'returns false if trace was disabled' do
+    it 'returns true if trace was already enabled' do
       called = false
       trace = TracePoint.new(:line) do |tp|
         called = true
       end
 
-      trace.enable.should == false
-      begin
-        line_event = true
-        called.should == true
-      ensure
-        trace.disable
-      end
-
-      called = false
       line_event = true
       called.should == false
 
-      trace.enable.should == false
+      ret = trace.enable
       begin
+        ret.should == false
+
+        trace.enable.should == true
+
         line_event = true
         called.should == true
       ensure
         trace.disable
+        trace.should_not.enabled?
       end
     end
   end
