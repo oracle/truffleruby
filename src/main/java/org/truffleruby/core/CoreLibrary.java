@@ -261,6 +261,7 @@ public class CoreLibrary {
     private final ConcurrentMap<String, Boolean> patchFiles;
 
     public final String coreLoadPath;
+    public final String corePath;
 
     @TruffleBoundary
     private SourceSection initCoreSourceSection(RubyContext context) {
@@ -330,6 +331,7 @@ public class CoreLibrary {
     public CoreLibrary(RubyContext context) {
         this.context = context;
         this.coreLoadPath = buildCoreLoadPath();
+        this.corePath = coreLoadPath + File.separator + "core" + File.separator;
         this.sourceSection = initCoreSourceSection(context);
         this.node = new CoreLibraryNode();
 

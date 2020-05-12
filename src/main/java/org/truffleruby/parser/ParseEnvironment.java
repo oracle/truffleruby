@@ -9,8 +9,6 @@
  */
 package org.truffleruby.parser;
 
-import java.io.File;
-
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.control.BreakID;
@@ -26,7 +24,7 @@ public class ParseEnvironment {
 
     public ParseEnvironment(RubyContext context) {
         if (context != null) {
-            corePath = context.getCoreLibrary().coreLoadPath + File.separator + "core" + File.separator;
+            corePath = context.getCoreLibrary().corePath;
         } else {
             corePath = null;
         }
