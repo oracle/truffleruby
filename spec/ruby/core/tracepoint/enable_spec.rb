@@ -93,6 +93,33 @@ describe 'TracePoint#enable' do
     end
   end
 
+  describe "when nested" do
+    it "enables both TracePoints but only calls the respective callbacks" do
+      called = false
+      first = TracePoint.new(:line) do |tp|
+        called = true
+      end
+
+      all = []
+      inspects = []
+      second = TracePoint.new(:line) { |tp|
+        all << tp
+        inspects << tp.inspect
+      }
+
+      line = nil
+      first.enable do
+        second.enable do
+          line = __LINE__
+        end
+      end
+
+      all.uniq.should == [second]
+      inspects.uniq.should == ["#<TracePoint:line@#{__FILE__}:#{line}>"]
+      called.should == true
+    end
+  end
+
   ruby_version_is "2.6" do
     describe 'target: option' do
       before :each do
