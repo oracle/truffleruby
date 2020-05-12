@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Casts a value into a long. */
 @GenerateUncached
@@ -43,18 +42,12 @@ public abstract class LongCastNode extends RubyBaseNode {
         return value;
     }
 
+    @TruffleBoundary
     @Specialization(guards = "!isBasicInteger(value)")
     protected long doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        throw new RaiseException(context, notAFixnum(context, value));
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().typeErrorIsNotA(value.toString(), "Integer (fitting in long)", this));
     }
-
-    @TruffleBoundary
-    private DynamicObject notAFixnum(RubyContext context, Object object) {
-        return context.getCoreExceptions().typeErrorIsNotA(
-                object.toString(),
-                "Fixnum (fitting in long)",
-                this);
-    }
-
 }
