@@ -281,7 +281,7 @@ public abstract class ArrayNodes {
 
         @CreateCast("index")
         protected RubyNode coerceOtherToInt(RubyNode index) {
-            return FixnumLowerNodeGen.create(ToIntNodeGen.create(index));
+            return FixnumLowerNodeGen.create(ToIntNode.create(index));
         }
 
         @Specialization
