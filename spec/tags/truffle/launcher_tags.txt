@@ -122,3 +122,12 @@ slow:The launcher supports running truffleruby in any of the bin/ directories
 slow:The launcher for gem can install and uninstall the hello-world gem
 slow:The launcher for gem shows that bundled gems are installed
 slow:The launcher '--vm.cp=' or '--vm.classpath=' add the jar
+slow:The launcher supports running bundle symlinked
+slow:The launcher supports running bundler symlinked
+slow:The launcher supports running gem symlinked
+slow:The launcher supports running irb symlinked
+slow:The launcher supports running rake symlinked
+slow:The launcher supports running rdoc symlinked
+slow:The launcher supports running ri symlinked
+slow:The launcher supports running ruby symlinked
+slow:The launcher supports running truffleruby symlinked
