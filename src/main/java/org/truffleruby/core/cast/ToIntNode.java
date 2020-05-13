@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.numeric.IntegerNodes.IntegerLowerNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -21,7 +20,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Node used to convert a value into a 32-bits Java int, calling {@code to_int} if the value is not yet a Ruby integer.
  * Use this whenever Ruby allows conversions using {@code to_int} and you need a 32-bits int for implementation reasons.
@@ -78,7 +76,7 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected long coerceNil(Nil nil) {
+    protected long coerceNil(Nil value) {
         // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
         // catch-all case.
         throw new RaiseException(
@@ -90,29 +88,8 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     @Specialization(guards = { "!isRubyInteger(object)", "!isNil(object)" })
     protected int coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
-            @Cached ToIntNode fitNode,
-            @Cached BranchProfile errorProfile) {
-        final Object coerced;
-        try {
-            coerced = toIntNode.call(object, "to_int");
-        } catch (RaiseException e) {
-            errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorNoImplicitConversion(object, "Integer", this));
-            } else {
-                throw e;
-            }
-        }
-
-        if (coreLibrary().getLogicalClass(coerced) != coreLibrary().integerClass) {
-            errorProfile.enter();
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeErrorBadCoercion(object, "Integer", "to_int", coerced, this));
-        }
-
+            @Cached ToIntNode fitNode) {
+        final Object coerced = toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int", object);
         return fitNode.execute(coerced);
     }
 }

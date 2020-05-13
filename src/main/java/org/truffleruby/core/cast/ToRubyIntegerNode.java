@@ -9,18 +9,14 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
-import org.truffleruby.core.numeric.FloatNodes;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @NodeChild(value = "child", type = RubyNode.class)
@@ -47,33 +43,10 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
         return value;
     }
 
-    // object can't be a DynamicObject, because we must handle booleans.
-    @Specialization(guards = "!isRubyInteger(object)")
+    // object can't be a DynamicObject, because we must handle doubles and booleans.
+    @Specialization(guards = { "!isRubyInteger(object)", "!isNil(object)" })
     protected Object coerceObject(Object object,
-            @Cached CallDispatchHeadNode toIntNode,
-            @Cached ToIntNode fitNode,
-            @Cached BranchProfile errorProfile) {
-        final Object coerced;
-        try {
-            coerced = toIntNode.call(object, "to_int");
-        } catch (RaiseException e) {
-            errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorNoImplicitConversion(object, "Integer", this));
-            } else {
-                throw e;
-            }
-        }
-
-        if (coreLibrary().getLogicalClass(coerced) != coreLibrary().integerClass) {
-            errorProfile.enter();
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().typeErrorBadCoercion(object, "Integer", "to_int", coerced, this));
-        }
-
-        return coerced;
+            @Cached CallDispatchHeadNode toIntNode) {
+        return toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int", object);
     }
 }
