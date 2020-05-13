@@ -125,31 +125,10 @@ module Truffle
 
     # MRI conversion macros and functions
 
-    def self.rb_num2int(val)
-      num = rb_num2long(val)
-      check_int(num)
-      num
-    end
-
     def self.rb_num2uint(val)
       num = rb_num2long(val)
       check_uint(num)
       num
-    end
-
-    def self.rb_num2long(val)
-      raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
-
-      if Primitive.object_kind_of?(val, Integer)
-        check_long(val)
-        val
-      elsif Primitive.object_kind_of?(val, Float)
-        fval = val.to_int
-        check_long(fval)
-        fval
-      else
-        rb_num2long(rb_to_int(val))
-      end
     end
 
     def self.rb_num2ulong(val)
@@ -342,7 +321,7 @@ module Truffle
     def self.check_funcall_respond_to(obj, meth, priv)
       # TODO Review BJF vm_respond_to
       if object_respond_to_no_built_in?(obj, :respond_to?, true)
-        if !!obj.__send__(:respond_to?, meth, true)
+        if obj.__send__(:respond_to?, meth, true)
           1
         else
           0
