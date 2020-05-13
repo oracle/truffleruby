@@ -223,7 +223,7 @@ public class Options {
     public final int ARRAY_DUP_CACHE;
     /** --frame-variable-access-cache=5 */
     public final int FRAME_VARIABLE_ACCESS_CACHE;
-    /** --array-strategy-cache=2 */
+    /** --array-strategy-cache=4 */
     public final int ARRAY_STRATEGY_CACHE;
     /** --array-uninitialized-size=16 */
     public final int ARRAY_UNINITIALIZED_SIZE;

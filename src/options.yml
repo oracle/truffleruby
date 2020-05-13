@@ -138,7 +138,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     CLASS_CACHE: [class-cache, integer, 3, .class and .metaclass cache size]
     ARRAY_DUP_CACHE: [array-dup-cache, integer, 3, Cache size for copying small arrays]
     FRAME_VARIABLE_ACCESS_CACHE: [frame-variable-access-cache, integer, 5, Cache size for accessing variables in another frame]
-    ARRAY_STRATEGY_CACHE: [array-strategy-cache, integer, 2, Cache size for array strategies]
+    ARRAY_STRATEGY_CACHE: [array-strategy-cache, integer, 4, Cache size for array strategies]
 
     # Other caching and optimization limits
     ARRAY_UNINITIALIZED_SIZE: [array-uninitialized-size, integer, 16, How large an Array to allocate when we have no other information to go on]

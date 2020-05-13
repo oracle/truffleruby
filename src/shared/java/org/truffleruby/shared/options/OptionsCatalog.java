@@ -120,7 +120,7 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> ARRAY_DUP_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> FRAME_VARIABLE_ACCESS_CACHE_KEY = new OptionKey<>(5);
-    public static final OptionKey<Integer> ARRAY_STRATEGY_CACHE_KEY = new OptionKey<>(2);
+    public static final OptionKey<Integer> ARRAY_STRATEGY_CACHE_KEY = new OptionKey<>(4);
     public static final OptionKey<Integer> ARRAY_UNINITIALIZED_SIZE_KEY = new OptionKey<>(16);
     public static final OptionKey<Integer> ARRAY_SMALL_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> HASH_PACKED_ARRAY_MAX_KEY = new OptionKey<>(3);
