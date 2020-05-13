@@ -1277,11 +1277,10 @@ EOS
       exit 1
     end
 
-    success = candidates.all? do |test_script|
+    candidates.each do |test_script|
       next true if test_script.end_with? 'shared.sh'
-      sh test_script, *(gem_test_pack if gem_test_pack?), continue_on_failure: true
+      sh test_script, *(gem_test_pack if gem_test_pack?)
     end
-    exit success
   end
 
   def find_ports_for_pid(pid)
