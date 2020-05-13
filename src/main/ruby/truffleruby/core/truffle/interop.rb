@@ -265,21 +265,33 @@ module Truffle
         return +'#<Foreign null>' if Truffle::Interop.null?(object)
 
         string = +'#<Foreign'
+        details = false
+
         if Truffle::Interop.pointer?(object)
           string << " pointer 0x#{Truffle::Interop.as_pointer(object).to_s(16)}"
+          details = true
         else
           string << ":#{hash_code}"
         end
 
         if Truffle::Interop.has_array_elements?(object)
           string << " #{to_array(object).inspect}"
+          details = true
         end
         if Truffle::Interop.has_members?(object)
           string << " #{pairs_from_object(object).map { |k, v| "#{k.inspect}=#{v.inspect}" }.join(', ')}"
+          details = true
         end
         if Truffle::Interop.executable?(object)
           string << ' proc'
+          details = true
         end
+
+        unless details
+          display_string = Truffle::Interop.to_display_string(object)
+          string << " #{display_string}"
+        end
+
         string << '>'
       end
     end
