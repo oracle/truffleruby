@@ -1278,7 +1278,6 @@ EOS
     end
 
     candidates.each do |test_script|
-      next true if test_script.end_with? 'shared.sh'
       sh test_script, *(gem_test_pack if gem_test_pack?)
     end
   end

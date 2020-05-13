@@ -1,30 +1,12 @@
-# get the absolute path of the executable and resolve symlinks
-SELF_PATH=$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")
-while [ -h "$SELF_PATH" ]; do
-  # 1) cd to directory of the symlink
-  # 2) cd to the directory of where the symlink points
-  # 3) get the pwd
-  # 4) append the basename
-  DIR=$(dirname "$SELF_PATH")
-  SYM=$(readlink "$SELF_PATH")
-  SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
-done
+#!/usr/bin/env bash
 
-ecosystem=$(dirname "$SELF_PATH")
 truffle=$(dirname "$ecosystem")
-test=$(dirname "$truffle")
-repo=$(dirname "$test")
+source "$truffle/common.sh.inc"
 
-shopt -s expand_aliases
-# shellcheck disable=SC2139
-alias jt="ruby ${repo}/tool/jt.rb"
 alias truffleruby="jt ruby -S"
 
-set -xe
-
-gem_test_pack_path="$2"
-
-cd "test/truffle/ecosystem/$1"
+gem_test_pack_path="$1"
+echo "gem_test_pack_path: $gem_test_pack_path" # TODO
 
 if [ "$gem_test_pack_path" ]; then
   truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"

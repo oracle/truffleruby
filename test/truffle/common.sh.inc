@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+SELF_PATH=$(cd "$(dirname "$BASH_SOURCE")" && pwd -P)/$(basename "$BASH_SOURCE")
+while [ -h "$SELF_PATH" ]; do
+  DIR=$(dirname "$SELF_PATH")
+  SYM=$(readlink "$SELF_PATH")
+  SELF_PATH=$(cd "$DIR" && cd "$(dirname "$SYM")" && pwd)/$(basename "$SYM")
+done
+truffle=$(dirname "$SELF_PATH")
+test=$(dirname "$truffle")
+repo=$(dirname "$test")
+
 set -e
 set -x
 
@@ -52,4 +62,4 @@ function test_server {
 }
 
 shopt -s expand_aliases
-alias jt="tool/jt.rb"
+alias jt="$repo/tool/jt.rb"
