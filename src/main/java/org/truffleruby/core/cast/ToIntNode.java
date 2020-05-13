@@ -78,18 +78,6 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected int coerceDouble(double value,
-            @Cached BranchProfile errorProfile) {
-        int intValue = (int) value;
-        if (intValue == Integer.MAX_VALUE && value > Integer.MAX_VALUE ||
-                intValue == Integer.MIN_VALUE && value < Integer.MIN_VALUE) {
-            errorProfile.enter();
-            coerceRubyBignum(null);
-        }
-        return intValue;
-    }
-
-    @Specialization
     protected long coerceNil(Nil nil) {
         // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
         // catch-all case.
@@ -98,8 +86,8 @@ public abstract class ToIntNode extends RubyContextSourceNode {
                 coreExceptions().typeError("no implicit conversion form nil into to integer", this));
     }
 
-    // object can't be a DynamicObject, because we must handle booleans.
-    @Specialization(guards = { "!isRubyInteger(object)", "!isDouble(object)", "!isNil(object)" })
+    // object can't be a DynamicObject, because we must handle doubles and booleans.
+    @Specialization(guards = { "!isRubyInteger(object)", "!isNil(object)" })
     protected int coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
             @Cached ToIntNode fitNode,
