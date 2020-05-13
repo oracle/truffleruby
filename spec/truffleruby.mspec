@@ -90,14 +90,8 @@ class MSpecScript
   ]
 
   set :tags_patterns, [
-    [%r(^.*/command_line/),             'spec/tags/command_line/'],
-    [%r(^.*/security/),                 'spec/tags/security/'],
-    [%r(^.*/language/),                 'spec/tags/language/'],
-    [%r(^.*/core/),                     'spec/tags/core/'],
-    [%r(^.*/library/),                  'spec/tags/library/'],
-    [%r(^.*/optional/capi/),            'spec/tags/optional/capi/'],
-    [%r(^.*/truffle),                   'spec/tags/truffle/'],
-    [/_spec.rb$/,                       '_tags.txt']
+    [%r(^(.*)/spec/ruby/(\w+)/(.+)_spec\.rb$), '\1/spec/tags/\2/\3_tags.txt'],
+    [%r(^(.*)/spec/truffle/(.+)_spec\.rb$),    '\1/spec/tags/truffle/\2_tags.txt'],
   ]
 
   set :xtags, (get(:xtags) || [])

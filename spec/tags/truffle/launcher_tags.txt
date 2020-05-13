@@ -103,3 +103,31 @@ fails:The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs
 fails:The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
 fails:The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
 slow:The launcher prints the version with --version
+slow:The launcher runs bundle as an -S command
+slow:The launcher runs bundler as an -S command
+slow:The launcher runs gem as an -S command
+slow:The launcher runs irb as an -S command
+slow:The launcher runs rake as an -S command
+slow:The launcher runs rdoc as an -S command
+slow:The launcher runs ri as an -S command
+slow:The launcher supports running bundle in any of the bin/ directories
+slow:The launcher supports running bundler in any of the bin/ directories
+slow:The launcher supports running gem in any of the bin/ directories
+slow:The launcher supports running irb in any of the bin/ directories
+slow:The launcher supports running rake in any of the bin/ directories
+slow:The launcher supports running rdoc in any of the bin/ directories
+slow:The launcher supports running ri in any of the bin/ directories
+slow:The launcher supports running ruby in any of the bin/ directories
+slow:The launcher supports running truffleruby in any of the bin/ directories
+slow:The launcher for gem can install and uninstall the hello-world gem
+slow:The launcher for gem shows that bundled gems are installed
+slow:The launcher '--vm.cp=' or '--vm.classpath=' add the jar
+slow:The launcher supports running bundle symlinked
+slow:The launcher supports running bundler symlinked
+slow:The launcher supports running gem symlinked
+slow:The launcher supports running irb symlinked
+slow:The launcher supports running rake symlinked
+slow:The launcher supports running rdoc symlinked
+slow:The launcher supports running ri symlinked
+slow:The launcher supports running ruby symlinked
+slow:The launcher supports running truffleruby symlinked
