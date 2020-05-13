@@ -224,6 +224,10 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             ],
             language='ruby',
             links=['bin/<exe:ruby>'],
+            option_vars=[
+                'RUBYOPT',
+                'TRUFFLERUBYOPT'
+            ]
         )
     ],
     post_install_msg="""
