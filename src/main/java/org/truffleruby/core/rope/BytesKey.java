@@ -12,25 +12,22 @@ package org.truffleruby.core.rope;
 import java.util.Arrays;
 
 import org.jcodings.Encoding;
-import org.truffleruby.core.Hashing;
 
 public class BytesKey {
 
     private final byte[] bytes;
     private final Encoding encoding;
     private final int bytesHashCode;
-    private final Hashing hashing;
 
-    public BytesKey(byte[] bytes, Encoding encoding, Hashing hashing) {
+    public BytesKey(byte[] bytes, Encoding encoding) {
         this.bytes = bytes;
         this.encoding = encoding;
         this.bytesHashCode = Arrays.hashCode(bytes);
-        this.hashing = hashing;
     }
 
     @Override
     public int hashCode() {
-        return hashing.hash(bytesHashCode);
+        return bytesHashCode;
     }
 
     @Override

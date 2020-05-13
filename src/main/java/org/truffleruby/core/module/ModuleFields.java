@@ -406,12 +406,12 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                 context.send(
                         receiver,
                         "singleton_method_added",
-                        context.getSymbolTable().getSymbol(method.getName()));
+                        context.getSymbol(method.getName()));
             } else {
                 context.send(
                         rubyModuleObject,
                         "method_added",
-                        context.getSymbolTable().getSymbol(method.getName()));
+                        context.getSymbol(method.getName()));
             }
         }
     }
@@ -744,7 +744,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         final Set<DynamicObject> filtered = new HashSet<>();
         for (InternalMethod method : methods.values()) {
             if (filter.filter(method)) {
-                filtered.add(context.getSymbolTable().getSymbol(method.getName()));
+                filtered.add(context.getSymbol(method.getName()));
             }
         }
 

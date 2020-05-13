@@ -96,7 +96,6 @@ public class RubyContext {
 
     private final PrimitiveManager primitiveManager = new PrimitiveManager();
     private final SafepointManager safepointManager = new SafepointManager(this);
-    private final SymbolTable symbolTable;
     private final InteropManager interopManager = new InteropManager(this);
     private final CodeLoader codeLoader = new CodeLoader(this);
     private final FeatureLoader featureLoader = new FeatureLoader(this);
@@ -122,7 +121,6 @@ public class RubyContext {
     private final Hashing hashing;
     @CompilationFinal private BacktraceFormatter defaultBacktraceFormatter;
     private final BacktraceFormatter userBacktraceFormatter;
-    private final RopeCache ropeCache;
     private final PathToRopeCache pathToRopeCache = new PathToRopeCache(this);
     @CompilationFinal private TruffleNFIPlatform truffleNFIPlatform;
     private final CoreLibrary coreLibrary;
@@ -171,8 +169,6 @@ public class RubyContext {
         defaultBacktraceFormatter = BacktraceFormatter.createDefaultFormatter(this);
         userBacktraceFormatter = new BacktraceFormatter(this, BacktraceFormatter.USER_BACKTRACE_FLAGS);
 
-        ropeCache = new RopeCache(this);
-
         rubyHome = findRubyHome(options);
         rubyHomeTruffleFile = rubyHome == null ? null : env.getInternalTruffleFile(rubyHome);
 
@@ -185,7 +181,6 @@ public class RubyContext {
         valueWrapperManager = new ValueWrapperManager(this);
         Metrics.printTime("after-create-core-library");
 
-        symbolTable = new SymbolTable(ropeCache, coreLibrary.symbolFactory, this);
         rootLexicalScope = new LexicalScope(null, coreLibrary.objectClass);
 
         // Create objects that need core classes
@@ -486,6 +481,10 @@ public class RubyContext {
         return preInitialized;
     }
 
+    public Hashing getHashing() {
+        return hashing;
+    }
+
     public RubyLanguage getLanguage() {
         return language;
     }
@@ -577,7 +576,7 @@ public class RubyContext {
     }
 
     public RopeCache getRopeCache() {
-        return ropeCache;
+        return language.ropeCache;
     }
 
     public PathToRopeCache getPathToRopeCache() {
@@ -585,7 +584,17 @@ public class RubyContext {
     }
 
     public SymbolTable getSymbolTable() {
-        return symbolTable;
+        return language.symbolTable;
+    }
+
+    @TruffleBoundary
+    public DynamicObject getSymbol(String string) {
+        return language.symbolTable.getSymbol(string, coreLibrary.symbolFactory);
+    }
+
+    @TruffleBoundary
+    public DynamicObject getSymbol(Rope rope) {
+        return language.symbolTable.getSymbol(rope, coreLibrary.symbolFactory);
     }
 
     public CodeLoader getCodeLoader() {

@@ -15,7 +15,7 @@ import org.jcodings.Encoding;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public abstract class Rope {
+public abstract class Rope implements Comparable<Rope> {
 
     // NativeRope, RepeatingRope, 3 LeafRope, ConcatRope, SubstringRope, 1 LazyRope
     public static final int NUMBER_OF_CONCRETE_CLASSES = 8;
@@ -115,6 +115,26 @@ public abstract class Rope {
          * generations of the nodes, and the final Array.equals if needed, should have good inner-loop
          * implementations. */
         return this.hashCode() == other.hashCode() && Arrays.equals(this.getBytes(), other.getBytes());
+    }
+
+    @Override
+    @TruffleBoundary
+    public int compareTo(Rope other) {
+        final byte[] selfBytes = getBytes();
+        final byte[] otherBytes = other.getBytes();
+        final int selfLen = selfBytes.length;
+        final int otherLen = otherBytes.length;
+        final int compareLen = Math.min(selfLen, otherLen);
+        int i = 0;
+        while (i < compareLen) {
+            final byte selfByte = selfBytes[i];
+            final byte otherByte = otherBytes[i];
+            if (selfByte != otherByte) {
+                return selfByte - otherByte;
+            }
+            i++;
+        }
+        return selfLen - otherLen;
     }
 
     @Override

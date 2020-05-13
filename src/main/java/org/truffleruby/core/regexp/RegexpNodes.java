@@ -328,7 +328,7 @@ public abstract class RegexpNodes {
                 final Rope rope = getContext()
                         .getRopeCache()
                         .getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                final DynamicObject name = getContext().getSymbolTable().getSymbol(rope);
+                final DynamicObject name = getContext().getSymbol(rope);
 
                 final int[] backrefs = e.getBackRefs();
                 final DynamicObject backrefsRubyArray = createArray(backrefs, backrefs.length);

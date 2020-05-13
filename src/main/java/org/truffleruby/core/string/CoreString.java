@@ -53,7 +53,7 @@ public class CoreString {
     public DynamicObject getSymbol() {
         if (symbol == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            symbol = context.getSymbolTable().getSymbol(getRope());
+            symbol = context.getSymbol(getRope());
         }
 
         return symbol;

@@ -58,9 +58,9 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         if (RubyGuards.isRubySymbol(cachedName)) {
             cachedNameAsSymbol = (DynamicObject) cachedName;
         } else if (RubyGuards.isRubyString(cachedName)) {
-            cachedNameAsSymbol = context.getSymbolTable().getSymbol(StringOperations.rope((DynamicObject) cachedName));
+            cachedNameAsSymbol = context.getSymbol(StringOperations.rope((DynamicObject) cachedName));
         } else if (cachedName instanceof String) {
-            cachedNameAsSymbol = context.getSymbolTable().getSymbol((String) cachedName);
+            cachedNameAsSymbol = context.getSymbol((String) cachedName);
         } else {
             throw new UnsupportedOperationException();
         }

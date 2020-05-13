@@ -32,8 +32,8 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
 
     public EnumeratorSizeNode(RubyContext context, String enumeratorSize, String methodName, RubyNode method) {
         this.method = method;
-        this.methodName = context.getSymbolTable().getSymbol(methodName);
-        this.sizeMethodName = context.getSymbolTable().getSymbol(enumeratorSize);
+        this.methodName = context.getSymbol(methodName);
+        this.sizeMethodName = context.getSymbol(enumeratorSize);
     }
 
     @Override

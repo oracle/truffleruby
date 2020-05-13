@@ -9,27 +9,17 @@
  */
 package org.truffleruby.core.symbol;
 
-import java.lang.ref.SoftReference;
 import java.util.Collection;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
-import org.truffleruby.core.Hashing;
-import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
-import org.truffleruby.core.rope.RopeKey;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.rope.StringKey;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
@@ -39,43 +29,29 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 
-public class SymbolTable implements ReHashable {
+public class SymbolTable {
 
     private final RopeCache ropeCache;
-    private final DynamicObjectFactory symbolFactory;
-    private final Hashing hashing;
 
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
-    // A cache for j.l.String to Symbols. Entries might get GC'd quickly as nothing references the
-    // StringKey. However, this doesn't matter as the cache entries will be re-created when used.
-    private final Map<StringKey, SoftReference<DynamicObject>> stringToSymbolCache = new WeakHashMap<>();
+    // A cache for j.l.String to Symbols. Entries are kept as long as the Symbol is alive.
+    // However, this doesn't matter as the cache entries will be re-created when used.
+    private final WeakValueCache<String, DynamicObject> stringToSymbolCache = new WeakValueCache<>();
 
     // Weak map of RopeKey to Symbol to keep Symbols unique.
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
-    private final WeakValueCache<RopeKey, DynamicObject> symbolMap = new WeakValueCache<>();
+    private final WeakValueCache<Rope, DynamicObject> symbolMap = new WeakValueCache<>();
 
-    public SymbolTable(RopeCache ropeCache, DynamicObjectFactory symbolFactory, RubyContext context) {
+    public SymbolTable(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
-        this.symbolFactory = symbolFactory;
-        this.hashing = context.getHashing(this);
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbol(String string) {
-        final StringKey stringKey = new StringKey(string, hashing);
-        DynamicObject symbol;
+    public DynamicObject getSymbol(String string, DynamicObjectFactory symbolFactory) {
+        // TODO BJF 13-May-2020 symbolFactory should not be needed, but since there is a single RubyContext per RubyLanguage (contextPolicy=EXCLUSIVE) this is OK.
 
-        final Lock readLock = lock.readLock();
-
-        readLock.lock();
-        try {
-            symbol = lookupCache(stringToSymbolCache, stringKey);
-            if (symbol != null) {
-                return symbol;
-            }
-        } finally {
-            readLock.unlock();
+        DynamicObject symbol = stringToSymbolCache.get(string);
+        if (symbol != null) {
+            return symbol;
         }
 
         final Rope rope;
@@ -84,47 +60,38 @@ public class SymbolTable implements ReHashable {
         } else {
             rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
         }
-        symbol = getSymbol(rope);
+        symbol = getSymbol(rope, symbolFactory);
 
         // Add it to the direct j.l.String to Symbol cache
 
-        final Lock writeLock = lock.writeLock();
-
-        writeLock.lock();
-        try {
-            if (lookupCache(stringToSymbolCache, stringKey) == null) {
-                stringToSymbolCache.put(stringKey, new SoftReference<>(symbol));
-            }
-        } finally {
-            writeLock.unlock();
-        }
+        stringToSymbolCache.addInCacheIfAbsent(string, symbol);
 
         return symbol;
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbol(Rope rope) {
-        final RopeKey ropeKey = createRopeKey(rope);
-        final DynamicObject symbol = symbolMap.get(ropeKey);
+    public DynamicObject getSymbol(Rope rope, DynamicObjectFactory symbolFactory) {
+        // TODO BJF 13-May-2020 symbolFactory should not be needed, but since there is a single RubyContext per RubyLanguage (contextPolicy=EXCLUSIVE) this is OK.
+        final Rope normalizedRope = normalizeRopeForLookup(rope);
+        final DynamicObject symbol = symbolMap.get(normalizedRope);
         if (symbol != null) {
             return symbol;
         }
 
-        final Rope cachedRope = ropeCache.getRope(ropeKey.getRope());
-        final DynamicObject newSymbol = createSymbol(cachedRope);
+        final Rope cachedRope = ropeCache.getRope(normalizedRope);
+        final DynamicObject newSymbol = createSymbol(cachedRope, symbolFactory);
         // Use a RopeKey with the cached Rope in symbolMap, since the Symbol refers to it and so we
         // do not keep rope alive unnecessarily.
-        final RopeKey cachedRopeKey = new RopeKey(cachedRope, hashing);
-        return symbolMap.addInCacheIfAbsent(cachedRopeKey, newSymbol);
+        return symbolMap.addInCacheIfAbsent(cachedRope, newSymbol);
     }
 
     @TruffleBoundary
     public DynamicObject getSymbolIfExists(Rope rope) {
-        final RopeKey ropeKey = createRopeKey(rope);
+        final Rope ropeKey = normalizeRopeForLookup(rope);
         return symbolMap.get(ropeKey);
     }
 
-    private RopeKey createRopeKey(Rope rope) {
+    private Rope normalizeRopeForLookup(Rope rope) {
         if (rope instanceof NativeRope) {
             rope = ((NativeRope) rope).toLeafRope();
         }
@@ -133,44 +100,21 @@ public class SymbolTable implements ReHashable {
             rope = RopeOperations.withEncoding(rope, USASCIIEncoding.INSTANCE);
         }
 
-        return new RopeKey(rope, hashing);
+        return rope;
     }
 
-    private DynamicObject createSymbol(Rope cachedRope) {
+    private DynamicObject createSymbol(Rope cachedRope, DynamicObjectFactory symbolFactory) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
         return Layouts.SYMBOL.createSymbol(
                 symbolFactory,
                 string,
                 cachedRope,
-                computeSymbolHashCode(string));
-    }
-
-    private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
-
-    private long computeSymbolHashCode(final String string) {
-        return hashing.hash(CLASS_SALT, string.hashCode());
-    }
-
-    private DynamicObject lookupCache(Map<StringKey, SoftReference<DynamicObject>> cache, StringKey key) {
-        final SoftReference<DynamicObject> reference = cache.get(key);
-        return reference == null ? null : reference.get();
+                string.hashCode());
     }
 
     @TruffleBoundary
     public Collection<DynamicObject> allSymbols() {
         return symbolMap.values();
-    }
-
-    public void rehash() {
-        // Just a cache, so we can empty it and it will be repopulated as needed
-        stringToSymbolCache.clear();
-
-        symbolMap.rehash();
-
-        // Recompute all Symbols's cached hashCode
-        for (DynamicObject symbol : symbolMap.values()) {
-            Layouts.SYMBOL.setHashCode(symbol, computeSymbolHashCode(Layouts.SYMBOL.getString(symbol)));
-        }
     }
 
     // TODO (eregon, 10/10/2015): this check could be done when a Symbol is created to be much cheaper

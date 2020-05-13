@@ -28,7 +28,7 @@ public interface SymbolLayout extends BasicObjectLayout {
             DynamicObjectFactory factory,
             String string,
             Rope rope,
-            long hashCode);
+            int hashCode);
 
     boolean isSymbol(Object object);
 
@@ -38,8 +38,8 @@ public interface SymbolLayout extends BasicObjectLayout {
 
     Rope getRope(DynamicObject object);
 
-    long getHashCode(DynamicObject object);
+    int getHashCode(DynamicObject object);
 
-    void setHashCode(DynamicObject object, long value);
+    void setHashCode(DynamicObject object, int value);
 
 }

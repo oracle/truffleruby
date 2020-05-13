@@ -70,6 +70,8 @@ public abstract class SymbolNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
+        private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
         @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getIdentityCacheLimit()")
         protected long hashCached(DynamicObject symbol,
@@ -81,7 +83,8 @@ public abstract class SymbolNodes {
 
         @Specialization
         protected long hash(DynamicObject symbol) {
-            return Layouts.SYMBOL.getHashCode(symbol);
+            final int hashCode = Layouts.SYMBOL.getHashCode(symbol);
+            return getContext().getHashing().hash(CLASS_SALT, hashCode);
         }
 
         protected boolean isPreInitializing() {

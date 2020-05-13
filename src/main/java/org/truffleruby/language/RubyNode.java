@@ -237,11 +237,11 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         // Helpers methods for terseness, keep in sync
 
         default DynamicObject getSymbol(String name) {
-            return getContext().getSymbolTable().getSymbol(name);
+            return getContext().getSymbol(name);
         }
 
         default DynamicObject getSymbol(Rope name) {
-            return getContext().getSymbolTable().getSymbol(name);
+            return getContext().getSymbol(name);
         }
 
         default Encoding getLocaleEncoding() {

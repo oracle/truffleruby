@@ -48,7 +48,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
         this.nilBehavior = nilBehavior;
         // Calling private #to_a is allowed for the *splat operator.
         String name = useToAry ? "to_ary" : "to_a";
-        conversionMethod = context.getSymbolTable().getSymbol(name);
+        conversionMethod = context.getSymbol(name);
     }
 
     public void doNotCopy() {
