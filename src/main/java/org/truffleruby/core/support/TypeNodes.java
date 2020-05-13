@@ -53,6 +53,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -203,8 +204,17 @@ public abstract class TypeNodes {
         }
     }
 
-    // Those two primitives store the key as a Ruby object, so they have
-    // different namespace than normal ivars which use java.lang.String.
+    // Those primitives store the key as either a HiddenKey or a Ruby Symbol, so they have
+    // a different namespace than normal ivars which use java.lang.String.
+
+    @Primitive(name = "object_hidden_var_create")
+    public abstract static class ObjectHiddenVarCreateNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected HiddenKey createHiddenVar(RubySymbol identifier) {
+            return new HiddenKey(identifier.getString());
+        }
+    }
 
     @Primitive(name = "object_hidden_var_get")
     public abstract static class ObjectHiddenVarGetNode extends PrimitiveArrayArgumentsNode {

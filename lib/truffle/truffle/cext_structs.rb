@@ -134,7 +134,7 @@ class Truffle::CExt::RBasic
     @object = object
   end
 
-  USER_FLAGS        = Object.new
+  USER_FLAGS = Primitive.object_hidden_var_create :user_flags
 
   # RUBY_FL* values are from ruby.h
   RUBY_FL_TAINT = (1<<8)

@@ -13,11 +13,11 @@ require_relative 'cext_constants'
 require_relative 'cext_structs'
 
 module Truffle::CExt
-  DATA_TYPE = Object.new
-  DATA_HOLDER = Object.new
-  DATA_MEMSIZER = Object.new
-  RB_TYPE = Object.new
-  ALLOCATOR_FUNC = Object.new
+  DATA_TYPE = Primitive.object_hidden_var_create :data_type
+  DATA_HOLDER = Primitive.object_hidden_var_create :data_holder
+  DATA_MEMSIZER = Primitive.object_hidden_var_create :data_memsizer
+  RB_TYPE = Primitive.object_hidden_var_create :rb_type
+  ALLOCATOR_FUNC = Primitive.object_hidden_var_create :allocator_func
 
   extend self
 
