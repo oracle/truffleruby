@@ -30,6 +30,10 @@ public abstract class FixnumLowerNode extends RubyContextSourceNode {
         return FixnumLowerNodeGen.create(null);
     }
 
+    public static FixnumLowerNode create(RubyNode child) {
+        return FixnumLowerNodeGen.create(child);
+    }
+
     public abstract Object executeLower(Object value);
 
     @Specialization

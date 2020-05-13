@@ -30,6 +30,10 @@ public abstract class ToLongNode extends RubyContextSourceNode {
         return ToLongNodeGen.create(null);
     }
 
+    public static ToLongNode create(RubyNode child) {
+        return ToLongNodeGen.create(child);
+    }
+
     public abstract long execute(Object object);
 
     @Specialization

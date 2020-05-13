@@ -332,13 +332,20 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "*", required = 1, lowerFixnum = 1, taintFrom = 0)
+    @CoreMethod(names = "*", required = 1, taintFrom = 0)
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "times", type = RubyNode.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class MulNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class MulNode extends CoreMethodNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         public abstract DynamicObject executeInteger(DynamicObject string, Object times);
+
+        @CreateCast("times")
+        protected RubyNode coerceToInteger(RubyNode times) {
+            return FixnumLowerNode.create(ToLongNode.create(times));
+        }
 
         @Specialization(guards = "times < 0")
         protected DynamicObject multiplyTimesNegative(DynamicObject string, long times) {
@@ -373,14 +380,6 @@ public abstract class StringNodes {
             // Will throw the proper conversion exception.
             toIntNode.execute(times);
             throw new UnreachableCodeException();
-        }
-
-        @Specialization(guards = { "!isBasicInteger(times)" })
-        protected DynamicObject multiplyObject(DynamicObject string, Object times,
-                @Cached ToLongNode toLongNode,
-                @Cached FixnumLowerNode lowerNode) {
-            // TODO review: @Cached MulNode here to avoid recursion?
-            return executeInteger(string, lowerNode.executeLower(toLongNode.execute(times)));
         }
     }
 
