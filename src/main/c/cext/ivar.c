@@ -34,14 +34,6 @@ VALUE rb_ivar_lookup(VALUE object, const char *name, VALUE default_value) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_ivar_lookup", rb_tr_unwrap(object), name, rb_tr_unwrap(default_value)));
 }
 
-void rb_tr_object_hidden_var_set(VALUE object, const char *name, VALUE value) {
-  RUBY_CEXT_INVOKE_NO_WRAP("hidden_variable_set", object, rb_intern(name), value);
-}
-
-VALUE rb_tr_object_hidden_var_get(VALUE object, const char *name) {
-  return RUBY_CEXT_INVOKE_NO_WRAP("hidden_variable_get", object, rb_intern(name));
-}
-
 // Needed to gem install oj
 void rb_ivar_foreach(VALUE obj, int (*func)(ANYARGS), st_data_t arg) {
   rb_tr_error("rb_ivar_foreach not implemented");

@@ -1755,14 +1755,6 @@ module Truffle::CExt
     sprintf(f, *args) rescue raise ArgumentError, "Bad format string #{f}."
   end
 
-  def hidden_variable_get(object, name)
-    Primitive.object_hidden_var_get(object, name)
-  end
-
-  def hidden_variable_set(object, name, value)
-    Primitive.object_hidden_var_set object, name, value
-  end
-
   def test_cext_wrap(value)
     Primitive.cext_wrap(value)
   end
