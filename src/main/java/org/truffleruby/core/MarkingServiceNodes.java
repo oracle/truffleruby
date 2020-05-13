@@ -50,10 +50,10 @@ public class MarkingServiceNodes {
     public static abstract class GetMarkerThreadLocalDataNode extends RubyBaseNode {
 
         public final MarkerThreadLocalData execute() {
-            return execute(Boolean.TRUE);
+            return executeInternal(Boolean.TRUE);
         }
 
-        public abstract MarkerThreadLocalData execute(Object dynamicParameter);
+        protected abstract MarkerThreadLocalData executeInternal(Object dynamicParameter);
 
         @Specialization(guards = "thread == currentJavaThread(dynamicParameter)", limit = "getCacheLimit()")
         protected MarkerThreadLocalData getDataOnKnownThread(Object dynamicParameter,

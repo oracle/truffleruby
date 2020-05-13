@@ -12,6 +12,7 @@ package org.truffleruby.core.tracepoint;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
@@ -19,6 +20,8 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 class TracePointEventNode extends TraceBaseEventNode {
+
+    @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode = GetCurrentRubyThreadNode.create();
 
     private final ConditionProfile inTracePointProfile = ConditionProfile.create();
 
@@ -39,25 +42,27 @@ class TracePointEventNode extends TraceBaseEventNode {
 
     @Override
     protected void onEnter(VirtualFrame frame) {
-        if (inTracePointProfile.profile(Layouts.TRACE_POINT.getInsideProc(tracePoint))) {
+        final DynamicObject rubyThread = getCurrentRubyThreadNode.execute();
+        final TracePointState state = Layouts.THREAD.getTracePointState(rubyThread);
+
+        if (inTracePointProfile.profile(state.insideProc)) {
             return;
         }
 
-        Layouts.TRACE_POINT.setEvent(tracePoint, event);
-        Layouts.TRACE_POINT.setPath(tracePoint, getFile());
-        Layouts.TRACE_POINT.setLine(tracePoint, getLine());
-        Layouts.TRACE_POINT.setBinding(
-                tracePoint,
-                BindingNodes.createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection()));
+        state.event = event;
+        state.path = getFile();
+        state.line = getLine();
+        state.binding = BindingNodes
+                .createBinding(context, frame.materialize(), eventContext.getInstrumentedSourceSection());
 
-        Layouts.TRACE_POINT.setInsideProc(tracePoint, true);
+        state.insideProc = true;
         try {
             yield(proc, tracePoint);
         } finally {
-            Layouts.TRACE_POINT.setInsideProc(tracePoint, false);
+            state.insideProc = false;
             // Reset the binding so it can be escaped analyzed. This is also semantically correct
             // because the TracePoint information is reset outside the TracePoint block in MRI.
-            Layouts.TRACE_POINT.setBinding(tracePoint, null);
+            state.binding = null;
         }
     }
 

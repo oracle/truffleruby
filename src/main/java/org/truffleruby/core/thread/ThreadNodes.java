@@ -85,7 +85,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -192,9 +191,9 @@ public abstract class ThreadNodes {
     public abstract static class CurrentNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject current(VirtualFrame frame,
+        protected DynamicObject current(
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            return getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            return getCurrentRubyThreadNode.execute();
         }
 
     }
@@ -678,9 +677,9 @@ public abstract class ThreadNodes {
     public static abstract class ThreadGetExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getException(VirtualFrame frame,
+        protected Object getException(
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return getLastException(getThreadNode.executeGetRubyThread(frame));
+            return getLastException(getThreadNode.execute());
         }
 
         private static Object getLastException(DynamicObject currentThread) {
@@ -697,9 +696,9 @@ public abstract class ThreadNodes {
     public static abstract class ThreadGetReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getExitCode(VirtualFrame frame,
+        protected Object getExitCode(
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus;
+            return Layouts.THREAD.getThreadLocalGlobals(getThreadNode.execute()).processStatus;
         }
     }
 
@@ -707,10 +706,10 @@ public abstract class ThreadNodes {
     public static abstract class SetThreadLocalExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object setException(VirtualFrame frame, Object exception,
+        protected Object setException(Object exception,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
             return Layouts.THREAD
-                    .getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).exception = exception;
+                    .getThreadLocalGlobals(getThreadNode.execute()).exception = exception;
         }
     }
 
@@ -718,10 +717,10 @@ public abstract class ThreadNodes {
     public static abstract class SetThreadLocalReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getException(VirtualFrame frame, DynamicObject returnCode,
+        protected Object getException(DynamicObject returnCode,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
             return Layouts.THREAD
-                    .getThreadLocalGlobals(getThreadNode.executeGetRubyThread(frame)).processStatus = returnCode;
+                    .getThreadLocalGlobals(getThreadNode.execute()).processStatus = returnCode;
         }
     }
 

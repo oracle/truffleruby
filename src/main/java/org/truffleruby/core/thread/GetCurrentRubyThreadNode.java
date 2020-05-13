@@ -14,7 +14,6 @@ import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
@@ -23,39 +22,42 @@ public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
         return GetCurrentRubyThreadNodeGen.create();
     }
 
-    public abstract DynamicObject executeGetRubyThread(VirtualFrame frame);
+    public final DynamicObject execute() {
+        return executeInternal(Boolean.TRUE);
+    }
 
-    /* Note: the frame argument is used as a dynamic parameter here. Otherwise, The TruffleDSL assumes cached parameters
-     * or calls with only cached arguments (including calls with no arguments) never change.
-     *
-     * Note: we need to check that the Fiber is still running on a Java thread to cache based on the Java thread. If the
+    /* We need to include a seemingly useless dynamic parameter, otherwise the Truffle DSL will assume calls with no
+     * arguments such as getCurrentJavaThread() never change, but for instance the thread might change. */
+    protected abstract DynamicObject executeInternal(Object dynamicParameter);
+
+    /* Note: we need to check that the Fiber is still running on a Java thread to cache based on the Java thread. If the
      * Fiber finished its execution, the Java thread can be reused for another Fiber belonging to another Ruby Thread,
      * due to using a thread pool for Fibers. */
     @Specialization(
             guards = {
-                    "getCurrentJavaThread(frame) == cachedJavaThread",
-                    "hasThread(frame, cachedFiber)",
+                    "getCurrentJavaThread(dynamicParameter) == cachedJavaThread",
+                    "hasThread(dynamicParameter, cachedFiber)",
                     /* Cannot cache a Thread instance when pre-initializing */
                     "!preInitializing" },
             limit = "getCacheLimit()")
-    protected DynamicObject getRubyThreadCached(VirtualFrame frame,
+    protected DynamicObject getRubyThreadCached(Object dynamicParameter,
             @Cached("isPreInitializing()") boolean preInitializing,
-            @Cached("getCurrentJavaThread(frame)") Thread cachedJavaThread,
-            @Cached("getCurrentRubyThread(frame)") DynamicObject cachedRubyThread,
+            @Cached("getCurrentJavaThread(dynamicParameter)") Thread cachedJavaThread,
+            @Cached("getCurrentRubyThread(dynamicParameter)") DynamicObject cachedRubyThread,
             @Cached("getCurrentFiber(cachedRubyThread)") DynamicObject cachedFiber) {
         return cachedRubyThread;
     }
 
     @Specialization(replaces = "getRubyThreadCached")
-    protected DynamicObject getRubyThreadUncached(VirtualFrame frame) {
-        return getCurrentRubyThread(frame);
+    protected DynamicObject getRubyThreadUncached(Object dynamicParameter) {
+        return getCurrentRubyThread(dynamicParameter);
     }
 
-    protected Thread getCurrentJavaThread(VirtualFrame frame) {
+    protected Thread getCurrentJavaThread(Object dynamicParameter) {
         return Thread.currentThread();
     }
 
-    protected DynamicObject getCurrentRubyThread(VirtualFrame frame) {
+    protected DynamicObject getCurrentRubyThread(Object dynamicParameter) {
         return getContext().getThreadManager().getCurrentThread();
     }
 
@@ -63,7 +65,7 @@ public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
         return Layouts.THREAD.getFiberManager(currentRubyThread).getCurrentFiber();
     }
 
-    protected boolean hasThread(VirtualFrame frame, DynamicObject fiber) {
+    protected boolean hasThread(Object dynamicParameter, DynamicObject fiber) {
         return Layouts.FIBER.getThread(fiber) != null;
     }
 

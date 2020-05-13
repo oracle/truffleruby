@@ -26,7 +26,7 @@ public class SetExceptionVariableNode extends RubyBaseNode {
     @Child private GetCurrentRubyThreadNode getCurrentThreadNode;
 
     public Object setLastExceptionAndRun(VirtualFrame frame, RaiseException exception, RubyNode node) {
-        final DynamicObject thread = getCurrentThreadNode().executeGetRubyThread(frame);
+        final DynamicObject thread = getCurrentThreadNode().execute();
         final ThreadLocalGlobals threadLocalGlobals = Layouts.THREAD.getThreadLocalGlobals(thread);
         final Object lastException = threadLocalGlobals.exception;
         threadLocalGlobals.exception = exception.getException();
@@ -39,8 +39,8 @@ public class SetExceptionVariableNode extends RubyBaseNode {
     }
 
 
-    public void setLastException(VirtualFrame frame, DynamicObject exception) {
-        final DynamicObject thread = getCurrentThreadNode().executeGetRubyThread(frame);
+    public void setLastException(DynamicObject exception) {
+        final DynamicObject thread = getCurrentThreadNode().execute();
         final ThreadLocalGlobals threadLocalGlobals = Layouts.THREAD.getThreadLocalGlobals(thread);
         threadLocalGlobals.exception = exception;
     }

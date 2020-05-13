@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.tracepoint;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -24,9 +25,11 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
@@ -38,6 +41,33 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreModule(value = "TracePoint", isClass = true)
 public abstract class TracePointNodes {
 
+    @TruffleBoundary
+    public static boolean isEnabled(DynamicObject tracePoint) {
+        return Layouts.TRACE_POINT.getEvents(tracePoint)[0].hasEventBinding();
+    }
+
+    @TruffleBoundary
+    public static boolean createEventBindings(RubyContext context, DynamicObject tracePoint) {
+        final TracePointEvent[] events = Layouts.TRACE_POINT.getEvents(tracePoint);
+        for (TracePointEvent event : events) {
+            if (!event.setupEventBinding(context, tracePoint)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @TruffleBoundary
+    public static boolean disposeEventBindings(DynamicObject tracePoint) {
+        final TracePointEvent[] events = Layouts.TRACE_POINT.getEvents(tracePoint);
+        for (TracePointEvent event : events) {
+            if (!event.diposeEventBinding()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
@@ -45,7 +75,7 @@ public abstract class TracePointNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, Layouts.TRACE_POINT.build(null, null, null, 0, null, null, false));
+            return allocateNode.allocate(rubyClass, Layouts.TRACE_POINT.build(null, null));
         }
 
     }
@@ -88,52 +118,21 @@ public abstract class TracePointNodes {
 
         @Specialization
         protected boolean enable(DynamicObject tracePoint, NotProvided block) {
-            final boolean alreadyEnabled = isEnabled(tracePoint);
-
-            if (!alreadyEnabled) {
-                createEventBindings(getContext(), tracePoint);
-            }
-
-            return alreadyEnabled;
+            boolean setupDone = createEventBindings(getContext(), tracePoint);
+            return !setupDone;
         }
 
         @Specialization
         protected Object enable(DynamicObject tracePoint, DynamicObject block) {
-            final boolean alreadyEnabled = isEnabled(tracePoint);
-
-            if (!alreadyEnabled) {
-                createEventBindings(getContext(), tracePoint);
-            }
-
+            final boolean setupDone = createEventBindings(getContext(), tracePoint);
             try {
                 return yield(block);
             } finally {
-                if (!alreadyEnabled) {
+                if (setupDone) {
                     disposeEventBindings(tracePoint);
                 }
             }
         }
-
-        public static boolean isEnabled(DynamicObject tracePoint) {
-            return Layouts.TRACE_POINT.getEvents(tracePoint)[0].hasEventBinding();
-        }
-
-        @TruffleBoundary
-        public static void createEventBindings(RubyContext context, DynamicObject tracePoint) {
-            final TracePointEvent[] events = Layouts.TRACE_POINT.getEvents(tracePoint);
-            for (int i = 0; i < events.length; i++) {
-                events[i].setupEventBinding(context, tracePoint);
-            }
-        }
-
-        @TruffleBoundary
-        public static void disposeEventBindings(DynamicObject tracePoint) {
-            final TracePointEvent[] events = Layouts.TRACE_POINT.getEvents(tracePoint);
-            for (int i = 0; i < events.length; i++) {
-                events[i].diposeEventBinding();
-            }
-        }
-
     }
 
     @CoreMethod(names = "disable", needsBlock = true)
@@ -141,36 +140,20 @@ public abstract class TracePointNodes {
 
         @Specialization
         protected Object disable(DynamicObject tracePoint, NotProvided block) {
-            final boolean wasEnabled = EnableNode.isEnabled(tracePoint);
-
-            if (wasEnabled) {
-                EnableNode.disposeEventBindings(tracePoint);
-            }
-
-            return wasEnabled;
+            return disposeEventBindings(tracePoint);
         }
 
         @Specialization
         protected Object disable(DynamicObject tracePoint, DynamicObject block) {
-            final boolean wasEnabled = EnableNode.isEnabled(tracePoint);
-
-            if (wasEnabled) {
-                EnableNode.disposeEventBindings(tracePoint);
-            }
-
-            if (block != null) {
-                try {
-                    return yield(block);
-                } finally {
-                    if (wasEnabled) {
-                        EnableNode.createEventBindings(getContext(), tracePoint);
-                    }
+            final boolean wasEnabled = disposeEventBindings(tracePoint);
+            try {
+                return yield(block);
+            } finally {
+                if (wasEnabled) {
+                    createEventBindings(getContext(), tracePoint);
                 }
             }
-
-            return wasEnabled;
         }
-
     }
 
     @CoreMethod(names = "enabled?")
@@ -178,73 +161,76 @@ public abstract class TracePointNodes {
 
         @Specialization
         protected boolean enabled(DynamicObject tracePoint) {
-            return EnableNode.isEnabled(tracePoint);
+            return isEnabled(tracePoint);
+        }
+    }
+
+    private abstract static class TracePointCoreNode extends CoreMethodArrayArgumentsNode {
+
+        @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode = GetCurrentRubyThreadNode.create();
+        private final BranchProfile errorProfile = BranchProfile.create();
+
+        protected TracePointState getTracePointState() {
+            final TracePointState state = Layouts.THREAD.getTracePointState(getCurrentRubyThreadNode.execute());
+            if (!state.insideProc) {
+                errorProfile.enter();
+                throw new RaiseException(getContext(), coreExceptions().runtimeError("access from outside", this));
+            }
+            return state;
         }
 
     }
 
     @CoreMethod(names = "event")
-    public abstract static class EventNode extends CoreMethodArrayArgumentsNode {
-
+    public abstract static class EventNode extends TracePointCoreNode {
         @Specialization
         protected DynamicObject event(DynamicObject tracePoint) {
-            return Layouts.TRACE_POINT.getEvent(tracePoint);
+            return getTracePointState().event;
         }
-
     }
 
     @CoreMethod(names = "path")
-    public abstract static class PathNode extends CoreMethodArrayArgumentsNode {
-
+    public abstract static class PathNode extends TracePointCoreNode {
         @Specialization
         protected DynamicObject path(DynamicObject tracePoint) {
-            return Layouts.TRACE_POINT.getPath(tracePoint);
+            return getTracePointState().path;
         }
-
     }
 
     @CoreMethod(names = "lineno")
-    public abstract static class LineNode extends CoreMethodArrayArgumentsNode {
-
+    public abstract static class LineNode extends TracePointCoreNode {
         @Specialization
         protected int line(DynamicObject tracePoint) {
-            return Layouts.TRACE_POINT.getLine(tracePoint);
+            return getTracePointState().line;
         }
-
-    }
-
-    @CoreMethod(names = "method_id")
-    public abstract static class MethodIDNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected DynamicObject methodId(DynamicObject tracePoint,
-                @Cached MakeStringNode makeStringNode) {
-            final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
-            final InternalMethod method = RubyArguments.getMethod(BindingNodes.getFrame(binding));
-            return makeStringNode.executeMake(method.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-        }
-
-    }
-
-    @CoreMethod(names = "self")
-    public abstract static class SelfNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object self(DynamicObject tracePoint) {
-            final DynamicObject binding = Layouts.TRACE_POINT.getBinding(tracePoint);
-            return RubyArguments.getSelf(BindingNodes.getFrame(binding));
-        }
-
     }
 
     @CoreMethod(names = "binding")
-    public abstract static class BindingNode extends CoreMethodArrayArgumentsNode {
-
+    public abstract static class BindingNode extends TracePointCoreNode {
         @Specialization
         protected DynamicObject binding(DynamicObject tracePoint) {
-            return Layouts.TRACE_POINT.getBinding(tracePoint);
+            return getTracePointState().binding;
         }
+    }
 
+    @CoreMethod(names = "method_id")
+    public abstract static class MethodIDNode extends TracePointCoreNode {
+        @Specialization
+        protected DynamicObject methodId(DynamicObject tracePoint,
+                @Cached MakeStringNode makeStringNode) {
+            final DynamicObject binding = getTracePointState().binding;
+            final InternalMethod method = RubyArguments.getMethod(BindingNodes.getFrame(binding));
+            return makeStringNode.executeMake(method.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+    }
+
+    @CoreMethod(names = "self")
+    public abstract static class SelfNode extends TracePointCoreNode {
+        @Specialization
+        protected Object self(DynamicObject tracePoint) {
+            final DynamicObject binding = getTracePointState().binding;
+            return RubyArguments.getSelf(BindingNodes.getFrame(binding));
+        }
     }
 
 }

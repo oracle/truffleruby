@@ -29,7 +29,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -42,21 +41,19 @@ public abstract class FiberNodes {
 
         @Child private SingleValueCastNode singleValueCastNode;
 
-        public Object singleValue(VirtualFrame frame, Object[] args) {
+        public Object singleValue(Object[] args) {
             if (singleValueCastNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 singleValueCastNode = insert(SingleValueCastNodeGen.create());
             }
-            return singleValueCastNode.executeSingleValue(frame, args);
+            return singleValueCastNode.executeSingleValue(args);
         }
 
-        public abstract Object executeTransferControlTo(VirtualFrame frame,
-                DynamicObject currentThread, DynamicObject currentFiber, DynamicObject fiber,
-                FiberOperation operation, Object[] args);
+        public abstract Object executeTransferControlTo(DynamicObject currentThread, DynamicObject currentFiber,
+                DynamicObject fiber, FiberOperation operation, Object[] args);
 
         @Specialization(guards = "isRubyFiber(fiber)")
         protected Object transfer(
-                VirtualFrame frame,
                 DynamicObject currentThread,
                 DynamicObject currentFiber,
                 DynamicObject fiber,
@@ -77,7 +74,7 @@ public abstract class FiberNodes {
             }
 
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
-            return singleValue(frame, fiberManager.transferControlTo(currentFiber, fiber, operation, args));
+            return singleValue(fiberManager.transferControlTo(currentFiber, fiber, operation, args));
         }
 
     }
@@ -117,23 +114,23 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
+        protected Object resume(DynamicObject fiber, Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile sameFiberProfile) {
 
             Layouts.FIBER.setTransferred(fiber, true);
 
-            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
             final DynamicObject currentFiber = fiberManager.getCurrentFiber();
 
             if (sameFiberProfile.profile(currentFiber == fiber)) {
                 // A Fiber can transfer to itself
-                return fiberTransferNode.singleValue(frame, args);
+                return fiberTransferNode.singleValue(args);
             }
 
             return fiberTransferNode
-                    .executeTransferControlTo(frame, currentThread, currentFiber, fiber, FiberOperation.TRANSFER, args);
+                    .executeTransferControlTo(currentThread, currentFiber, fiber, FiberOperation.TRANSFER, args);
         }
 
     }
@@ -144,7 +141,7 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object resume(VirtualFrame frame, DynamicObject fiber, Object[] args,
+        protected Object resume(DynamicObject fiber, Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile doubleResumeProfile,
                 @Cached ConditionProfile transferredProfile) {
@@ -163,12 +160,12 @@ public abstract class FiberNodes {
                         coreExceptions().fiberError("cannot resume transferred Fiber", this));
             }
 
-            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
             final DynamicObject currentFiber = fiberManager.getCurrentFiber();
 
             return fiberTransferNode
-                    .executeTransferControlTo(frame, currentThread, currentFiber, fiber, FiberOperation.RESUME, args);
+                    .executeTransferControlTo(currentThread, currentFiber, fiber, FiberOperation.RESUME, args);
         }
 
     }
@@ -179,18 +176,17 @@ public abstract class FiberNodes {
         @Child private FiberTransferNode fiberTransferNode = FiberTransferNodeFactory.create(null);
 
         @Specialization
-        protected Object yield(VirtualFrame frame, Object[] args,
+        protected Object yield(Object[] args,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
 
-            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
             final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
             final DynamicObject currentFiber = fiberManager.getCurrentFiber();
 
             final DynamicObject fiberYieldedTo = fiberManager.getReturnFiber(currentFiber, this, errorProfile);
 
             return fiberTransferNode.executeTransferControlTo(
-                    frame,
                     currentThread,
                     currentFiber,
                     fiberYieldedTo,
@@ -214,9 +210,9 @@ public abstract class FiberNodes {
     public abstract static class CurrentNode extends CoreMethodNode {
 
         @Specialization
-        protected DynamicObject current(VirtualFrame frame,
+        protected DynamicObject current(
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
             return Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
         }
 
@@ -226,9 +222,9 @@ public abstract class FiberNodes {
     public static abstract class FiberGetCatchTagsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getCatchTags(VirtualFrame frame,
+        protected DynamicObject getCatchTags(
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final DynamicObject currentThread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
             final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
             return Layouts.FIBER.getCatchTags(currentFiber);
         }

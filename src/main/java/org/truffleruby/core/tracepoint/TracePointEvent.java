@@ -31,13 +31,16 @@ public final class TracePointEvent {
         this.eventSymbol = eventSymbol;
     }
 
-    public boolean hasEventBinding() {
+    public synchronized boolean hasEventBinding() {
         return eventBinding != null;
     }
 
+    /** Returns whether the event was setup */
     @TruffleBoundary
-    public void setupEventBinding(RubyContext context, DynamicObject tracePoint) {
-        assert eventBinding == null;
+    public synchronized boolean setupEventBinding(RubyContext context, DynamicObject tracePoint) {
+        if (eventBinding != null) {
+            return false;
+        }
 
         final SourceSectionFilter sourceSectionFilter = SourceSectionFilter
                 .newBuilder()
@@ -48,12 +51,19 @@ public final class TracePointEvent {
         this.eventBinding = context.getInstrumenter().attachExecutionEventFactory(
                 sourceSectionFilter,
                 eventContext -> new TracePointEventNode(context, eventContext, tracePoint, eventSymbol));
+        return true;
     }
 
+    /** Returns whether the event was disposed */
     @TruffleBoundary
-    public void diposeEventBinding() {
-        this.eventBinding.dispose();
-        this.eventBinding = null;
+    public synchronized boolean diposeEventBinding() {
+        if (eventBinding != null) {
+            this.eventBinding.dispose();
+            this.eventBinding = null;
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

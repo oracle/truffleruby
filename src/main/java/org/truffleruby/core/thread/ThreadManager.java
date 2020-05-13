@@ -30,6 +30,7 @@ import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RandomizerNodes;
+import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
@@ -245,6 +246,7 @@ public class ThreadManager {
                 HashOperations.newEmptyHash(context),
                 HashOperations.newEmptyHash(context),
                 RandomizerNodes.newRandomizer(context),
+                new TracePointState(),
                 getGlobalReportOnException(),
                 getGlobalAbortOnException(),
                 null,

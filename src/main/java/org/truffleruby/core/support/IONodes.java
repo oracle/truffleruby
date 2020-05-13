@@ -485,11 +485,11 @@ public abstract class IONodes {
     public static abstract class IOThreadBufferAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getThreadBuffer(VirtualFrame frame, long size,
+        protected DynamicObject getThreadBuffer(long size,
                 @Cached AllocateObjectNode allocateObjectNode,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached ConditionProfile sizeProfile) {
-            DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
+            DynamicObject thread = currentThreadNode.execute();
             return allocateObjectNode
                     .allocate(
                             getContext().getCoreLibrary().truffleFFIPointerClass,
@@ -509,10 +509,10 @@ public abstract class IONodes {
     public static abstract class IOThreadBufferFreeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getThreadBuffer(VirtualFrame frame, DynamicObject pointer,
+        protected Object getThreadBuffer(DynamicObject pointer,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached("createBinaryProfile()") ConditionProfile freeProfile) {
-            DynamicObject thread = currentThreadNode.executeGetRubyThread(frame);
+            DynamicObject thread = currentThreadNode.execute();
             final ThreadLocalBuffer threadBuffer = Layouts.THREAD.getIoBuffer(thread);
             assert threadBuffer.start.getAddress() == Layouts.POINTER.getPointer(pointer).getAddress();
             Layouts.THREAD.setIoBuffer(thread, threadBuffer.free(freeProfile));

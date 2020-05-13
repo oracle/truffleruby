@@ -19,17 +19,11 @@ import com.oracle.truffle.api.object.dsl.Nullable;
 @Layout
 public interface TracePointLayout extends BasicObjectLayout {
 
-    DynamicObjectFactory createTracePointShape(DynamicObject logicalClass,
-            DynamicObject metaClass);
+    DynamicObjectFactory createTracePointShape(DynamicObject logicalClass, DynamicObject metaClass);
 
     Object[] build(
             @Nullable TracePointEvent[] events,
-            @Nullable DynamicObject event,
-            @Nullable DynamicObject path,
-            int line,
-            @Nullable DynamicObject binding,
-            @Nullable DynamicObject proc,
-            boolean insideProc);
+            @Nullable DynamicObject proc);
 
     boolean isTracePoint(DynamicObject object);
 
@@ -37,28 +31,8 @@ public interface TracePointLayout extends BasicObjectLayout {
 
     void setEvents(DynamicObject object, TracePointEvent[] value);
 
-    DynamicObject getEvent(DynamicObject object);
-
-    void setEvent(DynamicObject object, DynamicObject value);
-
-    DynamicObject getPath(DynamicObject object);
-
-    void setPath(DynamicObject object, DynamicObject value);
-
-    int getLine(DynamicObject object);
-
-    void setLine(DynamicObject object, int value);
-
-    DynamicObject getBinding(DynamicObject object);
-
-    void setBinding(DynamicObject object, DynamicObject value);
-
     DynamicObject getProc(DynamicObject object);
 
     void setProc(DynamicObject object, DynamicObject value);
-
-    boolean getInsideProc(DynamicObject object);
-
-    void setInsideProc(DynamicObject object, boolean value);
 
 }

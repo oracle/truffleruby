@@ -29,7 +29,6 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -66,14 +65,10 @@ public abstract class ConditionVariableNodes {
     public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isNil(timeout)")
-        protected DynamicObject waitTimeoutNil(
-                VirtualFrame frame,
-                DynamicObject conditionVariable,
-                DynamicObject mutex,
-                Object timeout,
+        protected DynamicObject waitTimeoutNil(DynamicObject conditionVariable, DynamicObject mutex, Object timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject thread = getCurrentRubyThreadNode.execute();
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
@@ -82,14 +77,10 @@ public abstract class ConditionVariableNodes {
         }
 
         @Specialization
-        protected DynamicObject waitTimeout(
-                VirtualFrame frame,
-                DynamicObject conditionVariable,
-                DynamicObject mutex,
-                long timeout,
+        protected DynamicObject waitTimeout(DynamicObject conditionVariable, DynamicObject mutex, long timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
-            final DynamicObject thread = getCurrentRubyThreadNode.executeGetRubyThread(frame);
+            final DynamicObject thread = getCurrentRubyThreadNode.execute();
             final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
