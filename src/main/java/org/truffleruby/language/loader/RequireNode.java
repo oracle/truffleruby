@@ -402,8 +402,12 @@ public abstract class RequireNode extends RubyContextNode {
             warningNode = insert(new WarningNode());
         }
 
-        final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
-        warningNode.warningMessage(sourceSection, "loading in progress, circular require considered harmful - " + path);
+        if (warningNode.shouldWarn()) {
+            final SourceSection sourceSection = getContext().getCallStack().getTopMostUserSourceSection();
+            warningNode.warningMessage(
+                    sourceSection,
+                    "loading in progress, circular require considered harmful - " + path);
+        }
     }
 
     private void requireMetric(String id) {

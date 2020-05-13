@@ -10,6 +10,7 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 
 import com.oracle.truffle.api.Assumption;
@@ -32,24 +33,17 @@ public class GlobalVariableStorage {
 
     private volatile Object value;
 
-    private final Object defaultValue;
     private final DynamicObject getter;
     private final DynamicObject setter;
     private final DynamicObject isDefined;
 
-    GlobalVariableStorage(Object defaultValue, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
-        this(UNSET_VALUE, defaultValue, getter, setter, isDefined);
+    GlobalVariableStorage(DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+        this(UNSET_VALUE, getter, setter, isDefined);
     }
 
-    GlobalVariableStorage(
-            Object value,
-            Object defaultValue,
-            DynamicObject getter,
-            DynamicObject setter,
-            DynamicObject isDefined) {
+    GlobalVariableStorage(Object value, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
         assert ((getter == null) == (setter == null)) & ((getter == null) == (isDefined == null));
 
-        this.defaultValue = defaultValue;
         this.value = value;
         this.getter = getter;
         this.setter = setter;
@@ -58,7 +52,7 @@ public class GlobalVariableStorage {
 
     public Object getValue() {
         Object currentValue = value;
-        return currentValue == UNSET_VALUE ? defaultValue : currentValue;
+        return currentValue == UNSET_VALUE ? Nil.INSTANCE : currentValue;
     }
 
     public boolean isDefined() {
