@@ -10,9 +10,6 @@
 package org.truffleruby.core.symbol;
 
 import java.util.Collection;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -36,8 +33,6 @@ public class SymbolTable {
 
     private final RopeCache ropeCache;
 
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
     // A cache for j.l.String to Symbols. Entries are kept as long as the Symbol is alive.
     // However, this doesn't matter as the cache entries will be re-created when used.
     private final WeakValueCache<String, DynamicObject> stringToSymbolCache = new WeakValueCache<>();
@@ -53,18 +48,10 @@ public class SymbolTable {
     @TruffleBoundary
     public DynamicObject getSymbol(String string, DynamicObjectFactory symbolFactory) {
         // TODO BJF 13-May-2020 symbolFactory should not be needed, but since there is a single RubyContext per RubyLanguage (contextPolicy=EXCLUSIVE) this is OK.
-        DynamicObject symbol;
 
-        final Lock readLock = lock.readLock();
-
-        readLock.lock();
-        try {
-            symbol = stringToSymbolCache.get(string);
-            if (symbol != null) {
-                return symbol;
-            }
-        } finally {
-            readLock.unlock();
+        DynamicObject symbol = stringToSymbolCache.get(string);
+        if (symbol != null) {
+            return symbol;
         }
 
         final Rope rope;
@@ -77,14 +64,7 @@ public class SymbolTable {
 
         // Add it to the direct j.l.String to Symbol cache
 
-        final Lock writeLock = lock.writeLock();
-
-        writeLock.lock();
-        try {
-            stringToSymbolCache.addInCacheIfAbsent(string, symbol);
-        } finally {
-            writeLock.unlock();
-        }
+        stringToSymbolCache.addInCacheIfAbsent(string, symbol);
 
         return symbol;
     }

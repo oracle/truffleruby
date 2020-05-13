@@ -10,9 +10,6 @@
 package org.truffleruby.core.rope;
 
 import java.util.WeakHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -26,8 +23,6 @@ public class PathToRopeCache {
 
     private final RubyContext context;
 
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
     private final WeakHashMap<String, Rope> javaStringToRope = new WeakHashMap<>();
 
     public PathToRopeCache(RubyContext context) {
@@ -38,30 +33,17 @@ public class PathToRopeCache {
      * String as key to make Source.getName() keep the corresponding Rope alive. */
     @TruffleBoundary
     public Rope getCachedPath(String string) {
-        final Lock readLock = lock.readLock();
 
-        readLock.lock();
-        try {
-            final Rope rope = javaStringToRope.get(string);
-            if (rope != null) {
-                return rope;
-            }
-        } finally {
-            readLock.unlock();
+        final Rope rope = javaStringToRope.get(string);
+        if (rope != null) {
+            return rope;
         }
 
         final Rope cachedRope = context
                 .getRopeCache()
                 .getRope(StringOperations.encodeRope(string, UTF8Encoding.INSTANCE));
 
-        final Lock writeLock = lock.writeLock();
-
-        writeLock.lock();
-        try {
-            javaStringToRope.putIfAbsent(string, cachedRope);
-        } finally {
-            writeLock.unlock();
-        }
+        javaStringToRope.putIfAbsent(string, cachedRope);
 
         return cachedRope;
     }
