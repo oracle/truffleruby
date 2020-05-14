@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
@@ -41,6 +42,7 @@ public abstract class IntegerCastNode extends RubyBaseNode {
         return (int) value;
     }
 
+    @TruffleBoundary
     @Specialization(guards = "!fitsInInteger(value)")
     protected int doLongToBig(long value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
@@ -49,6 +51,7 @@ public abstract class IntegerCastNode extends RubyBaseNode {
                 context.getCoreExceptions().rangeError("long too big to convert into `int'", this));
     }
 
+    @TruffleBoundary
     @Specialization(guards = "!isBasicInteger(value)")
     protected int doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
