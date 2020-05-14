@@ -160,9 +160,9 @@ class Array
         return at(start)
       end
     else
-      start = Truffle::Type.rb_num2long(start)
+      start = Truffle::Type.rb_num2int(start)
       start += size if start < 0
-      length = Truffle::Type.rb_num2long(length)
+      length = Truffle::Type.rb_num2int(length)
     end
     Primitive.array_read_slice_normalized(self, start, length)
   end
