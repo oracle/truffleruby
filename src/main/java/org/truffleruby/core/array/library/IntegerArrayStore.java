@@ -279,6 +279,20 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
+    protected static class IsDefaultValue {
+
+        @Specialization
+        protected static boolean isDefaultValue(int[] store, int value) {
+            return value == 0;
+        }
+
+        @Specialization
+        protected static boolean isDefaultValue(int[] store, Object value) {
+            return Integer.valueOf(0).equals(value);
+        }
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(int[] store) {
         return INTEGER_ARRAY_ALLOCATOR;
     }

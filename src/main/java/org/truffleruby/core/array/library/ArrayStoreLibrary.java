@@ -125,6 +125,11 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Return an allocator for a mutable version of {@code store}. */
     public abstract ArrayAllocator allocator(Object store);
 
+    /** Return whether the {@code store}'s default value is {@code value}. */
+    public boolean isDefaultValue(Object store, Object value) {
+        return value == null;
+    }
+
     /** Return an allocator for storage that can hold {@code value}. */
     public static ArrayAllocator allocatorForValue(Object value) {
         if (value instanceof Integer) {

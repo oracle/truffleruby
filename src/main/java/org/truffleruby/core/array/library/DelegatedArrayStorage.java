@@ -131,6 +131,12 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected boolean isDefaultValue(Object value,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.isDefaultValue(storage, value);
+    }
+
+    @ExportMessage
     protected ArrayAllocator allocator(
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.allocator(storage);

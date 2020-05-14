@@ -291,6 +291,20 @@ public class LongArrayStore {
     }
 
     @ExportMessage
+    protected static class IsDefaultValue {
+
+        @Specialization
+        protected static boolean isDefaultValue(long[] store, long value) {
+            return value == 0L;
+        }
+
+        @Specialization
+        protected static boolean isDefaultValue(long[] store, Object value) {
+            return Long.valueOf(0L).equals(value);
+        }
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(long[] store) {
         return LONG_ARRAY_ALLOCATOR;
     }

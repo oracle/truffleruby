@@ -263,6 +263,20 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
+    protected static class IsDefaultValue {
+
+        @Specialization
+        protected static boolean isDefaultValue(double[] store, double value) {
+            return value == 0.0;
+        }
+
+        @Specialization
+        protected static boolean isDefaultValue(double[] store, Object value) {
+            return Double.valueOf(0.0).equals(value);
+        }
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(double[] store) {
         return DOUBLE_ARRAY_ALLOCATOR;
     }

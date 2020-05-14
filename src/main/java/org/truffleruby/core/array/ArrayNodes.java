@@ -988,7 +988,7 @@ public abstract class ArrayNodes {
                 @Cached ConditionProfile needsFill,
                 @Cached PropagateSharingNode propagateSharingNode) {
             final Object allocatedStore = stores.allocateForNewValue(getStore(array), fillingValue, size);
-            if (needsFill.profile(!allocatedStores.allocator(allocatedStore).isDefaultValue(fillingValue))) {
+            if (needsFill.profile(!allocatedStores.isDefaultValue(allocatedStore, fillingValue))) {
                 propagateSharingNode.executePropagate(array, fillingValue);
                 for (int i = 0; i < size; i++) {
                     allocatedStores.write(allocatedStore, i, fillingValue);
