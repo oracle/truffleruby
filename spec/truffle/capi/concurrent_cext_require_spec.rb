@@ -8,7 +8,7 @@
 
 describe "Requiring C extensions concurrently" do
   it "is thread-safe" do
-    out = ruby_exe(fixture(__FILE__ , 'concurrent_cext_require.rb'))
+    out = ruby_exe(fixture(__FILE__ , 'concurrent_cext_require.rb'), args: "2>&1")
     out.should == "success\n"
     $?.success?.should == true
   end
