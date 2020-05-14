@@ -102,6 +102,7 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
+import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingNodes;
@@ -344,7 +345,7 @@ public abstract class StringNodes {
 
         @CreateCast("times")
         protected RubyNode coerceToInteger(RubyNode times) {
-            return FixnumLowerNode.create(ToLongNode.create(times));
+            return FixnumLowerNode.create(ToRubyIntegerNode.create(times));
         }
 
         @Specialization(guards = "times < 0")
@@ -372,13 +373,26 @@ public abstract class StringNodes {
                     Layouts.STRING.build(false, false, repeated));
         }
 
+        // NOTE(norswap, 14 May 2020):
+        //  It would be safer if we computed the total size for the resulting string and ensure it is
+        //  not higher than the maximum Java string length (INT_MAX), otherwise the code might blow up at all
+        //  later time if we try to flatten such a rope. However, given ropes, such an operation could
+        //  also be fairly expense, and such errors are not overly likely.
+
         // Specialization for long that do not fit in an int, and cannot be otherwise handled.
         @TruffleBoundary
         @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
-        protected DynamicObject multiplyNonEmpty(DynamicObject string, long times,
-                @Cached ToIntNode toIntNode) {
-            // Will throw the proper conversion exception.
-            toIntNode.execute(times);
+        protected DynamicObject multiplyNonEmpty(DynamicObject string, long times) {
+            // Emulate error thrown by MRI whenever the total size of the resulting string would exceed LONG_MAX.
+            throw new RaiseException(getContext(), coreExceptions().argumentError("argument too big", this));
+        }
+
+        @Specialization(guards = "isRubyBignum(times)")
+        protected DynamicObject multiplyNonEmpty(DynamicObject string, DynamicObject times,
+                @Cached ToLongNode toLongNode) {
+            // Raise proper error.
+            toLongNode.execute(times);
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnreachableCodeException();
         }
     }

@@ -64,7 +64,7 @@ public abstract class ToIntNode extends RubyContextSourceNode {
         // MRI does not have this error
         throw new RaiseException(
                 getContext(),
-                coreExceptions().argumentError("long too big to convert into `int'", this));
+                coreExceptions().rangeError("long too big to convert into `int'", this));
     }
 
     @Specialization(guards = "isRubyBignum(value)")

@@ -26,6 +26,10 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
         return ToRubyIntegerNodeGen.create(null);
     }
 
+    public static ToRubyIntegerNode create(RubyNode child) {
+        return ToRubyIntegerNodeGen.create(child);
+    }
+
     public abstract Object execute(Object object);
 
     @Specialization
@@ -44,7 +48,7 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
     }
 
     // object can't be a DynamicObject, because we must handle doubles and booleans.
-    @Specialization(guards = { "!isRubyInteger(object)", "!isNil(object)" })
+    @Specialization(guards = "!isRubyInteger(object)")
     protected Object coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode) {
         return toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int", object);
