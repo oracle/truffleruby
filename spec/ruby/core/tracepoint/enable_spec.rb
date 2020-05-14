@@ -55,6 +55,27 @@ describe 'TracePoint#enable' do
       end.enable { event_name.should equal(:line) }
     end
 
+    it 'enables the trace object for any thread' do
+      threads = []
+      trace = TracePoint.new(:line) do |tp|
+        threads << Thread.current
+      end
+
+      thread = nil
+      trace.enable do
+        line_event = true
+        thread = Thread.new do
+          event_in_other_thread = true
+        end
+        thread.join
+      end
+
+      threads = threads.uniq
+      threads.size.should >= 2
+      threads.should.include?(Thread.current)
+      threads.should.include?(thread)
+    end
+
     it 'can accept arguments within a block but it should not yield arguments' do
       event_name = nil
       trace = TracePoint.new(:line) { |tp| event_name = tp.event }
