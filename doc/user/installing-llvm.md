@@ -1,4 +1,4 @@
-# Installing LLVM
+# Installing Make and GCC
 
 Since TruffleRuby 19.3.0, TruffleRuby ships with its own LLVM toolchain.
 Therefore, it is no longer necessary to install LLVM. If you are using an older
