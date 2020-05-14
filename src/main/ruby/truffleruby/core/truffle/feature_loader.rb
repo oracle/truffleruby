@@ -199,6 +199,7 @@ module Truffle
       ext == :so || ext == :dlext
     end
 
+    # Done this way to avoid many duplicate Strings representing the file extensions
     def self.extension_symbol(path)
       if !path.nil?
         if path.end_with?('.rb')
@@ -216,6 +217,7 @@ module Truffle
       end
     end
 
+    # Done this way to avoid many duplicate Strings representing the file extensions
     def self.extension(path)
       if !path.nil?
         if path.end_with?('.rb')
