@@ -1,12 +1,12 @@
 require_relative '../../spec_helper'
+require_relative 'fixtures/classes'
 
 describe 'TracePoint#enable' do
-  # def test; end
-
   describe 'without a block' do
     it 'returns false if trace was disabled' do
       called = false
       trace = TracePoint.new(:line) do |tp|
+        next unless TracePointSpec.target_thread?
         called = true
       end
 
@@ -26,6 +26,7 @@ describe 'TracePoint#enable' do
     it 'returns true if trace was already enabled' do
       called = false
       trace = TracePoint.new(:line) do |tp|
+        next unless TracePointSpec.target_thread?
         called = true
       end
 
@@ -51,6 +52,7 @@ describe 'TracePoint#enable' do
     it 'enables the trace object within a block' do
       event_name = nil
       TracePoint.new(:line) do |tp|
+        next unless TracePointSpec.target_thread?
         event_name = tp.event
       end.enable { event_name.should equal(:line) }
     end
@@ -58,6 +60,7 @@ describe 'TracePoint#enable' do
     it 'enables the trace object for any thread' do
       threads = []
       trace = TracePoint.new(:line) do |tp|
+        # Runs on purpose on any Thread
         threads << Thread.current
       end
 
@@ -78,7 +81,10 @@ describe 'TracePoint#enable' do
 
     it 'can accept arguments within a block but it should not yield arguments' do
       event_name = nil
-      trace = TracePoint.new(:line) { |tp| event_name = tp.event }
+      trace = TracePoint.new(:line) do |tp|
+        next unless TracePointSpec.target_thread?
+        event_name = tp.event
+      end
       trace.enable do |*args|
         event_name.should equal(:line)
         args.should == []
@@ -105,7 +111,10 @@ describe 'TracePoint#enable' do
 
     it 'disables the trace object outside the block' do
       called = false
-      trace = TracePoint.new(:line) { called = true }
+      trace = TracePoint.new(:line) do
+        next unless TracePointSpec.target_thread?
+        called = true
+      end
       trace.enable {
         line_event = true
       }
@@ -118,12 +127,14 @@ describe 'TracePoint#enable' do
     it "enables both TracePoints but only calls the respective callbacks" do
       called = false
       first = TracePoint.new(:line) do |tp|
+        next unless TracePointSpec.target_thread?
         called = true
       end
 
       all = []
       inspects = []
       second = TracePoint.new(:line) { |tp|
+        next unless TracePointSpec.target_thread?
         all << tp
         inspects << tp.inspect
       }
@@ -149,6 +160,7 @@ describe 'TracePoint#enable' do
 
       it 'enables trace point for specific location' do
         trace = TracePoint.new(:call) do |tp|
+          next unless TracePointSpec.target_thread?
           ScratchPad << tp.method_id
         end
 
@@ -166,6 +178,7 @@ describe 'TracePoint#enable' do
 
       it 'traces all the events triggered in specified location' do
         trace = TracePoint.new(:line, :call, :return, :b_call, :b_return) do |tp|
+          next unless TracePointSpec.target_thread?
           ScratchPad << tp.event
         end
 
@@ -185,6 +198,7 @@ describe 'TracePoint#enable' do
 
       it 'does not trace events in nested locations' do
         trace = TracePoint.new(:call) do |tp|
+          next unless TracePointSpec.target_thread?
           ScratchPad << tp.method_id
         end
 
@@ -222,6 +236,7 @@ describe 'TracePoint#enable' do
         end
 
         trace = TracePoint.new(:b_call) do |tp|
+          next unless TracePointSpec.target_thread?
           ScratchPad << tp.lineno
         end
 
@@ -238,6 +253,7 @@ describe 'TracePoint#enable' do
       describe 'option value' do
         it 'accepts Method' do
           trace = TracePoint.new(:call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << tp.method_id
           end
 
@@ -253,6 +269,7 @@ describe 'TracePoint#enable' do
 
         it 'accepts UnboundMethod' do
           trace = TracePoint.new(:call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << tp.method_id
           end
 
@@ -270,6 +287,7 @@ describe 'TracePoint#enable' do
 
         it 'accepts Proc' do
           trace = TracePoint.new(:b_call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << tp.lineno
           end
 
@@ -287,6 +305,7 @@ describe 'TracePoint#enable' do
 
       it "raises ArgumentError if target object cannot trigger specified event" do
         trace = TracePoint.new(:call) do |tp|
+          next unless TracePointSpec.target_thread?
           ScratchPad << tp.method_id
         end
 
@@ -300,8 +319,7 @@ describe 'TracePoint#enable' do
       end
 
       it "raises ArgumentError if passed not Method/UnboundMethod/Proc" do
-        trace = TracePoint.new(:call) do |tp|
-        end
+        trace = TracePoint.new(:call) {}
 
         -> {
           trace.enable(target: Object.new) do
@@ -311,8 +329,7 @@ describe 'TracePoint#enable' do
 
       context "nested enabling and disabling" do
         it "raises ArgumentError if trace point already enabled with target is re-enabled with target" do
-          trace = TracePoint.new(:b_call) do
-          end
+          trace = TracePoint.new(:b_call) {}
 
           -> {
             trace.enable(target: -> {}) do
@@ -323,8 +340,7 @@ describe 'TracePoint#enable' do
         end
 
         it "raises ArgumentError if trace point already enabled without target is re-enabled with target" do
-          trace = TracePoint.new(:b_call) do
-          end
+          trace = TracePoint.new(:b_call) {}
 
           -> {
             trace.enable do
@@ -335,8 +351,7 @@ describe 'TracePoint#enable' do
         end
 
         it "raises ArgumentError if trace point already enabled with target is re-enabled without target" do
-          trace = TracePoint.new(:b_call) do
-          end
+          trace = TracePoint.new(:b_call) {}
 
           -> {
             trace.enable(target: -> {}) do
@@ -347,8 +362,7 @@ describe 'TracePoint#enable' do
         end
 
         it "raises ArgumentError if trace point already enabled with target is disabled with block" do
-          trace = TracePoint.new(:b_call) do
-          end
+          trace = TracePoint.new(:b_call) {}
 
           -> {
             trace.enable(target: -> {}) do
@@ -360,10 +374,12 @@ describe 'TracePoint#enable' do
 
         it "traces events when trace point with target is enabled in another trace point enabled without target" do
           trace_outer = TracePoint.new(:b_call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << :outer
           end
 
           trace_inner = TracePoint.new(:b_call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << :inner
           end
 
@@ -380,10 +396,12 @@ describe 'TracePoint#enable' do
 
         it "traces events when trace point with target is enabled in another trace point enabled with target" do
           trace_outer = TracePoint.new(:b_call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << :outer
           end
 
           trace_inner = TracePoint.new(:b_call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << :inner
           end
 
@@ -400,10 +418,12 @@ describe 'TracePoint#enable' do
 
         it "traces events when trace point without target is enabled in another trace point enabled with target" do
           trace_outer = TracePoint.new(:b_call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << :outer
           end
 
           trace_inner = TracePoint.new(:b_call) do |tp|
+            next unless TracePointSpec.target_thread?
             ScratchPad << :inner
           end
 
@@ -427,6 +447,7 @@ describe 'TracePoint#enable' do
 
       it "traces :line events only on specified line of code" do
         trace = TracePoint.new(:line) do |tp|
+          next unless TracePointSpec.target_thread?
           ScratchPad << tp.lineno
         end
 
@@ -446,8 +467,7 @@ describe 'TracePoint#enable' do
       end
 
       it "raises ArgumentError if :target option isn't specified" do
-        trace = TracePoint.new(:line) do |tp|
-        end
+        trace = TracePoint.new(:line) {}
 
         -> {
           trace.enable(target_line: 67) do
@@ -456,8 +476,7 @@ describe 'TracePoint#enable' do
       end
 
       it "raises ArgumentError if :line event isn't registered" do
-        trace = TracePoint.new(:call) do |tp|
-        end
+        trace = TracePoint.new(:call) {}
 
         target = -> {
           x = 1
@@ -474,8 +493,7 @@ describe 'TracePoint#enable' do
       end
 
       it "raises ArgumentError if :target_line value is out of target code lines range" do
-        trace = TracePoint.new(:line) do |tp|
-        end
+        trace = TracePoint.new(:line) {}
 
         -> {
           trace.enable(target_line: 1, target: -> { }) do
@@ -484,8 +502,7 @@ describe 'TracePoint#enable' do
       end
 
       it "raises TypeError if :target_line value couldn't be coerced to Integer" do
-        trace = TracePoint.new(:line) do |tp|
-        end
+        trace = TracePoint.new(:line) {}
 
         -> {
           trace.enable(target_line: Object.new, target: -> { }) do
@@ -494,8 +511,7 @@ describe 'TracePoint#enable' do
       end
 
       it "raises ArgumentError if :target_line value is negative" do
-        trace = TracePoint.new(:line) do |tp|
-        end
+        trace = TracePoint.new(:line) {}
 
         -> {
           trace.enable(target_line: -2, target: -> { }) do
@@ -505,6 +521,7 @@ describe 'TracePoint#enable' do
 
       it "accepts value that could be coerced to Integer" do
         trace = TracePoint.new(:line) do |tp|
+          next unless TracePointSpec.target_thread?
           ScratchPad << tp.lineno
         end
 
