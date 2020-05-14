@@ -84,8 +84,7 @@ module Truffle
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           else
-            feature_ext_string = extension(feature)
-            feature_no_ext = feature[0...(-feature_ext_string.size)]
+            feature_no_ext = feature[0...-3] # remove ".so"
             path = find_file("#{feature_no_ext}.#{Truffle::Platform::DLEXT}")
             return expanded_path_provided(path) if path
           end
@@ -154,10 +153,10 @@ module Truffle
                              end
                            end
             if feature_path
-              if !has_extension?(loaded_feature)
+              loaded_feature_ext = extension_symbol(loaded_feature)
+              if !loaded_feature_ext
                 return :unknown unless feature_ext
               else
-                loaded_feature_ext = extension_symbol(loaded_feature)
                 if (!feature_has_rb_ext || !feature_ext) && binary_ext?(loaded_feature_ext)
                   return :so
                 end
@@ -198,10 +197,6 @@ module Truffle
 
     def self.binary_ext?(ext)
       ext == :so || ext == :dlext
-    end
-
-    def self.has_extension?(path)
-      !path.nil? && !File.extname(path).empty?
     end
 
     def self.extension_symbol(path)
