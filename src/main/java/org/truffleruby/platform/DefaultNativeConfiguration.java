@@ -43,7 +43,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -54,7 +53,7 @@ public abstract class DefaultNativeConfiguration {
     }
 
     protected static DynamicObject string(RubyContext context, String value) {
-        return StringOperations.createString(context, RopeOperations.encodeAscii(value, UTF8Encoding.INSTANCE));
+        return context.getFrozenStringLiteral(RopeOperations.encodeAscii(value, UTF8Encoding.INSTANCE));
     }
 
 }
