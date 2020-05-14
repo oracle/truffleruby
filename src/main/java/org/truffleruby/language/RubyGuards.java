@@ -14,6 +14,7 @@ import org.truffleruby.core.CoreLibrary;
 
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.symbol.RubySymbol;
 
 public abstract class RubyGuards {
 
@@ -196,11 +197,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubySymbol(Object value) {
-        return Layouts.SYMBOL.isSymbol(value);
-    }
-
-    public static boolean isRubySymbol(DynamicObject value) {
-        return Layouts.SYMBOL.isSymbol(value);
+        return value instanceof RubySymbol;
     }
 
     public static boolean isRubyMethod(Object value) {
@@ -295,7 +292,8 @@ public abstract class RubyGuards {
     }
 
     public static boolean isForeignObject(Object object) {
-        return !isRubyBasicObject(object) && !isPrimitive(object) && !(object instanceof Nil);
+        return !isRubyBasicObject(object) && !isPrimitive(object) && !(object instanceof Nil) &&
+                !(object instanceof RubySymbol);
     }
 
     public static boolean isBoxedPrimitive(Object object) {

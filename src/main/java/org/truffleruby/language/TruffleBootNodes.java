@@ -27,6 +27,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -362,9 +363,9 @@ public abstract class TruffleBootNodes {
     public abstract static class PrintTimeMetricNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(name)")
-        protected Object printTimeMetric(DynamicObject name) {
-            Metrics.printTime(Layouts.SYMBOL.getString(name));
+        @Specialization
+        protected Object printTimeMetric(RubySymbol name) {
+            Metrics.printTime(name.getString());
             return nil;
         }
 
@@ -384,10 +385,10 @@ public abstract class TruffleBootNodes {
     public abstract static class ToolchainExecutableNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(executable)")
-        protected Object toolchainExecutable(DynamicObject executable,
+        @Specialization
+        protected Object toolchainExecutable(RubySymbol executable,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final String name = Layouts.SYMBOL.getString(executable);
+            final String name = executable.getString();
             final Toolchain toolchain = getToolchain(getContext(), this);
             final TruffleFile path = toolchain.getToolPath(name);
             if (path != null) {
@@ -405,10 +406,10 @@ public abstract class TruffleBootNodes {
     public abstract static class ToolchainPathsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(pathName)")
-        protected Object toolchainPaths(DynamicObject pathName,
+        @Specialization
+        protected Object toolchainPaths(RubySymbol pathName,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final String name = Layouts.SYMBOL.getString(pathName);
+            final String name = pathName.getString();
             final Toolchain toolchain = getToolchain(getContext(), this);
             final List<TruffleFile> paths = toolchain.getPaths(name);
             if (paths != null) {

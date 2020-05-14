@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -74,6 +75,13 @@ public abstract class MetaClassNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().nilClass;
     }
+
+    @Specialization
+    protected DynamicObject metaClassSymbol(RubySymbol value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().symbolClass;
+    }
+
 
     // Cover all DynamicObject cases with cached and uncached
 

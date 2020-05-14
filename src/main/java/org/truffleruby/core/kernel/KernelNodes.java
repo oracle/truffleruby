@@ -66,6 +66,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
@@ -381,7 +382,7 @@ public abstract class KernelNodes {
     public abstract static class CalleeNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject calleeName() {
+        protected RubySymbol calleeName() {
             // the "called name" of a method.
             return getSymbol(getContext().getCallStack().getCallingMethodIgnoringSend().getName());
         }
@@ -615,8 +616,8 @@ public abstract class KernelNodes {
             return object;
         }
 
-        @Specialization(guards = "isRubySymbol(symbol)")
-        protected Object cloneSymbol(DynamicObject symbol, boolean freeze,
+        @Specialization
+        protected Object cloneSymbol(RubySymbol symbol, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(symbol);
@@ -1006,8 +1007,8 @@ public abstract class KernelNodes {
             return false;
         }
 
-        @Specialization(guards = "isRubySymbol(object)")
-        protected boolean isInstanceVariableDefinedSymbolOrNil(DynamicObject object, String name) {
+        @Specialization
+        protected boolean isInstanceVariableDefinedSymbolOrNil(RubySymbol object, String name) {
             return false;
         }
 
@@ -1205,7 +1206,7 @@ public abstract class KernelNodes {
     public abstract static class MethodNameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject methodName() {
+        protected RubySymbol methodName() {
             // the "original/definition name" of the method.
             return getSymbol(
                     getContext().getCallStack().getCallingMethodIgnoringSend().getSharedMethodInfo().getName());
@@ -1226,7 +1227,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected DynamicObject method(VirtualFrame frame, Object self, DynamicObject name) {
+        protected DynamicObject method(VirtualFrame frame, Object self, Object name) {
             return getMethodObjectNode.executeGetMethodObject(frame, self, name);
         }
 
@@ -1250,10 +1251,10 @@ public abstract class KernelNodes {
             lookupMethodNode = LookupMethodNode.create();
         }
 
-        public abstract DynamicObject executeGetMethodObject(VirtualFrame frame, Object self, DynamicObject name);
+        public abstract DynamicObject executeGetMethodObject(VirtualFrame frame, Object self, Object name);
 
         @Specialization
-        protected DynamicObject methods(VirtualFrame frame, Object self, DynamicObject name,
+        protected DynamicObject methods(VirtualFrame frame, Object self, Object name,
                 @Cached ConditionProfile notFoundProfile,
                 @Cached ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
@@ -1281,7 +1282,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private InternalMethod createMissingMethod(Object self, DynamicObject name, String normalizedName,
+        private InternalMethod createMissingMethod(Object self, Object name, String normalizedName,
                 InternalMethod methodMissing) {
             final SharedMethodInfo info = methodMissing
                     .getSharedMethodInfo()
@@ -1311,10 +1312,10 @@ public abstract class KernelNodes {
 
         private static class CallMethodMissingWithStaticName extends RubyContextSourceNode {
 
-            private final DynamicObject methodName;
+            private final Object methodName;
             @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.createPrivate();
 
-            public CallMethodMissingWithStaticName(DynamicObject methodName) {
+            public CallMethodMissingWithStaticName(Object methodName) {
                 this.methodName = methodName;
             }
 
@@ -1580,11 +1581,11 @@ public abstract class KernelNodes {
             }
         }
 
-        @Specialization(guards = "isRubySymbol(name)")
+        @Specialization
         protected boolean doesRespondToSymbol(
                 VirtualFrame frame,
                 Object object,
-                DynamicObject name,
+                RubySymbol name,
                 boolean includeProtectedAndPrivate) {
             final boolean ret;
 
@@ -1604,7 +1605,7 @@ public abstract class KernelNodes {
             }
         }
 
-        private boolean respondToMissing(VirtualFrame frame, Object object, DynamicObject name,
+        private boolean respondToMissing(VirtualFrame frame, Object object, RubySymbol name,
                 boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -1629,8 +1630,8 @@ public abstract class KernelNodes {
             return false;
         }
 
-        @Specialization(guards = "isRubySymbol(name)")
-        protected boolean doesRespondToMissingSymbol(Object object, DynamicObject name, Object unusedIncludeAll) {
+        @Specialization
+        protected boolean doesRespondToMissingSymbol(Object object, RubySymbol name, Object unusedIncludeAll) {
             return false;
         }
 

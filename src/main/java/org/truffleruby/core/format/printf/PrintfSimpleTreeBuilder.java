@@ -36,6 +36,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.symbol.RubySymbol;
 
 public class PrintfSimpleTreeBuilder {
 
@@ -61,7 +62,7 @@ public class PrintfSimpleTreeBuilder {
                 final FormatNode valueNode;
 
                 if (config.getNamesBytes() != null) {
-                    final DynamicObject key = context.getSymbol(RopeOperations.create(
+                    final RubySymbol key = context.getSymbol(RopeOperations.create(
                             config.getNamesBytes(),
                             USASCIIEncoding.INSTANCE,
                             CodeRange.CR_7BIT));

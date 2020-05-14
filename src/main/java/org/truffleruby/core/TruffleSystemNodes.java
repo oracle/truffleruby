@@ -58,6 +58,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
@@ -205,26 +206,26 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "log", onSingleton = true, required = 2)
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel" })
-        protected Object logCached(DynamicObject level, DynamicObject message,
-                @Cached("level") DynamicObject cachedLevel,
+        @Specialization(guards = { "isRubyString(message)", "level == cachedLevel" })
+        protected Object logCached(RubySymbol level, DynamicObject message,
+                @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, StringOperations.getString(message));
             return nil;
         }
 
-        @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)" }, replaces = "logCached")
-        protected Object log(DynamicObject level, DynamicObject message) {
+        @Specialization(guards = { "isRubyString(message)" }, replaces = "logCached")
+        protected Object log(RubySymbol level, DynamicObject message) {
             log(getLevel(level), StringOperations.getString(message));
             return nil;
         }
 
         @TruffleBoundary
-        protected Level getLevel(DynamicObject level) {
+        protected Level getLevel(RubySymbol level) {
             assert RubyGuards.isRubySymbol(level);
 
             try {
-                return Level.parse(Layouts.SYMBOL.getString(level));
+                return Level.parse(level.getString());
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
                         "Could not find log level for: " + level,

@@ -54,6 +54,7 @@ import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -1197,22 +1198,21 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = {
-                        "isRubySymbol(symbol)",
                         "isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)",
                         "isNil(block)" })
         protected Object injectSymbolEmptyArray(
                 DynamicObject array,
                 Object initialOrSymbol,
-                DynamicObject symbol,
+                RubySymbol symbol,
                 Object block) {
             return initialOrSymbol;
         }
 
-        @Specialization(guards = { "isRubySymbol(initialOrSymbol)", "isEmptyArray(array)", "isNil(block)" })
+        @Specialization(guards = { "isEmptyArray(array)", "isNil(block)" })
         protected Object injectSymbolEmptyArrayNoInitial(
                 DynamicObject array,
-                DynamicObject initialOrSymbol,
+                RubySymbol initialOrSymbol,
                 NotProvided symbol,
                 Object block) {
             return nil;
@@ -1220,7 +1220,6 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = {
-                        "isRubySymbol(symbol)",
                         "!isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)",
                         "isNil(block)" },
@@ -1229,7 +1228,7 @@ public abstract class ArrayNodes {
                 VirtualFrame frame,
                 DynamicObject array,
                 Object initialOrSymbol,
-                DynamicObject symbol,
+                RubySymbol symbol,
                 Object block,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
             final Object store = Layouts.ARRAY.getStore(array);
@@ -1238,14 +1237,13 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = {
-                        "isRubySymbol(initialOrSymbol)",
                         "!isEmptyArray(array)",
                         "isNil(block)" },
                 limit = "storageStrategyLimit()")
         protected Object injectSymbolNoInitial(
                 VirtualFrame frame,
                 DynamicObject array,
-                DynamicObject initialOrSymbol,
+                RubySymbol initialOrSymbol,
                 NotProvided symbol,
                 Object block,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
@@ -1253,7 +1251,7 @@ public abstract class ArrayNodes {
             return injectSymbolHelper(frame, array, initialOrSymbol, stores, store, stores.read(store, 0), 1);
         }
 
-        public Object injectSymbolHelper(VirtualFrame frame, DynamicObject array, DynamicObject symbol,
+        public Object injectSymbolHelper(VirtualFrame frame, DynamicObject array, RubySymbol symbol,
                 ArrayStoreLibrary stores, Object store, Object initial, int start) {
             Object accumulator = initial;
             int n = start;

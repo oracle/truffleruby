@@ -26,6 +26,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -699,7 +700,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return () -> new IncludedModulesIterator(start, this);
     }
 
-    public Collection<DynamicObject> filterMethods(RubyContext context, boolean includeAncestors, MethodFilter filter) {
+    public Collection<RubySymbol> filterMethods(RubyContext context, boolean includeAncestors, MethodFilter filter) {
         final Map<String, InternalMethod> allMethods;
         if (includeAncestors) {
             allMethods = ModuleOperations.getAllMethods(rubyModuleObject);
@@ -709,7 +710,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return filterMethods(context, allMethods, filter);
     }
 
-    public Collection<DynamicObject> filterMethodsOnObject(
+    public Collection<RubySymbol> filterMethodsOnObject(
             RubyContext context,
             boolean includeAncestors,
             MethodFilter filter) {
@@ -722,7 +723,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return filterMethods(context, allMethods, filter);
     }
 
-    public Collection<DynamicObject> filterSingletonMethods(
+    public Collection<RubySymbol> filterSingletonMethods(
             RubyContext context,
             boolean includeAncestors,
             MethodFilter filter) {
@@ -735,13 +736,13 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return filterMethods(context, allMethods, filter);
     }
 
-    public Collection<DynamicObject> filterMethods(
+    public Collection<RubySymbol> filterMethods(
             RubyContext context,
             Map<String, InternalMethod> allMethods,
             MethodFilter filter) {
         final Map<String, InternalMethod> methods = ModuleOperations.withoutUndefinedMethods(allMethods);
 
-        final Set<DynamicObject> filtered = new HashSet<>();
+        final Set<RubySymbol> filtered = new HashSet<>();
         for (InternalMethod method : methods.values()) {
             if (filter.filter(method)) {
                 filtered.add(context.getSymbol(method.getName()));

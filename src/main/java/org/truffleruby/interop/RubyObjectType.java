@@ -25,8 +25,6 @@ public class RubyObjectType extends ObjectType {
     public String toString(DynamicObject object) {
         if (RubyGuards.isRubyString(object)) {
             return StringOperations.getString(object);
-        } else if (RubyGuards.isRubySymbol(object)) {
-            return Layouts.SYMBOL.getString(object);
         } else if (RubyGuards.isRubyException(object)) {
             return Layouts.EXCEPTION.getMessage(object).toString();
         } else if (RubyGuards.isRubyModule(object)) {

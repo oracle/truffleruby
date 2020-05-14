@@ -26,8 +26,6 @@ import org.truffleruby.parser.Identifiers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 
 public class SymbolTable {
 
@@ -35,21 +33,21 @@ public class SymbolTable {
 
     // A cache for j.l.String to Symbols. Entries are kept as long as the Symbol is alive.
     // However, this doesn't matter as the cache entries will be re-created when used.
-    private final WeakValueCache<String, DynamicObject> stringToSymbolCache = new WeakValueCache<>();
+    private final WeakValueCache<String, RubySymbol> stringToSymbolCache = new WeakValueCache<>();
 
     // Weak map of RopeKey to Symbol to keep Symbols unique.
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
-    private final WeakValueCache<Rope, DynamicObject> symbolMap = new WeakValueCache<>();
+    private final WeakValueCache<Rope, RubySymbol> symbolMap = new WeakValueCache<>();
 
     public SymbolTable(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbol(String string, DynamicObjectFactory symbolFactory) {
+    public RubySymbol getSymbol(String string) {
         // TODO BJF 13-May-2020 symbolFactory should not be needed, but since there is a single RubyContext per RubyLanguage (contextPolicy=EXCLUSIVE) this is OK.
 
-        DynamicObject symbol = stringToSymbolCache.get(string);
+        RubySymbol symbol = stringToSymbolCache.get(string);
         if (symbol != null) {
             return symbol;
         }
@@ -60,7 +58,7 @@ public class SymbolTable {
         } else {
             rope = StringOperations.encodeRope(string, UTF8Encoding.INSTANCE);
         }
-        symbol = getSymbol(rope, symbolFactory);
+        symbol = getSymbol(rope);
 
         // Add it to the direct j.l.String to Symbol cache
 
@@ -70,23 +68,23 @@ public class SymbolTable {
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbol(Rope rope, DynamicObjectFactory symbolFactory) {
+    public RubySymbol getSymbol(Rope rope) {
         // TODO BJF 13-May-2020 symbolFactory should not be needed, but since there is a single RubyContext per RubyLanguage (contextPolicy=EXCLUSIVE) this is OK.
         final Rope normalizedRope = normalizeRopeForLookup(rope);
-        final DynamicObject symbol = symbolMap.get(normalizedRope);
+        final RubySymbol symbol = symbolMap.get(normalizedRope);
         if (symbol != null) {
             return symbol;
         }
 
         final Rope cachedRope = ropeCache.getRope(normalizedRope);
-        final DynamicObject newSymbol = createSymbol(cachedRope, symbolFactory);
+        final RubySymbol newSymbol = createSymbol(cachedRope);
         // Use a RopeKey with the cached Rope in symbolMap, since the Symbol refers to it and so we
         // do not keep rope alive unnecessarily.
         return symbolMap.addInCacheIfAbsent(cachedRope, newSymbol);
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbolIfExists(Rope rope) {
+    public RubySymbol getSymbolIfExists(Rope rope) {
         final Rope ropeKey = normalizeRopeForLookup(rope);
         return symbolMap.get(ropeKey);
     }
@@ -103,17 +101,17 @@ public class SymbolTable {
         return rope;
     }
 
-    private DynamicObject createSymbol(Rope cachedRope, DynamicObjectFactory symbolFactory) {
+    private RubySymbol createSymbol(Rope cachedRope) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
-        return Layouts.SYMBOL.createSymbol(
-                symbolFactory,
-                string,
-                cachedRope,
-                string.hashCode());
+        return createSymbol(string, cachedRope, string.hashCode());
+    }
+
+    public static RubySymbol createSymbol(String string, Rope rope, int hashCode) {
+        return new RubySymbol(string, rope, hashCode);
     }
 
     @TruffleBoundary
-    public Collection<DynamicObject> allSymbols() {
+    public Collection<RubySymbol> allSymbols() {
         return symbolMap.values();
     }
 

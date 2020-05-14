@@ -47,6 +47,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -201,11 +202,11 @@ public abstract class RegexpNodes {
             return getMakeStringNode().fromRope(ClassicRegexp.quote19(rope));
         }
 
-        @Specialization(guards = "isRubySymbol(raw)")
-        protected DynamicObject quoteSymbol(DynamicObject raw) {
+        @Specialization
+        protected DynamicObject quoteSymbol(RubySymbol raw) {
             return quoteString(
                     getMakeStringNode()
-                            .executeMake(Layouts.SYMBOL.getString(raw), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                            .executeMake(raw.getString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
         }
 
         @Fallback
@@ -328,7 +329,7 @@ public abstract class RegexpNodes {
                 final Rope rope = getContext()
                         .getRopeCache()
                         .getRope(bytes, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
-                final DynamicObject name = getContext().getSymbol(rope);
+                final RubySymbol name = getContext().getSymbol(rope);
 
                 final int[] backrefs = e.getBackRefs();
                 final DynamicObject backrefsRubyArray = createArray(backrefs, backrefs.length);

@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -30,8 +31,8 @@ public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode toStr;
 
-    @Specialization(guards = "isRubySymbol(symbol)")
-    protected DynamicObject coerceRubySymbol(DynamicObject symbol) {
+    @Specialization
+    protected RubySymbol coerceRubySymbol(RubySymbol symbol) {
         return symbol;
     }
 

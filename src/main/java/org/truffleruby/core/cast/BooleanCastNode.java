@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
@@ -69,6 +70,11 @@ public abstract class BooleanCastNode extends RubyBaseNode {
 
     @Specialization
     protected boolean doBasicObject(DynamicObject object) {
+        return true;
+    }
+
+    @Specialization
+    protected boolean doSymbol(RubySymbol object) {
         return true;
     }
 

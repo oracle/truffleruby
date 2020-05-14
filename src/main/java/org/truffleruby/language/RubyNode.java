@@ -20,6 +20,7 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.CoverageManager;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -236,11 +237,11 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
 
         // Helpers methods for terseness, keep in sync
 
-        default DynamicObject getSymbol(String name) {
+        default RubySymbol getSymbol(String name) {
             return getContext().getSymbol(name);
         }
 
-        default DynamicObject getSymbol(Rope name) {
+        default RubySymbol getSymbol(Rope name) {
             return getContext().getSymbol(name);
         }
 

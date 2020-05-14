@@ -18,6 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
+import org.truffleruby.core.symbol.RubySymbol;
 import sun.misc.Signal;
 
 @CoreModule(value = "Process", isClass = true)
@@ -49,9 +50,9 @@ public abstract class ProcessNodes {
     public abstract static class ProcessKillRaiseNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary(transferToInterpreterOnException = false)
-        @Specialization(guards = "isRubySymbol(signalName)")
-        protected int raise(DynamicObject signalName) {
-            final Signal signal = new Signal(Layouts.SYMBOL.getString(signalName));
+        @Specialization
+        protected int raise(RubySymbol signalName) {
+            final Signal signal = new Signal(signalName.getString());
             try {
                 Signal.raise(signal);
             } catch (IllegalArgumentException e) {

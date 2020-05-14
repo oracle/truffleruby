@@ -407,17 +407,17 @@ public abstract class BasicObjectNodes {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no id given", this));
         }
 
-        @Specialization
-        protected Object methodMissingNoBlock(Object self, DynamicObject name, Object[] args, NotProvided block) {
+        @Specialization(guards = "wasProvided(name)")
+        protected Object methodMissingNoBlock(Object self, Object name, Object[] args, NotProvided block) {
             return methodMissing(self, name, args, null);
         }
 
-        @Specialization
-        protected Object methodMissingBlock(Object self, DynamicObject name, Object[] args, DynamicObject block) {
+        @Specialization(guards = "wasProvided(name)")
+        protected Object methodMissingBlock(Object self, Object name, Object[] args, DynamicObject block) {
             return methodMissing(self, name, args, block);
         }
 
-        private Object methodMissing(Object self, DynamicObject nameObject, Object[] args, DynamicObject block) {
+        private Object methodMissing(Object self, Object nameObject, Object[] args, DynamicObject block) {
             throw new RaiseException(getContext(), buildMethodMissingException(self, nameObject, args, block));
         }
 
@@ -432,7 +432,7 @@ public abstract class BasicObjectNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject buildMethodMissingException(Object self, DynamicObject nameObject, Object[] args,
+        private DynamicObject buildMethodMissingException(Object self, Object nameObject, Object[] args,
                 DynamicObject block) {
             final String name = nameObject.toString();
             final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();

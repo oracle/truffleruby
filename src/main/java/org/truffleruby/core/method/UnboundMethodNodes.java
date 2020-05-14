@@ -20,6 +20,7 @@ import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
@@ -122,7 +123,7 @@ public abstract class UnboundMethodNodes {
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject name(DynamicObject unboundMethod) {
+        protected RubySymbol name(DynamicObject unboundMethod) {
             return getSymbol(Layouts.UNBOUND_METHOD.getMethod(unboundMethod).getName());
         }
 

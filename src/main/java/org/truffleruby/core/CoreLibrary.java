@@ -40,6 +40,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -182,7 +183,6 @@ public class CoreLibrary {
     public final DynamicObject stringClass;
     public final DynamicObjectFactory stringFactory;
     public final DynamicObject symbolClass;
-    public final DynamicObjectFactory symbolFactory;
     public final DynamicObject syntaxErrorClass;
     public final DynamicObject systemCallErrorClass;
     public final DynamicObject systemExitClass;
@@ -510,8 +510,6 @@ public class CoreLibrary {
         stringFactory = Layouts.STRING.createStringShape(stringClass, stringClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, stringFactory);
         symbolClass = defineClass("Symbol");
-        symbolFactory = alwaysShared(alwaysFrozen(Layouts.SYMBOL.createSymbolShape(symbolClass, symbolClass)));
-        Layouts.CLASS.setInstanceFactoryUnsafe(symbolClass, symbolFactory);
 
         threadClass = defineClass("Thread");
         threadClass.define("@report_on_exception", true);
@@ -981,6 +979,8 @@ public class CoreLibrary {
             return Layouts.BASIC_OBJECT.getLogicalClass((DynamicObject) object);
         } else if (object instanceof Nil) {
             return nilClass;
+        } else if (object instanceof RubySymbol) {
+            return symbolClass;
         } else if (object instanceof Boolean) {
             if ((boolean) object) {
                 return trueClass;

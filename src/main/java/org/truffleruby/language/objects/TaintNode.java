@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
@@ -57,8 +58,8 @@ public abstract class TaintNode extends RubyBaseNode {
         return object;
     }
 
-    @Specialization(guards = "isRubySymbol(object)")
-    protected Object taintSymbol(DynamicObject object) {
+    @Specialization
+    protected Object taintSymbol(RubySymbol object) {
         return object;
     }
 

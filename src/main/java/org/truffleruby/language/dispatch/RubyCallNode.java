@@ -17,6 +17,7 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ProcOrNullNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -174,7 +175,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
     private class DefinedNode extends RubyBaseNode {
 
-        private final DynamicObject methodNameSymbol = getContext().getSymbol(methodName);
+        private final RubySymbol methodNameSymbol = getContext().getSymbol(methodName);
 
         @Child private CallDispatchHeadNode respondToMissing = CallDispatchHeadNode.createReturnMissing();
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);

@@ -25,6 +25,7 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
@@ -90,7 +91,7 @@ public abstract class TracePointNodes {
 
             final TracePointEvent[] events = new TracePointEvent[eventSymbols.length];
             for (int i = 0; i < eventSymbols.length; i++) {
-                events[i] = createEvents((DynamicObject) eventSymbols[i]);
+                events[i] = createEvents((RubySymbol) eventSymbols[i]);
             }
 
             Layouts.TRACE_POINT.setEvents(tracePoint, events);
@@ -99,7 +100,7 @@ public abstract class TracePointNodes {
         }
 
         @TruffleBoundary
-        private TracePointEvent createEvents(DynamicObject eventSymbol) {
+        private TracePointEvent createEvents(RubySymbol eventSymbol) {
             if (eventSymbol == coreStrings().LINE.getSymbol()) {
                 return new TracePointEvent(TraceManager.LineTag.class, eventSymbol);
             } else if (eventSymbol == coreStrings().CLASS.getSymbol()) {
@@ -107,7 +108,7 @@ public abstract class TracePointNodes {
             } else if (eventSymbol == coreStrings().NEVER.getSymbol()) {
                 return new TracePointEvent(TraceManager.NeverTag.class, eventSymbol);
             } else {
-                throw new UnsupportedOperationException(Layouts.SYMBOL.getString(eventSymbol));
+                throw new UnsupportedOperationException(eventSymbol.getString());
             }
         }
 
@@ -184,7 +185,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "event")
     public abstract static class EventNode extends TracePointCoreNode {
         @Specialization
-        protected DynamicObject event(DynamicObject tracePoint) {
+        protected RubySymbol event(DynamicObject tracePoint) {
             return getTracePointState().event;
         }
     }

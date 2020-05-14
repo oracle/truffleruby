@@ -37,6 +37,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -270,12 +271,11 @@ public abstract class MatchDataNodes {
 
         @Specialization(
                 guards = {
-                        "isRubySymbol(cachedIndex)",
                         "name != null",
                         "getRegexp(matchData) == regexp",
                         "cachedIndex == index" })
-        protected Object getIndexSymbolSingleMatch(DynamicObject matchData, DynamicObject index, NotProvided length,
-                @Cached("index") DynamicObject cachedIndex,
+        protected Object getIndexSymbolSingleMatch(DynamicObject matchData, RubySymbol index, NotProvided length,
+                @Cached("index") RubySymbol cachedIndex,
                 @Cached("getRegexp(matchData)") DynamicObject regexp,
                 @Cached("findNameEntry(regexp, index)") NameEntry name,
                 @Cached("numBackRefs(name)") int backRefs,
@@ -289,8 +289,8 @@ public abstract class MatchDataNodes {
             }
         }
 
-        @Specialization(guards = "isRubySymbol(index)")
-        protected Object getIndexSymbol(DynamicObject matchData, DynamicObject index, NotProvided length,
+        @Specialization
+        protected Object getIndexSymbol(DynamicObject matchData, RubySymbol index, NotProvided length,
                 @Cached BranchProfile errorProfile) {
             return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
@@ -326,9 +326,9 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        protected static NameEntry findNameEntry(DynamicObject regexp, DynamicObject string) {
+        protected static NameEntry findNameEntry(DynamicObject regexp, RubySymbol symbol) {
             Regex regex = Layouts.REGEXP.getRegex(regexp);
-            Rope rope = Layouts.SYMBOL.getRope(string);
+            Rope rope = symbol.getRope();
             if (regex.numberOfNames() > 0) {
                 for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext();) {
                     final NameEntry e = i.next();
@@ -355,12 +355,12 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary(transferToInterpreterOnException = false)
-        private int getBackRefFromSymbol(DynamicObject matchData, DynamicObject index) {
-            final Rope value = Layouts.SYMBOL.getRope(index);
+        private int getBackRefFromSymbol(DynamicObject matchData, RubySymbol index) {
+            final Rope value = index.getRope();
             return getBackRefFromRope(matchData, index, value);
         }
 
-        private int getBackRefFromRope(DynamicObject matchData, DynamicObject index, Rope value) {
+        private int getBackRefFromRope(DynamicObject matchData, Object index, Rope value) {
             try {
                 return Layouts.REGEXP.getRegex(getRegexp(matchData)).nameToBackrefNumber(
                         value.getBytes(),

@@ -40,6 +40,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
@@ -638,9 +639,9 @@ public abstract class EncodingNodes {
             return getRubyEncodingNode.executeGetRubyEncoding(Layouts.STRING.getRope(object).getEncoding());
         }
 
-        @Specialization(guards = "isRubySymbol(object)")
-        protected DynamicObject encodingGetObjectEncodingSymbol(DynamicObject object) {
-            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.SYMBOL.getRope(object).getEncoding());
+        @Specialization
+        protected DynamicObject encodingGetObjectEncodingSymbol(RubySymbol object) {
+            return getRubyEncodingNode.executeGetRubyEncoding(object.getRope().getEncoding());
         }
 
         @Specialization(guards = "isRubyEncoding(object)")

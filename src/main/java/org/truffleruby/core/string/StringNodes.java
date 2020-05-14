@@ -150,6 +150,7 @@ import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
@@ -2460,15 +2461,15 @@ public abstract class StringNodes {
         @Specialization(
                 guards = { "!isBrokenCodeRange(string, codeRangeNode)", "equalNode.execute(rope(string),cachedRope)" },
                 limit = "getDefaultCacheLimit()")
-        protected DynamicObject toSymCached(DynamicObject string,
+        protected RubySymbol toSymCached(DynamicObject string,
                 @Cached("privatizeRope(string)") Rope cachedRope,
-                @Cached("getSymbol(cachedRope)") DynamicObject cachedSymbol,
+                @Cached("getSymbol(cachedRope)") RubySymbol cachedSymbol,
                 @Cached RopeNodes.EqualNode equalNode) {
             return cachedSymbol;
         }
 
         @Specialization(guards = "!isBrokenCodeRange(string, codeRangeNode)", replaces = "toSymCached")
-        protected DynamicObject toSym(DynamicObject string) {
+        protected RubySymbol toSym(DynamicObject string) {
             return getSymbol(rope(string));
         }
 

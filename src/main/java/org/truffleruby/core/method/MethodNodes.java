@@ -25,6 +25,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -114,7 +115,7 @@ public abstract class MethodNodes {
     public abstract static class NameNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject name(DynamicObject method) {
+        protected RubySymbol name(DynamicObject method) {
             return getSymbol(Layouts.METHOD.getMethod(method).getName());
         }
 

@@ -29,6 +29,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -493,7 +494,7 @@ public abstract class InteropNodes {
         abstract Object execute(Object receiver, Object identifier);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Object readMember(Object receiver, DynamicObject identifier,
+        protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -651,7 +652,7 @@ public abstract class InteropNodes {
         @Specialization(
                 guards = "isRubySymbol(identifier) || isRubyString(identifier)",
                 limit = "getCacheLimit()")
-        protected Object write(Object receiver, DynamicObject identifier, Object value,
+        protected Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached RubyToForeignNode valueToForeignNode,
@@ -706,7 +707,7 @@ public abstract class InteropNodes {
     public abstract static class RemoveMemberNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Nil remove(TruffleObject receiver, DynamicObject identifier,
+        protected Nil remove(TruffleObject receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -1250,9 +1251,9 @@ public abstract class InteropNodes {
         // TODO CS 17-Mar-18 we should cache this in the future
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(name)")
-        protected Object javaTypeSymbol(DynamicObject name) {
-            return javaType(Layouts.SYMBOL.getString(name));
+        @Specialization
+        protected Object javaTypeSymbol(RubySymbol name) {
+            return javaType(name.getString());
         }
 
         @TruffleBoundary

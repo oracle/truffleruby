@@ -28,6 +28,7 @@ import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -1145,8 +1146,8 @@ public abstract class BigDecimalNodes {
             return createBigDecimal(round(value, ndigits, getRoundMode()));
         }
 
-        @Specialization(guards = { "isNormal(value)", "isRubySymbol(roundingMode)" })
-        protected Object round(DynamicObject value, int ndigits, DynamicObject roundingMode,
+        @Specialization(guards = "isNormal(value)")
+        protected Object round(DynamicObject value, int ndigits, RubySymbol roundingMode,
                 @Cached("createPrivate()") CallDispatchHeadNode callRoundModeFromSymbol) {
             return createBigDecimal(round(
                     value,

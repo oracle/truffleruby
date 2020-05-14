@@ -15,6 +15,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -55,8 +56,8 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
         return toJavaStringNode.executeToJavaString(value);
     }
 
-    @Specialization(guards = "isRubySymbol(value)")
-    protected String symbolNameToJavaString(DynamicObject value,
+    @Specialization
+    protected String symbolNameToJavaString(RubySymbol value,
             @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }

@@ -43,6 +43,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.time.GetTimeZoneNode;
@@ -588,13 +589,13 @@ public class RubyContext {
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbol(String string) {
-        return language.symbolTable.getSymbol(string, coreLibrary.symbolFactory);
+    public RubySymbol getSymbol(String string) {
+        return language.symbolTable.getSymbol(string);
     }
 
     @TruffleBoundary
-    public DynamicObject getSymbol(Rope rope) {
-        return language.symbolTable.getSymbol(rope, coreLibrary.symbolFactory);
+    public RubySymbol getSymbol(Rope rope) {
+        return language.symbolTable.getSymbol(rope);
     }
 
     public CodeLoader getCodeLoader() {

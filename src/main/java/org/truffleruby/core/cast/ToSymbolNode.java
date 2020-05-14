@@ -12,6 +12,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -26,23 +27,23 @@ public abstract class ToSymbolNode extends RubyBaseNode {
         return ToSymbolNodeGen.create();
     }
 
-    public abstract DynamicObject executeToSymbol(Object object);
+    public abstract RubySymbol executeToSymbol(Object object);
 
     // TODO(CS): cache the conversion to a symbol? Or should the user do that themselves?
 
-    @Specialization(guards = "isRubySymbol(symbol)")
-    protected DynamicObject toSymbolSymbol(DynamicObject symbol) {
+    @Specialization
+    protected RubySymbol toSymbolSymbol(RubySymbol symbol) {
         return symbol;
     }
 
     @Specialization(guards = "isRubyString(string)")
-    protected DynamicObject toSymbolString(DynamicObject string,
+    protected RubySymbol toSymbolString(DynamicObject string,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getSymbol((StringOperations.rope(string)));
     }
 
     @Specialization
-    protected DynamicObject toSymbol(String string,
+    protected RubySymbol toSymbol(String string,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getSymbol(string);
     }

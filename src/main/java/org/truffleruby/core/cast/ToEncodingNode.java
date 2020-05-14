@@ -13,6 +13,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Fallback;
@@ -33,9 +34,9 @@ public abstract class ToEncodingNode extends RubyContextNode {
         return StringOperations.encoding(value);
     }
 
-    @Specialization(guards = "isRubySymbol(value)")
-    protected Encoding symbolToEncoding(DynamicObject value) {
-        return Layouts.SYMBOL.getRope(value).getEncoding();
+    @Specialization
+    protected Encoding symbolToEncoding(RubySymbol value) {
+        return value.getRope().getEncoding();
     }
 
     @Specialization(guards = "isRubyRegexp(value)")

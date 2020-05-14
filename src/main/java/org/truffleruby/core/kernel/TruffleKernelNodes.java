@@ -20,6 +20,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
@@ -125,10 +126,10 @@ public abstract class TruffleKernelNodes {
     @ImportStatic(Layouts.class)
     public abstract static class WriteGlobalVariableNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
-        protected Object write(DynamicObject name, Object value,
-                @Cached("name") DynamicObject cachedName,
-                @Cached("create(SYMBOL.getString(cachedName))") WriteSimpleGlobalVariableNode writeNode) {
+        @Specialization(guards = "name == cachedName", limit = "1")
+        protected Object write(RubySymbol name, Object value,
+                @Cached("name") RubySymbol cachedName,
+                @Cached("create(cachedName.getString())") WriteSimpleGlobalVariableNode writeNode) {
             return writeNode.execute(value);
         }
     }
@@ -138,10 +139,10 @@ public abstract class TruffleKernelNodes {
     @ImportStatic(Layouts.class)
     public abstract static class ReadGlobalVariableNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubySymbol(cachedName)", "name == cachedName" }, limit = "1")
-        protected Object read(DynamicObject name,
-                @Cached("name") DynamicObject cachedName,
-                @Cached("create(SYMBOL.getString(cachedName))") ReadSimpleGlobalVariableNode readNode) {
+        @Specialization(guards = "name == cachedName", limit = "1")
+        protected Object read(RubySymbol name,
+                @Cached("name") RubySymbol cachedName,
+                @Cached("create(cachedName.getString())") ReadSimpleGlobalVariableNode readNode) {
             return readNode.execute();
         }
     }
@@ -150,14 +151,14 @@ public abstract class TruffleKernelNodes {
     public abstract static class DefineHookedVariableInnerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubySymbol(name)", "isRubyProc(getter)", "isRubyProc(setter)" })
+        @Specialization(guards = { "isRubyProc(getter)", "isRubyProc(setter)" })
         protected Object defineHookedVariableInnerNode(
-                DynamicObject name,
+                RubySymbol name,
                 DynamicObject getter,
                 DynamicObject setter,
                 DynamicObject isDefined) {
             getContext().getCoreLibrary().globalVariables.define(
-                    Layouts.SYMBOL.getString(name),
+                    name.getString(),
                     getter,
                     setter,
                     isDefined);
@@ -171,8 +172,8 @@ public abstract class TruffleKernelNodes {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
-        @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
-        protected Object executeGetValue(DynamicObject name, DynamicObject binding,
+        @Specialization(guards = "isRubyBinding(binding)")
+        protected Object executeGetValue(RubySymbol name, DynamicObject binding,
                 @Cached ConditionProfile sameThreadProfile) {
             return threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).get(sameThreadProfile);
         }
@@ -184,8 +185,8 @@ public abstract class TruffleKernelNodes {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
-        @Specialization(guards = { "isRubySymbol(name)", "isRubyBinding(binding)" })
-        protected Object executeGetValue(DynamicObject name, DynamicObject binding, Object value,
+        @Specialization(guards = "isRubyBinding(binding)")
+        protected Object executeGetValue(RubySymbol name, DynamicObject binding, Object value,
                 @Cached ConditionProfile sameThreadProfile) {
             threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).set(value, sameThreadProfile);
             return value;

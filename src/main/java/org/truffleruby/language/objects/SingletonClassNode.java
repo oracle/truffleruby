@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -73,8 +74,8 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
         return noSingletonClass();
     }
 
-    @Specialization(guards = "isRubySymbol(value)")
-    protected DynamicObject singletonClassSymbol(DynamicObject value) {
+    @Specialization
+    protected DynamicObject singletonClassSymbol(RubySymbol value) {
         return noSingletonClass();
     }
 

@@ -73,8 +73,6 @@ import org.truffleruby.core.support.IOLayout;
 import org.truffleruby.core.support.IOLayoutImpl;
 import org.truffleruby.core.support.RandomizerLayout;
 import org.truffleruby.core.support.RandomizerLayoutImpl;
-import org.truffleruby.core.symbol.SymbolLayout;
-import org.truffleruby.core.symbol.SymbolLayoutImpl;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayout;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.core.thread.ThreadLayout;
@@ -139,7 +137,6 @@ public abstract class Layouts {
     public static final RegexpLayout REGEXP = RegexpLayoutImpl.INSTANCE;
     public static final SizedQueueLayout SIZED_QUEUE = SizedQueueLayoutImpl.INSTANCE;
     public static final StringLayout STRING = StringLayoutImpl.INSTANCE;
-    public static final SymbolLayout SYMBOL = SymbolLayoutImpl.INSTANCE;
     public static final ThreadLayout THREAD = ThreadLayoutImpl.INSTANCE;
     public static final ThreadBacktraceLocationLayout THREAD_BACKTRACE_LOCATION = ThreadBacktraceLocationLayoutImpl.INSTANCE;
     public static final TimeLayout TIME = TimeLayoutImpl.INSTANCE;

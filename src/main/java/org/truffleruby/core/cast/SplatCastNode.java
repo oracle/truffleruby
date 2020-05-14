@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayDupNode;
 import org.truffleruby.core.array.ArrayDupNodeGen;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -38,7 +39,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
     }
 
     private final NilBehavior nilBehavior;
-    private final DynamicObject conversionMethod;
+    private final RubySymbol conversionMethod;
     @CompilationFinal private boolean copy = true;
 
     @Child private ArrayDupNode dup;
