@@ -202,6 +202,11 @@ public class ZeroLengthArrayStore {
     }
 
     @ExportMessage
+    protected boolean isDefaultValue(Object value) {
+        return false;
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(ZeroLengthArrayStore store) {
         return ZERO_LENGTH_ALLOCATOR;
     }

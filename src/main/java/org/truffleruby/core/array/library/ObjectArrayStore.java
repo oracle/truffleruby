@@ -158,6 +158,11 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
+    protected static boolean isDefaultValue(Object[] store, Object value) {
+        return value == null;
+    }
+
+    @ExportMessage
     protected static ArrayAllocator allocator(Object[] store) {
         return OBJECT_ARRAY_ALLOCATOR;
     }

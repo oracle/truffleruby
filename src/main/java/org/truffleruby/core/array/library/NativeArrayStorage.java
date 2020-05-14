@@ -206,6 +206,11 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @ExportMessage
+    protected boolean isDefaultValue(Object value) {
+        return false;
+    }
+
+    @ExportMessage
     protected ArrayAllocator allocator() {
         return ObjectArrayStore.OBJECT_ARRAY_ALLOCATOR;
     }
