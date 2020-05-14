@@ -298,9 +298,9 @@ public class LongArrayStore {
             return value == 0L;
         }
 
-        @Specialization
+        @Fallback
         protected static boolean isDefaultValue(long[] store, Object value) {
-            return Long.valueOf(0L).equals(value);
+            return false;
         }
     }
 

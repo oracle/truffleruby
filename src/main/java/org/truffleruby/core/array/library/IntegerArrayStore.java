@@ -286,9 +286,9 @@ public class IntegerArrayStore {
             return value == 0;
         }
 
-        @Specialization
+        @Fallback
         protected static boolean isDefaultValue(int[] store, Object value) {
-            return Integer.valueOf(0).equals(value);
+            return false;
         }
     }
 

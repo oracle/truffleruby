@@ -270,9 +270,9 @@ public class DoubleArrayStore {
             return value == 0.0;
         }
 
-        @Specialization
+        @Fallback
         protected static boolean isDefaultValue(double[] store, Object value) {
-            return Double.valueOf(0.0).equals(value);
+            return false;
         }
     }
 
