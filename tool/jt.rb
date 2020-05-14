@@ -1137,13 +1137,10 @@ module Commands
   private def test_compiler(*args)
     truffleruby_compiler!
     env = {}
-
     env['TRUFFLERUBYOPT'] = [*ENV['TRUFFLERUBYOPT'], '--experimental-options', '--exceptions-print-java=true'].join(' ')
 
-    Dir["#{TRUFFLERUBY_DIR}/test/truffle/compiler/*.sh"].sort.each do |test_script|
-      if args.empty? or args.include?(File.basename(test_script, '.*'))
-        sh env, test_script
-      end
+    select_tests('test/truffle/compiler', args).each do |test_script|
+      sh env, test_script
     end
   end
 
@@ -1240,12 +1237,23 @@ EOS
     end
   end
 
-  private def test_integration(*args)
-    tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/integration"
-    single_test            = !args.empty?
-    test_names             = single_test ? '{' + args.join(',') + '}' : '*'
+  private def select_tests(tests_path, tests)
+    tests_path = "#{TRUFFLERUBY_DIR}/#{tests_path}"
+    test_names = tests.empty? ? '*' : '{' + tests.join(',') + '}'
 
-    Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
+    candidates = Dir["#{tests_path}/#{test_names}.sh"].sort
+    if candidates.empty?
+      targets = Dir["#{tests_path}/*.sh"].sort.map { |f| File.basename(f, '.sh') }
+      puts "No targets found by pattern #{test_names}. Available targets: "
+      targets.each { |t| puts " * #{t}" }
+      exit 1
+    end
+
+    candidates
+  end
+
+  private def test_integration(*args)
+    select_tests('test/truffle/integration', args).each do |test_script|
       sh test_script
     end
   end
@@ -1253,11 +1261,7 @@ EOS
   private def test_gems(*args)
     gem_test_pack
 
-    tests_path             = "#{TRUFFLERUBY_DIR}/test/truffle/gems"
-    single_test            = !args.empty?
-    test_names             = single_test ? '{' + args.join(',') + '}' : '*'
-
-    Dir["#{tests_path}/#{test_names}.sh"].sort.each do |test_script|
+    select_tests('test/truffle/gems', args).each do |test_script|
       sh test_script
     end
   end
@@ -1265,23 +1269,9 @@ EOS
   private def test_ecosystem(*args)
     gem_test_pack if gem_test_pack?
 
-    tests_path = "#{TRUFFLERUBY_DIR}/test/truffle/ecosystem"
-    single_test = !args.empty?
-    test_names = single_test ? '{' + args.join(',') + '}' : '*'
-
-    candidates = Dir["#{tests_path}/#{test_names}.sh"].sort
-    if candidates.empty?
-      targets = Dir["#{tests_path}/*.sh"].sort.map { |f| File.basename(f, '.*') }
-      puts "No targets found by pattern #{test_names}. Available targets: "
-      targets.each { |t| puts " * #{t}" }
-      exit 1
+    select_tests('test/truffle/ecosystem', args).each do |test_script|
+      sh test_script, *(gem_test_pack if gem_test_pack?)
     end
-
-    success = candidates.all? do |test_script|
-      next true if test_script.end_with? 'shared.sh'
-      sh test_script, *(gem_test_pack if gem_test_pack?), continue_on_failure: true
-    end
-    exit success
   end
 
   def find_ports_for_pid(pid)
