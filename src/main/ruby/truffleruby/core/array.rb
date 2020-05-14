@@ -181,8 +181,8 @@ class Array
         Primitive.array_aset(self, index, value, undefined)
       end
     else
-      index = Truffle::Type.rb_num2long(index)
-      length = Truffle::Type.rb_num2long(length)
+      index = Truffle::Type.rb_num2int(index)
+      length = Truffle::Type.rb_num2int(length)
       converted = value
       unless Array === value
         converted = Array.try_convert(value)
@@ -460,7 +460,7 @@ class Array
       end
     end
 
-    unless Truffle::Type.fits_into_long?(left) && Truffle::Type.fits_into_long?(right)
+    unless Truffle::Type.fits_into_int?(left) && Truffle::Type.fits_into_int?(right)
       raise ArgumentError, 'argument too big'
     end
 
