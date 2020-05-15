@@ -1,3 +1,6 @@
 #!/usr/bin/env ruby
 root = File.dirname(__dir__)
-STDOUT.puts STDIN.read.gsub("/b/b/e/main", ".")
+contents = STDIN.read
+contents = contents.gsub("/b/b/e/main", ".")
+contents = contents.gsub("/mxbuild/truffleruby-jvm/jre/languages/ruby/", "/")
+STDOUT.puts contents

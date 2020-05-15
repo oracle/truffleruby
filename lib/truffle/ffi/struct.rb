@@ -244,7 +244,9 @@ module FFI
       def enclosing_module
         begin
           mod = self.name.split("::")[0..-2].inject(Object) { |obj, c| obj.const_get(c) }
-          (mod < FFI::Library || mod < FFI::Struct || mod.respond_to?(:find_type)) ? mod : nil
+          if mod.respond_to?(:find_type) && (mod.is_a?(FFI::Library) || mod < FFI::Struct)
+            mod
+          end
         rescue Exception
           nil
         end
