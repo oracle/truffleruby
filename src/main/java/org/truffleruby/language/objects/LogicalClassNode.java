@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -68,6 +69,12 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     protected DynamicObject logicalClassNil(Nil value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().nilClass;
+    }
+
+    @Specialization
+    protected DynamicObject logicalClassSymbol(RubySymbol value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().symbolClass;
     }
 
     @Specialization(

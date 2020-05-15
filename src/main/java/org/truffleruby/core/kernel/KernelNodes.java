@@ -101,6 +101,7 @@ import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsFrozenNode;
+import org.truffleruby.language.objects.IsImmutableObjectNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -1471,7 +1472,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected DynamicObject publicMethod(VirtualFrame frame, Object self, DynamicObject name) {
+        protected DynamicObject publicMethod(VirtualFrame frame, Object self, Object name) {
             return getMethodObjectNode.executeGetMethodObject(frame, self, name);
         }
 

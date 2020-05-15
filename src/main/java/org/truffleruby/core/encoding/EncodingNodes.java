@@ -208,15 +208,24 @@ public abstract class EncodingNodes {
         public abstract Encoding executeNegotiate(Object first, Object second);
 
         @Specialization(
-                guards = { "getEncoding(first) == getEncoding(second)", "getEncoding(first) == cachedEncoding" },
+                guards = {
+                        "getEncoding(first) == getEncoding(second)",
+                        "getEncoding(first) == cachedEncoding",
+                        "isDynamicObject(first) || isRubySymbol(first)",
+                        "isDynamicObject(second) || isRubySymbol(second)" },
                 limit = "getCacheLimit()")
-        protected Encoding negotiateSameEncodingCached(DynamicObject first, DynamicObject second,
+        protected Encoding negotiateSameEncodingCached(Object first, Object second,
                 @Cached("getEncoding(first)") Encoding cachedEncoding) {
             return cachedEncoding;
         }
 
-        @Specialization(guards = "getEncoding(first) == getEncoding(second)", replaces = "negotiateSameEncodingCached")
-        protected Encoding negotiateSameEncodingUncached(DynamicObject first, DynamicObject second) {
+        @Specialization(
+                guards = {
+                        "getEncoding(first) == getEncoding(second)",
+                        "isDynamicObject(first) || isRubySymbol(first)",
+                        "isDynamicObject(second) || isRubySymbol(second)" },
+                replaces = "negotiateSameEncodingCached")
+        protected Encoding negotiateSameEncodingUncached(Object first, Object second) {
             return getEncoding(first);
         }
 

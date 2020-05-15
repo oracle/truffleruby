@@ -16,6 +16,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.Rope;
 
@@ -27,11 +28,13 @@ public class RubySymbol implements TruffleObject {
     private final String string;
     private final Rope rope;
     private final int javaStringHashCode;
+    private ValueWrapper valueWrapper;
 
     public RubySymbol(String string, Rope rope, int javaStringHashCode) {
         this.string = string;
         this.rope = rope;
         this.javaStringHashCode = javaStringHashCode;
+        this.valueWrapper = null;
     }
 
     public String getString() {
@@ -42,6 +45,13 @@ public class RubySymbol implements TruffleObject {
         return rope;
     }
 
+    public ValueWrapper getValueWrapper() {
+        return valueWrapper;
+    }
+
+    public void setValueWrapper(ValueWrapper valueWrapper) {
+        this.valueWrapper = valueWrapper;
+    }
 
     public long computeHashCode(Hashing hashing) {
         return hashing.hash(CLASS_SALT, javaStringHashCode);
@@ -74,7 +84,8 @@ public class RubySymbol implements TruffleObject {
 
     @Override
     public String toString() {
-        return ":" + string;
+        // return ":" + string; // TODO refactor https://github.com/oracle/truffleruby/blob/aa9d75a31be7fa58b1a4c0ed5173670229f35082/src/main/java/org/truffleruby/core/basicobject/BasicObjectNodes.java#L437
+        return string;
     }
 
 }
