@@ -91,8 +91,7 @@ public abstract class WrapNode extends RubyBaseNode {
 
     @Specialization
     protected ValueWrapper wrapSymbol(RubySymbol value,
-            @Cached BranchProfile noHandleProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached BranchProfile noHandleProfile) {
         ValueWrapper wrapper = value.getValueWrapper();
         if (wrapper == null) {
             noHandleProfile.enter();
@@ -114,8 +113,7 @@ public abstract class WrapNode extends RubyBaseNode {
     protected ValueWrapper wrapValue(DynamicObject value,
             @Cached ReadObjectFieldNode readWrapperNode,
             @Cached WriteObjectFieldNode writeWrapperNode,
-            @Cached BranchProfile noHandleProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached BranchProfile noHandleProfile) {
         ValueWrapper wrapper = (ValueWrapper) readWrapperNode.execute(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
         if (wrapper == null) {
             noHandleProfile.enter();

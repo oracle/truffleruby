@@ -99,7 +99,7 @@ public class SymbolTable {
 
     private RubySymbol createSymbol(Rope cachedRope) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
-        return new RubySymbol(string, cachedRope, string.hashCode());
+        return new RubySymbol(string, cachedRope);
     }
 
     @TruffleBoundary

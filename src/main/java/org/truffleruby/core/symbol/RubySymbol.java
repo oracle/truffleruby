@@ -31,10 +31,10 @@ public class RubySymbol implements TruffleObject {
     private long objectId;
     private ValueWrapper valueWrapper;
 
-    public RubySymbol(String string, Rope rope, int javaStringHashCode) {
+    public RubySymbol(String string, Rope rope) {
         this.string = string;
         this.rope = rope;
-        this.javaStringHashCode = javaStringHashCode;
+        this.javaStringHashCode = string.hashCode();
         this.valueWrapper = null;
     }
 
