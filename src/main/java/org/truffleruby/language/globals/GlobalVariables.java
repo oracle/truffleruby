@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -76,15 +77,15 @@ public class GlobalVariables {
     }
 
     @TruffleBoundary
-    public Collection<DynamicObject> dynamicObjectValues() {
+    public Collection<Object> objectGraphValues() {
         final Collection<GlobalVariableStorage> storages = variables.values();
-        final ArrayList<DynamicObject> values = new ArrayList<>(storages.size());
+        final ArrayList<Object> values = new ArrayList<>(storages.size());
         for (GlobalVariableStorage storage : storages) {
             // TODO CS 11-Mar-17 handle hooked global variable storage?
             if (!storage.hasHooks()) {
                 final Object value = storage.getValue();
-                if (value instanceof DynamicObject) {
-                    values.add((DynamicObject) value);
+                if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+                    values.add(value);
                 }
             }
         }

@@ -18,6 +18,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -66,10 +67,19 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isBasicObjectID(id)")
-        protected DynamicObject id2Ref(long id,
+        protected Object id2Ref(long id,
                 @Cached ReadObjectFieldNode readObjectIdNode) {
-            for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
-                final long objectID = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+            for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
+                assert ObjectGraph.isSymbolOrDynamicObject(object);
+
+                long objectID = 0L;
+                if (object instanceof DynamicObject) {
+                    objectID = (long) readObjectIdNode
+                            .execute((DynamicObject) object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+                } else if (object instanceof RubySymbol) {
+                    objectID = ((RubySymbol) object).getObjectId();
+                }
+
                 if (objectID == id) {
                     return object;
                 }
@@ -113,7 +123,7 @@ public abstract class ObjectSpaceNodes {
         protected int eachObject(NotProvided ofClass, DynamicObject block) {
             int count = 0;
 
-            for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
+            for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
                 if (!isHidden(object)) {
                     yield(block, object);
                     count++;
@@ -129,7 +139,7 @@ public abstract class ObjectSpaceNodes {
                 @Cached IsANode isANode) {
             int count = 0;
 
-            for (DynamicObject object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
+            for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
                 if (!isHidden(object) && isANode.executeIsA(object, ofClass)) {
                     yield(block, object);
                     count++;
@@ -139,8 +149,12 @@ public abstract class ObjectSpaceNodes {
             return count;
         }
 
-        private boolean isHidden(DynamicObject object) {
-            return !RubyGuards.isRubyBasicObject(object) || RubyGuards.isSingletonClass(object);
+        private boolean isHidden(Object object) {
+            if (RubyGuards.isRubySymbol(object)) {
+                return false;
+            } else {
+                return !RubyGuards.isRubyBasicObject(object) || RubyGuards.isSingletonClass((DynamicObject) object);
+            }
         }
 
     }

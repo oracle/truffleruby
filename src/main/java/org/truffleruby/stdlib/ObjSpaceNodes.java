@@ -79,7 +79,7 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject adjacentObjects(DynamicObject object) {
-            final Set<DynamicObject> objects = ObjectGraph.getAdjacentObjects(object);
+            final Set<Object> objects = ObjectGraph.getAdjacentObjects(object);
             return createArray(objects.toArray());
         }
 
@@ -96,7 +96,7 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject rootObjects() {
-            final Set<DynamicObject> objects = ObjectGraph.stopAndGetRootObjects(this, getContext());
+            final Set<Object> objects = ObjectGraph.stopAndGetRootObjects(this, getContext());
             return createArray(objects.toArray());
         }
 

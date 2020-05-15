@@ -50,7 +50,7 @@ public class FinalizerReference
         return finalizers.pollFirst();
     }
 
-    void collectRoots(Collection<DynamicObject> roots) {
+    void collectRoots(Collection<Object> roots) {
         for (FinalizationService.Finalizer finalizer : finalizers) {
             final DynamicObject root = finalizer.getRoot();
             if (root != null) {
@@ -60,7 +60,7 @@ public class FinalizerReference
     }
 
     @Override
-    public void getAdjacentObjects(Set<DynamicObject> reachable) {
+    public void getAdjacentObjects(Set<Object> reachable) {
         collectRoots(reachable);
     }
 }

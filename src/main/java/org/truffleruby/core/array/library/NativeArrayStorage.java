@@ -22,6 +22,7 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -34,7 +35,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @ExportLibrary(ArrayStoreLibrary.class)
@@ -248,11 +248,11 @@ public final class NativeArrayStorage implements ObjectGraphNode {
     }
 
     @Override
-    public void getAdjacentObjects(Set<DynamicObject> reachable) {
+    public void getAdjacentObjects(Set<Object> reachable) {
         for (int i = 0; i < length; i++) {
             final Object value = UnwrapNativeNodeGen.getUncached().execute(readElement(i));
-            if (value instanceof DynamicObject) {
-                reachable.add((DynamicObject) value);
+            if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+                reachable.add(value);
             }
         }
     }

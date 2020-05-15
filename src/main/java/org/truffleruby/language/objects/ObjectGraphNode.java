@@ -15,6 +15,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public interface ObjectGraphNode {
 
-    void getAdjacentObjects(Set<DynamicObject> reachable);
+    /** Only {@link ObjectGraph#isSymbolOrDynamicObject(Object)} objects should be added to the set. */
+    void getAdjacentObjects(Set<Object> reachable);
 
 }

@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
+import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -21,7 +22,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
@@ -156,14 +156,14 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     }
 
     @Override
-    public void getAdjacentObjects(Set<DynamicObject> reachable) {
+    public void getAdjacentObjects(Set<Object> reachable) {
         if (hasObjectArrayStorage()) {
             final Object[] objectArray = (Object[]) storage;
 
             for (int i = offset; i < offset + length; i++) {
                 final Object value = objectArray[i];
-                if (value instanceof DynamicObject) {
-                    reachable.add((DynamicObject) value);
+                if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+                    reachable.add(value);
                 }
             }
         }

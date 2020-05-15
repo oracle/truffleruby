@@ -21,6 +21,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.queue.SizedQueue;
 import org.truffleruby.core.queue.UnsizedQueue;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -34,20 +35,20 @@ import com.oracle.truffle.api.object.Property;
 
 public abstract class ObjectGraph {
 
-    public static Set<DynamicObject> newRubyObjectSet() {
+    public static Set<Object> newObjectSet() {
         return Collections.newSetFromMap(new IdentityHashMap<>());
     }
 
     @TruffleBoundary
-    public static Set<DynamicObject> stopAndGetAllObjects(Node currentNode, final RubyContext context) {
+    public static Set<Object> stopAndGetAllObjects(Node currentNode, final RubyContext context) {
         context.getMarkingService().queueMarking();
-        final Set<DynamicObject> visited = newRubyObjectSet();
+        final Set<Object> visited = newObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
         context.getSafepointManager().pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
             synchronized (visited) {
-                final Deque<DynamicObject> stack = new ArrayDeque<>();
+                final Deque<Object> stack = new ArrayDeque<>();
 
                 // Thread.current
                 stack.add(thread);
@@ -65,10 +66,12 @@ public abstract class ObjectGraph {
                 });
 
                 while (!stack.isEmpty()) {
-                    final DynamicObject object = stack.pop();
+                    final Object object = stack.pop();
 
                     if (visited.add(object)) {
-                        stack.addAll(ObjectGraph.getAdjacentObjects(object));
+                        if (object instanceof DynamicObject) {
+                            stack.addAll(ObjectGraph.getAdjacentObjects((DynamicObject) object));
+                        }
                     }
                 }
             }
@@ -78,8 +81,8 @@ public abstract class ObjectGraph {
     }
 
     @TruffleBoundary
-    public static Set<DynamicObject> stopAndGetRootObjects(Node currentNode, final RubyContext context) {
-        final Set<DynamicObject> visited = newRubyObjectSet();
+    public static Set<Object> stopAndGetRootObjects(Node currentNode, final RubyContext context) {
+        final Set<Object> visited = newObjectSet();
 
         final Thread initiatingJavaThread = Thread.currentThread();
 
@@ -96,15 +99,19 @@ public abstract class ObjectGraph {
         return visited;
     }
 
-    public static void visitContextRoots(RubyContext context, Collection<DynamicObject> roots) {
+    public static void visitContextRoots(RubyContext context, Collection<Object> roots) {
         // We do not want to expose the global object
-        roots.addAll(context.getCoreLibrary().globalVariables.dynamicObjectValues());
+        roots.addAll(context.getCoreLibrary().globalVariables.objectGraphValues());
         roots.addAll(context.getAtExitManager().getHandlers());
         context.getFinalizationService().collectRoots(roots);
     }
 
-    public static Set<DynamicObject> getAdjacentObjects(DynamicObject object) {
-        final Set<DynamicObject> reachable = newRubyObjectSet();
+    public static boolean isSymbolOrDynamicObject(Object value) {
+        return value instanceof DynamicObject || value instanceof RubySymbol;
+    }
+
+    public static Set<Object> getAdjacentObjects(DynamicObject object) {
+        final Set<Object> reachable = newObjectSet();
 
         if (Layouts.BASIC_OBJECT.isBasicObject(object)) {
             reachable.add(Layouts.BASIC_OBJECT.getLogicalClass(object));
@@ -114,17 +121,17 @@ public abstract class ObjectGraph {
         for (Property property : object.getShape().getPropertyListInternal(false)) {
             final Object value = property.get(object, object.getShape());
 
-            if (value instanceof DynamicObject) {
-                reachable.add((DynamicObject) value);
+            if (isSymbolOrDynamicObject(value)) {
+                reachable.add(value);
             } else if (value instanceof Entry[]) {
                 for (Entry bucket : (Entry[]) value) {
                     while (bucket != null) {
-                        if (bucket.getKey() instanceof DynamicObject) {
-                            reachable.add((DynamicObject) bucket.getKey());
+                        if (isSymbolOrDynamicObject(bucket.getKey())) {
+                            reachable.add(bucket.getKey());
                         }
 
-                        if (bucket.getValue() instanceof DynamicObject) {
-                            reachable.add((DynamicObject) bucket.getValue());
+                        if (isSymbolOrDynamicObject(bucket.getValue())) {
+                            reachable.add(bucket.getValue());
                         }
 
                         bucket = bucket.getNextInLookup();
@@ -132,26 +139,26 @@ public abstract class ObjectGraph {
                 }
             } else if (value instanceof Object[]) {
                 for (Object element : (Object[]) value) {
-                    if (element instanceof DynamicObject) {
-                        reachable.add((DynamicObject) element);
+                    if (isSymbolOrDynamicObject(element)) {
+                        reachable.add(element);
                     }
                 }
             } else if (value instanceof Collection<?>) {
                 for (Object element : ((Collection<?>) value)) {
-                    if (element instanceof DynamicObject) {
-                        reachable.add((DynamicObject) element);
+                    if (isSymbolOrDynamicObject(element)) {
+                        reachable.add(element);
                     }
                 }
             } else if (value instanceof SizedQueue) {
                 for (Object element : ((SizedQueue) value).getContents()) {
-                    if (element instanceof DynamicObject) {
-                        reachable.add((DynamicObject) element);
+                    if (isSymbolOrDynamicObject(element)) {
+                        reachable.add(element);
                     }
                 }
             } else if (value instanceof UnsizedQueue) {
                 for (Object element : ((UnsizedQueue) value).getContents()) {
-                    if (element instanceof DynamicObject) {
-                        reachable.add((DynamicObject) element);
+                    if (isSymbolOrDynamicObject(element)) {
+                        reachable.add(element);
                     }
                 }
             } else if (value instanceof Frame) {
@@ -164,8 +171,8 @@ public abstract class ObjectGraph {
         return reachable;
     }
 
-    public static Set<DynamicObject> getObjectsInFrame(Frame frame) {
-        final Set<DynamicObject> objects = newRubyObjectSet();
+    public static Set<Object> getObjectsInFrame(Frame frame) {
+        final Set<Object> objects = newObjectSet();
 
         final Frame lexicalParentFrame = RubyArguments.tryGetDeclarationFrame(frame);
         if (lexicalParentFrame != null) {
@@ -173,8 +180,8 @@ public abstract class ObjectGraph {
         }
 
         final Object self = RubyArguments.tryGetSelf(frame);
-        if (self instanceof DynamicObject) {
-            objects.add((DynamicObject) self);
+        if (isSymbolOrDynamicObject(self)) {
+            objects.add(self);
         }
 
         final DynamicObject block = RubyArguments.tryGetBlock(frame);
@@ -187,8 +194,8 @@ public abstract class ObjectGraph {
         for (FrameSlot slot : frame.getFrameDescriptor().getSlots()) {
             final Object slotValue = frame.getValue(slot);
 
-            if (slotValue instanceof DynamicObject) {
-                objects.add((DynamicObject) slotValue);
+            if (isSymbolOrDynamicObject(slotValue)) {
+                objects.add(slotValue);
             }
         }
 

@@ -302,7 +302,6 @@ public final class BigIntegerOps {
     }
 
     public static int hashCode(Object value) {
-        assert value instanceof DynamicObject;
         assert isRubyBignum(value);
         return hashCode(BIGNUM.getValue((DynamicObject) value));
     }

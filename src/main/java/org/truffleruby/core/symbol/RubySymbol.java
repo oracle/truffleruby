@@ -28,6 +28,7 @@ public class RubySymbol implements TruffleObject {
     private final String string;
     private final Rope rope;
     private final int javaStringHashCode;
+    private long objectId;
     private ValueWrapper valueWrapper;
 
     public RubySymbol(String string, Rope rope, int javaStringHashCode) {
@@ -43,6 +44,14 @@ public class RubySymbol implements TruffleObject {
 
     public Rope getRope() {
         return rope;
+    }
+
+    public long getObjectId() {
+        return objectId;
+    }
+
+    public void setObjectId(long objectId) {
+        this.objectId = objectId;
     }
 
     public ValueWrapper getValueWrapper() {

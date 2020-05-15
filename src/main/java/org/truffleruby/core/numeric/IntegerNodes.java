@@ -1609,7 +1609,7 @@ public abstract class IntegerNodes {
                     base = mulNode.executeMul(base, base);
                     exp >>= 1;
 
-                    if (base instanceof DynamicObject) {
+                    if (base instanceof DynamicObject) { // Bignum
                         overflowProfile.enter();
                         final Object bignumResult = recursivePow(base, exp);
                         return mulNode.executeMul(result, bignumResult);
@@ -1633,7 +1633,7 @@ public abstract class IntegerNodes {
                     base = mulNode.executeMul(base, base);
                     exp >>= 1;
 
-                    if (base instanceof DynamicObject) {
+                    if (base instanceof DynamicObject) { // Bignum
                         overflowProfile.enter();
                         final Object bignumResult = recursivePow(base, exp);
                         return mulNode.executeMul(result, bignumResult);
@@ -1823,7 +1823,7 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")
-        protected Object downto(VirtualFrame frame, Object from, Object to, DynamicObject block) {
+        protected Object downto(Object from, Object to, DynamicObject block) {
             if (downtoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 downtoInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -1917,7 +1917,7 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")
-        protected Object upto(VirtualFrame frame, Object from, Object to, DynamicObject block) {
+        protected Object upto(Object from, Object to, DynamicObject block) {
             if (uptoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 uptoInternalCall = insert(CallDispatchHeadNode.createPrivate());
