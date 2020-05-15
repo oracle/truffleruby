@@ -587,6 +587,23 @@ describe FFI::Struct, ".layout" do
       instance[:number] = 0xA1
       expect(FFISpecs::LibTest.ptr_ret_int32_t(instance, 0)).to eq(0xA1)
     end
+
+    it "ignores a module which does not extend FFI::Library or subclass FFI::Struct" do
+      module FFISpecs::UnrelatedFindTypeTest
+        # MakeMakefile from 'mkmf' defines such a method
+        def self.find_type(*args)
+          raise "should not be called"
+        end
+
+        class TestStruct < FFI::Struct
+          layout :number, :int
+        end
+      end
+
+      instance = FFISpecs::UnrelatedFindTypeTest::TestStruct.new
+      instance[:number] = 123
+      expect(FFISpecs::LibTest.ptr_ret_int32_t(instance, 0)).to eq(123)
+    end
   end
 end
 
