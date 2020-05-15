@@ -82,7 +82,6 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return context.getCoreLibrary().symbolClass;
     }
 
-
     // Cover all DynamicObject cases with cached and uncached
 
     @Specialization(

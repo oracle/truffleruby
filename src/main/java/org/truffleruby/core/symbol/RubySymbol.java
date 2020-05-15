@@ -16,19 +16,22 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.Rope;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubySymbol implements TruffleObject {
 
+    private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
+
     private final String string;
     private final Rope rope;
-    private final int hashCode;
+    private final int javaStringHashCode;
 
-    public RubySymbol(String string, Rope rope, int hashCode) {
+    public RubySymbol(String string, Rope rope, int javaStringHashCode) {
         this.string = string;
         this.rope = rope;
-        this.hashCode = hashCode;
+        this.javaStringHashCode = javaStringHashCode;
     }
 
     public String getString() {
@@ -39,12 +42,13 @@ public class RubySymbol implements TruffleObject {
         return rope;
     }
 
-    public int getHashCode() {
-        return hashCode;
+
+    public long computeHashCode(Hashing hashing) {
+        return hashing.hash(CLASS_SALT, javaStringHashCode);
     }
 
     @ExportMessage
-    protected static boolean isString(RubySymbol symbol) {
+    protected boolean isString() {
         return true;
     }
 
@@ -68,5 +72,9 @@ public class RubySymbol implements TruffleObject {
         }
     }
 
+    @Override
+    public String toString() {
+        return ":" + string;
+    }
 
 }

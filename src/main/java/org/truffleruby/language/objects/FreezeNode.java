@@ -61,7 +61,7 @@ public abstract class FreezeNode extends RubyContextNode {
         return symbol;
     }
 
-    @Specialization(guards = { "!isRubyBignum(object)", "!isRubySymbol(object)" })
+    @Specialization(guards = "!isRubyBignum(object)")
     protected Object freeze(DynamicObject object,
             @Cached WriteObjectFieldNode writeFrozenNode) {
         writeFrozenNode.write(object, Layouts.FROZEN_IDENTIFIER, true);

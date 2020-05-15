@@ -10,6 +10,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -49,6 +50,11 @@ public abstract class IsFrozenNode extends RubyBaseNode {
 
     @Specialization
     protected boolean isFrozen(Nil object) {
+        return true;
+    }
+
+    @Specialization
+    protected boolean isFrozen(RubySymbol object) {
         return true;
     }
 

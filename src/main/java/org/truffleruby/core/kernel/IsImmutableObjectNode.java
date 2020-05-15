@@ -60,7 +60,7 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
         return true;
     }
 
-    @Specialization(guards = { "!isRubyBignum(object)", "!isRubySymbol(object)" })
+    @Specialization(guards = "!isRubyBignum(object)")
     protected boolean isImmutableObject(DynamicObject object) {
         final DynamicObject logicalClass = getLogicalClass(object);
         return logicalClass == coreLibrary().rationalClass || logicalClass == coreLibrary().complexClass;

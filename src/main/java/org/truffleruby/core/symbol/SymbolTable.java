@@ -13,7 +13,6 @@ import java.util.Collection;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.rope.NativeRope;
@@ -45,8 +44,6 @@ public class SymbolTable {
 
     @TruffleBoundary
     public RubySymbol getSymbol(String string) {
-        // TODO BJF 13-May-2020 symbolFactory should not be needed, but since there is a single RubyContext per RubyLanguage (contextPolicy=EXCLUSIVE) this is OK.
-
         RubySymbol symbol = stringToSymbolCache.get(string);
         if (symbol != null) {
             return symbol;
@@ -69,7 +66,6 @@ public class SymbolTable {
 
     @TruffleBoundary
     public RubySymbol getSymbol(Rope rope) {
-        // TODO BJF 13-May-2020 symbolFactory should not be needed, but since there is a single RubyContext per RubyLanguage (contextPolicy=EXCLUSIVE) this is OK.
         final Rope normalizedRope = normalizeRopeForLookup(rope);
         final RubySymbol symbol = symbolMap.get(normalizedRope);
         if (symbol != null) {
@@ -103,11 +99,7 @@ public class SymbolTable {
 
     private RubySymbol createSymbol(Rope cachedRope) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
-        return createSymbol(string, cachedRope, string.hashCode());
-    }
-
-    public static RubySymbol createSymbol(String string, Rope rope, int hashCode) {
-        return new RubySymbol(string, rope, hashCode);
+        return new RubySymbol(string, cachedRope, string.hashCode());
     }
 
     @TruffleBoundary
