@@ -9,7 +9,6 @@
  */
 package org.truffleruby.interop;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;

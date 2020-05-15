@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.dispatch;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;

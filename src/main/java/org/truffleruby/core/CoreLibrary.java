@@ -710,10 +710,6 @@ public class CoreLibrary {
         return factory.getShape().addProperty(ALWAYS_FROZEN_PROPERTY).createFactory();
     }
 
-    private static DynamicObjectFactory alwaysShared(DynamicObjectFactory factory) {
-        return factory.getShape().makeSharedShape().createFactory();
-    }
-
     private void includeModules(DynamicObject comparableModule) {
         assert RubyGuards.isRubyModule(comparableModule);
 

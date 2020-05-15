@@ -11,8 +11,6 @@ package org.truffleruby.language.objects;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 public interface ObjectGraphNode {
 
     /** Only {@link ObjectGraph#isSymbolOrDynamicObject(Object)} objects should be added to the set. */

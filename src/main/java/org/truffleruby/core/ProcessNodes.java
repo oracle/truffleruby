@@ -9,16 +9,14 @@
  */
 package org.truffleruby.core;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
-import org.truffleruby.core.symbol.RubySymbol;
 import sun.misc.Signal;
 
 @CoreModule(value = "Process", isClass = true)
