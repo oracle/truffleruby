@@ -27,7 +27,12 @@ public class FrozenStringLiterals {
     }
 
     public DynamicObject getFrozenStringLiteral(Rope rope) {
-        return values.addInCacheIfAbsent(rope, StringOperations.createFrozenString(context, rope));
+        final DynamicObject string = values.get(rope);
+        if (string != null) {
+            return string;
+        } else {
+            return values.addInCacheIfAbsent(rope, StringOperations.createFrozenString(context, rope));
+        }
     }
 
     public DynamicObject getFrozenStringLiteral(DynamicObject string) {
@@ -35,7 +40,12 @@ public class FrozenStringLiterals {
 
         final Rope rope = Layouts.STRING.getRope(string);
 
-        return values.addInCacheIfAbsent(rope, string);
+        final DynamicObject stringCached = values.get(rope);
+        if (stringCached != null) {
+            return stringCached;
+        } else {
+            return values.addInCacheIfAbsent(rope, string);
+        }
     }
 
 }
