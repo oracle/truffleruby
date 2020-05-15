@@ -329,7 +329,7 @@ public abstract class ThreadNodes {
     public abstract static class ThreadInitializeNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(limit = "STORAGE_STRATEGIES")
+        @Specialization(limit = "storageStrategyLimit()")
         protected Object initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block,
                 @CachedLibrary("getStore(arguments)") ArrayStoreLibrary stores) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();

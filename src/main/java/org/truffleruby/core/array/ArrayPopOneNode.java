@@ -34,7 +34,7 @@ public abstract class ArrayPopOneNode extends RubyContextNode {
 
     // Pop from a non-empty array
 
-    @Specialization(guards = "!isEmptyArray(array)", limit = "STORAGE_STRATEGIES")
+    @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
     protected Object popOne(DynamicObject array,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
         final int size = Layouts.ARRAY.getSize(array);

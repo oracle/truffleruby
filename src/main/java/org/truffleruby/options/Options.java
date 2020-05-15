@@ -223,6 +223,8 @@ public class Options {
     public final int ARRAY_DUP_CACHE;
     /** --frame-variable-access-cache=5 */
     public final int FRAME_VARIABLE_ACCESS_CACHE;
+    /** --array-strategy-cache=4 */
+    public final int ARRAY_STRATEGY_CACHE;
     /** --array-uninitialized-size=16 */
     public final int ARRAY_UNINITIALIZED_SIZE;
     /** --array-small=3 */
@@ -379,6 +381,7 @@ public class Options {
         CLASS_CACHE = options.get(OptionsCatalog.CLASS_CACHE_KEY);
         ARRAY_DUP_CACHE = options.get(OptionsCatalog.ARRAY_DUP_CACHE_KEY);
         FRAME_VARIABLE_ACCESS_CACHE = options.get(OptionsCatalog.FRAME_VARIABLE_ACCESS_CACHE_KEY);
+        ARRAY_STRATEGY_CACHE = options.get(OptionsCatalog.ARRAY_STRATEGY_CACHE_KEY);
         ARRAY_UNINITIALIZED_SIZE = options.get(OptionsCatalog.ARRAY_UNINITIALIZED_SIZE_KEY);
         ARRAY_SMALL = options.get(OptionsCatalog.ARRAY_SMALL_KEY);
         HASH_PACKED_ARRAY_MAX = options.get(OptionsCatalog.HASH_PACKED_ARRAY_MAX_KEY);
@@ -610,6 +613,8 @@ public class Options {
                 return ARRAY_DUP_CACHE;
             case "ruby.frame-variable-access-cache":
                 return FRAME_VARIABLE_ACCESS_CACHE;
+            case "ruby.array-strategy-cache":
+                return ARRAY_STRATEGY_CACHE;
             case "ruby.array-uninitialized-size":
                 return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.array-small":

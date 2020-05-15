@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -19,12 +20,9 @@ public class ArrayGuards {
     // Partial Escape Analysis only considers < 32 elements
     public static final int ARRAY_MAX_EXPLODE_SIZE = 16;
 
-    // Enough to handle all array strategies (all types, plus null and Object[] without longs plus
-    // delegated storage variants).
-    public static final int STORAGE_STRATEGIES = 11;
-
-    // Enough to handle all combinations of two strategies.
-    public static final int ARRAY_STRATEGIES = STORAGE_STRATEGIES * STORAGE_STRATEGIES;
+    public static int storageStrategyLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().ARRAY_STRATEGY_CACHE;
+    }
 
     // Storage strategies
 

@@ -89,7 +89,7 @@ public class ObjectArrayStore {
             System.arraycopy(srcStore, srcStart, destStore, destStart, length);
         }
 
-        @Specialization(guards = "!isObjectStore(destStore)", limit = "STORAGE_STRATEGIES")
+        @Specialization(guards = "!isObjectStore(destStore)", limit = "storageStrategyLimit()")
         protected static void copyContents(Object[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
             for (int i = srcStart; i < length; i++) {
@@ -155,6 +155,11 @@ public class ObjectArrayStore {
     @ExportMessage
     protected static Object allocateForNewStore(Object[] store, Object newValue, int length) {
         return OBJECT_ARRAY_ALLOCATOR.allocate(length);
+    }
+
+    @ExportMessage
+    protected static boolean isDefaultValue(Object[] store, Object value) {
+        return value == null;
     }
 
     @ExportMessage

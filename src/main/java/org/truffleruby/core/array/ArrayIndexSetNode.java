@@ -86,7 +86,7 @@ public abstract class ArrayIndexSetNode extends ArrayCoreMethodNode {
             guards = {
                     "isRubyArray(replacement)",
                     "length != getArraySize(replacement)" },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected Object setOtherArray(DynamicObject array, int rawStart, int length, DynamicObject replacement,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores,

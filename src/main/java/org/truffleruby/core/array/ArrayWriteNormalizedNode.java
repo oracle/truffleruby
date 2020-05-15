@@ -38,7 +38,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
 
     @Specialization(
             guards = { "isInBounds(array, index)", "arrays.acceptsValue(getStore(array), value)" },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected Object writeWithin(DynamicObject array, int index, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
         propagateSharingNode.executePropagate(array, value);
@@ -53,7 +53,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
                     "isInBounds(array, index)",
                     "!arrays.acceptsValue(getStore(array), value)"
             },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected Object writeWithinGeneralizeNonMutable(DynamicObject array, int index, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
@@ -82,7 +82,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
                     "arrays.isPrimitive(getStore(array))" },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected Object writeBeyondPrimitive(DynamicObject array, int index, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
@@ -105,7 +105,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
                     "!arrays.isPrimitive(getStore(array))" },
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected Object writeBeyondObject(DynamicObject array, int index, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,

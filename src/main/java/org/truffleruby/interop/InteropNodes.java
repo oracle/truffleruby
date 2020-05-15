@@ -1136,7 +1136,7 @@ public abstract class InteropNodes {
 
         @Specialization(guards = { "isRubyArray(array)", "stores.accepts(getStore(array))" })
         protected Object toJavaArray(DynamicObject array,
-                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return getContext().getEnv().asGuestValue(stores.toJavaArrayCopy(
                     Layouts.ARRAY.getStore(array),
                     Layouts.ARRAY.getSize(array)));
@@ -1155,7 +1155,7 @@ public abstract class InteropNodes {
 
         @Specialization(guards = { "isRubyArray(array)", "stores.accepts(getStore(array))" })
         protected Object toJavaList(DynamicObject array,
-                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             int size = Layouts.ARRAY.getSize(array);
             Object[] copy = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(array), 0, size);
             return getContext().getEnv().asGuestValue(Arrays.asList(copy));

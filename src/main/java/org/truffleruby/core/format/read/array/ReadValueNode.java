@@ -24,7 +24,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 @ImportStatic(ArrayGuards.class)
 public abstract class ReadValueNode extends FormatNode {
 
-    @Specialization(limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "storageStrategyLimit()")
     protected Object read(VirtualFrame frame, Object source,
             @CachedLibrary("source") ArrayStoreLibrary sources) {
         return sources.read(source, advanceSourcePosition(frame));

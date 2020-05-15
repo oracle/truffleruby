@@ -164,19 +164,19 @@ public abstract class KernelNodes {
             return SameOrEqualNodeFactory.create(null);
         }
 
-        public abstract boolean executeSameOrEqual(VirtualFrame frame, Object a, Object b);
+        public abstract boolean executeSameOrEqual(Object a, Object b);
 
         @Specialization
-        protected boolean sameOrEqual(VirtualFrame frame, Object a, Object b,
+        protected boolean sameOrEqual(Object a, Object b,
                 @Cached ReferenceEqualNode referenceEqualNode) {
             if (sameProfile.profile(referenceEqualNode.executeReferenceEqual(a, b))) {
                 return true;
             } else {
-                return areEqual(frame, a, b);
+                return areEqual(a, b);
             }
         }
 
-        private boolean areEqual(VirtualFrame frame, Object left, Object right) {
+        private boolean areEqual(Object left, Object right) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 equalNode = insert(CallDispatchHeadNode.createPrivate());
@@ -198,8 +198,8 @@ public abstract class KernelNodes {
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization
-        protected boolean caseCmp(VirtualFrame frame, Object a, Object b) {
-            return sameOrEqualNode.executeSameOrEqual(frame, a, b);
+        protected boolean caseCmp(Object a, Object b) {
+            return sameOrEqualNode.executeSameOrEqual(a, b);
         }
 
     }
@@ -332,8 +332,8 @@ public abstract class KernelNodes {
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization
-        protected Object compare(VirtualFrame frame, Object self, Object other) {
-            if (sameOrEqualNode.executeSameOrEqual(frame, self, other)) {
+        protected Object compare(Object self, Object other) {
+            if (sameOrEqualNode.executeSameOrEqual(self, other)) {
                 return 0;
             } else {
                 return nil;

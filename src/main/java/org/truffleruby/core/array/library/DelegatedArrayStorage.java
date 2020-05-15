@@ -81,7 +81,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     @ExportMessage
     protected void copyContents(int srcStart, Object destStore, int destStart, int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
-            @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary destStores) {
+            @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary destStores) {
         for (int i = 0; i < length; i++) {
             destStores.write(destStore, i + destStart, srcStores.read(storage, srcStart + offset + i));
         }
@@ -128,6 +128,12 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
     protected Object allocateForNewStore(Object newStore, int length,
             @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
         return stores.allocateForNewStore(storage, newStore, length);
+    }
+
+    @ExportMessage
+    protected boolean isDefaultValue(Object value,
+            @CachedLibrary(limit = "1") ArrayStoreLibrary stores) {
+        return stores.isDefaultValue(storage, value);
     }
 
     @ExportMessage

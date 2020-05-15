@@ -267,7 +267,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
         @Specialization(
                 guards = { "arrays.acceptsAllValues(state.store, getStore(other))" },
-                limit = "STORAGE_STRATEGIES")
+                limit = "storageStrategyLimit()")
         protected void appendCompatibleStrategy(BuilderState state, int index, DynamicObject other,
                 @CachedLibrary("state.store") ArrayStoreLibrary arrays,
                 @CachedLibrary("getStore(other)") ArrayStoreLibrary others) {

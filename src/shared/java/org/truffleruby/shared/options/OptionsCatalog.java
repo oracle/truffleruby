@@ -120,6 +120,7 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> ARRAY_DUP_CACHE_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> FRAME_VARIABLE_ACCESS_CACHE_KEY = new OptionKey<>(5);
+    public static final OptionKey<Integer> ARRAY_STRATEGY_CACHE_KEY = new OptionKey<>(4);
     public static final OptionKey<Integer> ARRAY_UNINITIALIZED_SIZE_KEY = new OptionKey<>(16);
     public static final OptionKey<Integer> ARRAY_SMALL_KEY = new OptionKey<>(3);
     public static final OptionKey<Integer> HASH_PACKED_ARRAY_MAX_KEY = new OptionKey<>(3);
@@ -848,6 +849,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor ARRAY_STRATEGY_CACHE = OptionDescriptor
+            .newBuilder(ARRAY_STRATEGY_CACHE_KEY, "ruby.array-strategy-cache")
+            .help("Cache size for array strategies")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor ARRAY_UNINITIALIZED_SIZE = OptionDescriptor
             .newBuilder(ARRAY_UNINITIALIZED_SIZE_KEY, "ruby.array-uninitialized-size")
             .help("How large an Array to allocate when we have no other information to go on")
@@ -1239,6 +1247,8 @@ public class OptionsCatalog {
                 return ARRAY_DUP_CACHE;
             case "ruby.frame-variable-access-cache":
                 return FRAME_VARIABLE_ACCESS_CACHE;
+            case "ruby.array-strategy-cache":
+                return ARRAY_STRATEGY_CACHE;
             case "ruby.array-uninitialized-size":
                 return ARRAY_UNINITIALIZED_SIZE;
             case "ruby.array-small":
@@ -1400,6 +1410,7 @@ public class OptionsCatalog {
             CLASS_CACHE,
             ARRAY_DUP_CACHE,
             FRAME_VARIABLE_ACCESS_CACHE,
+            ARRAY_STRATEGY_CACHE,
             ARRAY_UNINITIALIZED_SIZE,
             ARRAY_SMALL,
             HASH_PACKED_ARRAY_MAX,

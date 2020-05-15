@@ -239,7 +239,7 @@ public abstract class TypeNodes {
                         "stores.accepts(getStore(array))",
                         "stores.isPrimitive(getStore(array))" })
         protected boolean primitiveArray(DynamicObject array,
-                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return false;
         }
 
@@ -249,7 +249,7 @@ public abstract class TypeNodes {
                         "stores.accepts(getStore(array))",
                         "!stores.isPrimitive(getStore(array))" })
         protected boolean objectArray(DynamicObject array,
-                @CachedLibrary(limit = "STORAGE_STRATEGIES") ArrayStoreLibrary stores) {
+                @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return true;
         }
 

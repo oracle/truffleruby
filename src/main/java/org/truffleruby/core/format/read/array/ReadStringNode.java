@@ -47,7 +47,7 @@ public abstract class ReadStringNode extends FormatNode {
         this.valueOnNil = valueOnNil;
     }
 
-    @Specialization(limit = "STORAGE_STRATEGIES")
+    @Specialization(limit = "storageStrategyLimit()")
     protected Object read(VirtualFrame frame, Object source,
             @CachedLibrary("source") ArrayStoreLibrary sources) {
         return readAndConvert(frame, sources.read(source, advanceSourcePosition(frame)));

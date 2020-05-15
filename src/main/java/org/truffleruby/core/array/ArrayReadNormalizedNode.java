@@ -37,7 +37,7 @@ public abstract class ArrayReadNormalizedNode extends RubyContextSourceNode {
 
     @Specialization(
             guards = "isInBounds(array, index)",
-            limit = "STORAGE_STRATEGIES")
+            limit = "storageStrategyLimit()")
     protected Object readInBounds(DynamicObject array, int index,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
         return arrays.read(Layouts.ARRAY.getStore(array), index);
