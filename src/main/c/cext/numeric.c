@@ -71,9 +71,9 @@ LONG_LONG rb_num2ll(VALUE val) {
   if (FIXNUM_P(val)) {
     return (LONG_LONG)FIX2LONG(val);
   } else if (RB_TYPE_P(val, T_FLOAT)) {
-    if (RFLOAT_VALUE(val) < LLONG_MAX_PLUS_ONE
-        && (LLONG_MIN_MINUS_ONE_IS_LESS_THAN(RFLOAT_VALUE(val)))) {
-      return (LONG_LONG)(RFLOAT_VALUE(val));
+    double d = RFLOAT_VALUE(val);
+    if (d < LLONG_MAX_PLUS_ONE && (LLONG_MIN_MINUS_ONE_IS_LESS_THAN(d))) {
+      return (LONG_LONG)d;
     } else {
       FLOAT_OUT_OF_RANGE(val, "long long");
     }
@@ -96,11 +96,14 @@ unsigned LONG_LONG rb_num2ull(VALUE val) {
   }
 
   if (FIXNUM_P(val)) {
-    return (unsigned LONG_LONG)FIX2ULONG(val);
+    return (LONG_LONG)FIX2LONG(val); /* this is FIX2LONG, intended */
   } else if (RB_TYPE_P(val, T_FLOAT)) {
-    if (RFLOAT_VALUE(val) <= ULLONG_MAX
-        && (RFLOAT_VALUE(val) >= 0)) {
-      return (unsigned LONG_LONG)(RFLOAT_VALUE(val));
+    double d = RFLOAT_VALUE(val);
+    if (d < ULLONG_MAX_PLUS_ONE && LLONG_MIN_MINUS_ONE_IS_LESS_THAN(d)) {
+      if (0 <= d) {
+        return (unsigned LONG_LONG)d;
+      }
+      return (unsigned LONG_LONG)(LONG_LONG)d;
     } else {
       FLOAT_OUT_OF_RANGE(val, "unsigned long long");
     }
