@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -19,6 +20,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.Utils;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @NodeChild(value = "child", type = RubyNode.class)
@@ -49,6 +51,20 @@ public abstract class ToLongNode extends RubyContextSourceNode {
         throw new RaiseException(
                 getContext(),
                 coreExceptions().rangeError("bignum too big to convert into `long'", this));
+    }
+
+    @Specialization
+    protected long coerceDouble(double value,
+            @Cached BranchProfile errorProfile) {
+        // emulate MRI logic
+        if (Long.MIN_VALUE <= value && value < Long.MAX_VALUE) {
+            return (long) value;
+        } else {
+            errorProfile.enter();
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().rangeError(Utils.concat("float ", value, " out of range of integer"), this));
+        }
     }
 
     @Specialization

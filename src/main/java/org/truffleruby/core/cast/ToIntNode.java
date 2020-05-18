@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.numeric.IntegerNodes.IntegerLowerNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -20,6 +22,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.Utils;
 
 /** Node used to convert a value into a 32-bits Java int, calling {@code to_int} if the value is not yet a Ruby integer.
  * Use this whenever Ruby allows conversions using {@code to_int} and you need a 32-bits int for implementation reasons.
@@ -32,7 +35,9 @@ import com.oracle.truffle.api.object.DynamicObject;
  * is used a lot by MRI (we replace some of these uses by {@link ToIntNode} in TruffleRuby, because arrays are
  * {@code int}-sized.</li>
  * <li>{@link ToRubyIntegerNode}: when only {@code to_int} conversion is needed, but the resulting value can be a
- * Bignum.</li>
+ * Bignum. It matches Ruby's C function {@code rb_to_int}, and is a wrapper around our own (Ruby) implementation of that
+ * function, in order to specialize more efficiently when the value is already an integer. Unlike {@link ToIntNode} and
+ * {@link ToLongNode}, it does not handle {@code Float} values explicitly.</li>
  * <li>{@link IntegerCastNode}, {@link LongCastNode}: whenever {@code to_int} conversion is not required. Beware that
  * this will fail with a {@code TypeError} whenever the argument is out of range, whereas {@link ToLongNode} and
  * {@link ToIntNode} would have failed with a {@code RangeError}. Those are typically used when some other part of the
@@ -78,6 +83,20 @@ public abstract class ToIntNode extends RubyContextSourceNode {
         throw new RaiseException(
                 getContext(),
                 coreExceptions().rangeError("bignum too big to convert into `long'", this));
+    }
+
+    @Specialization
+    protected int coerceDouble(double value,
+            @Cached BranchProfile errorProfile) {
+        // emulate MRI logic + additional 32 bit restriction
+        if (Long.MIN_VALUE <= value && value < Long.MAX_VALUE && CoreLibrary.fitsIntoInteger((long) value)) {
+            return (int) value;
+        } else {
+            errorProfile.enter();
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().rangeError(Utils.concat("float ", value, " out of range of integer"), this));
+        }
     }
 
     @Specialization
