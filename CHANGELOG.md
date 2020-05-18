@@ -15,6 +15,7 @@ Compatibility:
 * Implemented `ObjectSpace::WeakMap` (#1385, #1958).
 * Implemented `strtod` and `ruby_strtod` (#2007).
 * Fix detection of `#find_type` in FFI to ignore `MakeMakefile#find_type` from `mkmf` (#1896, #2010).
+* Implemented `rb_uv_to_utf8` (#1998).
 
 Performance:
 
