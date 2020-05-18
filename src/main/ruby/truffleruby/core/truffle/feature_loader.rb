@@ -70,25 +70,25 @@ module Truffle
 
     # MRI: search_required
     def self.find_feature_or_file(feature)
-      feature_ext = extension(feature)
+      feature_ext = extension_symbol(feature)
       if feature_ext
         case feature_ext
-        when '.rb'
+        when :rb
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           end
           path = find_file(feature)
           return expanded_path_provided(path) if path
           return [:not_found, nil]
-        when '.so'
+        when :so
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           else
-            feature_no_ext = feature[0...(-feature_ext.size)]
+            feature_no_ext = feature[0...-3] # remove ".so"
             path = find_file("#{feature_no_ext}.#{Truffle::Platform::DLEXT}")
             return expanded_path_provided(path) if path
           end
-        when DOT_DLEXT
+        when :dlext
           if feature_provided?(feature, false)
             return [:feature_loaded, nil]
           else
@@ -132,8 +132,8 @@ module Truffle
     # using the @loaded_features_index to lookup faster.
     # expanded is true if feature is an expanded path (and exists).
     def self.feature_provided?(feature, expanded)
-      feature_ext = extension(feature)
-      feature_has_rb_ext = feature_ext == '.rb'
+      feature_ext = extension_symbol(feature)
+      feature_has_rb_ext = feature_ext == :rb
 
       with_synchronized_features do
         get_loaded_features_index
@@ -153,14 +153,14 @@ module Truffle
                              end
                            end
             if feature_path
-              if !has_extension?(loaded_feature)
+              loaded_feature_ext = extension_symbol(loaded_feature)
+              if !loaded_feature_ext
                 return :unknown unless feature_ext
               else
-                loaded_feature_ext = extension(loaded_feature)
                 if (!feature_has_rb_ext || !feature_ext) && binary_ext?(loaded_feature_ext)
                   return :so
                 end
-                if (feature_has_rb_ext || !feature_ext) && loaded_feature_ext == '.rb'
+                if (feature_has_rb_ext || !feature_ext) && loaded_feature_ext == :rb
                   return :rb
                 end
               end
@@ -196,17 +196,40 @@ module Truffle
     end
 
     def self.binary_ext?(ext)
-      ext == '.so' || ext == DOT_DLEXT
+      ext == :so || ext == :dlext
     end
 
-    def self.has_extension?(path)
-      !path.nil? && !File.extname(path).empty?
+    # Done this way to avoid many duplicate Strings representing the file extensions
+    def self.extension_symbol(path)
+      if !path.nil?
+        if path.end_with?('.rb')
+          :rb
+        elsif path.end_with?('.so')
+          :so
+        elsif path.end_with?(DOT_DLEXT)
+          :dlext
+        else
+          ext = File.extname(path)
+          ext.empty? ? nil : :other
+        end
+      else
+        nil
+      end
     end
 
+    # Done this way to avoid many duplicate Strings representing the file extensions
     def self.extension(path)
       if !path.nil?
-        ext = File.extname(path)
-        ext.empty? ? nil : ext
+        if path.end_with?('.rb')
+          '.rb'
+        elsif path.end_with?('.so')
+          '.so'
+        elsif path.end_with?(DOT_DLEXT)
+          DOT_DLEXT
+        else
+          ext = File.extname(path)
+          ext.empty? ? nil : ext
+        end
       else
         nil
       end
