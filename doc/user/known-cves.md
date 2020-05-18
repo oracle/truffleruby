@@ -5,6 +5,7 @@ vulnerabilities
 guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html),
 rather than by something public such as a GitHub issue or a Gitter
 conversation.
+Specific guidelines for reporting security issues of the GraalVM project including TruffleRuby can be found in the [SECURITY.md file](../../SECURITY.md).
 
 ## Unimplemented Security Features
 
