@@ -57,10 +57,9 @@ public abstract class ToLongNode extends RubyContextSourceNode {
         // catch-all case.
         throw new RaiseException(
                 getContext(),
-                coreExceptions().typeError("no implicit conversion form nil into to integer", this));
+                coreExceptions().typeError("no implicit conversion from nil to integer", this));
     }
 
-    // object can't be a DynamicObject, because we must handle doubles and booleans.
     @Specialization(guards = { "!isRubyInteger(object)", "!isNil(object)" })
     protected long coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,

@@ -1089,6 +1089,11 @@ public abstract class IntegerNodes {
 
         public abstract Object executeLeftShift(Object a, Object b);
 
+
+        public static LeftShiftNode create() {
+            return LeftShiftNodeFactory.create(null);
+        }
+
         @Specialization(guards = { "b >= 0", "canShiftIntoInt(a, b)" })
         protected int leftShift(int a, int b) {
             return a << b;
@@ -1158,8 +1163,9 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object leftShiftCoerced(Object a, Object b,
-                @Cached ToRubyIntegerNode toRubyIntNode) {
-            return executeLeftShift(a, toRubyIntNode.execute(b));
+                @Cached ToRubyIntegerNode toRubyIntNode,
+                @Cached LeftShiftNode leftShiftNode) {
+            return leftShiftNode.executeLeftShift(a, toRubyIntNode.execute(b));
         }
 
         private Object absoluteValue(Object value) {
@@ -1191,6 +1197,10 @@ public abstract class IntegerNodes {
         @Child private LeftShiftNode leftShiftNode;
 
         public abstract Object executeRightShift(Object a, Object b);
+
+        public static RightShiftNode create() {
+            return RightShiftNodeFactory.create(null);
+        }
 
         @Specialization(guards = "b >= 0")
         protected int rightShift(int a, int b,
@@ -1265,8 +1275,9 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object rightShiftCoerced(Object a, Object b,
-                @Cached ToRubyIntegerNode toRubyIntNode) {
-            return executeRightShift(a, toRubyIntNode.execute(b));
+                @Cached ToRubyIntegerNode toRubyIntNode,
+                @Cached RightShiftNode rightShiftNode) {
+            return rightShiftNode.executeRightShift(a, toRubyIntNode.execute(b));
         }
 
         protected static boolean isPositive(DynamicObject b) {

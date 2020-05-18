@@ -23,15 +23,20 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 /** Node used to convert a value into a 32-bits Java int, calling {@code to_int} if the value is not yet a Ruby integer.
  * Use this whenever Ruby allows conversions using {@code to_int} and you need a 32-bits int for implementation reasons.
+ * This is equivalent to Ruby's C function {@code rb_num2int}.
  *
  * <p>
  * Alternatively, consider:
  * <ul>
- * <li>{@link ToLongNode}: similar, but for 64-bits Java long, often used similar to MRI where functions usually reject
- * integers that do not fit into 64 bits</li>
- * <li>{@link IntegerCastNode}, {@link LongCastNode}: whenever {@code to_int} conversion is not required.</li>
+ * <li>{@link ToLongNode}: similar, but for 64-bits Java long. Equivalen to Ruby's C function {@code rb_num2long}, which
+ * is used a lot by MRI (we replace some of these uses by {@link ToIntNode} in TruffleRuby, because arrays are
+ * {@code int}-sized.</li>
  * <li>{@link ToRubyIntegerNode}: when only {@code to_int} conversion is needed, but the resulting value can be a
  * Bignum.</li>
+ * <li>{@link IntegerCastNode}, {@link LongCastNode}: whenever {@code to_int} conversion is not required. Beware that
+ * this will fail with a {@code TypeError} whenever the argument is out of range, whereas {@link ToLongNode} and
+ * {@link ToIntNode} would have failed with a {@code RangeError}. Those are typically used when some other part of the
+ * implementation should have guarantees that these values were {@code int} or {@code long}-sized in the first place.
  * <li>{@link IntegerLowerNode}: to lower {@code long} into {@code int} values if they fit. Can be useful conjointly
  * with {@link ToLongNode}.</li>
  * </ul>
@@ -81,10 +86,9 @@ public abstract class ToIntNode extends RubyContextSourceNode {
         // catch-all case.
         throw new RaiseException(
                 getContext(),
-                coreExceptions().typeError("no implicit conversion form nil into to integer", this));
+                coreExceptions().typeError("no implicit conversion from nil to integer", this));
     }
 
-    // object can't be a DynamicObject, because we must handle doubles and booleans.
     @Specialization(guards = { "!isRubyInteger(object)", "!isNil(object)" })
     protected int coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
