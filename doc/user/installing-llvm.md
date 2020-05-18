@@ -18,6 +18,23 @@ $ sudo dnf install make gcc
 $ sudo apt-get install make gcc
 ```
 
+### Mandriva-based and other Linux distributions
+
+Note that such distributions are not tested and not [supported](../../README.md#system-compatibility).
+
+First, install the `make` and `gcc` dependencies.
+
+Mandriva uses a not-yet-upstreamed patch to let `clang` find the GCC installation
+(see [this comment](https://github.com/oracle/truffleruby/issues/2009#issuecomment-630019082)).
+Therefore the internal LLVM toolchain cannot find the necessary `libgcc_s` by default.
+The proper fix is for those distributions to upstream their changes to LLVM.
+
+A workaround is to create a symlink explicitly so that the LLVM toolchain can find `libgcc_s`:
+```bash
+$ cd /usr/lib/gcc
+$ sudo ln -s x86_64-mandriva-linux-gnu x86_64-linux-gnu
+```
+
 ### macOS
 
 On macOS, make sure you have installed the command line developer tools from Xcode:
