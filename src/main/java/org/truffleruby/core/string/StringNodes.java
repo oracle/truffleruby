@@ -95,6 +95,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
@@ -102,7 +103,6 @@ import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
-import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingNodes;
@@ -187,7 +187,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
@@ -341,11 +340,18 @@ public abstract class StringNodes {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
-        public abstract DynamicObject executeInteger(DynamicObject string, Object times);
-
         @CreateCast("times")
         protected RubyNode coerceToInteger(RubyNode times) {
-            return FixnumLowerNode.create(ToRubyIntegerNode.create(times));
+            // Not ToIntNode, because this works with empty strings, and must thrown a different error
+            // for long values that don't fit in an int.
+            return FixnumLowerNode.create(ToLongNode.create(times));
+        }
+
+        @Specialization(guards = "times == 0")
+        protected DynamicObject multiplyTimesNegative(DynamicObject string, int times) {
+            return allocateObjectNode.allocate(
+                    Layouts.BASIC_OBJECT.getLogicalClass(string),
+                    Layouts.STRING.build(false, false, RopeOperations.emptyRope(StringOperations.encoding(string))));
         }
 
         @Specialization(guards = "times < 0")
@@ -355,9 +361,16 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
         protected DynamicObject multiply(DynamicObject string, int times,
-                @Cached RepeatNode repeatNode) {
-            final Rope repeated = repeatNode.executeRepeat(rope(string), times);
+                @Cached RepeatNode repeatNode,
+                @Cached BranchProfile tooBigProfile) {
 
+            long length = (long) times * StringOperations.rope(string).byteLength();
+            if (length > Integer.MAX_VALUE) {
+                tooBigProfile.enter();
+                throw tooBig();
+            }
+
+            final Rope repeated = repeatNode.executeRepeat(rope(string), times);
             return allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
                     Layouts.STRING.build(false, false, repeated));
@@ -373,27 +386,16 @@ public abstract class StringNodes {
                     Layouts.STRING.build(false, false, repeated));
         }
 
-        // NOTE(norswap, 14 May 2020):
-        //  It would be safer if we computed the total size for the resulting string and ensure it is
-        //  not higher than the maximum Java string length (INT_MAX), otherwise the code might blow up at all
-        //  later time if we try to flatten such a rope. However, given ropes, such an operation could
-        //  also be fairly expense, and such errors are not overly likely.
-
-        // Specialization for long that do not fit in an int, and cannot be otherwise handled.
-        @TruffleBoundary
-        @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
+        @Specialization(guards = { "times > 0", "!isEmpty(string)" })
         protected DynamicObject multiplyNonEmpty(DynamicObject string, long times) {
-            // Emulate error thrown by MRI whenever the total size of the resulting string would exceed LONG_MAX.
-            throw new RaiseException(getContext(), coreExceptions().argumentError("argument too big", this));
+            assert !CoreLibrary.fitsIntoInteger(times);
+            throw tooBig();
         }
 
-        @Specialization(guards = "isRubyBignum(times)")
-        protected DynamicObject multiplyNonEmpty(DynamicObject string, DynamicObject times,
-                @Cached ToLongNode toLongNode) {
-            // Raise proper error.
-            toLongNode.execute(times);
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnreachableCodeException();
+        private RaiseException tooBig() {
+            // MRI throws this error whenever the total size of the resulting string would exceed LONG_MAX.
+            // In TruffleRuby, strings have max length Integer.MAX_VALUE.
+            return new RaiseException(getContext(), coreExceptions().argumentError("argument too big", this));
         }
     }
 
