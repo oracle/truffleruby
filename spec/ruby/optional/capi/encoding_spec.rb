@@ -499,10 +499,10 @@ describe "C-API Encoding function" do
   end
 
   describe "rb_uv_to_utf8" do
-    it 'converts vectors to UTF-8 strings' do
-      str = '      '
+    it 'converts a Unicode codepoint to a UTF-8 C string' do
+      str = ' ' * 6
       {
-        0  => "\u0001",
+        0  => "\x01",
         0x7f => "\xC2\x80",
         0x7ff => "\xE0\xA0\x80",
         0xffff => "\xF0\x90\x80\x80",
