@@ -9,17 +9,21 @@
  */
 package org.truffleruby.core.symbol;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.ImmutableRubyObject;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
@@ -67,6 +71,41 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
         return hashing.hash(CLASS_SALT, javaStringHashCode);
     }
 
+    // Messages
+
+    @Override
+    public String toString() {
+        return ":" + string;
+    }
+
+    @ExportMessage
+    protected boolean hasLanguage() {
+        return true;
+    }
+
+    @ExportMessage
+    protected Class<RubyLanguage> getLanguage() {
+        return RubyLanguage.class;
+    }
+
+    @ExportMessage
+    protected String toDisplayString(boolean allowSideEffects) {
+        return toString();
+    }
+
+    @ExportMessage
+    protected boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    protected DynamicObject getMetaObject(
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().symbolClass;
+    }
+
+    // String messages
+
     @ExportMessage
     protected boolean isString() {
         return true;
@@ -90,11 +129,6 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
         protected static int getLimit() {
             return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
         }
-    }
-
-    @Override
-    public String toString() {
-        return ":" + string;
     }
 
 }
