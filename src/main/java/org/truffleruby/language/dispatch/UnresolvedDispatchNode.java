@@ -219,9 +219,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                     argumentsObjects);
         }
 
-        if (RubyGuards.isRubySymbol(receiverObject)) {
-            return new CachedBoxedSymbolDispatchNode(getContext(), methodName, first, method, getDispatchAction());
-        } else if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
+        if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
             return new CachedSingletonDispatchNode(
                     getContext(),
                     methodName,
