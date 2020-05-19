@@ -74,7 +74,6 @@ describe 'TracePoint#enable' do
       end
 
       threads = threads.uniq
-      threads.size.should >= 2
       threads.should.include?(Thread.current)
       threads.should.include?(thread)
     end
