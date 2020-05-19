@@ -7,8 +7,8 @@ You can also use what we call the standalone distribution of TruffleRuby,
 either via your Ruby manager/installer, or as a simple binary tarball.
 
 Releases of the standalone distribution are
-[available on GitHub](https://github.com/oracle/truffleruby/releases).
-Nightly builds are [also available](https://github.com/ruby/truffleruby-dev-builder/releases).
+[available on GitHub](https://github.com/oracle/truffleruby/releases/latest).
+Nightly builds are [also available](https://github.com/ruby/truffleruby-dev-builder/releases/latest).
 
 The standalone distributions are the files:
 

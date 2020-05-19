@@ -24,6 +24,16 @@ There are three ways to install TruffleRuby releases and nightly builds:
 * Using the [standalone distribution](doc/user/standalone-distribution.md)
   as a simple binary tarball.
 
+We recommend trying TruffleRuby nightly builds which contain the latest fixes and improvements:
+
+```bash
+RVM:    $ rvm install truffleruby-head
+rbenv:  $ rbenv install truffleruby-dev
+chruby: $ ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
+```
+
+See the [Ruby installers](doc/user/ruby-managers.md) documentation for more details.
+
 Testing TruffleRuby in CI is easy:
 on [TravisCI](https://docs.travis-ci.com/user/languages/ruby#truffleruby), you can use:
 ```yaml

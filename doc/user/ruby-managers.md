@@ -38,7 +38,7 @@ First, you need to upgrade `ruby-build` to get the latest TruffleRuby
 definition. See [`ruby-build`'s instructions for upgrading](https://github.com/rbenv/ruby-build#upgrading).
 
 On macOS, if `ruby-build` is installed via Homebrew and you do not see the
-[latest TruffleRuby release](https://github.com/oracle/truffleruby/releases),
+[latest TruffleRuby release](https://github.com/oracle/truffleruby/releases/latest),
 you might need to install the HEAD version of `ruby-build` with:
 
 ```bash
@@ -85,7 +85,11 @@ $ ruby-install truffleruby
 ```
 
 `ruby-install` does not support installing nightly builds.
-Please use `ruby-build` (which also works with `chruby`) if you want to install nightly builds.
+Please use `ruby-build` (which also works with `chruby`) if you want to install nightly builds:
+
+```bash
+$ ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
+```
 
 There are also instructions on the
 [chruby wiki](https://github.com/postmodern/chruby/wiki/TruffleRuby)

@@ -56,7 +56,7 @@ $(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')/lib/truffle/po
 ```
 
 You can also download the Ruby component (`ruby-installable-...`) manually from
-https://github.com/oracle/truffleruby/releases. Then install it with
+https://github.com/oracle/truffleruby/releases/latest. Then install it with
 `gu install --file path/to/ruby-installable-...`.
 
 If you are installing Ruby into GraalVM EE then you need to download the Ruby
