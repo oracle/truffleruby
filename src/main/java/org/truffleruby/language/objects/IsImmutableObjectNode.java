@@ -15,7 +15,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.objects.LogicalClassNode;
 
 /** Determines if an object is immutable for Kernel#clone, Kernel#dup, and rb_obj_clone. */
 public abstract class IsImmutableObjectNode extends RubyContextNode {
