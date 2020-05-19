@@ -105,7 +105,9 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             if (isSymbolProfile.profile(RubyGuards.isRubySymbol(key))) {
                 if (checkAllowedKeywords && !keywordAllowed(key)) {
                     unknownKeywordProfile.enter();
-                    throw new RaiseException(getContext(), coreExceptions().argumentErrorUnknownKeyword(key, this));
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().argumentErrorUnknownKeyword((RubySymbol) key, this));
                 }
             } else {
                 final int given = RubyArguments.getArgumentsCount(frame); // -1 for keyword hash, +1 for reject Hash with non-Symbol key
