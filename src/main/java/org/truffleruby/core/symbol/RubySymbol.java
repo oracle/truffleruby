@@ -19,9 +19,10 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.language.ImmutableRubyObject;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubySymbol implements TruffleObject {
+public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
 
     private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 

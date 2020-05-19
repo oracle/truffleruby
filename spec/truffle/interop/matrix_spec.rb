@@ -255,9 +255,9 @@ describe 'Interop:' do
                            interop_library_reference) { TruffleInteropSpecs::PolyglotArray.new }
   }.each { |key, subject| subject.key = key }
 
-  immediate_subjects     = [:nil, :false, :true, :zero, :small_integer, :zero_float, :small_float]
+  immediate_subjects     = [:false, :true, :zero, :small_integer, :zero_float, :small_float]
   non_immediate_subjects = SUBJECTS.keys - immediate_subjects
-  frozen_subjects        = [:symbol, :strange_symbol, :frozen_object]
+  frozen_subjects        = [:nil, :symbol, :strange_symbol, :frozen_object]
 
   # not part of the standard matrix, not considered in last rest case
   EXTRA_SUBJECTS = {
