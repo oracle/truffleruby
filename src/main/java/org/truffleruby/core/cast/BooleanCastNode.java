@@ -96,7 +96,7 @@ public abstract class BooleanCastNode extends RubyBaseNode {
         }
     }
 
-    @Specialization(guards = { "!isTruffleObject(object)", "!isBoxedPrimitive(object)" })
+    @Specialization(guards = { "!isTruffleObject(object)", "!isPrimitive(object)" })
     protected boolean doOther(Object object) {
         return true;
     }
