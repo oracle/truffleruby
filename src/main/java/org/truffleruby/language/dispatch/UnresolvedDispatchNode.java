@@ -103,7 +103,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                             CompilerDirectives.transferToInterpreterAndInvalidate();
                             throw new UnsupportedOperationException();
                     }
-                } else if (RubyGuards.isRubyBasicObject(receiverObject)) {
+                } else if (RubyGuards.isRubyDynamicObject(receiverObject)) {
                     newDispatchNode = doDynamicObject(
                             frame,
                             first,

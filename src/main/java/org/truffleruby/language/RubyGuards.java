@@ -11,10 +11,10 @@ package org.truffleruby.language;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.symbol.RubySymbol;
 
 public abstract class RubyGuards {
 
@@ -82,10 +82,6 @@ public abstract class RubyGuards {
     }
 
     // Ruby types
-
-    public static boolean isRubyBasicObject(Object object) {
-        return Layouts.BASIC_OBJECT.isBasicObject(object);
-    }
 
     public static boolean isRubyBignum(Object value) {
         return Layouts.BIGNUM.isBignum(value);
@@ -287,13 +283,21 @@ public abstract class RubyGuards {
 
     // Internal types
 
+    public static boolean isRubyDynamicObject(Object object) {
+        return Layouts.BASIC_OBJECT.isBasicObject(object);
+    }
+
+    public static boolean isRubyValue(Object object) {
+        return isRubyDynamicObject(object) || isPrimitive(object) || object instanceof Nil ||
+                object instanceof RubySymbol;
+    }
+
     public static boolean isTruffleObject(Object object) {
         return object instanceof TruffleObject;
     }
 
     public static boolean isForeignObject(Object object) {
-        return !isRubyBasicObject(object) && !isPrimitive(object) && !(object instanceof Nil) &&
-                !(object instanceof RubySymbol);
+        return !isRubyValue(object);
     }
 
     public static boolean isBoxedPrimitive(Object object) {

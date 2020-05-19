@@ -962,7 +962,7 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public DynamicObject getMetaClass(Object object) {
-        if (RubyGuards.isRubyBasicObject(object)) {
+        if (RubyGuards.isRubyDynamicObject(object)) {
             return Layouts.BASIC_OBJECT.getMetaClass((DynamicObject) object);
         } else {
             return getLogicalClass(object);
@@ -971,18 +971,14 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public DynamicObject getLogicalClass(Object object) {
-        if (RubyGuards.isRubyBasicObject(object)) {
+        if (RubyGuards.isRubyDynamicObject(object)) {
             return Layouts.BASIC_OBJECT.getLogicalClass((DynamicObject) object);
         } else if (object instanceof Nil) {
             return nilClass;
         } else if (object instanceof RubySymbol) {
             return symbolClass;
         } else if (object instanceof Boolean) {
-            if ((boolean) object) {
-                return trueClass;
-            } else {
-                return falseClass;
-            }
+            return (boolean) object ? trueClass : falseClass;
         } else if (object instanceof Byte) {
             return integerClass;
         } else if (object instanceof Short) {

@@ -109,7 +109,7 @@ public abstract class WrapNode extends RubyBaseNode {
         return wrapper;
     }
 
-    @Specialization(guards = "isRubyBasicObject(value)")
+    @Specialization(guards = "isRubyDynamicObject(value)")
     protected ValueWrapper wrapValue(DynamicObject value,
             @Cached ReadObjectFieldNode readWrapperNode,
             @Cached WriteObjectFieldNode writeWrapperNode,

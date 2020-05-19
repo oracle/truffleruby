@@ -151,8 +151,8 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @TruffleBoundary
-    @Specialization(guards = "!isRubyBasicObject(object)")
-    protected byte[] toString(TruffleObject object) {
+    @Specialization(guards = "isForeignObject(object)")
+    protected byte[] toStringForeign(Object object) {
         return object.toString().getBytes(StandardCharsets.UTF_8);
     }
 

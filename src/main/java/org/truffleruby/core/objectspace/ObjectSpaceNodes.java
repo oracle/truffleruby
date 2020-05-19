@@ -153,7 +153,11 @@ public abstract class ObjectSpaceNodes {
             if (RubyGuards.isRubySymbol(object)) {
                 return false;
             } else {
-                return !RubyGuards.isRubyBasicObject(object) || RubyGuards.isSingletonClass((DynamicObject) object);
+                if (RubyGuards.isRubyDynamicObject(object)) {
+                    return RubyGuards.isSingletonClass((DynamicObject) object);
+                } else {
+                    return true;
+                }
             }
         }
 

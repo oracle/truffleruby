@@ -846,14 +846,9 @@ public class CExtNodes {
     @CoreMethod(names = "ruby_object?", onSingleton = true, required = 1)
     public abstract static class RubyObjectNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isBoxedPrimitive(object)")
-        protected boolean rubyObjectPrimitive(Object object) {
-            return true;
-        }
-
-        @Specialization(guards = "!isBoxedPrimitive(object)")
+        @Specialization
         protected boolean rubyObject(Object object) {
-            return RubyGuards.isRubyBasicObject(object);
+            return RubyGuards.isRubyValue(object);
         }
 
     }
@@ -1149,7 +1144,7 @@ public class CExtNodes {
                     }
 
                     representation = RopeOperations.decodeRope(rope) + " (" + builder.toString() + ")";
-                } else if (RubyGuards.isRubyBasicObject(object)) {
+                } else if (RubyGuards.isRubyValue(object)) {
                     representation = object.toString() + " (" + StringOperations.getString(callToS(object)) + ")";
                 } else {
                     representation = object.toString();
