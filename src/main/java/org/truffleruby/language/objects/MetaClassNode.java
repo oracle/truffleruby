@@ -106,7 +106,9 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return Layouts.BASIC_OBJECT.getMetaClass(object);
     }
 
-    @Specialization(guards = "!isRubyDynamicObject(object)", replaces = { "metaClassCached", "updateShapeAndMetaClass" })
+    @Specialization(
+            guards = "!isRubyDynamicObject(object)",
+            replaces = { "metaClassCached", "updateShapeAndMetaClass" })
     protected DynamicObject metaClassForeign(DynamicObject object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         assert RubyGuards.isForeignObject(object);

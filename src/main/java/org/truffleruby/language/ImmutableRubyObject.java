@@ -24,7 +24,6 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -63,7 +62,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
             @Cached ForeignToRubyNode nameToRubyNode,
             @Cached @Exclusive CallDispatchHeadNode dispatch,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
-            throws UnsupportedMessageException, UnknownIdentifierException {
+            throws UnknownIdentifierException {
         if (definedNode.doesRespondTo(null, name, this)) {
             Object rubyName = nameToRubyNode.executeConvert(name);
             return dispatch.call(this, "method", rubyName);
