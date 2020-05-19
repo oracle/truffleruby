@@ -85,7 +85,11 @@ $ ruby-install truffleruby
 ```
 
 `ruby-install` does not support installing nightly builds.
-Please use `ruby-build` (which also works with `chruby`) if you want to install nightly builds.
+Please use `ruby-build` (which also works with `chruby`) if you want to install nightly builds:
+
+```bash
+$ ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
+```
 
 There are also instructions on the
 [chruby wiki](https://github.com/postmodern/chruby/wiki/TruffleRuby)
