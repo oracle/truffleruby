@@ -156,7 +156,8 @@ MacGregor, Christian Wirth, Rafael França, Alan Wu, Nicolas Laurent, Carol Chen
 
 ## Security
 
-See the [security documentation](doc/user/security.md).
+See [SECURITY.md](SECURITY.md) for how to report security vulnerabilities to Oracle.
+For known vulnerabilities in Ruby, please refer to the [known-cves.md](doc/user/known-cves.md) file.
 
 ## Licence
 
