@@ -94,8 +94,7 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
 
     @Override
     public String toString() {
-        // return ":" + string; // TODO refactor https://github.com/oracle/truffleruby/blob/aa9d75a31be7fa58b1a4c0ed5173670229f35082/src/main/java/org/truffleruby/core/basicobject/BasicObjectNodes.java#L437
-        return string;
+        return ":" + string;
     }
 
 }

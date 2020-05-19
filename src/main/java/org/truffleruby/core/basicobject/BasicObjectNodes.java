@@ -448,7 +448,12 @@ public abstract class BasicObjectNodes {
         @TruffleBoundary
         private DynamicObject buildMethodMissingException(Object self, Object nameObject, Object[] args,
                 DynamicObject block) {
-            final String name = nameObject.toString();
+            final String name;
+            if (nameObject instanceof RubySymbol) {
+                name = ((RubySymbol) nameObject).getString();
+            } else {
+                name = nameObject.toString();
+            }
             final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();
             Visibility visibility;
 
