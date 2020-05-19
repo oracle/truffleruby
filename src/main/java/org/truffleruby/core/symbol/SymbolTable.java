@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.symbol;
 
-import java.util.Collection;
-
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -100,11 +98,6 @@ public class SymbolTable {
     private RubySymbol createSymbol(Rope cachedRope) {
         final String string = RopeOperations.decodeOrEscapeBinaryRope(cachedRope);
         return new RubySymbol(string, cachedRope);
-    }
-
-    @TruffleBoundary
-    public Collection<RubySymbol> allSymbols() {
-        return symbolMap.values();
     }
 
     // TODO (eregon, 10/10/2015): this check could be done when a Symbol is created to be much cheaper

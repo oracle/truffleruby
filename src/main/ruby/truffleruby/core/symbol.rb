@@ -29,6 +29,10 @@
 class Symbol
   include Comparable
 
+  def self.all_symbols
+    ObjectSpace.each_object(Symbol).to_a
+  end
+
   def <=>(other)
     return unless other.kind_of? Symbol
 
