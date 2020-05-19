@@ -397,7 +397,7 @@ module Truffle::CExt
   end
 
   def rb_class_real(ruby_class)
-    if ruby_object?(ruby_class)
+    if Module === ruby_class
       while ruby_class.singleton_class?
         ruby_class = ruby_class.superclass
       end

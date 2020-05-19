@@ -843,16 +843,6 @@ public class CExtNodes {
 
     }
 
-    @CoreMethod(names = "ruby_object?", onSingleton = true, required = 1)
-    public abstract static class RubyObjectNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected boolean rubyObject(Object object) {
-            return RubyGuards.isRubyValue(object);
-        }
-
-    }
-
     @CoreMethod(names = "rb_call_super_splatted", onSingleton = true, rest = true)
     public abstract static class CallSuperNode extends CoreMethodArrayArgumentsNode {
 
