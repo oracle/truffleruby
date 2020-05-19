@@ -342,13 +342,13 @@ public abstract class StringNodes {
 
         @CreateCast("times")
         protected RubyNode coerceToInteger(RubyNode times) {
-            // Not ToIntNode, because this works with empty strings, and must thrown a different error
+            // Not ToIntNode, because this works with empty strings, and must throw a different error
             // for long values that don't fit in an int.
             return FixnumLowerNode.create(ToLongNode.create(times));
         }
 
         @Specialization(guards = "times == 0")
-        protected DynamicObject multiplyTimesNegative(DynamicObject string, int times) {
+        protected DynamicObject multiplyZero(DynamicObject string, int times) {
             return allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
                     Layouts.STRING.build(false, false, RopeOperations.emptyRope(StringOperations.encoding(string))));
@@ -359,7 +359,7 @@ public abstract class StringNodes {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
         }
 
-        @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
+        @Specialization(guards = { "times > 0", "!isEmpty(string)" })
         protected DynamicObject multiply(DynamicObject string, int times,
                 @Cached RepeatNode repeatNode,
                 @Cached BranchProfile tooBigProfile) {
@@ -376,7 +376,7 @@ public abstract class StringNodes {
                     Layouts.STRING.build(false, false, repeated));
         }
 
-        @Specialization(guards = { "times >= 0", "isEmpty(string)" })
+        @Specialization(guards = { "times > 0", "isEmpty(string)" })
         protected DynamicObject multiplyEmpty(DynamicObject string, long times,
                 @Cached RopeNodes.RepeatNode repeatNode) {
             final Rope repeated = repeatNode.executeRepeat(rope(string), 0);

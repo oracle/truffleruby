@@ -19,6 +19,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.utils.Utils;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @GenerateUncached
@@ -54,6 +55,6 @@ public abstract class IntegerCastNode extends RubyBaseNode {
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
                 context,
-                context.getCoreExceptions().typeErrorIsNotA(value.toString(), "Integer (fitting in int)", this));
+                context.getCoreExceptions().typeErrorIsNotA(Utils.toString(value), "Integer (fitting in int)", this));
     }
 }

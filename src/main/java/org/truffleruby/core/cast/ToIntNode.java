@@ -65,7 +65,7 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "fitsInInteger(value)")
-    protected int corceFittingLong(long value) {
+    protected int coerceFittingLong(long value) {
         return (int) value;
     }
 
@@ -89,7 +89,7 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     protected int coerceDouble(double value,
             @Cached BranchProfile errorProfile) {
         // emulate MRI logic + additional 32 bit restriction
-        if (Long.MIN_VALUE <= value && value < Long.MAX_VALUE && CoreLibrary.fitsIntoInteger((long) value)) {
+        if (CoreLibrary.fitsIntoInteger((long) value)) {
             return (int) value;
         } else {
             errorProfile.enter();
