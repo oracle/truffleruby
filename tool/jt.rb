@@ -2127,15 +2127,22 @@ EOS
   end
 
   module Formatting
+    extend self
+
     def format_specializations_visibility
-      iterate do |first, *rest|
-        # change to protected
-        [first.gsub(/^( *)(public |protected |private |)/, '\1protected '), *rest]
+      iterate do |type, (first, *rest)|
+        if type == :ExportMessage and first !~ /\bstatic\b/
+          # Keep non-static @ExportMessage public
+          [first, *rest]
+        else
+          # Change to protected
+          [first.gsub(/^( *)(public |protected |private |)/, '\1protected '), *rest]
+        end
       end
     end
 
     def format_specializations_arguments
-      iterate do |lines|
+      iterate do |_type, lines|
         first = lines.first
         indent = "#{first[/^ +/]}"
         arg_indent = indent + ' ' * 8
@@ -2169,11 +2176,11 @@ EOS
     private
 
     def split_arguments(line)
-      i            = 0
+      i = 0
       split_points = []
-      i            += 1 while line[i] != '('
-      i            += 1
-      brackets     = 1
+      i += 1 while line[i] != '('
+      i += 1
+      brackets = 1
       split_points << i # ( start of arguments
 
 
@@ -2210,12 +2217,18 @@ EOS
       changed = false
 
       Dir.glob(File.join(TRUFFLERUBY_DIR, 'src', '**', '*.java')) do |file|
-        content     = File.read file
+        content = File.read file
         new_content = ''
-        lines       = content.lines.to_a
+        lines = content.lines.to_a
 
         while (line = lines.shift)
-          new_content << line and next unless /^ *@(Specialization|Fallback|CreateCast|ExportMessage)/ =~ line
+          if /^ *@(Specialization|Fallback|CreateCast|ExportMessage)/ =~ line
+            type = $1.to_sym
+          else
+            new_content << line
+            next
+          end
+
 
           braces = count_braces(line)
           # look for end of annotation
@@ -2241,7 +2254,7 @@ EOS
             declaration << line
           end
 
-          declaration = update.call declaration
+          declaration = update.call type, declaration
           declaration.each { |l| new_content << l }
         end
 
@@ -2258,8 +2271,6 @@ EOS
     def count_braces(line, brackets = '()')
       line.count(brackets[0]) - line.count(brackets[1])
     end
-
-    extend self
   end
 
   def format_specializations_visibility
