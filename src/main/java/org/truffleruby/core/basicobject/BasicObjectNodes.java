@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.basicobject;
 
-import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -54,7 +53,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -67,8 +66,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-
-import static org.truffleruby.language.RubyGuards.isForeignObject;
 
 @CoreModule(value = "BasicObject", isClass = true)
 public abstract class BasicObjectNodes {
@@ -263,9 +260,8 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        @Fallback
-        protected long objectID(Object object) {
-            assert isForeignObject(object);
+        @Specialization(guards = "isForeignObject(object)")
+        protected long objectIDForeign(Object object) {
             return Integer.toUnsignedLong(hashCode(object));
         }
 

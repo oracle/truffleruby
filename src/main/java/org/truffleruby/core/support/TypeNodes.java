@@ -164,9 +164,8 @@ public abstract class TypeNodes {
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
-        @Fallback
-        protected DynamicObject instanceVariables(Object object) {
-            assert isForeignObject(object);
+        @Specialization(guards = "isForeignObject(object)")
+        protected DynamicObject instanceVariablesForeign(Object object) {
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 

@@ -67,9 +67,8 @@ public abstract class IsTaintedNode extends RubyBaseNode {
         return (boolean) readTaintedNode.execute(object, Layouts.TAINTED_IDENTIFIER, false);
     }
 
-    @Fallback
+    @Specialization(guards = "isForeignObject(object)")
     protected boolean isTainted(Object object) {
-        assert isForeignObject(object);
         return false;
     }
 }

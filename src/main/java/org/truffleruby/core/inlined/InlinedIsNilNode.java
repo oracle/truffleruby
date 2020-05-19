@@ -35,7 +35,7 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
 
     @Specialization(
             guards = {
-                    "!isForeignObject(self)",
+                    "isRubyValue(self)",
                     "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_NIL", },
             assumptions = "assumptions",
             limit = "1")

@@ -100,7 +100,6 @@ public abstract class LogicalClassNode extends RubyBaseNode {
     @Specialization(guards = "isForeignObject(object)")
     protected DynamicObject logicalClassForeign(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        assert RubyGuards.isForeignObject(object);
         return context.getCoreLibrary().truffleInteropForeignClass;
     }
 
