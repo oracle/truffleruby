@@ -57,8 +57,8 @@ public abstract class ToLongNode extends RubyContextSourceNode {
     protected long coerceDouble(double value,
             @Cached BranchProfile errorProfile) {
         // emulate MRI logic
-        // Presumably, the check is `value < MAX_VALUE` so that `TOO_BIG_DOUBLE_LITERAL` will never be accepted, at the
-        // cost of sometimes not working for `(double) fitting_long_literal`.
+        // We check for `value < MAX_VALUE` because casting Long.MAX_VALUE to double yields a double value of 2^63 which is >
+        // Long.MAX_VALUE.
         if (Long.MIN_VALUE <= value && value < Long.MAX_VALUE) {
             return (long) value;
         } else {

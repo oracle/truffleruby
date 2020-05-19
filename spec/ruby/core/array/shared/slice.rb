@@ -467,25 +467,11 @@ describe :array_slice, shared: true do
     obj = 8e19
     -> { array.send(@method, obj) }.should raise_error(RangeError)
 
-    # MRI rejects the maximum long value if it has been cast to float
-    -> { array.send(@method, max_long + 0.0) }.should raise_error(RangeError)
-  end
+    # boundary value when longs are 64 bits
+    -> { array.send(@method, 2.0**63) }.should raise_error(RangeError)
 
-  it "does not call to_int on a double index" do
-    method = @method
-    tmp_module = Module.new do
-      refine Float do
-        def to_int
-          raise RangeError
-        end
-      end
-
-      define_singleton_method :test do
-        [].send(method, 8.0).should == nil
-      end
-    end
-
-    tmp_module.test
+    # just under the boundary value when longs are 64 bits
+    array.send(@method, max_long.to_f.prev_float).should == nil
   end
 
   it "raises a RangeError when the length is out of range of Fixnum" do
