@@ -996,6 +996,7 @@ public class CoreLibrary {
         } else if (object instanceof Double) {
             return floatClass;
         } else {
+            assert RubyGuards.isForeignObject(object);
             return truffleInteropForeignClass;
         }
     }

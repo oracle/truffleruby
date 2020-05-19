@@ -20,6 +20,8 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 
+import static org.truffleruby.language.RubyGuards.isForeignObject;
+
 @GenerateUncached
 public abstract class IsTaintedNode extends RubyBaseNode {
 
@@ -67,6 +69,7 @@ public abstract class IsTaintedNode extends RubyBaseNode {
 
     @Fallback
     protected boolean isTainted(Object object) {
+        assert isForeignObject(object);
         return false;
     }
 }

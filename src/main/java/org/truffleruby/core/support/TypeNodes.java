@@ -56,6 +56,8 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import static org.truffleruby.language.RubyGuards.isForeignObject;
+
 @CoreModule("Truffle::Type")
 public abstract class TypeNodes {
 
@@ -164,6 +166,7 @@ public abstract class TypeNodes {
 
         @Fallback
         protected DynamicObject instanceVariables(Object object) {
+            assert isForeignObject(object);
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 

@@ -44,7 +44,6 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
         return true;
     }
 
-
     @Specialization
     protected boolean isImmutableNilObject(Nil nil) {
         return true;
