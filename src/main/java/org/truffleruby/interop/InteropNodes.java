@@ -46,7 +46,6 @@ import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -201,14 +200,9 @@ public abstract class InteropNodes {
     public abstract static class InstantiableNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isInstantiable(TruffleObject receiver,
+        protected boolean isInstantiable(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isInstantiable(receiver);
-        }
-
-        @Fallback
-        protected boolean isInstantiable(Object receiver) {
-            return false;
         }
     }
 
