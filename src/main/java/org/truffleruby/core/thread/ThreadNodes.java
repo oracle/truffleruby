@@ -65,6 +65,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.core.thread.ThreadManager.UnblockingActionHolder;
@@ -80,7 +81,6 @@ import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -260,43 +260,16 @@ public abstract class ThreadNodes {
         }
 
         private InterruptMode symbolToInterruptMode(RubySymbol symbol) {
-            if (symbol == getImmediateSymbol()) {
+            if (symbol == CoreSymbols.IMMEDIATE_SYMBOL) {
                 return InterruptMode.IMMEDIATE;
-            } else if (symbol == getOnBlockingSymbol()) {
+            } else if (symbol == CoreSymbols.ON_BLOCKING_SYMBOL) {
                 return InterruptMode.ON_BLOCKING;
-            } else if (symbol == getNeverSymbol()) {
+            } else if (symbol == CoreSymbols.NEVER_SYMBOL) {
                 return InterruptMode.NEVER;
             } else {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().argumentError("invalid timing symbol", this));
             }
-        }
-
-        private RubySymbol getImmediateSymbol() {
-            if (immediateSymbol == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                immediateSymbol = getSymbol("immediate");
-            }
-
-            return immediateSymbol;
-        }
-
-        private RubySymbol getOnBlockingSymbol() {
-            if (onBlockingSymbol == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                onBlockingSymbol = getSymbol("on_blocking");
-            }
-
-            return onBlockingSymbol;
-        }
-
-        private RubySymbol getNeverSymbol() {
-            if (neverSymbol == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                neverSymbol = getSymbol("never");
-            }
-
-            return neverSymbol;
         }
 
     }

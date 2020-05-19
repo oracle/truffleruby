@@ -38,6 +38,15 @@ public class SymbolTable {
 
     public SymbolTable(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
+        cacheCoreSymbols();
+    }
+
+    private void cacheCoreSymbols() {
+        for (RubySymbol symbol : CoreSymbols.CORE_SYMBOLS) {
+            stringToSymbolCache.put(symbol.getString(), symbol);
+            ropeCache.getRope(symbol.getRope());
+            symbolMap.put(symbol.getRope(), symbol);
+        }
     }
 
     @TruffleBoundary
