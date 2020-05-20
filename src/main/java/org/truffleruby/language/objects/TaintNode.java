@@ -63,7 +63,7 @@ public abstract class TaintNode extends RubyBaseNode {
         return object;
     }
 
-    @Specialization(guards = "!isRubySymbol(object)")
+    @Specialization
     protected Object taint(DynamicObject object,
             @Cached IsFrozenNode isFrozenNode,
             @Cached IsTaintedNode isTaintedNode,

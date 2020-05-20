@@ -56,7 +56,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         this.metaClassNode = MetaClassNode.create();
         this.callNode = Truffle.getRuntime().createDirectCallNode(methodMissing.getCallTarget());
 
-        if (RubyGuards.isRubySymbol(cachedName)) {
+        if (cachedName instanceof RubySymbol) {
             cachedNameAsSymbol = (RubySymbol) cachedName;
         } else if (RubyGuards.isRubyString(cachedName)) {
             cachedNameAsSymbol = context.getSymbol(StringOperations.rope((DynamicObject) cachedName));

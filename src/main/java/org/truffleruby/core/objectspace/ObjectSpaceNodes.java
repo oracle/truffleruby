@@ -150,7 +150,7 @@ public abstract class ObjectSpaceNodes {
         }
 
         private boolean isHidden(Object object) {
-            if (RubyGuards.isRubySymbol(object)) {
+            if (object instanceof RubySymbol) {
                 return false;
             } else {
                 if (RubyGuards.isRubyDynamicObject(object)) {

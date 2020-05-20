@@ -9,8 +9,8 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -32,7 +32,7 @@ public class EnsureSymbolKeysNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object hash = child.execute(frame);
         for (KeyValue keyValue : HashOperations.iterableKeyValues((DynamicObject) hash)) {
-            if (!RubyGuards.isRubySymbol(keyValue.getKey())) {
+            if (!(keyValue.getKey() instanceof RubySymbol)) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),

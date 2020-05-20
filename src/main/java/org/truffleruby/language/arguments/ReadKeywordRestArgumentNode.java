@@ -15,7 +15,6 @@ import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.SetNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.methods.Arity;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -58,7 +57,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
 
     @Override
     public void accept(VirtualFrame frame, Object key, Object value, Object kwRest) {
-        if (isSymbolProfile.profile(RubyGuards.isRubySymbol(key)) && !keywordExcluded(key)) {
+        if (isSymbolProfile.profile(key instanceof RubySymbol) && !keywordExcluded(key)) {
             setNode.executeSet((DynamicObject) kwRest, key, value, false);
         }
     }

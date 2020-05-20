@@ -528,7 +528,7 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
-        @Specialization(guards = { "!isRubyBignum(self)", "!isRubySymbol(self)" })
+        @Specialization(guards = "!isRubyBignum(self)")
         protected DynamicObject clone(DynamicObject self, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
@@ -1014,7 +1014,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "!isRubySymbol(object)")
+        @Specialization
         protected boolean isInstanceVariableDefined(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Property property = object.getShape().getProperty(ivar);
