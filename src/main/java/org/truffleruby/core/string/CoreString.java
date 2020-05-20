@@ -51,15 +51,6 @@ public class CoreString {
         return rope;
     }
 
-    public RubySymbol getSymbol() {
-        if (symbol == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            symbol = context.getSymbol(getRope());
-        }
-
-        return symbol;
-    }
-
     public DynamicObject createInstance() {
         return StringOperations.createString(context, getRope());
     }

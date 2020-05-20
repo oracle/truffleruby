@@ -260,11 +260,11 @@ public abstract class ThreadNodes {
         }
 
         private InterruptMode symbolToInterruptMode(RubySymbol symbol) {
-            if (symbol == CoreSymbols.IMMEDIATE_SYMBOL) {
+            if (symbol == CoreSymbols.IMMEDIATE) {
                 return InterruptMode.IMMEDIATE;
-            } else if (symbol == CoreSymbols.ON_BLOCKING_SYMBOL) {
+            } else if (symbol == CoreSymbols.ON_BLOCKING) {
                 return InterruptMode.ON_BLOCKING;
-            } else if (symbol == CoreSymbols.NEVER_SYMBOL) {
+            } else if (symbol == CoreSymbols.NEVER) {
                 return InterruptMode.NEVER;
             } else {
                 errorProfile.enter();

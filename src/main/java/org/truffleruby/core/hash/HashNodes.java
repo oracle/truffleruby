@@ -27,6 +27,7 @@ import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
+import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -633,7 +634,7 @@ public abstract class HashNodes {
                     "coerce_to",
                     from,
                     coreLibrary().hashClass,
-                    coreStrings().TO_HASH.getSymbol());
+                    CoreSymbols.TO_HASH);
             return initializeCopyNode.executeReplace(self, (DynamicObject) otherHash);
         }
 

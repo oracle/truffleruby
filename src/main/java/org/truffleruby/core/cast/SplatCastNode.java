@@ -9,10 +9,10 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayDupNode;
 import org.truffleruby.core.array.ArrayDupNodeGen;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -45,11 +45,10 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
     @Child private ArrayDupNode dup;
     @Child private CallDispatchHeadNode toA;
 
-    public SplatCastNode(RubyContext context, NilBehavior nilBehavior, boolean useToAry) {
+    public SplatCastNode(NilBehavior nilBehavior, boolean useToAry) {
         this.nilBehavior = nilBehavior;
         // Calling private #to_a is allowed for the *splat operator.
-        String name = useToAry ? "to_ary" : "to_a";
-        conversionMethod = context.getSymbol(name);
+        conversionMethod = useToAry ? CoreSymbols.TO_ARY : CoreSymbols.TO_A;
     }
 
     public void doNotCopy() {
