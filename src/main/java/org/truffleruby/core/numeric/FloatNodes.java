@@ -785,6 +785,10 @@ public abstract class FloatNodes {
     @CoreMethod(names = { "to_i", "to_int" })
     public abstract static class ToINode extends CoreMethodArrayArgumentsNode {
 
+        public static ToINode create() {
+            return FloatNodesFactory.ToINodeFactory.create(null);
+        }
+
         @Child private FixnumOrBignumNode fixnumOrBignum = new FixnumOrBignumNode();
 
         public abstract Object executeToI(double value);

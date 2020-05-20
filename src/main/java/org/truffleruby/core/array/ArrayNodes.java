@@ -33,10 +33,10 @@ import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
-import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -281,7 +281,7 @@ public abstract class ArrayNodes {
 
         @CreateCast("index")
         protected RubyNode coerceOtherToInt(RubyNode index) {
-            return FixnumLowerNodeGen.create(ToIntNodeGen.create(index));
+            return FixnumLowerNodeGen.create(ToIntNode.create(index));
         }
 
         @Specialization
@@ -569,7 +569,7 @@ public abstract class ArrayNodes {
 
         @CreateCast("index")
         protected RubyNode coerceOtherToInt(RubyNode index) {
-            return ToIntNodeGen.create(index);
+            return ToIntNode.create(index);
         }
 
         @Specialization(
@@ -835,12 +835,11 @@ public abstract class ArrayNodes {
 
         private static final int CLASS_SALT = 42753062; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
-        @Child private ToIntNode toIntNode;
-
         @Specialization(limit = "storageStrategyLimit()")
         protected long hash(VirtualFrame frame, DynamicObject array,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-                @Cached("createPrivate()") CallDispatchHeadNode toHashNode) {
+                @Cached("createPrivate()") CallDispatchHeadNode toHashNode,
+                @Cached ToLongNode toLongNode) {
             final int size = Layouts.ARRAY.getSize(array);
             long h = getContext().getHashing(this).start(size);
             h = Hashing.update(h, CLASS_SALT);
@@ -848,24 +847,11 @@ public abstract class ArrayNodes {
 
             for (int n = 0; n < size; n++) {
                 final Object value = stores.read(store, n);
-                final long valueHash = toLong(toHashNode.call(value, "hash"));
+                final long valueHash = toLongNode.execute(toHashNode.call(value, "hash"));
                 h = Hashing.update(h, valueHash);
             }
 
             return Hashing.end(h);
-        }
-
-        private long toLong(Object indexObject) {
-            if (toIntNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
-            }
-            final Object result = toIntNode.executeIntOrLong(indexObject);
-            if (result instanceof Integer) {
-                return (int) result;
-            } else {
-                return (long) result;
-            }
         }
 
     }
@@ -1091,7 +1077,7 @@ public abstract class ArrayNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
-            return toIntNode.doInt(value);
+            return toIntNode.execute(value);
         }
 
     }
@@ -1437,19 +1423,12 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class PopNode extends ArrayCoreMethodNode {
 
-        @Child private ToIntNode toIntNode;
-        @Child private ArrayPopOneNode popOneNode;
-
         public abstract Object executePop(DynamicObject array, Object n);
 
         @Specialization
         @ReportPolymorphism.Exclude
-        protected Object pop(DynamicObject array, NotProvided n) {
-            if (popOneNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                popOneNode = insert(ArrayPopOneNodeGen.create());
-            }
-
+        protected Object pop(DynamicObject array, NotProvided n,
+                @Cached ArrayPopOneNode popOneNode) {
             return popOneNode.executePopOne(array);
         }
 
@@ -1513,16 +1492,9 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
-        protected Object popNToInt(DynamicObject array, Object n) {
-            return executePop(array, toInt(n));
-        }
-
-        private int toInt(Object indexObject) {
-            if (toIntNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
-            }
-            return toIntNode.doInt(indexObject);
+        protected Object popNToInt(DynamicObject array, Object n,
+                @Cached ToIntNode toIntNode) {
+            return executePop(array, toIntNode.execute(n));
         }
 
     }
@@ -1926,16 +1898,9 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = { "wasProvided(n)", "!isInteger(n)", "!isLong(n)" })
-        protected Object shiftNToInt(DynamicObject array, Object n) {
-            return executeShift(array, toInt(n));
-        }
-
-        private int toInt(Object indexObject) {
-            if (toIntNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
-            }
-            return toIntNode.doInt(indexObject);
+        protected Object shiftNToInt(DynamicObject array, Object n,
+                @Cached ToIntNode toIntNode) {
+            return executeShift(array, toIntNode.execute(n));
         }
 
     }

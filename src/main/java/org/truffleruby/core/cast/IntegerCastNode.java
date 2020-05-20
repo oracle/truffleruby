@@ -15,14 +15,13 @@ import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.Utils;
 
-/** Casts a value into an int. */
+/** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
 public abstract class IntegerCastNode extends RubyBaseNode {
@@ -46,18 +45,16 @@ public abstract class IntegerCastNode extends RubyBaseNode {
     @Specialization(guards = "!fitsInInteger(value)")
     protected int doLongToBig(long value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        throw new RaiseException(context, notAFixnum(context, value));
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().rangeError("long too big to convert into `int'", this));
     }
 
-    @Specialization(guards = { "!isBasicInteger(value)" })
+    @Specialization(guards = "!isBasicInteger(value)")
     protected int doBasicObject(Object value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        throw new RaiseException(context, notAFixnum(context, value));
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().typeErrorIsNotA(Utils.toString(value), "Integer (fitting in int)", this));
     }
-
-    @TruffleBoundary
-    private DynamicObject notAFixnum(RubyContext context, Object object) {
-        return context.getCoreExceptions().typeErrorIsNotA(object.toString(), "Fixnum (fitting in int)", this);
-    }
-
 }

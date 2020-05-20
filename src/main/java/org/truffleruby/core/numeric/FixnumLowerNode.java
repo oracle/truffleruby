@@ -19,12 +19,19 @@ import com.oracle.truffle.api.dsl.Specialization;
 /** Passes through {@code int} values unmodified, but will convert a {@code long} value to an {@code int}, if it fits
  * within the range of an {@code int}. Leaves all other values unmodified. Used where a specialization only accepts
  * {@code int}, such as Java array indexing, but we would like to also handle {@code long} if they also fit within an
- * {@code int}. */
+ * {@code int}.
+ *
+ * <p>
+ * See {@link org.truffleruby.core.cast.ToIntNode} for a comparison of different integer conversion nodes. */
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class FixnumLowerNode extends RubyContextSourceNode {
 
     public static FixnumLowerNode create() {
         return FixnumLowerNodeGen.create(null);
+    }
+
+    public static FixnumLowerNode create(RubyNode child) {
+        return FixnumLowerNodeGen.create(child);
     }
 
     public abstract Object executeLower(Object value);

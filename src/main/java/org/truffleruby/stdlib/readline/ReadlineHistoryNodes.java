@@ -46,7 +46,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BoundaryIterable;
-import org.truffleruby.core.cast.ToIntNodeGen;
+import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -217,7 +217,7 @@ public abstract class ReadlineHistoryNodes {
 
         @CreateCast("index")
         protected RubyNode coerceIndexToInt(RubyNode index) {
-            return ToIntNodeGen.create(index);
+            return ToIntNode.create(index);
         }
 
         @CreateCast("line")

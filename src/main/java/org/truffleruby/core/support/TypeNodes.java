@@ -24,6 +24,8 @@ import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
@@ -311,6 +313,26 @@ public abstract class TypeNodes {
             return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
+    }
+
+    @CoreMethod(names = "rb_num2long", onSingleton = true, required = 1)
+    public static abstract class RbNum2LongNode extends CoreMethodArrayArgumentsNode {
+        @Child private ToLongNode toLongNode = ToLongNode.create();
+
+        @Specialization
+        protected long numToLong(Object value) {
+            return toLongNode.execute(value);
+        }
+    }
+
+    @CoreMethod(names = "rb_num2int", onSingleton = true, required = 1)
+    public static abstract class RbNum2IntNode extends CoreMethodArrayArgumentsNode {
+        @Child private ToIntNode toIntNode = ToIntNode.create();
+
+        @Specialization
+        protected long numToInt(Object value) {
+            return toIntNode.execute(value);
+        }
     }
 
     @Primitive(name = "double_to_float")

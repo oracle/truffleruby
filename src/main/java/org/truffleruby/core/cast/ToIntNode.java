@@ -9,136 +9,110 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.numeric.FloatNodes;
-import org.truffleruby.core.numeric.FloatNodesFactory;
+import org.truffleruby.core.numeric.IntegerNodes.IntegerLowerNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.Utils;
 
+/** Node used to convert a value into a 32-bits Java int, calling {@code to_int} if the value is not yet a Ruby integer.
+ * Use this whenever Ruby allows conversions using {@code to_int} and you need a 32-bits int for implementation reasons.
+ * This is equivalent to Ruby's C function {@code rb_num2int}.
+ *
+ * <p>
+ * Alternatively, consider:
+ * <ul>
+ * <li>{@link ToLongNode}: similar, but for 64-bits Java long. Equivalen to Ruby's C function {@code rb_num2long}, which
+ * is used a lot by MRI (we replace some of these uses by {@link ToIntNode} in TruffleRuby, because arrays are
+ * {@code int}-sized.</li>
+ * <li>{@link ToRubyIntegerNode}: when only {@code to_int} conversion is needed, but the resulting value can be a
+ * Bignum. It matches Ruby's C function {@code rb_to_int}, and is a wrapper around our own (Ruby) implementation of that
+ * function, in order to specialize more efficiently when the value is already an integer. Unlike {@link ToIntNode} and
+ * {@link ToLongNode}, it does not handle {@code Float} values explicitly.</li>
+ * <li>{@link IntegerCastNode}, {@link LongCastNode}: whenever {@code to_int} conversion is not required. Beware that
+ * this will fail with a {@code TypeError} whenever the argument is out of range, whereas {@link ToLongNode} and
+ * {@link ToIntNode} would have failed with a {@code RangeError}. Those are typically used when some other part of the
+ * implementation should have guarantees that these values were {@code int} or {@code long}-sized in the first place.
+ * <li>{@link IntegerLowerNode}: to lower {@code long} into {@code int} values if they fit. Can be useful conjointly
+ * with {@link ToLongNode}.</li>
+ * </ul>
+*/
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToIntNode extends RubyContextSourceNode {
-
-    @Child private CallDispatchHeadNode toIntNode;
-    @Child private FloatNodes.ToINode floatToIntNode;
-
-    private final ConditionProfile wasInteger = ConditionProfile.create();
-    private final ConditionProfile wasLong = ConditionProfile.create();
-    private final ConditionProfile wasLongInRange = ConditionProfile.create();
-
-    private final BranchProfile errorProfile = BranchProfile.create();
 
     public static ToIntNode create() {
         return ToIntNodeGen.create(null);
     }
 
-    public int doInt(Object object) {
-        // TODO CS 14-Nov-15 this code is crazy - should have separate nodes for ToRubyInteger and ToJavaInt
-
-        final Object integerObject = executeIntOrLong(object);
-
-        if (wasInteger.profile(integerObject instanceof Integer)) {
-            return (int) integerObject;
-        }
-
-        if (wasLong.profile(integerObject instanceof Long)) {
-            final long longValue = (long) integerObject;
-
-            if (wasLongInRange.profile(CoreLibrary.fitsIntoInteger(longValue))) {
-                return (int) longValue;
-            }
-        }
-
-        errorProfile.enter();
-        if (RubyGuards.isRubyBignum(object)) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().rangeError("bignum too big to convert into `long'", this));
-        } else {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnsupportedOperationException(object.getClass().toString());
-        }
+    public static ToIntNode create(RubyNode child) {
+        return ToIntNodeGen.create(child);
     }
 
-    public abstract Object executeIntOrLong(Object object);
+    public abstract int execute(Object object);
 
     @Specialization
     protected int coerceInt(int value) {
         return value;
     }
 
-    @Specialization
-    protected long coerceLong(long value) {
-        return value;
+    @Specialization(guards = "fitsInInteger(value)")
+    protected int coerceFittingLong(long value) {
+        return (int) value;
+    }
+
+    @Specialization(guards = "!fitsInInteger(value)")
+    protected int coerceTooBigLong(long value) {
+        // MRI does not have this error
+        throw new RaiseException(
+                getContext(),
+                coreExceptions().rangeError("long too big to convert into `int'", this));
     }
 
     @Specialization(guards = "isRubyBignum(value)")
-    protected DynamicObject coerceRubyBignum(DynamicObject value) {
+    protected int coerceRubyBignum(DynamicObject value) {
+        // not `int' to stay as compatible as possible with MRI errors
         throw new RaiseException(
                 getContext(),
                 coreExceptions().rangeError("bignum too big to convert into `long'", this));
     }
 
     @Specialization
-    protected Object coerceDouble(double value) {
-        if (floatToIntNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            floatToIntNode = insert(FloatNodesFactory.ToINodeFactory.create(null));
-        }
-        return floatToIntNode.executeToI(value);
-    }
-
-    @Specialization
-    protected Object coerceBoolean(boolean value,
+    protected int coerceDouble(double value,
             @Cached BranchProfile errorProfile) {
-        return coerceObject(value, errorProfile);
-    }
-
-    @Specialization(guards = "!isRubyBignum(object)")
-    protected Object coerceBasicObject(DynamicObject object,
-            @Cached BranchProfile errorProfile) {
-        return coerceObject(object, errorProfile);
-    }
-
-    private Object coerceObject(Object object, BranchProfile errorProfile) {
-        if (toIntNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(CallDispatchHeadNode.createPrivate());
-        }
-
-        final Object coerced;
-        try {
-            coerced = toIntNode.call(object, "to_int");
-        } catch (RaiseException e) {
-            errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeErrorNoImplicitConversion(object, "Integer", this));
-            } else {
-                throw e;
-            }
-        }
-
-        if (coreLibrary().getLogicalClass(coerced) == coreLibrary().integerClass) {
-            return coerced;
+        // emulate MRI logic + additional 32 bit restriction
+        if (CoreLibrary.fitsIntoInteger((long) value)) {
+            return (int) value;
         } else {
             errorProfile.enter();
             throw new RaiseException(
                     getContext(),
-                    coreExceptions().typeErrorBadCoercion(object, "Integer", "to_int", coerced, this));
+                    coreExceptions().rangeError(Utils.concat("float ", value, " out of range of integer"), this));
         }
     }
 
+    @Specialization
+    protected long coerceNil(Nil value) {
+        // MRI hardcodes this specific error message, which is slightly different from the one we would get in the
+        // catch-all case.
+        throw new RaiseException(
+                getContext(),
+                coreExceptions().typeError("no implicit conversion from nil to integer", this));
+    }
+
+    @Specialization(guards = { "!isRubyInteger(object)", "!isNil(object)" })
+    protected int coerceObject(Object object,
+            @Cached CallDispatchHeadNode toIntNode,
+            @Cached ToIntNode fitNode) {
+        final Object coerced = toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int", object);
+        return fitNode.execute(coerced);
+    }
 }

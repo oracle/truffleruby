@@ -95,13 +95,14 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
-import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToIntNodeGen;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingNodes;
@@ -115,7 +116,7 @@ import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
-import org.truffleruby.core.numeric.FixnumLowerNodeGen;
+import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
@@ -331,38 +332,51 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "*", required = 1, lowerFixnum = 1, taintFrom = 0)
+    @CoreMethod(names = "*", required = 1, taintFrom = 0)
+    @NodeChild(value = "string", type = RubyNode.class)
+    @NodeChild(value = "times", type = RubyNode.class)
     @ImportStatic(StringGuards.class)
-    public abstract static class MulNode extends CoreMethodArrayArgumentsNode {
+    public abstract static class MulNode extends CoreMethodNode {
 
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-        @Child private ToIntNode toIntNode;
 
-        public abstract DynamicObject executeInt(DynamicObject string, int times);
+        @CreateCast("times")
+        protected RubyNode coerceToInteger(RubyNode times) {
+            // Not ToIntNode, because this works with empty strings, and must throw a different error
+            // for long values that don't fit in an int.
+            return FixnumLowerNode.create(ToLongNode.create(times));
+        }
+
+        @Specialization(guards = "times == 0")
+        protected DynamicObject multiplyZero(DynamicObject string, int times) {
+            return allocateObjectNode.allocate(
+                    Layouts.BASIC_OBJECT.getLogicalClass(string),
+                    Layouts.STRING.build(false, false, RopeOperations.emptyRope(StringOperations.encoding(string))));
+        }
 
         @Specialization(guards = "times < 0")
         protected DynamicObject multiplyTimesNegative(DynamicObject string, long times) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
         }
 
-        @Specialization(guards = { "times >= 0", "!isEmpty(string)" })
+        @Specialization(guards = { "times > 0", "!isEmpty(string)" })
         protected DynamicObject multiply(DynamicObject string, int times,
-                @Cached RepeatNode repeatNode) {
-            final Rope repeated = repeatNode.executeRepeat(rope(string), times);
+                @Cached RepeatNode repeatNode,
+                @Cached BranchProfile tooBigProfile) {
 
+            long length = (long) times * StringOperations.rope(string).byteLength();
+            if (length > Integer.MAX_VALUE) {
+                tooBigProfile.enter();
+                throw tooBig();
+            }
+
+            final Rope repeated = repeatNode.executeRepeat(rope(string), times);
             return allocateObjectNode.allocate(
                     Layouts.BASIC_OBJECT.getLogicalClass(string),
                     Layouts.STRING.build(false, false, repeated));
         }
 
-        @Specialization(guards = { "times >= 0", "!isEmpty(string)", "!fitsInInteger(times)" })
-        protected DynamicObject multiply(DynamicObject string, long times) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().argumentError("'long' is too big to convert into 'int'", this));
-        }
-
-        @Specialization(guards = { "times >= 0", "isEmpty(string)" })
+        @Specialization(guards = { "times > 0", "isEmpty(string)" })
         protected DynamicObject multiplyEmpty(DynamicObject string, long times,
                 @Cached RopeNodes.RepeatNode repeatNode) {
             final Rope repeated = repeatNode.executeRepeat(rope(string), 0);
@@ -372,21 +386,16 @@ public abstract class StringNodes {
                     Layouts.STRING.build(false, false, repeated));
         }
 
-        @Specialization(guards = "isRubyBignum(times)")
-        protected DynamicObject multiply(DynamicObject string, DynamicObject times) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().rangeError("bignum too big to convert into `int'", this));
+        @Specialization(guards = { "times > 0", "!isEmpty(string)" })
+        protected DynamicObject multiplyNonEmpty(DynamicObject string, long times) {
+            assert !CoreLibrary.fitsIntoInteger(times);
+            throw tooBig();
         }
 
-        @Specialization(guards = { "!isRubyBignum(times)", "!isInteger(times)", "!isLong(times)" })
-        protected DynamicObject multiply(DynamicObject string, Object times) {
-            if (toIntNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                toIntNode = insert(ToIntNode.create());
-            }
-
-            return executeInt(string, toIntNode.doInt(times));
+        private RaiseException tooBig() {
+            // MRI throws this error whenever the total size of the resulting string would exceed LONG_MAX.
+            // In TruffleRuby, strings have max length Integer.MAX_VALUE.
+            return new RaiseException(getContext(), coreExceptions().argumentError("argument too big", this));
         }
     }
 
@@ -2125,12 +2134,12 @@ public abstract class StringNodes {
 
         @CreateCast("index")
         protected RubyNode coerceIndexToInt(RubyNode index) {
-            return FixnumLowerNodeGen.create(ToIntNodeGen.create(index));
+            return ToIntNode.create(index);
         }
 
         @CreateCast("value")
         protected RubyNode coerceValueToInt(RubyNode value) {
-            return FixnumLowerNodeGen.create(ToIntNodeGen.create(value));
+            return ToIntNode.create(value);
         }
 
         public abstract int executeSetByte(DynamicObject string, int index, Object value);
@@ -2363,11 +2372,6 @@ public abstract class StringNodes {
         private final RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization
-        protected Object sum(VirtualFrame frame, DynamicObject string, int bits) {
-            return sum(frame, string, (long) bits);
-        }
-
-        @Specialization
         protected Object sum(VirtualFrame frame, DynamicObject string, long bits) {
             // Copied from JRuby
 
@@ -2381,10 +2385,6 @@ public abstract class StringNodes {
                 Object sum = 0;
                 while (p < end) {
                     sum = addNode.call(sum, "+", bytes[p++] & 0xff);
-                }
-                if (bits != 0) {
-                    final Object mod = shiftNode.call(1, "<<", bits);
-                    sum = andNode.call(sum, "&", subNode.call(mod, "-", 1));
                 }
                 return sum;
             } else {
@@ -2403,9 +2403,9 @@ public abstract class StringNodes {
 
         @Specialization(guards = { "!isInteger(bits)", "!isLong(bits)", "wasProvided(bits)" })
         protected Object sum(VirtualFrame frame, DynamicObject string, Object bits,
-                @Cached ToIntNode toIntNode,
+                @Cached ToLongNode toLongNode,
                 @Cached SumNode sumNode) {
-            return sumNode.executeSum(frame, string, toIntNode.executeIntOrLong(bits));
+            return sumNode.executeSum(frame, string, toLongNode.execute(bits));
         }
 
     }

@@ -447,7 +447,7 @@ public abstract class RangeNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toIntNode = insert(ToIntNode.create());
             }
-            return toIntNode.doInt(indexObject);
+            return toIntNode.execute(indexObject);
         }
 
     }

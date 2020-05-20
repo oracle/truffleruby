@@ -39,6 +39,13 @@ public final class Utils {
         return Objects.equals(a, b);
     }
 
+    /** Performs {@link Objects#toString(Object)} behind a {@link TruffleBoundary} so as to avoid performance warnings,
+     * since {@link Object#toString()} is blacklisted. */
+    @TruffleBoundary
+    public static String toString(Object object) {
+        return Objects.toString(object);
+    }
+
     /** Converts the arguments to strings and concatenate them behind a {@link TruffleBoundary}, so as to avoid the
      * implicit calls to SVM-blacklisted {@link String} methods. */
     @TruffleBoundary

@@ -22,6 +22,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.AbsNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.DivNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
@@ -48,6 +49,7 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "Integer", isClass = true)
 public abstract class IntegerNodes {
@@ -1087,6 +1089,11 @@ public abstract class IntegerNodes {
 
         public abstract Object executeLeftShift(Object a, Object b);
 
+
+        public static LeftShiftNode create() {
+            return LeftShiftNodeFactory.create(null);
+        }
+
         @Specialization(guards = { "b >= 0", "canShiftIntoInt(a, b)" })
         protected int leftShift(int a, int b) {
             return a << b;
@@ -1146,15 +1153,19 @@ public abstract class IntegerNodes {
             if (BigIntegerOps.signum(bBigInt) == -1) {
                 return 0;
             } else {
+                // We raise a RangeError.
                 // MRI would raise a NoMemoryError; JRuby would raise a coercion error.
-                return executeLeftShift(a, toIntNode.doInt(b));
+                toIntNode.execute(b);
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                throw new UnreachableCodeException();
             }
         }
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object leftShiftCoerced(Object a, Object b,
-                @Cached ToIntNode toIntNode) {
-            return executeLeftShift(a, toIntNode.doInt(b));
+                @Cached ToRubyIntegerNode toRubyIntNode,
+                @Cached LeftShiftNode leftShiftNode) {
+            return leftShiftNode.executeLeftShift(a, toRubyIntNode.execute(b));
         }
 
         private Object absoluteValue(Object value) {
@@ -1186,6 +1197,10 @@ public abstract class IntegerNodes {
         @Child private LeftShiftNode leftShiftNode;
 
         public abstract Object executeRightShift(Object a, Object b);
+
+        public static RightShiftNode create() {
+            return RightShiftNodeFactory.create(null);
+        }
 
         @Specialization(guards = "b >= 0")
         protected int rightShift(int a, int b,
@@ -1260,8 +1275,9 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object rightShiftCoerced(Object a, Object b,
-                @Cached ToIntNode toIntNode) {
-            return executeRightShift(a, toIntNode.doInt(b));
+                @Cached ToRubyIntegerNode toRubyIntNode,
+                @Cached RightShiftNode rightShiftNode) {
+            return rightShiftNode.executeRightShift(a, toRubyIntNode.execute(b));
         }
 
         protected static boolean isPositive(DynamicObject b) {

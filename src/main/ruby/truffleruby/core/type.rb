@@ -125,31 +125,10 @@ module Truffle
 
     # MRI conversion macros and functions
 
-    def self.rb_num2int(val)
-      num = rb_num2long(val)
-      check_int(num)
-      num
-    end
-
     def self.rb_num2uint(val)
       num = rb_num2long(val)
       check_uint(num)
       num
-    end
-
-    def self.rb_num2long(val)
-      raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
-
-      if Primitive.object_kind_of?(val, Integer)
-        check_long(val)
-        val
-      elsif Primitive.object_kind_of?(val, Float)
-        fval = val.to_int
-        check_long(fval)
-        fval
-      else
-        rb_num2long(rb_to_int(val))
-      end
     end
 
     def self.rb_num2ulong(val)
@@ -232,25 +211,25 @@ module Truffle
 
     def self.check_int(val)
       unless Primitive.integer_fits_into_int(val)
-        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `int"
+        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `int'"
       end
     end
 
     def self.check_uint(val)
       unless Primitive.integer_fits_into_uint(val)
-        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint"
+        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint'"
       end
     end
 
     def self.check_long(val)
       unless Primitive.integer_fits_into_long(val)
-        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `long"
+        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `long'"
       end
     end
 
     def self.check_ulong(val)
       unless Primitive.integer_fits_into_ulong(val)
-        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `ulong"
+        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `ulong'"
       end
     end
 
@@ -342,7 +321,7 @@ module Truffle
     def self.check_funcall_respond_to(obj, meth, priv)
       # TODO Review BJF vm_respond_to
       if object_respond_to_no_built_in?(obj, :respond_to?, true)
-        if !!obj.__send__(:respond_to?, meth, true)
+        if obj.__send__(:respond_to?, meth, true)
           1
         else
           0
