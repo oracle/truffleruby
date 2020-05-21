@@ -19,7 +19,6 @@ import org.truffleruby.core.rope.Rope;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.core.symbol.RubySymbol;
 
 public class CoreString {
 
@@ -27,7 +26,6 @@ public class CoreString {
     private final String literal;
 
     @CompilationFinal private volatile Rope rope;
-    @CompilationFinal private volatile RubySymbol symbol;
 
     public CoreString(RubyContext context, String literal) {
         assert context != null;
