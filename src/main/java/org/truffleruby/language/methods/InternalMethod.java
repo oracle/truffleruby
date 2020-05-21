@@ -404,7 +404,7 @@ public class InternalMethod implements ObjectGraphNode {
     }
 
     @Override
-    public void getAdjacentObjects(Set<DynamicObject> adjacent) {
+    public void getAdjacentObjects(Set<Object> adjacent) {
         if (declaringModule != null) {
             adjacent.add(declaringModule);
         }

@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
@@ -20,7 +21,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -72,8 +72,13 @@ public abstract class BooleanCastNode extends RubyBaseNode {
         return true;
     }
 
+    @Specialization
+    protected boolean doSymbol(RubySymbol object) {
+        return true;
+    }
+
     @Specialization(guards = "isForeignObject(object)", limit = "getCacheLimit()")
-    protected boolean doForeignObject(TruffleObject object,
+    protected boolean doForeignObject(Object object,
             @CachedLibrary("object") InteropLibrary objects,
             @Cached ConditionProfile profile,
             @Cached BranchProfile failed) {
@@ -88,11 +93,6 @@ public abstract class BooleanCastNode extends RubyBaseNode {
         } else {
             return true;
         }
-    }
-
-    @Specialization(guards = { "!isTruffleObject(object)", "!isBoxedPrimitive(object)" })
-    protected boolean doOther(Object object) {
-        return true;
     }
 
     protected int getCacheLimit() {

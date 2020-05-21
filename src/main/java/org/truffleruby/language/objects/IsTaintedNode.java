@@ -10,11 +10,11 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -53,8 +53,8 @@ public abstract class IsTaintedNode extends RubyBaseNode {
         return false;
     }
 
-    @Specialization(guards = "isRubySymbol(object)")
-    protected boolean isTaintedSymbol(DynamicObject object) {
+    @Specialization
+    protected boolean isTaintedSymbol(RubySymbol object) {
         return false;
     }
 
@@ -64,7 +64,7 @@ public abstract class IsTaintedNode extends RubyBaseNode {
         return (boolean) readTaintedNode.execute(object, Layouts.TAINTED_IDENTIFIER, false);
     }
 
-    @Fallback
+    @Specialization(guards = "isForeignObject(object)")
     protected boolean isTainted(Object object) {
         return false;
     }

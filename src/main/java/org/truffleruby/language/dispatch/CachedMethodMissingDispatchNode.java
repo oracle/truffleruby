@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -36,7 +37,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
     @Child private MetaClassNode metaClassNode;
     @Child private DirectCallNode callNode;
 
-    private final DynamicObject cachedNameAsSymbol;
+    private final RubySymbol cachedNameAsSymbol;
 
     public CachedMethodMissingDispatchNode(
             RubyContext context,
@@ -56,7 +57,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         this.callNode = Truffle.getRuntime().createDirectCallNode(methodMissing.getCallTarget());
 
         if (RubyGuards.isRubySymbol(cachedName)) {
-            cachedNameAsSymbol = (DynamicObject) cachedName;
+            cachedNameAsSymbol = (RubySymbol) cachedName;
         } else if (RubyGuards.isRubyString(cachedName)) {
             cachedNameAsSymbol = context.getSymbol(StringOperations.rope((DynamicObject) cachedName));
         } else if (cachedName instanceof String) {

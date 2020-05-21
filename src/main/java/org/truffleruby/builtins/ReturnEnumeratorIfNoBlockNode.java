@@ -10,6 +10,7 @@
 package org.truffleruby.builtins;
 
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -26,7 +27,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
     private final String methodName;
     @Child private RubyNode method;
     @Child private CallDispatchHeadNode toEnumNode;
-    @CompilationFinal private DynamicObject methodSymbol;
+    @CompilationFinal private RubySymbol methodSymbol;
     private final ConditionProfile noBlockProfile = ConditionProfile.create();
 
     public ReturnEnumeratorIfNoBlockNode(String methodName, RubyNode method) {

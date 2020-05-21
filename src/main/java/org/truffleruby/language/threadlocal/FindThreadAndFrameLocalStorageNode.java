@@ -9,8 +9,8 @@
  */
 package org.truffleruby.language.threadlocal;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -21,33 +21,28 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class FindThreadAndFrameLocalStorageNode extends RubyContextNode {
 
     public FindThreadAndFrameLocalStorageNode() {
     }
 
-    public abstract ThreadAndFrameLocalStorage execute(DynamicObject symbol, MaterializedFrame frame);
+    public abstract ThreadAndFrameLocalStorage execute(RubySymbol symbol, MaterializedFrame frame);
 
     protected int getLimit() {
         return getContext().getOptions().FRAME_VARIABLE_ACCESS_CACHE;
     }
 
     @Specialization(guards = { "symbol == cachedSymbol", "strategy.matches(frame)" }, limit = "getLimit()")
-    protected ThreadAndFrameLocalStorage getStorageCached(DynamicObject symbol, MaterializedFrame frame,
-            @Cached("symbol") DynamicObject cachedSymbol,
-            @Cached("of(getContext(), frame, getSymbolString(symbol))") StorageInFrameFinder strategy) {
+    protected ThreadAndFrameLocalStorage getStorageCached(RubySymbol symbol, MaterializedFrame frame,
+            @Cached("symbol") RubySymbol cachedSymbol,
+            @Cached("of(getContext(), frame, symbol.getString())") StorageInFrameFinder strategy) {
         return strategy.getStorage(getContext(), frame);
     }
 
-    @Specialization(guards = "isRubySymbol(symbol)", replaces = "getStorageCached")
-    protected ThreadAndFrameLocalStorage getStorage(DynamicObject symbol, MaterializedFrame frame) {
-        return getStorageSearchingDeclarations(getContext(), frame, Layouts.SYMBOL.getString(symbol));
-    }
-
-    protected String getSymbolString(DynamicObject symbol) {
-        return Layouts.SYMBOL.getString(symbol);
+    @Specialization(replaces = "getStorageCached")
+    protected ThreadAndFrameLocalStorage getStorage(RubySymbol symbol, MaterializedFrame frame) {
+        return getStorageSearchingDeclarations(getContext(), frame, symbol.getString());
     }
 
     public static class StorageInFrameFinder {

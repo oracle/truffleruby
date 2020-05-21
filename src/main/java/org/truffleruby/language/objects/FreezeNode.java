@@ -11,6 +11,7 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -55,12 +56,12 @@ public abstract class FreezeNode extends RubyContextNode {
         return object;
     }
 
-    @Specialization(guards = "isRubySymbol(symbol)")
-    protected Object freezeSymbol(DynamicObject symbol) {
+    @Specialization
+    protected Object freezeSymbol(RubySymbol symbol) {
         return symbol;
     }
 
-    @Specialization(guards = { "!isRubyBignum(object)", "!isRubySymbol(object)" })
+    @Specialization(guards = "!isRubyBignum(object)")
     protected Object freeze(DynamicObject object,
             @Cached WriteObjectFieldNode writeFrozenNode) {
         writeFrozenNode.write(object, Layouts.FROZEN_IDENTIFIER, true);

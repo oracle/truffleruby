@@ -9,13 +9,13 @@
  */
 package org.truffleruby.interop;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 
@@ -68,21 +68,21 @@ public abstract class ToJavaStringNode extends RubySourceNode {
     }
 
     @Specialization(
-            guards = { "symbol == cachedSymbol", "isRubySymbol(cachedSymbol)" },
+            guards = "symbol == cachedSymbol",
             limit = "getIdentityCacheLimit()")
-    protected String symbolCached(DynamicObject symbol,
-            @Cached("symbol") DynamicObject cachedSymbol,
+    protected String symbolCached(RubySymbol symbol,
+            @Cached("symbol") RubySymbol cachedSymbol,
             @Cached("symbolToString(symbol)") String convertedString) {
         return convertedString;
     }
 
-    @Specialization(guards = "isRubySymbol(symbol)", replaces = "symbolCached")
-    protected String symbolUncached(DynamicObject symbol) {
+    @Specialization(replaces = "symbolCached")
+    protected String symbolUncached(RubySymbol symbol) {
         return symbolToString(symbol);
     }
 
-    protected String symbolToString(DynamicObject symbol) {
-        return Layouts.SYMBOL.getString(symbol);
+    protected String symbolToString(RubySymbol symbol) {
+        return symbol.getString();
     }
 
     @Specialization(guards = "string == cachedString", limit = "getIdentityCacheLimit()")

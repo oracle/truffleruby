@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -190,9 +191,9 @@ public class RubyConstant implements ObjectGraphNode {
     }
 
     @Override
-    public void getAdjacentObjects(Set<DynamicObject> adjacent) {
-        if (value instanceof DynamicObject) {
-            adjacent.add((DynamicObject) value);
+    public void getAdjacentObjects(Set<Object> adjacent) {
+        if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+            adjacent.add(value);
         }
     }
 

@@ -27,6 +27,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -85,9 +86,9 @@ public abstract class PointerNodes {
     public static abstract class PointerFindTypeSizePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(type)")
-        protected int findTypeSize(DynamicObject type) {
-            final String typeString = Layouts.SYMBOL.getString(type);
+        @Specialization
+        protected int findTypeSize(RubySymbol type) {
+            final String typeString = type.getString();
             final int size = typeSize(typeString);
             if (size > 0) {
                 return size;

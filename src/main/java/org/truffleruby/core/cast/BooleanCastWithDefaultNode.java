@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -40,6 +41,11 @@ public abstract class BooleanCastWithDefaultNode extends RubyContextSourceNode {
     @Specialization(guards = "isNil(nil)")
     protected boolean doNil(Object nil) {
         return false;
+    }
+
+    @Specialization
+    protected boolean doSymbol(RubySymbol symbol) {
+        return true;
     }
 
     @Specialization

@@ -15,6 +15,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
@@ -188,7 +189,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
         }
 
         if (cachedDispatchAction == DispatchAction.CALL_METHOD) {
-            final DynamicObject nameSymbol = toSymbolNode.executeToSymbol(name);
+            final RubySymbol nameSymbol = toSymbolNode.executeToSymbol(name);
             final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(arguments, nameSymbol);
 
             return call(indirectCallNode, callerFrame, methodMissing, receiver, block, modifiedArgumentsObjects);

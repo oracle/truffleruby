@@ -40,6 +40,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
@@ -207,15 +208,24 @@ public abstract class EncodingNodes {
         public abstract Encoding executeNegotiate(Object first, Object second);
 
         @Specialization(
-                guards = { "getEncoding(first) == getEncoding(second)", "getEncoding(first) == cachedEncoding" },
+                guards = {
+                        "getEncoding(first) == getEncoding(second)",
+                        "getEncoding(first) == cachedEncoding",
+                        "isDynamicObject(first) || isRubySymbol(first)",
+                        "isDynamicObject(second) || isRubySymbol(second)" },
                 limit = "getCacheLimit()")
-        protected Encoding negotiateSameEncodingCached(DynamicObject first, DynamicObject second,
+        protected Encoding negotiateSameEncodingCached(Object first, Object second,
                 @Cached("getEncoding(first)") Encoding cachedEncoding) {
             return cachedEncoding;
         }
 
-        @Specialization(guards = "getEncoding(first) == getEncoding(second)", replaces = "negotiateSameEncodingCached")
-        protected Encoding negotiateSameEncodingUncached(DynamicObject first, DynamicObject second) {
+        @Specialization(
+                guards = {
+                        "getEncoding(first) == getEncoding(second)",
+                        "isDynamicObject(first) || isRubySymbol(first)",
+                        "isDynamicObject(second) || isRubySymbol(second)" },
+                replaces = "negotiateSameEncodingCached")
+        protected Encoding negotiateSameEncodingUncached(Object first, Object second) {
             return getEncoding(first);
         }
 
@@ -638,9 +648,9 @@ public abstract class EncodingNodes {
             return getRubyEncodingNode.executeGetRubyEncoding(Layouts.STRING.getRope(object).getEncoding());
         }
 
-        @Specialization(guards = "isRubySymbol(object)")
-        protected DynamicObject encodingGetObjectEncodingSymbol(DynamicObject object) {
-            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.SYMBOL.getRope(object).getEncoding());
+        @Specialization
+        protected DynamicObject encodingGetObjectEncodingSymbol(RubySymbol object) {
+            return getRubyEncodingNode.executeGetRubyEncoding(object.getRope().getEncoding());
         }
 
         @Specialization(guards = "isRubyEncoding(object)")

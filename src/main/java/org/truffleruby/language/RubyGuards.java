@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -20,18 +21,6 @@ public abstract class RubyGuards {
     private static final long NEGATIVE_ZERO_DOUBLE_BITS = Double.doubleToRawLongBits(-0.0);
 
     // Basic Java types
-
-    public static boolean isBoolean(Object value) {
-        return value instanceof Boolean;
-    }
-
-    public static boolean isByte(Object value) {
-        return value instanceof Byte;
-    }
-
-    public static boolean isShort(Object value) {
-        return value instanceof Short;
-    }
 
     public static boolean isInteger(Object value) {
         return value instanceof Integer;
@@ -43,10 +32,6 @@ public abstract class RubyGuards {
 
     public static boolean isLong(Object value) {
         return value instanceof Long;
-    }
-
-    public static boolean isFloat(Object value) {
-        return value instanceof Float;
     }
 
     public static boolean isDouble(Object value) {
@@ -62,17 +47,18 @@ public abstract class RubyGuards {
     }
 
     public static boolean isBasicInteger(Object object) {
-        return isByte(object) || isShort(object) || isInteger(object) || isLong(object);
+        return object instanceof Byte || object instanceof Short || object instanceof Integer || object instanceof Long;
     }
 
     public static boolean isBasicNumber(Object object) {
-        return isByte(object) || isShort(object) || isInteger(object) || isLong(object) || isFloat(object) ||
-                isDouble(object);
+        return object instanceof Byte || object instanceof Short || object instanceof Integer ||
+                object instanceof Long || object instanceof Float || object instanceof Double;
     }
 
     public static boolean isPrimitive(Object object) {
-        return isBoolean(object) || isByte(object) || isShort(object) || isInteger(object) || isLong(object) ||
-                isFloat(object) || isDouble(object);
+        return object instanceof Boolean || object instanceof Byte || object instanceof Short ||
+                object instanceof Integer || object instanceof Long || object instanceof Float ||
+                object instanceof Double;
     }
 
     public static boolean isPrimitiveClass(Class<?> clazz) {
@@ -81,10 +67,6 @@ public abstract class RubyGuards {
     }
 
     // Ruby types
-
-    public static boolean isRubyBasicObject(Object object) {
-        return Layouts.BASIC_OBJECT.isBasicObject(object);
-    }
 
     public static boolean isRubyBignum(Object value) {
         return Layouts.BIGNUM.isBignum(value);
@@ -196,11 +178,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubySymbol(Object value) {
-        return Layouts.SYMBOL.isSymbol(value);
-    }
-
-    public static boolean isRubySymbol(DynamicObject value) {
-        return Layouts.SYMBOL.isSymbol(value);
+        return value instanceof RubySymbol;
     }
 
     public static boolean isRubyMethod(Object value) {
@@ -267,14 +245,6 @@ public abstract class RubyGuards {
         return Layouts.HANDLE.isHandle(object);
     }
 
-    public static boolean isTracePoint(DynamicObject object) {
-        return Layouts.TRACE_POINT.isTracePoint(object);
-    }
-
-    public static boolean isNullPointer(DynamicObject pointer) {
-        return Layouts.POINTER.getPointer(pointer).getAddress() == 0;
-    }
-
     public static boolean isRubyInteger(Object object) {
         return isBasicInteger(object) || isRubyBignum(object);
     }
@@ -290,18 +260,21 @@ public abstract class RubyGuards {
 
     // Internal types
 
-    public static boolean isTruffleObject(Object object) {
-        return object instanceof TruffleObject;
+    public static boolean isRubyDynamicObject(Object object) {
+        return Layouts.BASIC_OBJECT.isBasicObject(object);
+    }
+
+    public static boolean isRubyValue(Object object) {
+        return isRubyDynamicObject(object) || isPrimitive(object) || object instanceof Nil ||
+                object instanceof RubySymbol;
     }
 
     public static boolean isForeignObject(Object object) {
-        return !isRubyBasicObject(object) && !isPrimitive(object) && !(object instanceof Nil);
+        return !isRubyValue(object);
     }
 
-    public static boolean isBoxedPrimitive(Object object) {
-        return object instanceof Boolean || object instanceof Byte || object instanceof Short ||
-                object instanceof Integer || object instanceof Long || object instanceof Float ||
-                object instanceof Double;
+    public static boolean isTruffleObject(Object object) {
+        return object instanceof TruffleObject;
     }
 
     // Sentinels

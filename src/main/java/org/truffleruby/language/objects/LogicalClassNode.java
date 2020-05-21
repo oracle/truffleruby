@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -69,6 +70,12 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return context.getCoreLibrary().nilClass;
     }
 
+    @Specialization
+    protected DynamicObject logicalClassSymbol(RubySymbol value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().symbolClass;
+    }
+
     @Specialization(
             guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",
@@ -89,10 +96,10 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return Layouts.BASIC_OBJECT.getLogicalClass(object);
     }
 
-    @Specialization(guards = { "!isPrimitive(object)", "!isNil(object)", "!isDynamicObject(object)" })
-    protected DynamicObject logicalClassFallback(Object object,
+    @Specialization(guards = "isForeignObject(object)")
+    protected DynamicObject logicalClassForeign(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getCoreLibrary().getLogicalClass(object);
+        return context.getCoreLibrary().truffleInteropForeignClass;
     }
 
     protected static DynamicObject getLogicalClass(Shape shape) {

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -29,8 +30,8 @@ public abstract class IsStringLikeNode extends RubyBaseNode {
         return true;
     }
 
-    @Specialization(guards = "isRubySymbol(value)")
-    protected boolean isRubySymbolStringLike(DynamicObject value) {
+    @Specialization
+    protected boolean isRubySymbolStringLike(RubySymbol value) {
         return true;
     }
 

@@ -31,6 +31,7 @@ import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -46,7 +47,6 @@ import org.truffleruby.language.objects.TaintNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -158,13 +158,13 @@ public abstract class TypeNodes {
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
-        @Specialization(guards = "isRubySymbol(object)")
-        protected DynamicObject instanceVariablesSymbol(DynamicObject object) {
+        @Specialization
+        protected DynamicObject instanceVariablesSymbol(RubySymbol object) {
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
-        @Fallback
-        protected DynamicObject instanceVariables(Object object) {
+        @Specialization(guards = "isForeignObject(object)")
+        protected DynamicObject instanceVariablesForeign(Object object) {
             return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
         }
 
@@ -175,8 +175,8 @@ public abstract class TypeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object ivarIsDefined(DynamicObject object, DynamicObject name) {
-            final String ivar = Layouts.SYMBOL.getString(name);
+        protected Object ivarIsDefined(DynamicObject object, RubySymbol name) {
+            final String ivar = name.getString();
             final Property property = object.getShape().getProperty(ivar);
             return PropertyFlags.isDefined(property);
         }
@@ -187,9 +187,9 @@ public abstract class TypeNodes {
     public abstract static class ObjectIVarGetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object ivarGet(DynamicObject object, DynamicObject name,
+        protected Object ivarGet(DynamicObject object, RubySymbol name,
                 @Cached ObjectIVarGetNode iVarGetNode) {
-            return iVarGetNode.executeIVarGet(object, Layouts.SYMBOL.getString(name));
+            return iVarGetNode.executeIVarGet(object, name.getString());
         }
     }
 
@@ -197,9 +197,9 @@ public abstract class TypeNodes {
     public abstract static class ObjectIVarSetPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object ivarSet(DynamicObject object, DynamicObject name, Object value,
+        protected Object ivarSet(DynamicObject object, RubySymbol name, Object value,
                 @Cached ObjectIVarSetNode iVarSetNode) {
-            return iVarSetNode.executeIVarSet(object, Layouts.SYMBOL.getString(name), value);
+            return iVarSetNode.executeIVarSet(object, name.getString(), value);
         }
     }
 

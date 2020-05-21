@@ -65,6 +65,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.core.thread.ThreadManager.UnblockingActionHolder;
 import org.truffleruby.language.NotProvided;
@@ -234,17 +235,17 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "handle_interrupt", required = 2, needsBlock = true, visibility = Visibility.PRIVATE)
     public abstract static class HandleInterruptNode extends YieldingCoreMethodNode {
 
-        @CompilationFinal private DynamicObject immediateSymbol;
-        @CompilationFinal private DynamicObject onBlockingSymbol;
-        @CompilationFinal private DynamicObject neverSymbol;
+        @CompilationFinal private RubySymbol immediateSymbol;
+        @CompilationFinal private RubySymbol onBlockingSymbol;
+        @CompilationFinal private RubySymbol neverSymbol;
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
-        @Specialization(guards = { "isRubyClass(exceptionClass)", "isRubySymbol(timing)" })
+        @Specialization(guards = "isRubyClass(exceptionClass)")
         protected Object handle_interrupt(
                 DynamicObject self,
                 DynamicObject exceptionClass,
-                DynamicObject timing,
+                RubySymbol timing,
                 DynamicObject block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(timing);
@@ -258,7 +259,7 @@ public abstract class ThreadNodes {
             }
         }
 
-        private InterruptMode symbolToInterruptMode(DynamicObject symbol) {
+        private InterruptMode symbolToInterruptMode(RubySymbol symbol) {
             if (symbol == getImmediateSymbol()) {
                 return InterruptMode.IMMEDIATE;
             } else if (symbol == getOnBlockingSymbol()) {
@@ -271,7 +272,7 @@ public abstract class ThreadNodes {
             }
         }
 
-        private DynamicObject getImmediateSymbol() {
+        private RubySymbol getImmediateSymbol() {
             if (immediateSymbol == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 immediateSymbol = getSymbol("immediate");
@@ -280,7 +281,7 @@ public abstract class ThreadNodes {
             return immediateSymbol;
         }
 
-        private DynamicObject getOnBlockingSymbol() {
+        private RubySymbol getOnBlockingSymbol() {
             if (onBlockingSymbol == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 onBlockingSymbol = getSymbol("on_blocking");
@@ -289,7 +290,7 @@ public abstract class ThreadNodes {
             return onBlockingSymbol;
         }
 
-        private DynamicObject getNeverSymbol() {
+        private RubySymbol getNeverSymbol() {
             if (neverSymbol == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 neverSymbol = getSymbol("never");

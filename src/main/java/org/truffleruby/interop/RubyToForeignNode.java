@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 @ImportStatic(StringCachingGuards.class)
@@ -29,7 +28,7 @@ public abstract class RubyToForeignNode extends RubyBaseNode {
     public abstract Object executeConvert(Object value);
 
     @Specialization(guards = "isRubySymbol(value) || isRubyString(value)")
-    protected String convertString(DynamicObject value,
+    protected String convertString(Object value,
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }

@@ -31,11 +31,6 @@ public abstract class ObjSpaceNodes {
     @CoreMethod(names = "memsize_of", onSingleton = true, required = 1)
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNil(object)")
-        protected int memsizeOfNil(Object object) {
-            return 0;
-        }
-
         @Specialization(guards = "isRubyArray(object)")
         protected int memsizeOfArray(DynamicObject object) {
             return memsizeOfObject(object) + Layouts.ARRAY.getSize(object);
@@ -79,7 +74,7 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject adjacentObjects(DynamicObject object) {
-            final Set<DynamicObject> objects = ObjectGraph.getAdjacentObjects(object);
+            final Set<Object> objects = ObjectGraph.getAdjacentObjects(object);
             return createArray(objects.toArray());
         }
 
@@ -96,7 +91,7 @@ public abstract class ObjSpaceNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject rootObjects() {
-            final Set<DynamicObject> objects = ObjectGraph.stopAndGetRootObjects(this, getContext());
+            final Set<Object> objects = ObjectGraph.stopAndGetRootObjects(this, getContext());
             return createArray(objects.toArray());
         }
 

@@ -45,6 +45,7 @@ import org.truffleruby.core.string.EncodingUtils;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -161,10 +162,10 @@ public abstract class EncodingConverterNodes {
     public static abstract class TranscodersFromEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(source)")
-        protected Object search(DynamicObject source) {
+        @Specialization
+        protected Object search(RubySymbol source) {
             final Set<String> transcoders = TranscodingManager.allDirectTranscoderPaths
-                    .get(Layouts.SYMBOL.getString(source));
+                    .get(source.getString());
             if (transcoders == null) {
                 return nil;
             }
@@ -400,7 +401,7 @@ public abstract class EncodingConverterNodes {
             return createArray(store, size);
         }
 
-        private DynamicObject eConvResultToSymbol(EConvResult result) {
+        private RubySymbol eConvResultToSymbol(EConvResult result) {
             switch (result) {
                 case InvalidByteSequence:
                     return getSymbol("invalid_byte_sequence");

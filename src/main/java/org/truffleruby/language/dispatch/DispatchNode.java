@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language.dispatch;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -109,7 +109,7 @@ public abstract class DispatchNode extends FrameSendingNode {
         } else if (RubyGuards.isRubyString(methodName)) {
             return StringOperations.getString((DynamicObject) methodName);
         } else if (RubyGuards.isRubySymbol(methodName)) {
-            return Layouts.SYMBOL.getString((DynamicObject) methodName);
+            return ((RubySymbol) methodName).getString();
         } else {
             throw new RaiseException(
                     getContext(),

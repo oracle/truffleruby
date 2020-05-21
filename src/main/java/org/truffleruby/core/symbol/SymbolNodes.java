@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.symbol;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -45,23 +44,11 @@ import com.oracle.truffle.api.source.SourceSection;
 @CoreModule(value = "Symbol", isClass = true)
 public abstract class SymbolNodes {
 
-    @CoreMethod(names = "all_symbols", onSingleton = true)
-    public abstract static class AllSymbolsNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected DynamicObject allSymbols() {
-            Object[] store = getContext().getSymbolTable().allSymbols().toArray();
-            return createArray(store, store.length);
-        }
-
-    }
-
     @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean equal(DynamicObject a, Object b) {
+        protected boolean equal(RubySymbol a, Object b) {
             return a == b;
         }
 
@@ -70,21 +57,18 @@ public abstract class SymbolNodes {
     @CoreMethod(names = "hash")
     public abstract static class HashNode extends CoreMethodArrayArgumentsNode {
 
-        private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
-
         // Cannot cache a Symbol's hash while pre-initializing, as it will change in SymbolTable#rehash()
         @Specialization(guards = { "symbol == cachedSymbol", "!preInitializing" }, limit = "getIdentityCacheLimit()")
-        protected long hashCached(DynamicObject symbol,
+        protected long hashCached(RubySymbol symbol,
                 @Cached("isPreInitializing()") boolean preInitializing,
-                @Cached("symbol") DynamicObject cachedSymbol,
+                @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("hash(cachedSymbol)") long cachedHash) {
             return cachedHash;
         }
 
         @Specialization
-        protected long hash(DynamicObject symbol) {
-            final int hashCode = Layouts.SYMBOL.getHashCode(symbol);
-            return getContext().getHashing().hash(CLASS_SALT, hashCode);
+        protected long hash(RubySymbol symbol) {
+            return symbol.computeHashCode(getContext().getHashing());
         }
 
         protected boolean isPreInitializing() {
@@ -104,15 +88,15 @@ public abstract class SymbolNodes {
         @Specialization(
                 guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" },
                 limit = "getIdentityCacheLimit()")
-        protected DynamicObject toProcCached(VirtualFrame frame, DynamicObject symbol,
-                @Cached("symbol") DynamicObject cachedSymbol,
+        protected DynamicObject toProcCached(VirtualFrame frame, RubySymbol symbol,
+                @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
                 @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") DynamicObject cachedProc) {
             return cachedProc;
         }
 
         @Specialization
-        protected DynamicObject toProcUncached(VirtualFrame frame, DynamicObject symbol) {
+        protected DynamicObject toProcUncached(VirtualFrame frame, RubySymbol symbol) {
             final InternalMethod method = getMethod(frame);
             DeclarationContext declarationContext = getDeclarationContext(frame);
             return createProc(declarationContext, method, symbol);
@@ -120,14 +104,14 @@ public abstract class SymbolNodes {
 
         @TruffleBoundary
         protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method,
-                DynamicObject symbol) {
+                RubySymbol symbol) {
             final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     sourceSection,
                     method.getLexicalScope(),
                     ARITY,
                     null,
-                    Layouts.SYMBOL.getString(symbol),
+                    symbol.getString(),
                     0,
                     "proc",
                     ArgumentDescriptor.ANON_REST,
@@ -145,7 +129,7 @@ public abstract class SymbolNodes {
                     sourceSection,
                     new FrameDescriptor(nil),
                     sharedMethodInfo,
-                    new SymbolProcNode(Layouts.SYMBOL.getString(symbol)),
+                    new SymbolProcNode(symbol.getString()),
                     true);
 
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
@@ -181,9 +165,9 @@ public abstract class SymbolNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject toS(DynamicObject symbol,
+        protected DynamicObject toS(RubySymbol symbol,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            return makeStringNode.fromRope(Layouts.SYMBOL.getRope(symbol));
+            return makeStringNode.fromRope(symbol.getRope());
         }
 
     }

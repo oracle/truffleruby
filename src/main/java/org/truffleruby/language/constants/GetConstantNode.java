@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
@@ -177,7 +178,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             Object constant,
             LookupConstantInterface lookupConstantNode,
             @Cached("name") String cachedName,
-            @Cached("getSymbol(name)") DynamicObject symbolName,
+            @Cached("getSymbol(name)") RubySymbol symbolName,
             @Cached ConditionProfile sameNameProfile) {
         return doMissingConstant(module, name, symbolName);
     }
@@ -192,7 +193,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         return doMissingConstant(module, name, getSymbol(name));
     }
 
-    private Object doMissingConstant(DynamicObject module, String name, DynamicObject symbolName) {
+    private Object doMissingConstant(DynamicObject module, String name, RubySymbol symbolName) {
         if (callConstMissing) {
             if (constMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();

@@ -46,7 +46,6 @@ import java.util.logging.Level;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -58,12 +57,14 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
+import org.truffleruby.shared.BasicPlatform;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
@@ -72,7 +73,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.shared.BasicPlatform;
 
 @CoreModule("Truffle::System")
 public abstract class TruffleSystemNodes {
@@ -205,26 +205,26 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "log", onSingleton = true, required = 2)
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)", "level == cachedLevel" })
-        protected Object logCached(DynamicObject level, DynamicObject message,
-                @Cached("level") DynamicObject cachedLevel,
+        @Specialization(guards = { "isRubyString(message)", "level == cachedLevel" })
+        protected Object logCached(RubySymbol level, DynamicObject message,
+                @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, StringOperations.getString(message));
             return nil;
         }
 
-        @Specialization(guards = { "isRubySymbol(level)", "isRubyString(message)" }, replaces = "logCached")
-        protected Object log(DynamicObject level, DynamicObject message) {
+        @Specialization(guards = { "isRubyString(message)" }, replaces = "logCached")
+        protected Object log(RubySymbol level, DynamicObject message) {
             log(getLevel(level), StringOperations.getString(message));
             return nil;
         }
 
         @TruffleBoundary
-        protected Level getLevel(DynamicObject level) {
+        protected Level getLevel(RubySymbol level) {
             assert RubyGuards.isRubySymbol(level);
 
             try {
-                return Level.parse(Layouts.SYMBOL.getString(level));
+                return Level.parse(level.getString());
             } catch (IllegalArgumentException e) {
                 throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentError(
                         "Could not find log level for: " + level,

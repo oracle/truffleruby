@@ -12,8 +12,10 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -74,6 +76,12 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return context.getCoreLibrary().nilClass;
     }
 
+    @Specialization
+    protected DynamicObject metaClassSymbol(RubySymbol value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().symbolClass;
+    }
+
     // Cover all DynamicObject cases with cached and uncached
 
     @Specialization(
@@ -93,21 +101,22 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return executeMetaClass(object);
     }
 
-    @Specialization(guards = "isRubyBasicObject(object)", replaces = { "metaClassCached", "updateShapeAndMetaClass" })
+    @Specialization(guards = "isRubyDynamicObject(object)", replaces = { "metaClassCached", "updateShapeAndMetaClass" })
     protected DynamicObject metaClassUncached(DynamicObject object) {
         return Layouts.BASIC_OBJECT.getMetaClass(object);
     }
 
-    @Specialization(guards = "!isRubyBasicObject(object)", replaces = { "metaClassCached", "updateShapeAndMetaClass" })
+    @Specialization(
+            guards = "!isRubyDynamicObject(object)",
+            replaces = { "metaClassCached", "updateShapeAndMetaClass" })
     protected DynamicObject metaClassForeign(DynamicObject object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
+        assert RubyGuards.isForeignObject(object);
         return context.getCoreLibrary().truffleInteropForeignClass;
     }
 
-    // Cover remaining non objects which are not primitives nor DynamicObject
-
-    @Specialization(guards = { "!isPrimitive(object)", "!isNil(object)", "!isDynamicObject(object)" })
-    protected DynamicObject metaClassFallback(Object object,
+    @Specialization(guards = "isForeignObject(object)")
+    protected DynamicObject metaClassForeign(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().truffleInteropForeignClass;
     }

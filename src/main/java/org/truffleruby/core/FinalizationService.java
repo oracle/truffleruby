@@ -93,7 +93,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
         }
     }
 
-    public synchronized void collectRoots(Collection<DynamicObject> roots) {
+    public synchronized void collectRoots(Collection<Object> roots) {
         FinalizerReference finalizerReference = getFirst();
         while (finalizerReference != null) {
             finalizerReference.collectRoots(roots);

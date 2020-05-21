@@ -31,6 +31,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -271,7 +272,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject objectTypeOf(DynamicObject value) {
+        protected RubySymbol objectTypeOf(DynamicObject value) {
             return getSymbol(value.getShape().getObjectType().getClass().getSimpleName());
         }
     }

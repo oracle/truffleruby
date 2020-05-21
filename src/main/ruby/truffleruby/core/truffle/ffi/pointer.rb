@@ -69,7 +69,11 @@ module Truffle::FFI
                    when Symbol
                      Pointer.find_type_size(type)
                    else
-                     type.size
+                     if defined?(::FFI)
+                       type.size
+                     else
+                       raise ArgumentError, "incorrect pointer type: #{type.inspect}"
+                     end
                    end
     end
 

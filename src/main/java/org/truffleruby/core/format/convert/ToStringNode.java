@@ -26,7 +26,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -151,8 +150,8 @@ public abstract class ToStringNode extends FormatNode {
     }
 
     @TruffleBoundary
-    @Specialization(guards = "!isRubyBasicObject(object)")
-    protected byte[] toString(TruffleObject object) {
+    @Specialization(guards = "isForeignObject(object)")
+    protected byte[] toStringForeign(Object object) {
         return object.toString().getBytes(StandardCharsets.UTF_8);
     }
 

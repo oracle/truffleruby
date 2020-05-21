@@ -24,6 +24,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
@@ -140,8 +141,8 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorUnknownKeyword(Object name, Node currentNode) {
-        return argumentError("unknown keyword: " + name, currentNode);
+    public DynamicObject argumentErrorUnknownKeyword(RubySymbol name, Node currentNode) {
+        return argumentError("unknown keyword: " + name.getString(), currentNode);
     }
 
     @TruffleBoundary

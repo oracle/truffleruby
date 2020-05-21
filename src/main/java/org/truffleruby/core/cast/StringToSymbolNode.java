@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -22,7 +23,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class StringToSymbolNode extends RubyContextSourceNode {
 
     @Specialization(guards = "isRubyString(string)")
-    protected DynamicObject doString(DynamicObject string) {
+    protected RubySymbol doString(DynamicObject string) {
         return getSymbol(Layouts.STRING.getRope(string));
     }
 

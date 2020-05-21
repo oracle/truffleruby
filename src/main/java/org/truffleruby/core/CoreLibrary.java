@@ -40,6 +40,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -182,7 +183,6 @@ public class CoreLibrary {
     public final DynamicObject stringClass;
     public final DynamicObjectFactory stringFactory;
     public final DynamicObject symbolClass;
-    public final DynamicObjectFactory symbolFactory;
     public final DynamicObject syntaxErrorClass;
     public final DynamicObject systemCallErrorClass;
     public final DynamicObject systemExitClass;
@@ -510,8 +510,6 @@ public class CoreLibrary {
         stringFactory = Layouts.STRING.createStringShape(stringClass, stringClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, stringFactory);
         symbolClass = defineClass("Symbol");
-        symbolFactory = alwaysShared(alwaysFrozen(Layouts.SYMBOL.createSymbolShape(symbolClass, symbolClass)));
-        Layouts.CLASS.setInstanceFactoryUnsafe(symbolClass, symbolFactory);
 
         threadClass = defineClass("Thread");
         threadClass.define("@report_on_exception", true);
@@ -710,10 +708,6 @@ public class CoreLibrary {
 
     private static DynamicObjectFactory alwaysFrozen(DynamicObjectFactory factory) {
         return factory.getShape().addProperty(ALWAYS_FROZEN_PROPERTY).createFactory();
-    }
-
-    private static DynamicObjectFactory alwaysShared(DynamicObjectFactory factory) {
-        return factory.getShape().makeSharedShape().createFactory();
     }
 
     private void includeModules(DynamicObject comparableModule) {
@@ -968,7 +962,7 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public DynamicObject getMetaClass(Object object) {
-        if (RubyGuards.isRubyBasicObject(object)) {
+        if (RubyGuards.isRubyDynamicObject(object)) {
             return Layouts.BASIC_OBJECT.getMetaClass((DynamicObject) object);
         } else {
             return getLogicalClass(object);
@@ -977,16 +971,14 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public DynamicObject getLogicalClass(Object object) {
-        if (RubyGuards.isRubyBasicObject(object)) {
+        if (RubyGuards.isRubyDynamicObject(object)) {
             return Layouts.BASIC_OBJECT.getLogicalClass((DynamicObject) object);
         } else if (object instanceof Nil) {
             return nilClass;
+        } else if (object instanceof RubySymbol) {
+            return symbolClass;
         } else if (object instanceof Boolean) {
-            if ((boolean) object) {
-                return trueClass;
-            } else {
-                return falseClass;
-            }
+            return (boolean) object ? trueClass : falseClass;
         } else if (object instanceof Byte) {
             return integerClass;
         } else if (object instanceof Short) {
@@ -1000,6 +992,7 @@ public class CoreLibrary {
         } else if (object instanceof Double) {
             return floatClass;
         } else {
+            assert RubyGuards.isForeignObject(object);
             return truffleInteropForeignClass;
         }
     }

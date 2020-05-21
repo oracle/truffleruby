@@ -21,7 +21,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 /** The Ruby {@code nil}, the single instance of NilClass. */
 @ExportLibrary(InteropLibrary.class)
-public final class Nil implements TruffleObject {
+public final class Nil extends ImmutableRubyObject implements TruffleObject {
 
     public static final Nil INSTANCE = new Nil();
 

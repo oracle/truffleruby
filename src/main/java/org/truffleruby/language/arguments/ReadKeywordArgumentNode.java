@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.hash.HashNodes.HashLookupOrExecuteDefaultNode;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -22,7 +23,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadKeywordArgumentNode extends RubyContextSourceNode implements BiFunctionNode {
 
-    private final DynamicObject name;
+    private final RubySymbol name;
     private final ConditionProfile defaultProfile = ConditionProfile.create();
 
     @Child private RubyNode defaultValue;

@@ -44,7 +44,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.objects.ObjectGraph;
 
 public class NativeConfiguration {
 
@@ -75,12 +75,12 @@ public class NativeConfiguration {
     }
 
     @TruffleBoundary
-    public Collection<DynamicObject> dynamicObjectValues() {
+    public Collection<Object> objectGraphValues() {
         final Collection<Object> values = configuration.values();
-        final ArrayList<DynamicObject> objects = new ArrayList<>(values.size());
+        final ArrayList<Object> objects = new ArrayList<>(values.size());
         for (Object value : values) {
-            if (value instanceof DynamicObject) {
-                objects.add((DynamicObject) value);
+            if (ObjectGraph.isSymbolOrDynamicObject(value)) {
+                objects.add(value);
             }
         }
         return objects;

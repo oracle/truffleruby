@@ -10,11 +10,12 @@
 package org.truffleruby.core.tracepoint;
 
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.symbol.RubySymbol;
 
 public final class TracePointState {
 
     boolean insideProc = false;
-    DynamicObject event = null;
+    RubySymbol event = null;
     DynamicObject path = null;
     int line = 0;
     DynamicObject binding = null;

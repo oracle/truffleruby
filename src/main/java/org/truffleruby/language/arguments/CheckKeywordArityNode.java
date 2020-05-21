@@ -12,6 +12,7 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -85,7 +86,7 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
         private final boolean checkAllowedKeywords;
         private final boolean doesNotAcceptExtraArguments;
         private final int required;
-        @CompilationFinal(dimensions = 1) private final DynamicObject[] allowedKeywords;
+        @CompilationFinal(dimensions = 1) private final RubySymbol[] allowedKeywords;
 
         private final ConditionProfile isSymbolProfile = ConditionProfile.create();
         private final BranchProfile tooManyKeywordsProfile = BranchProfile.create();
@@ -104,7 +105,9 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             if (isSymbolProfile.profile(RubyGuards.isRubySymbol(key))) {
                 if (checkAllowedKeywords && !keywordAllowed(key)) {
                     unknownKeywordProfile.enter();
-                    throw new RaiseException(getContext(), coreExceptions().argumentErrorUnknownKeyword(key, this));
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().argumentErrorUnknownKeyword((RubySymbol) key, this));
                 }
             } else {
                 final int given = RubyArguments.getArgumentsCount(frame); // -1 for keyword hash, +1 for reject Hash with non-Symbol key
@@ -126,9 +129,9 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             return false;
         }
 
-        private static DynamicObject[] keywordsAsSymbols(RubyContext context, Arity arity) {
+        private static RubySymbol[] keywordsAsSymbols(RubyContext context, Arity arity) {
             final String[] names = arity.getKeywordArguments();
-            final DynamicObject[] symbols = new DynamicObject[names.length];
+            final RubySymbol[] symbols = new RubySymbol[names.length];
             for (int i = 0; i < names.length; i++) {
                 symbols[i] = context.getSymbol(names[i]);
             }

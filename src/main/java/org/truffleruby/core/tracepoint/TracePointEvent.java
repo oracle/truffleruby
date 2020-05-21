@@ -10,6 +10,7 @@
 package org.truffleruby.core.tracepoint;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -22,11 +23,11 @@ import com.oracle.truffle.api.object.DynamicObject;
 public final class TracePointEvent {
 
     public final Class<? extends Tag> tagClass;
-    public final DynamicObject eventSymbol;
+    public final RubySymbol eventSymbol;
 
     private EventBinding<ExecutionEventNodeFactory> eventBinding;
 
-    public TracePointEvent(Class<? extends Tag> tagClass, DynamicObject eventSymbol) {
+    public TracePointEvent(Class<? extends Tag> tagClass, RubySymbol eventSymbol) {
         this.tagClass = tagClass;
         this.eventSymbol = eventSymbol;
     }

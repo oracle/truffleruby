@@ -66,7 +66,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
     }
 
     private boolean allFieldsAreShared(DynamicObject object) {
-        for (DynamicObject value : ObjectGraph.getAdjacentObjects(object)) {
+        for (Object value : ObjectGraph.getAdjacentObjects(object)) {
             assert SharedObjects.isShared(getContext(), value) : "unshared field in shared object: " + value;
         }
 

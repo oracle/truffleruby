@@ -13,6 +13,7 @@ import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.SetNode;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.methods.Arity;
@@ -25,7 +26,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements BiConsumerNode {
 
-    @CompilationFinal(dimensions = 1) private final DynamicObject[] excludedKeywords;
+    @CompilationFinal(dimensions = 1) private final RubySymbol[] excludedKeywords;
 
     @Child private ReadUserKeywordsHashNode readUserKeywordsHashNode;
     @Child private EachKeyValueNode eachKeyNode = EachKeyValueNode.create();
@@ -73,9 +74,9 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
         return false;
     }
 
-    private DynamicObject[] keywordsAsSymbols(Arity arity) {
+    private RubySymbol[] keywordsAsSymbols(Arity arity) {
         final String[] names = arity.getKeywordArguments();
-        final DynamicObject[] symbols = new DynamicObject[names.length];
+        final RubySymbol[] symbols = new RubySymbol[names.length];
         for (int i = 0; i < names.length; i++) {
             symbols[i] = getSymbol(names[i]);
         }

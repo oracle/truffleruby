@@ -7,14 +7,14 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.kernel;
+package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.objects.LogicalClassNode;
 
 /** Determines if an object is immutable for Kernel#clone, Kernel#dup, and rb_obj_clone. */
 public abstract class IsImmutableObjectNode extends RubyContextNode {
@@ -43,7 +43,6 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
         return true;
     }
 
-
     @Specialization
     protected boolean isImmutableNilObject(Nil nil) {
         return true;
@@ -54,12 +53,12 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
         return true;
     }
 
-    @Specialization(guards = "isRubySymbol(symbol)")
-    protected boolean isImmutableSymbolObject(DynamicObject symbol) {
+    @Specialization
+    protected boolean isImmutableSymbolObject(RubySymbol symbol) {
         return true;
     }
 
-    @Specialization(guards = { "!isRubyBignum(object)", "!isRubySymbol(object)" })
+    @Specialization(guards = "!isRubyBignum(object)")
     protected boolean isImmutableObject(DynamicObject object) {
         final DynamicObject logicalClass = getLogicalClass(object);
         return logicalClass == coreLibrary().rationalClass || logicalClass == coreLibrary().complexClass;

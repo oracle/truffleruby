@@ -39,6 +39,7 @@ public class CachedUnboxedDispatchNode extends CachedDispatchNode {
             DispatchAction dispatchAction) {
         super(context, cachedName, next, dispatchAction);
 
+        assert !DynamicObject.class.isAssignableFrom(expectedClass);
         this.expectedClass = expectedClass;
         this.assumptions = methodLookup.getAssumptions();
         this.method = methodLookup.getMethod();
@@ -53,7 +54,6 @@ public class CachedUnboxedDispatchNode extends CachedDispatchNode {
     @Override
     protected boolean guard(Object methodName, Object receiver) {
         return guardName(methodName) &&
-                !(receiver instanceof DynamicObject) &&
                 (receiver.getClass() == expectedClass);
     }
 

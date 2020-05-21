@@ -17,6 +17,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -88,12 +89,31 @@ public abstract class WrapNode extends RubyBaseNode {
         return context.getValueWrapperManager().nilWrapper;
     }
 
-    @Specialization(guards = "isRubyBasicObject(value)")
+    @Specialization
+    protected ValueWrapper wrapSymbol(RubySymbol value,
+            @Cached BranchProfile noHandleProfile) {
+        ValueWrapper wrapper = value.getValueWrapper();
+        if (wrapper == null) {
+            noHandleProfile.enter();
+            synchronized (value) {
+                wrapper = value.getValueWrapper();
+                if (wrapper == null) {
+                    /* This is double-checked locking, but it's safe because the object that we create, the
+                     * ValueWrapper, is not published until after a memory store fence. */
+                    wrapper = new ValueWrapper(value, UNSET_HANDLE, null);
+                    Pointer.UNSAFE.storeFence();
+                    value.setValueWrapper(wrapper);
+                }
+            }
+        }
+        return wrapper;
+    }
+
+    @Specialization(guards = "isRubyDynamicObject(value)")
     protected ValueWrapper wrapValue(DynamicObject value,
             @Cached ReadObjectFieldNode readWrapperNode,
             @Cached WriteObjectFieldNode writeWrapperNode,
-            @Cached BranchProfile noHandleProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
+            @Cached BranchProfile noHandleProfile) {
         ValueWrapper wrapper = (ValueWrapper) readWrapperNode.execute(value, Layouts.VALUE_WRAPPER_IDENTIFIER, null);
         if (wrapper == null) {
             noHandleProfile.enter();

@@ -29,6 +29,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -45,7 +46,6 @@ import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -200,14 +200,9 @@ public abstract class InteropNodes {
     public abstract static class InstantiableNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isInstantiable(TruffleObject receiver,
+        protected boolean isInstantiable(Object receiver,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isInstantiable(receiver);
-        }
-
-        @Fallback
-        protected boolean isInstantiable(Object receiver) {
-            return false;
         }
     }
 
@@ -493,7 +488,7 @@ public abstract class InteropNodes {
         abstract Object execute(Object receiver, Object identifier);
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Object readMember(Object receiver, DynamicObject identifier,
+        protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
                 @Cached ToJavaStringNode toJavaStringNode,
@@ -651,7 +646,7 @@ public abstract class InteropNodes {
         @Specialization(
                 guards = "isRubySymbol(identifier) || isRubyString(identifier)",
                 limit = "getCacheLimit()")
-        protected Object write(Object receiver, DynamicObject identifier, Object value,
+        protected Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached RubyToForeignNode valueToForeignNode,
@@ -706,7 +701,7 @@ public abstract class InteropNodes {
     public abstract static class RemoveMemberNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Nil remove(TruffleObject receiver, DynamicObject identifier,
+        protected Nil remove(TruffleObject receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -757,7 +752,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_readable?", onSingleton = true, required = 2)
     public abstract static class IsMemberReadableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberReadable(TruffleObject receiver, DynamicObject name,
+        protected boolean isMemberReadable(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberReadable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -767,7 +762,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsMemberModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberModifiable(TruffleObject receiver, DynamicObject name,
+        protected boolean isMemberModifiable(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberModifiable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -777,7 +772,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_insertable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberInsertable(TruffleObject receiver, DynamicObject name,
+        protected boolean isMemberInsertable(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberInsertable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -787,7 +782,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_removable?", onSingleton = true, required = 2)
     public abstract static class IsMemberRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberRemovable(TruffleObject receiver, DynamicObject name,
+        protected boolean isMemberRemovable(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberRemovable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -797,7 +792,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_invocable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInvocableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberInvocable(TruffleObject receiver, DynamicObject name,
+        protected boolean isMemberInvocable(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberInvocable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -807,7 +802,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_internal?", onSingleton = true, required = 2)
     public abstract static class IsMemberInternalNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberInternal(TruffleObject receiver, DynamicObject name,
+        protected boolean isMemberInternal(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberInternal(receiver, toJavaStringNode.executeToJavaString(name));
@@ -817,7 +812,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_writable?", onSingleton = true, required = 2)
     public abstract static class IsMemberWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberWritable(TruffleObject receiver, DynamicObject name,
+        protected boolean isMemberWritable(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberWritable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -827,7 +822,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_existing?", onSingleton = true, required = 2)
     public abstract static class IsMemberExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberExisting(TruffleObject receiver, DynamicObject name,
+        protected boolean isMemberExisting(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberExisting(receiver, toJavaStringNode.executeToJavaString(name));
@@ -837,7 +832,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "has_member_read_side_effects?", onSingleton = true, required = 2)
     public abstract static class HasMemberReadSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean hasMemberReadSideEffects(TruffleObject receiver, DynamicObject name,
+        protected boolean hasMemberReadSideEffects(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasMemberReadSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
@@ -847,7 +842,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "has_member_write_side_effects?", onSingleton = true, required = 2)
     public abstract static class HasMemberWriteSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean hasMemberWriteSideEffects(TruffleObject receiver, DynamicObject name,
+        protected boolean hasMemberWriteSideEffects(TruffleObject receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
@@ -1250,9 +1245,9 @@ public abstract class InteropNodes {
         // TODO CS 17-Mar-18 we should cache this in the future
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(name)")
-        protected Object javaTypeSymbol(DynamicObject name) {
-            return javaType(Layouts.SYMBOL.getString(name));
+        @Specialization
+        protected Object javaTypeSymbol(RubySymbol name) {
+            return javaType(name.getString());
         }
 
         @TruffleBoundary

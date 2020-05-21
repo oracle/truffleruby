@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.basicobject;
 
-import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -24,6 +23,7 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -53,7 +53,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
-import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -231,6 +231,20 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
+        protected long objectID(RubySymbol symbol,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            final long id = symbol.getObjectId();
+
+            if (id == 0) {
+                final long newId = context.getObjectSpaceManager().getNextObjectID();
+                symbol.setObjectId(newId);
+                return newId;
+            }
+
+            return id;
+        }
+
+        @Specialization
         protected long objectID(DynamicObject object,
                 @Cached ReadObjectFieldNode readObjectIdNode,
                 @Cached WriteObjectFieldNode writeObjectIdNode,
@@ -246,8 +260,8 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        @Fallback
-        protected long objectID(Object object) {
+        @Specialization(guards = "isForeignObject(object)")
+        protected long objectIDForeign(Object object) {
             return Integer.toUnsignedLong(hashCode(object));
         }
 
@@ -407,17 +421,17 @@ public abstract class BasicObjectNodes {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no id given", this));
         }
 
-        @Specialization
-        protected Object methodMissingNoBlock(Object self, DynamicObject name, Object[] args, NotProvided block) {
+        @Specialization(guards = "wasProvided(name)")
+        protected Object methodMissingNoBlock(Object self, Object name, Object[] args, NotProvided block) {
             return methodMissing(self, name, args, null);
         }
 
-        @Specialization
-        protected Object methodMissingBlock(Object self, DynamicObject name, Object[] args, DynamicObject block) {
+        @Specialization(guards = "wasProvided(name)")
+        protected Object methodMissingBlock(Object self, Object name, Object[] args, DynamicObject block) {
             return methodMissing(self, name, args, block);
         }
 
-        private Object methodMissing(Object self, DynamicObject nameObject, Object[] args, DynamicObject block) {
+        private Object methodMissing(Object self, Object nameObject, Object[] args, DynamicObject block) {
             throw new RaiseException(getContext(), buildMethodMissingException(self, nameObject, args, block));
         }
 
@@ -432,9 +446,14 @@ public abstract class BasicObjectNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject buildMethodMissingException(Object self, DynamicObject nameObject, Object[] args,
+        private DynamicObject buildMethodMissingException(Object self, Object nameObject, Object[] args,
                 DynamicObject block) {
-            final String name = nameObject.toString();
+            final String name;
+            if (nameObject instanceof RubySymbol) {
+                name = ((RubySymbol) nameObject).getString();
+            } else {
+                name = nameObject.toString();
+            }
             final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();
             Visibility visibility;
 

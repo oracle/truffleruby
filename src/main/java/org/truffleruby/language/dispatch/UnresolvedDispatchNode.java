@@ -103,7 +103,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                             CompilerDirectives.transferToInterpreterAndInvalidate();
                             throw new UnsupportedOperationException();
                     }
-                } else if (RubyGuards.isRubyBasicObject(receiverObject)) {
+                } else if (RubyGuards.isRubyDynamicObject(receiverObject)) {
                     newDispatchNode = doDynamicObject(
                             frame,
                             first,
@@ -219,9 +219,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                     argumentsObjects);
         }
 
-        if (RubyGuards.isRubySymbol(receiverObject)) {
-            return new CachedBoxedSymbolDispatchNode(getContext(), methodName, first, method, getDispatchAction());
-        } else if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
+        if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
             return new CachedSingletonDispatchNode(
                     getContext(),
                     methodName,

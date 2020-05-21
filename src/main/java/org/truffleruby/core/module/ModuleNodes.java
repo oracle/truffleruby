@@ -51,6 +51,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
@@ -579,9 +580,9 @@ public abstract class ModuleNodes {
     @CoreMethod(names = "autoload?", required = 1)
     public abstract static class IsAutoloadNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubySymbol(name)")
-        protected Object isAutoloadSymbol(DynamicObject module, DynamicObject name) {
-            return isAutoload(module, Layouts.SYMBOL.getString(name));
+        @Specialization
+        protected Object isAutoloadSymbol(DynamicObject module, RubySymbol name) {
+            return isAutoload(module, name.getString());
         }
 
         @Specialization(guards = "isRubyString(name)")
@@ -883,7 +884,7 @@ public abstract class ModuleNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject constants(DynamicObject module, boolean inherit) {
-            final List<DynamicObject> constantsArray = new ArrayList<>();
+            final List<RubySymbol> constantsArray = new ArrayList<>();
 
             final Iterable<Entry<String, RubyConstant>> constants;
             if (inherit) {
@@ -953,14 +954,14 @@ public abstract class ModuleNodes {
 
         // Symbol
 
-        @Specialization(guards = { "inherit", "isRubySymbol(name)" })
-        protected Object getConstant(DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstant(module, Layouts.SYMBOL.getString(name));
+        @Specialization(guards = "inherit")
+        protected Object getConstant(DynamicObject module, RubySymbol name, boolean inherit) {
+            return getConstant(module, name.getString());
         }
 
-        @Specialization(guards = { "!inherit", "isRubySymbol(name)" })
-        protected Object getConstantNoInherit(DynamicObject module, DynamicObject name, boolean inherit) {
-            return getConstantNoInherit(module, Layouts.SYMBOL.getString(name));
+        @Specialization(guards = "!inherit")
+        protected Object getConstantNoInherit(DynamicObject module, RubySymbol name, boolean inherit) {
+            return getConstantNoInherit(module, name.getString());
         }
 
         // String
@@ -1124,7 +1125,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected DynamicObject defineMethodBlock(
+        protected RubySymbol defineMethodBlock(
                 VirtualFrame frame,
                 DynamicObject module,
                 String name,
@@ -1134,7 +1135,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyProc(proc)")
-        protected DynamicObject defineMethodProc(
+        protected RubySymbol defineMethodProc(
                 VirtualFrame frame,
                 DynamicObject module,
                 String name,
@@ -1145,7 +1146,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyMethod(methodObject)")
-        protected DynamicObject defineMethodMethod(
+        protected RubySymbol defineMethodMethod(
                 DynamicObject module,
                 String name,
                 DynamicObject methodObject,
@@ -1171,7 +1172,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "isRubyUnboundMethod(method)")
-        protected DynamicObject defineMethod(
+        protected RubySymbol defineMethod(
                 VirtualFrame frame,
                 DynamicObject module,
                 String name,
@@ -1182,7 +1183,7 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject defineMethodInternal(DynamicObject module, String name, DynamicObject method,
+        private RubySymbol defineMethodInternal(DynamicObject module, String name, DynamicObject method,
                 final MaterializedFrame callerFrame) {
             final InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(method);
             if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
@@ -1205,7 +1206,7 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject defineMethod(DynamicObject module, String name, DynamicObject proc,
+        private RubySymbol defineMethod(DynamicObject module, String name, DynamicObject proc,
                 MaterializedFrame callerFrame) {
             final RootCallTarget callTarget = Layouts.PROC.getCallTargetForLambdas(proc);
             final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
@@ -1255,7 +1256,7 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject addMethod(DynamicObject module, String name, InternalMethod method,
+        private RubySymbol addMethod(DynamicObject module, String name, InternalMethod method,
                 MaterializedFrame callerFrame) {
             method = method.withName(name);
 
@@ -1956,9 +1957,9 @@ public abstract class ModuleNodes {
         }
 
         /** Used only by undef keyword {@link org.truffleruby.parser.BodyTranslator#visitUndefNode} */
-        @Specialization(guards = "isRubySymbol(name)")
-        protected DynamicObject undefKeyword(VirtualFrame frame, DynamicObject module, DynamicObject name) {
-            undefMethod(frame, module, Layouts.SYMBOL.getString(name));
+        @Specialization
+        protected DynamicObject undefKeyword(VirtualFrame frame, DynamicObject module, RubySymbol name) {
+            undefMethod(frame, module, name.getString());
             return module;
         }
 

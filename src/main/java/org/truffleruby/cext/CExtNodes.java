@@ -53,6 +53,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -719,8 +720,8 @@ public class CExtNodes {
 
         @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
-        @Specialization(guards = { "isRubyModule(module)", "isRubySymbol(name)" })
-        protected DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, DynamicObject name) {
+        @Specialization(guards = "isRubyModule(module)")
+        protected DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, RubySymbol name) {
             return setVisibilityNode.executeSetVisibility(frame, module, new Object[]{ name });
         }
 
@@ -730,12 +731,12 @@ public class CExtNodes {
     public abstract static class CallerFrameVisibilityNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubySymbol(visibility)")
-        protected boolean checkCallerVisibility(DynamicObject visibility) {
+        @Specialization
+        protected boolean checkCallerVisibility(RubySymbol visibility) {
             final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final Visibility callerVisibility = DeclarationContext.findVisibility(callerFrame);
 
-            switch (Layouts.SYMBOL.getString(visibility)) {
+            switch (visibility.getString()) {
                 case "private":
                     return callerVisibility.isPrivate();
                 case "protected":
@@ -815,9 +816,9 @@ public class CExtNodes {
     @CoreMethod(names = "rb_is_instance_id", onSingleton = true, required = 1)
     public abstract static class IsInstanceIdNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubySymbol(symbol)")
-        protected boolean isInstanceId(DynamicObject symbol) {
-            return Identifiers.isValidInstanceVariableName(Layouts.SYMBOL.getString(symbol));
+        @Specialization
+        protected boolean isInstanceId(RubySymbol symbol) {
+            return Identifiers.isValidInstanceVariableName(symbol.getString());
         }
 
     }
@@ -825,9 +826,9 @@ public class CExtNodes {
     @CoreMethod(names = "rb_is_const_id", onSingleton = true, required = 1)
     public abstract static class IsConstIdNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubySymbol(symbol)")
-        protected boolean isConstId(DynamicObject symbol) {
-            return Identifiers.isValidConstantName(Layouts.SYMBOL.getString(symbol));
+        @Specialization
+        protected boolean isConstId(RubySymbol symbol) {
+            return Identifiers.isValidConstantName(symbol.getString());
         }
 
     }
@@ -835,24 +836,9 @@ public class CExtNodes {
     @CoreMethod(names = "rb_is_class_id", onSingleton = true, required = 1)
     public abstract static class IsClassVariableIdNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubySymbol(symbol)")
-        protected boolean isClassVariableId(DynamicObject symbol) {
-            return Identifiers.isValidClassVariableName(Layouts.SYMBOL.getString(symbol));
-        }
-
-    }
-
-    @CoreMethod(names = "ruby_object?", onSingleton = true, required = 1)
-    public abstract static class RubyObjectNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization(guards = "isBoxedPrimitive(object)")
-        protected boolean rubyObjectPrimitive(Object object) {
-            return true;
-        }
-
-        @Specialization(guards = "!isBoxedPrimitive(object)")
-        protected boolean rubyObject(Object object) {
-            return RubyGuards.isRubyBasicObject(object);
+        @Specialization
+        protected boolean isClassVariableId(RubySymbol symbol) {
+            return Identifiers.isValidClassVariableName(symbol.getString());
         }
 
     }
@@ -1148,7 +1134,7 @@ public class CExtNodes {
                     }
 
                     representation = RopeOperations.decodeRope(rope) + " (" + builder.toString() + ")";
-                } else if (RubyGuards.isRubyBasicObject(object)) {
+                } else if (RubyGuards.isRubyValue(object)) {
                     representation = object.toString() + " (" + StringOperations.getString(callToS(object)) + ")";
                 } else {
                     representation = object.toString();
@@ -1519,7 +1505,7 @@ public class CExtNodes {
 
         @Specialization
         protected Object checkSymbolCStr(DynamicObject str) {
-            final DynamicObject sym = getContext().getSymbolTable().getSymbolIfExists(rope(str));
+            final RubySymbol sym = getContext().getSymbolTable().getSymbolIfExists(rope(str));
             return sym == null ? nil : sym;
         }
 
