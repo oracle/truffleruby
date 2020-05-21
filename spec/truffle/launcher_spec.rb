@@ -94,7 +94,12 @@ describe "The launcher" do
     begin
       # check that hello-world launchers are created and work
       @bin_dirs.each do |bin_dir|
-        out = `#{bin_dir}/hello-world.rb`
+        path = "#{bin_dir}/hello-world.rb"
+        shebang = File.binread(path).lines.first.chomp
+        if shebang.size > 127
+          skip "shebang of #{path} is too long and might fail in execve(): #{shebang.size}\n#{shebang}"
+        end
+        out = `#{path} 2>&1`
         out.should == "Hello world! from #{RUBY_DESCRIPTION}\n"
       end
     ensure
