@@ -38,6 +38,22 @@ public class SymbolTable {
 
     public SymbolTable(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
+        addCoreSymbols();
+    }
+
+    private void addCoreSymbols() {
+        for (RubySymbol symbol : CoreSymbols.CORE_SYMBOLS) {
+            final Rope rope = symbol.getRope();
+            assert rope == normalizeRopeForLookup(rope);
+            assert rope == ropeCache.getRope(rope);
+
+            final RubySymbol existing = symbolMap.put(rope, symbol);
+            if (existing != null) {
+                throw new Error("Duplicate Symbol " + existing);
+            }
+
+            stringToSymbolCache.put(symbol.getString(), symbol);
+        }
     }
 
     @TruffleBoundary

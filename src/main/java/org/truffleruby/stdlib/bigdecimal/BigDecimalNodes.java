@@ -28,6 +28,7 @@ import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -82,7 +83,7 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object addCoerced(DynamicObject a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", coreStrings().PLUS.getSymbol(), b);
+            return redoCoerced.call(a, "redo_coerced", CoreSymbols.PLUS, b);
         }
     }
 
@@ -125,7 +126,7 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object subCoerced(DynamicObject a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", coreStrings().MINUS.getSymbol(), b);
+            return redoCoerced.call(a, "redo_coerced", CoreSymbols.MINUS, b);
         }
     }
 
@@ -219,7 +220,7 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object multCoerced(DynamicObject a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", coreStrings().MULTIPLY.getSymbol(), b);
+            return redoCoerced.call(a, "redo_coerced", CoreSymbols.MULTIPLY, b);
         }
     }
 
@@ -288,7 +289,7 @@ public abstract class BigDecimalNodes {
         @Specialization(guards = "!isRubyBigDecimal(b)")
         protected Object divCoerced(DynamicObject a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(a, "redo_coerced", coreStrings().DIVIDE.getSymbol(), b);
+            return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVIDE, b);
         }
     }
 

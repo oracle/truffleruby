@@ -25,6 +25,7 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
+import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.NotProvided;
@@ -101,11 +102,11 @@ public abstract class TracePointNodes {
 
         @TruffleBoundary
         private TracePointEvent createEvents(RubySymbol eventSymbol) {
-            if (eventSymbol == coreStrings().LINE.getSymbol()) {
+            if (eventSymbol == CoreSymbols.LINE) {
                 return new TracePointEvent(TraceManager.LineTag.class, eventSymbol);
-            } else if (eventSymbol == coreStrings().CLASS.getSymbol()) {
+            } else if (eventSymbol == CoreSymbols.CLASS) {
                 return new TracePointEvent(TraceManager.ClassTag.class, eventSymbol);
-            } else if (eventSymbol == coreStrings().NEVER.getSymbol()) {
+            } else if (eventSymbol == CoreSymbols.NEVER) {
                 return new TracePointEvent(TraceManager.NeverTag.class, eventSymbol);
             } else {
                 throw new UnsupportedOperationException(eventSymbol.getString());

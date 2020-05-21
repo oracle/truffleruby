@@ -93,13 +93,14 @@ public class WeakValueCache<Key, Value> implements ReHashable {
     }
 
 
-    /** Sets the value in the cache, always returns the added value. */
+    /** Sets the value in the cache, always returns the old value. */
     @TruffleBoundary
     public Value put(Key key, Value value) {
         removeStaleEntries();
         final KeyedReference<Key, Value> ref = new KeyedReference<>(value, key, deadRefs);
-        map.put(key, ref);
-        return value;
+        final KeyedReference<Key, Value> oldRef = map.put(key, ref);
+        final Value oldValue = oldRef != null ? oldRef.get() : null;
+        return oldValue;
     }
 
     @TruffleBoundary

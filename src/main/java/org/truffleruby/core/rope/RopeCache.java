@@ -13,6 +13,8 @@ import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.core.symbol.CoreSymbols;
+import org.truffleruby.core.symbol.RubySymbol;
 
 public class RopeCache {
 
@@ -21,6 +23,21 @@ public class RopeCache {
     private int byteArrayReusedCount;
     private int ropesReusedCount;
     private int ropeBytesSaved;
+
+    public RopeCache() {
+        addCoreSymbolRopes();
+    }
+
+    private void addCoreSymbolRopes() {
+        for (RubySymbol symbol : CoreSymbols.CORE_SYMBOLS) {
+            final Rope rope = symbol.getRope();
+            final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding());
+            final Rope existing = bytesToRope.put(key, rope);
+            if (existing != null) {
+                throw new Error("Duplicate Rope for CoreSymbols: " + existing);
+            }
+        }
+    }
 
     public Rope getRope(Rope string) {
         return getRope(string.getBytes(), string.getEncoding(), string.getCodeRange());
