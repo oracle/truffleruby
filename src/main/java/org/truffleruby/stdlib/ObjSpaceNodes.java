@@ -31,11 +31,6 @@ public abstract class ObjSpaceNodes {
     @CoreMethod(names = "memsize_of", onSingleton = true, required = 1)
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNil(object)")
-        protected int memsizeOfNil(Object object) {
-            return 0;
-        }
-
         @Specialization(guards = "isRubyArray(object)")
         protected int memsizeOfArray(DynamicObject object) {
             return memsizeOfObject(object) + Layouts.ARRAY.getSize(object);
