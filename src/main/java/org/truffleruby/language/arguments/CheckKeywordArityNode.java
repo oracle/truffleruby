@@ -129,15 +129,15 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             return false;
         }
 
-        private static RubySymbol[] keywordsAsSymbols(RubyLanguage language, Arity arity) {
-            final String[] names = arity.getKeywordArguments();
-            final RubySymbol[] symbols = new RubySymbol[names.length];
-            for (int i = 0; i < names.length; i++) {
-                symbols[i] = language.getSymbol(names[i]);
-            }
-            return symbols;
-        }
+    }
 
+    static RubySymbol[] keywordsAsSymbols(RubyLanguage language, Arity arity) {
+        final String[] names = arity.getKeywordArguments();
+        final RubySymbol[] symbols = new RubySymbol[names.length];
+        for (int i = 0; i < names.length; i++) {
+            symbols[i] = language.getSymbol(names[i]);
+        }
+        return symbols;
     }
 
 }

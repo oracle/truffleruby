@@ -37,7 +37,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 
     public ReadKeywordRestArgumentNode(RubyLanguage language, int minimum, Arity arity) {
-        this.excludedKeywords = keywordsAsSymbols(language, arity);
+        this.excludedKeywords = CheckKeywordArityNode.keywordsAsSymbols(language, arity);
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
     }
 
@@ -73,15 +73,6 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
         }
 
         return false;
-    }
-
-    private RubySymbol[] keywordsAsSymbols(RubyLanguage language, Arity arity) {
-        final String[] names = arity.getKeywordArguments();
-        final RubySymbol[] symbols = new RubySymbol[names.length];
-        for (int i = 0; i < names.length; i++) {
-            symbols[i] = language.getSymbol(names[i]);
-        }
-        return symbols;
     }
 
 }
