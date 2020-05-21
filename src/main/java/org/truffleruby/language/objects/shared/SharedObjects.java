@@ -78,7 +78,6 @@ public class SharedObjects {
     }
 
     public static void shareDeclarationFrame(RubyContext context, DynamicObject block) {
-        final Deque<Object> stack = new ArrayDeque<>();
 
         if (context.getOptions().SHARED_OBJECTS_DEBUG) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
@@ -86,7 +85,7 @@ public class SharedObjects {
         }
 
         final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(block);
-        stack.addAll(ObjectGraph.getObjectsInFrame(declarationFrame));
+        final Deque<Object> stack = new ArrayDeque<>(ObjectGraph.getObjectsInFrame(declarationFrame));
 
         shareObjects(context, stack);
     }
