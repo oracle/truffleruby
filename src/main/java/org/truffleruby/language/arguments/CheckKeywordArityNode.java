@@ -15,7 +15,6 @@ import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.Arity;
@@ -102,7 +101,7 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
 
         @Override
         public void accept(VirtualFrame frame, Object key, Object value, Object state) {
-            if (isSymbolProfile.profile(RubyGuards.isRubySymbol(key))) {
+            if (isSymbolProfile.profile(key instanceof RubySymbol)) {
                 if (checkAllowedKeywords && !keywordAllowed(key)) {
                     unknownKeywordProfile.enter();
                     throw new RaiseException(

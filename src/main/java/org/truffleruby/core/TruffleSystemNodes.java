@@ -60,7 +60,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
@@ -221,8 +220,6 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         protected Level getLevel(RubySymbol level) {
-            assert RubyGuards.isRubySymbol(level);
-
             try {
                 return Level.parse(level.getString());
             } catch (IllegalArgumentException e) {

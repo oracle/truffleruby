@@ -114,7 +114,7 @@ public abstract class TypeNodes {
         public abstract DynamicObject executeGetIVars(Object self);
 
         @TruffleBoundary
-        @Specialization(guards = "!isRubySymbol(object)")
+        @Specialization
         protected DynamicObject instanceVariables(DynamicObject object) {
             Shape shape = object.getShape();
             List<String> names = new ArrayList<>();

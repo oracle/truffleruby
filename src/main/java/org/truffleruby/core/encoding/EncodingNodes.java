@@ -673,7 +673,6 @@ public abstract class EncodingNodes {
         @Specialization(
                 guards = {
                         "!isRubyString(object)",
-                        "!isRubySymbol(object)",
                         "!isRubyEncoding(object)",
                         "!isRubyRegexp(object)" })
         protected Object encodingGetObjectEncodingNil(DynamicObject object) {

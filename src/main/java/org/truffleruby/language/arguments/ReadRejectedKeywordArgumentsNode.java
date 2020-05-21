@@ -13,8 +13,8 @@ import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.hash.SetNode;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -36,7 +36,7 @@ public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements
 
     @Override
     public void accept(VirtualFrame frame, Object key, Object value, Object rejectedKwargs) {
-        if (!isSymbolProfile.profile(RubyGuards.isRubySymbol(key))) {
+        if (!isSymbolProfile.profile(key instanceof RubySymbol)) {
             setNode.executeSet((DynamicObject) rejectedKwargs, key, value, false);
         }
     }

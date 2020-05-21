@@ -12,6 +12,7 @@ package org.truffleruby.language.dispatch;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -43,7 +44,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
             DispatchAction dispatchAction) {
         super(dispatchAction);
 
-        assert (cachedName instanceof String) || (RubyGuards.isRubySymbol(cachedName)) ||
+        assert (cachedName instanceof String) || (cachedName instanceof RubySymbol) ||
                 (RubyGuards.isRubyString(cachedName));
         this.cachedName = cachedName;
 

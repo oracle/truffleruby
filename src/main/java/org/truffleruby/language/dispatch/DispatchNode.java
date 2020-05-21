@@ -108,7 +108,7 @@ public abstract class DispatchNode extends FrameSendingNode {
             return (String) methodName;
         } else if (RubyGuards.isRubyString(methodName)) {
             return StringOperations.getString((DynamicObject) methodName);
-        } else if (RubyGuards.isRubySymbol(methodName)) {
+        } else if (methodName instanceof RubySymbol) {
             return ((RubySymbol) methodName).getString();
         } else {
             throw new RaiseException(
