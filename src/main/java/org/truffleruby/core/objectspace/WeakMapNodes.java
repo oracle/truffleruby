@@ -75,7 +75,8 @@ public abstract class WeakMapNodes {
 
         @Specialization
         protected Object set(DynamicObject map, Object key, Object value) {
-            return Layouts.WEAK_MAP.getWeakMapStorage(map).put(key, value);
+            Layouts.WEAK_MAP.getWeakMapStorage(map).put(key, value);
+            return value;
         }
     }
 
