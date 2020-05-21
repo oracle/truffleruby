@@ -155,8 +155,9 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
             tag = SpecTag.new
             tag.tag = 'slow'
             tag.description = "#{state.describe} #{state.it}"
-            MSpec.write_tag(tag)
-            STDERR.puts "\nAdded slow tag for #{tag.description}"
+            if MSpec.write_tag(tag)
+              STDERR.puts "\nAdded slow tag for #{tag.description}"
+            end
 
             # Make sure to notice when there is a missing slow tag
             unless missing_slow_tags
