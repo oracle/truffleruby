@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
@@ -35,8 +36,8 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     private final ConditionProfile noHash = ConditionProfile.create();
     private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 
-    public ReadKeywordRestArgumentNode(int minimum, Arity arity) {
-        this.excludedKeywords = keywordsAsSymbols(arity);
+    public ReadKeywordRestArgumentNode(RubyLanguage language, int minimum, Arity arity) {
+        this.excludedKeywords = keywordsAsSymbols(language, arity);
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(minimum);
     }
 
@@ -74,11 +75,11 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
         return false;
     }
 
-    private RubySymbol[] keywordsAsSymbols(Arity arity) {
+    private RubySymbol[] keywordsAsSymbols(RubyLanguage language, Arity arity) {
         final String[] names = arity.getKeywordArguments();
         final RubySymbol[] symbols = new RubySymbol[names.length];
         for (int i = 0; i < names.length; i++) {
-            symbols[i] = getSymbol(names[i]);
+            symbols[i] = language.getSymbol(names[i]);
         }
         return symbols;
     }

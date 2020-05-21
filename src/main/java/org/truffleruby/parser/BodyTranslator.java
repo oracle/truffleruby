@@ -274,7 +274,6 @@ public class BodyTranslator extends Translator {
     private boolean translatingNextExpression = false;
     private boolean translatingWhile = false;
     protected String currentCallMethodName = null;
-    private RubyLanguage language;
 
     public BodyTranslator(
             RubyContext context,
@@ -286,7 +285,6 @@ public class BodyTranslator extends Translator {
         super(context, source, parserContext, currentNode);
         this.parent = parent;
         this.environment = environment;
-        this.language = context.getLanguage();
     }
 
     private static RubyNode[] createArray(int size) {

@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.CheckArityNode;
@@ -40,9 +41,11 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
     protected final Source source;
     protected final ParserContext parserContext;
     protected final Node currentNode;
+    protected final RubyLanguage language;
 
     public Translator(RubyContext context, Source source, ParserContext parserContext, Node currentNode) {
         this.context = context;
+        this.language = context.getLanguage();
         this.source = source;
         this.parserContext = parserContext;
         this.currentNode = currentNode;
@@ -130,11 +133,11 @@ public abstract class Translator extends AbstractNodeVisitor<RubyNode> {
         return rubyNode;
     }
 
-    public static RubyNode createCheckArityNode(RubyContext context, Arity arity, RubyNode body) {
+    public static RubyNode createCheckArityNode(RubyLanguage language, Arity arity, RubyNode body) {
         if (!arity.acceptsKeywords()) {
             return new CheckArityNode(arity, body);
         } else {
-            return new CheckKeywordArityNode(context, arity, body);
+            return new CheckKeywordArityNode(language, arity, body);
         }
     }
 

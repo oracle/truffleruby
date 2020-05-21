@@ -108,7 +108,7 @@ public class ReloadArgumentsTranslator extends Translator {
                 final KeywordArgParseNode kwArg = (KeywordArgParseNode) args[keywordIndex + i];
                 final RubyNode value = kwArg.accept(this);
                 final String name = ((INameNode) kwArg.getAssignable()).getName();
-                RubyNode key = new ObjectLiteralNode(context.getSymbol(name));
+                RubyNode key = new ObjectLiteralNode(language.getSymbol(name));
                 keyValues[2 * i] = key;
                 keyValues[2 * i + 1] = value;
             }

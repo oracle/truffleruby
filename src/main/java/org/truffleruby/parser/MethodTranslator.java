@@ -156,7 +156,7 @@ public class MethodTranslator extends BodyTranslator {
             preludeProc = loadArguments;
         }
 
-        final RubyNode preludeLambda = createCheckArityNode(context, arityForCheck, NodeUtil.cloneNode(loadArguments));
+        final RubyNode preludeLambda = createCheckArityNode(language, arityForCheck, NodeUtil.cloneNode(loadArguments));
 
         if (!translatingForStatement) {
             // Make sure to declare block-local variables
@@ -270,7 +270,7 @@ public class MethodTranslator extends BodyTranslator {
         final SourceIndexLength bodySourceSection = body.getSourceIndexLength();
 
         body = createCheckArityNode(
-                context,
+                language,
                 arity,
                 sequence(bodySourceSection, Arrays.asList(loadArguments, body)));
         body.unsafeSetSourceSection(sourceSection);

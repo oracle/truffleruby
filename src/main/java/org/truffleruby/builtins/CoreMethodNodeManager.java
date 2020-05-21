@@ -298,16 +298,15 @@ public class CoreMethodNodeManager {
             }
 
             argumentsNodes[i++] = new ReadKeywordArgumentNode(
-                    context,
                     required,
-                    method.keywordAsOptional(),
+                    language.getSymbol(method.keywordAsOptional()),
                     new NotProvidedNode());
         }
 
         RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
         node = transformResult(method, node);
 
-        node = Translator.createCheckArityNode(context, sharedMethodInfo.getArity(), node);
+        node = Translator.createCheckArityNode(language, sharedMethodInfo.getArity(), node);
 
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
