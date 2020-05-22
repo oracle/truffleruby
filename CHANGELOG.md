@@ -12,6 +12,7 @@ Bug fixes:
 * Fixed `NameError` when requiring an autoload path that does not define the autoload constant (#1905).
 * Thread local IO buffers are now allocated using a stack to ensure safe operating if a signal handler uses one during an IO operation.
 * Fixed `TracePoint` thread-safety by storing the state on the Ruby `Thread` (like MRI) instead of inside the `TracePoint` instance.
+* Make `require 'rubygems/package'` succeed and define `Gem::Deprecate` correctly (#2014).
 
 Compatibility:
 

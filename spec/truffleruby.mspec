@@ -144,6 +144,8 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
     [Timeout.singleton_class, [:timeout]],
   ]
 
+  missing_slow_tags = false
+
   slow_methods.each do |klass, meths|
     klass.class_exec do
       meths.each do |meth|
@@ -153,8 +155,17 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
             tag = SpecTag.new
             tag.tag = 'slow'
             tag.description = "#{state.describe} #{state.it}"
-            MSpec.write_tag(tag)
-            STDERR.puts "Added slow tag for #{tag.description}"
+            if MSpec.write_tag(tag)
+              STDERR.puts "\nAdded slow tag for #{tag.description}"
+            end
+
+            # Make sure to notice when there is a missing slow tag
+            unless missing_slow_tags
+              missing_slow_tags = true
+              MSpec.protect 'slow tags' do
+                raise 'There were missing slow tags'
+              end
+            end
           end
 
           original.bind(self).call(*args, &block)

@@ -32,4 +32,8 @@ describe "Lazy RubyGems" do
   it "defines StringIO like RubyGems which requires it eagerly" do
     ruby_exe('puts StringIO').should == "StringIO\n"
   end
+
+  it "works for require 'rubygems/deprecate'" do
+    ruby_exe("require 'rubygems/deprecate'; p Gem::Deprecate").should == "Gem::Deprecate\n"
+  end
 end
