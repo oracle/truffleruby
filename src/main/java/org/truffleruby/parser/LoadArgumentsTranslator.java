@@ -146,7 +146,7 @@ public class LoadArgumentsTranslator extends Translator {
             if (argsNode.hasKeyRest()) {
                 final String name = argsNode.getKeyRest().getName();
                 methodBodyTranslator.getEnvironment().declareVar(name);
-                keyRestNameOrNil = context.getSymbol(name);
+                keyRestNameOrNil = language.getSymbol(name);
             } else {
                 keyRestNameOrNil = Nil.INSTANCE;
             }
@@ -279,7 +279,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     @Override
     public RubyNode visitKeywordRestArgNode(KeywordRestArgParseNode node) {
-        final RubyNode readNode = new ReadKeywordRestArgumentNode(required, argsNode.getArity());
+        final RubyNode readNode = new ReadKeywordRestArgumentNode(language, required, argsNode.getArity());
         final FrameSlot slot = methodBodyTranslator.getEnvironment().declareVar(node.getName());
 
         return new WriteLocalVariableNode(slot, readNode);
@@ -302,7 +302,7 @@ public class LoadArgumentsTranslator extends Translator {
             defaultValue = translateNodeOrNil(sourceSection, asgnNode.getValueNode());
         }
 
-        final RubyNode readNode = new ReadKeywordArgumentNode(context, required, name, defaultValue);
+        final RubyNode readNode = new ReadKeywordArgumentNode(required, language.getSymbol(name), defaultValue);
 
         return new WriteLocalVariableNode(slot, readNode);
     }

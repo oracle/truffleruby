@@ -590,12 +590,12 @@ public class RubyContext {
 
     @TruffleBoundary
     public RubySymbol getSymbol(String string) {
-        return language.symbolTable.getSymbol(string);
+        return language.getSymbol(string);
     }
 
     @TruffleBoundary
     public RubySymbol getSymbol(Rope rope) {
-        return language.symbolTable.getSymbol(rope);
+        return language.getSymbol(rope);
     }
 
     public CodeLoader getCodeLoader() {

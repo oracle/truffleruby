@@ -11,9 +11,12 @@ package org.truffleruby;
 
 import java.util.Arrays;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.debug.LexicalScope;
@@ -88,6 +91,17 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public RubyLanguage() {
         ropeCache = new RopeCache();
         symbolTable = new SymbolTable(ropeCache);
+    }
+
+    @TruffleBoundary
+    public RubySymbol getSymbol(String string) {
+        return symbolTable.getSymbol(string);
+    }
+
+
+    @TruffleBoundary
+    public RubySymbol getSymbol(Rope rope) {
+        return symbolTable.getSymbol(rope);
     }
 
     public Assumption getTracingAssumption() {

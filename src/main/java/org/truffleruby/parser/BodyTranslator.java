@@ -293,7 +293,7 @@ public class BodyTranslator extends Translator {
 
     private RubyNode translateNameNodeToSymbol(ParseNode node) {
         if (node instanceof LiteralParseNode) {
-            return new ObjectLiteralNode(context.getSymbol(((LiteralParseNode) node).getName()));
+            return new ObjectLiteralNode(language.getSymbol(((LiteralParseNode) node).getName()));
         } else if (node instanceof SymbolParseNode) {
             return node.accept(this);
         } else {
@@ -1926,7 +1926,7 @@ public class BodyTranslator extends Translator {
     private RubyNode match2NonNilSetter(ParseNode node, String name, String tempVar) {
         ReadLocalNode varNode = environment.findLocalVarNode(name, node.getPosition());
         ReadLocalNode tempVarNode = environment.findLocalVarNode(tempVar, node.getPosition());
-        ObjectLiteralNode symbolNode = new ObjectLiteralNode(context.getSymbol(name));
+        ObjectLiteralNode symbolNode = new ObjectLiteralNode(language.getSymbol(name));
         GetIndexNode getIndexNode = GetIndexNode
                 .create(tempVarNode, symbolNode, new ObjectLiteralNode(NotProvided.INSTANCE));
         return varNode.makeWriteNode(getIndexNode);
@@ -2969,7 +2969,7 @@ public class BodyTranslator extends Translator {
 
     @Override
     public RubyNode visitSymbolNode(SymbolParseNode node) {
-        final RubyNode ret = new ObjectLiteralNode(context.getSymbol(node.getRope()));
+        final RubyNode ret = new ObjectLiteralNode(language.getSymbol(node.getRope()));
         ret.unsafeSetSourceSection(node.getPosition());
         return addNewlineIfNeeded(node, ret);
     }

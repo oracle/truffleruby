@@ -57,12 +57,14 @@ public class CoreMethodNodeManager {
     private final RubyContext context;
     private final SingletonClassNode singletonClassNode;
     private final PrimitiveManager primitiveManager;
+    private final RubyLanguage language;
 
     public CoreMethodNodeManager(
             RubyContext context,
             SingletonClassNode singletonClassNode,
             PrimitiveManager primitiveManager) {
         this.context = context;
+        this.language = context.getLanguage();
         this.singletonClassNode = singletonClassNode;
         this.primitiveManager = primitiveManager;
     }
@@ -296,16 +298,15 @@ public class CoreMethodNodeManager {
             }
 
             argumentsNodes[i++] = new ReadKeywordArgumentNode(
-                    context,
                     required,
-                    method.keywordAsOptional(),
+                    language.getSymbol(method.keywordAsOptional()),
                     new NotProvidedNode());
         }
 
         RubyNode node = createNodeFromFactory(nodeFactory, argumentsNodes);
         node = transformResult(method, node);
 
-        node = Translator.createCheckArityNode(context, sharedMethodInfo.getArity(), node);
+        node = Translator.createCheckArityNode(language, sharedMethodInfo.getArity(), node);
 
         return new ExceptionTranslatingNode(node, method.unsupportedOperationBehavior());
     }
@@ -353,7 +354,10 @@ public class CoreMethodNodeManager {
             assert !method
                     .returnsEnumeratorIfNoBlock() : "Only one of enumeratorSize or returnsEnumeratorIfNoBlock can be specified";
             // TODO BF 6-27-2015 Handle multiple method names correctly
-            node = new EnumeratorSizeNode(context, method.enumeratorSize(), method.names()[0], node);
+            node = new EnumeratorSizeNode(
+                    language.getSymbol(method.enumeratorSize()),
+                    language.getSymbol(method.names()[0]),
+                    node);
         } else if (method.returnsEnumeratorIfNoBlock()) {
             // TODO BF 3-18-2015 Handle multiple method names correctly
             node = new ReturnEnumeratorIfNoBlockNode(method.names()[0], node);

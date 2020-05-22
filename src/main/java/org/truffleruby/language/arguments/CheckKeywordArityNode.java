@@ -9,7 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -38,11 +38,11 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
     private final BranchProfile receivedKeywordsProfile = BranchProfile.create();
     private final BranchProfile basicArityCheckFailedProfile = BranchProfile.create();
 
-    public CheckKeywordArityNode(RubyContext context, Arity arity, RubyNode body) {
+    public CheckKeywordArityNode(RubyLanguage language, Arity arity, RubyNode body) {
         this.arity = arity;
         this.body = body;
         this.readUserKeywordsHashNode = new ReadUserKeywordsHashNode(arity.getRequired());
-        this.checkKeywordArgumentsNode = new CheckKeywordArgumentsNode(context, arity);
+        this.checkKeywordArgumentsNode = new CheckKeywordArgumentsNode(language, arity);
         this.eachKeyNode = EachKeyValueNode.create();
 
     }
@@ -91,11 +91,11 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
         private final BranchProfile tooManyKeywordsProfile = BranchProfile.create();
         private final BranchProfile unknownKeywordProfile;
 
-        public CheckKeywordArgumentsNode(RubyContext context, Arity arity) {
+        public CheckKeywordArgumentsNode(RubyLanguage language, Arity arity) {
             checkAllowedKeywords = !arity.hasKeywordsRest();
             doesNotAcceptExtraArguments = !arity.hasRest() && arity.getOptional() == 0;
             required = arity.getRequired();
-            allowedKeywords = checkAllowedKeywords ? keywordsAsSymbols(context, arity) : null;
+            allowedKeywords = checkAllowedKeywords ? keywordsAsSymbols(language, arity) : null;
             unknownKeywordProfile = checkAllowedKeywords ? BranchProfile.create() : null;
         }
 
@@ -128,15 +128,15 @@ public class CheckKeywordArityNode extends RubyContextSourceNode {
             return false;
         }
 
-        private static RubySymbol[] keywordsAsSymbols(RubyContext context, Arity arity) {
-            final String[] names = arity.getKeywordArguments();
-            final RubySymbol[] symbols = new RubySymbol[names.length];
-            for (int i = 0; i < names.length; i++) {
-                symbols[i] = context.getSymbol(names[i]);
-            }
-            return symbols;
-        }
+    }
 
+    static RubySymbol[] keywordsAsSymbols(RubyLanguage language, Arity arity) {
+        final String[] names = arity.getKeywordArguments();
+        final RubySymbol[] symbols = new RubySymbol[names.length];
+        for (int i = 0; i < names.length; i++) {
+            symbols[i] = language.getSymbol(names[i]);
+        }
+        return symbols;
     }
 
 }

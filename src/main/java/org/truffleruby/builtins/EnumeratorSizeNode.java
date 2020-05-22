@@ -9,7 +9,6 @@
  */
 package org.truffleruby.builtins;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -31,10 +30,10 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
     private final RubySymbol methodName;
     private final RubySymbol sizeMethodName;
 
-    public EnumeratorSizeNode(RubyContext context, String enumeratorSize, String methodName, RubyNode method) {
+    public EnumeratorSizeNode(RubySymbol enumeratorSize, RubySymbol methodName, RubyNode method) {
         this.method = method;
-        this.methodName = context.getSymbol(methodName);
-        this.sizeMethodName = context.getSymbol(enumeratorSize);
+        this.methodName = methodName;
+        this.sizeMethodName = enumeratorSize;
     }
 
     @Override
