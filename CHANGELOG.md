@@ -1,5 +1,9 @@
 # 20.2.0
 
+New features:
+
+* Use `InteropLibrary#toDisplayString()` to better display objects from other languages.
+
 Bug fixes:
 
 * Fix `#class_exec`, `#module_exec`, `#instance_eval`, and `instance_exec` to use activated refinements (#1988, @ssnickolay).

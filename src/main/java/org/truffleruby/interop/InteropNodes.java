@@ -311,6 +311,26 @@ public abstract class InteropNodes {
         }
     }
 
+    @CoreMethod(names = "to_display_string", onSingleton = true, required = 1)
+    public abstract static class ToDisplayStringNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected DynamicObject toDisplayString(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @CachedLibrary(limit = "1") InteropLibrary asStrings,
+                @Cached FromJavaStringNode fromJavaStringNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            Object displayString = receivers.toDisplayString(receiver, true);
+            String string;
+            try {
+                string = asStrings.asString(displayString);
+            } catch (InteropException e) {
+                throw translateInteropException.execute(e);
+            }
+            return fromJavaStringNode.executeFromJavaString(string);
+        }
+    }
+
     @CoreMethod(names = "boolean?", onSingleton = true, required = 1)
     public abstract static class IsBooleanNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
