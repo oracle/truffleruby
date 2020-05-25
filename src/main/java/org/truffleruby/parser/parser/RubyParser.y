@@ -181,7 +181,7 @@ public class RubyParser {
 %token <String> tDOT2 tDOT3    /* .. and ... */
 %token <String> tAREF tASET    /* [] and []= */
 %token <String> tLSHFT tRSHFT  /* << and >> */
-%token <String> tANDDOT        /* &. */
+%token <String> tANDDOT               /* &. */
 %token <String> tCOLON2        /* :: */
 %token <String> tCOLON3        /* :: at EXPR_BEG */
 %token <String> tOP_ASGN       /* +=, -=  etc. */
@@ -218,7 +218,6 @@ public class RubyParser {
 %token <FloatParseNode> tFLOAT  
 %token <RationalParseNode> tRATIONAL
 %token <RegexpParseNode>  tREGEXP_END
-
 %type <RestArgParseNode> f_rest_arg
 %type <ParseNode> singleton strings string string1 xstring regexp
 %type <ParseNode> string_contents xstring_contents method_call
@@ -321,7 +320,7 @@ program       : {
                   lexer.setState(EXPR_BEG);
                   support.initTopLocalVariables();
               } top_compstmt {
-                  // ENEBO: Removed !compile_for_eval which probably is to reduce warnings
+  // ENEBO: Removed !compile_for_eval which probably is to reduce warnings
                   if ($2 != null) {
                       /* last expression should not be void */
                       if ($2 instanceof BlockParseNode) {
@@ -478,7 +477,7 @@ stmt            : kALIAS fitem {
                     }
                 }
                 | primary_value '[' opt_call_args rbracket tOP_ASGN command_call {
-                    // FIXME: arg_concat logic missing for opt_call_args
+  // FIXME: arg_concat logic missing for opt_call_args
                     $$ = support.new_opElementAsgnNode($1, $5, $3, $6);
                 }
                 | primary_value call_op tIDENTIFIER tOP_ASGN command_call {
@@ -1051,7 +1050,7 @@ arg             : lhs '=' arg {
                     }
                 }
                 | primary_value '[' opt_call_args rbracket tOP_ASGN arg {
-                    // FIXME: arg_concat missing for opt_call_args
+  // FIXME: arg_concat missing for opt_call_args
                     $$ = support.new_opElementAsgnNode($1, $5, $3, $6);
                 }
                 | primary_value call_op tIDENTIFIER tOP_ASGN arg {
@@ -1273,14 +1272,14 @@ opt_block_arg   : ',' block_arg {
                 | none_block_pass
 
 // [!null]
-args            : arg_value { // ArrayParseNode
+args            : arg_value { // ArrayNode
                     SourceIndexLength pos = $1 == null ? lexer.getPosition() : $1.getPosition();
                     $$ = support.newArrayNode(pos, $1);
                 }
                 | tSTAR arg_value { // SplatNode
                     $$ = support.newSplatNode(support.getPosition($2), $2);
                 }
-                | args ',' arg_value { // ArgsCatNode, SplatNode, ArrayParseNode
+                | args ',' arg_value { // ArgsCatNode, SplatNode, ArrayNode
                     ParseNode node = support.splat_array($1);
 
                     if (node != null) {
@@ -1289,7 +1288,7 @@ args            : arg_value { // ArrayParseNode
                         $$ = support.arg_append($1, $3);
                     }
                 }
-                | args ',' tSTAR arg_value { // ArgsCatNode, SplatNode, ArrayParseNode
+                | args ',' tSTAR arg_value { // ArgsCatNode, SplatNode, ArrayNode
                     ParseNode node = null;
 
                     // FIXME: lose syntactical elements here (and others like this)
@@ -1743,6 +1742,7 @@ lambda          : /* none */  {
                     support.popCurrentScope();
                     lexer.setLeftParenBegin($<Integer>1);
                     lexer.getCmdArgumentState().reset($<Long>2.longValue());
+
                 }
 
 f_larglist      : tLPAREN2 f_args opt_bv_decl tRPAREN {
@@ -2095,9 +2095,9 @@ sym             : fname | tIVAR | tGVAR | tCVAR
 dsym            : tSYMBEG xstring_contents tSTRING_END {
                      lexer.setState(EXPR_END);
 
-                     // DStrParseNode: :"some text #{some expression}"
-                     // StrParseNode: :"some text"
-                     // EvStrParseNode :"#{some expression}"
+                     // DStrNode: :"some text #{some expression}"
+                     // StrNode: :"some text"
+                     // EvStrNode :"#{some expression}"
                      // Ruby 1.9 allows empty strings as symbols
                      if ($2 == null) {
                          $$ = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);

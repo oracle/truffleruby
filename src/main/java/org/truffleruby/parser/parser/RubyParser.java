@@ -1028,16 +1028,16 @@ states[1] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[2] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    /* ENEBO: Removed !compile_for_eval which probably is to reduce warnings*/
-    if (((ParseNode)yyVals[0+yyTop]) != null) {
-        /* last expression should not be void */
-        if (((ParseNode)yyVals[0+yyTop]) instanceof BlockParseNode) {
-            support.checkUselessStatement(((BlockParseNode)yyVals[0+yyTop]).getLast());
-        } else {
-            support.checkUselessStatement(((ParseNode)yyVals[0+yyTop]));
-        }
-    }
-    support.getResult().setAST(support.addRootNode(((ParseNode)yyVals[0+yyTop])));
+  /* ENEBO: Removed !compile_for_eval which probably is to reduce warnings*/
+                  if (((ParseNode)yyVals[0+yyTop]) != null) {
+                      /* last expression should not be void */
+                      if (((ParseNode)yyVals[0+yyTop]) instanceof BlockParseNode) {
+                          support.checkUselessStatement(((BlockParseNode)yyVals[0+yyTop]).getLast());
+                      } else {
+                          support.checkUselessStatement(((ParseNode)yyVals[0+yyTop]));
+                      }
+                  }
+                  support.getResult().setAST(support.addRootNode(((ParseNode)yyVals[0+yyTop])));
     return yyVal;
 };
 states[3] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -1204,8 +1204,8 @@ states[34] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[35] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    /* FIXME: arg_concat logic missing for opt_call_args*/
-    yyVal = support.new_opElementAsgnNode(((ParseNode)yyVals[-5+yyTop]), ((String)yyVals[-1+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+  /* FIXME: arg_concat logic missing for opt_call_args*/
+                    yyVal = support.new_opElementAsgnNode(((ParseNode)yyVals[-5+yyTop]), ((String)yyVals[-1+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[36] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -1868,8 +1868,8 @@ states[221] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[222] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    /* FIXME: arg_concat missing for opt_call_args*/
-    yyVal = support.new_opElementAsgnNode(((ParseNode)yyVals[-5+yyTop]), ((String)yyVals[-1+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+  /* FIXME: arg_concat missing for opt_call_args*/
+                    yyVal = support.new_opElementAsgnNode(((ParseNode)yyVals[-5+yyTop]), ((String)yyVals[-1+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[223] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -2687,6 +2687,7 @@ states[418] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.popCurrentScope();
     lexer.setLeftParenBegin(((Integer)yyVals[-3+yyTop]));
     lexer.getCmdArgumentState().reset(((Long)yyVals[-2+yyTop]).longValue());
+
     return yyVal;
 };
 states[419] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3074,9 +3075,9 @@ states[501] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[506] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setState(EXPR_END);
 
-    /* DStrParseNode: :"some text #{some expression}"*/
-    /* StrParseNode: :"some text"*/
-    /* EvStrParseNode :"#{some expression}"*/
+    /* DStrNode: :"some text #{some expression}"*/
+    /* StrNode: :"some text"*/
+    /* EvStrNode :"#{some expression}"*/
     /* Ruby 1.9 allows empty strings as symbols*/
     if (((ParseNode)yyVals[-1+yyTop]) == null) {
         yyVal = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
@@ -3617,5 +3618,5 @@ states[646] = (support, lexer, yyVal, yyVals, yyTop) -> {
     }
 }
 // CheckStyle: stop generated
-// line 10152 "-"
+// line 10153 "-"
 // @formatter:on
