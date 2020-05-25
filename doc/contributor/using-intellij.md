@@ -65,7 +65,7 @@ plugin.
 3. Select "Checkstyle-IDEA", then "Install".
 
 ### Configuration
-1. Select "IntelliJ" -> "Preferences", then "Checkstyle".
+1. Select "IntelliJ" -> "Preferences", "Other Settings", then "Checkstyle".
 2. Select "+" to add a local Checkstyle Configuration.
 3. Enter a description, e.g. `TruffleRuby Checkstyle`
 4. Enter the location of the configuration file, e.g. `/Users/myuser/Documents/truffleruby/src/main/.checkstyle_checks.xml`
@@ -85,6 +85,6 @@ Using the "Code" -> "Reformat Code" tool using IntelliJ's default settings may r
 4. Use "Reformat Code" tool as usual with the new Checkstyle settings imported.
 
 ## Additional Recommended Format Settings
-In "IntelliJ" -> "Preferences" -> "Code Style" -> "Java":
+In "IntelliJ" -> "Preferences", "Editor" -> "Code Style" -> "Java":
 - In "Imports" set the count to use import * to a large value to disable import *, e.g. "999"
 - In "Wrapping & Braces" - "Field Annotations" select the option to not wrap after a single annotation.
