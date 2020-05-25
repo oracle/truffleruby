@@ -2084,7 +2084,7 @@ EOS
 
   def idea(*args)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
-    mx 'intellijinit'
+    mx *args, 'intellijinit'
   end
 
   def command_format(*args)
