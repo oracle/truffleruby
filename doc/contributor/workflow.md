@@ -95,6 +95,11 @@ You can also use `export JT_CACHE_TOOLCHAIN=true` to have the native toolchain
 launchers built and used by `jt` automatically. `jt` will keep the 4 newest
 built toolchain launchers to avoid rebuilding when branches are switched.
 
+## Editing
+
+* [Using the IntelliJ IDE for Development](using-intellij.md) (recommended)
+* [Using the Eclipse IDE for Development](using-eclipse.md)
+
 ## Running
 
 `jt ruby` runs TruffleRuby. You can use it exactly as you'd run the MRI `ruby`
