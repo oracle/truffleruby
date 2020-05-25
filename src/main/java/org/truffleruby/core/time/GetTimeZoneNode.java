@@ -25,32 +25,22 @@
  */
 package org.truffleruby.core.time;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.parser.Helpers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -101,96 +91,8 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
         }
     }
 
-    private ZoneId getSystemTimeZone() {
-        if (TruffleOptions.AOT) {
-            // TimeZone.getDefault() returns the image build time zone on SVM.
-            final Path localtime = Paths.get("/etc/localtime");
-            if (!Files.exists(localtime, LinkOption.NOFOLLOW_LINKS)) {
-                RubyLanguage.LOGGER
-                        .config("could not find timezone (/etc/localtime does not exist), using UTC instead");
-                return UTC;
-            }
-
-            String timeZoneID;
-            try {
-                if (Files.isSymbolicLink(localtime)) {
-                    timeZoneID = getTimeZoneIDFromSymlink(localtime);
-                } else {
-                    timeZoneID = getTimeZoneIDByComparingFiles(localtime);
-                }
-            } catch (IOException e) {
-                throw new JavaException(e);
-            }
-
-            if (timeZoneID.startsWith("posix/")) {
-                timeZoneID = timeZoneID.substring("posix/".length());
-            }
-
-            return ZoneId.of(timeZoneID);
-        } else {
-            return ZoneId.systemDefault();
-        }
-    }
-
-    private String getTimeZoneIDFromSymlink(Path localtime) throws IOException {
-        final String resolved = Files.readSymbolicLink(localtime).toString();
-
-        final int index = resolved.indexOf("zoneinfo/");
-        if (index == -1) {
-            RubyLanguage.LOGGER.config(
-                    "could not find timezone (the /etc/localtime symlink does not contain zoneinfo/), using UTC instead");
-            return "UTC";
-        }
-
-        return resolved.substring(index + "zoneinfo/".length());
-    }
-
-    private String getTimeZoneIDByComparingFiles(Path localtime) throws IOException {
-        final byte[] bytes = Files.readAllBytes(localtime);
-
-        final Path zoneinfo = Paths.get("/usr/share/zoneinfo");
-        final Optional<Path> same = Files.walk(zoneinfo).filter(path -> {
-            final String filename = path.getFileName().toString();
-            if (filename.startsWith(".") || filename.equals("ROC") || filename.equals("posixrules") ||
-                    filename.equals("localtime")) {
-                return false;
-            }
-
-            return isSameFile(bytes, path);
-        }).findFirst();
-
-        if (same.isPresent()) {
-            return zoneinfo.relativize(same.get()).toString();
-        } else {
-            if (isWSLTimeZone(zoneinfo, bytes)) {
-                RubyLanguage.LOGGER
-                        .config("Windows Subsystem for Linux does not set a correct unix timezone, using UTC instead");
-                RubyLanguage.LOGGER
-                        .config("running 'sudo dpkg-reconfigure tzdata' should configure a correct unix timezone");
-            } else {
-                RubyLanguage.LOGGER.config(
-                        "could not find timezone (no file in " + zoneinfo +
-                                " is the same as /etc/localtime), using UTC instead");
-            }
-            return "UTC";
-        }
-    }
-
-    private boolean isSameFile(byte[] bytes, Path path) {
-        try {
-            if (!Files.isRegularFile(path, LinkOption.NOFOLLOW_LINKS)) {
-                return false;
-            }
-            final long size = Files.size(path);
-            return size == bytes.length && Arrays.equals(Files.readAllBytes(path), bytes);
-        } catch (IOException e) {
-            throw new JavaException(e);
-        }
-    }
-
-    private boolean isWSLTimeZone(Path zoneinfo, byte[] bytes) {
-        final Path wslTimeZone = zoneinfo.resolve("Msft/localtime");
-        return isSameFile(bytes, wslTimeZone);
+    private static ZoneId getSystemTimeZone() {
+        return ZoneId.systemDefault();
     }
 
     private static final Map<String, String> LONG_TZNAME = Helpers.map(
