@@ -84,7 +84,7 @@ Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
 scratch.
 
-### Building C Extensions Faster
+### Building C cxtensions more quickly
 
 To speed up compilation of bundled C extensions, it is possible to use
 *native* toolchain launchers, which might save some build time.
