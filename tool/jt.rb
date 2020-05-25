@@ -2082,6 +2082,7 @@ EOS
   end
 
   def command_format(*args)
+    ENV['ECLIPSE_EXE'] ||= install_eclipse
     mx 'eclipseformat', '--no-backup', '--primary', *args, continue_on_failure: true
     format_specializations_visibility
     format_specializations_arguments
@@ -2314,6 +2315,8 @@ EOS
   end
 
   def lint
+    ENV['ECLIPSE_EXE'] ||= install_eclipse
+    
     check_filename_length
     rubocop
     sh 'tool/lint.sh'
