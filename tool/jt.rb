@@ -1863,11 +1863,10 @@ EOS
   end
 
   private def install_eclipse
-    case true
-    when linux?
+    if linux?
       eclipse_url = 'https://archive.eclipse.org/eclipse/downloads/drops4/R-4.5.2-201602121500/eclipse-SDK-4.5.2-linux-gtk-x86_64.tar.gz'
       eclipse_exe = 'eclipse/eclipse'
-    when darwin?
+    elsif darwin?
       eclipse_url = 'https://archive.eclipse.org/eclipse/downloads/drops4/R-4.5.2-201602121500/eclipse-SDK-4.5.2-macosx-cocoa-x86_64.tar.gz'
       eclipse_exe = 'Eclipse.app/Contents/MacOS/eclipse'
     else
@@ -2084,7 +2083,7 @@ EOS
 
   def idea(*args)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
-    mx *args, 'intellijinit'
+    mx(*args, 'intellijinit')
   end
 
   def command_format(*args)
