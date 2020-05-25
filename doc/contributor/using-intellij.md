@@ -21,7 +21,7 @@ source code always formatted to match the project's guidelines.
 
     ```bash
     # e.g. on macOS
-    export ECLIPSE_EXE=/path/to/java-mars-4.5.2/Eclipse.app/Contents/MacOS/eclipse
+    export ECLIPSE_EXE=`jt install eclipse`
     ``` 
 
 3.  Install the 'Eclipse Code Formatter' plugin in IntelliJ's Preferences >
