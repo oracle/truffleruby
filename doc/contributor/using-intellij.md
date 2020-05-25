@@ -53,6 +53,8 @@ There should now be the following in your workspace:
     including the Java and Ruby source files. Syntax highlighting and project 
     navigation should work for both Java and Ruby.
 
+Go to "File" -> "Project Structure" -> "Platform Settings", "SDKs", and add the JVMCI OpenJDK that has been installed alongside the TruffleRuby repository when you built.
+
 ## Configuring Checkstyle Plugin
 
 Checkstyle style checks for Java code can be imported into IntelliJ via the
