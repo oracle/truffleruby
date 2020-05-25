@@ -15,20 +15,11 @@ $ jt build
 Installing the Eclipse Code Formatter plugin is recommended to have the Java
 source code always formatted to match the project's guidelines.
 
-1.  Download Eclipse version 4.5.2 (same version is used in the CI)
-
-2.  Export path of the installed Eclipse IDE
-
-    ```bash
-    # e.g. on macOS
-    export ECLIPSE_EXE=`jt install eclipse`
-    ``` 
-
-3.  Install the 'Eclipse Code Formatter' plugin in IntelliJ's Preferences >
+1.  Install the 'Eclipse Code Formatter' plugin in IntelliJ's Preferences >
     Plugins section.
 
-4.  The plugin will be fully configured in next step where the project files are
-    generated with `mx intellijinit`.
+2.  The plugin will be fully configured in next step where the project files are
+    generated with `jt idea`.
     
 To format the source code use the usual idea shortcut for formatting the file.
 If imports are not being optimised as well, use idea action "Show Reformat File
@@ -48,7 +39,7 @@ should be created automatically on the IDE start.
 ### Generate the project files
 
 ```bash
-$ jt mx intellijinit
+$ jt idea
 ```
 
 ### Import the project

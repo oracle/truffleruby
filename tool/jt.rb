@@ -653,6 +653,7 @@ module Commands
       jt install [jvmci|eclipse]                    install a JVMCI JDK in the parent directory
       jt docker                                     build a Docker image - see doc/contributor/docker.md
       jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
+      jt idea                                       generates IntelliJ projects
       jt format                                     run eclipse code formatter
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
@@ -2081,6 +2082,11 @@ EOS
     end
   end
 
+  def idea(*args)
+    ENV['ECLIPSE_EXE'] ||= install_eclipse
+    mx 'intellijinit'
+  end
+
   def command_format(*args)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
     mx 'eclipseformat', '--no-backup', '--primary', *args, continue_on_failure: true
@@ -2316,7 +2322,7 @@ EOS
 
   def lint
     ENV['ECLIPSE_EXE'] ||= install_eclipse
-    
+
     check_filename_length
     rubocop
     sh 'tool/lint.sh'
