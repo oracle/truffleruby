@@ -181,7 +181,7 @@ public class RubyParser {
 %token <String> tDOT2 tDOT3    /* .. and ... */
 %token <String> tAREF tASET    /* [] and []= */
 %token <String> tLSHFT tRSHFT  /* << and >> */
-%token <String> tANDDOT        /* &. */
+%token <String> tANDDOT               /* &. */
 %token <String> tCOLON2        /* :: */
 %token <String> tCOLON3        /* :: at EXPR_BEG */
 %token <String> tOP_ASGN       /* +=, -=  etc. */
@@ -218,7 +218,6 @@ public class RubyParser {
 %token <FloatParseNode> tFLOAT  
 %token <RationalParseNode> tRATIONAL
 %token <RegexpParseNode>  tREGEXP_END
-
 %type <RestArgParseNode> f_rest_arg
 %type <ParseNode> singleton strings string string1 xstring regexp
 %type <ParseNode> string_contents xstring_contents method_call
@@ -321,7 +320,7 @@ program       : {
                   lexer.setState(EXPR_BEG);
                   support.initTopLocalVariables();
               } top_compstmt {
-                  // ENEBO: Removed !compile_for_eval which probably is to reduce warnings
+  // ENEBO: Removed !compile_for_eval which probably is to reduce warnings
                   if ($2 != null) {
                       /* last expression should not be void */
                       if ($2 instanceof BlockParseNode) {
@@ -478,7 +477,7 @@ stmt            : kALIAS fitem {
                     }
                 }
                 | primary_value '[' opt_call_args rbracket tOP_ASGN command_call {
-                    // FIXME: arg_concat logic missing for opt_call_args
+  // FIXME: arg_concat logic missing for opt_call_args
                     $$ = support.new_opElementAsgnNode($1, $5, $3, $6);
                 }
                 | primary_value call_op tIDENTIFIER tOP_ASGN command_call {
@@ -667,18 +666,18 @@ mlhs_node       : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = support.assignableLabelOrIdentifier($1, null);
                 }
                 | tIVAR {
-                   $$ = new InstAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                   $$ = new InstAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 }
                 | tGVAR {
-                   $$ = new GlobalAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                   $$ = new GlobalAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 }
                 | tCONSTANT {
                     if (support.isInDef() || support.isInSingle()) support.compile_error("dynamic constant assignment");
 
-                    $$ = new ConstDeclParseNode(lexer.getPosition(), $1, null, NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(lexer.tokline, $1, null, NilImplicitParseNode.NIL);
                 }
                 | tCVAR {
-                    $$ = new ClassVarAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                    $$ = new ClassVarAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 } /*mri:user_variable*/
                 | /*mri:keyword_variable*/ kNIL {
                     support.compile_error("Can't assign to nil");
@@ -734,7 +733,7 @@ mlhs_node       : /*mri:user_variable*/ tIDENTIFIER {
                         support.yyerror("dynamic constant assignment");
                     }
 
-                    SourceIndexLength position = lexer.getPosition();
+                    SourceIndexLength position = lexer.tokline;
 
                     $$ = new ConstDeclParseNode(position, null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
                 }
@@ -746,18 +745,18 @@ lhs             : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = support.assignableLabelOrIdentifier($1, null);
                 }
                 | tIVAR {
-                   $$ = new InstAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                   $$ = new InstAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 }
                 | tGVAR {
-                   $$ = new GlobalAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                   $$ = new GlobalAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 }
                 | tCONSTANT {
                     if (support.isInDef() || support.isInSingle()) support.compile_error("dynamic constant assignment");
 
-                    $$ = new ConstDeclParseNode(lexer.getPosition(), $1, null, NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(lexer.tokline, $1, null, NilImplicitParseNode.NIL);
                 }
                 | tCVAR {
-                    $$ = new ClassVarAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                    $$ = new ClassVarAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 } /*mri:user_variable*/
                 | /*mri:keyword_variable*/ kNIL {
                     support.compile_error("Can't assign to nil");
@@ -813,7 +812,7 @@ lhs             : /*mri:user_variable*/ tIDENTIFIER {
                         support.yyerror("dynamic constant assignment");
                     }
 
-                    SourceIndexLength position = lexer.getPosition();
+                    SourceIndexLength position = lexer.tokline;
 
                     $$ = new ConstDeclParseNode(position, null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
                 }
@@ -827,10 +826,10 @@ cname           : tIDENTIFIER {
                 | tCONSTANT
 
 cpath           : tCOLON3 cname {
-                    $$ = support.new_colon3(lexer.getPosition(), $2);
+                    $$ = support.new_colon3(lexer.tokline, $2);
                 }
                 | cname {
-                    $$ = support.new_colon2(lexer.getPosition(), null, $1);
+                    $$ = support.new_colon2(lexer.tokline, null, $1);
                 }
                 | primary_value tCOLON2 cname {
                     $$ = support.new_colon2(support.getPosition($1), $1, $3);
@@ -849,11 +848,11 @@ fname          : tIDENTIFIER | tCONSTANT | tFID
 
 // LiteralNode:fsym
 fsym           : fname {
-                    $$ = new LiteralParseNode(lexer.getPosition(), $1);
-                }
-                | symbol {
-                    $$ = new LiteralParseNode(lexer.getPosition(), $1);
-                }
+                   $$ = new LiteralParseNode(lexer.getPosition(), $1);
+               }
+               | symbol {
+                   $$ = new LiteralParseNode(lexer.getPosition(), $1);
+               }
 
 // Node:fitem
 fitem           : fsym {
@@ -1051,7 +1050,7 @@ arg             : lhs '=' arg {
                     }
                 }
                 | primary_value '[' opt_call_args rbracket tOP_ASGN arg {
-                    // FIXME: arg_concat missing for opt_call_args
+  // FIXME: arg_concat missing for opt_call_args
                     $$ = support.new_opElementAsgnNode($1, $5, $3, $6);
                 }
                 | primary_value call_op tIDENTIFIER tOP_ASGN arg {
@@ -1223,7 +1222,7 @@ paren_args      : tLPAREN2 opt_call_args rparen {
 
 opt_paren_args  : none | paren_args
 
-opt_call_args   : none 
+opt_call_args   : none
                 | call_args
                 | args ',' {
                     $$ = $1;
@@ -1273,14 +1272,14 @@ opt_block_arg   : ',' block_arg {
                 | none_block_pass
 
 // [!null]
-args            : arg_value { // ArrayParseNode
+args            : arg_value { // ArrayNode
                     SourceIndexLength pos = $1 == null ? lexer.getPosition() : $1.getPosition();
                     $$ = support.newArrayNode(pos, $1);
                 }
                 | tSTAR arg_value { // SplatNode
                     $$ = support.newSplatNode(support.getPosition($2), $2);
                 }
-                | args ',' arg_value { // ArgsCatNode, SplatNode, ArrayParseNode
+                | args ',' arg_value { // ArgsCatNode, SplatNode, ArrayNode
                     ParseNode node = support.splat_array($1);
 
                     if (node != null) {
@@ -1289,7 +1288,7 @@ args            : arg_value { // ArrayParseNode
                         $$ = support.arg_append($1, $3);
                     }
                 }
-                | args ',' tSTAR arg_value { // ArgsCatNode, SplatNode, ArrayParseNode
+                | args ',' tSTAR arg_value { // ArgsCatNode, SplatNode, ArrayNode
                     ParseNode node = null;
 
                     // FIXME: lose syntactical elements here (and others like this)
@@ -1383,7 +1382,7 @@ primary         : literal
                     $$ = support.new_colon2(support.getPosition($1), $1, $3);
                 }
                 | tCOLON3 tCONSTANT {
-                    $$ = support.new_colon3(lexer.getPosition(), $2);
+                    $$ = support.new_colon3(lexer.tokline, $2);
                 }
                 | tLBRACK aref_args tRBRACK {
                     SourceIndexLength position = support.getPosition($2);
@@ -1477,7 +1476,7 @@ primary         : literal
                 } bodystmt kEND {
                     ParseNode body = support.makeNullNil($5);
 
-                    $$ = new ClassParseNode($1, $<Colon3ParseNode>2, support.getCurrentScope(), body, $3);
+                    $$ = new ClassParseNode(support.extendedUntil($1, lexer.getPosition()), $<Colon3ParseNode>2, support.getCurrentScope(), body, $3);
                     support.popCurrentScope();
                 }
                 | kCLASS tLSHFT expr {
@@ -1490,7 +1489,7 @@ primary         : literal
                 } bodystmt kEND {
                     ParseNode body = support.makeNullNil($7);
 
-                    $$ = new SClassParseNode($1, $3, support.getCurrentScope(), body);
+                    $$ = new SClassParseNode(support.extendedUntil($1, lexer.getPosition()), $3, support.getCurrentScope(), body);
                     support.popCurrentScope();
                     support.setInDef($<Boolean>4.booleanValue());
                     support.setInSingle($<Integer>6.intValue());
@@ -1503,7 +1502,7 @@ primary         : literal
                 } bodystmt kEND {
                     ParseNode body = support.makeNullNil($4);
 
-                    $$ = new ModuleParseNode($1, $<Colon3ParseNode>2, support.getCurrentScope(), body);
+                    $$ = new ModuleParseNode(support.extendedUntil($1, lexer.getPosition()), $<Colon3ParseNode>2, support.getCurrentScope(), body);
                     support.popCurrentScope();
                 }
                 | kDEF fname {
@@ -1743,6 +1742,7 @@ lambda          : /* none */  {
                     support.popCurrentScope();
                     lexer.setLeftParenBegin($<Integer>1);
                     lexer.getCmdArgumentState().reset($<Long>2.longValue());
+
                 }
 
 f_larglist      : tLPAREN2 f_args opt_bv_decl tRPAREN {
@@ -1863,7 +1863,7 @@ opt_rescue      : kRESCUE exc_list exc_var then compstmt opt_rescue {
                     ParseNode body = support.makeNullNil(node);
                     $$ = new RescueBodyParseNode($1, $2, body, $6);
                 }
-                | { 
+                | {
                     $$ = null; 
                 }
 
@@ -2025,7 +2025,7 @@ xstring_contents: /* none */ {
                     $$ = support.literal_concat($1, $<ParseNode>2);
                 }
 
-regexp_contents :  /* none */ {
+regexp_contents: /* none */ {
                     $$ = null;
                 }
                 | regexp_contents string_content {
@@ -2095,9 +2095,9 @@ sym             : fname | tIVAR | tGVAR | tCVAR
 dsym            : tSYMBEG xstring_contents tSTRING_END {
                      lexer.setState(EXPR_END);
 
-                     // DStrParseNode: :"some text #{some expression}"
-                     // StrParseNode: :"some text"
-                     // EvStrParseNode :"#{some expression}"
+                     // DStrNode: :"some text #{some expression}"
+                     // StrNode: :"some text"
+                     // EvStrNode :"#{some expression}"
                      // Ruby 1.9 allows empty strings as symbols
                      if ($2 == null) {
                          $$ = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
@@ -2111,7 +2111,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END {
                      }
                 }
 
- numeric        : simple_numeric {
+numeric         : simple_numeric {
                     $$ = $1;  
                 }
                 | tUMINUS_NUM simple_numeric %prec tLOWEST {
@@ -2136,24 +2136,24 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = support.declareIdentifier($1);
                 }
                 | tIVAR {
-                    $$ = new InstVarParseNode(lexer.getPosition(), $1);
+                    $$ = new InstVarParseNode(lexer.tokline, $1);
                 }
                 | tGVAR {
-                    $$ = new GlobalVarParseNode(lexer.getPosition(), $1);
+                    $$ = new GlobalVarParseNode(lexer.tokline, $1);
                 }
                 | tCONSTANT {
-                    $$ = new ConstParseNode(lexer.getPosition(), $1);
+                    $$ = new ConstParseNode(lexer.tokline, $1);
                 }
                 | tCVAR {
-                    $$ = new ClassVarParseNode(lexer.getPosition(), $1);
+                    $$ = new ClassVarParseNode(lexer.tokline, $1);
                 } /*mri:user_variable*/
-                | /*mri:keyword_variable*/ kNIL { 
-                    $$ = new NilParseNode(lexer.getPosition());
+                | /*mri:keyword_variable*/ kNIL {
+                    $$ = new NilParseNode(lexer.tokline);
                 }
                 | kSELF {
-                    $$ = new SelfParseNode(lexer.getPosition());
+                    $$ = new SelfParseNode(lexer.tokline);
                 }
-                | kTRUE { 
+                | kTRUE {
                     $$ = new TrueParseNode((SourceIndexLength) $$);
                 }
                 | kFALSE {
@@ -2161,13 +2161,13 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                 }
                 | k__FILE__ {
                     Encoding encoding = support.getConfiguration().getContext() == null ? EncodingManager.getEncoding(Charset.defaultCharset().name()) : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
-                    $$ = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
+                    $$ = new FileParseNode(lexer.tokline, RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
                 }
                 | k__LINE__ {
-                    $$ = new FixnumParseNode(lexer.getPosition(), lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());
+                    $$ = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());
                 }
                 | k__ENCODING__ {
-                    $$ = new EncodingParseNode(lexer.getPosition(), lexer.getEncoding());
+                    $$ = new EncodingParseNode(lexer.tokline, lexer.getEncoding());
                 } /*mri:keyword_variable*/
 
 // [!null]
@@ -2175,18 +2175,18 @@ var_lhs         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = support.assignableLabelOrIdentifier($1, null);
                 }
                 | tIVAR {
-                   $$ = new InstAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                   $$ = new InstAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 }
                 | tGVAR {
-                   $$ = new GlobalAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                   $$ = new GlobalAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 }
                 | tCONSTANT {
                     if (support.isInDef() || support.isInSingle()) support.compile_error("dynamic constant assignment");
 
-                    $$ = new ConstDeclParseNode(lexer.getPosition(), $1, null, NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(lexer.tokline, $1, null, NilImplicitParseNode.NIL);
                 }
                 | tCVAR {
-                    $$ = new ClassVarAsgnParseNode(lexer.getPosition(), $1, NilImplicitParseNode.NIL);
+                    $$ = new ClassVarAsgnParseNode(lexer.tokline, $1, NilImplicitParseNode.NIL);
                 } /*mri:user_variable*/
                 | /*mri:keyword_variable*/ kNIL {
                     support.compile_error("Can't assign to nil");

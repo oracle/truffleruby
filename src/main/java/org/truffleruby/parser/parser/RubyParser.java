@@ -1028,16 +1028,16 @@ states[1] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[2] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    /* ENEBO: Removed !compile_for_eval which probably is to reduce warnings*/
-    if (((ParseNode)yyVals[0+yyTop]) != null) {
-        /* last expression should not be void */
-        if (((ParseNode)yyVals[0+yyTop]) instanceof BlockParseNode) {
-            support.checkUselessStatement(((BlockParseNode)yyVals[0+yyTop]).getLast());
-        } else {
-            support.checkUselessStatement(((ParseNode)yyVals[0+yyTop]));
-        }
-    }
-    support.getResult().setAST(support.addRootNode(((ParseNode)yyVals[0+yyTop])));
+  /* ENEBO: Removed !compile_for_eval which probably is to reduce warnings*/
+                  if (((ParseNode)yyVals[0+yyTop]) != null) {
+                      /* last expression should not be void */
+                      if (((ParseNode)yyVals[0+yyTop]) instanceof BlockParseNode) {
+                          support.checkUselessStatement(((BlockParseNode)yyVals[0+yyTop]).getLast());
+                      } else {
+                          support.checkUselessStatement(((ParseNode)yyVals[0+yyTop]));
+                      }
+                  }
+                  support.getResult().setAST(support.addRootNode(((ParseNode)yyVals[0+yyTop])));
     return yyVal;
 };
 states[3] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -1204,8 +1204,8 @@ states[34] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[35] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    /* FIXME: arg_concat logic missing for opt_call_args*/
-    yyVal = support.new_opElementAsgnNode(((ParseNode)yyVals[-5+yyTop]), ((String)yyVals[-1+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+  /* FIXME: arg_concat logic missing for opt_call_args*/
+                    yyVal = support.new_opElementAsgnNode(((ParseNode)yyVals[-5+yyTop]), ((String)yyVals[-1+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[36] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -1409,21 +1409,21 @@ states[91] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[92] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new InstAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new InstAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[93] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new GlobalAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new GlobalAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[94] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (support.isInDef() || support.isInSingle()) support.compile_error("dynamic constant assignment");
 
-    yyVal = new ConstDeclParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), null, NilImplicitParseNode.NIL);
+    yyVal = new ConstDeclParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), null, NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[95] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new ClassVarAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new ClassVarAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[96] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -1492,7 +1492,7 @@ states[108] = (support, lexer, yyVal, yyVals, yyTop) -> {
         support.yyerror("dynamic constant assignment");
     }
 
-    SourceIndexLength position = lexer.getPosition();
+    SourceIndexLength position = lexer.tokline;
 
     yyVal = new ConstDeclParseNode(position, null, support.new_colon3(position, ((String)yyVals[0+yyTop])), NilImplicitParseNode.NIL);
     return yyVal;
@@ -1506,21 +1506,21 @@ states[110] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[111] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new InstAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new InstAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[112] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new GlobalAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new GlobalAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[113] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (support.isInDef() || support.isInSingle()) support.compile_error("dynamic constant assignment");
 
-    yyVal = new ConstDeclParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), null, NilImplicitParseNode.NIL);
+    yyVal = new ConstDeclParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), null, NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[114] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new ClassVarAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new ClassVarAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[115] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -1589,7 +1589,7 @@ states[127] = (support, lexer, yyVal, yyVals, yyTop) -> {
         support.yyerror("dynamic constant assignment");
     }
 
-    SourceIndexLength position = lexer.getPosition();
+    SourceIndexLength position = lexer.tokline;
 
     yyVal = new ConstDeclParseNode(position, null, support.new_colon3(position, ((String)yyVals[0+yyTop])), NilImplicitParseNode.NIL);
     return yyVal;
@@ -1603,11 +1603,11 @@ states[129] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[131] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_colon3(lexer.getPosition(), ((String)yyVals[0+yyTop]));
+    yyVal = support.new_colon3(lexer.tokline, ((String)yyVals[0+yyTop]));
     return yyVal;
 };
 states[132] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_colon2(lexer.getPosition(), null, ((String)yyVals[0+yyTop]));
+    yyVal = support.new_colon2(lexer.tokline, null, ((String)yyVals[0+yyTop]));
     return yyVal;
 };
 states[133] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -1868,8 +1868,8 @@ states[221] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[222] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    /* FIXME: arg_concat missing for opt_call_args*/
-    yyVal = support.new_opElementAsgnNode(((ParseNode)yyVals[-5+yyTop]), ((String)yyVals[-1+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[0+yyTop]));
+  /* FIXME: arg_concat missing for opt_call_args*/
+                    yyVal = support.new_opElementAsgnNode(((ParseNode)yyVals[-5+yyTop]), ((String)yyVals[-1+yyTop]), ((ParseNode)yyVals[-3+yyTop]), ((ParseNode)yyVals[0+yyTop]));
     return yyVal;
 };
 states[223] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -2252,7 +2252,7 @@ states[315] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[316] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.new_colon3(lexer.getPosition(), ((String)yyVals[0+yyTop]));
+    yyVal = support.new_colon3(lexer.tokline, ((String)yyVals[0+yyTop]));
     return yyVal;
 };
 states[317] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -2379,7 +2379,7 @@ states[343] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[344] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode body = support.makeNullNil(((ParseNode)yyVals[-1+yyTop]));
 
-    yyVal = new ClassParseNode(((SourceIndexLength)yyVals[-5+yyTop]), ((Colon3ParseNode)yyVals[-4+yyTop]), support.getCurrentScope(), body, ((ParseNode)yyVals[-3+yyTop]));
+    yyVal = new ClassParseNode(support.extendedUntil(((SourceIndexLength)yyVals[-5+yyTop]), lexer.getPosition()), ((Colon3ParseNode)yyVals[-4+yyTop]), support.getCurrentScope(), body, ((ParseNode)yyVals[-3+yyTop]));
     support.popCurrentScope();
     return yyVal;
 };
@@ -2397,7 +2397,7 @@ states[346] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[347] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode body = support.makeNullNil(((ParseNode)yyVals[-1+yyTop]));
 
-    yyVal = new SClassParseNode(((SourceIndexLength)yyVals[-7+yyTop]), ((ParseNode)yyVals[-5+yyTop]), support.getCurrentScope(), body);
+    yyVal = new SClassParseNode(support.extendedUntil(((SourceIndexLength)yyVals[-7+yyTop]), lexer.getPosition()), ((ParseNode)yyVals[-5+yyTop]), support.getCurrentScope(), body);
     support.popCurrentScope();
     support.setInDef(((Boolean)yyVals[-4+yyTop]).booleanValue());
     support.setInSingle(((Integer)yyVals[-2+yyTop]).intValue());
@@ -2413,7 +2413,7 @@ states[348] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[349] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode body = support.makeNullNil(((ParseNode)yyVals[-1+yyTop]));
 
-    yyVal = new ModuleParseNode(((SourceIndexLength)yyVals[-4+yyTop]), ((Colon3ParseNode)yyVals[-3+yyTop]), support.getCurrentScope(), body);
+    yyVal = new ModuleParseNode(support.extendedUntil(((SourceIndexLength)yyVals[-4+yyTop]), lexer.getPosition()), ((Colon3ParseNode)yyVals[-3+yyTop]), support.getCurrentScope(), body);
     support.popCurrentScope();
     return yyVal;
 };
@@ -2687,6 +2687,7 @@ states[418] = (support, lexer, yyVal, yyVals, yyTop) -> {
     support.popCurrentScope();
     lexer.setLeftParenBegin(((Integer)yyVals[-3+yyTop]));
     lexer.getCmdArgumentState().reset(((Long)yyVals[-2+yyTop]).longValue());
+
     return yyVal;
 };
 states[419] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3074,9 +3075,9 @@ states[501] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[506] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setState(EXPR_END);
 
-    /* DStrParseNode: :"some text #{some expression}"*/
-    /* StrParseNode: :"some text"*/
-    /* EvStrParseNode :"#{some expression}"*/
+    /* DStrNode: :"some text #{some expression}"*/
+    /* StrNode: :"some text"*/
+    /* EvStrNode :"#{some expression}"*/
     /* Ruby 1.9 allows empty strings as symbols*/
     if (((ParseNode)yyVals[-1+yyTop]) == null) {
         yyVal = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
@@ -3119,27 +3120,27 @@ states[513] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[514] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new InstVarParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]));
+    yyVal = new InstVarParseNode(lexer.tokline, ((String)yyVals[0+yyTop]));
     return yyVal;
 };
 states[515] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new GlobalVarParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]));
+    yyVal = new GlobalVarParseNode(lexer.tokline, ((String)yyVals[0+yyTop]));
     return yyVal;
 };
 states[516] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new ConstParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]));
+    yyVal = new ConstParseNode(lexer.tokline, ((String)yyVals[0+yyTop]));
     return yyVal;
 };
 states[517] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new ClassVarParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]));
+    yyVal = new ClassVarParseNode(lexer.tokline, ((String)yyVals[0+yyTop]));
     return yyVal;
 };
 states[518] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new NilParseNode(lexer.getPosition());
+    yyVal = new NilParseNode(lexer.tokline);
     return yyVal;
 };
 states[519] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new SelfParseNode(lexer.getPosition());
+    yyVal = new SelfParseNode(lexer.tokline);
     return yyVal;
 };
 states[520] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3152,15 +3153,15 @@ states[521] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[522] = (support, lexer, yyVal, yyVals, yyTop) -> {
     Encoding encoding = support.getConfiguration().getContext() == null ? EncodingManager.getEncoding(Charset.defaultCharset().name()) : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
-    yyVal = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
+    yyVal = new FileParseNode(lexer.tokline, RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
     return yyVal;
 };
 states[523] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new FixnumParseNode(lexer.getPosition(), lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());
+    yyVal = new FixnumParseNode(lexer.tokline, lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());
     return yyVal;
 };
 states[524] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new EncodingParseNode(lexer.getPosition(), lexer.getEncoding());
+    yyVal = new EncodingParseNode(lexer.tokline, lexer.getEncoding());
     return yyVal;
 };
 states[525] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3168,21 +3169,21 @@ states[525] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[526] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new InstAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new InstAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[527] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new GlobalAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new GlobalAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[528] = (support, lexer, yyVal, yyVals, yyTop) -> {
     if (support.isInDef() || support.isInSingle()) support.compile_error("dynamic constant assignment");
 
-    yyVal = new ConstDeclParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), null, NilImplicitParseNode.NIL);
+    yyVal = new ConstDeclParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), null, NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[529] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new ClassVarAsgnParseNode(lexer.getPosition(), ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
+    yyVal = new ClassVarAsgnParseNode(lexer.tokline, ((String)yyVals[0+yyTop]), NilImplicitParseNode.NIL);
     return yyVal;
 };
 states[530] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3617,5 +3618,5 @@ states[646] = (support, lexer, yyVal, yyVals, yyTop) -> {
     }
 }
 // CheckStyle: stop generated
-// line 10152 "-"
+// line 10153 "-"
 // @formatter:on

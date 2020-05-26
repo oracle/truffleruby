@@ -13,7 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
-public class SourceIndexLength {
+public final class SourceIndexLength {
 
     public static final int UNAVAILABLE = -1;
 
