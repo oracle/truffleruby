@@ -385,7 +385,7 @@ public class ParserSupport {
             return new Match3ParseNode(firstNode.getPosition(), firstNode, secondNode);
         }
 
-        return getOperatorCallNode(firstNode, RopeConstants.EQUAL_TILDE, secondNode);
+        return getOperatorCallNode(firstNode, RopeConstants.EQ_TILDE, secondNode);
     }
 
     /** Define an array set condition so we can return lhs

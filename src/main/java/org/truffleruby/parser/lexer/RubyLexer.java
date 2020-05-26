@@ -230,13 +230,14 @@ public class RubyLexer implements MagicCommentHandler {
 
     public int tokenize_ident(int result) {
         // FIXME: Get token from newtok index to lex_p?
-        String value = createTokenString();
+        Rope value = createTokenRope();
 
-        if (isLexState(last_state, EXPR_DOT | EXPR_FNAME) && parserSupport.getCurrentScope().isDefined(value) >= 0) {
+        if (isLexState(last_state, EXPR_DOT | EXPR_FNAME) &&
+                parserSupport.getCurrentScope().isDefined(value.getString().intern()) >= 0) {
             setState(EXPR_END);
         }
 
-        yaccValue = value.intern();
+        yaccValue = value;
         return result;
     }
 
@@ -791,12 +792,12 @@ public class RubyLexer implements MagicCommentHandler {
         lex_strterm = new HeredocTerm(markerValue, func, len, ruby_sourceline, lex_lastline);
 
         if (term == '`') {
-            yaccValue = "`";
+            yaccValue = RopeConstants.BACKTICK;
             flush();
             return RubyParser.tXSTRING_BEG;
         }
 
-        yaccValue = "\"";
+        yaccValue = RopeConstants.QQ;
         flush();
         return RubyParser.tSTRING_BEG;
     }
@@ -979,22 +980,22 @@ public class RubyLexer implements MagicCommentHandler {
                     if (c == '=') {
                         c = nextc();
                         if (c == '=') {
-                            yaccValue = "===";
+                            yaccValue = RopeConstants.EQ_EQ_EQ;
                             return RubyParser.tEQQ;
                         }
                         pushback(c);
-                        yaccValue = "==";
+                        yaccValue = RopeConstants.EQ_EQ;
                         return RubyParser.tEQ;
                     }
                     if (c == '~') {
-                        yaccValue = "=~";
+                        yaccValue = RopeConstants.EQ_TILDE;
                         return RubyParser.tMATCH;
                     } else if (c == '>') {
-                        yaccValue = "=>";
+                        yaccValue = RopeConstants.EQ_GT;
                         return RubyParser.tASSOC;
                     }
                     pushback(c);
-                    yaccValue = "=";
+                    yaccValue = RopeConstants.EQ;
                     return '=';
 
                 case '<':
@@ -1045,7 +1046,7 @@ public class RubyLexer implements MagicCommentHandler {
                 case ';':
                     commandStart = true;
                     setState(EXPR_BEG);
-                    yaccValue = ";";
+                    yaccValue = RopeConstants.SEMICOLON;
                     return ';';
                 case ',':
                     return comma(c);
@@ -1064,7 +1065,7 @@ public class RubyLexer implements MagicCommentHandler {
                         continue;
                     }
                     pushback(c);
-                    yaccValue = "\\";
+                    yaccValue = RopeConstants.BACKSLASH;
                     return '\\';
                 case '%':
                     return percent(spaceSeen);
@@ -1087,9 +1088,9 @@ public class RubyLexer implements MagicCommentHandler {
         }
     }
 
-    private int identifierToken(int result, String value) {
+    private int identifierToken(int result, Rope value) {
         if (result == RubyParser.tIDENTIFIER && !isLexState(last_state, EXPR_DOT | EXPR_FNAME) &&
-                parserSupport.getCurrentScope().isDefined(value) >= 0) {
+                parserSupport.getCurrentScope().isDefined(value.getString().intern()) >= 0) {
             setState(EXPR_END);
         }
 
@@ -1104,20 +1105,20 @@ public class RubyLexer implements MagicCommentHandler {
             case '&':
                 setState(EXPR_BEG);
                 if ((c = nextc()) == '=') {
-                    yaccValue = "&&";
+                    yaccValue = RopeConstants.AMPERSAND_AMPERSAND;
                     setState(EXPR_BEG);
                     return RubyParser.tOP_ASGN;
                 }
                 pushback(c);
-                yaccValue = "&&";
+                yaccValue = RopeConstants.AMPERSAND_AMPERSAND;
                 return RubyParser.tANDOP;
             case '=':
-                yaccValue = "&";
+                yaccValue = RopeConstants.AMPERSAND;
                 setState(EXPR_BEG);
                 return RubyParser.tOP_ASGN;
             case '.':
                 setState(EXPR_DOT);
-                yaccValue = "&.";
+                yaccValue = RopeConstants.AMPERSAND_DOT;
                 return RubyParser.tANDDOT;
         }
         pushback(c);
@@ -1143,7 +1144,7 @@ public class RubyLexer implements MagicCommentHandler {
 
         setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
 
-        yaccValue = "&";
+        yaccValue = RopeConstants.AMPERSAND;
         return c;
     }
 
@@ -1460,7 +1461,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     private int backtick(boolean commandState) {
-        yaccValue = "`";
+        yaccValue = RopeConstants.BACKTICK;
 
         if (isLexState(lex_state, EXPR_FNAME)) {
             setState(EXPR_ENDFN);
@@ -1482,7 +1483,7 @@ public class RubyLexer implements MagicCommentHandler {
         if (isAfterOperator()) {
             setState(EXPR_ARG);
             if (c == '@') {
-                yaccValue = "!";
+                yaccValue = RopeConstants.BANG;
                 return RubyParser.tBANG;
             }
         } else {
@@ -1491,16 +1492,16 @@ public class RubyLexer implements MagicCommentHandler {
 
         switch (c) {
             case '=':
-                yaccValue = "!=";
+                yaccValue = RopeConstants.BANG_EQ;
 
                 return RubyParser.tNEQ;
             case '~':
-                yaccValue = "!~";
+                yaccValue = RopeConstants.BANG_TILDE;
 
                 return RubyParser.tNMATCH;
             default: // Just a plain bang
                 pushback(c);
-                yaccValue = "!";
+                yaccValue = RopeConstants.BANG;
 
                 return RubyParser.tBANG;
         }
@@ -1510,14 +1511,14 @@ public class RubyLexer implements MagicCommentHandler {
         int c = nextc();
         if (c == '=') {
             setState(EXPR_BEG);
-            yaccValue = "^";
+            yaccValue = RopeConstants.CARET;
             return RubyParser.tOP_ASGN;
         }
 
         setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
 
         pushback(c);
-        yaccValue = "^";
+        yaccValue = RopeConstants.CARET;
         return RubyParser.tCARET;
     }
 
@@ -1527,18 +1528,18 @@ public class RubyLexer implements MagicCommentHandler {
         if (c == ':') {
             if (isBEG() || isLexState(lex_state, EXPR_CLASS) || (isARG() && spaceSeen)) {
                 setState(EXPR_BEG);
-                yaccValue = "::";
+                yaccValue = RopeConstants.COLON_COLON;
                 return RubyParser.tCOLON3;
             }
             setState(EXPR_DOT);
-            yaccValue = ":";
+            yaccValue = RopeConstants.COLON_COLON;
             return RubyParser.tCOLON2;
         }
 
         if (isEND() || Character.isWhitespace(c) || c == '#') {
             pushback(c);
             setState(EXPR_BEG);
-            yaccValue = ":";
+            yaccValue = RopeConstants.COLON;
             warn_balanced(c, spaceSeen, ":", "symbol literal");
             return ':';
         }
@@ -1556,13 +1557,13 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         setState(EXPR_FNAME);
-        yaccValue = ":";
+        yaccValue = RopeConstants.COLON;
         return RubyParser.tSYMBEG;
     }
 
     private int comma(int c) {
         setState(EXPR_BEG | EXPR_LABEL);
-        yaccValue = ",";
+        yaccValue = RopeConstants.COMMA;
 
         return c;
     }
@@ -1604,7 +1605,7 @@ public class RubyLexer implements MagicCommentHandler {
 
                     last_state = lex_state;
                     setState(EXPR_END);
-                    yaccValue = createTokenString().intern();
+                    yaccValue = createTokenRope();
                     return RubyParser.tGVAR;
                 }
                 pushback(c);
@@ -1626,7 +1627,7 @@ public class RubyLexer implements MagicCommentHandler {
             case '<': /* $<: reading filename */
             case '>': /* $>: default output handle */
             case '\"': /* $": already loaded files */
-                yaccValue = "$" + (char) c;
+                yaccValue = RopeOperations.create(new byte[]{ '$', (byte) c }, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                 return RubyParser.tGVAR;
 
             case '-':
@@ -1640,7 +1641,7 @@ public class RubyLexer implements MagicCommentHandler {
                     pushback('-');
                     return '$';
                 }
-                yaccValue = createTokenString().intern();
+                yaccValue = createTokenRope();
                 /* xxx shouldn't check if valid option variable */
                 return RubyParser.tGVAR;
 
@@ -1650,7 +1651,7 @@ public class RubyLexer implements MagicCommentHandler {
             case '+': /* $+: string matches last paren. */
                 // Explicit reference to these vars as symbols...
                 if (isLexState(last_state, EXPR_FNAME)) {
-                    yaccValue = "$" + (char) c;
+                    yaccValue = RopeOperations.create(new byte[]{ '$', (byte) c }, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                     return RubyParser.tGVAR;
                 }
 
@@ -1671,12 +1672,12 @@ public class RubyLexer implements MagicCommentHandler {
                 } while (Character.isDigit(c));
                 pushback(c);
                 if (isLexState(last_state, EXPR_FNAME)) {
-                    yaccValue = createTokenString().intern();
+                    yaccValue = createTokenRope();
                     return RubyParser.tGVAR;
                 }
 
                 int ref;
-                String refAsString = createTokenString();
+                String refAsString = createTokenRope().getString();
 
                 try {
                     ref = Integer.parseInt(refAsString.substring(1).intern());
@@ -1690,7 +1691,7 @@ public class RubyLexer implements MagicCommentHandler {
             case '0':
                 setState(EXPR_END);
 
-                return identifierToken(RubyParser.tGVAR, ("$" + (char) c).intern());
+                return identifierToken(RubyParser.tGVAR, RopeConstants.DOLLAR_ZERO);
             default:
                 if (!isIdentifierChar(c)) {
                     if (c == EOF || Character.isSpaceChar(c)) {
@@ -1710,7 +1711,7 @@ public class RubyLexer implements MagicCommentHandler {
 
                 tokadd_ident(c);
 
-                return identifierToken(RubyParser.tGVAR, createTokenString().intern());  // $blah
+                return identifierToken(RubyParser.tGVAR, createTokenRope());  // $blah
         }
     }
 
@@ -1720,11 +1721,11 @@ public class RubyLexer implements MagicCommentHandler {
         setState(EXPR_BEG);
         if ((c = nextc()) == '.') {
             if ((c = nextc()) == '.') {
-                yaccValue = "...";
+                yaccValue = RopeConstants.DOT_DOT_DOT;
                 return RubyParser.tDOT3;
             }
             pushback(c);
-            yaccValue = "..";
+            yaccValue = RopeConstants.DOT_DOT;
             return RubyParser.tDOT2;
         }
 
@@ -1736,14 +1737,14 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         setState(EXPR_DOT);
-        yaccValue = ".";
+        yaccValue = RopeConstants.DOT;
         return RubyParser.tDOT;
     }
 
     private int doubleQuote(boolean commandState) {
         int label = isLabelPossible(commandState) ? str_label : 0;
         lex_strterm = new StringTerm(str_dquote | label, '\0', '"');
-        yaccValue = "\"";
+        yaccValue = RopeConstants.QQ;
 
         return RubyParser.tSTRING_BEG;
     }
@@ -1755,22 +1756,22 @@ public class RubyLexer implements MagicCommentHandler {
 
         switch (c) {
             case '=':
-                yaccValue = ">=";
+                yaccValue = RopeConstants.GT_EQ;
 
                 return RubyParser.tGEQ;
             case '>':
                 if ((c = nextc()) == '=') {
                     setState(EXPR_BEG);
-                    yaccValue = ">>";
+                    yaccValue = RopeConstants.GT_GT;
                     return RubyParser.tOP_ASGN;
                 }
                 pushback(c);
 
-                yaccValue = ">>";
+                yaccValue = RopeConstants.GT_GT;
                 return RubyParser.tRSHFT;
             default:
                 pushback(c);
-                yaccValue = ">";
+                yaccValue = RopeConstants.GT;
                 return RubyParser.tGT;
         }
     }
@@ -1807,10 +1808,10 @@ public class RubyLexer implements MagicCommentHandler {
         int result = 0;
 
         last_state = lex_state;
-        String tempVal;
+        Rope tempVal;
         if (lastBangOrPredicate) {
             result = RubyParser.tFID;
-            tempVal = createTokenString();
+            tempVal = createTokenRope();
         } else {
             if (isLexState(lex_state, EXPR_FNAME)) {
                 if ((c = nextc()) == '=') {
@@ -1828,9 +1829,9 @@ public class RubyLexer implements MagicCommentHandler {
                     pushback(c);
                 }
             }
-            tempVal = createTokenString();
+            tempVal = createTokenRope();
 
-            if (result == 0 && Character.isUpperCase(tempVal.charAt(0))) {
+            if (result == 0 && Character.isUpperCase(tempVal.get(0) & 0xFF)) {
                 result = RubyParser.tCONSTANT;
             } else {
                 result = RubyParser.tIDENTIFIER;
@@ -1841,7 +1842,7 @@ public class RubyLexer implements MagicCommentHandler {
             if (isLabelSuffix()) {
                 setState(EXPR_ARG | EXPR_LABELED);
                 nextc();
-                yaccValue = tempVal.intern();
+                yaccValue = tempVal;
                 return RubyParser.tLABEL;
             }
         }
@@ -1854,7 +1855,7 @@ public class RubyLexer implements MagicCommentHandler {
                 setState(keyword.state);
 
                 if (isLexState(state, EXPR_FNAME)) {
-                    yaccValue = keyword.name;
+                    yaccValue = keyword.bytes;
                     return keyword.id0;
                 } else {
                     yaccValue = getPosition();
@@ -1887,8 +1888,6 @@ public class RubyLexer implements MagicCommentHandler {
             setState(EXPR_END);
         }
 
-        tempVal = tempVal.intern();
-
         return identifierToken(result, tempVal);
     }
 
@@ -1901,15 +1900,15 @@ public class RubyLexer implements MagicCommentHandler {
             if ((c = nextc()) == ']') {
                 if (peek('=')) {
                     nextc();
-                    yaccValue = "[]=";
+                    yaccValue = RopeConstants.LBRACKET_RBRACKET_EQ;
                     return RubyParser.tASET;
                 }
-                yaccValue = "[]";
+                yaccValue = RopeConstants.LBRACKET_RBRACKET;
                 return RubyParser.tAREF;
             }
             pushback(c);
             setState(getState() | EXPR_LABEL);
-            yaccValue = "[";
+            yaccValue = RopeConstants.LBRACKET;
             return '[';
         } else if (isBEG() || (isARG() && (spaceSeen || isLexState(lex_state, EXPR_LABELED)))) {
             c = RubyParser.tLBRACK;
@@ -1918,7 +1917,7 @@ public class RubyLexer implements MagicCommentHandler {
         setState(EXPR_BEG | EXPR_LABEL);
         conditionState.stop();
         cmdArgumentState.stop();
-        yaccValue = "[";
+        yaccValue = RopeConstants.LBRACKET;
         return c;
     }
 
@@ -1931,7 +1930,7 @@ public class RubyLexer implements MagicCommentHandler {
             parenNest--;
             conditionState.stop();
             cmdArgumentState.stop();
-            yaccValue = "{";
+            yaccValue = RopeConstants.LCURLY;
             return RubyParser.tLAMBEG;
         }
 
@@ -2004,24 +2003,24 @@ public class RubyLexer implements MagicCommentHandler {
         switch (c) {
             case '=':
                 if ((c = nextc()) == '>') {
-                    yaccValue = "<=>";
+                    yaccValue = RopeConstants.LT_EQ_GT;
                     return RubyParser.tCMP;
                 }
                 pushback(c);
-                yaccValue = "<=";
+                yaccValue = RopeConstants.LT_EQ;
                 return RubyParser.tLEQ;
             case '<':
                 if ((c = nextc()) == '=') {
                     setState(EXPR_BEG);
-                    yaccValue = "<<";
+                    yaccValue = RopeConstants.LT_LT;
                     return RubyParser.tOP_ASGN;
                 }
                 pushback(c);
-                yaccValue = "<<";
+                yaccValue = RopeConstants.LT_LT;
                 warn_balanced(c, spaceSeen, "<<", "here document");
                 return RubyParser.tLSHFT;
             default:
-                yaccValue = "<";
+                yaccValue = RopeConstants.LT;
                 pushback(c);
                 return RubyParser.tLT;
         }
@@ -2033,27 +2032,27 @@ public class RubyLexer implements MagicCommentHandler {
         if (isAfterOperator()) {
             setState(EXPR_ARG);
             if (c == '@') {
-                yaccValue = "-@";
+                yaccValue = RopeConstants.MINUS_AT;
                 return RubyParser.tUMINUS;
             }
             pushback(c);
-            yaccValue = "-";
+            yaccValue = RopeConstants.MINUS;
             return RubyParser.tMINUS;
         }
         if (c == '=') {
             setState(EXPR_BEG);
-            yaccValue = "-";
+            yaccValue = RopeConstants.MINUS;
             return RubyParser.tOP_ASGN;
         }
         if (c == '>') {
             setState(EXPR_ENDFN);
-            yaccValue = "->";
+            yaccValue = RopeConstants.MINUS_GT;
             return RubyParser.tLAMBDA;
         }
         if (isBEG() || (isSpaceArg(c, spaceSeen) && arg_ambiguous())) {
             setState(EXPR_BEG);
             pushback(c);
-            yaccValue = "-";
+            yaccValue = RopeConstants.MINUS_AT;
             if (Character.isDigit(c)) {
                 return RubyParser.tUMINUS_NUM;
             }
@@ -2061,7 +2060,7 @@ public class RubyLexer implements MagicCommentHandler {
         }
         setState(EXPR_BEG);
         pushback(c);
-        yaccValue = "-";
+        yaccValue = RopeConstants.MINUS;
         warn_balanced(c, spaceSeen, "-", "unary operator");
         return RubyParser.tMINUS;
     }
@@ -2075,7 +2074,7 @@ public class RubyLexer implements MagicCommentHandler {
 
         if (c == '=') {
             setState(EXPR_BEG);
-            yaccValue = "%";
+            yaccValue = RopeConstants.PERCENT;
             return RubyParser.tOP_ASGN;
         }
 
@@ -2086,7 +2085,7 @@ public class RubyLexer implements MagicCommentHandler {
         setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
 
         pushback(c);
-        yaccValue = "%";
+        yaccValue = RopeConstants.PERCENT;
         warn_balanced(c, spaceSeen, "%", "string literal");
         return RubyParser.tPERCENT;
     }
@@ -2099,21 +2098,21 @@ public class RubyLexer implements MagicCommentHandler {
                 setState(EXPR_BEG);
                 if ((c = nextc()) == '=') {
                     setState(EXPR_BEG);
-                    yaccValue = "||";
+                    yaccValue = RopeConstants.OR_OR;
                     return RubyParser.tOP_ASGN;
                 }
                 pushback(c);
-                yaccValue = "||";
+                yaccValue = RopeConstants.OR_OR;
                 return RubyParser.tOROP;
             case '=':
                 setState(EXPR_BEG);
-                yaccValue = "|";
+                yaccValue = RopeConstants.OR;
                 return RubyParser.tOP_ASGN;
             default:
                 setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG | EXPR_LABEL);
 
                 pushback(c);
-                yaccValue = "|";
+                yaccValue = RopeConstants.OR;
                 return RubyParser.tPIPE;
         }
     }
@@ -2123,17 +2122,17 @@ public class RubyLexer implements MagicCommentHandler {
         if (isAfterOperator()) {
             setState(EXPR_ARG);
             if (c == '@') {
-                yaccValue = "+@";
+                yaccValue = RopeConstants.PLUS_AT;
                 return RubyParser.tUPLUS;
             }
             pushback(c);
-            yaccValue = "+";
+            yaccValue = RopeConstants.PLUS;
             return RubyParser.tPLUS;
         }
 
         if (c == '=') {
             setState(EXPR_BEG);
-            yaccValue = "+";
+            yaccValue = RopeConstants.PLUS;
             return RubyParser.tOP_ASGN;
         }
 
@@ -2144,13 +2143,13 @@ public class RubyLexer implements MagicCommentHandler {
                 c = '+';
                 return parseNumber(c);
             }
-            yaccValue = "+";
+            yaccValue = RopeConstants.PLUS_AT;
             return RubyParser.tUPLUS;
         }
 
         setState(EXPR_BEG);
         pushback(c);
-        yaccValue = "+";
+        yaccValue = RopeConstants.PLUS;
         warn_balanced(c, spaceSeen, "+", "unary operator");
         return RubyParser.tPLUS;
     }
@@ -2160,7 +2159,7 @@ public class RubyLexer implements MagicCommentHandler {
 
         if (isEND()) {
             setState(EXPR_VALUE);
-            yaccValue = "?";
+            yaccValue = RopeConstants.QUESTION;
             return '?';
         }
 
@@ -2199,7 +2198,7 @@ public class RubyLexer implements MagicCommentHandler {
             }
             pushback(c);
             setState(EXPR_VALUE);
-            yaccValue = "?";
+            yaccValue = RopeConstants.QUESTION;
             return '?';
         }
 
@@ -2211,7 +2210,7 @@ public class RubyLexer implements MagicCommentHandler {
             newtok(true);
             pushback(c);
             setState(EXPR_VALUE);
-            yaccValue = "?";
+            yaccValue = RopeConstants.QUESTION;
             return '?';
         } else if (c == '\\') {
             if (peek('u')) {
@@ -2248,7 +2247,7 @@ public class RubyLexer implements MagicCommentHandler {
         conditionState.restart();
         cmdArgumentState.restart();
         setState(EXPR_ENDARG);
-        yaccValue = "]";
+        yaccValue = RopeConstants.RBRACKET;
         return RubyParser.tRBRACK;
     }
 
@@ -2256,7 +2255,7 @@ public class RubyLexer implements MagicCommentHandler {
         conditionState.restart();
         cmdArgumentState.restart();
         setState(EXPR_ENDARG);
-        yaccValue = "}";
+        yaccValue = RopeConstants.RCURLY;
         int tok = braceNest == 0 ? RubyParser.tSTRING_DEND : RubyParser.tRCURLY;
         braceNest--;
         return tok;
@@ -2267,14 +2266,14 @@ public class RubyLexer implements MagicCommentHandler {
         conditionState.restart();
         cmdArgumentState.restart();
         setState(EXPR_ENDFN);
-        yaccValue = ")";
+        yaccValue = RopeConstants.RPAREN;
         return RubyParser.tRPAREN;
     }
 
     private int singleQuote(boolean commandState) {
         int label = isLabelPossible(commandState) ? str_label : 0;
         lex_strterm = new StringTerm(str_squote | label, '\0', '\'');
-        yaccValue = "'";
+        yaccValue = RopeConstants.Q;
 
         return RubyParser.tSTRING_BEG;
     }
@@ -2282,7 +2281,7 @@ public class RubyLexer implements MagicCommentHandler {
     private int slash(boolean spaceSeen) {
         if (isBEG()) {
             lex_strterm = new StringTerm(str_regexp, '\0', '/');
-            yaccValue = "/";
+            yaccValue = RopeConstants.SLASH;
             return RubyParser.tREGEXP_BEG;
         }
 
@@ -2290,20 +2289,20 @@ public class RubyLexer implements MagicCommentHandler {
 
         if (c == '=') {
             setState(EXPR_BEG);
-            yaccValue = "/";
+            yaccValue = RopeConstants.SLASH;
             return RubyParser.tOP_ASGN;
         }
         pushback(c);
         if (isSpaceArg(c, spaceSeen)) {
             arg_ambiguous();
             lex_strterm = new StringTerm(str_regexp, '\0', '/');
-            yaccValue = "/";
+            yaccValue = RopeConstants.SLASH;
             return RubyParser.tREGEXP_BEG;
         }
 
         setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
 
-        yaccValue = "/";
+        yaccValue = RopeConstants.SLASH;
         warn_balanced(c, spaceSeen, "/", "regexp literal");
         return RubyParser.tDIVIDE;
     }
@@ -2315,12 +2314,12 @@ public class RubyLexer implements MagicCommentHandler {
             case '*':
                 if ((c = nextc()) == '=') {
                     setState(EXPR_BEG);
-                    yaccValue = "**";
+                    yaccValue = RopeConstants.STAR_STAR;
                     return RubyParser.tOP_ASGN;
                 }
 
                 pushback(c); // not a '=' put it back
-                yaccValue = "**";
+                yaccValue = RopeConstants.STAR_STAR;
 
                 if (isSpaceArg(c, spaceSeen)) {
                     if (warnings.isVerbose()) {
@@ -2339,7 +2338,7 @@ public class RubyLexer implements MagicCommentHandler {
                 break;
             case '=':
                 setState(EXPR_BEG);
-                yaccValue = "*";
+                yaccValue = RopeConstants.STAR;
                 return RubyParser.tOP_ASGN;
             default:
                 pushback(c);
@@ -2357,7 +2356,7 @@ public class RubyLexer implements MagicCommentHandler {
                     warn_balanced(c, spaceSeen, "*", "argument prefix");
                     c = RubyParser.tSTAR2;
                 }
-                yaccValue = "*";
+                yaccValue = RopeConstants.STAR;
         }
 
         setState(isAfterOperator() ? EXPR_ARG : EXPR_BEG);
@@ -2376,7 +2375,7 @@ public class RubyLexer implements MagicCommentHandler {
             setState(EXPR_BEG);
         }
 
-        yaccValue = "~";
+        yaccValue = RopeConstants.TILDE;
         return RubyParser.tTILDE;
     }
 
@@ -2889,12 +2888,22 @@ public class RubyLexer implements MagicCommentHandler {
         return parserRopeOperations.makeShared(lexb, tokp, lex_p - tokp);
     }
 
+    @Deprecated
     public String createTokenString(int start) {
         return RopeOperations.decodeRopeSegment(lexb, start, lex_p - start);
     }
 
+    @Deprecated
     public String createTokenString() {
         return createTokenString(tokp);
+    }
+
+    public Rope createTokenRope(int start) {
+        return parserRopeOperations.makeShared(lexb, start, lex_p - start);
+    }
+
+    public Rope createTokenRope() {
+        return createTokenRope(tokp);
     }
 
     protected Rope dedent_string(Rope string, int width) {

@@ -48,20 +48,67 @@ public class RopeConstants {
         }
     }
 
+    public static final Rope AMPERSAND = ascii("&");
     public static final Rope AMPERSAND_AMPERSAND = ascii("&&");
     public static final Rope AMPERSAND_DOT = ascii("&.");
+    public static final Rope BACKTICK = ascii("`");
+    public static final Rope BACKSLASH = ascii("\\");
     public static final Rope BANG = ascii("!");
+    public static final Rope BANG_EQ = ascii("!=");
+    public static final Rope BANG_TILDE = ascii("!~");
     public static final Rope CALL = ascii("call");
+    public static final Rope CARET = ascii("^");
+    public static final Rope COLON = ascii(":");
+    public static final Rope COLON_COLON = ascii("::");
+    public static final Rope COMMA = ascii(",");
     public static final Rope DOT = ascii(".");
+    public static final Rope DOT_DOT = ascii("..");
+    public static final Rope DOT_DOT_DOT = ascii("...");
     public static final Rope DOLLAR_BANG = ascii("$!");
+    public static final Rope DOLLAR_ZERO = ascii("$0");
+    public static final Rope EQ = ascii("=");
     public static final Rope EQ_EQ = ascii("==");
-    public static final Rope EQUAL_TILDE = ascii("=~");
+    public static final Rope EQ_EQ_EQ = ascii("===");
+    public static final Rope EQ_GT = ascii("=>");
+    public static final Rope EQ_TILDE = ascii("=~");
+    public static final Rope GT = ascii(">");
+    public static final Rope GT_EQ = ascii(">=");
+    public static final Rope GT_GT = ascii(">>");
+    public static final Rope LBRACKET = ascii("[");
     public static final Rope LBRACKET_RBRACKET = ascii("[]");
+    public static final Rope LBRACKET_RBRACKET_EQ = ascii("[]=");
+    public static final Rope LCURLY = ascii("{");
+    public static final Rope LT = ascii("<");
+    public static final Rope LT_EQ = ascii("<=");
+    public static final Rope LT_EQ_GT = ascii("<=>");
+    public static final Rope LT_LT = ascii("<<");
+    public static final Rope MINUS = ascii("-");
+    public static final Rope MINUS_AT = ascii("-@");
+    public static final Rope MINUS_GT = ascii("->");
+    public static final Rope OR = ascii("|");
     public static final Rope OR_OR = ascii("||");
+    public static final Rope PERCENT = ascii("%");
+    public static final Rope PLUS = ascii("+");
+    public static final Rope PLUS_AT = ascii("+@");
+    public static final Rope Q = ascii("'");
+    public static final Rope QQ = ascii("\"");
+    public static final Rope QUESTION = ascii("?");
+    public static final Rope RBRACKET = ascii("]");
+    public static final Rope RCURLY = ascii("}");
+    public static final Rope RPAREN = ascii(")");
+    public static final Rope SEMICOLON = ascii(";");
+    public static final Rope SLASH = ascii("/");
+    public static final Rope STAR = ascii("*");
+    public static final Rope STAR_STAR = ascii("**");
+    public static final Rope TILDE = ascii("~");
 
     private static Rope ascii(String string) {
-        final byte[] bytes = string.getBytes(StandardCharsets.US_ASCII);
-        return new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
+        if (string.length() == 1) {
+            return US_ASCII_SINGLE_BYTE_ROPES[string.charAt(0)];
+        } else {
+            final byte[] bytes = string.getBytes(StandardCharsets.US_ASCII);
+            return new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
+        }
     }
 
 }
