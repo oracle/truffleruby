@@ -82,7 +82,7 @@ module Truffle
     def self.normalized_start_length(range, size)
       start = Truffle::Type.rb_num2int(range.first)
       start += size if start < 0
-      if Primitive.object_equal(range.end, nil)
+      if Primitive.nil?(range.end)
         length = size
       else
         length = Truffle::Type.rb_num2int(range.end)

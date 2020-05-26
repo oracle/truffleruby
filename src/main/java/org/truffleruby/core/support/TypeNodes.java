@@ -109,6 +109,15 @@ public abstract class TypeNodes {
 
     }
 
+    @Primitive(name = "nil?")
+    public static abstract class IsNilNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected boolean objectEqual(Object a) {
+            return a == nil;
+        }
+    }
+
     @Primitive(name = "object_ivars")
     public abstract static class ObjectInstanceVariablesNode extends PrimitiveArrayArgumentsNode {
 
