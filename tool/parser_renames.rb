@@ -2,7 +2,7 @@ contents = STDIN.read
 
 header_regexp = /\A%{.+?%}/m
 trailer_regexp = /^%%[^%]+\z/m
-original = `git show master:src/main/java/org/truffleruby/parser/parser/RubyParser.y`
+original = `git show HEAD:src/main/java/org/truffleruby/parser/parser/RubyParser.y`
 
 original_header = original[header_regexp, 0] or raise
 original_trailer = original[trailer_regexp, 0] or raise
