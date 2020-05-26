@@ -41,6 +41,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
@@ -165,60 +166,60 @@ public class RubyParser {
   modifier_rescue keyword_alias keyword_defined keyword_BEGIN keyword_END
   keyword__LINE__ keyword__FILE__ keyword__ENCODING__ keyword_do_lambda 
 
-%token <ByteList> tIDENTIFIER tFID tGVAR tIVAR tCONSTANT tCVAR tLABEL
+%token <Rope> tIDENTIFIER tFID tGVAR tIVAR tCONSTANT tCVAR tLABEL
 %token <StrParseNode> tCHAR
-%type <ByteList> sym symbol operation operation2 operation3 op fname cname
-%type <ByteList> f_norm_arg restarg_mark
-%type <ByteList> dot_or_colon  blkarg_mark
-%token <ByteList> tUPLUS         /* unary+ */
-%token <ByteList> tUMINUS        /* unary- */
-%token <ByteList> tUMINUS_NUM    /* unary- */
-%token <ByteList> tPOW           /* ** */
-%token <ByteList> tCMP           /* <=> */
-%token <ByteList> tEQ            /* == */
-%token <ByteList> tEQQ           /* === */
-%token <ByteList> tNEQ           /* != */
-%token <ByteList> tGEQ           /* >= */
-%token <ByteList> tLEQ           /* <= */
-%token <ByteList> tANDOP tOROP   /* && and || */
-%token <ByteList> tMATCH tNMATCH /* =~ and !~ */
-%token <ByteList> tDOT           /* Is just '.' in ruby and not a token */
-%token <ByteList> tDOT2 tDOT3    /* .. and ... */
-%token <ByteList> tAREF tASET    /* [] and []= */
-%token <ByteList> tLSHFT tRSHFT  /* << and >> */
-%token <ByteList> tANDDOT        /* &. */
-%token <ByteList> tCOLON2        /* :: */
-%token <ByteList> tCOLON3        /* :: at EXPR_BEG */
-%token <ByteList> tOP_ASGN       /* +=, -=  etc. */
-%token <ByteList> tASSOC         /* => */
+%type <Rope> sym symbol operation operation2 operation3 op fname cname
+%type <Rope> f_norm_arg restarg_mark
+%type <Rope> dot_or_colon  blkarg_mark
+%token <Rope> tUPLUS         /* unary+ */
+%token <Rope> tUMINUS        /* unary- */
+%token <Rope> tUMINUS_NUM    /* unary- */
+%token <Rope> tPOW           /* ** */
+%token <Rope> tCMP           /* <=> */
+%token <Rope> tEQ            /* == */
+%token <Rope> tEQQ           /* === */
+%token <Rope> tNEQ           /* != */
+%token <Rope> tGEQ           /* >= */
+%token <Rope> tLEQ           /* <= */
+%token <Rope> tANDOP tOROP   /* && and || */
+%token <Rope> tMATCH tNMATCH /* =~ and !~ */
+%token <Rope> tDOT           /* Is just '.' in ruby and not a token */
+%token <Rope> tDOT2 tDOT3    /* .. and ... */
+%token <Rope> tAREF tASET    /* [] and []= */
+%token <Rope> tLSHFT tRSHFT  /* << and >> */
+%token <Rope> tANDDOT        /* &. */
+%token <Rope> tCOLON2        /* :: */
+%token <Rope> tCOLON3        /* :: at EXPR_BEG */
+%token <Rope> tOP_ASGN       /* +=, -=  etc. */
+%token <Rope> tASSOC         /* => */
 %token <SourceIndexLength> tLPAREN       /* ( */
 %token <SourceIndexLength> tLPAREN2      /* ( Is just '(' in ruby and not a token */
-%token <ByteList> tRPAREN        /* ) */
+%token <Rope> tRPAREN        /* ) */
 %token <SourceIndexLength> tLPAREN_ARG    /* ( */
-%token <ByteList> tLBRACK        /* [ */
-%token <ByteList> tRBRACK        /* ] */
+%token <Rope> tLBRACK        /* [ */
+%token <Rope> tRBRACK        /* ] */
 %token <SourceIndexLength> tLBRACE        /* { */
 %token <SourceIndexLength> tLBRACE_ARG    /* { */
-%token <ByteList> tSTAR          /* * */
-%token <ByteList> tSTAR2         /* *  Is just '*' in ruby and not a token */
-%token <ByteList> tAMPER         /* & */
-%token <ByteList> tAMPER2        /* &  Is just '&' in ruby and not a token */
-%token <ByteList> tTILDE         /* ` is just '`' in ruby and not a token */
-%token <ByteList> tPERCENT       /* % is just '%' in ruby and not a token */
-%token <ByteList> tDIVIDE        /* / is just '/' in ruby and not a token */
-%token <ByteList> tPLUS          /* + is just '+' in ruby and not a token */
-%token <ByteList> tMINUS         /* - is just '-' in ruby and not a token */
-%token <ByteList> tLT            /* < is just '<' in ruby and not a token */
-%token <ByteList> tGT            /* > is just '>' in ruby and not a token */
-%token <ByteList> tPIPE          /* | is just '|' in ruby and not a token */
-%token <ByteList> tBANG          /* ! is just '!' in ruby and not a token */
-%token <ByteList> tCARET         /* ^ is just '^' in ruby and not a token */
+%token <Rope> tSTAR          /* * */
+%token <Rope> tSTAR2         /* *  Is just '*' in ruby and not a token */
+%token <Rope> tAMPER         /* & */
+%token <Rope> tAMPER2        /* &  Is just '&' in ruby and not a token */
+%token <Rope> tTILDE         /* ` is just '`' in ruby and not a token */
+%token <Rope> tPERCENT       /* % is just '%' in ruby and not a token */
+%token <Rope> tDIVIDE        /* / is just '/' in ruby and not a token */
+%token <Rope> tPLUS          /* + is just '+' in ruby and not a token */
+%token <Rope> tMINUS         /* - is just '-' in ruby and not a token */
+%token <Rope> tLT            /* < is just '<' in ruby and not a token */
+%token <Rope> tGT            /* > is just '>' in ruby and not a token */
+%token <Rope> tPIPE          /* | is just '|' in ruby and not a token */
+%token <Rope> tBANG          /* ! is just '!' in ruby and not a token */
+%token <Rope> tCARET         /* ^ is just '^' in ruby and not a token */
 %token <SourceIndexLength> tLCURLY        /* { is just '{' in ruby and not a token */
-%token <ByteList> tRCURLY        /* } is just '}' in ruby and not a token */
-%token <ByteList> tBACK_REF2     /* { is just '`' in ruby and not a token */
-%token <ByteList> tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG
-%token <ByteList> tSTRING_DBEG tSTRING_DVAR tSTRING_END
-%token <ByteList> tLAMBDA tLAMBEG
+%token <Rope> tRCURLY        /* } is just '}' in ruby and not a token */
+%token <Rope> tBACK_REF2     /* { is just '`' in ruby and not a token */
+%token <Rope> tSYMBEG tSTRING_BEG tXSTRING_BEG tREGEXP_BEG tWORDS_BEG tQWORDS_BEG
+%token <Rope> tSTRING_DBEG tSTRING_DVAR tSTRING_END
+%token <Rope> tLAMBDA tLAMBEG
 %token <ParseNode> tNTH_REF tBACK_REF tSTRING_CONTENT tINTEGER tIMAGINARY
 %token <FloatParseNode> tFLOAT  
 %token <RationalParseNode> tRATIONAL
@@ -271,19 +272,19 @@ public class RubyParser {
 %type <LambdaParseNode> lambda
 %type <ParseNode> mlhs_inner f_block_opt for_var
 %type <ParseNode> opt_call_args f_marg f_margs
-%type <ByteList> bvar
-%type <ByteList> reswords f_bad_arg relop
-%type <ByteList> rparen rbracket 
+%type <Rope> bvar
+%type <Rope> reswords f_bad_arg relop
+%type <Rope> rparen rbracket 
 %type <ParseNode> top_compstmt top_stmts top_stmt
-%token <ByteList> tSYMBOLS_BEG
-%token <ByteList> tQSYMBOLS_BEG
-%token <ByteList> tDSTAR
-%token <ByteList> tSTRING_DEND
-%type <ByteList> kwrest_mark f_kwrest f_label 
-%type <ByteList> call_op call_op2
+%token <Rope> tSYMBOLS_BEG
+%token <Rope> tQSYMBOLS_BEG
+%token <Rope> tDSTAR
+%token <Rope> tSTRING_DEND
+%type <Rope> kwrest_mark f_kwrest f_label 
+%type <Rope> call_op call_op2
 %type <ArgumentParseNode> f_arg_asgn
 %type <FCallParseNode> fcall
-%token <ByteList> tLABEL_END, tSTRING_DEND
+%token <Rope> tLABEL_END, tSTRING_DEND
 %type <SourceIndexLength> k_return k_class k_module
 
 /*
@@ -479,7 +480,7 @@ command_asgn    : lhs '=' command_rhs {
                     value_expr(lexer, $3);
 
                     SourceIndexLength pos = $1.getPosition();
-                    ByteList asgnOp = $2;
+                    Rope asgnOp = $2;
                     if (asgnOp == lexer.OR_OR) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnOrParseNode(pos, support.gettable2($1), $1);
@@ -1116,7 +1117,7 @@ arg             : lhs '=' arg_rhs {
                     value_expr(lexer, $3);
 
                     SourceIndexLength pos = $1.getPosition();
-                    ByteList asgnOp = $2;
+                    Rope asgnOp = $2;
                     if (asgnOp == lexer.OR_OR) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnOrParseNode(pos, support.gettable2($1), $1);
@@ -1616,7 +1617,7 @@ primary         : literal
                     $$ = new DefnParseNode($1, support.symbolID($2), (ArgsParseNode) $5, support.getCurrentScope(), body, $7.getLine());
                     support.popCurrentScope();
                     support.setInDef($<Boolean>4.booleanValue());
-                    lexer.setCurrentArg($<ByteList>3);
+                    lexer.setCurrentArg($<Rope>3);
                 }
                 | keyword_def singleton dot_or_colon {
                     lexer.setState(EXPR_FNAME); 
@@ -1634,7 +1635,7 @@ primary         : literal
                     $$ = new DefsParseNode($1, $2, support.symbolID($5), (ArgsParseNode) $7, support.getCurrentScope(), body, $9.getLine());
                     support.popCurrentScope();
                     support.setInDef($<Boolean>4.booleanValue());
-                    lexer.setCurrentArg($<ByteList>6);
+                    lexer.setCurrentArg($<Rope>6);
                 }
                 | keyword_break {
                     $$ = new BreakParseNode($1, NilImplicitParseNode.NIL);
@@ -1738,20 +1739,20 @@ block_args_tail : f_block_kwarg ',' f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail($1.getPosition(), $1, $3, $4);
                 }
                 | f_block_kwarg opt_f_block_arg {
-                    $$ = support.new_args_tail($1.getPosition(), $1, (ByteList) null, $2);
+                    $$ = support.new_args_tail($1.getPosition(), $1, (Rope) null, $2);
                 }
                 | f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, $1, $2);
                 }
                 | f_block_arg {
-                    $$ = support.new_args_tail($1.getPosition(), null, (ByteList) null, $1);
+                    $$ = support.new_args_tail($1.getPosition(), null, (Rope) null, $1);
                 }
 
 opt_block_args_tail : ',' block_args_tail {
                     $$ = $2;
                 }
                 | /* none */ {
-                    $$ = support.new_args_tail(lexer.getPosition(), null, (ByteList) null, null);
+                    $$ = support.new_args_tail(lexer.getPosition(), null, (Rope) null, null);
                 }
 
 // [!null]
@@ -2062,7 +2063,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END {
                     if ($2 == null) {
                         $$ = new XStrParseNode(position, null, StringSupport.CR_7BIT);
                     } else if ($2 instanceof StrParseNode) {
-                        $$ = new XStrParseNode(position, (ByteList) $<StrParseNode>2.getValue().clone(), $<StrParseNode>2.getCodeRange());
+                        $$ = new XStrParseNode(position, (Rope) $<StrParseNode>2.getValue().clone(), $<StrParseNode>2.getCodeRange());
                     } else if ($2 instanceof DStrParseNode) {
                         $$ = new DXStrParseNode(position, $<DStrParseNode>2);
 
@@ -2129,7 +2130,7 @@ qsym_list      : /* none */ {
                 }
 
 string_contents : /* none */ {
-                    ByteList aChar = ByteList.create("");
+                    Rope aChar = Rope.create("");
                     aChar.setEncoding(lexer.getEncoding());
                     $$ = lexer.createStr(aChar, 0);
                 }
@@ -2228,7 +2229,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END {
                      // EvStrNode :"#{some expression}"
                      // Ruby 1.9 allows empty strings as symbols
                      if ($2 == null) {
-                         $$ = support.asSymbol(lexer.getPosition(), new ByteList(new byte[] {}));
+                         $$ = support.asSymbol(lexer.getPosition(), new Rope(new byte[] {}));
                      } else if ($2 instanceof DStrParseNode) {
                          $$ = new DSymbolParseNode($2.getPosition(), $<DStrParseNode>2);
                      } else if ($2 instanceof StrParseNode) {
@@ -2288,7 +2289,7 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new FalseParseNode(lexer.tokline);
                 }
                 | keyword__FILE__ {
-                    $$ = new FileParseNode(lexer.tokline, new ByteList(lexer.getFile().getBytes(),
+                    $$ = new FileParseNode(lexer.tokline, new Rope(lexer.getFile().getBytes(),
                     support.getConfiguration().getRuntime().getEncodingService().getLocaleEncoding()));
                 }
                 | keyword__LINE__ {
@@ -2385,20 +2386,20 @@ args_tail       : f_kwarg ',' f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail($1.getPosition(), $1, $3, $4);
                 }
                 | f_kwarg opt_f_block_arg {
-                    $$ = support.new_args_tail($1.getPosition(), $1, (ByteList) null, $2);
+                    $$ = support.new_args_tail($1.getPosition(), $1, (Rope) null, $2);
                 }
                 | f_kwrest opt_f_block_arg {
                     $$ = support.new_args_tail(lexer.getPosition(), null, $1, $2);
                 }
                 | f_block_arg {
-                    $$ = support.new_args_tail($1.getPosition(), null, (ByteList) null, $1);
+                    $$ = support.new_args_tail($1.getPosition(), null, (Rope) null, $1);
                 }
 
 opt_args_tail   : ',' args_tail {
                     $$ = $2;
                 }
                 | /* none */ {
-                    $$ = support.new_args_tail(lexer.getPosition(), null, (ByteList) null, null);
+                    $$ = support.new_args_tail(lexer.getPosition(), null, (Rope) null, null);
                 }
 
 // [!null]
@@ -2595,7 +2596,7 @@ f_rest_arg      : restarg_mark tIDENTIFIER {
                 }
                 | restarg_mark {
   // FIXME: bytelist_love: somewhat silly to remake the empty bytelist over and over but this type should change (using null vs "" is a strange distinction).
-  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), support.symbolID(new ByteList(new byte[] {})), support.getCurrentScope().addVariable("*"));
+  $$ = new UnnamedRestArgParseNode(lexer.getPosition(), support.symbolID(new Rope(new byte[] {})), support.getCurrentScope().addVariable("*"));
                 }
 
 // [!null]
