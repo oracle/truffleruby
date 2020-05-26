@@ -14,7 +14,7 @@ Note that the global IntelliJ settings are accessed differently based on the pla
 
 We refer to these global settings as `Preferences` in the rest of the document.
 
-## Build the project
+## Build TruffleRuby
 
 First, make sure the project is already built from the command line:
 
@@ -22,7 +22,7 @@ First, make sure the project is already built from the command line:
 $ jt build
 ```
 
-## Install Eclipse Code Formatter plugin
+## Install Eclipse Code Formatter Plugin
 
 Installing the Eclipse Code Formatter plugin is recommended to have the Java
 source code always formatted to match the project's guidelines.
@@ -48,7 +48,7 @@ In `Preferences` -> `Editor` -> `Code Style` -> `Java`:
 - In `Imports` set the count to use import * to a large value to disable import *, e.g. `999`
 - In `Wrapping and Braces` -> `Field Annotations` select the option `Do not wrap after a single annotation`.
 
-## Install Ruby and Python plugins
+## Install Ruby and Python Plugins
 
 To be able to see and edit properly all the files in the TruffleRuby repository
 you need to install the plugins for Ruby and Python in `Preferences` -> `Plugins`.
@@ -59,7 +59,7 @@ generated it will try to use existing Python 2.7 SDK and a Ruby SDK which has
 should be linked automatically and the `rbenv: truffleruby-jvm` Ruby SDK
 should be created automatically when the IDE starts.
 
-## Generate the project files
+## Generate the Project Files
 
 ```bash
 $ jt idea
@@ -72,7 +72,7 @@ by dynamically importing (`--dy`) other suites. For example, to have Native Imag
 $ jt idea --dy /substratevm,/tools
 ```
 
-## Import the project
+## Import the Project
 
 From the IntelliJ launcher, select `Open` and navigate to this repository root.
 There should now be the following in your workspace:
