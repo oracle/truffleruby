@@ -182,47 +182,47 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public enum Keyword {
-        END("end", RubyParser.keyword_end, RubyParser.keyword_end, EXPR_END),
-        ELSE("else", RubyParser.keyword_else, RubyParser.keyword_else, EXPR_BEG),
-        CASE("case", RubyParser.keyword_case, RubyParser.keyword_case, EXPR_BEG),
-        ENSURE("ensure", RubyParser.keyword_ensure, RubyParser.keyword_ensure, EXPR_BEG),
-        MODULE("module", RubyParser.keyword_module, RubyParser.keyword_module, EXPR_BEG),
-        ELSIF("elsif", RubyParser.keyword_elsif, RubyParser.keyword_elsif, EXPR_BEG),
-        DEF("def", RubyParser.keyword_def, RubyParser.keyword_def, EXPR_FNAME),
+        END("end", RubyParser.keyword_end, EXPR_END),
+        ELSE("else", RubyParser.keyword_else, EXPR_BEG),
+        CASE("case", RubyParser.keyword_case, EXPR_BEG),
+        ENSURE("ensure", RubyParser.keyword_ensure, EXPR_BEG),
+        MODULE("module", RubyParser.keyword_module, EXPR_BEG),
+        ELSIF("elsif", RubyParser.keyword_elsif, EXPR_BEG),
+        DEF("def", RubyParser.keyword_def, EXPR_FNAME),
         RESCUE("rescue", RubyParser.keyword_rescue, RubyParser.modifier_rescue, EXPR_MID),
-        NOT("not", RubyParser.keyword_not, RubyParser.keyword_not, EXPR_ARG),
-        THEN("then", RubyParser.keyword_then, RubyParser.keyword_then, EXPR_BEG),
-        YIELD("yield", RubyParser.keyword_yield, RubyParser.keyword_yield, EXPR_ARG),
-        FOR("for", RubyParser.keyword_for, RubyParser.keyword_for, EXPR_BEG),
-        SELF("self", RubyParser.keyword_self, RubyParser.keyword_self, EXPR_END),
-        FALSE("false", RubyParser.keyword_false, RubyParser.keyword_false, EXPR_END),
-        RETRY("retry", RubyParser.keyword_retry, RubyParser.keyword_retry, EXPR_END),
-        RETURN("return", RubyParser.keyword_return, RubyParser.keyword_return, EXPR_MID),
-        TRUE("true", RubyParser.keyword_true, RubyParser.keyword_true, EXPR_END),
+        NOT("not", RubyParser.keyword_not, EXPR_ARG),
+        THEN("then", RubyParser.keyword_then, EXPR_BEG),
+        YIELD("yield", RubyParser.keyword_yield, EXPR_ARG),
+        FOR("for", RubyParser.keyword_for, EXPR_BEG),
+        SELF("self", RubyParser.keyword_self, EXPR_END),
+        FALSE("false", RubyParser.keyword_false, EXPR_END),
+        RETRY("retry", RubyParser.keyword_retry, EXPR_END),
+        RETURN("return", RubyParser.keyword_return, EXPR_MID),
+        TRUE("true", RubyParser.keyword_true, EXPR_END),
         IF("if", RubyParser.keyword_if, RubyParser.modifier_if, EXPR_BEG),
-        DEFINED_P("defined?", RubyParser.keyword_defined, RubyParser.keyword_defined, EXPR_ARG),
-        SUPER("super", RubyParser.keyword_super, RubyParser.keyword_super, EXPR_ARG),
-        UNDEF("undef", RubyParser.keyword_undef, RubyParser.keyword_undef, EXPR_FNAME),
-        BREAK("break", RubyParser.keyword_break, RubyParser.keyword_break, EXPR_MID),
-        IN("in", RubyParser.keyword_in, RubyParser.keyword_in, EXPR_BEG),
-        DO("do", RubyParser.keyword_do, RubyParser.keyword_do, EXPR_BEG),
-        NIL("nil", RubyParser.keyword_nil, RubyParser.keyword_nil, EXPR_END),
+        DEFINED_P("defined?", RubyParser.keyword_defined, EXPR_ARG),
+        SUPER("super", RubyParser.keyword_super, EXPR_ARG),
+        UNDEF("undef", RubyParser.keyword_undef, EXPR_FNAME),
+        BREAK("break", RubyParser.keyword_break, EXPR_MID),
+        IN("in", RubyParser.keyword_in, EXPR_BEG),
+        DO("do", RubyParser.keyword_do, EXPR_BEG),
+        NIL("nil", RubyParser.keyword_nil, EXPR_END),
         UNTIL("until", RubyParser.keyword_until, RubyParser.modifier_until, EXPR_BEG),
         UNLESS("unless", RubyParser.keyword_unless, RubyParser.modifier_unless, EXPR_BEG),
-        OR("or", RubyParser.keyword_or, RubyParser.keyword_or, EXPR_BEG),
-        NEXT("next", RubyParser.keyword_next, RubyParser.keyword_next, EXPR_MID),
-        WHEN("when", RubyParser.keyword_when, RubyParser.keyword_when, EXPR_BEG),
-        REDO("redo", RubyParser.keyword_redo, RubyParser.keyword_redo, EXPR_END),
-        AND("and", RubyParser.keyword_and, RubyParser.keyword_and, EXPR_BEG),
-        BEGIN("begin", RubyParser.keyword_begin, RubyParser.keyword_begin, EXPR_BEG),
-        __LINE__("__LINE__", RubyParser.keyword__LINE__, RubyParser.keyword__LINE__, EXPR_END),
-        CLASS("class", RubyParser.keyword_class, RubyParser.keyword_class, EXPR_CLASS),
-        __FILE__("__FILE__", RubyParser.keyword__FILE__, RubyParser.keyword__FILE__, EXPR_END),
-        LEND("END", RubyParser.keyword_END, RubyParser.keyword_END, EXPR_END),
-        LBEGIN("BEGIN", RubyParser.keyword_BEGIN, RubyParser.keyword_BEGIN, EXPR_END),
+        OR("or", RubyParser.keyword_or, EXPR_BEG),
+        NEXT("next", RubyParser.keyword_next, EXPR_MID),
+        WHEN("when", RubyParser.keyword_when, EXPR_BEG),
+        REDO("redo", RubyParser.keyword_redo, EXPR_END),
+        AND("and", RubyParser.keyword_and, EXPR_BEG),
+        BEGIN("begin", RubyParser.keyword_begin, EXPR_BEG),
+        __LINE__("__LINE__", RubyParser.keyword__LINE__, EXPR_END),
+        CLASS("class", RubyParser.keyword_class, EXPR_CLASS),
+        __FILE__("__FILE__", RubyParser.keyword__FILE__, EXPR_END),
+        LEND("END", RubyParser.keyword_END, EXPR_END),
+        LBEGIN("BEGIN", RubyParser.keyword_BEGIN, EXPR_END),
         WHILE("while", RubyParser.keyword_while, RubyParser.modifier_while, EXPR_BEG),
-        ALIAS("alias", RubyParser.keyword_alias, RubyParser.keyword_alias, EXPR_FNAME),
-        __ENCODING__("__ENCODING__", RubyParser.keyword__ENCODING__, RubyParser.keyword__ENCODING__, EXPR_END);
+        ALIAS("alias", RubyParser.keyword_alias, EXPR_FNAME),
+        __ENCODING__("__ENCODING__", RubyParser.keyword__ENCODING__, EXPR_END);
 
         public final String name;
         public final Rope bytes;
@@ -230,11 +230,15 @@ public class RubyLexer implements MagicCommentHandler {
         public final int id1;
         public final int state;
 
-        Keyword(String name, int id0, int id1, int state) {
+        Keyword(String name, int id, int state) {
+            this(name, id, id, state);
+        }
+
+        Keyword(String name, int id, int modifier, int state) {
             this.name = name;
             this.bytes = RopeOperations.create(name.getBytes(StandardCharsets.US_ASCII), USASCII_ENCODING, CR_7BIT);
-            this.id0 = id0;
-            this.id1 = id1;
+            this.id0 = id;
+            this.id1 = modifier;
             this.state = state;
         }
     }
