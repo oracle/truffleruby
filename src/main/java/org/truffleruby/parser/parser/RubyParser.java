@@ -2379,7 +2379,7 @@ states[343] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[344] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode body = support.makeNullNil(((ParseNode)yyVals[-1+yyTop]));
 
-    yyVal = new ClassParseNode(((SourceIndexLength)yyVals[-5+yyTop]), ((Colon3ParseNode)yyVals[-4+yyTop]), support.getCurrentScope(), body, ((ParseNode)yyVals[-3+yyTop]), lexer.getRubySourceline());
+    yyVal = new ClassParseNode(support.extendedUntil(((SourceIndexLength)yyVals[-5+yyTop]), lexer.getPosition()), ((Colon3ParseNode)yyVals[-4+yyTop]), support.getCurrentScope(), body, ((ParseNode)yyVals[-3+yyTop]));
     support.popCurrentScope();
     return yyVal;
 };
@@ -2397,7 +2397,7 @@ states[346] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[347] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode body = support.makeNullNil(((ParseNode)yyVals[-1+yyTop]));
 
-    yyVal = new SClassParseNode(((SourceIndexLength)yyVals[-7+yyTop]), ((ParseNode)yyVals[-5+yyTop]), support.getCurrentScope(), body, lexer.getRubySourceline());
+    yyVal = new SClassParseNode(support.extendedUntil(((SourceIndexLength)yyVals[-7+yyTop]), lexer.getPosition()), ((ParseNode)yyVals[-5+yyTop]), support.getCurrentScope(), body);
     support.popCurrentScope();
     support.setInDef(((Boolean)yyVals[-4+yyTop]).booleanValue());
     support.setInSingle(((Integer)yyVals[-2+yyTop]).intValue());
@@ -2413,7 +2413,7 @@ states[348] = (support, lexer, yyVal, yyVals, yyTop) -> {
 states[349] = (support, lexer, yyVal, yyVals, yyTop) -> {
     ParseNode body = support.makeNullNil(((ParseNode)yyVals[-1+yyTop]));
 
-    yyVal = new ModuleParseNode(((SourceIndexLength)yyVals[-4+yyTop]), ((Colon3ParseNode)yyVals[-3+yyTop]), support.getCurrentScope(), body, lexer.getRubySourceline());
+    yyVal = new ModuleParseNode(support.extendedUntil(((SourceIndexLength)yyVals[-4+yyTop]), lexer.getPosition()), ((Colon3ParseNode)yyVals[-3+yyTop]), support.getCurrentScope(), body);
     support.popCurrentScope();
     return yyVal;
 };

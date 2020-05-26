@@ -1476,7 +1476,7 @@ primary         : literal
                 } bodystmt kEND {
                     ParseNode body = support.makeNullNil($5);
 
-                    $$ = new ClassParseNode($1, $<Colon3ParseNode>2, support.getCurrentScope(), body, $3, lexer.getRubySourceline());
+                    $$ = new ClassParseNode(support.extendedUntil($1, lexer.getPosition()), $<Colon3ParseNode>2, support.getCurrentScope(), body, $3);
                     support.popCurrentScope();
                 }
                 | kCLASS tLSHFT expr {
@@ -1489,7 +1489,7 @@ primary         : literal
                 } bodystmt kEND {
                     ParseNode body = support.makeNullNil($7);
 
-                    $$ = new SClassParseNode($1, $3, support.getCurrentScope(), body, lexer.getRubySourceline());
+                    $$ = new SClassParseNode(support.extendedUntil($1, lexer.getPosition()), $3, support.getCurrentScope(), body);
                     support.popCurrentScope();
                     support.setInDef($<Boolean>4.booleanValue());
                     support.setInSingle($<Integer>6.intValue());
@@ -1502,7 +1502,7 @@ primary         : literal
                 } bodystmt kEND {
                     ParseNode body = support.makeNullNil($4);
 
-                    $$ = new ModuleParseNode($1, $<Colon3ParseNode>2, support.getCurrentScope(), body, lexer.getRubySourceline());
+                    $$ = new ModuleParseNode(support.extendedUntil($1, lexer.getPosition()), $<Colon3ParseNode>2, support.getCurrentScope(), body);
                     support.popCurrentScope();
                 }
                 | kDEF fname {
