@@ -155,6 +155,8 @@ public class ParserSupport {
     // Is the parser currently within a method definition
     private boolean inDefinition;
 
+    // Is the parser currently within a class body.
+    private boolean inClass;
 
     protected ParserConfiguration configuration;
     private RubyParserResult result;
@@ -1061,6 +1063,14 @@ public class ParserSupport {
 
     public void setInDef(boolean inDef) {
         this.inDefinition = inDef;
+    }
+
+    public boolean isInClass() {
+        return inClass;
+    }
+
+    public void setIsInClass(boolean inClass) {
+        this.inClass = inClass;
     }
 
     /** Getter for property inSingle.
