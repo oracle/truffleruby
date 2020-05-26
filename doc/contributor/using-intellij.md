@@ -22,8 +22,8 @@ source code always formatted to match the project's guidelines.
     generated with `jt idea`.
     
 To format the source code use the usual idea shortcut for formatting the file.
-If imports are not being optimised as well, use idea action "Show Reformat File
-Dialog" and make sure the checkbox "Optimize imports" is checked.
+If imports are not being optimised as well, use idea action `Show Reformat File
+Dialog` and make sure the checkbox `Optimize imports` is checked.
 
 ### Install Ruby and Python plugins
 
@@ -53,7 +53,7 @@ There should now be the following in your workspace:
     including the Java and Ruby source files. Syntax highlighting and project 
     navigation should work for both Java and Ruby.
 
-Go to "File" -> "Project Structure" -> "Platform Settings", "SDKs", and add the JVMCI OpenJDK that has been installed alongside the TruffleRuby repository when you built.
+Go to `File` -> `Project Structure` -> `Platform Settings`, `SDKs`, and add the JVMCI OpenJDK that has been installed alongside the TruffleRuby repository when you built.
 
 ## Configuring Checkstyle Plugin
 
@@ -62,31 +62,31 @@ Checkstyle style checks for Java code can be imported into IntelliJ via the
 plugin.
 
 ### Installation
-1. Select "IntelliJ" -> "Preferences", then "Plugins".
-2. Select "Browse Repositories" and search for "Checkstyle"
-3. Select "Checkstyle-IDEA", then "Install".
+1. Select `IntelliJ` -> `Preferences`, then `Plugins`.
+2. Select `Browse Repositories` and search for `Checkstyle`
+3. Select `Checkstyle-IDEA`, then `Install`.
 
 ### Configuration
-1. Select "IntelliJ" -> "Preferences", "Other Settings", then "Checkstyle".
-2. Select "+" to add a local Checkstyle Configuration.
+1. Select `IntelliJ` -> `Preferences`, `Other Settings`, then `Checkstyle`.
+2. Select `+` to add a local Checkstyle Configuration.
 3. Enter a description, e.g. `TruffleRuby Checkstyle`
 4. Enter the location of the configuration file, e.g. `/Users/myuser/Documents/truffleruby/src/main/.checkstyle_checks.xml`
-5. Complete the import, then check the "Active" checkbox next to the new configuration, then select "Ok".
+5. Complete the import, then check the `Active` checkbox next to the new configuration, then select `OK`.
 
 ### Scan Usage
-1. Select "View" -> "Tool Windows" -> "Checkstyle"
+1. Select `View` -> `Tool Windows` -> `Checkstyle`
 2. The Checkstyle tools window has options to check the current file, project, module, changelist, or only modified files.
 3. The style issues will be highlighted in the tool window, on the right side of the editor or inline in the source.
 
 ### Reformat Code Usage
-Using the "Code" -> "Reformat Code" tool using IntelliJ's default settings may resolve the majority of Checkstyle errors. Optionally, you can import Checkstyle styles into your code formatting as follows:
+Using the `Code` -> `Reformat Code` tool using IntelliJ's default settings may resolve the majority of Checkstyle errors. Optionally, you can import Checkstyle styles into your code formatting as follows:
 
-1. Select "IntelliJ" -> "Preferences", "Editor", then "Code Style".
-2. Using the gear icon, next to the "Scheme", select "Import Scheme" -> "Checkstyle Configuration".
+1. Select `IntelliJ` -> `Preferences`, `Editor`, then `Code Style`.
+2. Using the gear icon, next to the `Scheme`, select `Import Scheme` -> `Checkstyle Configuration`.
 3. Select the `src/main/.checkstyle_checks.xml` file to import Checkstyle into the scheme.
-4. Use "Reformat Code" tool as usual with the new Checkstyle settings imported.
+4. Use `Reformat Code` tool as usual with the new Checkstyle settings imported.
 
 ## Additional Recommended Format Settings
-In "IntelliJ" -> "Preferences", "Editor" -> "Code Style" -> "Java":
-- In "Imports" set the count to use import * to a large value to disable import *, e.g. "999"
-- In "Wrapping & Braces" - "Field Annotations" select the option to not wrap after a single annotation.
+In `IntelliJ` -> `Preferences`, `Editor` -> `Code Style` -> `Java`:
+- In `Imports` set the count to use import * to a large value to disable import *, e.g. `999`
+- In `Wrapping & Braces` - `Field Annotations` select the option to not wrap after a single annotation.
