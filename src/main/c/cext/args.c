@@ -29,15 +29,16 @@ NORETURN(static void unknown_keyword_error(VALUE hash, const ID *table, int keyw
   int i;
   for (i = 0; i < keywords; i++) {
     VALUE key = table[i];
-    rb_hash_delete(hash, key);
+    rb_hash_delete(hash, ID2SYM(key));
   }
   rb_keyword_error("unknown", rb_hash_keys(hash));
 }
 
 static VALUE rb_tr_extract_keyword(VALUE keyword_hash, ID key, VALUE *values) {
-   VALUE val = rb_hash_lookup2(keyword_hash, key, Qundef);
+  VALUE keySym = ID2SYM(key);
+  VALUE val = rb_hash_lookup2(keyword_hash, keySym, Qundef);
    if (values) {
-     rb_hash_delete(keyword_hash, key);
+     rb_hash_delete(keyword_hash, keySym);
    }
    return val;
 }
@@ -61,7 +62,7 @@ int rb_get_kwargs(VALUE keyword_hash, const ID *table, int required, int optiona
       if (NIL_P(missing)) {
         missing = rb_ary_new();
       }
-      rb_ary_push(missing, table[n]);
+      rb_ary_push(missing, ID2SYM(table[n]));
       rb_keyword_error("missing", missing);
     }
     extracted++;

@@ -53,12 +53,16 @@ VALUE rb_sym_to_s(VALUE sym) {
   return RUBY_INVOKE(sym, "to_s");
 }
 
+#undef rb_sym2id
+
 ID rb_sym2id(VALUE sym) {
-  return (ID) sym;
+  return rb_tr_sym2id(sym);;
 }
 
+#undef rb_id2sym
+
 VALUE rb_id2sym(ID x) {
-  return (VALUE) x;
+  return rb_tr_wrap(rb_tr_id2sym(x));
 }
 
 VALUE rb_to_symbol(VALUE name) {

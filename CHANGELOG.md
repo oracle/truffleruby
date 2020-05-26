@@ -21,6 +21,7 @@ Compatibility:
 * Implemented `strtod` and `ruby_strtod` (#2007).
 * Fix detection of `#find_type` in FFI to ignore `MakeMakefile#find_type` from `mkmf` (#1896, #2010).
 * Implemented `rb_uv_to_utf8` (#1998).
+* Single character IDs now behave more like those in MRI to improve C extension compatibility.
 
 Performance:
 

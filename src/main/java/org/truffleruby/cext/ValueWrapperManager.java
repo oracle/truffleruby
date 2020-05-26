@@ -374,6 +374,39 @@ public class ValueWrapperManager {
 
     @ExportLibrary(InteropLibrary.class)
     @GenerateUncached
+    public static class ID2SymbolFunction implements TruffleObject {
+
+        @ExportMessage
+        protected boolean isExecutable() {
+            return true;
+        }
+
+        @ExportMessage
+        public Object execute(Object[] arguments,
+                @Cached IDToSymbolNode unwrapIDNode) {
+            return unwrapIDNode.execute(arguments[0]);
+        }
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    @GenerateUncached
+    public static class Symbol2IDFunction implements TruffleObject {
+
+        @ExportMessage
+        protected boolean isExecutable() {
+            return true;
+        }
+
+        @ExportMessage
+        public Object execute(Object[] arguments,
+                @Cached UnwrapNode unwrapNode,
+                @Cached SymbolToIDNode symbolTOIDNode) {
+            return symbolTOIDNode.execute(unwrapNode.execute(arguments[0]));
+        }
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    @GenerateUncached
     public static class WrapperFunction implements TruffleObject {
 
         @ExportMessage

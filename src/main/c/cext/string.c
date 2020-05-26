@@ -94,7 +94,7 @@ VALUE rb_tainted_str_new_cstr(const char *ptr) {
 }
 
 ID rb_intern_str(VALUE string) {
-  return RUBY_CEXT_INVOKE("rb_intern_str", string);
+  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern_str", string));
 }
 
 VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
