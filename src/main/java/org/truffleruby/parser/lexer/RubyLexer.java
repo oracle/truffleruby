@@ -52,7 +52,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 
 import org.jcodings.Encoding;
@@ -62,6 +64,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.rope.BytesKey;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -97,54 +100,6 @@ import com.oracle.truffle.api.source.SourceSection;
 public class RubyLexer implements MagicCommentHandler {
 
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
-
-    private static final HashMap<String, Keyword> map;
-
-    static {
-        map = new HashMap<>();
-
-        map.put("end", Keyword.END);
-        map.put("else", Keyword.ELSE);
-        map.put("case", Keyword.CASE);
-        map.put("ensure", Keyword.ENSURE);
-        map.put("module", Keyword.MODULE);
-        map.put("elsif", Keyword.ELSIF);
-        map.put("def", Keyword.DEF);
-        map.put("rescue", Keyword.RESCUE);
-        map.put("not", Keyword.NOT);
-        map.put("then", Keyword.THEN);
-        map.put("yield", Keyword.YIELD);
-        map.put("for", Keyword.FOR);
-        map.put("self", Keyword.SELF);
-        map.put("false", Keyword.FALSE);
-        map.put("retry", Keyword.RETRY);
-        map.put("return", Keyword.RETURN);
-        map.put("true", Keyword.TRUE);
-        map.put("if", Keyword.IF);
-        map.put("defined?", Keyword.DEFINED_P);
-        map.put("super", Keyword.SUPER);
-        map.put("undef", Keyword.UNDEF);
-        map.put("break", Keyword.BREAK);
-        map.put("in", Keyword.IN);
-        map.put("do", Keyword.DO);
-        map.put("nil", Keyword.NIL);
-        map.put("until", Keyword.UNTIL);
-        map.put("unless", Keyword.UNLESS);
-        map.put("or", Keyword.OR);
-        map.put("next", Keyword.NEXT);
-        map.put("when", Keyword.WHEN);
-        map.put("redo", Keyword.REDO);
-        map.put("and", Keyword.AND);
-        map.put("begin", Keyword.BEGIN);
-        map.put("__LINE__", Keyword.__LINE__);
-        map.put("class", Keyword.CLASS);
-        map.put("__FILE__", Keyword.__FILE__);
-        map.put("END", Keyword.LEND);
-        map.put("BEGIN", Keyword.LBEGIN);
-        map.put("while", Keyword.WHILE);
-        map.put("alias", Keyword.ALIAS);
-        map.put("__ENCODING__", Keyword.__ENCODING__);
-    }
 
     private BignumParseNode newBignumNode(String value, int radix) {
         return new BignumParseNode(getPosition(), new BigInteger(value, radix));
@@ -230,6 +185,22 @@ public class RubyLexer implements MagicCommentHandler {
         public final int id1;
         public final int state;
 
+        private static abstract class Maps {
+            private static final Map<String, Keyword> FROM_STRING;
+            private static final Map<BytesKey, Keyword> FROM_BYTES;
+
+            static {
+                final Map<String, Keyword> fromString = new HashMap<>();
+                final Map<BytesKey, Keyword> fromBytes = new HashMap<>();
+                for (Keyword keyword : Keyword.values()) {
+                    fromString.put(keyword.name, keyword);
+                    fromBytes.put(new BytesKey(keyword.bytes.getBytes(), null), keyword);
+                }
+                FROM_STRING = Collections.unmodifiableMap(fromString);
+                FROM_BYTES = Collections.unmodifiableMap(fromBytes);
+            }
+        }
+
         Keyword(String name, int id, int state) {
             this(name, id, id, state);
         }
@@ -244,7 +215,11 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public static Keyword getKeyword(String str) {
-        return map.get(str);
+        return Keyword.Maps.FROM_STRING.get(str);
+    }
+
+    public static Keyword getKeyword(Rope rope) {
+        return Keyword.Maps.FROM_BYTES.get(new BytesKey(rope.getBytes(), null));
     }
 
     // Used for tiny smidgen of grammar in lexer (see setParserSupport())
