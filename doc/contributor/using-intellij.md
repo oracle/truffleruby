@@ -97,8 +97,10 @@ errors. Optionally, you can import Checkstyle styles into your code formatting a
 
 ## Wrap to Column Plugin
 
-The `Wrap to Column` plugin is useful to conveniently wrap to a given max number of characters per line, for instance in
-Markdown files. Install it from `Preferences` -> `Plugins`.
+The `Wrap to Column` plugin is useful to conveniently wrap to a given max number
+of characters per line, for instance in Markdown files. Install it from
+`Preferences` -> `Plugins`. You then need to configure the width to `80` in
+`Preferences` -> `Tools` -> `Wrap to Column` -> `Right margin override`.
 
 ## Additional Recommended Format Settings
 In `Preferences`, `Editor` -> `Code Style` -> `Java`:
