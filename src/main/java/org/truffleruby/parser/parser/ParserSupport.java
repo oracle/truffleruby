@@ -36,9 +36,6 @@
 package org.truffleruby.parser.parser;
 
 import static org.truffleruby.core.rope.CodeRange.CR_BROKEN;
-import static org.truffleruby.parser.lexer.RubyLexer.ASCII8BIT_ENCODING;
-import static org.truffleruby.parser.lexer.RubyLexer.USASCII_ENCODING;
-import static org.truffleruby.parser.lexer.RubyLexer.UTF8_ENCODING;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -46,7 +43,10 @@ import java.util.List;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.EUCJPEncoding;
+import org.jcodings.specific.SJISEncoding;
 import org.jcodings.specific.USASCIIEncoding;
+import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
@@ -1622,16 +1622,16 @@ public class ParserSupport {
 
     // TODO: Put somewhere more consolidated (similar)
     private char optionsEncodingChar(Encoding optionEncoding) {
-        if (optionEncoding == USASCII_ENCODING) {
+        if (optionEncoding == USASCIIEncoding.INSTANCE) {
             return 'n';
         }
-        if (optionEncoding == org.jcodings.specific.EUCJPEncoding.INSTANCE) {
+        if (optionEncoding == EUCJPEncoding.INSTANCE) {
             return 'e';
         }
-        if (optionEncoding == org.jcodings.specific.SJISEncoding.INSTANCE) {
+        if (optionEncoding == SJISEncoding.INSTANCE) {
             return 's';
         }
-        if (optionEncoding == UTF8_ENCODING) {
+        if (optionEncoding == UTF8Encoding.INSTANCE) {
             return 'u';
         }
 
@@ -1682,15 +1682,15 @@ public class ParserSupport {
 
             value = parserRopeOperations.withEncoding(value, optionsEncoding);
         } else if (options.isEncodingNone()) {
-            if (value.getEncoding() == ASCII8BIT_ENCODING && !is7BitASCII(value)) {
+            if (value.getEncoding() == ASCIIEncoding.INSTANCE && !is7BitASCII(value)) {
                 compileError(optionsEncoding, value.getEncoding());
             }
-            value = parserRopeOperations.withEncoding(value, ASCII8BIT_ENCODING);
-        } else if (lexer.getEncoding() == USASCII_ENCODING) {
+            value = parserRopeOperations.withEncoding(value, ASCIIEncoding.INSTANCE);
+        } else if (lexer.getEncoding() == USASCIIEncoding.INSTANCE) {
             if (!is7BitASCII(value)) {
-                value = parserRopeOperations.withEncoding(value, USASCII_ENCODING); // This will raise later
+                value = parserRopeOperations.withEncoding(value, USASCIIEncoding.INSTANCE); // This will raise later
             } else {
-                value = parserRopeOperations.withEncoding(value, ASCII8BIT_ENCODING);
+                value = parserRopeOperations.withEncoding(value, ASCIIEncoding.INSTANCE);
             }
         }
         return value;

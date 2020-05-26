@@ -236,7 +236,7 @@ public class RubyLexer implements MagicCommentHandler {
 
         Keyword(String name, int id, int modifier, int state) {
             this.name = name;
-            this.bytes = RopeOperations.create(name.getBytes(StandardCharsets.US_ASCII), USASCII_ENCODING, CR_7BIT);
+            this.bytes = RopeOperations.create(name.getBytes(StandardCharsets.US_ASCII), USASCIIEncoding.INSTANCE, CR_7BIT);
             this.id0 = id;
             this.id1 = modifier;
             this.state = state;
@@ -605,10 +605,10 @@ public class RubyLexer implements MagicCommentHandler {
             // If we have characters outside 7-bit range and we are still ascii then change to ascii-8bit
             if (codeRange == CodeRange.CR_7BIT) {
                 // Do nothing like MRI
-            } else if (getEncoding() == USASCII_ENCODING &&
-                    bufferEncoding != UTF8_ENCODING) {
-                codeRange = associateEncoding(buffer, ASCII8BIT_ENCODING, codeRange);
-                buffer = parserRopeOperations.withEncoding(buffer, ASCII8BIT_ENCODING);
+            } else if (getEncoding() == USASCIIEncoding.INSTANCE &&
+                    bufferEncoding != UTF8Encoding.INSTANCE) {
+                codeRange = associateEncoding(buffer, ASCIIEncoding.INSTANCE, codeRange);
+                buffer = parserRopeOperations.withEncoding(buffer, ASCIIEncoding.INSTANCE);
             }
         }
 
@@ -2706,7 +2706,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     private void readUTF8EscapeIntoBuffer(int codepoint, RopeBuilder buffer, boolean stringLiteral) {
         if (codepoint >= 0x80) {
-            buffer.setEncoding(UTF8_ENCODING);
+            buffer.setEncoding(UTF8Encoding.INSTANCE);
             if (stringLiteral) {
                 tokaddmbc(codepoint, buffer);
             }
@@ -3143,7 +3143,7 @@ public class RubyLexer implements MagicCommentHandler {
                 break;
             case 0xef:
                 if (lex_pend - lex_p >= 2 && p(lex_p) == 0xbb && p(lex_p + 1) == 0xbf) {
-                    setEncoding(UTF8_ENCODING);
+                    setEncoding(UTF8Encoding.INSTANCE);
                     lex_p += 2;
                     lex_pbeg = lex_p;
                     return;
@@ -3572,10 +3572,6 @@ public class RubyLexer implements MagicCommentHandler {
             .create(new byte[]{ 'e', 'n', 'd' }, ASCIIEncoding.INSTANCE, CR_7BIT);
     public static final Rope CODING = RopeOperations
             .create(new byte[]{ 'c', 'o', 'd', 'i', 'n', 'g' }, ASCIIEncoding.INSTANCE, CR_7BIT);
-
-    public static final Encoding UTF8_ENCODING = UTF8Encoding.INSTANCE;
-    public static final Encoding USASCII_ENCODING = USASCIIEncoding.INSTANCE;
-    public static final Encoding ASCII8BIT_ENCODING = ASCIIEncoding.INSTANCE;
 
     public static final int SUFFIX_R = 1 << 0;
     public static final int SUFFIX_I = 1 << 1;
