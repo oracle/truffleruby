@@ -30,6 +30,8 @@ contents = contents.lines.map do |line|
   line = line.gsub(/\bByteList\b/, 'Rope')
   line = line.gsub(/\bRubySymbol\b/, 'Rope')
 
+  line = line.gsub(/\b(lexer|LexingCommon)\.([A-Z_]+)\b/, 'RopeConstants.\2')
+
   line = "#{line}//#{comment}" if comment
   line
 end.join

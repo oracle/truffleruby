@@ -482,10 +482,10 @@ command_asgn    : lhs '=' command_rhs {
 
                     SourceIndexLength pos = $1.getPosition();
                     Rope asgnOp = $2;
-                    if (asgnOp == lexer.OR_OR) {
+                    if (asgnOp == RopeConstants.OR_OR) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnOrParseNode(pos, support.gettable2($1), $1);
-                    } else if (asgnOp == lexer.AMPERSAND_AMPERSAND) {
+                    } else if (asgnOp == RopeConstants.AMPERSAND_AMPERSAND) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnAndParseNode(pos, support.gettable2($1), $1);
                     } else {
@@ -539,7 +539,7 @@ expr            : command_call
                     $$ = support.newOrNode(support.getPosition($1), $1, $3);
                 }
                 | keyword_not opt_nl expr {
-                    $$ = support.getOperatorCallNode(support.getConditionNode($3), lexer.BANG);
+                    $$ = support.getOperatorCallNode(support.getConditionNode($3), RopeConstants.BANG);
                 }
                 | tBANG command_call {
                     $$ = support.getOperatorCallNode(support.getConditionNode($2), $1);
@@ -1119,10 +1119,10 @@ arg             : lhs '=' arg_rhs {
 
                     SourceIndexLength pos = $1.getPosition();
                     Rope asgnOp = $2;
-                    if (asgnOp == lexer.OR_OR) {
+                    if (asgnOp == RopeConstants.OR_OR) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnOrParseNode(pos, support.gettable2($1), $1);
-                    } else if (asgnOp == lexer.AMPERSAND_AMPERSAND) {
+                    } else if (asgnOp == RopeConstants.AMPERSAND_AMPERSAND) {
                         $1.setValueNode($3);
                         $$ = new OpAsgnAndParseNode(pos, support.gettable2($1), $1);
                     } else {
@@ -1507,10 +1507,10 @@ primary         : literal
                     $$ = support.new_defined($1, $4);
                 }
                 | keyword_not tLPAREN2 expr rparen {
-                    $$ = support.getOperatorCallNode(support.getConditionNode($3), lexer.BANG);
+                    $$ = support.getOperatorCallNode(support.getConditionNode($3), RopeConstants.BANG);
                 }
                 | keyword_not tLPAREN2 rparen {
-                    $$ = support.getOperatorCallNode(NilImplicitParseNode.NIL, lexer.BANG);
+                    $$ = support.getOperatorCallNode(NilImplicitParseNode.NIL, RopeConstants.BANG);
                 }
                 | fcall brace_block {
                     support.frobnicate_fcall_args($1, null, $2);
@@ -1926,10 +1926,10 @@ method_call     : fcall paren_args {
                     $$ = support.new_call($1, $3, null, null);
                 }
                 | primary_value call_op paren_args {
-                    $$ = support.new_call($1, $2, LexingCommon.CALL, $3, null);
+                    $$ = support.new_call($1, $2, RopeConstants.CALL, $3, null);
                 }
                 | primary_value tCOLON2 paren_args {
-                    $$ = support.new_call($1, LexingCommon.CALL, $3, null);
+                    $$ = support.new_call($1, RopeConstants.CALL, $3, null);
                 }
                 | keyword_super paren_args {
                     $$ = support.new_super($1, $2);
@@ -1939,10 +1939,10 @@ method_call     : fcall paren_args {
                 }
                 | primary_value '[' opt_call_args rbracket {
                     if ($1 instanceof SelfParseNode) {
-                        $$ = support.new_fcall(LexingCommon.LBRACKET_RBRACKET);
+                        $$ = support.new_fcall(RopeConstants.LBRACKET_RBRACKET);
                         support.frobnicate_fcall_args($<FCallParseNode>$, $3, null);
                     } else {
-                        $$ = support.new_call($1, lexer.LBRACKET_RBRACKET, $3, null);
+                        $$ = support.new_call($1, RopeConstants.LBRACKET_RBRACKET, $3, null);
                     }
                 }
 
@@ -1984,7 +1984,7 @@ cases           : opt_else | case_body
 opt_rescue      : keyword_rescue exc_list exc_var then compstmt opt_rescue {
                     ParseNode node;
                     if ($3 != null) {
-                        node = support.appendToBlock(support.node_assign($3, new GlobalVarParseNode($1, support.symbolID(lexer.DOLLAR_BANG))), $5);
+                        node = support.appendToBlock(support.node_assign($3, new GlobalVarParseNode($1, support.symbolID(RopeConstants.DOLLAR_BANG))), $5);
                         if ($5 != null) {
                             node.setPosition($1);
                         }

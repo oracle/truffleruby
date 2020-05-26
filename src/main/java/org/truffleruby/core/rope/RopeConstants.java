@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.rope;
 
+import java.nio.charset.StandardCharsets;
+
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -44,6 +46,18 @@ public class RopeConstants {
             US_ASCII_SINGLE_BYTE_ROPES[i] = new InvalidLeafRope(bytes, USASCIIEncoding.INSTANCE, 1).computeHashCode();
             ASCII_8BIT_SINGLE_BYTE_ROPES[i] = new ValidLeafRope(bytes, ASCIIEncoding.INSTANCE, 1).computeHashCode();
         }
+    }
+
+    public static final Rope AMPERSAND_AMPERSAND = ascii("&&");
+    public static final Rope BANG = ascii("!");
+    public static final Rope CALL = ascii("call");
+    public static final Rope DOLLAR_BANG = ascii("$!");
+    public static final Rope LBRACKET_RBRACKET = ascii("[]");
+    public static final Rope OR_OR = ascii("||");
+
+    private static Rope ascii(String string) {
+        final byte[] bytes = string.getBytes(StandardCharsets.US_ASCII);
+        return new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
     }
 
 }
