@@ -1788,7 +1788,9 @@ EOS
       vm_args << '--engine.CompilationFailureAction=ExitVM'
       vm_args << '--engine.TreatPerformanceWarningsAsErrors=all'
     end
-    run_ruby(*vm_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
+
+    args, ruby_args = args_split(args)
+    run_ruby(*vm_args, *ruby_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
   end
 
   def profile(*args)
