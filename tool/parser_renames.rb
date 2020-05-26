@@ -23,7 +23,7 @@ contents = contents.lines.map do |line|
   line = line.gsub(/\bNode\b/, 'ParseNode')
   line = line.gsub(/\bISourcePosition\b/, 'SourceIndexLength')
 
-  line = line.gsub(/\bsupport.warn\(ID[^,]+, /, 'support.warn(')
+  line = line.gsub(/\bsupport.warn(ing)?\(ID[^,]+, /, 'support.warn\1(')
 
   line = line.gsub(/<KeyValuePair>/, '<ParseNodeTuple>')
 

@@ -1419,7 +1419,15 @@ public class ParserSupport {
     }
 
     public void warn(SourceIndexLength position, String message) {
-        warnings.warn(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
+        if (warnings.warningsEnabled()) {
+            warnings.warn(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
+        }
+    }
+
+    public void warning(SourceIndexLength position, String message) {
+        if (warnings.isVerbose()) {
+            warnings.warning(file, position.toSourceSection(lexer.getSource()).getStartLine(), message);
+        }
     }
 
     // ENEBO: Totally weird naming (in MRI is not allocated and is a local var name) [1.9]
