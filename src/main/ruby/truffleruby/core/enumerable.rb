@@ -722,7 +722,7 @@ module Enumerable
   private :min_max
 
   private def max_by_n(n, &block)
-    n = Truffle::Type.rb_num2long(n)
+    n = Primitive.rb_num2long(n)
     raise ArgumentError, "negative size #{n}" if n < 0
     return [] if n == 0
     self.sort_by(&block).last(n).reverse
@@ -750,7 +750,7 @@ module Enumerable
   end
 
   private def min_by_n(n, &block)
-    n = Truffle::Type.rb_num2long(n)
+    n = Primitive.rb_num2long(n)
     raise ArgumentError, "negative size #{n}" if n < 0
     return [] if n == 0
     self.sort_by(&block).first(n)

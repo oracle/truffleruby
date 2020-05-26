@@ -334,8 +334,8 @@ public abstract class TypeNodes {
 
     }
 
-    @CoreMethod(names = "rb_num2long", onSingleton = true, required = 1)
-    public static abstract class RbNum2LongNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "rb_num2long")
+    public static abstract class RbNum2LongPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Child private ToLongNode toLongNode = ToLongNode.create();
 
         @Specialization
@@ -344,8 +344,8 @@ public abstract class TypeNodes {
         }
     }
 
-    @CoreMethod(names = "rb_num2int", onSingleton = true, required = 1)
-    public static abstract class RbNum2IntNode extends CoreMethodArrayArgumentsNode {
+    @Primitive(name = "rb_num2int")
+    public static abstract class RbNum2IntPrimitiveNode extends PrimitiveArrayArgumentsNode {
         @Child private ToIntNode toIntNode = ToIntNode.create();
 
         @Specialization

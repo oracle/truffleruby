@@ -146,7 +146,7 @@ class Array
   end
 
   def at(index)
-    index = Truffle::Type.rb_num2long(index)
+    index = Primitive.rb_num2long(index)
     return nil unless Primitive.integer_fits_into_int(index)
     index += size if index < 0
     Primitive.array_read_normalized(self, index)
@@ -161,9 +161,9 @@ class Array
         return at(start)
       end
     else
-      start = Truffle::Type.rb_num2int(start)
+      start = Primitive.rb_num2int(start)
       start += size if start < 0
-      length = Truffle::Type.rb_num2int(length)
+      length = Primitive.rb_num2int(length)
     end
     Primitive.array_read_slice_normalized(self, start, length)
   end
@@ -178,12 +178,12 @@ class Array
         Primitive.array_aset(self, index, converted, undefined)
         value
       else
-        index = Truffle::Type.rb_num2long(index)
+        index = Primitive.rb_num2long(index)
         Primitive.array_aset(self, index, value, undefined)
       end
     else
-      index = Truffle::Type.rb_num2int(index)
-      length = Truffle::Type.rb_num2int(length)
+      index = Primitive.rb_num2int(index)
+      length = Primitive.rb_num2int(length)
       converted = value
       unless Array === value
         converted = Array.try_convert(value)

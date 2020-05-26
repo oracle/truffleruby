@@ -80,12 +80,12 @@ module Truffle
     #
     # `size` is assumed to be normalized: fitting in an int, and positive.
     def self.normalized_start_length(range, size)
-      start = Truffle::Type.rb_num2int(range.first)
+      start = Primitive.rb_num2int(range.first)
       start += size if start < 0
       if Primitive.nil?(range.end)
         length = size
       else
-        length = Truffle::Type.rb_num2int(range.end)
+        length = Primitive.rb_num2int(range.end)
         length += size if length < 0
         length += 1 unless range.exclude_end?
         length -= start

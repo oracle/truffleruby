@@ -126,7 +126,7 @@ module Truffle
     # MRI conversion macros and functions
 
     def self.rb_num2uint(val)
-      num = rb_num2long(val)
+      num = Primitive.rb_num2long(val)
       check_uint(num)
       num
     end

@@ -144,7 +144,7 @@ class Float < Numeric
     if Primitive.undefined?(ndigits)
       Primitive.float_ceil(self)
     else
-      ndigits = Truffle::Type.rb_num2int(ndigits)
+      ndigits = Primitive.rb_num2int(ndigits)
       return ndigits > 0 ? 0.0 : 0 if self == 0.0
       if ndigits == 0
         Primitive.float_ceil(self)
@@ -170,7 +170,7 @@ class Float < Numeric
     if Primitive.undefined?(ndigits)
       Primitive.float_floor(self)
     else
-      ndigits = Truffle::Type.rb_num2int(ndigits)
+      ndigits = Primitive.rb_num2int(ndigits)
       return ndigits > 0 ? 0.0 : 0 if self == 0.0
       if ndigits == 0
         Primitive.float_floor(self)

@@ -329,7 +329,7 @@ end
 module Kernel
   def BigDecimal(value, precision = Truffle::UNDEFINED, exception: true)
     if !Primitive.undefined?(precision)
-      precision = Truffle::Type.rb_num2int(precision)
+      precision = Primitive.rb_num2int(precision)
       if precision < 0
         if exception
           raise ArgumentError, 'negative precision'

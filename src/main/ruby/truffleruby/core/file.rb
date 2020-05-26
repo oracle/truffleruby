@@ -117,7 +117,7 @@ class File < IO
   # the value to 0 if it is greater than 0xffff. Also, negative values
   # don't make any sense here.
   def self.clamp_short(value)
-    mode = Truffle::Type.rb_num2int(value)
+    mode = Primitive.rb_num2int(value)
     mode < 0 || mode > 0xffff ? 0 : mode
   end
 
