@@ -2568,12 +2568,12 @@ f_kwrest        : kwrest_mark tIDENTIFIER {
 
 f_opt           : f_arg_asgn '=' arg_value {
                     lexer.setCurrentArg(null);
-                    $$ = new OptArgParseNode(support.getPosition($3), support.assignableLabelOrIdentifier($1.getName().getBytes(), $3));
+                    $$ = new OptArgParseNode(support.getPosition($3), support.assignableLabelOrIdentifier($1.getName(), $3));
                 }
 
 f_block_opt     : f_arg_asgn '=' primary_value {
                     lexer.setCurrentArg(null);
-                    $$ = new OptArgParseNode(support.getPosition($3), support.assignableLabelOrIdentifier($1.getName().getBytes(), $3));
+                    $$ = new OptArgParseNode(support.getPosition($3), support.assignableLabelOrIdentifier($1.getName(), $3));
                 }
 
 f_block_optarg  : f_block_opt {

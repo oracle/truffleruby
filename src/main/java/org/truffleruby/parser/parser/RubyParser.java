@@ -3643,12 +3643,12 @@ states[592] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[593] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(null);
-    yyVal = new OptArgParseNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), support.assignableLabelOrIdentifier(((ArgumentParseNode)yyVals[-2+yyTop]).getName().getBytes(), ((ParseNode)yyVals[0+yyTop])));
+    yyVal = new OptArgParseNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), support.assignableLabelOrIdentifier(((ArgumentParseNode)yyVals[-2+yyTop]).getName(), ((ParseNode)yyVals[0+yyTop])));
     return yyVal;
 };
 states[594] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(null);
-    yyVal = new OptArgParseNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), support.assignableLabelOrIdentifier(((ArgumentParseNode)yyVals[-2+yyTop]).getName().getBytes(), ((ParseNode)yyVals[0+yyTop])));
+    yyVal = new OptArgParseNode(support.getPosition(((ParseNode)yyVals[0+yyTop])), support.assignableLabelOrIdentifier(((ArgumentParseNode)yyVals[-2+yyTop]).getName(), ((ParseNode)yyVals[0+yyTop])));
     return yyVal;
 };
 states[595] = (support, lexer, yyVal, yyVals, yyTop) -> {
