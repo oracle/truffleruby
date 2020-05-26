@@ -2,6 +2,10 @@
 
 IntelliJ is one of the best supported IDE for editing TruffleRuby.
 
+It provides a real polyglot editor experience by having great support for Java,
+Ruby and Python all in one IDE. For instance, you can jump from primitives in
+Ruby code to the corresponding Java class in IntelliJ.
+
 ### The Preferences/Settings Menu
 
 Note that the global IntelliJ settings are accessed differently based on the platform.
