@@ -650,7 +650,7 @@ module Commands
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
       jt next                                       tell you what to work on next (give you a random core library spec)
-      jt install [jvmci|eclipse]                    install a JVMCI JDK in the parent directory
+      jt install [jvmci|eclipse]                    install [the right JVMCI JDK | Eclipse] in the parent directory
       jt docker                                     build a Docker image - see doc/contributor/docker.md
       jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
       jt idea                                       generates IntelliJ projects
