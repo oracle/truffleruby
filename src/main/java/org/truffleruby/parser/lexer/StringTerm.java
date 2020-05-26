@@ -47,7 +47,7 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.KCode;
 import org.truffleruby.parser.ast.RegexpParseNode;
-import org.truffleruby.parser.parser.Tokens;
+import org.truffleruby.parser.parser.RubyParser;
 
 public class StringTerm extends StrTerm {
 
@@ -97,11 +97,11 @@ public class StringTerm extends StrTerm {
             Rope regexpRope = RopeConstants.EMPTY_US_ASCII_ROPE;
 
             lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpRope, options));
-            return Tokens.tREGEXP_END;
+            return RubyParser.tREGEXP_END;
         }
 
         lexer.setValue("" + end);
-        return Tokens.tSTRING_END;
+        return RubyParser.tSTRING_END;
     }
 
     // Return of 0 means failed to find anything.  Non-zero means return that from lexer.
@@ -130,7 +130,7 @@ public class StringTerm extends StrTerm {
 
                     lexer.pushback(c2);
                     lexer.pushback(c);
-                    return Tokens.tSTRING_DVAR;
+                    return RubyParser.tSTRING_DVAR;
                 }
 
                 significant = c2;                                  // $FOO potentially
@@ -163,7 +163,7 @@ public class StringTerm extends StrTerm {
                 //lexer.setBraceNest(lexer.getBraceNest() + 1);
                 lexer.setValue("#" + (char) c);
                 lexer.commandStart = true;
-                return Tokens.tSTRING_DBEG;
+                return RubyParser.tSTRING_DBEG;
             default:
                 return 0;
         }
@@ -172,7 +172,7 @@ public class StringTerm extends StrTerm {
         if (significant != -1 && Character.isAlphabetic(significant) || significant == '_') {
             lexer.pushback(c);
             lexer.setValue("#" + significant);
-            return Tokens.tSTRING_DVAR;
+            return RubyParser.tSTRING_DVAR;
         }
 
         return 0;
@@ -187,7 +187,7 @@ public class StringTerm extends StrTerm {
         // Heredoc already parsed this and saved string...Do not parse..just return
         if (flags == -1) {
             lexer.setValue("" + end);
-            return Tokens.tSTRING_END;
+            return RubyParser.tSTRING_END;
         }
 
         c = lexer.nextc();
@@ -229,7 +229,7 @@ public class StringTerm extends StrTerm {
         }
 
         lexer.setValue(lexer.createStr(buffer, flags));
-        return Tokens.tSTRING_CONTENT;
+        return RubyParser.tSTRING_CONTENT;
     }
 
     private RegexpOptions parseRegexpFlags(RubyLexer lexer) {

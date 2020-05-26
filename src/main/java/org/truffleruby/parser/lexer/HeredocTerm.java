@@ -37,7 +37,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.parser.parser.Tokens;
+import org.truffleruby.parser.parser.RubyParser;
 
 /** A lexing unit for scanning a heredoc element. Example:
  * 
@@ -104,7 +104,7 @@ public class HeredocTerm extends StrTerm {
         // Found end marker for this heredoc
         if (lexer.was_bol() && lexer.whole_match_p(nd_lit, indent)) {
             lexer.heredoc_restore(this);
-            return Tokens.tSTRING_END;
+            return RubyParser.tSTRING_END;
         }
 
         if ((flags & STR_FUNC_EXPAND) == 0) {
@@ -148,7 +148,7 @@ public class HeredocTerm extends StrTerm {
 
                 if (lexer.getHeredocIndent() > 0) {
                     lexer.setValue(lexer.createStr(str, 0));
-                    return Tokens.tSTRING_CONTENT;
+                    return RubyParser.tSTRING_CONTENT;
                 }
                 // MRI null checks str in this case but it is unconditionally non-null?
                 if (lexer.nextc() == -1) {
@@ -163,10 +163,10 @@ public class HeredocTerm extends StrTerm {
                     case '$':
                     case '@':
                         lexer.pushback(c);
-                        return Tokens.tSTRING_DVAR;
+                        return RubyParser.tSTRING_DVAR;
                     case '{':
                         lexer.commandStart = true;
-                        return Tokens.tSTRING_DBEG;
+                        return RubyParser.tSTRING_DBEG;
                 }
                 tok.append('#');
             }
@@ -186,14 +186,14 @@ public class HeredocTerm extends StrTerm {
                 }
                 if (c != '\n') {
                     lexer.setValue(lexer.createStr(tok, 0));
-                    return Tokens.tSTRING_CONTENT;
+                    return RubyParser.tSTRING_CONTENT;
                 }
                 tok.append(lexer.nextc());
 
                 if (lexer.getHeredocIndent() > 0) {
                     lexer.lex_goto_eol();
                     lexer.setValue(lexer.createStr(tok, 0));
-                    return Tokens.tSTRING_CONTENT;
+                    return RubyParser.tSTRING_CONTENT;
                 }
 
                 if ((c = lexer.nextc()) == EOF) {
@@ -206,6 +206,6 @@ public class HeredocTerm extends StrTerm {
         lexer.heredoc_restore(this);
         lexer.setStrTerm(new StringTerm(-1, '\0', '\0'));
         lexer.setValue(lexer.createStr(str, 0));
-        return Tokens.tSTRING_CONTENT;
+        return RubyParser.tSTRING_CONTENT;
     }
 }
