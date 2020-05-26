@@ -536,6 +536,10 @@ public class ParserSupport {
         return true;
     }
 
+    public boolean checkExpression(ParseNode node) {
+        return value_expr(lexer, node);
+    }
+
     private void handleUselessWarn(ParseNode node, String useless) {
         warnings.warn(
                 file,
