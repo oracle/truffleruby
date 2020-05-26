@@ -1068,7 +1068,7 @@ arg             : lhs '=' arg {
                 }
                 | tCOLON3 tCONSTANT tOP_ASGN arg {
                     SourceIndexLength pos = lexer.getPosition();
-                    $$ = support.newOpConstAsgn(pos, new Colon3ParseNode(pos, $2), $3, $4);
+                    $$ = support.newOpConstAsgn(pos, new Colon3ParseNode(pos, $1), $3, $4);
                 }
                 | backref tOP_ASGN arg {
                     support.backrefAssignError($1);
@@ -1080,24 +1080,12 @@ arg             : lhs '=' arg {
                     boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
                     $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), false, isLiteral);
                 }
-                | arg tDOT2 {
-                    support.checkExpression($1);
-
-                    boolean isLiteral = $1 instanceof FixnumParseNode;
-                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, false, isLiteral);
-                }
                 | arg tDOT3 arg {
                     support.checkExpression($1);
                     support.checkExpression($3);
 
                     boolean isLiteral = $1 instanceof FixnumParseNode && $3 instanceof FixnumParseNode;
                     $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), support.makeNullNil($3), true, isLiteral);
-                }
-                | arg tDOT3 {
-                    support.checkExpression($1);
-
-                    boolean isLiteral = $1 instanceof FixnumParseNode;
-                    $$ = new DotParseNode(support.getPosition($1), support.makeNullNil($1), NilImplicitParseNode.NIL, true, isLiteral);
                 }
                 | arg tPLUS arg {
                     $$ = support.getOperatorCallNode($1, "+", $3, lexer.getPosition());
@@ -1255,7 +1243,7 @@ call_args       : command {
 
 // [!null] - ArgsCatNode, SplatNode, ArrayNode, HashNode, BlockPassNode
 command_args    : /* none */ {
-                    $$ = lexer.getCmdArgumentState().getStack();
+                    $$ = Long.valueOf(lexer.getCmdArgumentState().getStack());
                     lexer.getCmdArgumentState().begin();
                 } call_args {
                     lexer.getCmdArgumentState().reset($<Long>1.longValue());
@@ -1372,7 +1360,7 @@ primary         : literal
                 | tLPAREN compstmt tRPAREN {
                     if ($2 != null) {
                         // compstmt position includes both parens around it
-                        $2.setPosition($1);
+                        ((ISourcePositionHolder) $2).setPosition($1);
                         $$ = $2;
                     } else {
                         $$ = new NilParseNode($1);
@@ -1513,7 +1501,7 @@ primary         : literal
                 } f_arglist bodystmt kEND {
                     ParseNode body = support.makeNullNil($5);
 
-                    $$ = new DefnParseNode(support.extendedUntil($1, $6), $2, (ArgsParseNode) $4, support.getCurrentScope(), body);
+                    $$ = new DefnParseNode($1, $2, (ArgsParseNode) $4, support.getCurrentScope(), body, $6.getLine());
                     support.popCurrentScope();
                     support.setInDef(false);
                     lexer.setCurrentArg($<String>3);
@@ -1530,7 +1518,7 @@ primary         : literal
                     ParseNode body = $8;
                     if (body == null) body = NilImplicitParseNode.NIL;
 
-                    $$ = new DefsParseNode(support.extendedUntil($1, $9), $2, $5, (ArgsParseNode) $7, support.getCurrentScope(), body);
+                    $$ = new DefsParseNode($1, $2, $5, (ArgsParseNode) $7, support.getCurrentScope(), body, $9.getLine());
                     support.popCurrentScope();
                     support.setInSingle(support.getInSingle() - 1);
                     lexer.setCurrentArg($<String>6);
@@ -1655,7 +1643,7 @@ block_param     : f_arg ',' f_block_optarg ',' f_rest_arg opt_block_args_tail {
                     $$ = support.new_args($1.getPosition(), $1, null, $3, null, $4);
                 }
                 | f_arg ',' {
-                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "anon_rest", support.getCurrentScope().addVariable("*"), false);
+                    RestArgParseNode rest = new UnnamedRestArgParseNode($1.getPosition(), null, support.getCurrentScope().addVariable("*"));
                     $$ = support.new_args($1.getPosition(), $1, null, rest, null, (ArgsTailHolder) null);
                 }
                 | f_arg ',' f_rest_arg ',' f_arg opt_block_args_tail {
@@ -1755,13 +1743,13 @@ f_larglist      : tLPAREN2 f_args opt_bv_decl tRPAREN {
 lambda_body     : tLAMBEG compstmt tRCURLY {
                     $$ = $2;
                 }
-                | kDO_LAMBDA bodystmt kEND {
+                | kDO_LAMBDA compstmt kEND {
                     $$ = $2;
                 }
 
 do_block        : kDO_BLOCK {
                     support.pushBlockScope();
-                } opt_block_param bodystmt kEND {
+                } opt_block_param compstmt kEND {
                     $$ = new IterParseNode($1, $3, $4, support.getCurrentScope());
                     support.popCurrentScope();
                 }
@@ -1839,7 +1827,7 @@ brace_block     : tLCURLY {
                 }
                 | kDO {
                     support.pushBlockScope();
-                } opt_block_param bodystmt kEND {
+                } opt_block_param compstmt kEND {
                     $$ = new IterParseNode($1, $3, $4, support.getCurrentScope());
                     support.popCurrentScope();
                 }
@@ -1915,7 +1903,7 @@ string          : tCHAR {
                     $$ = $1;
                 }
                 | string string1 {
-                    $$ = support.literal_concat($1, $2);
+                    $$ = support.literal_concat($1.getPosition(), $1, $2);
                 }
 
 string1         : tSTRING_BEG string_contents tSTRING_END {
@@ -1931,9 +1919,9 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END {
                     lexer.setHeredocIndent(0);
 
                     if ($2 == null) {
-                        $$ = new XStrParseNode(position, null, CodeRange.CR_7BIT);
+                        $$ = new XStrParseNode(position, null, StringSupport.CR_7BIT);
                     } else if ($2 instanceof StrParseNode) {
-                        $$ = new XStrParseNode(position, $<StrParseNode>2.getValue(), $<StrParseNode>2.getCodeRange());
+                        $$ = new XStrParseNode(position, (ByteList) $<StrParseNode>2.getValue().clone(), $<StrParseNode>2.getCodeRange());
                     } else if ($2 instanceof DStrParseNode) {
                         $$ = new DXStrParseNode(position, $<DStrParseNode>2);
 
@@ -1944,7 +1932,7 @@ xstring         : tXSTRING_BEG xstring_contents tSTRING_END {
                 }
 
 regexp          : tREGEXP_BEG regexp_contents tREGEXP_END {
-                    $$ = support.newRegexpNode(support.getPosition($2), $2, $3);
+                    $$ = support.newRegexpNode(support.getPosition($2), $2, (RegexpParseNode) $3);
                 }
 
 words           : tWORDS_BEG ' ' tSTRING_END {
@@ -1965,7 +1953,7 @@ word            : string_content {
                      $$ = $<ParseNode>1;
                 }
                 | word string_content {
-                     $$ = support.literal_concat($1, $<ParseNode>2);
+                     $$ = support.literal_concat(support.getPosition($1), $1, $<ParseNode>2);
                 }
 
 symbols         : tSYMBOLS_BEG ' ' tSTRING_END {
@@ -2012,17 +2000,19 @@ qsym_list      : /* none */ {
                 }
 
 string_contents : /* none */ {
-                    $$ = lexer.createStr(RopeOperations.emptyRope(lexer.getEncoding()), 0);
+                    ByteList aChar = ByteList.create("");
+                    aChar.setEncoding(lexer.getEncoding());
+                    $$ = lexer.createStr(aChar, 0);
                 }
                 | string_contents string_content {
-                    $$ = support.literal_concat($1, $<ParseNode>2);
+                    $$ = support.literal_concat($1.getPosition(), $1, $<ParseNode>2);
                 }
 
 xstring_contents: /* none */ {
                     $$ = null;
                 }
                 | xstring_contents string_content {
-                    $$ = support.literal_concat($1, $<ParseNode>2);
+                    $$ = support.literal_concat(support.getPosition($1), $1, $<ParseNode>2);
                 }
 
 regexp_contents :  /* none */ {
@@ -2030,7 +2020,7 @@ regexp_contents :  /* none */ {
                 }
                 | regexp_contents string_content {
     // FIXME: mri is different here.
-                    $$ = support.literal_concat($1, $<ParseNode>2);
+                    $$ = support.literal_concat(support.getPosition($1), $1, $<ParseNode>2);
                 }
 
 string_content  : tSTRING_CONTENT {
@@ -2100,7 +2090,7 @@ dsym            : tSYMBEG xstring_contents tSTRING_END {
                      // EvStrNode :"#{some expression}"
                      // Ruby 1.9 allows empty strings as symbols
                      if ($2 == null) {
-                         $$ = support.asSymbol(lexer.getPosition(), RopeConstants.EMPTY_US_ASCII_ROPE);
+                         $$ = support.asSymbol(lexer.getPosition(), "");
                      } else if ($2 instanceof DStrParseNode) {
                          $$ = new DSymbolParseNode($2.getPosition(), $<DStrParseNode>2);
                      } else if ($2 instanceof StrParseNode) {
@@ -2154,17 +2144,17 @@ var_ref         : /*mri:user_variable*/ tIDENTIFIER {
                     $$ = new SelfParseNode(lexer.getPosition());
                 }
                 | kTRUE { 
-                    $$ = new TrueParseNode((SourceIndexLength) $$);
+                    $$ = new TrueParseNode(lexer.getPosition());
                 }
                 | kFALSE {
-                    $$ = new FalseParseNode((SourceIndexLength) $$);
+                    $$ = new FalseParseNode(lexer.getPosition());
                 }
                 | k__FILE__ {
-                    Encoding encoding = support.getConfiguration().getContext() == null ? EncodingManager.getEncoding(Charset.defaultCharset().name()) : support.getConfiguration().getContext().getEncodingManager().getLocaleEncoding();
-                    $$ = new FileParseNode(lexer.getPosition(), RopeOperations.create(lexer.getFile().getBytes(), encoding, CR_UNKNOWN));
+                    $$ = new FileParseNode(lexer.getPosition(), new ByteList(lexer.getFile().getBytes(),
+                    support.getConfiguration().getRuntime().getEncodingService().getLocaleEncoding()));
                 }
                 | k__LINE__ {
-                    $$ = new FixnumParseNode(lexer.getPosition(), lexer.tokline.toSourceSection(lexer.getSource()).getStartLine());
+                    $$ = new FixnumParseNode(lexer.getPosition(), lexer.tokline.getLine()+1);
                 }
                 | k__ENCODING__ {
                     $$ = new EncodingParseNode(lexer.getPosition(), lexer.getEncoding());
@@ -2459,7 +2449,7 @@ f_rest_arg      : restarg_mark tIDENTIFIER {
                     $$ = new RestArgParseNode(support.arg_var(support.shadowing_lvar($2)));
                 }
                 | restarg_mark {
-                    $$ = new UnnamedRestArgParseNode(lexer.getPosition(), TranslatorEnvironment.TEMP_PREFIX + "rest", support.getCurrentScope().addVariable("*"), true);
+                    $$ = new UnnamedRestArgParseNode(lexer.getPosition(), "", support.getCurrentScope().addVariable("*"));
                 }
 
 // [!null]
