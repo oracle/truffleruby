@@ -2563,7 +2563,7 @@ f_kwrest        : kwrest_mark tIDENTIFIER {
                     $$ = $2;
                 }
                 | kwrest_mark {
-                    $$ = support.INTERNAL_ID;
+                    $$ = ParserSupport.INTERNAL_ID;
                 }
 
 f_opt           : f_arg_asgn '=' arg_value {

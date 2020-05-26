@@ -3638,7 +3638,7 @@ states[591] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[592] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.INTERNAL_ID;
+    yyVal = ParserSupport.INTERNAL_ID;
     return yyVal;
 };
 states[593] = (support, lexer, yyVal, yyVals, yyTop) -> {
