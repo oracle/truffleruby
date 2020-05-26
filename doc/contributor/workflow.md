@@ -84,7 +84,7 @@ Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
 scratch.
 
-### Building C Extensions Faster
+### Building C Extensions more quickly
 
 To speed up compilation of bundled C extensions, it is possible to use
 *native* toolchain launchers, which might save some build time.
@@ -94,6 +94,11 @@ in Sulong to build and use them.
 You can also use `export JT_CACHE_TOOLCHAIN=true` to have the native toolchain
 launchers built and used by `jt` automatically. `jt` will keep the 4 newest
 built toolchain launchers to avoid rebuilding when branches are switched.
+
+## Editors and IDEs
+
+* [Using the IntelliJ IDE for Development](using-intellij.md) (recommended)
+* [Using the Eclipse IDE for Development](using-eclipse.md)
 
 ## Running
 

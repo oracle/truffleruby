@@ -650,9 +650,10 @@ module Commands
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
       jt profile                                    profiles an application, including the TruffleRuby runtime, and generates a flamegraph
       jt next                                       tell you what to work on next (give you a random core library spec)
-      jt install jvmci                              install a JVMCI JDK in the parent directory
+      jt install [jvmci|eclipse]                    install [the right JVMCI JDK | Eclipse] in the parent directory
       jt docker                                     build a Docker image - see doc/contributor/docker.md
       jt sync                                       continuously synchronize changes from the Ruby source files to the GraalVM build
+      jt idea                                       generates IntelliJ projects
       jt format                                     run eclipse code formatter
 
       you can also put --build or --rebuild in front of any command to build or rebuild first
@@ -662,6 +663,7 @@ module Commands
         RUBY_BIN                                     The TruffleRuby executable to use (normally just bin/truffleruby)
         JAVA_HOME                                    Path to the JVMCI JDK used for building with mx
         OPENSSL_PREFIX                               Where to find OpenSSL headers and libraries
+        ECLIPSE_EXE                                  Where to find Eclipse
     TXT
   end
 
@@ -1822,6 +1824,8 @@ EOS
     case name
     when 'jvmci'
       puts install_jvmci('Downloading JDK8 with JVMCI')
+    when 'eclipse'
+      puts install_eclipse
     else
       raise "Unknown how to install #{what}"
     end
@@ -1856,6 +1860,34 @@ EOS
     abort "#{java_home} does not exist" unless File.executable?(java)
 
     java_home
+  end
+
+  private def install_eclipse
+    if linux?
+      eclipse_url = 'https://archive.eclipse.org/eclipse/downloads/drops4/R-4.5.2-201602121500/eclipse-SDK-4.5.2-linux-gtk-x86_64.tar.gz'
+      eclipse_exe = 'eclipse/eclipse'
+    elsif darwin?
+      eclipse_url = 'https://archive.eclipse.org/eclipse/downloads/drops4/R-4.5.2-201602121500/eclipse-SDK-4.5.2-macosx-cocoa-x86_64.tar.gz'
+      eclipse_exe = 'Eclipse.app/Contents/MacOS/eclipse'
+    else
+      raise 'Installing Eclipse is only available on Linux and macOS currently'
+    end
+
+    eclipse_tar = eclipse_url.split('/').last
+    eclipse_name = File.basename(eclipse_tar, '.tar.gz')
+
+    dir = File.expand_path('..', TRUFFLERUBY_DIR)
+    chdir(dir) do
+      unless File.exist?(eclipse_tar)
+        raw_sh 'curl', '-L', eclipse_url, '-o', eclipse_tar
+      end
+      unless File.exist?(eclipse_name)
+        Dir.mkdir eclipse_name
+        raw_sh 'tar', 'xf', eclipse_tar, '-C', eclipse_name
+      end
+    end
+
+    File.expand_path("../#{eclipse_name}/#{eclipse_exe}", TRUFFLERUBY_DIR)
   end
 
   def clone_enterprise
@@ -2049,7 +2081,13 @@ EOS
     end
   end
 
+  def idea(*args)
+    ENV['ECLIPSE_EXE'] ||= install_eclipse
+    mx(*args, 'intellijinit')
+  end
+
   def command_format(*args)
+    ENV['ECLIPSE_EXE'] ||= install_eclipse
     mx 'eclipseformat', '--no-backup', '--primary', *args, continue_on_failure: true
     format_specializations_visibility
     format_specializations_arguments
@@ -2282,6 +2320,8 @@ EOS
   end
 
   def lint
+    ENV['ECLIPSE_EXE'] ||= install_eclipse
+
     check_filename_length
     rubocop
     sh 'tool/lint.sh'
