@@ -338,7 +338,7 @@ public class ParserSupport {
     }
 
     public ParseNode getOperatorCallNode(ParseNode firstNode, String operator) {
-        checkExpression(firstNode);
+        value_expr(lexer, firstNode);
 
         return new CallParseNode(firstNode.getPosition(), firstNode, operator, null, null);
     }
@@ -354,8 +354,8 @@ public class ParserSupport {
             secondNode = checkForNilNode(secondNode, defaultPosition);
         }
 
-        checkExpression(firstNode);
-        checkExpression(secondNode);
+        value_expr(lexer, firstNode);
+        value_expr(lexer, secondNode);
 
         return new CallParseNode(
                 firstNode.getPosition(),
@@ -384,7 +384,7 @@ public class ParserSupport {
      * @param index node which should evalute to index of array set
      * @return an AttrAssignParseNode */
     public ParseNode aryset(ParseNode receiver, ParseNode index) {
-        checkExpression(receiver);
+        value_expr(lexer, receiver);
 
         return new_attrassign(receiver.getPosition(), receiver, "[]=", index, false);
     }
@@ -399,7 +399,7 @@ public class ParserSupport {
     }
 
     public ParseNode attrset(ParseNode receiver, String callType, String name) {
-        checkExpression(receiver);
+        value_expr(lexer, receiver);
 
         return new_attrassign(receiver.getPosition(), receiver, name + "=", null, isLazy(callType));
     }
@@ -437,7 +437,7 @@ public class ParserSupport {
 
         ParseNode newNode = lhs;
 
-        checkExpression(rhs);
+        value_expr(lexer, rhs);
         if (lhs instanceof AssignableParseNode) {
             ((AssignableParseNode) lhs).setValueNode(rhs);
         } else if (lhs instanceof IArgumentNode) {
@@ -496,8 +496,7 @@ public class ParserSupport {
         }
     }
 
-    // logical equivalent to value_expr in MRI
-    public boolean checkExpression(ParseNode node) {
+    public static boolean value_expr(RubyLexer lexer, ParseNode node) {
         boolean conditional = false;
 
         while (node != null) {
@@ -519,7 +518,7 @@ public class ParserSupport {
                     node = ((BeginParseNode) node).getBodyNode();
                     break;
                 case IFNODE:
-                    if (!checkExpression(((IfParseNode) node).getThenBody())) {
+                    if (!value_expr(lexer, ((IfParseNode) node).getThenBody())) {
                         return false;
                     }
                     node = ((IfParseNode) node).getElseBody();
@@ -793,7 +792,7 @@ public class ParserSupport {
     }
 
     public AndParseNode newAndNode(SourceIndexLength position, ParseNode left, ParseNode right) {
-        checkExpression(left);
+        value_expr(lexer, left);
 
         if (left == null && right == null) {
             return new AndParseNode(position, makeNullNil(left), makeNullNil(right));
@@ -803,7 +802,7 @@ public class ParserSupport {
     }
 
     public OrParseNode newOrNode(SourceIndexLength position, ParseNode left, ParseNode right) {
-        checkExpression(left);
+        value_expr(lexer, left);
 
         if (left == null && right == null) {
             return new OrParseNode(position, makeNullNil(left), makeNullNil(right));

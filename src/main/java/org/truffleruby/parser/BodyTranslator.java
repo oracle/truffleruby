@@ -1515,7 +1515,7 @@ public class BodyTranslator extends Translator {
     }
 
     /** Same as {@link ParserSupport#node_assign(ParseNode, ParseNode)} but without needing a ParserSupport instance.
-     * {@code checkExpression(rhs)} was already done during parsing, no need to re-check it. */
+     * {@link ParserSupport#value_expr} was already done during parsing, no need to re-check it. */
     private ParseNode setRHS(ParseNode lhs, ParseNode rhs) {
         if (lhs instanceof AssignableParseNode) {
             ((AssignableParseNode) lhs).setValueNode(rhs);

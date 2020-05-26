@@ -140,6 +140,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDFN;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FITEM;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
+import static org.truffleruby.parser.parser.ParserSupport.value_expr;
 
 // CheckStyle: start generated
 @SuppressFBWarnings("IP")
