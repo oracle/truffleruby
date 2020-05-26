@@ -65,6 +65,13 @@ should be created automatically when the IDE starts.
 $ jt idea
 ```
 
+If you want to include other GraalVM projects besides TruffleRuby and its dependencies, you can do so
+by dynamically importing (`--dy`) other suites. For example, to have Native Image and Tools in the IDE:
+
+```bash
+$ jt idea --dy /substratevm,/tools
+```
+
 ## Import the project
 
 From the IntelliJ launcher, select `Open` and navigate to this repository root.
