@@ -72,44 +72,7 @@ module Truffle
       [first, last, step_size]
     end
 
-    # Returns an array containing normalized long range bounds `[start, ending]`,
-    # such that both are longs (if conversion is impossible, an error is raised),
-    # and `ending` is exluded from the range.
-    #
-    # Alternatively, `ending` can also be nil for unbounded ranges.
-    def self.normalized(range)
-      start = Truffle::Type.rb_num2long(range.first)
-      if Primitive.object_equal(range.end, nil)
-        ending = nil
-      else
-        ending = Truffle::Type.rb_num2long(range.end)
-        ending += 1 unless range.exclude_end?
-      end
-      [start, ending]
-    end
-
-    # Returns an array containing normalized long range bounds `[start, ending]`,
-    # such that both are 32-bits java ints (if conversion is impossible, an error is raised),
-    # positive (negative values are converted by adding `size`)
-    # and `ending` is exluded from the range.
-    #
-    # Alternatively, `ending` can also be nil for unbounded ranges.
-    #
-    # `size` is assumed to be normalized: fitting in an int, and positive.
-    def self.normalized_with_size(range, size)
-      start = Truffle::Type.rb_num2int(range.first)
-      start += size if start < 0
-      if Primitive.object_equal(range.end, nil)
-        ending = nil
-      else
-        ending = Truffle::Type.rb_num2int(range.end)
-        ending += size if ending < 0
-        ending += 1 unless range.exclude_end?
-      end
-      [start, ending]
-    end
-
-    # Returns an array containing normalized long range parameters `[start, length]`,
+    # Returns an array containing normalized int range parameters `[start, length]`,
     # such that both are 32-bits java ints (if conversion is impossible, an error is raised),
     # positive (negative values are converted by adding `size`).
     #

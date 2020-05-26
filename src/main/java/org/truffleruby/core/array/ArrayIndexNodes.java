@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 2.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -37,8 +46,6 @@ public abstract class ArrayIndexNodes {
 
         public abstract Object executeRead(DynamicObject array, int index);
 
-        // Read within the bounds of an array with actual storage
-
         @Specialization(
                 guards = "isInBounds(array, index)",
                 limit = "storageStrategyLimit()")
@@ -47,14 +54,10 @@ public abstract class ArrayIndexNodes {
             return arrays.read(Layouts.ARRAY.getStore(array), index);
         }
 
-        // Reading out of bounds is nil for any array
-
         @Specialization(guards = "!isInBounds(array, index)")
         protected Object readOutOfBounds(DynamicObject array, int index) {
             return nil;
         }
-
-        // Guards
 
         protected static boolean isInBounds(DynamicObject array, int index) {
             return index >= 0 && index < Layouts.ARRAY.getSize(array);
@@ -73,8 +76,6 @@ public abstract class ArrayIndexNodes {
 
         public abstract Object executeReadSlice(DynamicObject array, int index, int length);
 
-        // Index out of bounds or negative length always gives you nil
-
         @Specialization(guards = "!indexInBounds(array, index)")
         protected Object readIndexOutOfBounds(DynamicObject array, int index, int length) {
             return nil;
@@ -85,34 +86,19 @@ public abstract class ArrayIndexNodes {
             return nil;
         }
 
-        // Reading within bounds on an array with actual storage
-
         @Specialization(
                 guards = {
                         "indexInBounds(array, index)",
-                        "length >= 0",
-                        "endInBounds(array, index, length)" })
+                        "length >= 0" })
         protected DynamicObject readInBounds(DynamicObject array, int index, int length,
-                @Cached ArrayCopyOnWriteNode cowNode) {
-            final Object slice = cowNode.execute(array, index, length);
-            return createArrayOfSameClass(array, slice, length);
+                @Cached ArrayCopyOnWriteNode cowNode,
+                @Cached ConditionProfile endsInBoundsProfile) {
+            final int end = endsInBoundsProfile.profile(endInBounds(array, index, length))
+                    ? length
+                    : Layouts.ARRAY.getSize(array) - index;
+            final Object slice = cowNode.execute(array, index, end);
+            return createArrayOfSameClass(array, slice, end);
         }
-
-        // Reading beyond upper bounds on an array with actual storage needs clamping
-
-        @Specialization(
-                guards = {
-                        "indexInBounds(array, index)",
-                        "length >= 0",
-                        "!endInBounds(array, index, length)" })
-        protected DynamicObject readOutOfBounds(DynamicObject array, int index, int length,
-                @Cached ArrayCopyOnWriteNode cowNode) {
-            final int end = Layouts.ARRAY.getSize(array);
-            final Object slice = cowNode.execute(array, index, end - index);
-            return createArrayOfSameClass(array, slice, end - index);
-        }
-
-        // Guards
 
         protected static boolean indexInBounds(DynamicObject array, int index) {
             return index >= 0 && index <= Layouts.ARRAY.getSize(array);
