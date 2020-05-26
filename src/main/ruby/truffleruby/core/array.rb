@@ -147,6 +147,7 @@ class Array
 
   def at(index)
     index = Truffle::Type.rb_num2long(index)
+    return nil unless Primitive.integer_fits_into_int(index)
     index += size if index < 0
     Primitive.array_read_normalized(self, index)
   end
