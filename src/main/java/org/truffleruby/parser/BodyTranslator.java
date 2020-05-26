@@ -33,8 +33,8 @@ import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayDropTailNode;
 import org.truffleruby.core.array.ArrayDropTailNodeGen;
 import org.truffleruby.core.array.ArrayGetTailNodeGen;
+import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
-import org.truffleruby.core.array.PrimitiveArrayNodeFactory;
 import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
@@ -2080,8 +2080,8 @@ public class BodyTranslator extends Translator {
             /* Then index the temp array for each assignment on the LHS. */
 
             for (int n = 0; n < preArray.size(); n++) {
-                final RubyNode assignedValue = PrimitiveArrayNodeFactory
-                        .read(environment.findLocalVarNode(tempName, sourceSection), n);
+                final RubyNode assignedValue = ArrayIndexNodes.ReadLiteralNode
+                        .create(environment.findLocalVarNode(tempName, sourceSection), n);
 
                 sequence.add(translateDummyAssignment(preArray.get(n), assignedValue));
             }
@@ -2101,8 +2101,8 @@ public class BodyTranslator extends Translator {
                 final List<RubyNode> smallerSequence = new ArrayList<>();
 
                 for (int n = 0; n < postArray.size(); n++) {
-                    final RubyNode assignedValue = PrimitiveArrayNodeFactory
-                            .read(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
+                    final RubyNode assignedValue = ArrayIndexNodes.ReadLiteralNode
+                            .create(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
                     smallerSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
                 }
 
@@ -2111,8 +2111,9 @@ public class BodyTranslator extends Translator {
                 final List<RubyNode> atLeastAsLargeSequence = new ArrayList<>();
 
                 for (int n = 0; n < postArray.size(); n++) {
-                    final RubyNode assignedValue = PrimitiveArrayNodeFactory
-                            .read(environment.findLocalVarNode(tempName, sourceSection), -(postArray.size() - n));
+                    int index = -(postArray.size() - n);
+                    final RubyNode assignedValue = ArrayIndexNodes.ReadLiteralNode
+                            .create(environment.findLocalVarNode(tempName, sourceSection), index);
 
                     atLeastAsLargeSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
                 }
@@ -2247,8 +2248,8 @@ public class BodyTranslator extends Translator {
             final List<RubyNode> smallerSequence = new ArrayList<>();
 
             for (int n = 0; n < postArray.size(); n++) {
-                final RubyNode assignedValue = PrimitiveArrayNodeFactory
-                        .read(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
+                final RubyNode assignedValue = ArrayIndexNodes.ReadLiteralNode
+                        .create(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
                 smallerSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
             }
 
@@ -2257,8 +2258,9 @@ public class BodyTranslator extends Translator {
             final List<RubyNode> atLeastAsLargeSequence = new ArrayList<>();
 
             for (int n = 0; n < postArray.size(); n++) {
-                final RubyNode assignedValue = PrimitiveArrayNodeFactory
-                        .read(environment.findLocalVarNode(tempName, sourceSection), -(postArray.size() - n));
+                int index = -(postArray.size() - n);
+                final RubyNode assignedValue = ArrayIndexNodes.ReadLiteralNode
+                        .create(environment.findLocalVarNode(tempName, sourceSection), index);
 
                 atLeastAsLargeSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
             }

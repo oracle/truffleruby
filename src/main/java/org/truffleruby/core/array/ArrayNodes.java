@@ -209,7 +209,9 @@ public abstract class ArrayNodes {
         protected Object index(DynamicObject array, int index, NotProvided length,
                 @Cached ConditionProfile negativeIndexProfile,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode) {
-            return ArrayIndexNodes.readDenormalized(array, index, negativeIndexProfile, readNode);
+            final int normalizedIndex = ArrayOperations
+                    .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);
+            return readNode.executeRead(array, normalizedIndex);
         }
 
         @Specialization

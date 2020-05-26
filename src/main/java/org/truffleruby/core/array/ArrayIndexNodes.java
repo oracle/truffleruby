@@ -31,6 +31,45 @@ import static org.truffleruby.core.array.ArrayHelpers.getSize;
 @CoreModule(value = "Truffle::ArrayIndex", isClass = false)
 public abstract class ArrayIndexNodes {
 
+    @NodeChild(value = "array", type = RubyNode.class)
+    @ImportStatic(ArrayGuards.class)
+    @ReportPolymorphism
+    public abstract static class ReadLiteralNode extends RubyContextSourceNode {
+
+        protected final int index;
+
+        public static ReadLiteralNode create(RubyNode array, int index) {
+            return ArrayIndexNodesFactory.ReadLiteralNodeGen.create(index, array);
+        }
+
+        protected ReadLiteralNode(int index) {
+            this.index = index;
+        }
+
+        @Specialization(
+                guards = "isInBounds(array)",
+                limit = "storageStrategyLimit()")
+        protected Object readInBounds(DynamicObject array,
+                @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
+            final int size = Layouts.ARRAY.getSize(array);
+            final int normalizedIndex = index >= 0 ? index : size + index;
+            return arrays.read(Layouts.ARRAY.getStore(array), normalizedIndex);
+        }
+
+        @Specialization(guards = "!isInBounds(array)")
+        protected Object readOutOfBounds(DynamicObject array) {
+            return nil;
+        }
+
+        protected boolean isInBounds(DynamicObject array) {
+            // Slightly unorthodox, but minimal intepreter overhead, optimized by PE.
+            // Helps keep memory overhead minimal by not introducing additional nodes.
+            final int size = Layouts.ARRAY.getSize(array);
+            final int normalizedIndex = index >= 0 ? index : size + index;
+            return normalizedIndex >= 0 && normalizedIndex < size;
+        }
+    }
+
     @Primitive(name = "array_read_normalized", lowerFixnum = { 1 }, argumentNames = { "index" })
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
@@ -112,36 +151,4 @@ public abstract class ArrayIndexNodes {
             return index + length <= getSize(array);
         }
     }
-
-    static Object readDenormalized(DynamicObject array, int index,
-            ConditionProfile negativeIndexProfile,
-            ReadNormalizedNode readNode) {
-        final int normalizedIndex = ArrayOperations
-                .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);
-
-        return readNode.executeRead(array, normalizedIndex);
-    }
-
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyNode.class)
-    public abstract static class ReadDenormalizedNode extends RubyContextSourceNode {
-
-        public static ReadDenormalizedNode create() {
-            return ArrayIndexNodesFactory.ReadDenormalizedNodeGen.create(null, null);
-        }
-
-        public static ReadDenormalizedNode create(RubyNode array, RubyNode index) {
-            return ArrayIndexNodesFactory.ReadDenormalizedNodeGen.create(array, index);
-        }
-
-        public abstract Object executeRead(DynamicObject array, int index);
-
-        @Specialization
-        protected Object read(DynamicObject array, int index,
-                @Cached ConditionProfile negativeIndexProfile,
-                @Cached ReadNormalizedNode readNode) {
-            return readDenormalized(array, index, negativeIndexProfile, readNode);
-        }
-    }
 }
-
