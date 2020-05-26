@@ -165,4 +165,9 @@ public abstract class Rope implements Comparable<Rope> {
         return getByteSlow(index);
     }
 
+    /** Should only be used by the parser */
+    public final String getString() {
+        return RopeOperations.decodeRope(this);
+    }
+
 }

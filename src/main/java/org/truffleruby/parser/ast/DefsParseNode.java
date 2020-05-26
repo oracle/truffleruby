@@ -33,6 +33,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
@@ -45,7 +46,7 @@ public class DefsParseNode extends MethodDefParseNode implements INameNode {
     public DefsParseNode(
             SourceIndexLength position,
             ParseNode receiverNode,
-            String name,
+            Rope name,
             ArgsParseNode argsNode,
             StaticScope scope,
             ParseNode bodyNode) {

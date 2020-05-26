@@ -33,6 +33,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
@@ -41,10 +42,10 @@ public class VAliasParseNode extends ParseNode {
     private String oldName;
     private String newName;
 
-    public VAliasParseNode(SourceIndexLength position, String newName, String oldName) {
+    public VAliasParseNode(SourceIndexLength position, Rope newName, Rope oldName) {
         super(position);
-        this.oldName = oldName;
-        this.newName = newName;
+        this.oldName = oldName.getString();
+        this.newName = newName.getString();
     }
 
     @Override

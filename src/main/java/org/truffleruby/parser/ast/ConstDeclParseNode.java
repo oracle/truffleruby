@@ -33,6 +33,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
@@ -43,11 +44,11 @@ public class ConstDeclParseNode extends AssignableParseNode implements INameNode
     private final INameNode constNode;
 
     // TODO: Split this into two sub-classes so that name and constNode can be specified separately.
-    public ConstDeclParseNode(SourceIndexLength position, String name, INameNode constNode, ParseNode valueNode) {
+    public ConstDeclParseNode(SourceIndexLength position, Rope name, INameNode constNode, ParseNode valueNode) {
         super(position, valueNode);
 
         assert constNode != null || (name != null && !name.isEmpty());
-        this.name = name;
+        this.name = name.getString();
         this.constNode = constNode;
     }
 

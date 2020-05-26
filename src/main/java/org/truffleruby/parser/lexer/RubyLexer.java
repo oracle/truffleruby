@@ -3252,8 +3252,8 @@ public class RubyLexer implements MagicCommentHandler {
         return value;
     }
 
-    public void setCurrentArg(String current_arg) {
-        this.current_arg = current_arg;
+    public void setCurrentArg(Rope current_arg) {
+        this.current_arg = current_arg == null ? null : current_arg.getString();
     }
 
     // FIXME: This is icky.  Ripper is setting encoding immediately but in Parsers lexer we are not.
@@ -3467,8 +3467,8 @@ public class RubyLexer implements MagicCommentHandler {
         return false;
     }
 
-    public void validateFormalIdentifier(String identifier) {
-        char first = identifier.charAt(0);
+    public void validateFormalIdentifier(Rope identifier) {
+        int first = identifier.get(0) & 0xFF;
 
         if (Character.isUpperCase(first)) {
             compile_error("formal argument cannot be a constant");
@@ -3476,7 +3476,7 @@ public class RubyLexer implements MagicCommentHandler {
 
         switch (first) {
             case '@':
-                if (identifier.charAt(1) == '@') {
+                if (identifier.get(1) == '@') {
                     compile_error("formal argument cannot be a class variable");
                 } else {
                     compile_error("formal argument cannot be an instance variable");
@@ -3488,7 +3488,7 @@ public class RubyLexer implements MagicCommentHandler {
             default:
                 // This mechanism feels a tad dicey but at this point we are dealing with a valid
                 // method name at least so we should not need to check the entire string...
-                char last = identifier.charAt(identifier.length() - 1);
+                byte last = identifier.get(identifier.byteLength() - 1);
 
                 if (last == '=' || last == '?' || last == '!') {
                     compile_error("formal argument must be local variable");

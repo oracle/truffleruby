@@ -49,9 +49,13 @@ public class RopeConstants {
     }
 
     public static final Rope AMPERSAND_AMPERSAND = ascii("&&");
+    public static final Rope AMPERSAND_DOT = ascii("&.");
     public static final Rope BANG = ascii("!");
     public static final Rope CALL = ascii("call");
+    public static final Rope DOT = ascii(".");
     public static final Rope DOLLAR_BANG = ascii("$!");
+    public static final Rope EQ_EQ = ascii("==");
+    public static final Rope EQUAL_TILDE = ascii("=~");
     public static final Rope LBRACKET_RBRACKET = ascii("[]");
     public static final Rope OR_OR = ascii("||");
 

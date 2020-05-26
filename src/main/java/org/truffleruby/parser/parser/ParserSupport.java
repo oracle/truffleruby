@@ -46,11 +46,13 @@ import java.util.List;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
+import org.truffleruby.core.rope.AsciiOnlyLeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
@@ -248,7 +250,8 @@ public class ParserSupport {
         return null;
     }
 
-    public ParseNode declareIdentifier(String name) {
+    public ParseNode declareIdentifier(Rope rope) {
+        String name = rope.getString().intern();
         if (name.equals(lexer.getCurrentArg())) {
             warn(lexer.getPosition(), "circular argument reference - " + name);
         }
@@ -256,12 +259,16 @@ public class ParserSupport {
     }
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
+    public AssignableParseNode assignableLabelOrIdentifier(Rope name, ParseNode value) {
+        return assignableLabelOrIdentifier(name.getString().intern(), value);
+    }
+
     public AssignableParseNode assignableLabelOrIdentifier(String name, ParseNode value) {
-        return currentScope.assign(lexer.getPosition(), name.intern(), makeNullNil(value));
+        return currentScope.assign(lexer.getPosition(), name, makeNullNil(value));
     }
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
-    public AssignableParseNode assignableKeyword(String name, ParseNode value) {
+    public AssignableParseNode assignableKeyword(Rope name, ParseNode value) {
         // JRuby does some extra kwarg tracking when it sees an assignable keyword. We track kwargs in a different
         // manner and thus don't require a special method for it. However, keeping this method in ParserSupport helps
         // reduce the differences with the JRuby grammar.
@@ -334,22 +341,23 @@ public class ParserSupport {
     }
 
     // We know it has to be tLABEL or tIDENTIFIER so none of the other assignable logic is needed
-    public AssignableParseNode assignableInCurr(String name, ParseNode value) {
-        currentScope.addVariableThisScope(name);
-        return currentScope.assign(lexer.getPosition(), name, makeNullNil(value));
+    public AssignableParseNode assignableInCurr(Rope name, ParseNode value) {
+        String nameString = name.getString().intern();
+        currentScope.addVariableThisScope(nameString);
+        return currentScope.assign(lexer.getPosition(), nameString, makeNullNil(value));
     }
 
-    public ParseNode getOperatorCallNode(ParseNode firstNode, String operator) {
+    public ParseNode getOperatorCallNode(ParseNode firstNode, Rope operator) {
         value_expr(lexer, firstNode);
 
-        return new CallParseNode(firstNode.getPosition(), firstNode, operator, null, null);
+        return new CallParseNode(firstNode.getPosition(), firstNode, operator.getString(), null, null);
     }
 
-    public ParseNode getOperatorCallNode(ParseNode firstNode, String operator, ParseNode secondNode) {
+    public ParseNode getOperatorCallNode(ParseNode firstNode, Rope operator, ParseNode secondNode) {
         return getOperatorCallNode(firstNode, operator, secondNode, null);
     }
 
-    public ParseNode getOperatorCallNode(ParseNode firstNode, String operator, ParseNode secondNode,
+    public ParseNode getOperatorCallNode(ParseNode firstNode, Rope operator, ParseNode secondNode,
             SourceIndexLength defaultPosition) {
         if (defaultPosition != null) {
             firstNode = checkForNilNode(firstNode, defaultPosition);
@@ -362,7 +370,7 @@ public class ParserSupport {
         return new CallParseNode(
                 firstNode.getPosition(),
                 firstNode,
-                operator,
+                operator.getString(),
                 new ArrayParseNode(secondNode.getPosition(), secondNode),
                 null);
     }
@@ -377,7 +385,7 @@ public class ParserSupport {
             return new Match3ParseNode(firstNode.getPosition(), firstNode, secondNode);
         }
 
-        return getOperatorCallNode(firstNode, "=~", secondNode);
+        return getOperatorCallNode(firstNode, RopeConstants.EQUAL_TILDE, secondNode);
     }
 
     /** Define an array set condition so we can return lhs
@@ -396,14 +404,14 @@ public class ParserSupport {
      * @param receiver object which contains attribute
      * @param name of the attribute being set
      * @return an AttrAssignParseNode */
-    public ParseNode attrset(ParseNode receiver, String name) {
-        return attrset(receiver, ".", name);
+    public ParseNode attrset(ParseNode receiver, Rope name) {
+        return attrset(receiver, RopeConstants.DOT, name);
     }
 
-    public ParseNode attrset(ParseNode receiver, String callType, String name) {
+    public ParseNode attrset(ParseNode receiver, Rope callType, Rope name) {
         value_expr(lexer, receiver);
 
-        return new_attrassign(receiver.getPosition(), receiver, name + "=", null, isLazy(callType));
+        return new_attrassign(receiver.getPosition(), receiver, name.getString() + "=", null, isLazy(callType));
     }
 
     public void backrefAssignError(ParseNode node) {
@@ -775,7 +783,7 @@ public class ParserSupport {
 
         if (node instanceof FixnumParseNode) {
             warnUnlessEOption(node, "integer literal in conditional range");
-            return getOperatorCallNode(node, "==", new GlobalVarParseNode(node.getPosition(), "$."));
+            return getOperatorCallNode(node, RopeConstants.EQ_EQ, new GlobalVarParseNode(node.getPosition(), "$."));
         }
 
         return node;
@@ -901,11 +909,16 @@ public class ParserSupport {
     }
 
     // FIXME: Currently this is passing in position of receiver
-    public ParseNode new_opElementAsgnNode(ParseNode receiverNode, String operatorName, ParseNode argsNode,
+    public ParseNode new_opElementAsgnNode(ParseNode receiverNode, Rope operatorName, ParseNode argsNode,
             ParseNode valueNode) {
         SourceIndexLength position = lexer.tokline;  // FIXME: ruby_sourceline in new lexer.
 
-        ParseNode newNode = new OpElementAsgnParseNode(position, receiverNode, operatorName, argsNode, valueNode);
+        ParseNode newNode = new OpElementAsgnParseNode(
+                position,
+                receiverNode,
+                operatorName.getString(),
+                argsNode,
+                valueNode);
 
         fixpos(newNode, receiverNode);
 
@@ -917,12 +930,18 @@ public class ParserSupport {
         return identifier;
     }
 
-    public ParseNode newOpAsgn(SourceIndexLength position, ParseNode receiverNode, String callType, ParseNode valueNode,
-            String variableName, String operatorName) {
-        return new OpAsgnParseNode(position, receiverNode, valueNode, variableName, operatorName, isLazy(callType));
+    public ParseNode newOpAsgn(SourceIndexLength position, ParseNode receiverNode, Rope callType, ParseNode valueNode,
+            Rope variableName, Rope operatorName) {
+        return new OpAsgnParseNode(
+                position,
+                receiverNode,
+                valueNode,
+                variableName.getString(),
+                operatorName.getString(),
+                isLazy(callType));
     }
 
-    public ParseNode newOpConstAsgn(SourceIndexLength position, ParseNode lhs, String operatorName, ParseNode rhs) {
+    public ParseNode newOpConstAsgn(SourceIndexLength position, ParseNode lhs, Rope operatorName, ParseNode rhs) {
         // FIXME: Maybe need to fixup position?
         if (lhs != null) {
             return new OpAsgnConstDeclParseNode(position, lhs, operatorName, rhs);
@@ -931,8 +950,8 @@ public class ParserSupport {
         }
     }
 
-    public boolean isLazy(String callType) {
-        return "&.".equals(callType);
+    public boolean isLazy(Rope callType) {
+        return callType == RopeConstants.AMPERSAND_DOT;
     }
 
     public ParseNode new_attrassign(SourceIndexLength position, ParseNode receiver, String name, ParseNode args,
@@ -968,7 +987,7 @@ public class ParserSupport {
         return false;
     }
 
-    public ParseNode new_call(ParseNode receiver, String callType, String name, ParseNode argsNode, ParseNode iter) {
+    public ParseNode new_call(ParseNode receiver, Rope callType, Rope name, ParseNode argsNode, ParseNode iter) {
         if (argsNode instanceof BlockPassParseNode) {
             if (iter != null) {
                 lexer.compile_error(PID.BLOCK_ARG_AND_BLOCK_GIVEN, "Both block arg and actual block given.");
@@ -978,21 +997,27 @@ public class ParserSupport {
             return new CallParseNode(
                     position(receiver, argsNode),
                     receiver,
-                    name,
+                    name.getString(),
                     blockPass.getArgsNode(),
                     blockPass,
                     isLazy(callType));
         }
 
-        return new CallParseNode(position(receiver, argsNode), receiver, name, argsNode, iter, isLazy(callType));
+        return new CallParseNode(
+                position(receiver, argsNode),
+                receiver,
+                name.getString(),
+                argsNode,
+                iter,
+                isLazy(callType));
 
     }
 
-    public ParseNode new_call(ParseNode receiver, String name, ParseNode argsNode, ParseNode iter) {
-        return new_call(receiver, ".", name, argsNode, iter);
+    public ParseNode new_call(ParseNode receiver, Rope name, ParseNode argsNode, ParseNode iter) {
+        return new_call(receiver, RopeConstants.DOT, name, argsNode, iter);
     }
 
-    public Colon2ParseNode new_colon2(SourceIndexLength position, ParseNode leftNode, String name) {
+    public Colon2ParseNode new_colon2(SourceIndexLength position, ParseNode leftNode, Rope name) {
         if (leftNode == null) {
             return new Colon2ImplicitParseNode(position, name);
         }
@@ -1000,7 +1025,7 @@ public class ParserSupport {
         return new Colon2ConstParseNode(position, leftNode, name);
     }
 
-    public Colon3ParseNode new_colon3(SourceIndexLength position, String name) {
+    public Colon3ParseNode new_colon3(SourceIndexLength position, Rope name) {
         return new Colon3ParseNode(position, name);
     }
 
@@ -1027,8 +1052,8 @@ public class ParserSupport {
         node.setPosition(orig.getPosition());
     }
 
-    public ParseNode new_fcall(String operation) {
-        return new FCallParseNode(lexer.tokline, operation);
+    public ParseNode new_fcall(Rope operation) {
+        return new FCallParseNode(lexer.tokline, operation.getString());
     }
 
     public ParseNode new_super(SourceIndexLength position, ParseNode args) {
@@ -1316,16 +1341,17 @@ public class ParserSupport {
     }
 
     public ArgsTailHolder new_args_tail(SourceIndexLength position, ListParseNode keywordArg,
-            String keywordRestArgName, BlockArgParseNode blockArg) {
-        if (keywordRestArgName == null) {
+            Rope keywordRestArgNameRope, BlockArgParseNode blockArg) {
+        if (keywordRestArgNameRope == null) {
             return new ArgsTailHolder(position, keywordArg, null, blockArg);
         }
 
-        if (keywordRestArgName.isEmpty()) {
-            keywordRestArgName = TranslatorEnvironment.TEMP_PREFIX + "_kwrest";
+        final String restKwargsName;
+        if (keywordRestArgNameRope.isEmpty()) {
+            restKwargsName = TranslatorEnvironment.TEMP_PREFIX + "_kwrest";
+        } else {
+            restKwargsName = keywordRestArgNameRope.getString().intern();
         }
-
-        String restKwargsName = keywordRestArgName;
 
         int slot = currentScope.exists(restKwargsName);
         if (slot == -1) {
@@ -1431,8 +1457,8 @@ public class ParserSupport {
     }
 
     // ENEBO: Totally weird naming (in MRI is not allocated and is a local var name) [1.9]
-    public boolean is_local_id(String name) {
-        return lexer.isIdentifierChar(name.charAt(0));
+    public boolean is_local_id(Rope name) {
+        return lexer.isIdentifierChar(name.get(0) & 0xFF);
     }
 
     // 1.9
@@ -1448,9 +1474,9 @@ public class ParserSupport {
     }
 
     // 1.9
-    public ParseNode new_bv(String identifier) {
+    public ParseNode new_bv(Rope identifier) {
         if (!is_local_id(identifier)) {
-            getterIdentifierError(lexer.getPosition(), identifier);
+            getterIdentifierError(lexer.getPosition(), identifier.getString());
         }
         shadowing_lvar(identifier);
 
@@ -1459,7 +1485,8 @@ public class ParserSupport {
 
     // 1.9
     @SuppressFBWarnings("ES")
-    public ArgumentParseNode arg_var(String name) {
+    public ArgumentParseNode arg_var(Rope rope) {
+        String name = rope.getString().intern();
         StaticScope current = getCurrentScope();
 
         // Multiple _ arguments are allowed.  To not screw with tons of arity
@@ -1476,7 +1503,7 @@ public class ParserSupport {
         return new ArgumentParseNode(lexer.getPosition(), name, current.addVariableThisScope(name));
     }
 
-    public String formal_argument(String identifier) {
+    public Rope formal_argument(Rope identifier) {
         lexer.validateFormalIdentifier(identifier);
 
         return shadowing_lvar(identifier);
@@ -1484,9 +1511,10 @@ public class ParserSupport {
 
     // 1.9
     @SuppressFBWarnings("ES")
-    public String shadowing_lvar(String name) {
+    public Rope shadowing_lvar(Rope rope) {
+        String name = rope.getString().intern();
         if (name == "_") {
-            return name;
+            return rope;
         }
 
         StaticScope current = getCurrentScope();
@@ -1498,7 +1526,7 @@ public class ParserSupport {
             yyerror("duplicated argument name");
         }
 
-        return name;
+        return rope;
     }
 
     // 1.9
@@ -1759,9 +1787,7 @@ public class ParserSupport {
         return new DefinedParseNode(position, something);
     }
 
-    public String internalId() {
-        return "";
-    }
+    public static final Rope INTERNAL_ID = new AsciiOnlyLeafRope(new byte[]{}, USASCIIEncoding.INSTANCE);
 
     public SourceIndexLength extendedUntil(SourceIndexLength start, SourceIndexLength end) {
         return new SourceIndexLength(start.getCharIndex(), end.getCharEnd() - start.getCharIndex());
