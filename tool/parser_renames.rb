@@ -28,6 +28,7 @@ contents = contents.lines.map do |line|
   line = line.gsub(/<KeyValuePair>/, '<ParseNodeTuple>')
 
   line = line.gsub(/\bByteList\b/, 'Rope')
+  line = line.gsub(/\bRubySymbol\b/, 'Rope')
 
   line = "#{line}//#{comment}" if comment
   line

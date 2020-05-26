@@ -734,7 +734,7 @@ mlhs_node       : /*mri:user_variable*/ tIDENTIFIER {
 
                     SourceIndexLength position = support.getPosition($1);
 
-                    $$ = new ConstDeclParseNode(position, (RubySymbol) null, support.new_colon2(position, $1, $3), NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(position, (Rope) null, support.new_colon2(position, $1, $3), NilImplicitParseNode.NIL);
                 }
                 | tCOLON3 tCONSTANT {
                     if (support.isInDef()) {
@@ -743,7 +743,7 @@ mlhs_node       : /*mri:user_variable*/ tIDENTIFIER {
 
                     SourceIndexLength position = lexer.tokline;
 
-                    $$ = new ConstDeclParseNode(position, (RubySymbol) null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(position, (Rope) null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
                 }
                 | backref {
                     support.backrefAssignError($1);
@@ -813,7 +813,7 @@ lhs             : /*mri:user_variable*/ tIDENTIFIER {
 
                     SourceIndexLength position = support.getPosition($1);
 
-                    $$ = new ConstDeclParseNode(position, (RubySymbol) null, support.new_colon2(position, $1, $3), NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(position, (Rope) null, support.new_colon2(position, $1, $3), NilImplicitParseNode.NIL);
                 }
                 | tCOLON3 tCONSTANT {
                     if (support.isInDef()) {
@@ -822,7 +822,7 @@ lhs             : /*mri:user_variable*/ tIDENTIFIER {
 
                     SourceIndexLength position = lexer.tokline;
 
-                    $$ = new ConstDeclParseNode(position, (RubySymbol) null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
+                    $$ = new ConstDeclParseNode(position, (Rope) null, support.new_colon3(position, $2), NilImplicitParseNode.NIL);
                 }
                 | backref {
                     support.backrefAssignError($1);

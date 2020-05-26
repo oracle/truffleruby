@@ -906,6 +906,11 @@ public class ParserSupport {
         return newNode;
     }
 
+    // JRuby would return a RubySymbol but we don't want to create RubySymbols so early, and don't need the Symbol
+    public Rope symbolID(Rope identifier) {
+        return identifier;
+    }
+
     public ParseNode newOpAsgn(SourceIndexLength position, ParseNode receiverNode, String callType, ParseNode valueNode,
             String variableName, String operatorName) {
         return new OpAsgnParseNode(position, receiverNode, valueNode, variableName, operatorName, isLazy(callType));
