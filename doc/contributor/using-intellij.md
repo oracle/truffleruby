@@ -60,8 +60,8 @@ There should now be the following in your workspace:
     including the Java and Ruby source files. Syntax highlighting and project 
     navigation should work for both Java and Ruby.
 
-Go to `File` -> `Project Structure` -> `Platform Settings`, `SDKs`, and add the JVMCI OpenJDK that has been installed
-alongside the TruffleRuby repository when you built.
+Go to `File` -> `Project Structure` -> `Platform Settings`, `SDKs`
+and add the JVMCI OpenJDK shown by `$ jt install jvmci`.
 
 ## Configuring Checkstyle Plugin
 
