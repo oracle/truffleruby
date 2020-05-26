@@ -11,7 +11,7 @@ annotation processing which cause the incremental build to fail regularly and
 need a full rebuild. For these reason, we recommend
 [IntelliJ](using-intellij.md) nowadays.
 
-### Build the project
+## Build the project
 
 First, make sure the project is already built from the command line:
 
@@ -19,13 +19,13 @@ First, make sure the project is already built from the command line:
 $ jt build
 ```
 
-### Generate the project files
+## Generate the project files
 
 ```bash
 $ jt mx eclipseinit
 ```
 
-### Import the projects
+## Import the projects
 
 Create a new workspace in Eclipse (>= Luna).
 
@@ -41,7 +41,7 @@ There should be now 4 projects in your workspace:
 * `TRUFFLERUBY-TEST.dist`
 * `TRUFFLERUBY.dist`
 
-### Running from the Eclipse files directly
+## Running from the Eclipse files directly
 
 ```bash
 $ jt ruby -e 'p Truffle'
