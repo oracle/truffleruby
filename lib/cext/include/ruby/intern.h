@@ -815,6 +815,7 @@ VALUE rb_str_new_cstr(const char *string);
 #define rb_str_buf_new2 rb_str_buf_new_cstr
 #define rb_usascii_str_new2 rb_usascii_str_new_cstr
 #define rb_str_buf_cat2 rb_str_cat_cstr
+#define rb_str_cat2 rb_str_cat_cstr
 #define rb_strlen_lit(str) (sizeof(str "") - 1)
 #define rb_str_new_lit(str) rb_str_new_static((str), rb_strlen_lit(str))
 #define rb_usascii_str_new_lit(str) rb_usascii_str_new_static((str), rb_strlen_lit(str))

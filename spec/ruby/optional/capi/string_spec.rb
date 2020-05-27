@@ -382,6 +382,16 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_str_cat_cstr" do
+    it "concatenates a C string literal to a ruby string" do
+      @s.rb_str_cat_cstr_constant("Your house is on fire").should == "Your house is on fire?"
+    end
+
+    it "concatenates a variable C string to a ruby string" do
+      @s.rb_str_cat_cstr("Your house is on fire", "?").should == "Your house is on fire?"
+    end
+  end
+
   describe "rb_str_cmp" do
     it "returns 0 if two strings are identical" do
       @s.rb_str_cmp("ppp", "ppp").should == 0

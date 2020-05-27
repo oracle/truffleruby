@@ -112,7 +112,8 @@ VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
   return string;
 }
 
-VALUE rb_str_cat2(VALUE string, const char *to_concat) {
+#undef rb_str_cat_cstr
+VALUE rb_str_cat_cstr(VALUE string, const char *to_concat) {
   return rb_str_cat(string, to_concat, strlen(to_concat));
 }
 
