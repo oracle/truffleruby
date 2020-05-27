@@ -217,6 +217,17 @@ describe "C-API Encoding function" do
     end
   end
 
+  describe "MBCLEN_CHARFOUND_P" do
+    it "returns non-zero for valid character" do
+      @s.MBCLEN_CHARFOUND_P("a".ord).should == 1
+    end
+
+    it "returns zero for invalid characters" do
+      @s.MBCLEN_CHARFOUND_P(0).should == 0
+      @s.MBCLEN_CHARFOUND_P(-1).should == 0
+    end
+  end
+
   describe "ENCODING_GET" do
     it_behaves_like :rb_enc_get_index, :ENCODING_GET
   end
