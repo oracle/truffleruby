@@ -793,7 +793,7 @@ module Commands
         unless truffleruby_native?
           vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
         end
-        vm_args << '--vm.Dgraal.TruffleEnableInfopoints=true'
+        vm_args << '--engine.NodeSourcePositions=true'
       when '--fg'
         add_experimental_options.call
         vm_args << '--engine.BackgroundCompilation=false'
