@@ -29,7 +29,7 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 GRAAL_DIR = File.expand_path('../graal', TRUFFLERUBY_DIR)
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-TRUFFLERUBY_GEM_TEST_PACK_VERSION = '5bc3125daf2d9cdbaeb568371a385d165f0b1911'
+TRUFFLERUBY_GEM_TEST_PACK_VERSION = '3a7f7dbd6e0fcf501ae277e552f550aa01ec7ee9'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
 METRICS_REPS = Integer(ENV['TRUFFLERUBY_METRICS_REPS'] || 10)
