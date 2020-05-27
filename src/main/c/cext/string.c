@@ -120,6 +120,10 @@ VALUE rb_str_to_str(VALUE string) {
   return rb_convert_type(string, T_STRING, "String", "to_str");
 }
 
+VALUE rb_fstring(VALUE str) {
+  return RUBY_INVOKE(str, "-@");
+}
+
 VALUE rb_str_buf_new(long capacity) {
   VALUE str = rb_str_new(NULL, capacity);
   rb_str_set_len(str, 0);
