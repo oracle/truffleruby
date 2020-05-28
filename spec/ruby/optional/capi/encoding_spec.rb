@@ -131,6 +131,29 @@ describe "C-API Encoding function" do
     end
   end
 
+  describe "rb_enc_precise_mbclen" do
+    it "returns the correct length for single byte characters" do
+      @s.rb_enc_precise_mbclen("hello", 7).should == 1
+      @s.rb_enc_precise_mbclen("hello", 5).should == 1
+      @s.rb_enc_precise_mbclen("hello", 1).should == 1
+      @s.rb_enc_precise_mbclen("hello", 0).should == -2
+      @s.rb_enc_precise_mbclen("hello", -1).should == -2
+      @s.rb_enc_precise_mbclen("hello", -5).should == -2
+    end
+
+    it "returns the correct length for multi-byte characters" do
+      @s.rb_enc_precise_mbclen("ésumé", 2).should == 2
+      @s.rb_enc_precise_mbclen("ésumé", 3).should == 2
+      @s.rb_enc_precise_mbclen("ésumé", 0).should == -2
+      @s.rb_enc_precise_mbclen("ésumé", 1).should == -2
+      @s.rb_enc_precise_mbclen("あ", 20).should == 3
+      @s.rb_enc_precise_mbclen("あ", 3).should == 3
+      @s.rb_enc_precise_mbclen("あ", 2).should == -2
+      @s.rb_enc_precise_mbclen("あ", 0).should == -2
+      @s.rb_enc_precise_mbclen("あ", -2).should == -2
+    end
+  end
+
   describe "rb_obj_encoding" do
     it "returns the encoding associated with an object" do
       str = "abc".encode Encoding::BINARY

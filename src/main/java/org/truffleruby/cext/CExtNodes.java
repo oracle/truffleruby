@@ -1297,7 +1297,7 @@ public class CExtNodes {
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
 
         @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        protected Object rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
+        protected int rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached ConditionProfile sameEncodingProfile) {
             final Encoding encoding = EncodingOperations.getEncoding(enc);
@@ -1309,7 +1309,9 @@ public class CExtNodes {
                 cr = CodeRange.CR_UNKNOWN;
             }
 
-            return calculateCharacterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
+            final int length = calculateCharacterLengthNode.characterLength(encoding, cr, rope.getBytes(), p, end);
+            assert end - p >= length; // assert this condition not reached: https://github.com/ruby/ruby/blob/46a5d1b4a63f624f2c5c5b6f710cc1a176c88b02/encoding.c#L1046
+            return length;
         }
 
         private CodeRange codeRange(Rope rope) {
