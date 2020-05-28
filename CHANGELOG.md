@@ -13,6 +13,7 @@ Bug fixes:
 * Thread local IO buffers are now allocated using a stack to ensure safe operating if a signal handler uses one during an IO operation.
 * Fixed `TracePoint` thread-safety by storing the state on the Ruby `Thread` (like MRI) instead of inside the `TracePoint` instance.
 * Make `require 'rubygems/package'` succeed and define `Gem::Deprecate` correctly (#2014).
+* Fix `MBCLEN_CHARFOUND_P` error.
 
 Compatibility:
 

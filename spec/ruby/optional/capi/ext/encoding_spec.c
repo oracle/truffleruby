@@ -7,6 +7,10 @@
 extern "C" {
 #endif
 
+static VALUE encoding_spec_MBCLEN_CHARFOUND_P(VALUE self, VALUE obj) {
+  return INT2FIX(MBCLEN_CHARFOUND_P(FIX2INT(obj)));
+}
+
 static VALUE encoding_spec_ENC_CODERANGE_ASCIIONLY(VALUE self, VALUE obj) {
   if(ENC_CODERANGE_ASCIIONLY(obj)) {
     return Qtrue;
@@ -251,6 +255,7 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_alias", encoding_spec_rb_enc_alias, 2);
 #endif
 
+  rb_define_method(cls, "MBCLEN_CHARFOUND_P", encoding_spec_MBCLEN_CHARFOUND_P, 1);
   rb_define_method(cls, "rb_enc_associate", encoding_spec_rb_enc_associate, 2);
   rb_define_method(cls, "rb_enc_associate_index", encoding_spec_rb_enc_associate_index, 2);
   rb_define_method(cls, "rb_enc_compatible", encoding_spec_rb_enc_compatible, 2);

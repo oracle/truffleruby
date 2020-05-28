@@ -42,7 +42,7 @@ int MBCLEN_NEEDMORE_LEN(int r) {
 }
 
 int MBCLEN_CHARFOUND_P(int r) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "MBCLEN_CHARFOUND_P", r));
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "MBCLEN_CHARFOUND_P", r));
 }
 
 int MBCLEN_CHARFOUND_LEN(int r) {
