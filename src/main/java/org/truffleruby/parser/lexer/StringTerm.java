@@ -28,11 +28,18 @@
 package org.truffleruby.parser.lexer;
 
 import static org.truffleruby.parser.lexer.RubyLexer.EOF;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_BEG;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_ENDARG;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_ESCAPE;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_LABEL;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_LIST;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_QWORDS;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_REGEXP;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_SYMBOL;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_TERM;
 import static org.truffleruby.parser.lexer.RubyLexer.isHexChar;
 import static org.truffleruby.parser.lexer.RubyLexer.isOctChar;
 
@@ -64,14 +71,18 @@ public class StringTerm extends StrTerm {
     // End of string (], ), }, >, ', ", \0)
     private final char end;
 
+    // Syntax errors (eof) will occur at this position.
+    private final int startLine;
+
     // How many strings are nested in the current string term
     private int nest;
 
-    public StringTerm(int flags, int begin, int end) {
+    public StringTerm(int flags, int begin, int end, int startLine) {
         this.flags = flags;
         this.begin = (char) begin;
         this.end = (char) end;
         this.nest = 0;
+        this.startLine = startLine;
     }
 
     @Override
@@ -87,95 +98,31 @@ public class StringTerm extends StrTerm {
 
     private int endFound(RubyLexer lexer) {
         if ((flags & STR_FUNC_QWORDS) != 0) {
-            flags = -1;
+            flags |= STR_FUNC_TERM;
+            lexer.pushback(0);
             lexer.getPosition();
             return ' ';
         }
 
+        lexer.setStrTerm(null);
+
         if ((flags & STR_FUNC_REGEXP) != 0) {
             RegexpOptions options = parseRegexpFlags(lexer);
             Rope regexpRope = RopeConstants.EMPTY_US_ASCII_ROPE;
-
+            lexer.setState(EXPR_END | EXPR_ENDARG);
             lexer.setValue(new RegexpParseNode(lexer.getPosition(), regexpRope, options));
             return RubyParser.tREGEXP_END;
         }
 
+        if ((flags & STR_FUNC_LABEL) != 0 && lexer.isLabelSuffix()) {
+            lexer.nextc();
+            lexer.setState(EXPR_BEG | EXPR_LABEL);
+            return RubyParser.tLABEL_END;
+        }
+
+        lexer.setState(EXPR_END | EXPR_ENDARG);
         lexer.setValue("" + end);
         return RubyParser.tSTRING_END;
-    }
-
-    // Return of 0 means failed to find anything.  Non-zero means return that from lexer.
-    private int parsePeekVariableName(RubyLexer lexer) {
-        int c = lexer.nextc(); // byte right after #
-        int significant = -1;
-        switch (c) {
-            case '$': {  // we unread back to before the $ so next lex can read $foo
-                int c2 = lexer.nextc();
-
-                if (c2 == '-') {
-                    int c3 = lexer.nextc();
-
-                    if (c3 == EOF) {
-                        lexer.pushback(c3);
-                        lexer.pushback(c2);
-                        return 0;
-                    }
-
-                    significant = c3;                              // $-0 potentially
-                    lexer.pushback(c3);
-                    lexer.pushback(c2);
-                    break;
-                } else if (lexer.isGlobalCharPunct(c2)) {          // $_ potentially
-                    lexer.setValue("#" + (char) c2);
-
-                    lexer.pushback(c2);
-                    lexer.pushback(c);
-                    return RubyParser.tSTRING_DVAR;
-                }
-
-                significant = c2;                                  // $FOO potentially
-                lexer.pushback(c2);
-                break;
-            }
-            case '@': {  // we unread back to before the @ so next lex can read @foo
-                int c2 = lexer.nextc();
-
-                if (c2 == '@') {
-                    int c3 = lexer.nextc();
-
-                    if (c3 == EOF) {
-                        lexer.pushback(c3);
-                        lexer.pushback(c2);
-                        return 0;
-                    }
-
-                    significant = c3;                                // #@@foo potentially
-                    lexer.pushback(c3);
-                    lexer.pushback(c2);
-                    break;
-                }
-
-                significant = c2;                                    // #@foo potentially
-                lexer.pushback(c2);
-                break;
-            }
-            case '{':
-                //lexer.setBraceNest(lexer.getBraceNest() + 1);
-                lexer.setValue("#" + (char) c);
-                lexer.commandStart = true;
-                return RubyParser.tSTRING_DBEG;
-            default:
-                return 0;
-        }
-
-        // We found #@, #$, #@@ but we don't know what at this point (check for valid chars).
-        if (significant != -1 && Character.isAlphabetic(significant) || significant == '_') {
-            lexer.pushback(c);
-            lexer.setValue("#" + significant);
-            return RubyParser.tSTRING_DVAR;
-        }
-
-        return 0;
     }
 
     @Override
@@ -183,11 +130,14 @@ public class StringTerm extends StrTerm {
         boolean spaceSeen = false;
         int c;
 
-        // FIXME: How much more obtuse can this be?
-        // Heredoc already parsed this and saved string...Do not parse..just return
-        if (flags == -1) {
+        if ((flags & STR_FUNC_TERM) != 0) {
+            if ((flags & STR_FUNC_QWORDS) != 0) {
+                lexer.nextc(); // delayed terminator char
+            }
+            lexer.setState(EXPR_END | EXPR_ENDARG);
             lexer.setValue("" + end);
-            return RubyParser.tSTRING_END;
+            lexer.setStrTerm(null);
+            return ((flags & STR_FUNC_REGEXP) != 0) ? RubyParser.tREGEXP_END : RubyParser.tSTRING_END;
         }
 
         c = lexer.nextc();
@@ -195,6 +145,11 @@ public class StringTerm extends StrTerm {
             do {
                 c = lexer.nextc();
             } while (Character.isWhitespace(c));
+            spaceSeen = true;
+        }
+
+        if ((flags & STR_FUNC_LIST) != 0) {
+            flags &= ~STR_FUNC_LIST;
             spaceSeen = true;
         }
 
@@ -211,7 +166,7 @@ public class StringTerm extends StrTerm {
         RopeBuilder buffer = createRopeBuilder(lexer);
         lexer.newtok(true);
         if ((flags & STR_FUNC_EXPAND) != 0 && c == '#') {
-            int token = parsePeekVariableName(lexer);
+            int token = lexer.peekVariableName(RubyParser.tSTRING_DVAR, RubyParser.tSTRING_DBEG);
 
             if (token != 0) {
                 return token;
@@ -225,7 +180,10 @@ public class StringTerm extends StrTerm {
         enc[0] = lexer.getEncoding();
 
         if (parseStringIntoBuffer(lexer, buffer, enc) == EOF) {
-            lexer.compile_error("unterminated string meets end of file");
+            lexer.ruby_sourceline = startLine;
+            lexer.updateLineOffset();
+            lexer.compile_error(
+                    "unterminated " + ((flags & STR_FUNC_REGEXP) != 0 ? "regexp" : "string") + " meets end of file");
         }
 
         lexer.setValue(lexer.createStr(buffer, flags));

@@ -393,7 +393,7 @@ public class RubyLexer implements MagicCommentHandler {
         return true;
     }
 
-    private void updateLineOffset() {
+    public void updateLineOffset() {
         if (ruby_sourceline != 0) {
             ruby_sourceline_char_offset = src.getSource().getLineStartOffset(ruby_sourceline);
             ruby_sourceline_char_length = src.getSource().getLineLength(ruby_sourceline);
@@ -621,13 +621,13 @@ public class RubyLexer implements MagicCommentHandler {
         int begin, end;
         boolean shortHand;
 
-        // Short-hand (e.g. %{,%.,%!,... versus %Q{).
         if (!Character.isLetterOrDigit(c)) {
+            // Short-hand (e.g. %{,%.,%!,... versus %Q{).
             begin = c;
             c = 'Q';
             shortHand = true;
-            // Long-hand (e.g. %Q{}).
         } else {
+            // Long-hand (e.g. %Q{}).
             shortHand = false;
             begin = nextc();
             if (Character.isLetterOrDigit(begin) /* no mb || ismbchar(term) */) {
@@ -659,63 +659,47 @@ public class RubyLexer implements MagicCommentHandler {
 
         switch (c) {
             case 'Q':
-                lex_strterm = new StringTerm(str_dquote, begin, end);
+                lex_strterm = new StringTerm(str_dquote, begin, end, ruby_sourceline);
                 yaccValue = "%" + (shortHand ? ("" + end) : ("" + c + begin));
                 return RubyParser.tSTRING_BEG;
 
             case 'q':
-                lex_strterm = new StringTerm(str_squote, begin, end);
+                lex_strterm = new StringTerm(str_squote, begin, end, ruby_sourceline);
                 yaccValue = "%" + c + begin;
                 return RubyParser.tSTRING_BEG;
 
             case 'W':
-                lex_strterm = new StringTerm(str_dquote | STR_FUNC_QWORDS, begin, end);
-                do {
-                    c = nextc();
-                } while (Character.isWhitespace(c));
-                pushback(c);
+                lex_strterm = new StringTerm(str_dword, begin, end, ruby_sourceline);
                 yaccValue = "%" + c + begin;
                 return RubyParser.tWORDS_BEG;
 
             case 'w':
-                lex_strterm = new StringTerm(/* str_squote | */ STR_FUNC_QWORDS, begin, end);
-                do {
-                    c = nextc();
-                } while (Character.isWhitespace(c));
-                pushback(c);
+                lex_strterm = new StringTerm(str_sword, begin, end, ruby_sourceline);
                 yaccValue = "%" + c + begin;
                 return RubyParser.tQWORDS_BEG;
 
             case 'x':
-                lex_strterm = new StringTerm(str_xquote, begin, end);
+                lex_strterm = new StringTerm(str_xquote, begin, end, ruby_sourceline);
                 yaccValue = "%" + c + begin;
                 return RubyParser.tXSTRING_BEG;
 
             case 'r':
-                lex_strterm = new StringTerm(str_regexp, begin, end);
+                lex_strterm = new StringTerm(str_regexp, begin, end, ruby_sourceline);
                 yaccValue = "%" + c + begin;
                 return RubyParser.tREGEXP_BEG;
 
             case 's':
-                lex_strterm = new StringTerm(str_ssym, begin, end);
-                setState(EXPR_FNAME);
+                lex_strterm = new StringTerm(str_ssym, begin, end, ruby_sourceline);
+                setState(EXPR_FNAME | EXPR_FITEM);
                 yaccValue = "%" + c + begin;
                 return RubyParser.tSYMBEG;
 
             case 'I':
-                lex_strterm = new StringTerm(str_dquote | STR_FUNC_QWORDS, begin, end);
-                do {
-                    c = nextc();
-                } while (Character.isWhitespace(c));
-                pushback(c);
+                lex_strterm = new StringTerm(str_dword, begin, end, ruby_sourceline);
                 yaccValue = "%" + c + begin;
                 return RubyParser.tSYMBOLS_BEG;
             case 'i':
-                lex_strterm = new StringTerm(/* str_squote | */STR_FUNC_QWORDS, begin, end);
-                do {
-                    c = nextc();
-                } while (Character.isWhitespace(c));
-                pushback(c);
+                lex_strterm = new StringTerm(str_sword, begin, end, ruby_sourceline);
                 yaccValue = "%" + c + begin;
                 return RubyParser.tQSYMBOLS_BEG;
             default:
@@ -823,24 +807,7 @@ public class RubyLexer implements MagicCommentHandler {
         boolean tokenSeen = this.tokenSeen;
 
         if (lex_strterm != null) {
-            int tok = lex_strterm.parseString(this);
-
-            if (tok == RubyParser.tSTRING_END && (lex_strterm.getFlags() & STR_FUNC_LABEL) != 0) {
-                if ((isLexState(lex_state, EXPR_BEG | EXPR_ENDFN) && !conditionState.isInState() ||
-                        isARG()) && isLabelSuffix()) {
-                    nextc();
-                    tok = RubyParser.tLABEL_END;
-                    setState(EXPR_BEG | EXPR_LABEL);
-                    lex_strterm = null;
-                }
-            }
-
-            if (tok == RubyParser.tSTRING_END || tok == RubyParser.tREGEXP_END) {
-                lex_strterm = null;
-                setState(EXPR_END);
-            }
-
-            return tok;
+            return lex_strterm.parseString(this);
         }
 
         commandState = commandStart;
@@ -1091,7 +1058,7 @@ public class RubyLexer implements MagicCommentHandler {
     private int identifierToken(int result, Rope value) {
         if (result == RubyParser.tIDENTIFIER && !isLexState(last_state, EXPR_DOT | EXPR_FNAME) &&
                 parserSupport.getCurrentScope().isDefined(value.getString().intern()) >= 0) {
-            setState(EXPR_END);
+            setState(EXPR_END | EXPR_LABEL);
         }
 
         yaccValue = value;
@@ -1432,7 +1399,7 @@ public class RubyLexer implements MagicCommentHandler {
             result = RubyParser.tIVAR;
         }
 
-        if (c == EOF || Character.isSpaceChar(c)) {
+        if (c == EOF || isSpace(c)) {
             if (result == RubyParser.tIVAR) {
                 compile_error("`@' without identifiers is not allowed as an instance variable name");
             }
@@ -1473,7 +1440,7 @@ public class RubyLexer implements MagicCommentHandler {
             return RubyParser.tBACK_REF2;
         }
 
-        lex_strterm = new StringTerm(str_xquote, '\0', '`');
+        lex_strterm = new StringTerm(str_xquote, '\0', '`', ruby_sourceline);
         return RubyParser.tXSTRING_BEG;
     }
 
@@ -1546,10 +1513,10 @@ public class RubyLexer implements MagicCommentHandler {
 
         switch (c) {
             case '\'':
-                lex_strterm = new StringTerm(str_ssym, '\0', c);
+                lex_strterm = new StringTerm(str_ssym, '\0', c, ruby_sourceline);
                 break;
             case '"':
-                lex_strterm = new StringTerm(str_dsym, '\0', c);
+                lex_strterm = new StringTerm(str_dsym, '\0', c, ruby_sourceline);
                 break;
             default:
                 pushback(c);
@@ -1604,7 +1571,6 @@ public class RubyLexer implements MagicCommentHandler {
                     }
 
                     last_state = lex_state;
-                    setState(EXPR_END);
                     yaccValue = createTokenRope();
                     return RubyParser.tGVAR;
                 }
@@ -1689,12 +1655,10 @@ public class RubyLexer implements MagicCommentHandler {
                 yaccValue = new NthRefParseNode(getPosition(), ref);
                 return RubyParser.tNTH_REF;
             case '0':
-                setState(EXPR_END);
-
                 return identifierToken(RubyParser.tGVAR, RopeConstants.DOLLAR_ZERO);
             default:
                 if (!isIdentifierChar(c)) {
-                    if (c == EOF || Character.isSpaceChar(c)) {
+                    if (c == EOF || isSpace(c)) {
                         compile_error(
                                 SyntaxException.PID.CVAR_BAD_NAME,
                                 "`$' without identifiers is not allowed as a global variable name");
@@ -1743,7 +1707,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     private int doubleQuote(boolean commandState) {
         int label = isLabelPossible(commandState) ? str_label : 0;
-        lex_strterm = new StringTerm(str_dquote | label, '\0', '"');
+        lex_strterm = new StringTerm(str_dquote | label, '\0', '"', ruby_sourceline);
         yaccValue = RopeConstants.QQ;
 
         return RubyParser.tSTRING_BEG;
@@ -2246,7 +2210,7 @@ public class RubyLexer implements MagicCommentHandler {
         parenNest--;
         conditionState.restart();
         cmdArgumentState.restart();
-        setState(EXPR_ENDARG);
+        setState(EXPR_END);
         yaccValue = RopeConstants.RBRACKET;
         return RubyParser.tRBRACK;
     }
@@ -2254,7 +2218,7 @@ public class RubyLexer implements MagicCommentHandler {
     private int rightCurly() {
         conditionState.restart();
         cmdArgumentState.restart();
-        setState(EXPR_ENDARG);
+        setState(EXPR_END);
         yaccValue = RopeConstants.RCURLY;
         int tok = braceNest == 0 ? RubyParser.tSTRING_DEND : RubyParser.tRCURLY;
         braceNest--;
@@ -2272,7 +2236,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     private int singleQuote(boolean commandState) {
         int label = isLabelPossible(commandState) ? str_label : 0;
-        lex_strterm = new StringTerm(str_squote | label, '\0', '\'');
+        lex_strterm = new StringTerm(str_squote | label, '\0', '\'', ruby_sourceline);
         yaccValue = RopeConstants.Q;
 
         return RubyParser.tSTRING_BEG;
@@ -2280,7 +2244,7 @@ public class RubyLexer implements MagicCommentHandler {
 
     private int slash(boolean spaceSeen) {
         if (isBEG()) {
-            lex_strterm = new StringTerm(str_regexp, '\0', '/');
+            lex_strterm = new StringTerm(str_regexp, '\0', '/', ruby_sourceline);
             yaccValue = RopeConstants.SLASH;
             return RubyParser.tREGEXP_BEG;
         }
@@ -2295,7 +2259,7 @@ public class RubyLexer implements MagicCommentHandler {
         pushback(c);
         if (isSpaceArg(c, spaceSeen)) {
             arg_ambiguous();
-            lex_strterm = new StringTerm(str_regexp, '\0', '/');
+            lex_strterm = new StringTerm(str_regexp, '\0', '/', ruby_sourceline);
             yaccValue = RopeConstants.SLASH;
             return RubyParser.tREGEXP_BEG;
         }
@@ -3004,6 +2968,80 @@ public class RubyLexer implements MagicCommentHandler {
         return c < 128;
     }
 
+    // Return of 0 means failed to find anything.  Non-zero means return that from lexer.
+    public int peekVariableName(int tSTRING_DVAR, int tSTRING_DBEG) {
+        int c = nextc(); // byte right after #
+        int significant = -1;
+        switch (c) {
+            case '$': {  // we unread back to before the $ so next lex can read $foo
+                int c2 = nextc();
+
+                if (c2 == '-') {
+                    int c3 = nextc();
+
+                    if (c3 == EOF) {
+                        pushback(c3);
+                        pushback(c2);
+                        return 0;
+                    }
+
+                    significant = c3;                              // $-0 potentially
+                    pushback(c3);
+                    pushback(c2);
+                    break;
+                } else if (isGlobalCharPunct(c2)) {          // $_ potentially
+                    setValue("#" + (char) c2);
+
+                    pushback(c2);
+                    pushback(c);
+                    return tSTRING_DVAR;
+                }
+
+                significant = c2;                                  // $FOO potentially
+                pushback(c2);
+                break;
+            }
+            case '@': {  // we unread back to before the @ so next lex can read @foo
+                int c2 = nextc();
+
+                if (c2 == '@') {
+                    int c3 = nextc();
+
+                    if (c3 == EOF) {
+                        pushback(c3);
+                        pushback(c2);
+                        return 0;
+                    }
+
+                    significant = c3;                                // #@@foo potentially
+                    pushback(c3);
+                    pushback(c2);
+                    break;
+                }
+
+                significant = c2;                                    // #@foo potentially
+                pushback(c2);
+                break;
+            }
+            case '{':
+                //setBraceNest(getBraceNest() + 1);
+                setValue("#" + (char) c);
+                commandStart = true;
+                return tSTRING_DBEG;
+            default:
+                return 0;
+        }
+
+        // We found #@, #$, #@@ but we don't know what at this point (check for valid chars).
+        if (significant != -1 && Character.isAlphabetic(significant) || significant == '_') {
+            pushback(c);
+            setValue("#" + significant);
+            return tSTRING_DVAR;
+        }
+
+        return 0;
+    }
+
     // FIXME: I added number gvars here and they did not.
     public boolean isGlobalCharPunct(int c) {
         switch (c) {
@@ -3537,12 +3575,16 @@ public class RubyLexer implements MagicCommentHandler {
     // When the heredoc identifier specifies <<-EOF that indents before ident. are ok (the '-').
     public static final int STR_FUNC_INDENT = 0x20;
     public static final int STR_FUNC_LABEL = 0x40;
+    public static final int STR_FUNC_LIST = 0x4000;
+    public static final int STR_FUNC_TERM = 0x8000;
 
     public static final int str_label = STR_FUNC_LABEL;
     public static final int str_squote = 0;
     public static final int str_dquote = STR_FUNC_EXPAND;
     public static final int str_xquote = STR_FUNC_EXPAND;
     public static final int str_regexp = STR_FUNC_REGEXP | STR_FUNC_ESCAPE | STR_FUNC_EXPAND;
+    public static final int str_sword = STR_FUNC_QWORDS | STR_FUNC_LIST;
+    public static final int str_dword = STR_FUNC_QWORDS | STR_FUNC_EXPAND | STR_FUNC_LIST;
     public static final int str_ssym = STR_FUNC_SYMBOL;
     public static final int str_dsym = STR_FUNC_SYMBOL | STR_FUNC_EXPAND;
 
@@ -3610,6 +3652,10 @@ public class RubyLexer implements MagicCommentHandler {
      * @return true if character is an octal value (0-7) */
     public static boolean isOctChar(int c) {
         return '0' <= c && c <= '7';
+    }
+
+    public static boolean isSpace(int c) {
+        return c == ' ' || ('\t' <= c && c <= '\r');
     }
 
     protected boolean isSpaceArg(int c, boolean spaceSeen) {

@@ -30,8 +30,10 @@
 package org.truffleruby.parser.lexer;
 
 import static org.truffleruby.parser.lexer.RubyLexer.EOF;
+import static org.truffleruby.parser.lexer.RubyLexer.EXPR_END;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_EXPAND;
 import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_INDENT;
+import static org.truffleruby.parser.lexer.RubyLexer.STR_FUNC_TERM;
 
 import org.jcodings.Encoding;
 import org.truffleruby.core.rope.Rope;
@@ -85,7 +87,7 @@ public class HeredocTerm extends StrTerm {
 
     protected int restore(RubyLexer lexer) {
         lexer.heredoc_restore(this);
-        lexer.setStrTerm(null);
+        lexer.setStrTerm(new StringTerm(flags | STR_FUNC_TERM, 0, 0, line)); // weird way to terminate heredoc.
 
         return EOF;
     }
@@ -104,6 +106,8 @@ public class HeredocTerm extends StrTerm {
         // Found end marker for this heredoc
         if (lexer.was_bol() && lexer.whole_match_p(nd_lit, indent)) {
             lexer.heredoc_restore(this);
+            lexer.setStrTerm(null);
+            lexer.setState(EXPR_END);
             return RubyParser.tSTRING_END;
         }
 
@@ -159,15 +163,19 @@ public class HeredocTerm extends StrTerm {
             RopeBuilder tok = new RopeBuilder();
             tok.setEncoding(lexer.getEncoding());
             if (c == '#') {
-                switch (c = lexer.nextc()) {
-                    case '$':
-                    case '@':
-                        lexer.pushback(c);
-                        return RubyParser.tSTRING_DVAR;
-                    case '{':
-                        lexer.commandStart = true;
-                        return RubyParser.tSTRING_DBEG;
+                int token = lexer.peekVariableName(RubyParser.tSTRING_DVAR, RubyParser.tSTRING_DBEG);
+                int heredoc_line_indent = lexer.heredoc_line_indent;
+                if (heredoc_line_indent != -1) {
+                    if (lexer.getHeredocIndent() > heredoc_line_indent) {
+                        lexer.setHeredocIndent(heredoc_line_indent);
+                    }
+                    lexer.setHeredocLineIndent(-1);
                 }
+
+                if (token != 0) {
+                    return token;
+                }
+
                 tok.append('#');
             }
 
@@ -178,7 +186,7 @@ public class HeredocTerm extends StrTerm {
                 Encoding enc[] = new Encoding[1];
                 enc[0] = lexer.getEncoding();
 
-                if ((c = new StringTerm(flags, '\0', '\n').parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
+                if ((c = new StringTerm(flags, '\0', '\n', lexer.ruby_sourceline).parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
                     if (lexer.eofp) {
                         return error(lexer, eos);
                     }
@@ -203,8 +211,7 @@ public class HeredocTerm extends StrTerm {
             str = tok;
         }
 
-        lexer.heredoc_restore(this);
-        lexer.setStrTerm(new StringTerm(-1, '\0', '\0'));
+        lexer.pushback(c);
         lexer.setValue(lexer.createStr(str, 0));
         return RubyParser.tSTRING_CONTENT;
     }
