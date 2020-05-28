@@ -464,6 +464,25 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_fstring" do
+    it 'returns self if the String is frozen' do
+      input  = 'foo'.freeze
+      output = @s.rb_fstring(input)
+
+      output.should equal(input)
+      output.should.frozen?
+    end
+
+    it 'returns a frozen copy if the String is not frozen' do
+      input  = 'foo'
+      output = @s.rb_fstring(input)
+
+      output.should.frozen?
+      output.should_not equal(input)
+      output.should == 'foo'
+    end
+  end
+
   describe "rb_str_subseq" do
     it "returns a byte-indexed substring" do
       str = "\x00\x01\x02\x03\x04".force_encoding("binary")

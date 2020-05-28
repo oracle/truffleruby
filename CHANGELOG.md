@@ -22,6 +22,7 @@ Compatibility:
 * Fix detection of `#find_type` in FFI to ignore `MakeMakefile#find_type` from `mkmf` (#1896, #2010).
 * Implemented `rb_uv_to_utf8` (#1998).
 * Implemented `rb_str_cat_cstr`.
+* Implemented `rb_fstring`.
 
 Performance:
 
