@@ -318,7 +318,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     private RubyNode readArgument(SourceIndexLength sourceSection) {
         if (useArray()) {
-            return ArrayIndexNodes.ReadLiteralNode.create(loadArray(sourceSection), index);
+            return ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index);
         } else {
             if (state == State.PRE) {
                 return ProfileArgumentNodeGen.create(
@@ -399,7 +399,7 @@ public class LoadArgumentsTranslator extends Translator {
                 // Multiple assignment
 
                 if (useArray()) {
-                    readNode = ArrayIndexNodes.ReadLiteralNode.create(loadArray(sourceSection), index);
+                    readNode = ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index);
                 } else {
                     readNode = readArgument(sourceSection);
                 }
@@ -434,7 +434,7 @@ public class LoadArgumentsTranslator extends Translator {
                     // TODO CS 10-Jan-16 we should really hoist this check, or see if Graal does it for us
                     readNode = new IfElseNode(
                             new ArrayIsAtLeastAsLargeAsNode(minimum, loadArray(sourceSection)),
-                            ArrayIndexNodes.ReadLiteralNode.create(loadArray(sourceSection), index),
+                            ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index),
                             defaultValue);
                 } else {
                     if (argsNode.hasKwargs()) {

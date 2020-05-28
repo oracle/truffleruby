@@ -34,15 +34,15 @@ public abstract class ArrayIndexNodes {
     @NodeChild(value = "array", type = RubyNode.class)
     @ImportStatic(ArrayGuards.class)
     @ReportPolymorphism
-    public abstract static class ReadLiteralNode extends RubyContextSourceNode {
+    public abstract static class ReadConstantIndexNode extends RubyContextSourceNode {
 
         protected final int index;
 
-        public static ReadLiteralNode create(RubyNode array, int index) {
+        public static ReadConstantIndexNode create(RubyNode array, int index) {
             return ArrayIndexNodesFactory.ReadLiteralNodeGen.create(index, array);
         }
 
-        protected ReadLiteralNode(int index) {
+        protected ReadConstantIndexNode(int index) {
             this.index = index;
         }
 
