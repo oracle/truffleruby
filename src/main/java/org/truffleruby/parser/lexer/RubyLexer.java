@@ -207,7 +207,8 @@ public class RubyLexer implements MagicCommentHandler {
 
         Keyword(String name, int id, int modifier, int state) {
             this.name = name;
-            this.bytes = RopeOperations.create(name.getBytes(StandardCharsets.US_ASCII), USASCIIEncoding.INSTANCE, CR_7BIT);
+            this.bytes = RopeOperations
+                    .create(name.getBytes(StandardCharsets.US_ASCII), USASCIIEncoding.INSTANCE, CR_7BIT);
             this.id0 = id;
             this.id1 = modifier;
             this.state = state;
@@ -1593,7 +1594,8 @@ public class RubyLexer implements MagicCommentHandler {
             case '<': /* $<: reading filename */
             case '>': /* $>: default output handle */
             case '\"': /* $": already loaded files */
-                yaccValue = RopeOperations.create(new byte[]{ '$', (byte) c }, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                yaccValue = RopeOperations
+                        .create(new byte[]{ '$', (byte) c }, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                 return RubyParser.tGVAR;
 
             case '-':
@@ -1617,7 +1619,8 @@ public class RubyLexer implements MagicCommentHandler {
             case '+': /* $+: string matches last paren. */
                 // Explicit reference to these vars as symbols...
                 if (isLexState(last_state, EXPR_FNAME)) {
-                    yaccValue = RopeOperations.create(new byte[]{ '$', (byte) c }, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                    yaccValue = RopeOperations
+                            .create(new byte[]{ '$', (byte) c }, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
                     return RubyParser.tGVAR;
                 }
 

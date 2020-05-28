@@ -186,7 +186,8 @@ public class HeredocTerm extends StrTerm {
                 Encoding enc[] = new Encoding[1];
                 enc[0] = lexer.getEncoding();
 
-                if ((c = new StringTerm(flags, '\0', '\n', lexer.ruby_sourceline).parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
+                if ((c = new StringTerm(flags, '\0', '\n', lexer.ruby_sourceline)
+                        .parseStringIntoBuffer(lexer, tok, enc)) == EOF) {
                     if (lexer.eofp) {
                         return error(lexer, eos);
                     }
