@@ -1973,7 +1973,7 @@ brace_body      : {
                     support.pushBlockScope();
                     $$ = Long.valueOf(lexer.getCmdArgumentState().getStack()) >> 1;
                     lexer.getCmdArgumentState().reset();
-                } opt_block_param bodystmt {
+                } opt_block_param compstmt {
                     $$ = new IterParseNode($<SourceIndexLength>1, $3, $4, support.getCurrentScope());
                      support.popCurrentScope();
                     lexer.getCmdArgumentState().reset($<Long>2.longValue());
