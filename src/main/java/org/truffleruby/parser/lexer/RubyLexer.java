@@ -2796,7 +2796,7 @@ public class RubyLexer implements MagicCommentHandler {
     public boolean commandStart;
     protected StackState conditionState = new StackState();
     protected StackState cmdArgumentState = new StackState();
-    private String current_arg;
+    private Rope current_arg;
     private Encoding current_enc;
     protected int endPosition = -1;
     public boolean eofp = false;
@@ -2907,7 +2907,7 @@ public class RubyLexer implements MagicCommentHandler {
         return conditionState;
     }
 
-    public String getCurrentArg() {
+    public Rope getCurrentArg() {
         return current_arg;
     }
 
@@ -3275,7 +3275,7 @@ public class RubyLexer implements MagicCommentHandler {
     }
 
     public void setCurrentArg(Rope current_arg) {
-        this.current_arg = current_arg == null ? null : current_arg.getString();
+        this.current_arg = current_arg;
     }
 
     // FIXME: This is icky.  Ripper is setting encoding immediately but in Parsers lexer we are not.

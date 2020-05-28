@@ -231,7 +231,8 @@ public class ParserSupport {
             case DASGNNODE: // LOCALVAR
             case LOCALASGNNODE:
                 String name = ((INameNode) node).getName();
-                if (name.equals(lexer.getCurrentArg())) {
+                final Rope currentArg = lexer.getCurrentArg();
+                if (currentArg != null && name.equals(currentArg.getString())) {
                     warn(node.getPosition(), "circular argument reference - " + name);
                 }
                 return currentScope.declare(node.getPosition(), name);
@@ -252,7 +253,8 @@ public class ParserSupport {
 
     public ParseNode declareIdentifier(Rope rope) {
         String name = rope.getString().intern();
-        if (name.equals(lexer.getCurrentArg())) {
+        final Rope currentArg = lexer.getCurrentArg();
+        if (currentArg != null && name.equals(currentArg.getString())) {
             warn(lexer.getPosition(), "circular argument reference - " + name);
         }
         return currentScope.declare(lexer.tokline, name);
