@@ -43,7 +43,6 @@ public class RootParseNode extends ParseNode {
     private final ParseNode beginNode;
     private final Source source;
     private final ParseNode bodyNode;
-    private final String file;
     private final int endPosition;
 
     public RootParseNode(
@@ -51,13 +50,11 @@ public class RootParseNode extends ParseNode {
             SourceIndexLength position,
             ParseNode beginNode,
             ParseNode bodyNode,
-            String file,
             int endPosition) {
         super(position);
         this.source = source;
         this.beginNode = beginNode;
         this.bodyNode = bodyNode;
-        this.file = file;
         this.endPosition = endPosition;
     }
 
@@ -68,10 +65,6 @@ public class RootParseNode extends ParseNode {
 
     public Source getSource() {
         return source;
-    }
-
-    public String getFile() {
-        return file;
     }
 
     public ParseNode getBeginNode() {

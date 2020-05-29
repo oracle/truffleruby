@@ -307,7 +307,7 @@ public abstract class ThreadNodes {
         protected Object initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block,
                 @CachedLibrary("getStore(arguments)") ArrayStoreLibrary stores) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
-            final String info = getContext().fileLine(sourceSection);
+            final String info = RubyContext.fileLine(sourceSection);
             final int argSize = Layouts.ARRAY.getSize(arguments);
             final Object[] args = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(arguments), 0, argSize);
             final String sharingReason = "creating Ruby Thread " + info;

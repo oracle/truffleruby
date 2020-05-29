@@ -85,7 +85,7 @@ public class BacktraceFormatter {
     /** For debug purposes. */
     public static boolean isApplicationCode(RubyContext context, SourceSection sourceSection) {
         return isUserSourceSection(context, sourceSection) &&
-                !sourceSection.getSource().getName().contains("/lib/stdlib/rubygems");
+                !RubyContext.getPath(sourceSection.getSource()).contains("/lib/stdlib/rubygems");
     }
 
     public BacktraceFormatter(RubyContext context, EnumSet<FormattingFlags> flags) {
@@ -240,7 +240,7 @@ public class BacktraceFormatter {
             if (reportedSourceSection == null) {
                 builder.append("???");
             } else {
-                builder.append(context.getPath(reportedSourceSection.getSource()));
+                builder.append(RubyContext.getPath(reportedSourceSection.getSource()));
                 builder.append(":");
                 builder.append(reportedSourceSection.getStartLine());
             }
@@ -270,7 +270,7 @@ public class BacktraceFormatter {
 
         if (sourceSection != null) {
             final Source source = sourceSection.getSource();
-            final String path = source.getPath() != null ? source.getPath() : source.getName();
+            final String path = RubyContext.getPath(source);
 
             builder.append(path);
             if (sourceSection.isAvailable()) {

@@ -54,7 +54,7 @@ public class ResourceLoader {
             source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, reader, path).internal(internal).build();
         }
 
-        return new RubySource(source);
+        return new RubySource(source, path);
     }
 
 }

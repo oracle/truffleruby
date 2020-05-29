@@ -387,7 +387,7 @@ public abstract class BindingNodes {
                 return nil;
             } else {
                 final DynamicObject file = makeStringNode.executeMake(
-                        getContext().getPath(sourceSection.getSource()),
+                        RubyContext.getPath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
                 final Object[] store = new Object[]{ file, sourceSection.getStartLine() };

@@ -11,6 +11,7 @@ package org.truffleruby.core.method;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -186,7 +187,7 @@ public abstract class MethodNodes {
                 return nil;
             } else {
                 DynamicObject file = makeStringNode.executeMake(
-                        getContext().getPath(sourceSection.getSource()),
+                        RubyContext.getPath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
                 Object[] objects = new Object[]{ file, sourceSection.getStartLine() };

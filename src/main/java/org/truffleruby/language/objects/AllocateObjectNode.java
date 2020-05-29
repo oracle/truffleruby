@@ -135,7 +135,7 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
                         context,
                         Layouts.CLASS.getFields(context.getCoreLibrary().getLogicalClass(allocatingSelf)).getName()),
                 context.getSymbol(allocatingMethod),
-                string(context, context.getPath(allocatingSourceSection.getSource())),
+                string(context, RubyContext.getPath(allocatingSourceSection.getSource())),
                 allocatingSourceSection.getStartLine(),
                 ObjectSpaceManager.getCollectionCount());
     }

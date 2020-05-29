@@ -252,7 +252,7 @@ public class FeatureLoader {
                 final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
                 return String.format(
                         "starting search from %s for feature %s...",
-                        context.fileLine(sourceSection),
+                        RubyContext.fileLine(sourceSection),
                         originalFeature);
             });
         }

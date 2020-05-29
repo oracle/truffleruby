@@ -289,7 +289,7 @@ public abstract class TruffleBootNodes {
             }
 
             return makeStringNode
-                    .executeMake(getContext().getPath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                    .executeMake(RubyContext.getPath(source), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }

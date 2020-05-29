@@ -10,6 +10,7 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
@@ -93,7 +94,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             if (getContext().getOptions().LOG_AUTOLOAD) {
                 RubyLanguage.LOGGER.info(() -> String.format(
                         "%s: %s::%s is being treated as missing while loading %s",
-                        getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                        RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                         Layouts.MODULE.getFields(module).getName(),
                         name,
                         expandedPath));
@@ -104,7 +105,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         if (getContext().getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format(
                     "%s: autoloading %s with %s",
-                    getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                    RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                     autoloadConstant,
                     autoloadConstant.getAutoloadConstant().getAutoloadPath()));
         }

@@ -41,7 +41,7 @@ public abstract class RubyTest {
 
         testInContext(() -> {
             final RubyRootNode rootNode = RubyLanguage.getCurrentContext().getCodeLoader().parse(
-                    new RubySource(source),
+                    new RubySource(source, source.getName()),
                     ParserContext.TOP_LEVEL,
                     null,
                     null,

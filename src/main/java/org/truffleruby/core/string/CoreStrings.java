@@ -27,6 +27,7 @@ public class CoreStrings {
     public final CoreString FALSE;
     public final CoreString GLOBAL_VARIABLE;
     public final CoreString INSTANCE_VARIABLE;
+    public final CoreString INTERNAL;
     public final CoreString INVALID_VALUE_FOR_FLOAT;
     public final CoreString LINE;
     public final CoreString LOCAL_VARIABLE;
@@ -68,6 +69,7 @@ public class CoreStrings {
         FALSE = new CoreString(context, "false");
         GLOBAL_VARIABLE = new CoreString(context, "global-variable");
         INSTANCE_VARIABLE = new CoreString(context, "instance-variable");
+        INTERNAL = new CoreString(context, "<internal>");
         INVALID_VALUE_FOR_FLOAT = new CoreString(context, "invalid value for Float()");
         LINE = new CoreString(context, "line");
         LOCAL_VARIABLE = new CoreString(context, "local-variable");

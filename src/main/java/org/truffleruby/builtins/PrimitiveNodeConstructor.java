@@ -34,12 +34,11 @@ public class PrimitiveNodeConstructor {
         return factory.getExecutionSignature().size();
     }
 
-    public RubyNode createInvokePrimitiveNode(
-            RubyContext context, Source source, SourceIndexLength sourceSection, RubyNode[] arguments) {
+    public RubyNode createInvokePrimitiveNode(Source source, SourceIndexLength sourceSection, RubyNode[] arguments) {
         if (arguments.length != getPrimitiveArity()) {
             throw new Error(
                     "Incorrect number of arguments (expected " + getPrimitiveArity() + ") at " +
-                            context.fileLine(sourceSection.toSourceSection(source)));
+                            RubyContext.fileLine(sourceSection.toSourceSection(source)));
         }
 
         for (int n = 0; n < arguments.length; n++) {

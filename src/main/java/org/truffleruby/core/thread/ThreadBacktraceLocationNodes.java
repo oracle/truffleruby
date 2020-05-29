@@ -11,7 +11,6 @@ package org.truffleruby.core.thread;
 
 import java.io.File;
 
-import com.oracle.truffle.api.TruffleStackTraceElement;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -19,10 +18,13 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -47,19 +49,21 @@ public class ThreadBacktraceLocationNodes {
         protected DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
-            final String path = getContext().getAbsolutePath(sourceSection.getSource());
 
-            if (path == null) {
+            if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                final String canonicalPath;
+                final String path = RubyContext.getPath(sourceSection.getSource());
                 if (new File(path).isAbsolute()) { // A normal file
-                    canonicalPath = getContext().getFeatureLoader().canonicalize(path);
+                    final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
+                    final Rope cachedRope = getContext()
+                            .getRopeCache()
+                            .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
+                    return makeStringNode.fromRope(cachedRope);
                 } else { // eval()
-                    canonicalPath = path;
+                    return makeStringNode
+                            .fromRope(getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource()));
                 }
-
-                return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(canonicalPath));
             }
         }
 
@@ -73,12 +77,12 @@ public class ThreadBacktraceLocationNodes {
         protected DynamicObject path(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
-            final String path = getContext().getPath(sourceSection.getSource());
 
-            if (path == null) {
+            if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(path));
+                return makeStringNode
+                        .fromRope(getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource()));
             }
         }
 

@@ -18,6 +18,7 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
 
 public class TraceBaseEventNode extends ExecutionEventNode {
 
@@ -37,8 +38,8 @@ public class TraceBaseEventNode extends ExecutionEventNode {
     protected DynamicObject getFile() {
         if (file == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            final String path = context.getPath(eventContext.getInstrumentedSourceSection().getSource());
-            file = StringOperations.createString(context, context.getPathToRopeCache().getCachedPath(path));
+            final Source source = eventContext.getInstrumentedSourceSection().getSource();
+            file = StringOperations.createString(context, context.getPathToRopeCache().getCachedPath(source));
         }
         return file;
     }

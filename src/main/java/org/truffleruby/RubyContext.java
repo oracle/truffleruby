@@ -139,9 +139,6 @@ public class RubyContext {
     private boolean initialized;
     private volatile boolean finalizing;
 
-    private Source mainSource = null;
-    private String mainSourceAbsolutePath = null;
-
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
@@ -761,25 +758,17 @@ public class RubyContext {
         return regexpCache;
     }
 
-    /** Returns the path of a Source. Returns the short path for the main script (the file argument given to "ruby").
-     * The path of eval(code, nil, filename) is just filename. */
-    public String getPath(Source source) {
-        final String name = source.getName();
-
-        if (preInitialized && name.startsWith(RubyLanguage.RUBY_HOME_SCHEME)) {
-            return rubyHome + "/" + name.substring(RubyLanguage.RUBY_HOME_SCHEME.length());
+    /** Returns the path of a Source. Returns the short, potentially relative, path for the main script. Note however
+     * that the path of {@code eval(code, nil, filename)} is just {@code filename} and might not be absolute. */
+    public static String getPath(Source source) {
+        final String path = source.getPath();
+        if (path != null) {
+            return path;
         } else {
+            // non-file sources: eval(), main_boot_source, etc
+            final String name = source.getName();
+            assert name != null;
             return name;
-        }
-    }
-
-    /** Returns the path of a Source. Returns the canonical path for the main script. Note however that the path of
-     * eval(code, nil, filename) is just filename and might not be absolute. */
-    public String getAbsolutePath(Source source) {
-        if (source == mainSource) {
-            return mainSourceAbsolutePath;
-        } else {
-            return getPath(source);
         }
     }
 
@@ -792,7 +781,7 @@ public class RubyContext {
     }
 
     @TruffleBoundary
-    public String fileLine(SourceSection section) {
+    public static String fileLine(SourceSection section) {
         if (section == null) {
             return "no source section";
         } else {
@@ -804,11 +793,6 @@ public class RubyContext {
                 return path;
             }
         }
-    }
-
-    public void setMainSource(Source mainSource, String mainSourceAbsolutePath) {
-        this.mainSource = mainSource;
-        this.mainSourceAbsolutePath = mainSourceAbsolutePath;
     }
 
 }

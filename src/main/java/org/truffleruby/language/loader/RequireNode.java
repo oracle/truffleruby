@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.string.StringOperations;
@@ -89,7 +90,7 @@ public abstract class RequireNode extends RubyContextNode {
                 RubyLanguage.LOGGER
                         .info(() -> String.format(
                                 "%s: requiring %s which is registered as an autoload for %s",
-                                getContext().fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                                RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
                                 feature,
                                 info));
             }

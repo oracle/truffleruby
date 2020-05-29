@@ -52,6 +52,7 @@ public class LexerSource {
 
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
     private final Source source;
+    private final String sourcePath;
     private final boolean fromRope;
 
     private Rope sourceBytes;
@@ -59,6 +60,7 @@ public class LexerSource {
 
     public LexerSource(RubySource rubySource, Encoding encoding) {
         this.source = rubySource.getSource();
+        this.sourcePath = rubySource.getSourcePath();
 
         fromRope = rubySource.getRope() != null;
 
@@ -73,6 +75,10 @@ public class LexerSource {
 
     public Source getSource() {
         return source;
+    }
+
+    public String getSourcePath() {
+        return sourcePath;
     }
 
     public Encoding getEncoding() {

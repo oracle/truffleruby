@@ -2,8 +2,8 @@
 # This can be useful to debug or tune performance.
 #
 # Run with:
-# jt build --graal
-# jt ruby bench/optcarrot/fixed-workload.rb
+# jt build --env jvm-ce
+# jt -u jvm-ce ruby bench/optcarrot/fixed-workload.rb
 
 require_relative 'lib/optcarrot'
 require 'benchmark'

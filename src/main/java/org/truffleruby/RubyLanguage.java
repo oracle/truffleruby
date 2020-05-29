@@ -78,7 +78,6 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public static final String CEXT_EXTENSION = Platform.CEXT_SUFFIX;
 
     public static final String RESOURCE_SCHEME = "resource:";
-    public static final String RUBY_HOME_SCHEME = "rubyHome:";
 
     public static final TruffleLogger LOGGER = TruffleLogger.getLogger(TruffleRuby.LANGUAGE_ID);
 

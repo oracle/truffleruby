@@ -146,7 +146,6 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule("Kernel")
@@ -280,23 +279,17 @@ public abstract class KernelNodes {
             if (new File(featureString).isAbsolute()) {
                 featurePath = featureString;
             } else {
-                final Source source = getContext()
+                final SourceSection sourceSection = getContext()
                         .getCallStack()
                         .getCallerNodeIgnoringSend()
-                        .getEncapsulatingSourceSection()
-                        .getSource();
-
-                String sourcePath = getContext().getAbsolutePath(source);
-                if (sourcePath == null) {
-                    // Use the filename passed to eval as basepath
-                    sourcePath = source.getName();
-                }
-
-                if (sourcePath == null) {
+                        .getEncapsulatingSourceSection();
+                if (sourceSection == null || !sourceSection.isAvailable()) {
                     throw new RaiseException(
                             getContext(),
                             coreExceptions().loadError("cannot infer basepath", featureString, this));
                 }
+
+                String sourcePath = RubyContext.getPath(sourceSection.getSource());
 
                 sourcePath = getContext().getFeatureLoader().canonicalize(sourcePath);
 

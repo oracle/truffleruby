@@ -140,7 +140,7 @@ public class TranslatorDriver {
             }
         }
 
-        boolean isInlineSource = source.getName().equals("-e");
+        boolean isInlineSource = rubySource.getSourcePath().equals("-e");
         boolean isEvalParse = parserContext == ParserContext.EVAL || parserContext == ParserContext.INLINE ||
                 parserContext == ParserContext.MODULE;
         final ParserConfiguration parserConfiguration = new ParserConfiguration(
@@ -460,7 +460,7 @@ public class TranslatorDriver {
     public static void printParseTranslateExecuteMetric(String id, RubyContext context, Source source) {
         if (Metrics.getMetricsTime()) {
             if (context.getOptions().METRICS_TIME_PARSING_FILE) {
-                String name = source.getName();
+                String name = RubyContext.getPath(source);
                 int lastSlash = name.lastIndexOf('/');
                 int lastDot = name.lastIndexOf('.');
                 if (lastSlash >= 0 && lastDot >= 0 && lastSlash + 1 < lastDot) {

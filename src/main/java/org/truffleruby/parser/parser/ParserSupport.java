@@ -141,6 +141,7 @@ import org.truffleruby.parser.ast.WhenParseNode;
 import org.truffleruby.parser.ast.YieldParseNode;
 import org.truffleruby.parser.ast.types.ILiteralNode;
 import org.truffleruby.parser.ast.types.INameNode;
+import org.truffleruby.parser.lexer.LexerSource;
 import org.truffleruby.parser.lexer.RubyLexer;
 import org.truffleruby.parser.lexer.SyntaxException.PID;
 import org.truffleruby.parser.scope.StaticScope;
@@ -168,10 +169,9 @@ public class ParserSupport {
     private final RubyWarnings warnings;
     private final ParserRopeOperations parserRopeOperations = new ParserRopeOperations();
 
-    public ParserSupport(RubyContext context, String file, RubyWarnings warnings) {
+    public ParserSupport(RubyContext context, LexerSource source, RubyWarnings warnings) {
         this.context = context;
-        //intern() to improve footprint
-        this.file = file.intern();
+        this.file = source.getSourcePath();
         this.warnings = warnings;
     }
 
@@ -314,7 +314,7 @@ public class ParserSupport {
             }
         }
 
-        return new RootParseNode(lexer.getSource(), position, beginAST, topOfAST, lexer.getFile(), endPosition);
+        return new RootParseNode(lexer.getSource(), position, beginAST, topOfAST, endPosition);
     }
 
     /* MRI: block_append */
