@@ -9,16 +9,19 @@
  */
 package org.truffleruby.parser;
 
+import java.util.Objects;
+
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.source.Source;
 
-import java.util.Objects;
-
 public class RubySource {
 
     private final Source source;
-    /** Same as {@link org.truffleruby.RubyContext#getPath(Source)} except for the main file. */
+    /** The path that will be used by the parser for __FILE__, warnings and syntax errors. Currently the same as
+     * {@link org.truffleruby.RubyContext#getPath(Source)}. Kept separate as we might want to change Source#getName()
+     * for non-file Sources in the future (but then we'll need to still use this path in Ruby backtraces). */
     private final String sourcePath;
     private final Rope sourceRope;
 
@@ -27,6 +30,8 @@ public class RubySource {
     }
 
     public RubySource(Source source, String sourcePath, Rope sourceRope) {
+        assert RubyContext.getPath(source).equals(sourcePath) : RubyContext.getPath(source) + " vs " + sourcePath;
+
         this.source = Objects.requireNonNull(source);
         //intern() to improve footprint
         this.sourcePath = Objects.requireNonNull(sourcePath).intern();
