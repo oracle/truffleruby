@@ -145,13 +145,6 @@ class Array
     true
   end
 
-  def at(index)
-    index = Primitive.rb_num2long(index)
-    return nil unless Primitive.integer_fits_into_int(index)
-    index += size if index < 0
-    Primitive.array_read_normalized(self, index)
-  end
-
   private def element_reference_fallback(start, length)
     if Primitive.undefined?(length)
       if Range === start

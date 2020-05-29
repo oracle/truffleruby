@@ -27,6 +27,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
+import org.truffleruby.core.array.ArrayIndexNodes.ReadNormalizedNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
@@ -47,6 +48,7 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
+import org.truffleruby.core.numeric.IntegerNodes;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -208,7 +210,7 @@ public abstract class ArrayNodes {
         @Specialization
         protected Object index(DynamicObject array, int index, NotProvided length,
                 @Cached ConditionProfile negativeIndexProfile,
-                @Cached ArrayIndexNodes.ReadNormalizedNode readNode) {
+                @Cached ReadNormalizedNode readNode) {
             final int normalizedIndex = ArrayOperations
                     .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);
             return readNode.executeRead(array, normalizedIndex);
@@ -234,6 +236,41 @@ public abstract class ArrayNodes {
 
         protected boolean eitherNotInteger(Object index, Object length) {
             return !RubyGuards.isInteger(index) || RubyGuards.wasProvided(length) && !RubyGuards.isInteger(length);
+        }
+    }
+
+    @CoreMethod(names = { "at" }, required = 1, lowerFixnum = 1, argumentNames = { "index" })
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyNode.class)
+    public abstract static class AtNode extends CoreMethodNode {
+
+        abstract Object executeAt(DynamicObject array, Object index);
+
+        public static AtNode create() {
+            return ArrayNodesFactory.AtNodeFactory.create(null, null);
+        }
+
+        @Specialization
+        protected Object at(DynamicObject array, int index,
+                @Cached ReadNormalizedNode readNormalizedNode,
+                @Cached ConditionProfile denormalized) {
+            if (denormalized.profile(index < 0)) {
+                index += Layouts.ARRAY.getSize(array);
+            }
+            return readNormalizedNode.executeRead(array, index);
+        }
+
+        @Specialization
+        protected Object at(DynamicObject array, long index) {
+            return nil;
+        }
+
+        @Specialization(guards = "!isBasicInteger(index)")
+        protected Object at(DynamicObject array, Object index,
+                @Cached ToLongNode toLongNode,
+                @Cached IntegerNodes.IntegerLowerNode lowerNode,
+                @Cached AtNode atNode) {
+            return atNode.executeAt(array, lowerNode.executeLower(toLongNode.execute(index)));
         }
     }
 
