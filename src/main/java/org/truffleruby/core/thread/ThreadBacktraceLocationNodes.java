@@ -47,11 +47,11 @@ public class ThreadBacktraceLocationNodes {
         protected DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
-            final String path = RubyContext.getPath(sourceSection.getSource());
 
-            if (path == null) {
+            if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
+                final String path = RubyContext.getPath(sourceSection.getSource());
                 final String canonicalPath;
                 if (new File(path).isAbsolute()) { // A normal file
                     canonicalPath = getContext().getFeatureLoader().canonicalize(path);
@@ -73,11 +73,11 @@ public class ThreadBacktraceLocationNodes {
         protected DynamicObject path(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
-            final String path = RubyContext.getPath(sourceSection.getSource());
 
-            if (path == null) {
+            if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
+                final String path = RubyContext.getPath(sourceSection.getSource());
                 return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(path));
             }
         }

@@ -194,7 +194,7 @@ public class TraceManager {
             final String file;
             final int line;
 
-            if (sourceSection != null && sourceSection.getSource() != null) {
+            if (sourceSection != null && sourceSection.isAvailable()) {
                 file = getFile(sourceSection);
                 line = getLine(sourceSection);
             } else {

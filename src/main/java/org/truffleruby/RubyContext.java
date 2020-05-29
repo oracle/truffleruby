@@ -766,7 +766,9 @@ public class RubyContext {
             return path;
         } else {
             // non-file sources: eval(), main_boot_source, etc
-            return source.getName();
+            final String name = source.getName();
+            assert name != null;
+            return name;
         }
     }
 
