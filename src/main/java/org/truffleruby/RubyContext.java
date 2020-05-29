@@ -139,9 +139,6 @@ public class RubyContext {
     private boolean initialized;
     private volatile boolean finalizing;
 
-    private Source mainSource = null;
-    private String mainSourcePath = null;
-
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
     public RubyContext(RubyLanguage language, TruffleLanguage.Env env) {
@@ -764,11 +761,7 @@ public class RubyContext {
     /** Returns the path of a Source. Returns the short path for the main script (the file argument given to "ruby").
      * The path of eval(code, nil, filename) is just filename. */
     public String getPath(Source source) {
-        if (source == mainSource) {
-            return mainSourcePath;
-        } else {
-            return getAbsolutePath(source);
-        }
+        return getAbsolutePath(source);
     }
 
     /** Returns the path of a Source. Returns the canonical path for the main script. Note however that the path of
@@ -804,11 +797,6 @@ public class RubyContext {
                 return path;
             }
         }
-    }
-
-    public void setMainSource(Source mainSource, String mainSourcePath) {
-        this.mainSource = mainSource;
-        this.mainSourcePath = mainSourcePath;
     }
 
 }

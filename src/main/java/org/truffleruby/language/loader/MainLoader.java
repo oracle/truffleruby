@@ -94,7 +94,6 @@ public class MainLoader {
         final Rope sourceRope = transformScript(currentNode, mainPath, sourceBytes);
 
         final Source mainSource = fileLoader.buildSource(file, mainPath, sourceRope, false);
-        context.setMainSource(mainSource, mainPath);
 
         return new RubySource(mainSource, mainPath, sourceRope);
     }
