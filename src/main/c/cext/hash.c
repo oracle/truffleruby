@@ -14,6 +14,10 @@ VALUE rb_hash_new() {
   return RUBY_CEXT_INVOKE("rb_hash_new");
 }
 
+VALUE rb_ident_hash_new() {
+  return RUBY_CEXT_INVOKE("rb_ident_hash_new");
+}
+
 VALUE rb_hash_aref(VALUE hash, VALUE key) {
   return RUBY_CEXT_INVOKE("rb_hash_aref", hash, key);
 }
