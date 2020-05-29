@@ -118,6 +118,13 @@ static VALUE encoding_spec_rb_enc_get(VALUE self, VALUE obj) {
   return rb_str_new2(rb_enc_get(obj)->name);
 }
 
+static VALUE encoding_spec_rb_enc_precise_mbclen(VALUE self, VALUE str, VALUE offset) {
+  int o = FIX2INT(offset);
+  char *p = RSTRING_PTR(str);
+  char *e = p + o;
+  return INT2FIX(rb_enc_precise_mbclen(p, e, rb_enc_get(str)));
+}
+
 static VALUE encoding_spec_rb_obj_encoding(VALUE self, VALUE obj) {
   return rb_obj_encoding(obj);
 }
@@ -275,6 +282,7 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_from_index", encoding_spec_rb_enc_from_index, 1);
   rb_define_method(cls, "rb_enc_from_encoding", encoding_spec_rb_enc_from_encoding, 1);
   rb_define_method(cls, "rb_enc_get", encoding_spec_rb_enc_get, 1);
+  rb_define_method(cls, "rb_enc_precise_mbclen", encoding_spec_rb_enc_precise_mbclen, 2);
   rb_define_method(cls, "rb_obj_encoding", encoding_spec_rb_obj_encoding, 1);
   rb_define_method(cls, "rb_enc_get_index", encoding_spec_rb_enc_get_index, 1);
   rb_define_method(cls, "rb_enc_set_index", encoding_spec_rb_enc_set_index, 2);

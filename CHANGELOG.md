@@ -15,6 +15,7 @@ Bug fixes:
 * Make `require 'rubygems/package'` succeed and define `Gem::Deprecate` correctly (#2014).
 * Fix `MBCLEN_CHARFOUND_P` error.
 * Fix `rb_enc_str_new` when `NULL` encoding is given with a constant string.
+* Fixed `rb_enc_precise_mbclen` to handle more inputs.
 
 Compatibility:
 
