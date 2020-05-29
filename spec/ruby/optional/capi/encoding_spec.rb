@@ -173,6 +173,26 @@ describe "C-API Encoding function" do
     end
   end
 
+  describe "rb_enc_str_new_cstr" do
+    it "creates a new ruby string from a c string literal" do
+      result = @s.rb_enc_str_new_cstr_constant(Encoding::US_ASCII)
+      result.should  == "test string literal"
+      result.encoding.should == Encoding::US_ASCII
+    end
+
+    it "creates a new ruby string from a c string variable" do
+      result = @s.rb_enc_str_new_cstr("test string", Encoding::US_ASCII)
+      result.should == "test string"
+      result.encoding.should == Encoding::US_ASCII
+    end
+
+    it "when null encoding is given with a c string literal, it creates a new ruby string with ASCII_8BIT encoding" do
+      result = @s.rb_enc_str_new_cstr_constant(nil)
+      result.should == "test string literal"
+      result.encoding.should == Encoding::ASCII_8BIT
+    end
+  end
+
   describe "rb_enc_str_coderange" do
     describe "when the encoding is BINARY" do
       it "returns ENC_CODERANGE_7BIT if there are no high bits set" do

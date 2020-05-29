@@ -251,6 +251,9 @@ VALUE rb_enc_str_new_static(const char *ptr, long len, rb_encoding *enc) {
   if (len < 0) {
     rb_raise(rb_eArgError, "negative string size (or size too big)");
   }
+  if (!enc) {
+    enc = rb_ascii8bit_encoding();
+  }
 
   VALUE string = rb_enc_str_new(ptr, len, enc);
   return string;

@@ -153,6 +153,16 @@ static VALUE encoding_spec_rb_enc_str_coderange(VALUE self, VALUE str) {
   }
 }
 
+static VALUE encoding_spec_rb_enc_str_new_cstr(VALUE self, VALUE str, VALUE enc) {
+  rb_encoding *e = rb_to_encoding(enc);
+  return rb_enc_str_new_cstr(StringValueCStr(str), e);
+}
+
+static VALUE encoding_spec_rb_enc_str_new_cstr_constant(VALUE self, VALUE enc) {
+  rb_encoding *e = NIL_P(enc) ? NULL : rb_to_encoding(enc);
+  return rb_enc_str_new_cstr("test string literal", e);
+}
+
 static VALUE encoding_spec_rb_enc_str_new(VALUE self, VALUE str, VALUE len, VALUE enc) {
   return rb_enc_str_new(RSTRING_PTR(str), FIX2INT(len), rb_to_encoding(enc));
 }
@@ -269,6 +279,8 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_get_index", encoding_spec_rb_enc_get_index, 1);
   rb_define_method(cls, "rb_enc_set_index", encoding_spec_rb_enc_set_index, 2);
   rb_define_method(cls, "rb_enc_str_coderange", encoding_spec_rb_enc_str_coderange, 1);
+  rb_define_method(cls, "rb_enc_str_new_cstr", encoding_spec_rb_enc_str_new_cstr, 2);
+  rb_define_method(cls, "rb_enc_str_new_cstr_constant", encoding_spec_rb_enc_str_new_cstr_constant, 1);
   rb_define_method(cls, "rb_enc_str_new", encoding_spec_rb_enc_str_new, 3);
   rb_define_method(cls, "ENCODING_GET", encoding_spec_ENCODING_GET, 1);
   rb_define_method(cls, "ENCODING_SET", encoding_spec_ENCODING_SET, 2);
