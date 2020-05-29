@@ -758,15 +758,9 @@ public class RubyContext {
         return regexpCache;
     }
 
-    /** Returns the path of a Source. Returns the short path for the main script (the file argument given to "ruby").
-     * The path of eval(code, nil, filename) is just filename. */
-    public String getPath(Source source) {
-        return getAbsolutePath(source);
-    }
-
-    /** Returns the path of a Source. Returns the canonical path for the main script. Note however that the path of
-     * eval(code, nil, filename) is just filename and might not be absolute. */
-    public static String getAbsolutePath(Source source) {
+    /** Returns the path of a Source. Returns the short, potentially relative, path for the main script. Note however
+     * that the path of {@code eval(code, nil, filename)} is just {@code filename} and might not be absolute. */
+    public static String getPath(Source source) {
         final String path = source.getPath();
         if (path != null) {
             return path;

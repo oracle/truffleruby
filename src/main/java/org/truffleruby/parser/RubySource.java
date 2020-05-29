@@ -18,7 +18,7 @@ import java.util.Objects;
 public class RubySource {
 
     private final Source source;
-    /** Same as {@link org.truffleruby.RubyContext#getAbsolutePath(Source)} except for the main file. */
+    /** Same as {@link org.truffleruby.RubyContext#getPath(Source)} except for the main file. */
     private final String sourcePath;
     private final Rope sourceRope;
 

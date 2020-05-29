@@ -286,7 +286,7 @@ public abstract class KernelNodes {
                         .getEncapsulatingSourceSection()
                         .getSource();
 
-                String sourcePath = RubyContext.getAbsolutePath(source);
+                String sourcePath = RubyContext.getPath(source);
 
                 if (sourcePath == null) {
                     throw new RaiseException(

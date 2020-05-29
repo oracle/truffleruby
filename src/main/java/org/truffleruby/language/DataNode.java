@@ -57,7 +57,7 @@ public class DataNode extends RubyContextSourceNode {
 
     @TruffleBoundary
     private String getPath() {
-        return RubyContext.getAbsolutePath(getEncapsulatingSourceSection().getSource());
+        return RubyContext.getPath(getEncapsulatingSourceSection().getSource());
     }
 
 }

@@ -769,7 +769,7 @@ public class CExtNodes {
         @Specialization
         protected DynamicObject sourceFile() {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
-            final String file = getContext().getPath(sourceSection.getSource());
+            final String file = RubyContext.getPath(sourceSection.getSource());
 
             return makeStringNode.executeMake(file, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -1451,12 +1451,12 @@ public class CExtNodes {
 
         @TruffleBoundary
         protected void addObjectToMarkingService(DynamicObject object, DynamicObject marker) {
-            RubyContext aContext = getContext();
+            RubyContext capturedContext = getContext();
             /* The code here has to be a little subtle. The marker must be associated with the object it will act on,
              * but the lambda must not capture the object (and prevent garbage collection). So the marking function is a
              * lambda that will take the object as an argument 'o' which will be provided when the marking function is
              * called by the marking service. */
-            getContext().getMarkingService().addMarker(object, (o) -> aContext.send(marker, "call", o));
+            getContext().getMarkingService().addMarker(object, (o) -> capturedContext.send(marker, "call", o));
         }
     }
 

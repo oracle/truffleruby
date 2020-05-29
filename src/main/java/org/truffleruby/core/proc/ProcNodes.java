@@ -287,11 +287,11 @@ public abstract class ProcNodes {
             SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(proc).getSourceSection();
 
             if (!sourceSection.isAvailable() ||
-                    RubyContext.getAbsolutePath(sourceSection.getSource()).endsWith("/lib/truffle/truffle/cext.rb")) {
+                    RubyContext.getPath(sourceSection.getSource()).endsWith("/lib/truffle/truffle/cext.rb")) {
                 return nil;
             } else {
                 final DynamicObject file = makeStringNode.executeMake(
-                        getContext().getPath(sourceSection.getSource()),
+                        RubyContext.getPath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
 

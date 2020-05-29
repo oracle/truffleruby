@@ -1060,7 +1060,7 @@ public class BodyTranslator extends Translator {
     }
 
     private boolean inCore() {
-        final String path = context.getPath(source);
+        final String path = RubyContext.getPath(source);
         return path.startsWith(environment.getParseEnvironment().getCorePath());
     }
 

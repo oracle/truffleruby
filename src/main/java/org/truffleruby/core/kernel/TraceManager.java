@@ -223,7 +223,7 @@ public class TraceManager {
 
         @TruffleBoundary
         private String getFile(SourceSection sourceSection) {
-            return context.getPath(sourceSection.getSource());
+            return RubyContext.getPath(sourceSection.getSource());
         }
 
         @TruffleBoundary

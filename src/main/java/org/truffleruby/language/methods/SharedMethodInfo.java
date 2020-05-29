@@ -177,7 +177,7 @@ public class SharedMethodInfo {
                 descriptiveNameAndSource = descriptiveName;
             } else {
                 descriptiveNameAndSource = descriptiveName + " " +
-                        RubyContext.getAbsolutePath(sourceSection.getSource()) + ":" + sourceSection.getStartLine();
+                        RubyContext.getPath(sourceSection.getSource()) + ":" + sourceSection.getStartLine();
             }
         }
 

@@ -47,7 +47,7 @@ public class ThreadBacktraceLocationNodes {
         protected DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
-            final String path = RubyContext.getAbsolutePath(sourceSection.getSource());
+            final String path = RubyContext.getPath(sourceSection.getSource());
 
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();
@@ -73,7 +73,7 @@ public class ThreadBacktraceLocationNodes {
         protected DynamicObject path(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
-            final String path = getContext().getPath(sourceSection.getSource());
+            final String path = RubyContext.getPath(sourceSection.getSource());
 
             if (path == null) {
                 return coreStrings().UNKNOWN.createInstance();
