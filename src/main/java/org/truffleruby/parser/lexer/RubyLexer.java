@@ -780,9 +780,9 @@ public class RubyLexer implements MagicCommentHandler {
             return RubyParser.tXSTRING_BEG;
         }
 
+        yaccValue = RopeConstants.QQ;
         heredoc_indent = indent;
         heredoc_line_indent = 0;
-        yaccValue = RopeConstants.QQ;
         flush();
         return RubyParser.tSTRING_BEG;
     }
