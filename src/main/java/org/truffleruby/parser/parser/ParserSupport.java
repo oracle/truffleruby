@@ -314,7 +314,7 @@ public class ParserSupport {
             }
         }
 
-        return new RootParseNode(lexer.getSource(), position, beginAST, topOfAST, lexer.getFile(), endPosition);
+        return new RootParseNode(lexer.getSource(), position, beginAST, topOfAST, endPosition);
     }
 
     /* MRI: block_append */
