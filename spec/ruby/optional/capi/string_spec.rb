@@ -392,6 +392,16 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_enc_str_buf_cat" do
+    it "concatenates a C string literal to a ruby string with the given encoding" do
+      input = "hello ".force_encoding(Encoding::US_ASCII)
+      result = @s.rb_enc_str_buf_cat(input, "résumé", Encoding::UTF_8)
+      result.should == "hello résumé"
+      result.encoding.should == Encoding::UTF_8
+      result.object_id.should == input.object_id
+    end
+  end
+
   describe "rb_str_cmp" do
     it "returns 0 if two strings are identical" do
       @s.rb_str_cmp("ppp", "ppp").should == 0

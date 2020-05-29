@@ -91,6 +91,12 @@ VALUE string_spec_rb_str_buf_cat(VALUE self, VALUE str) {
   return str;
 }
 
+VALUE string_spec_rb_enc_str_buf_cat(VALUE self, VALUE str, VALUE other, VALUE encoding) {
+  char *cstr = StringValueCStr(other);
+  rb_encoding* enc = rb_to_encoding(encoding);
+  return rb_enc_str_buf_cat(str, cstr, strlen(cstr), enc);
+}
+
 VALUE string_spec_rb_str_cat(VALUE self, VALUE str) {
   return rb_str_cat(str, "?", 1);
 }
@@ -475,6 +481,7 @@ void Init_string_spec(void) {
   rb_define_method(cls, "rb_str_tmp_new", string_spec_rb_str_tmp_new, 1);
   rb_define_method(cls, "rb_str_tmp_new_klass", string_spec_rb_str_tmp_new_klass, 1);
   rb_define_method(cls, "rb_str_buf_cat", string_spec_rb_str_buf_cat, 1);
+  rb_define_method(cls, "rb_enc_str_buf_cat", string_spec_rb_enc_str_buf_cat, 3);
   rb_define_method(cls, "rb_str_cat", string_spec_rb_str_cat, 1);
   rb_define_method(cls, "rb_str_cat2", string_spec_rb_str_cat2, 1);
   rb_define_method(cls, "rb_str_cat_cstr", string_spec_rb_str_cat_cstr, 2);
