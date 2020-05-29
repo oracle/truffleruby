@@ -104,6 +104,10 @@ int rb_integer_pack(VALUE value, void *words, size_t numwords, size_t wordsize, 
   return result;
 }
 
+VALUE rb_int_positive_pow(long x, unsigned long y) {
+  return RUBY_CEXT_INVOKE("rb_int_positive_pow", INT2FIX(x), INT2FIX(y));
+}
+
 // Needed to gem install cbor
 VALUE rb_integer_unpack(const void *words, size_t numwords, size_t wordsize, size_t nails, int flags) {
   rb_tr_error("rb_integer_unpack not implemented");
