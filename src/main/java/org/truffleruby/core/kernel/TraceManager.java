@@ -191,24 +191,24 @@ public class TraceManager {
 
             final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
 
-            final String file;
+            final DynamicObject file;
             final int line;
 
             if (sourceSection != null && sourceSection.isAvailable()) {
-                file = getFile(sourceSection);
+                file = StringOperations
+                        .createString(context, context.getPathToRopeCache().getCachedPath(sourceSection.getSource()));
                 line = getLine(sourceSection);
             } else {
-                file = "<internal>";
+                file = context.getCoreStrings().INTERNAL.createInstance();
                 line = -1;
             }
 
             isInTraceFunc = true;
-
             try {
                 yield(
                         traceFunc,
                         event,
-                        getFile(file),
+                        file,
                         line,
                         context.getSymbol(RubyArguments.getMethod(frame).getName()),
                         BindingNodes.createBinding(
@@ -222,18 +222,8 @@ public class TraceManager {
         }
 
         @TruffleBoundary
-        private String getFile(SourceSection sourceSection) {
-            return RubyContext.getPath(sourceSection.getSource());
-        }
-
-        @TruffleBoundary
         private int getLine(SourceSection sourceSection) {
             return sourceSection.getStartLine();
-        }
-
-        @TruffleBoundary
-        private DynamicObject getFile(String file) {
-            return StringOperations.createString(context, context.getPathToRopeCache().getCachedPath(file));
         }
 
         private DynamicObject getLogicalClass(Object object) {

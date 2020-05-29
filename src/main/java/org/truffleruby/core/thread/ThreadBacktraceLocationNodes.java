@@ -11,7 +11,6 @@ package org.truffleruby.core.thread;
 
 import java.io.File;
 
-import com.oracle.truffle.api.TruffleStackTraceElement;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -23,6 +22,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -52,14 +52,13 @@ public class ThreadBacktraceLocationNodes {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
                 final String path = RubyContext.getPath(sourceSection.getSource());
-                final String canonicalPath;
                 if (new File(path).isAbsolute()) { // A normal file
-                    canonicalPath = getContext().getFeatureLoader().canonicalize(path);
+                    final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
+                    return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(canonicalPath));
                 } else { // eval()
-                    canonicalPath = path;
+                    return makeStringNode
+                            .fromRope(getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource()));
                 }
-
-                return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(canonicalPath));
             }
         }
 
@@ -77,8 +76,8 @@ public class ThreadBacktraceLocationNodes {
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                final String path = RubyContext.getPath(sourceSection.getSource());
-                return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(path));
+                return makeStringNode
+                        .fromRope(getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource()));
             }
         }
 
