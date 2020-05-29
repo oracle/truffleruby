@@ -26,11 +26,12 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.SourceIndexLength;
 
 /** @author enebo */
 public class Colon2ConstParseNode extends Colon2ParseNode {
-    public Colon2ConstParseNode(SourceIndexLength position, ParseNode leftNode, String name) {
+    public Colon2ConstParseNode(SourceIndexLength position, ParseNode leftNode, Rope name) {
         super(position, leftNode, name);
 
         assert leftNode != null : "Colon2ConstParseNode cannot have null leftNode";

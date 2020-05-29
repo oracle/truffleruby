@@ -91,6 +91,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class TranslatorDriver {
 
+    /** May be null, see {@link ParserCache#parse} */
     private final RubyContext context;
     private final ParseEnvironment parseEnvironment;
 

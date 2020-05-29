@@ -10,11 +10,11 @@
 package org.truffleruby.core.format.format;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.rope.RopeOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -182,7 +182,7 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
             }
         }
 
-        return formatted.getBytes(StandardCharsets.US_ASCII);
+        return RopeOperations.encodeAsciiBytes(formatted);
     }
 
 }

@@ -28,6 +28,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
@@ -38,10 +39,10 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 public class LiteralParseNode extends ParseNode implements InvisibleNode {
     private String name;
 
-    public LiteralParseNode(SourceIndexLength position, String name) {
+    public LiteralParseNode(SourceIndexLength position, Rope name) {
         super(position);
 
-        this.name = name;
+        this.name = name.getString();
     }
 
     public String getName() {

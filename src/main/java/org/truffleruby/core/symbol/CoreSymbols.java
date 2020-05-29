@@ -9,13 +9,17 @@
  */
 package org.truffleruby.core.symbol;
 
-import org.jcodings.specific.USASCIIEncoding;
-import org.truffleruby.core.rope.RopeOperations;
-
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeConstants;
+import org.truffleruby.core.rope.RopeOperations;
+
 public class CoreSymbols {
+
+    public static final List<RubySymbol> CORE_SYMBOLS = new ArrayList<>();
 
     public static final RubySymbol AMPERSAND = createRubySymbol("&");
     public static final RubySymbol CIRCUMFLEX = createRubySymbol("^");
@@ -40,32 +44,15 @@ public class CoreSymbols {
     public static final RubySymbol TO_ARY = createRubySymbol("to_ary");
     public static final RubySymbol TO_HASH = createRubySymbol("to_hash");
 
-    public static List<RubySymbol> CORE_SYMBOLS = Arrays.asList(
-            AMPERSAND,
-            CIRCUMFLEX,
-            CLASS,
-            DIVIDE,
-            DIVMOD,
-            GREATER_OR_EQUAL,
-            GREATER_THAN,
-            IMMEDIATE,
-            LESS_OR_EQUAL,
-            LESS_THAN,
-            LINE,
-            MINUS,
-            MODULO,
-            MULTIPLY,
-            NEVER,
-            ON_BLOCKING,
-            PIPE,
-            POWER,
-            PLUS,
-            TO_A,
-            TO_ARY,
-            TO_HASH);
-
     private static RubySymbol createRubySymbol(String string) {
-        return new RubySymbol(string, RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE));
+        Rope rope = RopeConstants.lookupUSASCII(string);
+        if (rope == null) {
+            rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
+        }
+
+        final RubySymbol symbol = new RubySymbol(string, rope);
+        CORE_SYMBOLS.add(symbol);
+        return symbol;
     }
 
 }

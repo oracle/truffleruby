@@ -33,6 +33,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
@@ -40,6 +41,10 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 /** Access to a class variable. */
 public class ClassVarParseNode extends ParseNode implements INameNode, SideEffectFree {
     private String name;
+
+    public ClassVarParseNode(SourceIndexLength position, Rope name) {
+        this(position, name.getString());
+    }
 
     public ClassVarParseNode(SourceIndexLength position, String name) {
         super(position);

@@ -33,6 +33,10 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
@@ -58,6 +62,10 @@ public class BackRefParseNode extends ParseNode {
     @Override
     public <T> T accept(NodeVisitor<T> iVisitor) {
         return iVisitor.visitBackRefNode(this);
+    }
+
+    public Rope getByteName() {
+        return RopeOperations.create(new byte[]{ '$', (byte) type }, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
     }
 
     /** Gets the type

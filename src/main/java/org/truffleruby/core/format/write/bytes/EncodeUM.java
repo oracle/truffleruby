@@ -35,17 +35,16 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.core.format.write.bytes;
 
-import java.nio.charset.StandardCharsets;
-
 import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.rope.RopeOperations;
 
 public class EncodeUM {
 
-    private static final byte[] uu_table = "`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_"
-            .getBytes(StandardCharsets.US_ASCII);
-    private static final byte[] b64_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-            .getBytes(StandardCharsets.US_ASCII);
-    public static final byte[] sHexDigits = "0123456789abcdef0123456789ABCDEFx".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] uu_table = RopeOperations
+            .encodeAsciiBytes("`!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_");
+    private static final byte[] b64_table = RopeOperations
+            .encodeAsciiBytes("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/");
+    public static final byte[] sHexDigits = RopeOperations.encodeAsciiBytes("0123456789abcdef0123456789ABCDEFx");
     public static final int[] b64_xtable = new int[256];
 
     static {

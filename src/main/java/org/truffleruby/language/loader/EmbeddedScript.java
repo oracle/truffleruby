@@ -9,11 +9,11 @@
  */
 package org.truffleruby.language.loader;
 
-import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
 
 /*
@@ -25,7 +25,7 @@ public class EmbeddedScript {
 
     private final RubyContext context;
 
-    private static final byte[] PREFIX_COMMENT = "# line ignored by Ruby: ".getBytes(StandardCharsets.US_ASCII);
+    private static final byte[] PREFIX_COMMENT = RopeOperations.encodeAsciiBytes("# line ignored by Ruby: ");
 
     public EmbeddedScript(RubyContext context) {
         this.context = context;

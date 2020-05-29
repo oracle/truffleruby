@@ -99,10 +99,10 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.encoding.EncodingNodes;
@@ -153,9 +153,9 @@ import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -2018,7 +2018,7 @@ public abstract class StringNodes {
                                         buf = new RopeBuilder();
                                     }
                                     int cc = codePointX(enc, rope.getCodeRange(), bytes, p - 1, end);
-                                    buf.append(String.format("%x", cc).getBytes(StandardCharsets.US_ASCII));
+                                    buf.append(StringUtils.formatASCIIBytes("%x", cc));
                                     len += buf.getLength() + 4;
                                     buf.setLength(0);
                                     p += n;
@@ -2087,13 +2087,13 @@ public abstract class StringNodes {
                             int cc = codePointX(enc, cr, bytes, p - 1, end);
                             p += n;
                             outBytes.setLength(q);
-                            outBytes.append(String.format("u{%x}", cc).getBytes(StandardCharsets.US_ASCII));
+                            outBytes.append(StringUtils.formatASCIIBytes("u{%x}", cc));
                             q = outBytes.getLength();
                             continue;
                         }
                     }
                     outBytes.setLength(q);
-                    outBytes.append(String.format("x%02X", c).getBytes(StandardCharsets.US_ASCII));
+                    outBytes.append(StringUtils.formatASCIIBytes("x%02X", c));
                     q = outBytes.getLength();
                 }
             }
@@ -3586,12 +3586,9 @@ public abstract class StringNodes {
 
                     if (unicode_p && (c & 0xFFFFFFFFL) < 0x7F && Encoding.isAscii(c) &&
                             ASCIIEncoding.INSTANCE.isPrint(c)) {
-                        result.append(
-                                String.format("%c", (char) (c & 0xFFFFFFFFL)).getBytes(StandardCharsets.US_ASCII));
+                        result.append(StringUtils.formatASCIIBytes("%c", (char) (c & 0xFFFFFFFFL)));
                     } else {
-                        result.append(
-                                String.format(escapedCharFormat(c, unicode_p), c & 0xFFFFFFFFL).getBytes(
-                                        StandardCharsets.US_ASCII));
+                        result.append(StringUtils.formatASCIIBytes(escapedCharFormat(c, unicode_p), c & 0xFFFFFFFFL));
                     }
 
                     prev = p;

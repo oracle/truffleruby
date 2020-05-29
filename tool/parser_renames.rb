@@ -2,7 +2,7 @@ contents = STDIN.read
 
 header_regexp = /\A%{.+?%}/m
 trailer_regexp = /^%%[^%]+\z/m
-original = `git show master:src/main/java/org/truffleruby/parser/parser/RubyParser.y`
+original = `git show HEAD:src/main/java/org/truffleruby/parser/parser/RubyParser.y`
 
 original_header = original[header_regexp, 0] or raise
 original_trailer = original[trailer_regexp, 0] or raise
@@ -23,8 +23,14 @@ contents = contents.lines.map do |line|
   line = line.gsub(/\bNode\b/, 'ParseNode')
   line = line.gsub(/\bISourcePosition\b/, 'SourceIndexLength')
 
-  line = line.gsub(/\bsupport.warn\(ID[^,]+, /, 'support.warn(')
+  line = line.gsub(/\bsupport.warn(ing)?\(ID[^,]+, /, 'support.warn\1(')
+
   line = line.gsub(/<KeyValuePair>/, '<ParseNodeTuple>')
+
+  line = line.gsub(/\bByteList\b/, 'Rope')
+  line = line.gsub(/\bRubySymbol\b/, 'Rope')
+
+  line = line.gsub(/\b(lexer|LexingCommon)\.([A-Z_]+)\b/, 'RopeConstants.\2')
 
   line = "#{line}//#{comment}" if comment
   line

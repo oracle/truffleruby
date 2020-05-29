@@ -214,6 +214,7 @@ public class StaticScope {
     }
 
     private int findVariableName(String name) {
+        assert name == name.intern() : name;
         for (int i = 0; i < variableNames.length; i++) {
             if (name == variableNames[i]) {
                 return i;
@@ -326,7 +327,7 @@ public class StaticScope {
     }
 
     private void growVariableNames(String name) {
-        assert name == name.intern();
+        assert name == name.intern() : name;
         String[] newVariableNames = new String[variableNames.length + 1];
         System.arraycopy(variableNames, 0, newVariableNames, 0, variableNames.length);
         variableNames = newVariableNames;

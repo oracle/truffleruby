@@ -11,10 +11,10 @@ package org.truffleruby.core.rope;
 
 import org.jcodings.Encoding;
 import org.truffleruby.collections.WeakValueCache;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class RopeCache {
 
@@ -25,17 +25,36 @@ public class RopeCache {
     private int ropeBytesSaved;
 
     public RopeCache() {
+        addRopeConstants();
         addCoreSymbolRopes();
+    }
+
+    private void addRopeConstants() {
+        for (Rope rope : RopeConstants.UTF8_SINGLE_BYTE_ROPES) {
+            register(rope);
+        }
+        for (Rope rope : RopeConstants.US_ASCII_SINGLE_BYTE_ROPES) {
+            register(rope);
+        }
+        for (Rope rope : RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES) {
+            register(rope);
+        }
+        for (Rope rope : RopeConstants.ROPE_CONSTANTS.values()) {
+            register(rope);
+        }
     }
 
     private void addCoreSymbolRopes() {
         for (RubySymbol symbol : CoreSymbols.CORE_SYMBOLS) {
-            final Rope rope = symbol.getRope();
-            final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding());
-            final Rope existing = bytesToRope.put(key, rope);
-            if (existing != null) {
-                throw new Error("Duplicate Rope for CoreSymbols: " + existing);
-            }
+            register(symbol.getRope());
+        }
+    }
+
+    private void register(Rope rope) {
+        final BytesKey key = new BytesKey(rope.getBytes(), rope.getEncoding());
+        final Rope existing = bytesToRope.put(key, rope);
+        if (existing != null && existing != rope) {
+            throw new AssertionError("Duplicate Rope in RopeCache: " + existing.getString());
         }
     }
 

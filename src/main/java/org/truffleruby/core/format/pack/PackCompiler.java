@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.pack;
 
-import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
@@ -18,6 +17,7 @@ import org.truffleruby.core.format.LoopRecovery;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
+import org.truffleruby.core.rope.RopeOperations;
 
 public class PackCompiler {
 
@@ -38,7 +38,7 @@ public class PackCompiler {
 
         builder.enterSequence();
 
-        final SimplePackParser parser = new SimplePackParser(builder, format.getBytes(StandardCharsets.US_ASCII));
+        final SimplePackParser parser = new SimplePackParser(builder, RopeOperations.encodeAsciiBytes(format));
         parser.parse();
 
         builder.exitSequence();

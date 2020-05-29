@@ -49,7 +49,7 @@ public class SymbolTable {
 
             final RubySymbol existing = symbolMap.put(rope, symbol);
             if (existing != null) {
-                throw new Error("Duplicate Symbol " + existing);
+                throw new AssertionError("Duplicate Symbol in SymbolTable: " + existing);
             }
 
             stringToSymbolCache.put(symbol.getString(), symbol);

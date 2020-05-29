@@ -16,6 +16,7 @@ import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsTaintedNode;
@@ -66,19 +67,19 @@ public abstract class ToStringNode extends FormatNode {
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
     protected byte[] toString(int value) {
-        return Integer.toString(value).getBytes(StandardCharsets.US_ASCII);
+        return RopeOperations.encodeAsciiBytes(Integer.toString(value));
     }
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
     protected byte[] toString(long value) {
-        return Long.toString(value).getBytes(StandardCharsets.US_ASCII);
+        return RopeOperations.encodeAsciiBytes(Long.toString(value));
     }
 
     @TruffleBoundary
     @Specialization(guards = "convertNumbersToStrings")
     protected byte[] toString(double value) {
-        return Double.toString(value).getBytes(StandardCharsets.US_ASCII);
+        return RopeOperations.encodeAsciiBytes(Double.toString(value));
     }
 
     @Specialization(guards = "isRubyString(string)")

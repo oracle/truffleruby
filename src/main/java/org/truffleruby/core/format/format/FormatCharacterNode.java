@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.format.format;
 
-import java.nio.charset.StandardCharsets;
 
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.LiteralFormatNode;
@@ -48,13 +47,13 @@ public abstract class FormatCharacterNode extends FormatNode {
             @Cached("width") int cachedWidth,
             @Cached("makeFormatString(width)") String cachedFormatString) {
         final String charString = getCharString(frame, value);
-        return doFormat(charString, cachedFormatString);
+        return StringUtils.formatASCIIBytes(cachedFormatString, charString);
     }
 
     @Specialization(replaces = "formatCached")
     protected byte[] format(VirtualFrame frame, int width, Object value) {
         final String charString = getCharString(frame, value);
-        return doFormat(charString, makeFormatString(width));
+        return StringUtils.formatASCIIBytes(makeFormatString(width), charString);
     }
 
     protected String getCharString(VirtualFrame frame, Object value) {
@@ -103,11 +102,6 @@ public abstract class FormatCharacterNode extends FormatNode {
             width = -width;
         }
         return "%" + (leftJustified ? "-" : "") + width + "." + width + "s";
-    }
-
-    @TruffleBoundary
-    private byte[] doFormat(String charString, String formatString) {
-        return StringUtils.format(formatString, charString).getBytes(StandardCharsets.US_ASCII);
     }
 
     protected int getLimit() {

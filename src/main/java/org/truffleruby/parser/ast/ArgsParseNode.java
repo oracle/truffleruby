@@ -242,36 +242,14 @@ public class ArgsParseNode extends ParseNode {
         return blockArgNode;
     }
 
-    // FIXME: This is a hot mess and I think we will still have some extra nulls inserted
     @Override
     public List<ParseNode> childNodes() {
-        ListParseNode post = getPost();
-        ListParseNode keywords = getKeywords();
         ListParseNode pre = getPre();
         ListParseNode optArgs = getOptArgs();
+        ListParseNode post = getPost();
+        ListParseNode keywords = getKeywords();
 
-
-        if (post != null) {
-            if (keywords != null) {
-                if (keyRest != null) {
-                    return ParseNode.createList(pre, optArgs, restArgNode, post, keywords, keyRest, blockArgNode);
-                }
-
-                return ParseNode.createList(pre, optArgs, restArgNode, post, keywords, blockArgNode);
-            }
-
-            return ParseNode.createList(pre, optArgs, restArgNode, post, blockArgNode);
-        }
-
-        if (keywords != null) {
-            if (keyRest != null) {
-                return ParseNode.createList(pre, optArgs, restArgNode, keywords, keyRest, blockArgNode);
-            }
-
-            return ParseNode.createList(pre, optArgs, restArgNode, keywords, blockArgNode);
-        }
-
-        return ParseNode.createList(pre, optArgs, restArgNode, blockArgNode);
+        return ParseNode.createList(pre, optArgs, restArgNode, post, keywords, keyRest, blockArgNode);
     }
 
 }

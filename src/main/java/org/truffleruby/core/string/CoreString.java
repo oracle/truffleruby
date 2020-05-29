@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.string;
 
-import java.nio.charset.StandardCharsets;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
@@ -19,6 +18,7 @@ import org.truffleruby.core.rope.Rope;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.rope.RopeOperations;
 
 public class CoreString {
 
@@ -39,7 +39,7 @@ public class CoreString {
             CompilerDirectives.transferToInterpreterAndInvalidate();
 
             rope = context.getRopeCache().getRope(
-                    literal.getBytes(StandardCharsets.US_ASCII),
+                    RopeOperations.encodeAsciiBytes(literal),
                     // Binary because error message Strings have a ASCII-8BIT encoding on MRI.
                     // When used for creating a Symbol, the encoding is adapted as needed.
                     ASCIIEncoding.INSTANCE,

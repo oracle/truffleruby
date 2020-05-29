@@ -44,7 +44,9 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     @Override
     public Object visitArgsNode(ArgsParseNode node) {
-        visitChildren(node);
+        for (ParseNode child : node.childNodes()) {
+            child.accept(this);
+        }
         return null;
     }
 
@@ -56,7 +58,11 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     @Override
     public Object visitArrayNode(ArrayParseNode node) {
-        visitChildren(node);
+        for (ParseNode child : node.children()) {
+            if (child != null) {
+                child.accept(this);
+            }
+        }
         return null;
     }
 
@@ -68,7 +74,11 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     @Override
     public Object visitBlockNode(BlockParseNode node) {
-        visitChildren(node);
+        for (ParseNode child : node.children()) {
+            if (child != null) {
+                child.accept(this);
+            }
+        }
         return null;
     }
 
@@ -85,13 +95,21 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
 
     @Override
     public Object visitListNode(ListParseNode node) {
-        visitChildren(node);
+        for (ParseNode child : node.children()) {
+            if (child != null) {
+                child.accept(this);
+            }
+        }
         return null;
     }
 
     @Override
     public Object visitMultipleAsgnNode(MultipleAsgnParseNode node) {
-        visitChildren(node);
+        for (ParseNode child : node.childNodes()) {
+            if (child != null) {
+                child.accept(this);
+            }
+        }
         return null;
     }
 
@@ -119,14 +137,6 @@ public class ParameterCollector extends AbstractNodeVisitor<Object> {
     public Object visitKeywordRestArgNode(KeywordRestArgParseNode node) {
         parameters.add(node.getName());
         return null;
-    }
-
-    private void visitChildren(ParseNode node) {
-        for (ParseNode child : node.childNodes()) {
-            if (child != null) {
-                child.accept(this);
-            }
-        }
     }
 
 }
