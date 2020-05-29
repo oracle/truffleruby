@@ -41,8 +41,6 @@ public class CoverageManager {
 
     public static final long NO_CODE = -1;
 
-    private final RubyContext context;
-
     private final Instrumenter instrumenter;
     private EventBinding<?> binding;
     private final Map<Source, AtomicLongArray> counters = new ConcurrentHashMap<>();
@@ -51,7 +49,6 @@ public class CoverageManager {
     private volatile boolean enabled;
 
     public CoverageManager(RubyContext context, Instrumenter instrumenter) {
-        this.context = context;
         this.instrumenter = instrumenter;
 
         if (context.getOptions().COVERAGE_GLOBAL) {
