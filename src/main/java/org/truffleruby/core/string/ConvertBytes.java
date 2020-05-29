@@ -14,7 +14,6 @@
 package org.truffleruby.core.string;
 
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import org.truffleruby.RubyContext;
@@ -23,6 +22,7 @@ import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -65,7 +65,7 @@ public class ConvertBytes {
     static {
         MIN_VALUE_BYTES = new byte[37][];
         for (int i = 2; i <= 36; i++) {
-            MIN_VALUE_BYTES[i] = Long.toString(Long.MIN_VALUE, i).getBytes(StandardCharsets.US_ASCII);
+            MIN_VALUE_BYTES[i] = RopeOperations.encodeAsciiBytes(Long.toString(Long.MIN_VALUE, i));
         }
     }
 

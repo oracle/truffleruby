@@ -135,10 +135,11 @@ public class RopeOperations {
         return WithEncodingNodeGen.getUncached().executeWithEncoding(originalRope, newEncoding);
     }
 
-    public static Rope encodeAscii(String value, Encoding encoding) {
+    public static LeafRope encodeAscii(String value, Encoding encoding) {
         return create(encodeAsciiBytes(value), encoding, CR_7BIT);
     }
 
+    /** Prefer this to {@code getBytes(StandardCharsets.US_ASCII)} */
     public static byte[] encodeAsciiBytes(String value) {
         assert StringOperations.isAsciiOnly(value);
 

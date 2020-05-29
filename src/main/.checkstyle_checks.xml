@@ -182,6 +182,10 @@
       <property name="format" value='@CompilerDirectives\.TruffleBoundary'/>
       <property name="message" value='Use @TruffleBoundary instead.'/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='\.getBytes\(StandardCharsets\.US_ASCII\)'/>
+      <property name="message" value='Use RopeOperations.encodeAsciiBytes() instead.'/>
+    </module>
   </module>
   <module name="RegexpMultiline">
     <property name="format" value='Node currentNode,\s*RubyContext context'/>

@@ -50,7 +50,6 @@ import static org.truffleruby.core.string.StringSupport.isAsciiSpace;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -207,8 +206,7 @@ public class RubyLexer implements MagicCommentHandler {
 
         Keyword(String name, int id, int modifier, int state) {
             this.name = name;
-            this.bytes = RopeOperations
-                    .create(name.getBytes(StandardCharsets.US_ASCII), USASCIIEncoding.INSTANCE, CR_7BIT);
+            this.bytes = RopeOperations.encodeAscii(name, USASCIIEncoding.INSTANCE);
             this.id0 = id;
             this.id1 = modifier;
             this.state = state;

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.rope;
 
-import java.nio.charset.StandardCharsets;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -67,7 +66,7 @@ public class LazyIntRope extends LazyRope {
     @Override
     public byte[] fulfill() {
         if (bytes == null) {
-            bytes = Integer.toString(value).getBytes(StandardCharsets.US_ASCII);
+            bytes = RopeOperations.encodeAsciiBytes(Integer.toString(value));
         }
 
         return bytes;

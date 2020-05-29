@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.rope;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -109,7 +108,7 @@ public class RopeConstants {
         if (string.length() == 1) {
             return US_ASCII_SINGLE_BYTE_ROPES[string.charAt(0)];
         } else {
-            final byte[] bytes = string.getBytes(StandardCharsets.US_ASCII);
+            final byte[] bytes = RopeOperations.encodeAsciiBytes(string);
             final LeafRope rope = new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
             final Rope existing = ROPE_CONSTANTS.putIfAbsent(string, rope);
             if (existing != null) {

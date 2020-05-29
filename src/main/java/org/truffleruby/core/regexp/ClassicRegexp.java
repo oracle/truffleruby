@@ -57,6 +57,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.ReOptions;
 
@@ -304,7 +305,7 @@ public class ClassicRegexp implements ReOptions {
 
         if (code < 0x80) {
             if (to != null) {
-                to.append(String.format("\\x%02X", code).getBytes(StandardCharsets.US_ASCII));
+                to.append(StringUtils.formatASCIIBytes("\\x%02X", code));
             }
         } else {
             if (to != null) {
@@ -397,7 +398,7 @@ public class ClassicRegexp implements ReOptions {
             }
         } else {
             if (to != null) {
-                to.append(String.format("\\x%02X", chBuf[0] & 0xff).getBytes(StandardCharsets.US_ASCII));
+                to.append(StringUtils.formatASCIIBytes("\\x%02X", chBuf[0] & 0xff));
             }
         }
         return p;
@@ -960,7 +961,7 @@ public class ClassicRegexp implements ReOptions {
                     int l = StringSupport.characterLength(enc, cr, bytes, p, end);
                     if (l <= 0) {
                         l = 1;
-                        to.append(String.format("\\x%02X", c).getBytes(StandardCharsets.US_ASCII));
+                        to.append(StringUtils.formatASCIIBytes("\\x%02X", c));
                     } else if (resEnc != null) {
                         int code = enc.mbcToCode(bytes, p, end);
                         to.append(
@@ -975,7 +976,7 @@ public class ClassicRegexp implements ReOptions {
                 } else if (enc.isPrint(c)) {
                     to.append(bytes, p, cl);
                 } else if (!enc.isSpace(c)) {
-                    to.append(String.format("\\x%02X", c).getBytes(StandardCharsets.US_ASCII));
+                    to.append(StringUtils.formatASCIIBytes("\\x%02X", c));
                 } else {
                     to.append(bytes, p, cl);
                 }
