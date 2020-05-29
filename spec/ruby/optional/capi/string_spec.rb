@@ -218,6 +218,14 @@ describe "C-API String function" do
     end
   end
 
+  describe "rb_usascii_str_new_lit" do
+    it "returns a US-ASCII string of the correct characters" do
+      str = @s.rb_usascii_str_new_lit
+      str.should == "nokogiri"
+      str.encoding.should == Encoding::US_ASCII
+    end
+  end
+
   describe "rb_usascii_str_new_cstr" do
     it "creates a new String with US-ASCII Encoding" do
       str = "abc".force_encoding("us-ascii")

@@ -432,6 +432,10 @@ static VALUE string_spec_rb_usascii_str_new(VALUE self, VALUE str, VALUE len) {
   return rb_usascii_str_new(RSTRING_PTR(str), NUM2INT(len));
 }
 
+static VALUE string_spec_rb_usascii_str_new_lit(VALUE self) {
+  return rb_usascii_str_new_lit("nokogiri");
+}
+
 static VALUE string_spec_rb_usascii_str_new_cstr(VALUE self, VALUE str) {
   return rb_usascii_str_new_cstr(RSTRING_PTR(str));
 }
@@ -539,6 +543,7 @@ void Init_string_spec(void) {
   rb_define_method(cls, "rb_vsprintf", string_spec_rb_vsprintf, 4);
   rb_define_method(cls, "rb_str_equal", string_spec_rb_str_equal, 2);
   rb_define_method(cls, "rb_usascii_str_new", string_spec_rb_usascii_str_new, 2);
+  rb_define_method(cls, "rb_usascii_str_new_lit", string_spec_rb_usascii_str_new_lit, 0);
   rb_define_method(cls, "rb_usascii_str_new_cstr", string_spec_rb_usascii_str_new_cstr, 1);
   rb_define_method(cls, "rb_String", string_spec_rb_String, 1);
   rb_define_method(cls, "rb_string_value_cstr", string_spec_rb_string_value_cstr, 1);

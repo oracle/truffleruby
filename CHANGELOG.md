@@ -25,6 +25,7 @@ Compatibility:
 * Implemented `rb_uv_to_utf8` (#1998).
 * Implemented `rb_str_cat_cstr`.
 * Implemented `rb_fstring`.
+* Implemented `rb_usascii_str_new_lit`.
 
 Performance:
 
