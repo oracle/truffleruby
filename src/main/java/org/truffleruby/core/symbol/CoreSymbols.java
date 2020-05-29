@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.jcodings.specific.USASCIIEncoding;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 
 public class CoreSymbols {
@@ -43,7 +45,12 @@ public class CoreSymbols {
     public static final RubySymbol TO_HASH = createRubySymbol("to_hash");
 
     private static RubySymbol createRubySymbol(String string) {
-        RubySymbol symbol = new RubySymbol(string, RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE));
+        Rope rope = RopeConstants.lookupUSASCII(string);
+        if (rope == null) {
+            rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
+        }
+
+        final RubySymbol symbol = new RubySymbol(string, rope);
         CORE_SYMBOLS.add(symbol);
         return symbol;
     }

@@ -10,6 +10,8 @@
 package org.truffleruby.core.rope;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
@@ -29,6 +31,7 @@ public class RopeConstants {
     public static final LeafRope[] UTF8_SINGLE_BYTE_ROPES = new LeafRope[256];
     public static final LeafRope[] US_ASCII_SINGLE_BYTE_ROPES = new LeafRope[256];
     public static final LeafRope[] ASCII_8BIT_SINGLE_BYTE_ROPES = new LeafRope[256];
+    public static final Map<String, LeafRope> ROPE_CONSTANTS = new HashMap<>();
 
     static {
         for (int i = 0; i < 128; i++) {
@@ -107,7 +110,20 @@ public class RopeConstants {
             return US_ASCII_SINGLE_BYTE_ROPES[string.charAt(0)];
         } else {
             final byte[] bytes = string.getBytes(StandardCharsets.US_ASCII);
-            return new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
+            final LeafRope rope = new AsciiOnlyLeafRope(bytes, USASCIIEncoding.INSTANCE).computeHashCode();
+            final Rope existing = ROPE_CONSTANTS.putIfAbsent(string, rope);
+            if (existing != null) {
+                throw new AssertionError("Duplicate Rope in RopeConstants: " + existing.getString());
+            }
+            return rope;
+        }
+    }
+
+    public static Rope lookupUSASCII(String string) {
+        if (string.length() == 1) {
+            return US_ASCII_SINGLE_BYTE_ROPES[string.charAt(0)];
+        } else {
+            return ROPE_CONSTANTS.get(string);
         }
     }
 
