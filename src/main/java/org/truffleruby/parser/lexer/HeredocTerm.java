@@ -132,7 +132,7 @@ public class HeredocTerm extends StrTerm {
                 }
 
                 if (lexer.getHeredocIndent() > 0) {
-                    for (long i = 0; p + i < pend && lexer.update_heredoc_indent(lexer.p(p)); i++) {
+                    for (int i = 0; p + i < pend && lexer.update_heredoc_indent(lexer.p(p + i)); i++) {
                     }
                     lexer.setHeredocLineIndent(0);
                 }
@@ -164,13 +164,6 @@ public class HeredocTerm extends StrTerm {
             tok.setEncoding(lexer.getEncoding());
             if (c == '#') {
                 int token = lexer.peekVariableName(RubyParser.tSTRING_DVAR, RubyParser.tSTRING_DBEG);
-                int heredoc_line_indent = lexer.heredoc_line_indent;
-                if (heredoc_line_indent != -1) {
-                    if (lexer.getHeredocIndent() > heredoc_line_indent) {
-                        lexer.setHeredocIndent(heredoc_line_indent);
-                    }
-                    lexer.setHeredocLineIndent(-1);
-                }
 
                 if (token != 0) {
                     return token;

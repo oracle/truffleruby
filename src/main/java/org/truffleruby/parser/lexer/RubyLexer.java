@@ -710,6 +710,7 @@ public class RubyLexer implements MagicCommentHandler {
     private int hereDocumentIdentifier() {
         int c = nextc();
         int term;
+        int indent = 0;
 
         int func = 0;
         if (c == '-') {
@@ -718,8 +719,7 @@ public class RubyLexer implements MagicCommentHandler {
         } else if (c == '~') {
             c = nextc();
             func = STR_FUNC_INDENT;
-            heredoc_indent = Integer.MAX_VALUE;
-            heredoc_line_indent = 0;
+            indent = Integer.MAX_VALUE;
         }
 
         Rope markerValue;
@@ -781,6 +781,8 @@ public class RubyLexer implements MagicCommentHandler {
         }
 
         yaccValue = RopeConstants.QQ;
+        heredoc_indent = indent;
+        heredoc_line_indent = 0;
         flush();
         return RubyParser.tSTRING_BEG;
     }

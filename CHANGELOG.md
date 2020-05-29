@@ -17,6 +17,7 @@ Bug fixes:
 * Fix `rb_enc_str_new` when `NULL` encoding is given with a constant string.
 * Fixed `rb_enc_precise_mbclen` to handle more inputs.
 * The output for `--engine.TraceCompilation` is now significantly easier to read, by having shorter method names and source names (oracle/graal#2052).
+* Fix indentation for squiggly heredoc with single quotes (#1564).
 
 Compatibility:
 
