@@ -18,7 +18,9 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -54,7 +56,10 @@ public class ThreadBacktraceLocationNodes {
                 final String path = RubyContext.getPath(sourceSection.getSource());
                 if (new File(path).isAbsolute()) { // A normal file
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
-                    return makeStringNode.fromRope(getContext().getPathToRopeCache().getCachedPath(canonicalPath));
+                    final Rope cachedRope = getContext()
+                            .getRopeCache()
+                            .getRope(StringOperations.encodeRope(canonicalPath, UTF8Encoding.INSTANCE));
+                    return makeStringNode.fromRope(cachedRope);
                 } else { // eval()
                     return makeStringNode
                             .fromRope(getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource()));
