@@ -15,6 +15,7 @@ Bug fixes:
 * Make `require 'rubygems/package'` succeed and define `Gem::Deprecate` correctly (#2014).
 * Fix `MBCLEN_CHARFOUND_P` error.
 * Fix `rb_enc_str_new` when `NULL` encoding is given with a constant string.
+* Fix indentation for squiggly heredoc with single quotes (#1564).
 
 Compatibility:
 
