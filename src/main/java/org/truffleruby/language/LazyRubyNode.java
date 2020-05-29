@@ -95,7 +95,7 @@ public class LazyRubyNode extends RubyContextSourceNode {
                 if (context.getOptions().LAZY_TRANSLATION_LOG) {
                     RubyLanguage.LOGGER.info(
                             () -> "lazy translating " +
-                                    context.fileLine(getParent().getEncapsulatingSourceSection()) + " in " +
+                                    RubyContext.fileLine(getParent().getEncapsulatingSourceSection()) + " in " +
                                     getRootNode());
                 }
 

@@ -22,7 +22,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import com.oracle.truffle.api.source.SourceSection;
 
 public final class WhileNode extends RubyContextSourceNode {
 
@@ -57,12 +56,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public String toString() {
-            SourceSection sourceSection = getEncapsulatingSourceSection();
-            if (sourceSection != null && sourceSection.isAvailable()) {
-                return "while loop at " + context.fileLine(sourceSection);
-            } else {
-                return "while loop";
-            }
+            return "while loop at " + RubyContext.fileLine(getEncapsulatingSourceSection());
         }
 
     }

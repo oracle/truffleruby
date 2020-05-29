@@ -779,7 +779,7 @@ public class RubyContext {
     }
 
     @TruffleBoundary
-    public String fileLine(SourceSection section) {
+    public static String fileLine(SourceSection section) {
         if (section == null) {
             return "no source section";
         } else {

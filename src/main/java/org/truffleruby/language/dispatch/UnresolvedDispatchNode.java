@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.language.NotProvided;
@@ -54,7 +55,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             final Object[] argumentsObjects) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         // Useful debug aid to catch a running-away NotProvided or undefined
-        assert !(receiverObject instanceof NotProvided) : getContext().fileLine(getEncapsulatingSourceSection());
+        assert !(receiverObject instanceof NotProvided) : RubyContext.fileLine(getEncapsulatingSourceSection());
 
         // Make sure to have an up-to-date Shape.
         if (receiverObject instanceof DynamicObject) {

@@ -547,7 +547,7 @@ public class BodyTranslator extends Translator {
             arguments[n] = args.get(n).accept(this);
         }
 
-        return primitive.createInvokePrimitiveNode(context, source, sourceSection, arguments);
+        return primitive.createInvokePrimitiveNode(source, sourceSection, arguments);
     }
 
     private RubyNode translateCallNode(CallParseNode node, boolean ignoreVisibility, boolean isVCall,
@@ -1040,7 +1040,8 @@ public class BodyTranslator extends Translator {
     private RubyNode getLexicalScopeModuleNode(String kind, SourceIndexLength sourceSection) {
         if (environment.isDynamicConstantLookup()) {
             if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(() -> kind + " at " + context.fileLine(sourceSection.toSourceSection(source)));
+                RubyLanguage.LOGGER
+                        .info(() -> kind + " at " + RubyContext.fileLine(sourceSection.toSourceSection(source)));
             }
             return new DynamicLexicalScopeNode();
         } else {
@@ -1051,7 +1052,8 @@ public class BodyTranslator extends Translator {
     private RubyNode getLexicalScopeNode(String kind, SourceIndexLength sourceSection) {
         if (environment.isDynamicConstantLookup()) {
             if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
-                RubyLanguage.LOGGER.info(() -> kind + " at " + context.fileLine(sourceSection.toSourceSection(source)));
+                RubyLanguage.LOGGER
+                        .info(() -> kind + " at " + RubyContext.fileLine(sourceSection.toSourceSection(source)));
             }
             return new GetDynamicLexicalScopeNode();
         } else {
@@ -1074,7 +1076,8 @@ public class BodyTranslator extends Translator {
         if (environment.isDynamicConstantLookup()) {
             if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
                 RubyLanguage.LOGGER.info(
-                        () -> "dynamic constant lookup at " + context.fileLine(sourceSection.toSourceSection(source)));
+                        () -> "dynamic constant lookup at " +
+                                RubyContext.fileLine(sourceSection.toSourceSection(source)));
             }
             ret = new ReadConstantWithDynamicScopeNode(name);
         } else {
@@ -2913,7 +2916,7 @@ public class BodyTranslator extends Translator {
                 if (context.getOptions().LOG_DYNAMIC_CONSTANT_LOOKUP) {
                     RubyLanguage.LOGGER.info(
                             () -> "start dynamic constant lookup at " +
-                                    context.fileLine(sourceSection.toSourceSection(source)));
+                                    RubyContext.fileLine(sourceSection.toSourceSection(source)));
                 }
             }
         }

@@ -43,7 +43,7 @@ public class WarnNode extends RubyContextNode {
     }
 
     void callWarn(SourceSection sourceSection, String message) {
-        final String warningMessage = buildWarningMessage(getContext(), sourceSection, message);
+        final String warningMessage = buildWarningMessage(sourceSection, message);
 
         if (makeStringNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -60,8 +60,8 @@ public class WarnNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    private static String buildWarningMessage(RubyContext context, SourceSection sourceSection, String message) {
-        final String sourceLocation = sourceSection != null ? context.fileLine(sourceSection) + ": " : "";
+    private static String buildWarningMessage(SourceSection sourceSection, String message) {
+        final String sourceLocation = sourceSection != null ? RubyContext.fileLine(sourceSection) + ": " : "";
         return sourceLocation + "warning: " + message;
     }
 

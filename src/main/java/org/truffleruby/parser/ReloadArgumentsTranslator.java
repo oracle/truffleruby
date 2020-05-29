@@ -94,7 +94,7 @@ public class ReloadArgumentsTranslator extends Translator {
             RubyLanguage.LOGGER.warning(
                     String.format(
                             "post args in zsuper not yet implemented at %s%n",
-                            context.fileLine(sourceSection.toSourceSection(source))));
+                            RubyContext.fileLine(sourceSection.toSourceSection(source))));
         }
 
         RubyNode kwArgsNode = null;
