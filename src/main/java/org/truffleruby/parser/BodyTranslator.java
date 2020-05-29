@@ -33,7 +33,7 @@ import org.truffleruby.core.array.ArrayConcatNode;
 import org.truffleruby.core.array.ArrayDropTailNode;
 import org.truffleruby.core.array.ArrayDropTailNodeGen;
 import org.truffleruby.core.array.ArrayGetTailNodeGen;
-import org.truffleruby.core.array.ArrayIndexNodes;
+import org.truffleruby.core.array.ArrayIndexNodes.ReadConstantIndexNode;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.cast.HashCastNodeGen;
 import org.truffleruby.core.cast.SplatCastNode;
@@ -2080,7 +2080,7 @@ public class BodyTranslator extends Translator {
             /* Then index the temp array for each assignment on the LHS. */
 
             for (int n = 0; n < preArray.size(); n++) {
-                final RubyNode assignedValue = ArrayIndexNodes.ReadConstantIndexNode
+                final RubyNode assignedValue = ReadConstantIndexNode
                         .create(environment.findLocalVarNode(tempName, sourceSection), n);
 
                 sequence.add(translateDummyAssignment(preArray.get(n), assignedValue));
@@ -2101,7 +2101,7 @@ public class BodyTranslator extends Translator {
                 final List<RubyNode> smallerSequence = new ArrayList<>();
 
                 for (int n = 0; n < postArray.size(); n++) {
-                    final RubyNode assignedValue = ArrayIndexNodes.ReadConstantIndexNode
+                    final RubyNode assignedValue = ReadConstantIndexNode
                             .create(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
                     smallerSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
                 }
@@ -2112,7 +2112,7 @@ public class BodyTranslator extends Translator {
 
                 for (int n = 0; n < postArray.size(); n++) {
                     int index = -(postArray.size() - n);
-                    final RubyNode assignedValue = ArrayIndexNodes.ReadConstantIndexNode
+                    final RubyNode assignedValue = ReadConstantIndexNode
                             .create(environment.findLocalVarNode(tempName, sourceSection), index);
 
                     atLeastAsLargeSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
@@ -2248,7 +2248,7 @@ public class BodyTranslator extends Translator {
             final List<RubyNode> smallerSequence = new ArrayList<>();
 
             for (int n = 0; n < postArray.size(); n++) {
-                final RubyNode assignedValue = ArrayIndexNodes.ReadConstantIndexNode
+                final RubyNode assignedValue = ReadConstantIndexNode
                         .create(environment.findLocalVarNode(tempName, sourceSection), node.getPreCount() + n);
                 smallerSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));
             }
@@ -2259,7 +2259,7 @@ public class BodyTranslator extends Translator {
 
             for (int n = 0; n < postArray.size(); n++) {
                 int index = -(postArray.size() - n);
-                final RubyNode assignedValue = ArrayIndexNodes.ReadConstantIndexNode
+                final RubyNode assignedValue = ReadConstantIndexNode
                         .create(environment.findLocalVarNode(tempName, sourceSection), index);
 
                 atLeastAsLargeSequence.add(translateDummyAssignment(postArray.get(n), assignedValue));

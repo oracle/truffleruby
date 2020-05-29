@@ -226,10 +226,14 @@ public abstract class ArrayNodes {
             return readSliceNode.executeReadSlice(array, normalizedStart, length);
         }
 
-        @Specialization(guards = "!isInteger(index) || !isInteger(maybeLength)")
+        @Specialization(guards = "eitherNotInteger(index, maybeLength)")
         protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength,
                 @Cached CallDispatchHeadNode fallbackNode) {
             return fallbackNode.call(array, "element_reference_fallback", index, maybeLength);
+        }
+
+        protected boolean eitherNotInteger(Object index, Object length) {
+            return !RubyGuards.isInteger(index) || RubyGuards.wasProvided(length) && !RubyGuards.isInteger(length);
         }
     }
 

@@ -26,8 +26,6 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
-import static org.truffleruby.core.array.ArrayHelpers.getSize;
-
 @CoreModule(value = "Truffle::ArrayIndex", isClass = false)
 public abstract class ArrayIndexNodes {
 
@@ -36,10 +34,10 @@ public abstract class ArrayIndexNodes {
     @ReportPolymorphism
     public abstract static class ReadConstantIndexNode extends RubyContextSourceNode {
 
-        protected final int index;
+        private final int index;
 
         public static ReadConstantIndexNode create(RubyNode array, int index) {
-            return ArrayIndexNodesFactory.ReadLiteralNodeGen.create(index, array);
+            return ArrayIndexNodesFactory.ReadConstantIndexNodeGen.create(index, array);
         }
 
         protected ReadConstantIndexNode(int index) {
@@ -132,9 +130,10 @@ public abstract class ArrayIndexNodes {
         protected DynamicObject readInBounds(DynamicObject array, int index, int length,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached ConditionProfile endsInBoundsProfile) {
-            final int end = endsInBoundsProfile.profile(endInBounds(array, index, length))
+            final int size = Layouts.ARRAY.getSize(array);
+            final int end = endsInBoundsProfile.profile(index + length <= size)
                     ? length
-                    : Layouts.ARRAY.getSize(array) - index;
+                    : size - index;
             final Object slice = cowNode.execute(array, index, end);
             return createArrayOfSameClass(array, slice, end);
         }
@@ -145,10 +144,6 @@ public abstract class ArrayIndexNodes {
 
         protected DynamicObject createArrayOfSameClass(DynamicObject array, Object store, int size) {
             return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), store, size);
-        }
-
-        protected static boolean endInBounds(DynamicObject array, int index, int length) {
-            return index + length <= getSize(array);
         }
     }
 }

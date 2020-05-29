@@ -99,7 +99,6 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
