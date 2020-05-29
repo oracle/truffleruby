@@ -50,7 +50,7 @@ class Range
   private :initialize
 
   private def endless?
-    self.end.nil?
+    Primitive.nil? self.end
   end
 
   def ==(other)
@@ -80,7 +80,7 @@ class Range
     if Float === start || Float === stop
       bsearch_float(&block)
     elsif Integer === start
-      if stop.nil?
+      if Primitive.nil? stop
         bsearch_endless(&block)
       elsif Integer === stop
         bsearch_integer(&block)

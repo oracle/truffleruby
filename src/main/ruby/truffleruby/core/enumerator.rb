@@ -99,7 +99,7 @@ class Enumerator
   def each_with_block
     @object.__send__ @iter, *@args do |*args|
       ret = yield(*args)
-      unless @feedvalue.nil?
+      unless Primitive.nil? @feedvalue
         ret = @feedvalue
         @feedvalue = nil
       end
@@ -204,7 +204,7 @@ class Enumerator
   end
 
   def feed(val)
-    raise TypeError, 'Feed value already set' unless @feedvalue.nil?
+    raise TypeError, 'Feed value already set' unless Primitive.nil? @feedvalue
     @feedvalue = val
     nil
   end
@@ -581,7 +581,7 @@ class Enumerator::ArithmeticSequence < Enumerator
   def last(n=undefined)
     from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
 
-    raise RangeError, 'cannot get the last element of endless arithmetic sequence' if to.nil?
+    raise RangeError, 'cannot get the last element of endless arithmetic sequence' if Primitive.nil? to
 
     len = (to - from).div(step)
     if len.negative?
@@ -614,7 +614,7 @@ class Enumerator::ArithmeticSequence < Enumerator
       "((#{@begin}..#{exclude_end}#{to}).step#{step})"
     else
       if @step == 1
-        if @end.nil?
+        if Primitive.nil? @end
           "(#{@begin}.step)"
         else
           "(#{@begin}.step(#{@end}))"
@@ -644,7 +644,7 @@ class Enumerator::ArithmeticSequence < Enumerator
   end
 
   def each(&block)
-    return self if block.nil?
+    return self if Primitive.nil? block
     from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
     from.step(to: to, by: step) do |val|
       break if exclude_end && (step.negative? ? val <= to : val >= to)
@@ -684,7 +684,7 @@ class Enumerator::Chain < Enumerator
     total = 0
     @enums.each do |e|
       size = e.size
-      if size.nil? || (size.is_a?(Float) && size.infinite?)
+      if Primitive.nil?(size) || (size.is_a?(Float) && size.infinite?)
         return size
       end
       unless size.is_a?(Integer)

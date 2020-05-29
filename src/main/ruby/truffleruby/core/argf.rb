@@ -377,7 +377,7 @@ module Truffle
     #
     def read(bytes=nil, output=nil)
       # The user might try to pass in nil, so we have to check here
-      if output.nil?
+      if Primitive.nil? output
         output = default_value
       else
         output = StringValue(output)
@@ -417,7 +417,7 @@ module Truffle
 
     def getpartial(bytes, output, is_blocking, exception: true)
       # The user might try to pass in nil, so we have to check here
-      if output.nil?
+      if Primitive.nil? output
         output = default_value
       else
         output = StringValue(output)
@@ -540,7 +540,7 @@ module Truffle
     # stream gets closed. Returns self.
     #
     def skip
-      return self if @use_stdin_only || @stream.nil?
+      return self if @use_stdin_only || Primitive.nil?(@stream)
       @stream.close unless @stream.closed?
       @advance = true
       self

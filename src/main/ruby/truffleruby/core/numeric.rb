@@ -86,8 +86,8 @@ class Numeric
     kwargs[:to] = to unless Primitive.undefined?(to)
 
     unless block_given?
-      step = 1 if step.nil?
-      if (Primitive.undefined?(to) || to.nil? || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
+      step = 1 if Primitive.nil?(step)
+      if (Primitive.undefined?(to) || Primitive.nil?(to) || Primitive.object_kind_of?(to, Numeric)) && Primitive.object_kind_of?(step, Numeric)
         return Enumerator::ArithmeticSequence.new(self, :step, self, limit, step, false)
       end
       return to_enum(:step, orig_limit, orig_step, kwargs) do

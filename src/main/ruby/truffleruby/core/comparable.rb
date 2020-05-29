@@ -81,7 +81,7 @@ module Comparable
 
   def clamp(min, max)
     comp = min <=> max
-    raise ArgumentError, 'min argument must be smaller than max argument' if comp == nil or comp > 0
+    raise ArgumentError, 'min argument must be smaller than max argument' if Primitive.nil?(comp) or comp > 0
     return min if self < min
     return max if self > max
     self

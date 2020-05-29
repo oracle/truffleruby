@@ -60,7 +60,7 @@ module Kernel
     case obj
     when String
       converted = Primitive.string_to_f obj
-      if converted.nil? && raise_exception
+      if Primitive.nil?(converted) && raise_exception
         raise ArgumentError, "invalid value for Float(): #{obj.inspect}"
       else
         converted
@@ -103,7 +103,7 @@ module Kernel
   def Integer(obj, base=0, exception: true)
     obj = Truffle::Interop.unbox_if_needed(obj)
     converted_base = Truffle::Type.rb_check_to_integer(base, :to_int)
-    base = converted_base.nil? ? 0 : converted_base
+    base = Primitive.nil?(converted_base) ? 0 : converted_base
     raise_exception = !exception.equal?(false)
 
     if String === obj
@@ -133,12 +133,12 @@ module Kernel
       else
         if base != 0
           converted_to_str_obj = Truffle::Type.rb_check_convert_type(obj, String, :to_str)
-          return Primitive.string_to_inum(converted_to_str_obj, base, true, raise_exception) unless converted_to_str_obj.nil?
+          return Primitive.string_to_inum(converted_to_str_obj, base, true, raise_exception) unless Primitive.nil? converted_to_str_obj
           return nil unless raise_exception
           raise ArgumentError, 'base is only valid for String values'
         end
         converted_to_int_obj = Truffle::Type.rb_check_to_integer(obj, :to_int)
-        return converted_to_int_obj unless converted_to_int_obj.nil?
+        return converted_to_int_obj unless Primitive.nil? converted_to_int_obj
 
         return Truffle::Type.rb_check_to_integer(obj, :to_i) unless raise_exception
         Truffle::Type.rb_convert_type(obj, Integer, :to_i)
@@ -154,7 +154,7 @@ module Kernel
 
   def String(obj)
     str = Truffle::Type.rb_check_convert_type(obj, String, :to_str)
-    if str.nil?
+    if Primitive.nil? str
       str = Truffle::Type.rb_convert_type(obj, String, :to_s)
     end
     str
@@ -634,7 +634,7 @@ module Kernel
   module_function :untrace_var
 
   def warn(*messages, uplevel: undefined)
-    if !$VERBOSE.nil? && !messages.empty?
+    if !Primitive.nil?($VERBOSE) && !messages.empty?
       prefix = if Primitive.undefined?(uplevel)
                  +''
                else
@@ -694,12 +694,12 @@ module Kernel
 
   def caller(start = 1, limit = nil)
     args = if start.is_a? Range
-             if start.end == nil
+             if Primitive.nil? start.end
                [start.begin + 1]
              else
                [start.begin + 1, start.size]
              end
-           elsif limit.nil?
+           elsif Primitive.nil? limit
              [start + 1]
            else
              [start + 1, limit]

@@ -136,7 +136,7 @@ class Time
       (tv_sec <=> other.tv_sec).nonzero? || (tv_nsec <=> other.tv_nsec)
     else
       r = (other <=> self)
-      return nil if r == nil
+      return nil if Primitive.nil? r
       return -1 if r > 0
       return  1 if r < 0
       0
@@ -412,7 +412,7 @@ class Time
     def new(year=undefined, month=nil, day=nil, hour=nil, minute=nil, second=nil, utc_offset=nil)
       if Primitive.undefined?(year)
         self.now
-      elsif utc_offset == nil
+      elsif Primitive.nil? utc_offset
         compose(:local, year, month, day, hour, minute, second)
       elsif utc_offset.instance_of?(String) && !valid_utc_offset_string?(utc_offset)
         raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'

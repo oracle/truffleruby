@@ -32,9 +32,9 @@ module Truffle
       if many
         many = Truffle::Type.coerce_to_collection_index many
         many = 0 if many < 0
-        (size = enum_size).nil? ? nil : size * many
+        Primitive.nil?(enum_size) ? nil : enum_size * many
       else
-        enum_size.nil? ? nil : Float::INFINITY
+        Primitive.nil?(enum_size) ? nil : Float::INFINITY
       end
     end
   end

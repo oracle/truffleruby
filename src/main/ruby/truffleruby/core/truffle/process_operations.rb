@@ -355,7 +355,7 @@ module Truffle
       end
 
       def convert_env_value(value)
-        return nil if value.nil?
+        return nil if Primitive.nil? value
         Truffle::Type.check_null_safe(StringValue(value))
       end
 

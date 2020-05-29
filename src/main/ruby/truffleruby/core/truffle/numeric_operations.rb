@@ -97,7 +97,7 @@ module Truffle
     end
 
     def self.stepping_forever?(limit, step, desc)
-      return true if limit.nil? || step.zero?
+      return true if Primitive.nil?(limit) || step.zero?
       if desc
         limit == -Float::INFINITY && step != -Float::INFINITY
       else
@@ -112,7 +112,7 @@ module Truffle
         # Step can't be `nil` or `0` if passed via positional arguments,
         # but it can be either value if passed via keyword arguments.
 
-        raise TypeError, 'step must be numeric' if step.nil?
+        raise TypeError, 'step must be numeric' if Primitive.nil? step
         raise ArgumentError, "step can't be 0" if step == 0
       end
 

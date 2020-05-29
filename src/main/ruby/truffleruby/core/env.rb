@@ -63,7 +63,7 @@ class << ENV
 
   def []=(key, value)
     key = StringValue(key)
-    if value.nil?
+    if Primitive.nil? value
       Truffle::POSIX.unsetenv(key)
       @variables.delete(key)
     else
@@ -135,7 +135,7 @@ class << ENV
 
   # More efficient than using the one from Enumerable
   def include?(key)
-    !lookup(key).nil?
+    !Primitive.nil?(lookup(key))
   end
   alias_method :has_key?, :include?
   alias_method :key?, :include?
@@ -193,7 +193,7 @@ class << ENV
 
   def has_value?(value)
     value = Truffle::Type.rb_check_convert_type(value, String, :to_str)
-    return nil if value.nil?
+    return nil if Primitive.nil? value
     each { |_k, v| return true if v == value }
     false
   end
@@ -325,7 +325,7 @@ class << ENV
 
   def rassoc(value)
     value = Truffle::Type.rb_check_convert_type(value, String, :to_str)
-    return nil if value.nil?
+    return nil if Primitive.nil? value
     key = key(value)
     key ? [key, value] : nil
   end
@@ -334,7 +334,7 @@ class << ENV
     result = {}
     keys.each do |k|
       value = lookup(k)
-      unless value.nil?
+      unless Primitive.nil? value
         result[k] = value
       end
     end

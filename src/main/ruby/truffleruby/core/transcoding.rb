@@ -152,7 +152,7 @@ class Encoding
       end
 
       if (@options & (INVALID_REPLACE | UNDEF_REPLACE | UNDEF_HEX_CHARREF))
-        unless new_replacement.nil?
+        unless Primitive.nil? new_replacement
           new_replacement = Truffle::Type.coerce_to new_replacement, String, :to_str
           self.replacement = new_replacement # We can only call `self.replacement=` after the converter has been initialized.
         end
@@ -186,13 +186,13 @@ class Encoding
       source = StringValue(source) if source
       target = StringValue(target)
 
-      if offset.nil?
+      if Primitive.nil? offset
         offset = target.bytesize
       else
         offset = Truffle::Type.coerce_to_int offset
       end
 
-      if size.nil?
+      if Primitive.nil? size
         size = -1
       else
         size = Truffle::Type.coerce_to_int size
@@ -245,7 +245,7 @@ class Encoding
 
     def last_error
       error = Primitive.encoding_converter_last_error self
-      return if error.nil?
+      return if Primitive.nil? error
 
       result, source_encoding_name, destination_encoding_name, error_bytes, read_again_bytes = error
       read_again_string = nil

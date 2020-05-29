@@ -364,7 +364,7 @@ class IO
   end
 
   def self.binread(file, length=nil, offset=0)
-    raise ArgumentError, "Negative length #{length} given" if !length.nil? && length < 0
+    raise ArgumentError, "Negative length #{length} given" if !Primitive.nil?(length) && length < 0
 
     File.open(file, 'r', :encoding => 'ascii-8bit:-') do |f|
       f.seek(offset)
@@ -595,7 +595,7 @@ class IO
   end
 
   def self.read(name, length_or_options=undefined, offset=0, options=nil)
-    offset = 0 if offset.nil?
+    offset = 0 if Primitive.nil? offset
     name = Truffle::Type.coerce_to_path name
     mode = 'r'
 
@@ -658,7 +658,7 @@ class IO
     if Primitive.undefined?(options)
       options = Truffle::Type.try_convert(mode, Hash, :to_hash)
       mode = nil if options
-    elsif !options.nil?
+    elsif !Primitive.nil?(options)
       options = Truffle::Type.try_convert(options, Hash, :to_hash)
       raise ArgumentError, 'wrong number of arguments (3 for 1..2)' unless options
     end
@@ -698,7 +698,7 @@ class IO
         raise ArgumentError, 'both textmode and binmode specified'
       end
 
-      if binary.nil?
+      if Primitive.nil? binary
         binary = options[:binmode]
       elsif options.key?(:textmode) or options.key?(:binmode)
         raise ArgumentError, 'text/binary mode specified twice'
@@ -716,7 +716,7 @@ class IO
 
         if encoding.kind_of? Encoding
           external = encoding
-        elsif !encoding.nil?
+        elsif !Primitive.nil?(encoding)
           encoding = StringValue(encoding)
           external, internal = encoding.split(':')
         end
@@ -1157,7 +1157,7 @@ class IO
   end
 
   def binmode?
-    !@binmode.nil?
+    !Primitive.nil?(@binmode)
   end
 
   # Used to find out if there is buffered data available.
@@ -1462,7 +1462,7 @@ class IO
 
     each_reader = create_each_reader(sep_or_limit, limit)
 
-    return if each_reader.nil?
+    return if Primitive.nil? each_reader
 
     each_reader.each(&block)
 
@@ -2045,7 +2045,7 @@ class IO
         data = @ibuffer.shift(size)
       else
         data = Truffle::POSIX.read_string_at_least_one_byte(self, size)
-        raise EOFError if data.nil?
+        raise EOFError if Primitive.nil? data
       end
 
       buffer.replace(data)
@@ -2058,7 +2058,7 @@ class IO
       end
 
       data = Truffle::POSIX.read_string_at_least_one_byte(self, size)
-      raise EOFError if data.nil?
+      raise EOFError if Primitive.nil? data
       data
     end
   end
@@ -2195,7 +2195,7 @@ class IO
       external = StringValue(external)
     end
 
-    if @external.nil? and not external.nil?
+    if Primitive.nil?(@external) && !Primitive.nil?(external)
       if index = external.index(':')
         internal = external[index+1..-1]
         external = external[0, index]
@@ -2354,7 +2354,7 @@ class IO
     str, errno = Truffle::POSIX.read_string(self, number_of_bytes)
     Errno.handle unless errno == 0
 
-    raise EOFError if str.nil?
+    raise EOFError if Primitive.nil? str
 
     unless Primitive.undefined? buffer
       StringValue(buffer).replace str

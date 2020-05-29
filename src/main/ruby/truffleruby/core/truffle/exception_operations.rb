@@ -54,7 +54,7 @@ module Truffle
     def self.backtrace_message(highlight, reverse, bt, exc)
       message = Truffle::ExceptionOperations.message_and_class(exc, highlight)
       message = message.end_with?("\n") ? message : "#{message}\n"
-      return '' if bt.nil? || bt.empty?
+      return '' if Primitive.nil?(bt) || bt.empty?
       if reverse
         bt[1..-1].reverse.map do |l|
           "\tfrom #{l}\n"
@@ -67,7 +67,7 @@ module Truffle
     end
 
     def self.append_causes(str, err, causes, reverse, highlight)
-      if !err.cause.nil? && Exception === err.cause && !causes.has_key?(err.cause)
+      if !Primitive.nil?(err.cause) && Exception === err.cause && !causes.has_key?(err.cause)
         causes[err.cause] = true
         if reverse
           append_causes(str, err.cause, causes, reverse, highlight)
@@ -130,7 +130,7 @@ module Truffle
     end
 
     def self.format_errno_error_message(errno_description, errno, extra_message)
-      if errno_description.nil?
+      if Primitive.nil? errno_description
         "unknown error: #{errno} - #{extra_message}"
       else
         "#{errno_description}#{extra_message}"

@@ -49,7 +49,7 @@ class Class
   private def __marshal__(ms)
     if singleton_class?
       raise TypeError, "singleton class can't be dumped"
-    elsif name.nil? || name.empty?
+    elsif Primitive.nil?(name) || name.empty?
       raise TypeError, "can't dump anonymous module #{self}"
     end
 
@@ -59,7 +59,7 @@ end
 
 class Module
   private def __marshal__(ms)
-    raise TypeError, "can't dump anonymous module #{self}" if name.nil? || name.empty?
+    raise TypeError, "can't dump anonymous module #{self}" if Primitive.nil?(name) || name.empty?
     "m#{ms.serialize_integer(name.length)}#{name}"
   end
 end

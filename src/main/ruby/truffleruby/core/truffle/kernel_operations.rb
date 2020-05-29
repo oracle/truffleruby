@@ -84,7 +84,7 @@ module Truffle
       :$VERBOSE,
       -> { Primitive.global_variable_get :$VERBOSE },
       -> v {
-        v = v.nil? ? nil : !!v
+        v = Primitive.nil?(v) ? nil : !!v
         Primitive.global_variable_set :$VERBOSE, v
       })
 
@@ -178,7 +178,7 @@ module Truffle
       if Range === omit
         range = omit
         omit = Truffle::Type.coerce_to_int(range.begin)
-        unless range.end.nil?
+        unless Primitive.nil? range.end
           end_index = Truffle::Type.coerce_to_int(range.end)
           if end_index < 0
             length = end_index

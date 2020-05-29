@@ -244,7 +244,7 @@ class Thread
   end
 
   def name=(val)
-    unless val.nil?
+    unless Primitive.nil? val
       val = Truffle::Type.check_null_safe(StringValue(val))
       raise ArgumentError, "ASCII incompatible encoding #{val.encoding.name}" unless val.encoding.ascii_compatible?
       # TODO BJF Aug 27, 2016 Need to rb_str_new_frozen the val here and SET_ANOTHER_THREAD_NAME

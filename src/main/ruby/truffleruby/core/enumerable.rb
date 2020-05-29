@@ -39,7 +39,7 @@ module Enumerable
     Enumerator.new do |yielder|
       previous = nil
       accumulate = []
-      if initial_state.nil?
+      if Primitive.nil? initial_state
         block = original_block
       else
         duplicated_initial_state = initial_state.dup
@@ -47,7 +47,7 @@ module Enumerable
       end
       each do |val|
         key = block.yield(val)
-        if key.nil? || (key.is_a?(Symbol) && key.to_s[0, 1] == '_')
+        if Primitive.nil?(key) || (key.is_a?(Symbol) && key.to_s[0, 1] == '_')
           yielder.yield [previous, accumulate] unless accumulate.empty?
           accumulate = []
           previous = nil
@@ -59,7 +59,7 @@ module Enumerable
             raise RuntimeError, 'symbols beginning with an underscore are reserved'
           end
         else
-          if previous.nil? || previous == key
+          if Primitive.nil?(previous) || previous == key
             accumulate << val
           else
             yielder.yield [previous, accumulate] unless accumulate.empty?
@@ -79,7 +79,7 @@ module Enumerable
       prev = nil
       each do |*elem|
         elem = elem[0] if elem.size == 1
-        if accumulator.nil?
+        if Primitive.nil? accumulator
           accumulator = [elem]
           prev = elem
         else
@@ -248,7 +248,7 @@ module Enumerable
       prev = nil
       each do |*elem|
         elem = elem[0] if elem.size == 1
-        if accumulator.nil?
+        if Primitive.nil? accumulator
           accumulator = [elem]
           prev = elem
         else
@@ -573,7 +573,7 @@ module Enumerable
     unless block_given?
       return to_enum(:each_cons, num) do
         enum_size = enumerator_size
-        if enum_size.nil?
+        if Primitive.nil? enum_size
           nil
         elsif enum_size == 0 || enum_size < n
           0
@@ -600,7 +600,7 @@ module Enumerable
     unless block_given?
       return to_enum(:each_slice, slice_size) do
         enum_size = enumerator_size
-        enum_size.nil? ? nil : (enum_size.to_f / n).ceil
+        Primitive.nil?(enum_size) ? nil : (enum_size.to_f / n).ceil
       end
     end
 
@@ -674,7 +674,7 @@ module Enumerable
   end
 
   def min(n = undefined, &block)
-    return min_n(n, &block) if !Primitive.undefined?(n) && !n.nil?
+    return min_n(n, &block) if !Primitive.undefined?(n) && !Primitive.nil?(n)
     min_max(-1, &block)
   end
 
@@ -687,7 +687,7 @@ module Enumerable
   private :min_n
 
   def max(n = undefined, &block)
-    return max_n(n, &block) if !Primitive.undefined?(n) && !n.nil?
+    return max_n(n, &block) if !Primitive.undefined?(n) && !Primitive.nil?(n)
     min_max(+1, &block)
   end
 
@@ -730,7 +730,7 @@ module Enumerable
 
   def max_by(n = nil, &block)
     return to_enum(:max_by) { enumerator_size } unless block_given?
-    return max_by_n(n, &block) unless n.nil?
+    return max_by_n(n, &block) unless Primitive.nil?(n)
 
     max_object = nil
     max_result = undefined
@@ -758,7 +758,7 @@ module Enumerable
 
   def min_by(n = nil, &block)
     return to_enum(:min_by) { enumerator_size } unless block_given?
-    return min_by_n(n, &block) unless n.nil?
+    return min_by_n(n, &block) unless Primitive.nil?(n)
 
     min_object = nil
     min_result = undefined

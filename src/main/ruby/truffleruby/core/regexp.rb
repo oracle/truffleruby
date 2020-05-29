@@ -98,7 +98,7 @@ class Regexp
         return union(*pattern)
       else
         converted = Truffle::Type.rb_check_convert_type(pattern, Regexp, :to_regexp)
-        if converted.nil?
+        if Primitive.nil? converted
           return Regexp.new(Regexp.quote(pattern))
         else
           return converted
@@ -407,6 +407,6 @@ Truffle::KernelOperations.define_hooked_variable(
 Truffle::KernelOperations.define_hooked_variable(
   :'$+',
   -> b { match = Truffle::RegexpOperations.last_match(b)
-         match.captures.reverse.find { |m| !m.nil? } if match },
+         match.captures.reverse.find { |m| !Primitive.nil?(m) } if match },
   -> { raise SyntaxError, "Can't set variable $+" },
   -> b { 'global-variable' if Truffle::RegexpOperations.last_match(b) })

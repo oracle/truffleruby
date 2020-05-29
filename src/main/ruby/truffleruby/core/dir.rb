@@ -117,7 +117,7 @@ class Dir
   end
 
   def closed?
-    @ptr == nil
+    Primitive.nil? @ptr
   end
 
   def each
@@ -242,7 +242,7 @@ class Dir
       matches = []
       index = 0
 
-      normalized_base = if base.nil?
+      normalized_base = if Primitive.nil? base
                           nil
                         else
                           path = Truffle::Type.coerce_to_path(base)
