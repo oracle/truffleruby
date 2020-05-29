@@ -44,27 +44,17 @@ public abstract class ArrayIndexNodes {
             this.index = index;
         }
 
-        @Specialization(
-                guards = "isInBounds(array)",
-                limit = "storageStrategyLimit()")
+        @Specialization(limit = "storageStrategyLimit()")
         protected Object readInBounds(DynamicObject array,
-                @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
+                @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+                @Cached ConditionProfile isInBounds) {
             final int size = Layouts.ARRAY.getSize(array);
             final int normalizedIndex = index >= 0 ? index : size + index;
-            return arrays.read(Layouts.ARRAY.getStore(array), normalizedIndex);
-        }
-
-        @Specialization(guards = "!isInBounds(array)")
-        protected Object readOutOfBounds(DynamicObject array) {
-            return nil;
-        }
-
-        protected boolean isInBounds(DynamicObject array) {
-            // Slightly unorthodox, but minimal intepreter overhead, optimized by PE.
-            // Helps keep memory overhead minimal by not introducing additional nodes.
-            final int size = Layouts.ARRAY.getSize(array);
-            final int normalizedIndex = index >= 0 ? index : size + index;
-            return normalizedIndex >= 0 && normalizedIndex < size;
+            if (isInBounds.profile(0 <= normalizedIndex && normalizedIndex < size)) {
+                return arrays.read(Layouts.ARRAY.getStore(array), normalizedIndex);
+            } else {
+                return nil;
+            }
         }
     }
 
