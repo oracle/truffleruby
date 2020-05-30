@@ -24,6 +24,8 @@ import org.truffleruby.parser.Identifiers;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
+import java.util.Collection;
+
 public class SymbolTable {
 
     private final RopeCache ropeCache;
@@ -145,6 +147,13 @@ public class SymbolTable {
                     currentNode));
         }
         return name;
+    }
+
+    @TruffleBoundary(transferToInterpreterOnException = false)
+    public RubySymbol[] allSymbols() {
+        final Collection<RubySymbol> allSymbols = symbolMap.values();
+        // allSymbols is a concrete collection not a view
+        return allSymbols.toArray(new RubySymbol[allSymbols.size()]);
     }
 
 }

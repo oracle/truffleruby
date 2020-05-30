@@ -44,6 +44,16 @@ import com.oracle.truffle.api.source.SourceSection;
 @CoreModule(value = "Symbol", isClass = true)
 public abstract class SymbolNodes {
 
+    @CoreMethod(names = "all_symbols", onSingleton = true)
+    public abstract static class AllSymbolsNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject allSymbols() {
+            return createArray(getContext().getSymbolTable().allSymbols());
+        }
+
+    }
+
     @CoreMethod(names = { "==", "eql?" }, required = 1)
     public abstract static class EqualNode extends CoreMethodArrayArgumentsNode {
 
