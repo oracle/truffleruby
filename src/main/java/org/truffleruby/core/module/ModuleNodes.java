@@ -1929,9 +1929,9 @@ public abstract class ModuleNodes {
                 }
                 moduleName = "#<Class:" + attachedName + ">";
             } else if (fields.isRefinement()) {
-                final String refinedClass = Layouts.MODULE.getFields(fields.getRefinedClass()).getName();
+                final String refinedModule = Layouts.MODULE.getFields(fields.getRefinedModule()).getName();
                 final String refinementNamespace = Layouts.MODULE.getFields(fields.getRefinementNamespace()).getName();
-                moduleName = "#<refinement:" + refinedClass + "@" + refinementNamespace + ">";
+                moduleName = "#<refinement:" + refinedModule + "@" + refinementNamespace + ">";
             } else {
                 moduleName = fields.getName();
             }
@@ -2093,25 +2093,25 @@ public abstract class ModuleNodes {
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
         @Specialization
-        protected DynamicObject refine(DynamicObject self, DynamicObject classToRefine, NotProvided block) {
+        protected DynamicObject refine(DynamicObject self, DynamicObject moduleToRefine, NotProvided block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("no block given", this));
         }
 
-        @Specialization(guards = "!isRubyClass(classToRefine)")
-        protected DynamicObject refineNotClass(DynamicObject self, Object classToRefine, DynamicObject block) {
+        @Specialization(guards = "!isRubyModule(moduleToRefine)")
+        protected DynamicObject refineNotModule(DynamicObject self, Object moduleToRefine, DynamicObject block) {
             throw new RaiseException(
                     getContext(),
-                    coreExceptions().typeErrorWrongArgumentType(classToRefine, "Class", this));
+                    coreExceptions().typeErrorWrongArgumentType(moduleToRefine, "Class", this));
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyClass(classToRefine)")
-        protected DynamicObject refine(DynamicObject namespace, DynamicObject classToRefine, DynamicObject block) {
+        @Specialization(guards = "isRubyModule(moduleToRefine)")
+        protected DynamicObject refine(DynamicObject namespace, DynamicObject moduleToRefine, DynamicObject block) {
             final ConcurrentMap<DynamicObject, DynamicObject> refinements = Layouts.MODULE
                     .getFields(namespace)
                     .getRefinements();
             final DynamicObject refinement = ConcurrentOperations
-                    .getOrCompute(refinements, classToRefine, klass -> newRefinementModule(namespace, classToRefine));
+                    .getOrCompute(refinements, moduleToRefine, klass -> newRefinementModule(namespace, moduleToRefine));
 
             // Apply the existing refinements in this namespace and the new refinement inside the refine block
             final Map<DynamicObject, DynamicObject[]> refinementsInDeclarationContext = new HashMap<>();
@@ -2119,7 +2119,7 @@ public abstract class ModuleNodes {
                 refinementsInDeclarationContext
                         .put(existingRefinement.getKey(), new DynamicObject[]{ existingRefinement.getValue() });
             }
-            refinementsInDeclarationContext.put(classToRefine, new DynamicObject[]{ refinement });
+            refinementsInDeclarationContext.put(moduleToRefine, new DynamicObject[]{ refinement });
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new FixedDefaultDefinee(refinement),
@@ -2145,7 +2145,7 @@ public abstract class ModuleNodes {
             return refinement;
         }
 
-        private DynamicObject newRefinementModule(DynamicObject namespace, DynamicObject classToRefine) {
+        private DynamicObject newRefinementModule(DynamicObject namespace, DynamicObject moduleToRefine) {
             final DynamicObject refinement = createModule(
                     getContext(),
                     getEncapsulatingSourceSection(),
@@ -2154,7 +2154,7 @@ public abstract class ModuleNodes {
                     null,
                     this);
             final ModuleFields refinementFields = Layouts.MODULE.getFields(refinement);
-            refinementFields.setupRefinementModule(classToRefine, namespace);
+            refinementFields.setupRefinementModule(moduleToRefine, namespace);
             return refinement;
         }
 

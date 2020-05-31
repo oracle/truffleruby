@@ -87,6 +87,31 @@ describe "Module#refine" do
     inner_self.public_instance_methods.should include(:blah)
   end
 
+  it "applies refinements to the module" do
+    refinement = Module.new do
+      refine(Enumerable) do
+        def foo?
+          self.any? ? "yes" : "no"
+        end
+      end
+    end
+
+    Foo = Class.new do
+      using refinement
+
+      def initialize(items)
+        @items = items
+      end
+
+      def result
+        @items.foo?
+      end
+    end
+
+    Foo.new([]).result.should == "no"
+    Foo.new([1]).result.should == "yes"
+  end
+
   it "raises ArgumentError if not given a block" do
     -> do
       Module.new do
