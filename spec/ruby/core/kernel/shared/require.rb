@@ -243,11 +243,13 @@ describe :kernel_require, shared: true do
       ScratchPad.recorded.should == [:loaded]
     end
 
-    it "does not load a feature twice when $LOAD_PATH has been modified" do
-      $LOAD_PATH.replace [CODE_LOADING_DIR]
-      @object.require("load_fixture").should be_true
-      $LOAD_PATH.replace [File.expand_path("b", CODE_LOADING_DIR), CODE_LOADING_DIR]
-      @object.require("load_fixture").should be_false
+    ruby_bug "#16926", "2.7"..."2.8" do
+      it "does not load a feature twice when $LOAD_PATH has been modified" do
+        $LOAD_PATH.replace [CODE_LOADING_DIR]
+        @object.require("load_fixture").should be_true
+        $LOAD_PATH.replace [File.expand_path("b", CODE_LOADING_DIR), CODE_LOADING_DIR]
+        @object.require("load_fixture").should be_false
+      end
     end
   end
 
