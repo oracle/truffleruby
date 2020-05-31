@@ -1,2 +1,2 @@
-slow:Net::HTTP.get when passed URI when passed URI returns the body of the specified uri
-slow:Net::HTTP.get when passed URI when passed host, path, port returns the body of the specified host-path-combination
+slow:Net::HTTP.get when passed URI returns the body of the specified uri
+slow:Net::HTTP.get when passed host, path, port returns the body of the specified host-path-combination
