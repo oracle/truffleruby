@@ -1,2 +1,3 @@
-slow:Net::HTTP.get when passed URI when passed URI returns the body of the specified uri
-slow:Net::HTTP.get when passed URI when passed host, path, port returns the body of the specified host-path-combination
+slow:Net::HTTP.get when passed URI returns the body of the specified uri
+slow:Net::HTTP.get when passed host, path, port returns the body of the specified host-path-combination
+fails(hangs with jt test fast -V):Net::HTTP.get when reading gzipped contents propagates exceptions interrupting the thread and does not replace it with Zlib::BufError

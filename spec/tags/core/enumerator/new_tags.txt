@@ -1,0 +1,1 @@
+fails:Enumerator.new when passed a block yielded values handles yield arguments properly
