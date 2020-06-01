@@ -29,6 +29,7 @@ Compatibility:
 * Implemented `rb_str_cat_cstr`.
 * Implemented `rb_fstring`.
 * Support `#refine` for Module (#2021, @ssnickolay).
+* Improved the compatibility of `Symbol.all_symbols` (#2022, @chrisseaton).
 
 Performance:
 
