@@ -4,7 +4,7 @@ describe "Symbol.all_symbols" do
   it "returns an array of Symbols" do
     all_symbols = Symbol.all_symbols
     all_symbols.should be_an_instance_of(Array)
-    all_symbols.all? { |s| s.is_a?(Symbol) }.should be_true
+    all_symbols.each { |s| s.should be_an_instance_of(Symbol) }
   end
 
   it "includes symbols that are strongly referenced" do
