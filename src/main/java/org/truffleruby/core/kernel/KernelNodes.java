@@ -63,6 +63,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -916,8 +917,25 @@ public abstract class KernelNodes {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
+        @Specialization(guards = "self == from")
+        protected Object initialiseSameInt(int self, int from) {
+            return self;
+        }
+
+        @Specialization(guards = "self == from")
+        protected Object initialiseSameLong(long self, long from) {
+            return self;
+        }
+
+        @Specialization(guards = "self == from")
+        protected Object initialiseSameObject(Object self, Object from) {
+            return self;
+        }
+
         @Specialization
-        protected Object initializeCopy(DynamicObject self, DynamicObject from) {
+        protected Object initializeCopy(DynamicObject self, DynamicObject from,
+                @Cached CheckFrozenNode checkFrozenNode) {
+            checkFrozenNode.execute(self);
             if (Layouts.BASIC_OBJECT.getLogicalClass(self) != Layouts.BASIC_OBJECT.getLogicalClass(from)) {
                 errorProfile.enter();
                 throw new RaiseException(
