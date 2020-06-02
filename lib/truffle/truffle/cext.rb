@@ -631,6 +631,10 @@ module Truffle::CExt
     str.intern
   end
 
+  def rb_int_positive_pow(a, b)
+    a ** b
+  end
+
   def rb_cstr_to_inum(string, base, raise)
     Primitive.string_to_inum string, base, raise != 0, true
   end
