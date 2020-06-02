@@ -149,7 +149,7 @@ public class SymbolTable {
         return name;
     }
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     public Object[] allSymbols() {
         final Collection<RubySymbol> allSymbols = symbolMap.values();
         // allSymbols is a private concrete collection not a view
