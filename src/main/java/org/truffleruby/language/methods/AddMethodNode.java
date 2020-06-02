@@ -46,8 +46,8 @@ public abstract class AddMethodNode extends RubyContextNode {
         }
 
         if (Layouts.MODULE.getFields(module).isRefinement()) {
-            final DynamicObject refinedClass = Layouts.MODULE.getFields(module).getRefinedClass();
-            addRefinedMethodEntry(refinedClass, method, visibility);
+            final DynamicObject refinedModule = Layouts.MODULE.getFields(module).getRefinedModule();
+            addRefinedMethodEntry(refinedModule, method, visibility);
         }
 
         doAddMethod(module, method, visibility);

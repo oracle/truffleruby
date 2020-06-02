@@ -68,17 +68,17 @@ public abstract class UsingNode extends RubyContextNode {
         return newRefinements;
     }
 
-    private void usingRefinement(DynamicObject refinedClass, DynamicObject refinementModule,
+    private void usingRefinement(DynamicObject refinedModule, DynamicObject refinementModule,
             Map<DynamicObject, DynamicObject[]> newRefinements) {
-        final DynamicObject[] refinements = newRefinements.get(refinedClass);
+        final DynamicObject[] refinements = newRefinements.get(refinedModule);
         if (refinements == null) {
-            newRefinements.put(refinedClass, new DynamicObject[]{ refinementModule });
+            newRefinements.put(refinedModule, new DynamicObject[]{ refinementModule });
         } else {
             if (ArrayUtils.contains(refinements, refinementModule)) {
                 // Already using this refinement
             } else {
                 // Add new refinement in front
-                newRefinements.put(refinedClass, unshift(refinements, refinementModule));
+                newRefinements.put(refinedModule, unshift(refinements, refinementModule));
             }
         }
     }

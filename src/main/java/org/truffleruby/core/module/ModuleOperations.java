@@ -67,8 +67,8 @@ public abstract class ModuleOperations {
         if (!RubyGuards.isRubyClass(origin)) { // Module (not Class) methods can always be bound
             return true;
         } else if (Layouts.MODULE.getFields(module).isRefinement()) {
-            DynamicObject refinedClass = Layouts.MODULE.getFields(module).getRefinedClass();
-            return RubyGuards.isRubyClass(refinedClass) && ModuleOperations.assignableTo(refinedClass, origin);
+            DynamicObject refinedModule = Layouts.MODULE.getFields(module).getRefinedModule();
+            return RubyGuards.isRubyClass(refinedModule) && ModuleOperations.assignableTo(refinedModule, origin);
         } else {
             return RubyGuards.isRubyClass(module) && ModuleOperations.assignableTo(module, origin);
         }
@@ -313,7 +313,7 @@ public abstract class ModuleOperations {
 
         if (Layouts.MODULE.getFields(module).isRefinement()) {
             for (DynamicObject ancestor : Layouts.MODULE
-                    .getFields(Layouts.MODULE.getFields(module).getRefinedClass())
+                    .getFields(Layouts.MODULE.getFields(module).getRefinedModule())
                     .ancestors()) {
                 for (InternalMethod method : Layouts.MODULE.getFields(ancestor).getMethods()) {
                     methods.putIfAbsent(method.getName(), method);
