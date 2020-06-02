@@ -1863,12 +1863,15 @@ EOS
   end
 
   private def install_eclipse
+    require 'digest'
     if linux?
-      eclipse_url = 'https://archive.eclipse.org/eclipse/downloads/drops4/R-4.5.2-201602121500/eclipse-SDK-4.5.2-linux-gtk-x86_64.tar.gz'
+      eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.5.2/eclipse-SDK-4.5.2-linux-gtk-x86_64.tar.gz'
       eclipse_exe = 'eclipse/eclipse'
+      sha256 = '87f82b0c13c245ee20928557dbc4435657d1e029f72d9135683c8d585c69ba8d'
     elsif darwin?
-      eclipse_url = 'https://archive.eclipse.org/eclipse/downloads/drops4/R-4.5.2-201602121500/eclipse-SDK-4.5.2-macosx-cocoa-x86_64.tar.gz'
+      eclipse_url = 'https://github.com/chrisseaton/eclipse-mirror/releases/download/eclipse-SDK-4.5.2/eclipse-SDK-4.5.2-macosx-cocoa-x86_64.tar.gz'
       eclipse_exe = 'Eclipse.app/Contents/MacOS/eclipse'
+      sha256 = '755f8a75075f6310a8d0453b5766a84aca2fcc687808341b7a657259230b490f'
     else
       raise 'Installing Eclipse is only available on Linux and macOS currently'
     end
@@ -1882,8 +1885,13 @@ EOS
         raw_sh 'curl', '-L', eclipse_url, '-o', eclipse_tar
       end
       unless File.exist?(eclipse_name)
-        Dir.mkdir eclipse_name
-        raw_sh 'tar', 'xf', eclipse_tar, '-C', eclipse_name
+        computed = Digest::SHA256.file(eclipse_tar).hexdigest
+        if computed == sha256
+          Dir.mkdir eclipse_name
+          raw_sh 'tar', 'xf', eclipse_tar, '-C', eclipse_name
+        else
+          raise "Incorrect sha256 for #{eclipse_tar}: #{computed} instead of expected #{sha256}"
+        end
       end
     end
 
