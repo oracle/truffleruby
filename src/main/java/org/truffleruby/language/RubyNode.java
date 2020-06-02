@@ -254,6 +254,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         }
 
         default DynamicObject createArray(Object[] store) {
+            assert store.getClass() == Object[].class;
             return createArray(store, store.length);
         }
 

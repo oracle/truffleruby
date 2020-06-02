@@ -30,6 +30,7 @@ Compatibility:
 * Implemented `rb_fstring`.
 * Support `#refine` for Module (#2021, @ssnickolay).
 * Implemented `rb_ident_hash_new`.
+* Improved the compatibility of `Symbol.all_symbols` (#2022, @chrisseaton).
 
 Performance:
 
