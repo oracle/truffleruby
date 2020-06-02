@@ -17,9 +17,9 @@ matrix:
     - name: Run ruby specs on MRI 2.6 and 2.5
       install: skip
       script: |
-        CHECK_LEAKS=true tool/jt.rb -u ruby mspec spec/ruby
+        CHECK_LEAKS=true tool/jt.rb -u ruby mspec -fdot spec/ruby
         rvm use 2.5.8 --install --binary --fuzzy
-        CHECK_LEAKS=true tool/jt.rb -u ruby mspec spec/ruby
+        CHECK_LEAKS=true tool/jt.rb -u ruby mspec -fdot spec/ruby
 
 cache:
   directories:
