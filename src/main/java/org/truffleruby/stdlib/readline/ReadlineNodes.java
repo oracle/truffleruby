@@ -140,7 +140,7 @@ public abstract class ReadlineNodes {
                     readline.getTerminal().getWidth()
             };
 
-            return ArrayHelpers.createArray(getContext(), store, 2);
+            return ArrayHelpers.createArray(getContext(), store);
         }
 
     }

@@ -39,7 +39,7 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
             @Cached ConditionProfile indexLargerThanSize) {
         final int size = Layouts.ARRAY.getSize(array);
         if (indexLargerThanSize.profile(index >= size)) {
-            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return ArrayHelpers.createEmptyArray(getContext());
         } else {
             final Object newStore = cowNode.execute(array, index, size - index);
             return createArray(newStore, size - index);

@@ -92,7 +92,7 @@ public abstract class TruffleSystemNodes {
             for (String variable : variables) {
                 store[i++] = makeStringNode.executeMake(variable, localeEncoding, CodeRange.CR_UNKNOWN);
             }
-            return createArray(store, size);
+            return createArray(store);
         }
 
     }

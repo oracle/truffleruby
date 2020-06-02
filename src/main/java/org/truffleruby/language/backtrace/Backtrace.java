@@ -312,7 +312,7 @@ public class Backtrace {
         for (int i = 0; i < locationsLength; i++) {
             locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(factory, this, i);
         }
-        return ArrayHelpers.createArray(context, locations, locations.length);
+        return ArrayHelpers.createArray(context, locations);
     }
 
     // endregion

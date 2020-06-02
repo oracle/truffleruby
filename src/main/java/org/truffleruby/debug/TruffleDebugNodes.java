@@ -25,6 +25,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.numeric.BigIntegerOps;
@@ -215,7 +216,7 @@ public abstract class TruffleDebugNodes {
                 array.add(ast(child));
             }
 
-            return createArray(array.toArray(), array.size());
+            return createArray(array.toArray());
         }
 
     }
@@ -845,8 +846,7 @@ public abstract class TruffleDebugNodes {
                 associatedValues[n] = associated[n].getAddress();
             }
 
-            return Layouts.ARRAY
-                    .createArray(getContext().getCoreLibrary().arrayFactory, associatedValues, associated.length);
+            return ArrayHelpers.createArray(getContext(), associatedValues);
         }
     }
 

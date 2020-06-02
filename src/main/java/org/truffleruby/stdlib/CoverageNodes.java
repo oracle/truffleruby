@@ -86,11 +86,11 @@ public abstract class CoverageNodes {
                                 RubyContext.getPath(source.getKey()),
                                 UTF8Encoding.INSTANCE,
                                 CodeRange.CR_UNKNOWN),
-                        createArray(countsStore, countsStore.length)
-                }, 2));
+                        createArray(countsStore)
+                }));
             }
 
-            return createArray(results.toArray(), results.size());
+            return createArray(results.toArray());
         }
 
     }

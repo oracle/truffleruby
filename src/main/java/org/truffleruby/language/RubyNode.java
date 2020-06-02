@@ -253,9 +253,16 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
             return ArrayHelpers.createArray(getContext(), store, size);
         }
 
+        default DynamicObject createArray(int[] store) {
+            return ArrayHelpers.createArray(getContext(), store);
+        }
+
+        default DynamicObject createArray(long[] store) {
+            return ArrayHelpers.createArray(getContext(), store);
+        }
+
         default DynamicObject createArray(Object[] store) {
-            assert store.getClass() == Object[].class;
-            return createArray(store, store.length);
+            return ArrayHelpers.createArray(getContext(), store);
         }
 
         default DynamicObject createBignum(BigInteger value) {

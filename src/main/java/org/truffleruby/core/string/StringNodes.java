@@ -798,7 +798,7 @@ public abstract class StringNodes {
                 store[n] = bytes[n] & 0xFF;
             }
 
-            return createArray(store, store.length);
+            return createArray(store);
         }
 
         @Specialization

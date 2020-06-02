@@ -9,7 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -79,10 +79,10 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
     protected Object cast(Object nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
-                return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+                return ArrayHelpers.createEmptyArray(getContext());
 
             case ARRAY_WITH_NIL:
-                return createArray(new Object[]{ nil }, 1);
+                return createArray(new Object[]{ nil });
 
             case NIL:
                 return nil;

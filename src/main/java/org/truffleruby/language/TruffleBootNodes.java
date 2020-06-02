@@ -240,7 +240,7 @@ public abstract class TruffleBootNodes {
                         CodeRange.CR_UNKNOWN);
             }
 
-            return createArray(array, array.length);
+            return createArray(array);
         }
 
     }
@@ -260,7 +260,7 @@ public abstract class TruffleBootNodes {
                 array[n] = makeStringNode.executeMake(paths[n], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
             }
 
-            return createArray(array, array.length);
+            return createArray(array);
         }
 
     }

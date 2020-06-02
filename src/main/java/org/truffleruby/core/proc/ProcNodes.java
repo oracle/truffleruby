@@ -295,8 +295,7 @@ public abstract class ProcNodes {
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
 
-                final Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
-                return createArray(objects, objects.length);
+                return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }
         }
 

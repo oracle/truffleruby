@@ -43,10 +43,20 @@ public abstract class ArrayHelpers {
     }
 
     public static DynamicObject createArray(RubyContext context, Object store, int size) {
+        assert !(store instanceof Object[]) || store.getClass() == Object[].class;
         return Layouts.ARRAY.createArray(context.getCoreLibrary().arrayFactory, store, size);
     }
 
+    public static DynamicObject createArray(RubyContext context, int[] store) {
+        return createArray(context, store, store.length);
+    }
+
+    public static DynamicObject createArray(RubyContext context, long[] store) {
+        return createArray(context, store, store.length);
+    }
+
     public static DynamicObject createArray(RubyContext context, Object[] store) {
+        assert store.getClass() == Object[].class;
         return createArray(context, store, store.length);
     }
 

@@ -313,7 +313,7 @@ public abstract class MathNodes {
                 }
             }
 
-            return createArray(new Object[]{ sign * mantissa, exponent }, 2);
+            return createArray(new Object[]{ sign * mantissa, exponent });
         }
 
         @Fallback
@@ -427,7 +427,7 @@ public abstract class MathNodes {
 
             final NemesLogGamma l = new NemesLogGamma(a);
 
-            return createArray(new Object[]{ l.value, l.sign }, 2);
+            return createArray(new Object[]{ l.value, l.sign });
         }
 
         @Fallback

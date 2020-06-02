@@ -190,8 +190,7 @@ public abstract class MethodNodes {
                         RubyContext.getPath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
-                Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
-                return createArray(objects, objects.length);
+                return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }
         }
 

@@ -51,7 +51,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -265,7 +264,7 @@ public abstract class MatchDataNodes {
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, index);
             final Object[] store = Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length);
-            return createArray(store, length);
+            return createArray(store);
         }
 
         @Specialization(
@@ -316,8 +315,7 @@ public abstract class MatchDataNodes {
                     .clampExclusiveIndex(values.length, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
             final int length = exclusiveEnd - normalizedIndex;
 
-            final Object[] store = Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length);
-            return createArray(store, length);
+            return createArray(Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length));
         }
 
         @TruffleBoundary
@@ -471,9 +469,8 @@ public abstract class MatchDataNodes {
         @Child private ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
-        protected DynamicObject toA(VirtualFrame frame, DynamicObject matchData) {
-            Object[] objects = getCaptures(valuesNode.execute(matchData));
-            return createArray(objects, objects.length);
+        protected DynamicObject toA(DynamicObject matchData) {
+            return createArray(getCaptures(valuesNode.execute(matchData)));
         }
 
         private static Object[] getCaptures(Object[] values) {
@@ -604,7 +601,7 @@ public abstract class MatchDataNodes {
         @Specialization
         protected DynamicObject toA(DynamicObject matchData) {
             Object[] objects = ArrayUtils.copy(valuesNode.execute(matchData));
-            return createArray(objects, objects.length);
+            return createArray(objects);
         }
     }
 

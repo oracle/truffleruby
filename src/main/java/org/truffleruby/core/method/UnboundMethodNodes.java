@@ -188,7 +188,7 @@ public abstract class UnboundMethodNodes {
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
                 Object[] objects = new Object[]{ file, sourceSection.getStartLine() };
-                return createArray(objects, objects.length);
+                return createArray(objects);
             }
         }
 

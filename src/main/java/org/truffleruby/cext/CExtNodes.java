@@ -374,7 +374,7 @@ public class CExtNodes {
                     }
                 }
             }
-            return ArrayHelpers.createArray(getContext(), bytes, bytes.length);
+            return ArrayHelpers.createArray(getContext(), bytes);
         }
 
 
@@ -555,7 +555,7 @@ public class CExtNodes {
             final int len_p = StringSupport.MBCLEN_CHARFOUND_LEN(r);
             final int codePoint = StringSupport.preciseCodePoint(enc, ropeCodeRange, bytes, 0, bytes.length);
 
-            return createArray(new Object[]{ len_p, codePoint }, 2);
+            return createArray(new Object[]{ len_p, codePoint });
         }
     }
 

@@ -1459,13 +1459,13 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "n >= 0", "isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
         protected Object popEmpty(DynamicObject array, int n) {
-            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @Specialization(guards = { "n == 0", "!isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
         protected Object popZeroNotEmpty(DynamicObject array, int n) {
-            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @Specialization(
@@ -1889,12 +1889,12 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "n == 0")
         protected Object shiftZero(DynamicObject array, int n) {
-            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @Specialization(guards = { "n > 0", "isEmptyArray(array)" })
         protected Object shiftManyEmpty(DynamicObject array, int n) {
-            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @Specialization(
@@ -1942,7 +1942,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
         protected DynamicObject sortEmpty(DynamicObject array, Object unusedBlock) {
-            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @ExplodeLoop
@@ -2097,7 +2097,7 @@ public abstract class ArrayNodes {
                     pairs.write(pair, 1, bStores.read(b, n));
                     zipped[n] = createArray(pair, 2);
                 } else {
-                    zipped[n] = createArray(new Object[]{ aStores.read(a, n), nil }, 2);
+                    zipped[n] = createArray(new Object[]{ aStores.read(a, n), nil });
                 }
             }
 

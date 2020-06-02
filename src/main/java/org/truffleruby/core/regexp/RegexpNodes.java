@@ -36,7 +36,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.regexp.RegexpNodesFactory.ToSNodeFactory;
@@ -316,7 +316,7 @@ public abstract class RegexpNodes {
         protected Object regexpNames(DynamicObject regexp) {
             final int size = Layouts.REGEXP.getRegex(regexp).numberOfNames();
             if (size == 0) {
-                return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+                return ArrayHelpers.createEmptyArray(getContext());
             }
 
             final Object[] names = new Object[size];
@@ -332,11 +332,11 @@ public abstract class RegexpNodes {
                 final RubySymbol name = getContext().getSymbol(rope);
 
                 final int[] backrefs = e.getBackRefs();
-                final DynamicObject backrefsRubyArray = createArray(backrefs, backrefs.length);
-                names[i++] = createArray(new Object[]{ name, backrefsRubyArray }, 2);
+                final DynamicObject backrefsRubyArray = createArray(backrefs);
+                names[i++] = createArray(new Object[]{ name, backrefsRubyArray });
             }
 
-            return createArray(names, size);
+            return createArray(names);
         }
 
     }

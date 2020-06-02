@@ -390,8 +390,7 @@ public abstract class BindingNodes {
                         RubyContext.getPath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
-                final Object[] store = new Object[]{ file, sourceSection.getStartLine() };
-                return createArray(store, store.length);
+                return createArray(new Object[]{ file, sourceSection.getStartLine() });
             }
         }
     }
