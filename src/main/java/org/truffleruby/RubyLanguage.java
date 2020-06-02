@@ -11,7 +11,6 @@ package org.truffleruby;
 
 import java.util.Arrays;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.rope.Rope;
@@ -31,6 +30,7 @@ import org.truffleruby.stdlib.CoverageManager;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
@@ -110,6 +110,12 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public void invalidateTracingAssumption() {
         tracingCyclicAssumption.invalidate();
         tracingAssumption = tracingCyclicAssumption.getAssumption();
+    }
+
+    @Override
+    protected void initializeMultipleContexts() {
+        // TODO Make Symbol.all_symbols per context, by having a SymbolTable per context and creating new symbols with
+        //  the per-language SymbolTable.
     }
 
     @Override
