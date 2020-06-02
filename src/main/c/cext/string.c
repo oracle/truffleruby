@@ -112,6 +112,11 @@ VALUE rb_str_cat(VALUE string, const char *to_concat, long length) {
   return string;
 }
 
+VALUE rb_enc_str_buf_cat(VALUE str, const char *ptr, long len, rb_encoding *enc) {
+  VALUE other = rb_enc_str_new(ptr, len, enc);
+  return rb_str_concat(str, other);
+}
+
 #undef rb_str_cat_cstr
 VALUE rb_str_cat_cstr(VALUE string, const char *to_concat) {
   return rb_str_cat(string, to_concat, strlen(to_concat));
