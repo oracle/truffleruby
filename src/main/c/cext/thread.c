@@ -24,6 +24,10 @@ void rb_thread_wait_for(struct timeval time) {
   polyglot_invoke(rb_tr_unwrap(rb_mKernel), "sleep", seconds);
 }
 
+void rb_thread_check_ints(void) {
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_thread_check_ints");
+}
+
 VALUE rb_thread_wakeup(VALUE thread) {
   return RUBY_INVOKE(thread, "wakeup");
 }
