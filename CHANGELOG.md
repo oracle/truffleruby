@@ -25,7 +25,7 @@ Compatibility:
 * Implemented `ObjectSpace::WeakMap` (#1385, #1958).
 * Implemented `strtod` and `ruby_strtod` (#2007).
 * Fix detection of `#find_type` in FFI to ignore `MakeMakefile#find_type` from `mkmf` (#1896, #2010).
-* Implemented `rb_uv_to_utf8` (#1998).
+* Implemented `rb_uv_to_utf8` (#1998, @skateman).
 * Implemented `rb_str_cat_cstr`.
 * Implemented `rb_fstring`.
 
@@ -33,7 +33,7 @@ Performance:
 
 * Enable lazy translation from the parser AST to the Truffle AST for user code by default. This should improve application startup time (#1992).
 * `instance variable ... not initialized` and similar warnings are now optimized to have no peak performance impact if they are not printed (depends on `$VERBOSE`).
-* Implement integer modular exponentiation using `BigInteger#mod_pow` (#1999)
+* Implement integer modular exponentiation using `BigInteger#mod_pow` (#1999, @skateman)
 
 # 20.1.0
 
