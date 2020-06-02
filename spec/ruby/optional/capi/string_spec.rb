@@ -224,6 +224,12 @@ describe "C-API String function" do
       str.should == "nokogiri"
       str.encoding.should == Encoding::US_ASCII
     end
+
+    it "returns US-ASCII string for non-US-ASCII string literal" do
+      str = @s.rb_usascii_str_new_lit_non_ascii
+      str.should == "r\xC3\xA9sum\xC3\xA9".force_encoding(Encoding::US_ASCII)
+      str.encoding.should == Encoding::US_ASCII
+    end
   end
 
   describe "rb_usascii_str_new_cstr" do
