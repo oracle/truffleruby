@@ -33,7 +33,6 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
     protected Object getIDCached(RubySymbol symbol,
             @Cached WrapNode wrapNode,
             @Cached RopeNodes.BytesNode bytesNode,
-            @Cached ConditionProfile singleByteProfile,
             @Cached("symbol") RubySymbol cachedSymbol,
             @Cached("getID(cachedSymbol, wrapNode, bytesNode)") Object cachedID) {
         return cachedID;
