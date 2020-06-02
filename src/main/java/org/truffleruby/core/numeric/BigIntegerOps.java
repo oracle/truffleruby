@@ -150,6 +150,11 @@ public final class BigIntegerOps {
     }
 
     @TruffleBoundary
+    public static BigInteger modPow(BigInteger base, BigInteger exponent, BigInteger m) {
+        return base.modPow(exponent, m);
+    }
+
+    @TruffleBoundary
     public static BigInteger abs(BigInteger value) {
         return value.abs();
     }
