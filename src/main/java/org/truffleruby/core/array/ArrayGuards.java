@@ -48,6 +48,8 @@ public class ArrayGuards {
     }
 
     public static boolean basicStore(Object store) {
+        assert !(store instanceof Object[]) ||
+                store.getClass() == Object[].class : "Must be Object[], not a subclass: " + store;
         return store instanceof int[] || store instanceof long[] || store instanceof double[] ||
                 store instanceof Object[];
     }
