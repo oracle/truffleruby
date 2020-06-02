@@ -98,7 +98,7 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(replaces = "doLong")
-        protected Object doLongWihtOverflow(long value) {
+        protected Object doLongWithOverflow(long value) {
             return fixnumOrBignum(BigIntegerOps.negate(value));
         }
 
@@ -1805,13 +1805,13 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "modulo.signum() < 0")
         protected Object mod_pow_neg(BigInteger base, BigInteger exponent, BigInteger modulo) {
-            BigInteger result = base.modPow(exponent, modulo.negate());
-            return fixnumOrBignum.fixnumOrBignum(result.signum() == 1 ? result.add(modulo) : result);
+            BigInteger result = BigIntegerOps.modPow(base, exponent, BigIntegerOps.negate(modulo));
+            return fixnumOrBignum.fixnumOrBignum(result.signum() == 1 ? BigIntegerOps.add(result, modulo) : result);
         }
 
         @Specialization(guards = "modulo.signum() > 0")
         protected Object mod_pow_pos(BigInteger base, BigInteger exponent, BigInteger modulo) {
-            BigInteger result = base.modPow(exponent, modulo);
+            BigInteger result = BigIntegerOps.modPow(base, exponent, modulo);
             return fixnumOrBignum.fixnumOrBignum(result);
         }
 

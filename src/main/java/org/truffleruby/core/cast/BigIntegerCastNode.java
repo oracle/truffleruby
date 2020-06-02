@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -45,12 +46,12 @@ public abstract class BigIntegerCastNode extends RubySourceNode {
 
     @Specialization
     protected BigInteger doInt(int value) {
-        return BigInteger.valueOf(value);
+        return BigIntegerOps.valueOf(value);
     }
 
     @Specialization
     protected BigInteger doLong(long value) {
-        return BigInteger.valueOf(value);
+        return BigIntegerOps.valueOf(value);
     }
 
     @Specialization(guards = "isRubyBignum(value)")
