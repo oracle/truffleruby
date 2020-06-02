@@ -74,7 +74,7 @@ public class StringArrayOptionType {
                 throw new IllegalArgumentException();
         }
 
-        return values.toArray(new String[values.size()]);
+        return values.toArray(new String[0]);
     }
 
     public static String append(String currentValues, String newElement) {

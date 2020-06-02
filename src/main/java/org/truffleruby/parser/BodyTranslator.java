@@ -1110,7 +1110,7 @@ public class BodyTranslator extends Translator {
         }
 
         final InterpolatedRegexpNode i = new InterpolatedRegexpNode(
-                children.toArray(new ToSNode[children.size()]),
+                children.toArray(new ToSNode[0]),
                 node.getOptions());
         i.unsafeSetSourceSection(sourceSection);
 
@@ -2831,7 +2831,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret = new TryNode(
                 new ExceptionTranslatingNode(tryPart, UnsupportedOperationBehavior.TYPE_ERROR),
-                rescueNodes.toArray(new RescueNode[rescueNodes.size()]),
+                rescueNodes.toArray(new RescueNode[0]),
                 elsePart,
                 canOmitBacktrace);
         ret.unsafeSetSourceSection(sourceSection);

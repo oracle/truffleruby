@@ -368,7 +368,7 @@ public abstract class ReadlineNodes {
             while (buf.hasRemaining()) {
                 l.add(String.valueOf(buf.get()));
             }
-            delimiters = l.toArray(new String[l.size()]);
+            delimiters = l.toArray(new String[0]);
         }
 
         @TruffleBoundary

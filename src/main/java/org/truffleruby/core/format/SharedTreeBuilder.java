@@ -29,7 +29,7 @@ public class SharedTreeBuilder {
 
     public FormatNode finishSubSequence(Deque<List<FormatNode>> sequenceStack, int count) {
         final List<FormatNode> sequence = sequenceStack.pop();
-        final FormatNode sequenceNode = createSequence(sequence.toArray(new FormatNode[sequence.size()]));
+        final FormatNode sequenceNode = createSequence(sequence.toArray(new FormatNode[0]));
 
         if (count == SimplePackParser.COUNT_NONE) {
             return sequenceNode;

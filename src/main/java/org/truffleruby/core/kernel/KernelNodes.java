@@ -470,7 +470,7 @@ public abstract class KernelNodes {
                 }
             }
 
-            return copiedProperties.toArray(new Property[copiedProperties.size()]);
+            return copiedProperties.toArray(new Property[0]);
         }
 
         protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {

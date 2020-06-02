@@ -564,7 +564,7 @@ public abstract class ModuleOperations {
     }
 
     private static Assumption[] toArray(ArrayList<Assumption> assumptions) {
-        return assumptions.toArray(new Assumption[assumptions.size()]);
+        return assumptions.toArray(new Assumption[0]);
     }
 
     @TruffleBoundary

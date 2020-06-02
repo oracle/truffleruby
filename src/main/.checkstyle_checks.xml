@@ -186,6 +186,10 @@
       <property name="format" value='\.getBytes\(StandardCharsets\.US_ASCII\)'/>
       <property name="message" value='Use RopeOperations.encodeAsciiBytes() instead.'/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='\.toArray\(new \w+\[\w+\.size\(\)\]\)'/>
+      <property name="message" value='Use toArray(new Type[0]) instead.'/>
+    </module>
   </module>
   <module name="RegexpMultiline">
     <property name="format" value='Node currentNode,\s*RubyContext context'/>

@@ -151,7 +151,7 @@ public class RubyFileTypeDetectorTest extends RubyTest {
                                 "#!/usr/bin/env ruby\n# encoding: UTF-8\nputs 'hello'"),
                         true,
                         StandardCharsets.UTF_8));
-        return testCases.toArray(new TestCase[testCases.size()]);
+        return testCases.toArray(new TestCase[0]);
     }
 
     private static Path createFile(Path parent, String name, String contents) throws IOException {

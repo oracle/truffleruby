@@ -254,7 +254,7 @@ public class Backtrace {
         }
 
         this.totalUnderlyingElements = retainedCount;
-        return this.stackTrace = stackTraceList.toArray(new TruffleStackTraceElement[stackTraceList.size()]);
+        return this.stackTrace = stackTraceList.toArray(new TruffleStackTraceElement[0]);
     }
 
     public TruffleStackTraceElement[] getStackTrace() {

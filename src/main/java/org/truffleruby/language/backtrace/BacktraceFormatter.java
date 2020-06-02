@@ -178,7 +178,7 @@ public class BacktraceFormatter {
 
         if (length == 0 && !flags.contains(FormattingFlags.OMIT_EXCEPTION) && exception != null) {
             lines.add(formatException(exception));
-            return lines.toArray(new String[lines.size()]);
+            return lines.toArray(new String[0]);
         }
 
         for (int n = 0; n < length; n++) {
@@ -188,10 +188,10 @@ public class BacktraceFormatter {
         if (backtrace.getJavaThrowable() != null && flags.contains(FormattingFlags.INTERLEAVE_JAVA)) {
             final List<String> interleaved = BacktraceInterleaver
                     .interleave(lines, backtrace.getJavaThrowable().getStackTrace(), backtrace.getOmitted());
-            return interleaved.toArray(new String[interleaved.size()]);
+            return interleaved.toArray(new String[0]);
         }
 
-        return lines.toArray(new String[lines.size()]);
+        return lines.toArray(new String[0]);
     }
 
     @TruffleBoundary

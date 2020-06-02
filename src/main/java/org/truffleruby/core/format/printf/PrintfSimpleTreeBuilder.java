@@ -214,7 +214,7 @@ public class PrintfSimpleTreeBuilder {
 
     public FormatNode getNode() {
         buildTree();
-        return SharedTreeBuilder.createSequence(sequence.toArray(new FormatNode[sequence.size()]));
+        return SharedTreeBuilder.createSequence(sequence.toArray(new FormatNode[0]));
     }
 
 }
