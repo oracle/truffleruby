@@ -20,6 +20,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyLibrary;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -34,20 +35,26 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
+@ExportLibrary(value = RubyLibrary.class, receiverType = DynamicObject.class)
 public class RubyObjectMessages {
 
     public final Class<?> dispatch() {
@@ -692,5 +699,77 @@ public class RubyObjectMessages {
         return instance;
     }
     // endregion
+
+    @ExportMessage
+    @ImportStatic(RubyGuards.class)
+    static class Freeze {
+
+        @Specialization(guards = "isRubyBignum(object)")
+        protected static Object freezeBignum(DynamicObject object) {
+            return object;
+        }
+
+        @Specialization(guards = "!isRubyBignum(object)")
+        protected static Object freeze(DynamicObject object,
+                @Exclusive @Cached WriteObjectFieldNode writeFrozenNode) {
+            writeFrozenNode.write(object, Layouts.FROZEN_IDENTIFIER, true);
+            return object;
+        }
+
+    }
+
+    @ExportMessage
+    protected static boolean isFrozen(DynamicObject object,
+            @Exclusive @Cached ReadObjectFieldNode readFrozenNode) {
+        return (boolean) readFrozenNode.execute(object, Layouts.FROZEN_IDENTIFIER, false);
+    }
+
+    @ExportMessage
+    protected static boolean isTainted(DynamicObject object,
+            @Exclusive @Cached ReadObjectFieldNode readTaintedNode) {
+        return (boolean) readTaintedNode.execute(object, Layouts.TAINTED_IDENTIFIER, false);
+    }
+
+    @ExportMessage
+    protected static Object taint(DynamicObject object,
+            @CachedLibrary("object") RubyLibrary rubyLibrary,
+            @Exclusive @Cached WriteObjectFieldNode writeTaintNode,
+            @Exclusive @Cached BranchProfile errorProfile,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        if (!rubyLibrary.isTainted(object) && rubyLibrary.isFrozen(object)) {
+            errorProfile.enter();
+            throw new RaiseException(context, context.getCoreExceptions().frozenError(object, getNode(rubyLibrary)));
+        }
+
+        writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, true);
+        return object;
+    }
+
+    @ExportMessage
+    protected static Object untaint(DynamicObject object,
+            @CachedLibrary("object") RubyLibrary rubyLibrary,
+            @Exclusive @Cached WriteObjectFieldNode writeTaintNode,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached BranchProfile errorProfile) {
+        if (!rubyLibrary.isTainted(object)) {
+            return object;
+        }
+
+        if (rubyLibrary.isFrozen(object)) {
+            errorProfile.enter();
+            throw new RaiseException(context, context.getCoreExceptions().frozenError(object, getNode(rubyLibrary)));
+        }
+
+        writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, false);
+        return object;
+    }
+
+    private static Node getNode(RubyLibrary node) {
+        if (!node.isAdoptable()) {
+            return NodeUtil.getCurrentEncapsulatingNode();
+        }
+        return node;
+    }
 
 }

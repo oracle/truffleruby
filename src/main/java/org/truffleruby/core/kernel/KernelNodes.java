@@ -63,7 +63,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -75,6 +74,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
@@ -137,6 +137,7 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -850,11 +851,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = "freeze")
     public abstract static class KernelFreezeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private FreezeNode freezeNode = FreezeNode.create();
-
-        @Specialization
-        protected Object freeze(Object self) {
-            return freezeNode.executeFreeze(self);
+        @Specialization(limit = "3")
+        protected Object freeze(Object self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary) {
+            return rubyLibrary.freeze(self);
         }
 
     }
@@ -862,16 +862,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = "frozen?")
     public abstract static class KernelFrozenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsFrozenNode isFrozenNode;
-
-        @Specialization
-        protected boolean isFrozen(Object self) {
-            if (isFrozenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isFrozenNode = insert(IsFrozenNode.create());
-            }
-
-            return isFrozenNode.execute(self);
+        @Specialization(limit = "3")
+        protected boolean isFrozen(Object self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary) {
+            return rubyLibrary.isFrozen(self);
         }
 
     }
@@ -1909,15 +1903,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = "taint")
     public abstract static class KernelTaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TaintNode taintNode;
-
-        @Specialization
-        protected Object taint(Object object) {
-            if (taintNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                taintNode = insert(TaintNode.create());
-            }
-            return taintNode.executeTaint(object);
+        @Specialization(limit = "3")
+        protected Object taint(Object object,
+                @CachedLibrary("object") RubyLibrary rubyLibrary) {
+            return rubyLibrary.taint(object);
         }
 
     }
@@ -1925,15 +1914,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = "tainted?")
     public abstract static class KernelIsTaintedNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsTaintedNode isTaintedNode;
-
-        @Specialization
-        protected boolean isTainted(Object object) {
-            if (isTaintedNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isTaintedNode = insert(IsTaintedNode.create());
-            }
-            return isTaintedNode.executeIsTainted(object);
+        @Specialization(limit = "3")
+        protected boolean isTainted(Object object,
+                @CachedLibrary("object") RubyLibrary rubyLibrary) {
+            return rubyLibrary.isTainted(object);
         }
 
     }
@@ -2001,52 +1985,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = "untaint")
     public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
-        @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
-        @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNode.create();
-
-        @Specialization
-        protected int untaint(int num) {
-            return num;
-        }
-
-        @Specialization
-        protected long untaint(long num) {
-            return num;
-        }
-
-        @Specialization
-        protected double untaint(double num) {
-            return num;
-        }
-
-        @Specialization
-        protected boolean untaint(boolean bool) {
-            return bool;
-        }
-
-        @Specialization
-        protected Object untaint(Nil nil) {
-            return nil;
-        }
-
-        @Specialization
-        protected Object taint(DynamicObject object) {
-            if (!isTaintedNode.executeIsTainted(object)) {
-                return object;
-            }
-
-            checkFrozen(object);
-            writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, false);
-            return object;
-        }
-
-        protected void checkFrozen(Object object) {
-            if (raiseIfFrozenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(TypeNodes.CheckFrozenNode.create());
-            }
-            raiseIfFrozenNode.execute(object);
+        @Specialization(limit = "3")
+        protected Object untaint(Object object,
+                @CachedLibrary("object") RubyLibrary rubyLibrary) {
+            return rubyLibrary.untaint(object);
         }
 
     }
