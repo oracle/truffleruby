@@ -96,7 +96,7 @@ describe "Module#refine" do
       end
     end
 
-    Foo = Class.new do
+    foo = Class.new do
       using refinement
 
       def initialize(items)
@@ -108,8 +108,8 @@ describe "Module#refine" do
       end
     end
 
-    Foo.new([]).result.should == "no"
-    Foo.new([1]).result.should == "yes"
+    foo.new([]).result.should == "no"
+    foo.new([1]).result.should == "yes"
   end
 
   it "raises ArgumentError if not given a block" do
