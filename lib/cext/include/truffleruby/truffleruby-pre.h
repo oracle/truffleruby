@@ -52,7 +52,7 @@ extern void* rb_tr_cext;
 extern void* (*rb_tr_unwrap)(VALUE obj);
 extern VALUE (*rb_tr_wrap)(void *obj);
 extern VALUE (*rb_tr_longwrap)(long obj);
-extern VALUE (*rb_tr_id2sym)(ID obj);
+extern void* (*rb_tr_id2sym)(ID obj);
 extern ID (*rb_tr_sym2id)(VALUE sym);
 
 #include <ruby/thread_native.h>

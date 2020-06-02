@@ -12,7 +12,7 @@ void* rb_tr_cext;
 void* (*rb_tr_unwrap)(VALUE obj);
 VALUE (*rb_tr_wrap)(void *obj);
 VALUE (*rb_tr_longwrap)(long obj);
-VALUE (*rb_tr_id2sym)(ID id);
+void* (*rb_tr_id2sym)(ID id);
 ID (*rb_tr_sym2id)(VALUE val);
 
 void rb_tr_init_printf(void);
