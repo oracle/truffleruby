@@ -29,6 +29,7 @@ Compatibility:
 * Implemented `rb_str_cat_cstr`.
 * Implemented `rb_fstring`.
 * Support `#refine` for Module (#2021, @ssnickolay).
+* Implemented `rb_ident_hash_new`.
 
 Performance:
 

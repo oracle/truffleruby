@@ -874,6 +874,10 @@ module Truffle::CExt
     {}
   end
 
+  def rb_ident_hash_new
+    {}.compare_by_identity
+  end
+
   def rb_hash_set_ifnone(hash, value)
     hash.default = value
   end
