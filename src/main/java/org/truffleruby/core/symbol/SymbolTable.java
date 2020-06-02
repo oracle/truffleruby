@@ -150,10 +150,10 @@ public class SymbolTable {
     }
 
     @TruffleBoundary(transferToInterpreterOnException = false)
-    public RubySymbol[] allSymbols() {
+    public Object[] allSymbols() {
         final Collection<RubySymbol> allSymbols = symbolMap.values();
-        // allSymbols is a concrete collection not a view
-        return allSymbols.toArray(new RubySymbol[allSymbols.size()]);
+        // allSymbols is a private concrete collection not a view
+        return allSymbols.toArray();
     }
 
 }
