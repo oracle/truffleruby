@@ -58,6 +58,6 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
     }
 
     public static Object singleCharSymbol(RubyContext context, long c) {
-        return context.getSymbol(new Character((char) c).toString());
+        return context.getSymbol(String.valueOf((char) c));
     }
 }
