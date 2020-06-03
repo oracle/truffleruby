@@ -28,17 +28,17 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class IO
-  module Writable
+  module GenericReadable
   end
-  module Readable
+  module GenericWritable
   end
 end
 
 class StringIO
 
   include Enumerable
-  include IO::Writable
-  include IO::Readable
+  include IO::GenericReadable
+  include IO::GenericWritable
 
   DEFAULT_RECORD_SEPARATOR = "\n" unless defined?(::DEFAULT_RECORD_SEPARATOR)
 

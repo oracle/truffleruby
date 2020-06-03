@@ -41,6 +41,19 @@ class IO
     end
     str.chomp
   end
+
+  module GenericReadable
+    def getch(*)
+      getc
+    end
+
+    def getpass(prompt = nil)
+      write(prompt) if prompt
+      str = gets.chomp
+      puts($/)
+      str
+    end
+  end
 end
 
 

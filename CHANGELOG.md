@@ -34,6 +34,7 @@ Compatibility:
 * Implemented `rb_enc_str_buf_cat`.
 * Implemented `rb_int_positive_pow`.
 * Implemented `rb_usascii_str_new_lit`.
+* Define `#getch` and `#getpass` on `StringIO` when `io/console` is required.
 
 Performance:
 
