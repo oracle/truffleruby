@@ -21,7 +21,7 @@ public abstract class ReadAndShareFieldNode extends RubyBaseNode {
 
     @Child private WriteBarrierNode writeBarrierNode;
 
-    public static final ReadAndShareFieldNode[] EMPTY_ARRAY = new ReadAndShareFieldNode[]{};
+    public static final ReadAndShareFieldNode[] EMPTY_ARRAY = new ReadAndShareFieldNode[0];
 
     public ReadAndShareFieldNode(Property property, int depth) {
         this.property = property;

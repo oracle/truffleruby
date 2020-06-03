@@ -58,9 +58,10 @@ options_data.each do |category, stabilities|
         boxed_type = type
         default    = default.nil? ? 'null' : "\"#{default.to_s}\""
       when 'string-array'
+        raise unless default.empty?
         type             = 'String[]'
         boxed_type       = type
-        default          = "new String[]{#{default.map(&:inspect).join(', ')}}"
+        default          = "new String[0]"
         option_type      = 'StringArrayOptionType.INSTANCE'
       else
         raise type.to_s

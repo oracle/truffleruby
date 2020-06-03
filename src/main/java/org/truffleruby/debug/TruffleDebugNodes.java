@@ -837,7 +837,7 @@ public abstract class TruffleDebugNodes {
             Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value, Layouts.ASSOCIATED_IDENTIFIER, null);
 
             if (associated == null) {
-                associated = new Pointer[]{};
+                associated = new Pointer[0];
             }
 
             final long[] associatedValues = new long[associated.length];

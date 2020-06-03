@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 public class ByteArrayBuilder {
 
-    private static final byte[] EMPTY_BYTES = new byte[]{};
+    private static final byte[] EMPTY_BYTES = new byte[0];
 
     private byte[] bytes = EMPTY_BYTES;
     private int length;

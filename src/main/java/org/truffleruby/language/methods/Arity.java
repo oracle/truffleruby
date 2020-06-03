@@ -18,7 +18,7 @@ import org.truffleruby.parser.ArgumentType;
 
 public class Arity {
 
-    public static final String[] NO_KEYWORDS = new String[]{};
+    public static final String[] NO_KEYWORDS = new String[0];
     public static final Arity NO_ARGUMENTS = new Arity(0, 0, false);
     public static final Arity ONE_REQUIRED = new Arity(1, 0, false);
 

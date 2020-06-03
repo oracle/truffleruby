@@ -181,7 +181,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
                 new RubyParsingRequestNode(
                         this,
                         request.getSource(),
-                        request.getArgumentNames().toArray(new String[]{})));
+                        request.getArgumentNames().toArray(new String[0])));
     }
 
     @Override

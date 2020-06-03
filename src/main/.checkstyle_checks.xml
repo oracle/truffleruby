@@ -190,6 +190,10 @@
       <property name="format" value='\.toArray\(new \w+\[\w+\.size\(\)\]\)'/>
       <property name="message" value='Use toArray(new Type[0]) instead.'/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='new\s+\w+\[\]\s*\{\s*\}'/>
+      <property name="message" value='Use new Type[0] instead.'/>
+    </module>
   </module>
   <module name="RegexpMultiline">
     <property name="format" value='Node currentNode,\s*RubyContext context'/>

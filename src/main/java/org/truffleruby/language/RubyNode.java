@@ -42,7 +42,7 @@ import com.oracle.truffle.api.source.SourceSection;
 @GenerateWrapper
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
-    public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
+    public static final RubyNode[] EMPTY_ARRAY = new RubyNode[0];
 
     private static final byte FLAG_NEWLINE = 0;
     private static final byte FLAG_COVERAGE_LINE = 1;

@@ -1789,7 +1789,7 @@ public class ParserSupport {
         return new DefinedParseNode(position, something);
     }
 
-    public static final Rope INTERNAL_ID = new AsciiOnlyLeafRope(new byte[]{}, USASCIIEncoding.INSTANCE);
+    public static final Rope INTERNAL_ID = new AsciiOnlyLeafRope(new byte[0], USASCIIEncoding.INSTANCE);
 
     public SourceIndexLength extendedUntil(SourceIndexLength start, SourceIndexLength end) {
         return new SourceIndexLength(start.getCharIndex(), end.getCharEnd() - start.getCharIndex());

@@ -649,7 +649,7 @@ public class BodyTranslator extends Translator {
     }
 
     public static final Object BAD_FRAME_SLOT = new Object();
-    private static final ParseNode[] EMPTY_ARGUMENTS = new ParseNode[]{};
+    private static final ParseNode[] EMPTY_ARGUMENTS = new ParseNode[0];
 
     public Deque<Object> frameOnStackMarkerSlotStack = new ArrayDeque<>();
 

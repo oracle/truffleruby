@@ -44,7 +44,7 @@ public class PrintfSimpleTreeBuilder {
 
     public static final int DEFAULT = -1;
 
-    private static final byte[] EMPTY_BYTES = new byte[]{};
+    private static final byte[] EMPTY_BYTES = new byte[0];
 
     public PrintfSimpleTreeBuilder(RubyContext context, List<SprintfConfig> configs) {
         this.context = context;
