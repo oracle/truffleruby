@@ -31,6 +31,7 @@ package org.truffleruby.parser.scope;
 import java.util.Arrays;
 
 import org.truffleruby.SuppressFBWarnings;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.AssignableParseNode;
 import org.truffleruby.parser.ast.DAsgnParseNode;
@@ -63,7 +64,7 @@ public class StaticScope {
     // File name where this static scope came from or null if a native or artificial scope
     private String file;
 
-    private static final String[] NO_NAMES = new String[0];
+    private static final String[] NO_NAMES = StringUtils.EMPTY_STRING_ARRAY;
 
     private Type type;
     private boolean isBlockOrEval;

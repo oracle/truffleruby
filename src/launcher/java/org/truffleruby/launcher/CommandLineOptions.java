@@ -42,6 +42,8 @@ import org.truffleruby.shared.options.StringArrayOptionType;
 
 public class CommandLineOptions {
 
+    public static final String[] EMPTY_STRING_ARRAY = new String[0];
+
     // Options which are only meaningful when using the TruffleRuby launcher (not when using the Context API)
     boolean showVersion = false;
     boolean showCopyright = false;
@@ -67,7 +69,7 @@ public class CommandLineOptions {
     public CommandLineOptions(Map<String, String> polyglotOptions) {
         this.polyglotOptions = Collections.unmodifiableMap(polyglotOptions);
         this.options = new HashMap<>();
-        this.arguments = new String[0];
+        this.arguments = EMPTY_STRING_ARRAY;
         this.unknownArguments = new ArrayList<>();
     }
 

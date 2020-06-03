@@ -131,7 +131,7 @@ public class FormatRootNode extends RubyBaseRootNode implements InternalRootNode
 
     @TruffleBoundary
     private Pointer[] associatedToArray(List<Pointer> associated) {
-        return associated.toArray(new Pointer[0]);
+        return associated.toArray(Pointer.EMPTY_ARRAY);
     }
 
     @Override

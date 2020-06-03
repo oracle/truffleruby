@@ -14,6 +14,7 @@ import java.util.ArrayList;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.cext.ValueWrapperManager;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.queue.UnsizedQueue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -218,7 +219,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
 
     public void startMarking(Object[] oldMarks) {
         if (oldMarks == null) {
-            marks = new Object[0];
+            marks = ArrayUtils.EMPTY_ARRAY;
         } else {
             marks = new Object[oldMarks.length];
         }

@@ -20,8 +20,8 @@ import org.graalvm.options.OptionStability;
 
 public class OptionsCatalog {
 
-    public static final OptionKey<String[]> LOAD_PATHS_KEY = new OptionKey<>(new String[0], StringArrayOptionType.INSTANCE);
-    public static final OptionKey<String[]> REQUIRED_LIBRARIES_KEY = new OptionKey<>(new String[0], StringArrayOptionType.INSTANCE);
+    public static final OptionKey<String[]> LOAD_PATHS_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
+    public static final OptionKey<String[]> REQUIRED_LIBRARIES_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
     public static final OptionKey<String> WORKING_DIRECTORY_KEY = new OptionKey<>("");
     public static final OptionKey<Boolean> DEBUG_KEY = new OptionKey<>(false);
     public static final OptionKey<Verbosity> VERBOSITY_KEY = new OptionKey<>(Verbosity.FALSE, EnumOptionType.optionTypeFor(Verbosity.class));
@@ -82,8 +82,8 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> SPLIT_LOOP_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> IGNORE_LINES_BEFORE_RUBY_SHEBANG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> SYNTAX_CHECK_KEY = new OptionKey<>(false);
-    public static final OptionKey<String[]> ARGV_GLOBAL_VALUES_KEY = new OptionKey<>(new String[0], StringArrayOptionType.INSTANCE);
-    public static final OptionKey<String[]> ARGV_GLOBAL_FLAGS_KEY = new OptionKey<>(new String[0], StringArrayOptionType.INSTANCE);
+    public static final OptionKey<String[]> ARGV_GLOBAL_VALUES_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
+    public static final OptionKey<String[]> ARGV_GLOBAL_FLAGS_KEY = new OptionKey<>(StringArrayOptionType.EMPTY_STRING_ARRAY, StringArrayOptionType.INSTANCE);
     public static final OptionKey<Boolean> BUILDING_CORE_CEXTS_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LAZY_TRANSLATION_LOG_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> LOG_DYNAMIC_CONSTANT_LOOKUP_KEY = new OptionKey<>(false);

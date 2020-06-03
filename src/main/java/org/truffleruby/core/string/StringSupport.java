@@ -57,8 +57,6 @@ public final class StringSupport {
     // exceeding the buffer size.
     private static final int CASE_MAP_BUFFER_SIZE = 32;
 
-    public static final String[] EMPTY_STRING_ARRAY = new String[0];
-
     public static int characterLength(Encoding encoding, CodeRange codeRange, byte[] bytes,
             int byteOffset, int byteEnd, boolean recoverIfBroken) {
         assert byteOffset >= 0 && byteOffset < byteEnd && byteEnd <= bytes.length;

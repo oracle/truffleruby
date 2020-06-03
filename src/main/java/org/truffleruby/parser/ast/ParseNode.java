@@ -43,6 +43,8 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Base class for all Nodes in the AST */
 public abstract class ParseNode {
+
+    public static final ParseNode[] EMPTY_ARRAY = new ParseNode[0];
     // We define an actual list to get around bug in java integration (1387115)
     static final List<ParseNode> EMPTY_LIST = new ArrayList<>();
 

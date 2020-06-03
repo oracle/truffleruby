@@ -194,6 +194,10 @@
       <property name="format" value='new\s+\w+\[\]\s*\{\s*\}'/>
       <property name="message" value='Use new Type[0] instead.'/>
     </module>
+    <module name="RegexpSinglelineJava">
+      <property name="format" value='(?!=)\S\s*new\s+\w+\[0\]'/>
+      <property name="message" value='Use a EMPTY_type_ARRAY constant instead.'/>
+    </module>
   </module>
   <module name="RegexpMultiline">
     <property name="format" value='Node currentNode,\s*RubyContext context'/>

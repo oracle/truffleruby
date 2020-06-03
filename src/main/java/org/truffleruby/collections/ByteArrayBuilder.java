@@ -9,12 +9,14 @@
  */
 package org.truffleruby.collections;
 
+import org.truffleruby.core.rope.RopeConstants;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class ByteArrayBuilder {
 
-    private static final byte[] EMPTY_BYTES = new byte[0];
+    private static final byte[] EMPTY_BYTES = RopeConstants.EMPTY_BYTES;
 
     private byte[] bytes = EMPTY_BYTES;
     private int length;

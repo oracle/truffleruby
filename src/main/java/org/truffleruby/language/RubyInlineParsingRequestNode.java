@@ -102,7 +102,7 @@ public class RubyInlineParsingRequestNode extends ExecutableNode {
                 null,
                 RubyArguments.getSelf(frame),
                 RubyArguments.getBlock(frame),
-                new Object[0]);
+                RubyBaseNode.EMPTY_ARGUMENTS);
 
         // No need to share the returned value here, InlineParsingRequest is not exposed to the Context API
         // and is only used by instruments (e.g., the debugger) or the RubyLanguage itself.

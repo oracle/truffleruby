@@ -58,7 +58,7 @@ public class ArgsParseNode extends ParseNode {
 
     private final Arity arity;
 
-    private static final ParseNode[] NO_ARGS = new ParseNode[0];
+    private static final ParseNode[] NO_ARGS = ParseNode.EMPTY_ARRAY;
 
     /** Construct a new ArgsParseNode with no keyword arguments. */
     public ArgsParseNode(

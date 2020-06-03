@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -72,7 +73,7 @@ public class ZeroLengthArrayStore {
         assert start == 0;
         assert length == 0;
 
-        return new Object[0];
+        return ArrayUtils.EMPTY_ARRAY;
     }
 
     @ExportMessage

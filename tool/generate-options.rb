@@ -61,7 +61,7 @@ options_data.each do |category, stabilities|
         raise unless default.empty?
         type             = 'String[]'
         boxed_type       = type
-        default          = "new String[0]"
+        default          = "StringArrayOptionType.EMPTY_STRING_ARRAY"
         option_type      = 'StringArrayOptionType.INSTANCE'
       else
         raise type.to_s

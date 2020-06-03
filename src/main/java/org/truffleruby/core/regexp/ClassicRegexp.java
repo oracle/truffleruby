@@ -37,7 +37,7 @@ package org.truffleruby.core.regexp;
 
 import static org.truffleruby.core.rope.CodeRange.CR_7BIT;
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.string.StringSupport.EMPTY_STRING_ARRAY;
+import static org.truffleruby.core.string.StringUtils.EMPTY_STRING_ARRAY;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;

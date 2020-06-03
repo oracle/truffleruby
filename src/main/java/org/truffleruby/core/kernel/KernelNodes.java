@@ -418,6 +418,8 @@ public abstract class KernelNodes {
     @ImportStatic(ShapeCachingGuards.class)
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
+        public static final Property[] EMPTY_PROPERTY_ARRAY = new Property[0];
+
         public static CopyNode create() {
             return CopyNodeFactory.create(null);
         }
@@ -470,7 +472,7 @@ public abstract class KernelNodes {
                 }
             }
 
-            return copiedProperties.toArray(new Property[0]);
+            return copiedProperties.toArray(EMPTY_PROPERTY_ARRAY);
         }
 
         protected ReadObjectFieldNode[] createReadFieldNodes(Property[] properties) {
