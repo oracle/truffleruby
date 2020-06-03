@@ -10,13 +10,11 @@
 
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyLibrary;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.library.CachedLibrary;
 
 public abstract class FreezeNode extends RubyContextNode {
 
@@ -26,45 +24,15 @@ public abstract class FreezeNode extends RubyContextNode {
 
     public abstract Object executeFreeze(Object object);
 
-    @Specialization
-    protected Object freeze(boolean object) {
-        return object;
-    }
-
-    @Specialization
-    protected Object freeze(int object) {
-        return object;
-    }
-
-    @Specialization
-    protected Object freeze(long object) {
-        return object;
-    }
-
-    @Specialization
-    protected Object freeze(double object) {
-        return object;
-    }
-
-    @Specialization(guards = "isNil(nil)")
-    protected Object freeze(Object nil) {
-        return nil;
-    }
-
     @Specialization(guards = "isRubyBignum(object)")
-    protected Object freezeBignum(DynamicObject object) {
+    protected Object freezeBignum(Object object) {
         return object;
     }
 
-    @Specialization
-    protected Object freezeSymbol(RubySymbol symbol) {
-        return symbol;
-    }
 
-    @Specialization(guards = "!isRubyBignum(object)")
-    protected Object freeze(DynamicObject object,
-            @Cached WriteObjectFieldNode writeFrozenNode) {
-        writeFrozenNode.write(object, Layouts.FROZEN_IDENTIFIER, true);
-        return object;
+    @Specialization(guards = "!isRubyBignum(object)", limit = "3")
+    protected Object freeze(Object object,
+            @CachedLibrary("object") RubyLibrary rubyLibrary) {
+        return rubyLibrary.freeze(object);
     }
 }

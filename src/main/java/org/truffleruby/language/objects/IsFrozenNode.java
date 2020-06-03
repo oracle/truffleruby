@@ -9,15 +9,12 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyLibrary;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.library.CachedLibrary;
 
 @GenerateUncached
 public abstract class IsFrozenNode extends RubyBaseNode {
@@ -28,40 +25,10 @@ public abstract class IsFrozenNode extends RubyBaseNode {
 
     public abstract boolean execute(Object object);
 
-    @Specialization
-    protected boolean isFrozen(boolean object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isFrozen(int object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isFrozen(long object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isFrozen(double object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isFrozen(Nil object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isFrozen(RubySymbol object) {
-        return true;
-    }
-
-    @Specialization
-    protected boolean isFrozen(DynamicObject object,
-            @Cached ReadObjectFieldNode readFrozenNode) {
-        return (boolean) readFrozenNode.execute(object, Layouts.FROZEN_IDENTIFIER, false);
+    @Specialization(limit = "3")
+    protected boolean isFrozen(Object self,
+            @CachedLibrary("self") RubyLibrary rubyLibrary) {
+        return rubyLibrary.isFrozen(self);
     }
 
 }
