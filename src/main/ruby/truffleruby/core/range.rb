@@ -175,7 +175,7 @@ class Range
 
     # At the end of the loop, mid could be equal to min or max due to precision limits and the other bound
     # might not have been tested in some cases.
-    if mid == min && max == normalized_end && (last_admissible.nil? || last_admissible == Float::INFINITY)
+    if mid == min && max == normalized_end && (Primitive.nil?(last_admissible) || last_admissible == Float::INFINITY)
       # max is untested only if it's the end of the range.
       # It can only change the result of the search if we haven't found an admissible value yet (+ infinity edge case).
       result = yield max
@@ -254,7 +254,7 @@ class Range
       raise TypeError, "can't iterate from #{first.class}"
     end
 
-    return each_endless(first, &block) if last.nil?
+    return each_endless(first, &block) if Primitive.nil? last
 
     case first
     when Integer
@@ -389,7 +389,7 @@ class Range
 
   private def step_internal(step_size=1, &block) # :yields: object
 
-    if !block_given? && Primitive.object_kind_of?(self.begin, Numeric) && (self.end.nil? || Primitive.object_kind_of?(self.end, Numeric))
+    if !block_given? && Primitive.object_kind_of?(self.begin, Numeric) && (Primitive.nil?(self.end) || Primitive.object_kind_of?(self.end, Numeric))
       return Enumerator::ArithmeticSequence.new(self, :step, self.begin, self.end, step_size, self.exclude_end?)
     end
 
@@ -403,7 +403,7 @@ class Range
     last = values[1]
     step_size = values[2]
 
-    return step_endless(first, step_size, &block) if last.nil?
+    return step_endless(first, step_size, &block) if Primitive.nil? last
 
     case first
     when Float

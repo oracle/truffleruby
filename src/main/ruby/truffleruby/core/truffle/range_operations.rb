@@ -42,7 +42,7 @@ module Truffle
       when Float
         Truffle::NumericOperations.float_step_size(first, last, step_size, range.exclude_end?)
       else
-        range.size.nil? ? nil : (range.size.fdiv(step_size)).ceil
+        Primitive.nil?(range.size) ? nil : (range.size.fdiv(step_size)).ceil
       end
     end
 
@@ -52,7 +52,7 @@ module Truffle
         begin
           step_size = Float(from = step_size)
           first     = Float(from = first)
-          last      = Float(from = last) unless last.nil?
+          last      = Float(from = last) unless Primitive.nil? last
         rescue ArgumentError
           raise TypeError, "no implicit conversion to float from #{from.class}"
         end
