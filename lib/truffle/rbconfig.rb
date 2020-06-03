@@ -67,9 +67,10 @@ module RbConfig
                     []
                   end
 
+  ar = Truffle::Boot.toolchain_executable(:AR)
   cc = Truffle::Boot.toolchain_executable(:CC)
   cxx = Truffle::Boot.toolchain_executable(:CXX)
-  ar = Truffle::Boot.toolchain_executable(:AR)
+  ranlib = Truffle::Boot.toolchain_executable(:RANLIB)
   strip = Truffle::Boot.toolchain_executable(:STRIP)
 
   # Determine the various flags for native compilation
@@ -177,6 +178,7 @@ module RbConfig
     'OUTFLAG'           => '-o ',
     'PATH_SEPARATOR'    => File::PATH_SEPARATOR.dup,
     'prefix'            => prefix,
+    'RANLIB'            => ranlib,
     'RM'                => 'rm -f',
     'RUBY_BASE_NAME'    => ruby_base_name,
     'ruby_install_name' => ruby_install_name,
