@@ -52,7 +52,6 @@ import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.regexp.ClassicRegexp;
 import org.truffleruby.core.regexp.RegexpOptions;
-import org.truffleruby.core.rope.AsciiOnlyLeafRope;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
@@ -1789,7 +1788,7 @@ public class ParserSupport {
         return new DefinedParseNode(position, something);
     }
 
-    public static final Rope INTERNAL_ID = new AsciiOnlyLeafRope(RopeConstants.EMPTY_BYTES, USASCIIEncoding.INSTANCE);
+    public static final Rope INTERNAL_ID = RopeConstants.EMPTY_US_ASCII_ROPE;
 
     public SourceIndexLength extendedUntil(SourceIndexLength start, SourceIndexLength end) {
         return new SourceIndexLength(start.getCharIndex(), end.getCharEnd() - start.getCharIndex());
