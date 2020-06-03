@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.library.LibraryFactory;
 import org.truffleruby.language.library.BooleanRubyLibrary;
 import org.truffleruby.language.library.DoubleRubyLibrary;
 import org.truffleruby.language.library.IntegerRubyLibrary;
@@ -23,6 +24,16 @@ import com.oracle.truffle.api.library.Library;
 @GenerateLibrary.DefaultExport(LongRubyLibrary.class)
 @GenerateLibrary.DefaultExport(DoubleRubyLibrary.class)
 public abstract class RubyLibrary extends Library {
+
+    public static LibraryFactory<RubyLibrary> getFactory() {
+        return FACTORY;
+    }
+
+    public static RubyLibrary getUncached() {
+        return FACTORY.getUncached();
+    }
+
+    private static final LibraryFactory<RubyLibrary> FACTORY = LibraryFactory.resolve(RubyLibrary.class);
 
     public abstract Object freeze(Object object);
 

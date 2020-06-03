@@ -98,9 +98,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -512,8 +510,6 @@ public abstract class KernelNodes {
 
         @Child private CopyNode copyNode = CopyNode.create();
         @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
-        @Child private IsFrozenNode isFrozenNode = IsFrozenNode.create();
-        @Child private FreezeNode freezeNode;
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
@@ -522,12 +518,14 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
-        @Specialization(guards = "!isRubyBignum(self)")
+        @Specialization(guards = "!isRubyBignum(self)", limit = "3")
         protected DynamicObject clone(DynamicObject self, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
-                @Cached ConditionProfile isRubyClass) {
+                @Cached ConditionProfile isRubyClass,
+                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @CachedLibrary(limit = "3") RubyLibrary rubyLibraryFreeze) {
             final DynamicObject newObject = copyNode.executeCopy(self);
 
             // Copy the singleton class if any.
@@ -541,13 +539,8 @@ public abstract class KernelNodes {
 
             propagateTaintNode.executePropagate(self, newObject);
 
-            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(isFrozenNode.execute(self))) {
-                if (freezeNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    freezeNode = insert(FreezeNode.create());
-                }
-
-                freezeNode.executeFreeze(newObject);
+            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(self))) {
+                rubyLibraryFreeze.freeze(newObject);
             }
 
             if (isRubyClass.profile(RubyGuards.isRubyClass(self))) {

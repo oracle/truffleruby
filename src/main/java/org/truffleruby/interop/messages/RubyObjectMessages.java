@@ -26,7 +26,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -388,7 +387,7 @@ public class RubyObjectMessages {
     protected static void writeMember(DynamicObject receiver, String name, Object value,
             @Cached WriteObjectFieldNode writeObjectFieldNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
-            @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
+            @CachedLibrary("receiver") RubyLibrary rubyLibrary,
             @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
             @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
@@ -404,7 +403,7 @@ public class RubyObjectMessages {
         }
 
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (isFrozenNode.execute(receiver)) {
+            if (rubyLibrary.isFrozen(receiver)) {
                 errorProfile.enter();
                 throw UnsupportedMessageException.create();
             }
@@ -426,7 +425,7 @@ public class RubyObjectMessages {
             @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @Cached @Shared("frozen") IsFrozenNode isFrozenNode)
+            @CachedLibrary("receiver") RubyLibrary rubyLibrary)
             throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
@@ -437,7 +436,7 @@ public class RubyObjectMessages {
             throw translateRubyException.execute(e, name);
         }
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (isFrozenNode.execute(receiver)) {
+            if (rubyLibrary.isFrozen(receiver)) {
                 errorProfile.enter();
                 throw UnsupportedMessageException.create();
             }
@@ -513,7 +512,7 @@ public class RubyObjectMessages {
 
     @ExportMessage
     protected static boolean isMemberModifiable(DynamicObject receiver, String name,
-            @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
+            @CachedLibrary("receiver") RubyLibrary rubyLibrary,
             @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -526,7 +525,7 @@ public class RubyObjectMessages {
                 dynamic,
                 receiver,
                 name,
-                isFrozenNode,
+                rubyLibrary,
                 readObjectFieldNode,
                 booleanCastNode,
                 dynamicProfile);
@@ -534,7 +533,7 @@ public class RubyObjectMessages {
 
     @ExportMessage
     protected static boolean isMemberRemovable(DynamicObject receiver, String name,
-            @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
+            @CachedLibrary("receiver") RubyLibrary rubyLibrary,
             @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -547,19 +546,19 @@ public class RubyObjectMessages {
                 dynamic,
                 receiver,
                 name,
-                isFrozenNode,
+                rubyLibrary,
                 readObjectFieldNode,
                 booleanCastNode,
                 dynamicProfile);
     }
 
     private static boolean isMemberModifiableRemovable(Object dynamic, DynamicObject receiver, String name,
-            IsFrozenNode isFrozenNode,
+            RubyLibrary rubyLibrary,
             ReadObjectFieldNode readObjectFieldNode,
             BooleanCastNode booleanCastNode,
             ConditionProfile dynamicProfile) {
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (isFrozenNode.execute(receiver)) {
+            if (rubyLibrary.isFrozen(receiver)) {
                 return false;
             } else {
                 return readObjectFieldNode.execute(receiver, name, null) != null;
@@ -571,7 +570,7 @@ public class RubyObjectMessages {
 
     @ExportMessage
     protected static boolean isMemberInsertable(DynamicObject receiver, String name,
-            @Cached @Shared("frozen") IsFrozenNode isFrozenNode,
+            @CachedLibrary("receiver") RubyLibrary rubyLibrary,
             @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
             @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
             @Exclusive @Cached BooleanCastNode booleanCastNode,
@@ -581,7 +580,7 @@ public class RubyObjectMessages {
         Object rubyName = nameToRubyNode.executeConvert(name);
         Object dynamic = dispatchNode.call(receiver, "polyglot_member_insertable?", rubyName);
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (isFrozenNode.execute(receiver) || !isIVar(name)) {
+            if (rubyLibrary.isFrozen(receiver) || !isIVar(name)) {
                 return false;
             } else {
                 return readObjectFieldNode.execute(receiver, name, null) == null;

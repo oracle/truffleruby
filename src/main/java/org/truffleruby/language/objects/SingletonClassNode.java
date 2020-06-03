@@ -15,11 +15,11 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -29,9 +29,6 @@ import com.oracle.truffle.api.object.Shape;
 
 @NodeChild(value = "value", type = RubyNode.class)
 public abstract class SingletonClassNode extends RubyContextSourceNode {
-
-    @Child private IsFrozenNode isFrozenNode;
-    @Child private FreezeNode freezeNode;
 
     public static SingletonClassNode create() {
         return SingletonClassNodeGen.create(null);
@@ -146,8 +143,8 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
                     object,
                     name);
 
-            if (isFrozen(object)) {
-                freeze(singletonClass);
+            if (RubyLibrary.getUncached().isFrozen(object)) {
+                RubyLibrary.getUncached().freeze(singletonClass);
             }
 
             SharedObjects.propagate(getContext(), object, singletonClass);
@@ -155,22 +152,6 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
             Layouts.BASIC_OBJECT.setMetaClass(object, singletonClass);
             return singletonClass;
         }
-    }
-
-    public void freeze(final DynamicObject singletonClass) {
-        if (freezeNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            freezeNode = insert(FreezeNode.create());
-        }
-        freezeNode.executeFreeze(singletonClass);
-    }
-
-    protected boolean isFrozen(Object object) {
-        if (isFrozenNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            isFrozenNode = insert(IsFrozenNode.create());
-        }
-        return isFrozenNode.execute(object);
     }
 
     protected int getCacheLimit() {
