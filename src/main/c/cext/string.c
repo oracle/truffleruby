@@ -303,6 +303,10 @@ VALUE rb_usascii_str_new(const char *ptr, long len) {
   return RUBY_INVOKE(rb_str_new(ptr, len), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
 }
 
+VALUE rb_usascii_str_new_static(const char *ptr, long len) {
+  return rb_usascii_str_new(ptr, len);
+}
+
 VALUE rb_usascii_str_new_cstr(const char *ptr) {
   return RUBY_INVOKE(rb_str_new_cstr(ptr), "force_encoding", rb_enc_from_encoding(rb_usascii_encoding()));
 }

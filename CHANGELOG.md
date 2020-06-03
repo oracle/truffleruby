@@ -33,6 +33,7 @@ Compatibility:
 * Improved the compatibility of `Symbol.all_symbols` (#2022, @chrisseaton).
 * Implemented `rb_enc_str_buf_cat`.
 * Implemented `rb_int_positive_pow`.
+* Implemented `rb_usascii_str_new_lit`.
 
 Performance:
 
