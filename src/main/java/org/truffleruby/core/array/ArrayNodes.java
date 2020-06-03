@@ -60,13 +60,13 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
-import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -1335,7 +1335,7 @@ public abstract class ArrayNodes {
 
         @Child private RopeNodes.MakeLeafRopeNode makeLeafRopeNode;
         @Child private StringNodes.MakeStringNode makeStringNode;
-        @Child private TaintNode taintNode;
+        @Child private RubyLibrary rubyLibrary;
         @Child private WriteObjectFieldNode writeAssociatedNode;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
@@ -1406,12 +1406,11 @@ public abstract class ArrayNodes {
                     result.getStringLength()));
 
             if (result.isTainted()) {
-                if (taintNode == null) {
+                if (rubyLibrary == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    taintNode = insert(TaintNode.create());
+                    rubyLibrary = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
                 }
-
-                taintNode.executeTaint(string);
+                rubyLibrary.taint(string);
             }
 
             if (result.getAssociated() != null) {

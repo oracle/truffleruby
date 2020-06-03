@@ -12,6 +12,7 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -40,12 +41,12 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.IsTaintedNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -426,7 +427,6 @@ public abstract class MatchDataNodes {
 
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
-        @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
 
         public static ValuesNode create() {
             return ValuesNodeFactory.create(null);
@@ -436,12 +436,13 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object[] getValuesSlow(DynamicObject matchData) {
+        protected Object[] getValuesSlow(DynamicObject matchData,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             final DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
             final Rope sourceRope = StringOperations.rope(source);
             final Region region = Layouts.MATCH_DATA.getRegion(matchData);
             final Object[] values = new Object[region.numRegs];
-            boolean isTainted = isTaintedNode.executeIsTainted(source);
+            boolean isTainted = rubyLibrary.isTainted(source);
 
             for (int n = 0; n < region.numRegs; n++) {
                 final int start = region.beg[n];

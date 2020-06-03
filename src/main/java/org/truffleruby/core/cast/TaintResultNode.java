@@ -10,11 +10,11 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.objects.IsTaintedNode;
-import org.truffleruby.language.objects.TaintNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -26,33 +26,31 @@ public class TaintResultNode extends RubyContextSourceNode {
 
     private final boolean taintFromSelf;
     private final int taintFromParameter;
+    private final BranchProfile doNotTaintProfile = BranchProfile.create();
     private final ConditionProfile taintProfile = ConditionProfile.create();
 
     @Child private RubyNode method;
-    @Child private IsTaintedNode isTaintedNode;
-    @Child private TaintNode taintNode;
+    @Child private RubyLibrary rubyLibrarySource;
+    @Child private RubyLibrary rubyLibraryResult;
 
     public TaintResultNode(boolean taintFromSelf, int taintFromParameter, RubyNode method) {
         this.taintFromSelf = taintFromSelf;
         this.taintFromParameter = taintFromParameter;
         this.method = method;
-        this.isTaintedNode = IsTaintedNode.create();
+        this.rubyLibrarySource = RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit());
     }
 
     public TaintResultNode() {
-        this.taintFromSelf = false;
-        this.taintFromParameter = -1;
-        this.isTaintedNode = IsTaintedNode.create();
+        this(false, -1, null);
     }
 
     public Object maybeTaint(Object source, Object result) {
-        if (taintProfile.profile(isTaintedNode.executeIsTainted(source))) {
-            if (taintNode == null) {
+        if (taintProfile.profile(rubyLibrarySource.isTainted(source))) {
+            if (rubyLibraryResult == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                taintNode = insert(TaintNode.create());
+                rubyLibraryResult = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
             }
-
-            taintNode.executeTaint(result);
+            rubyLibraryResult.taint(result);
         }
 
         return result;
@@ -65,6 +63,7 @@ public class TaintResultNode extends RubyContextSourceNode {
         try {
             result = method.execute(frame);
         } catch (DoNotTaint e) {
+            doNotTaintProfile.enter();
             return e.getResult();
         }
 

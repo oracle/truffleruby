@@ -9,11 +9,13 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.library.RubyLibrary;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 
 @GenerateUncached
 public abstract class PropagateTaintNode extends RubyBaseNode {
@@ -24,13 +26,17 @@ public abstract class PropagateTaintNode extends RubyBaseNode {
 
     public abstract void executePropagate(Object source, Object target);
 
-    @Specialization
+    @Specialization(limit = "getRubyLibraryCacheLimit()")
     protected void propagate(Object source, Object target,
-            @Cached IsTaintedNode isTaintedNode,
-            @Cached TaintNode taintNode) {
-        if (isTaintedNode.executeIsTainted(source)) {
-            taintNode.executeTaint(target);
+            @CachedLibrary("source") RubyLibrary rubyLibrarySource,
+            @CachedLibrary("target") RubyLibrary rubyLibraryTarget) {
+        if (rubyLibrarySource.isTainted(source)) {
+            rubyLibraryTarget.taint(target);
         }
+    }
+
+    protected int getRubyLibraryCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().RUBY_LIBRARY_CACHE;
     }
 
 }
