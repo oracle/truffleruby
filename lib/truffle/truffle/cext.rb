@@ -230,7 +230,7 @@ module Truffle::CExt
   end
 
   def rb_fix2int(value)
-    Truffle::Type.rb_num2int(value)
+    Primitive.rb_num2int(value)
   end
 
   def rb_fix2uint(value)
@@ -281,11 +281,11 @@ module Truffle::CExt
   end
 
   def rb_num2int(val)
-    Truffle::Type.rb_num2int(val)
+    Primitive.rb_num2int(val)
   end
 
   def rb_num2long(val)
-    Truffle::Type.rb_num2long(val)
+    Primitive.rb_num2long(val)
   end
 
   def rb_big2dbl(val)

@@ -42,7 +42,7 @@ module Truffle
       when Float
         Truffle::NumericOperations.float_step_size(first, last, step_size, range.exclude_end?)
       else
-        range.size.nil? ? nil : (range.size.fdiv(step_size)).ceil
+        Primitive.nil?(range.size) ? nil : (range.size.fdiv(step_size)).ceil
       end
     end
 
@@ -52,7 +52,7 @@ module Truffle
         begin
           step_size = Float(from = step_size)
           first     = Float(from = first)
-          last      = Float(from = last) unless last.nil?
+          last      = Float(from = last) unless Primitive.nil? last
         rescue ArgumentError
           raise TypeError, "no implicit conversion to float from #{from.class}"
         end
@@ -70,6 +70,27 @@ module Truffle
       end
 
       [first, last, step_size]
+    end
+
+    # Returns an array containing normalized int range parameters `[start, length]`,
+    # such that both are 32-bits java ints (if conversion is impossible, an error is raised),
+    # positive (negative values are converted by adding `size`).
+    #
+    # The length will *not* be clamped to size!
+    #
+    # `size` is assumed to be normalized: fitting in an int, and positive.
+    def self.normalized_start_length(range, size)
+      start = Primitive.rb_num2int(range.first)
+      start += size if start < 0
+      if Primitive.nil?(range.end)
+        length = size
+      else
+        length = Primitive.rb_num2int(range.end)
+        length += size if length < 0
+        length += 1 unless range.exclude_end?
+        length -= start
+      end
+      [start, length]
     end
 
   end

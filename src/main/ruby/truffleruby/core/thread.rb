@@ -461,7 +461,7 @@ class ConditionVariable
     if timeout
       raise ArgumentError, 'Timeout must be positive' if timeout < 0
       timeout = timeout * 1_000_000_000
-      timeout = Truffle::Type.rb_num2long(timeout)
+      timeout = Primitive.rb_num2long(timeout)
     end
 
     if defined?(::Mutex_m) && mutex.kind_of?(::Mutex_m)

@@ -99,7 +99,6 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
@@ -536,8 +535,7 @@ public abstract class StringNodes {
 
         @Child private NormalizeIndexNode normalizeIndexNode;
         @Child private StringSubstringPrimitiveNode substringNode;
-        @Child private CallDispatchHeadNode toLongNode;
-        @Child private LongCastNode longCastNode;
+        @Child private ToLongNode toLongNode;
         @Child private RopeNodes.CharacterLengthNode charLengthNode;
         private final BranchProfile outOfBounds = BranchProfile.create();
 
@@ -743,15 +741,11 @@ public abstract class StringNodes {
         private long toLong(Object value) {
             if (toLongNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toLongNode = insert(CallDispatchHeadNode.createPrivate());
-            }
-            if (longCastNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                longCastNode = insert(LongCastNode.create());
+                toLongNode = insert(ToLongNode.create());
             }
 
             // The long cast is necessary to avoid the invalid `(long) Integer` situation.
-            return longCastNode.executeCastLong(toLongNode.call(coreLibrary().truffleTypeModule, "rb_num2long", value));
+            return toLongNode.execute(value);
         }
 
         private int charLength(DynamicObject string) {

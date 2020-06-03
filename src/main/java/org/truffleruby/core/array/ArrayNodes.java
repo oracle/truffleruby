@@ -24,9 +24,11 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
+import org.truffleruby.core.array.ArrayIndexNodes.ReadNormalizedNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
@@ -47,7 +49,7 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
-import org.truffleruby.core.numeric.FixnumLowerNodeGen;
+import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -198,38 +200,79 @@ public abstract class ArrayNodes {
         }
     }
 
+    @CoreMethod(names = { "at" }, required = 1, lowerFixnum = 1)
+    @NodeChild(value = "array", type = RubyNode.class)
+    @NodeChild(value = "index", type = RubyNode.class)
+    public abstract static class AtNode extends CoreMethodNode {
+
+        abstract Object executeAt(DynamicObject array, Object index);
+
+        public static AtNode create() {
+            return ArrayNodesFactory.AtNodeFactory.create(null, null);
+        }
+
+        @Specialization
+        protected Object at(DynamicObject array, int index,
+                @Cached ReadNormalizedNode readNormalizedNode,
+                @Cached ConditionProfile denormalized) {
+            if (denormalized.profile(index < 0)) {
+                index += Layouts.ARRAY.getSize(array);
+            }
+            return readNormalizedNode.executeRead(array, index);
+        }
+
+        @Specialization
+        protected Object at(DynamicObject array, long index) {
+            assert !CoreLibrary.fitsIntoInteger(index);
+            return nil;
+        }
+
+        @Specialization(guards = "!isBasicInteger(index)")
+        protected Object at(DynamicObject array, Object index,
+                @Cached ToLongNode toLongNode,
+                @Cached FixnumLowerNode lowerNode,
+                @Cached AtNode atNode) {
+            return atNode.executeAt(array, lowerNode.executeLower(toLongNode.execute(index)));
+        }
+    }
+
     @CoreMethod(
             names = { "[]", "slice" },
             required = 1,
             optional = 1,
             lowerFixnum = { 1, 2 },
             argumentNames = { "index_start_or_range", "length" })
-    public abstract static class IndexNode extends ArrayIndexNode {
+    public abstract static class IndexNode extends ArrayCoreMethodNode {
 
-        @Child private CallDispatchHeadNode fallbackNode;
-
-        @Override
-        protected Object fallback(DynamicObject array, Object start, Object length) {
-            if (fallbackNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackNode = insert(CallDispatchHeadNode.createPrivate());
-            }
-
-            return fallbackNode.call(array, "element_reference_fallback", start, length);
+        @Specialization
+        protected Object index(DynamicObject array, int index, NotProvided length,
+                @Cached ConditionProfile negativeIndexProfile,
+                @Cached ReadNormalizedNode readNode) {
+            final int normalizedIndex = ArrayOperations
+                    .normalizeIndex(Layouts.ARRAY.getSize(array), index, negativeIndexProfile);
+            return readNode.executeRead(array, normalizedIndex);
         }
-    }
 
-    @Primitive(
-            name = "array_aref",
-            lowerFixnum = { 1, 2 },
-            argumentNames = { "index_start_or_range", "length" })
-    public abstract static class IndexPrimitiveNode extends ArrayIndexNode {
+        @Specialization
+        protected Object slice(DynamicObject array, int start, int length,
+                @Cached ArrayIndexNodes.ReadSliceNormalizedNode readSliceNode,
+                @Cached ConditionProfile negativeIndexProfile) {
+            if (length < 0) {
+                return nil;
+            }
+            final int normalizedStart = ArrayOperations
+                    .normalizeIndex(Layouts.ARRAY.getSize(array), start, negativeIndexProfile);
+            return readSliceNode.executeReadSlice(array, normalizedStart, length);
+        }
 
-        protected abstract RubyNode[] getArguments();
+        @Specialization(guards = "eitherNotInteger(index, maybeLength)")
+        protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength,
+                @Cached CallDispatchHeadNode fallbackNode) {
+            return fallbackNode.call(array, "element_reference_fallback", index, maybeLength);
+        }
 
-        @Override
-        protected Object fallback(DynamicObject array, Object start, Object length) {
-            throw new UnsupportedSpecializationException(this, getArguments(), array, start, length);
+        protected boolean eitherNotInteger(Object index, Object length) {
+            return !RubyGuards.isInteger(index) || RubyGuards.wasProvided(length) && !RubyGuards.isInteger(length);
         }
     }
 
@@ -271,29 +314,6 @@ public abstract class ArrayNodes {
         protected Object fallback(DynamicObject array, Object index, Object length, Object value) {
             throw new UnsupportedSpecializationException(this, getArguments(), array, index, length, value);
         }
-    }
-
-    @CoreMethod(names = "at", required = 1, lowerFixnum = 1)
-    @NodeChild(value = "array", type = RubyNode.class)
-    @NodeChild(value = "index", type = RubyNode.class)
-    public abstract static class AtNode extends CoreMethodNode {
-
-        @Child private ArrayReadDenormalizedNode readNode;
-
-        @CreateCast("index")
-        protected RubyNode coerceOtherToInt(RubyNode index) {
-            return FixnumLowerNodeGen.create(ToIntNode.create(index));
-        }
-
-        @Specialization
-        protected Object at(DynamicObject array, int index) {
-            if (readNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readNode = insert(ArrayReadDenormalizedNodeGen.create(null, null));
-            }
-            return readNode.executeRead(array, index);
-        }
-
     }
 
     @CoreMethod(names = "clear", raiseIfFrozenSelf = true)

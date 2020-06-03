@@ -26,6 +26,8 @@ import org.truffleruby.core.TruffleSystemNodesBuiltins;
 import org.truffleruby.core.TruffleSystemNodesFactory;
 import org.truffleruby.core.VMPrimitiveNodesBuiltins;
 import org.truffleruby.core.VMPrimitiveNodesFactory;
+import org.truffleruby.core.array.ArrayIndexNodesBuiltins;
+import org.truffleruby.core.array.ArrayIndexNodesFactory;
 import org.truffleruby.core.array.ArrayNodesBuiltins;
 import org.truffleruby.core.array.ArrayNodesFactory;
 import org.truffleruby.core.basicobject.BasicObjectNodesBuiltins;
@@ -162,6 +164,7 @@ public abstract class BuiltinsClasses {
 
     // Sorted alphabetically to avoid duplicates
     public static void setupBuiltinsLazy(CoreMethodNodeManager coreManager, PrimitiveManager primitiveManager) {
+        ArrayIndexNodesBuiltins.setup(coreManager, primitiveManager);
         ArrayNodesBuiltins.setup(coreManager, primitiveManager);
         AtomicReferenceNodesBuiltins.setup(coreManager, primitiveManager);
         BasicObjectNodesBuiltins.setup(coreManager, primitiveManager);
@@ -237,6 +240,7 @@ public abstract class BuiltinsClasses {
     // Sorted alphabetically to avoid duplicates
     public static List<List<? extends NodeFactory<? extends RubyNode>>> getCoreNodeFactories() {
         return Arrays.asList(
+                ArrayIndexNodesFactory.getFactories(),
                 ArrayNodesFactory.getFactories(),
                 AtomicReferenceNodesFactory.getFactories(),
                 BasicObjectNodesFactory.getFactories(),

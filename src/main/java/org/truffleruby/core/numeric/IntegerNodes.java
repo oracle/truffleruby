@@ -1540,6 +1540,12 @@ public abstract class IntegerNodes {
     @Primitive(name = "integer_lower")
     public abstract static class IntegerLowerNode extends PrimitiveArrayArgumentsNode {
 
+        public static IntegerLowerNode create() {
+            return IntegerNodesFactory.IntegerLowerNodeFactory.create(null);
+        }
+
+        abstract public Object executeLower(Object value);
+
         @Specialization
         protected int lower(int value) {
             return value;

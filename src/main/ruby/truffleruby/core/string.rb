@@ -44,7 +44,7 @@ class String
   Truffle::Graal.always_split(instance_method(:to_sym))
 
   private def range_begin(range, size)
-    first = Truffle::Type.rb_num2int range.begin
+    first = Primitive.rb_num2int range.begin
     first += size if first < 0
     first
   end
@@ -52,7 +52,7 @@ class String
   private def range_end(range, size)
     last = range.end
     return size - 1 if last.equal? nil
-    last = Truffle::Type.rb_num2int last
+    last = Primitive.rb_num2int last
     last += size if last < 0
     last -= 1 if range.exclude_end?
     last
@@ -71,14 +71,14 @@ class String
       length = finish + 1 - index
       return byteslice 0, 0 if length < 0
     else
-      index = Truffle::Type.rb_num2long(index_or_range)
+      index = Primitive.rb_num2long(index_or_range)
       index += bytesize if index < 0
 
       if Primitive.undefined?(length)
         return if index == bytesize
         length = 1
       else
-        length = Truffle::Type.rb_num2long(length)
+        length = Primitive.rb_num2long(length)
         return if length < 0
       end
 

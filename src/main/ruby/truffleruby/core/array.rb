@@ -147,41 +147,18 @@ class Array
 
   private def element_reference_fallback(start, length)
     if Primitive.undefined?(length)
-      arg = start
-      case arg
-      when Range
-        unless arg.begin.respond_to?(:to_int)
-          raise TypeError, "no implicit conversion of #{arg.begin.class} into Integer"
-        end
-        unless arg.end == nil || arg.end.respond_to?(:to_int)
-          raise TypeError, "no implicit conversion of #{arg.end.class} into Integer"
-        end
-        start_index = arg.begin.to_int
-        Truffle::Type.check_long(start_index)
-        start_index = Truffle::Type.clamp_to_int(start_index)
-        if arg.end == nil
-          end_index = arg.exclude_end? ? size : size - 1
-        else
-          end_index = arg.end.to_int
-          Truffle::Type.check_long(end_index)
-          end_index = Truffle::Type.clamp_to_int(end_index)
-        end
-        range = Range.new(start_index, end_index, arg.exclude_end?)
-        Primitive.array_aref(self, range, undefined)
+      if Range === start
+        start, length = Truffle::RangeOperations.normalized_start_length(start, size)
+        length = 0 if length < 0 # must return [] if index in range
       else
-        arg = Truffle::Type.rb_num2long(arg)
-        return nil unless Truffle::Type.fits_into_int?(arg)
-        Primitive.array_aref(self, arg, undefined)
+        return at(start)
       end
     else
-      start_index = start.to_int
-      end_index = length.to_int
-      Truffle::Type.check_long(start_index)
-      Truffle::Type.check_long(end_index)
-      start_index = Truffle::Type.clamp_to_int(start_index)
-      end_index = Truffle::Type.clamp_to_int(end_index)
-      Primitive.array_aref(self, start_index, end_index)
+      start = Primitive.rb_num2int(start)
+      start += size if start < 0
+      length = Primitive.rb_num2int(length)
     end
+    Primitive.array_read_slice_normalized(self, start, length)
   end
 
   private def element_set_fallback(index, length, value)
@@ -194,12 +171,12 @@ class Array
         Primitive.array_aset(self, index, converted, undefined)
         value
       else
-        index = Truffle::Type.rb_num2long(index)
+        index = Primitive.rb_num2long(index)
         Primitive.array_aset(self, index, value, undefined)
       end
     else
-      index = Truffle::Type.rb_num2long(index)
-      length = Truffle::Type.rb_num2long(length)
+      index = Primitive.rb_num2int(index)
+      length = Primitive.rb_num2int(length)
       converted = value
       unless Array === value
         converted = Array.try_convert(value)
@@ -477,7 +454,7 @@ class Array
       end
     end
 
-    unless Truffle::Type.fits_into_long?(left) && Truffle::Type.fits_into_long?(right)
+    unless Truffle::Type.fits_into_int?(left) && Truffle::Type.fits_into_int?(right)
       raise ArgumentError, 'argument too big'
     end
 

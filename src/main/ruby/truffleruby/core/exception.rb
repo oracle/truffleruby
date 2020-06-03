@@ -385,7 +385,7 @@ class SystemCallError < StandardError
 
       # If it corresponds to a known Errno class, create and return it now
       if errno
-        errno = Truffle::Type.rb_num2long(errno)
+        errno = Primitive.rb_num2long(errno)
         error = SystemCallError.errno_error(message, errno, location)
         return error unless error.nil?
       end

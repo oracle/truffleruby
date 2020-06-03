@@ -17,9 +17,9 @@ import java.util.List;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.IsNilNode;
+import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayLiteralNode;
 import org.truffleruby.core.array.ArraySliceNodeGen;
-import org.truffleruby.core.array.PrimitiveArrayNodeFactory;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.Nil;
@@ -318,7 +318,7 @@ public class LoadArgumentsTranslator extends Translator {
 
     private RubyNode readArgument(SourceIndexLength sourceSection) {
         if (useArray()) {
-            return PrimitiveArrayNodeFactory.read(loadArray(sourceSection), index);
+            return ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index);
         } else {
             if (state == State.PRE) {
                 return ProfileArgumentNodeGen.create(
@@ -399,7 +399,7 @@ public class LoadArgumentsTranslator extends Translator {
                 // Multiple assignment
 
                 if (useArray()) {
-                    readNode = PrimitiveArrayNodeFactory.read(loadArray(sourceSection), index);
+                    readNode = ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index);
                 } else {
                     readNode = readArgument(sourceSection);
                 }
@@ -434,7 +434,7 @@ public class LoadArgumentsTranslator extends Translator {
                     // TODO CS 10-Jan-16 we should really hoist this check, or see if Graal does it for us
                     readNode = new IfElseNode(
                             new ArrayIsAtLeastAsLargeAsNode(minimum, loadArray(sourceSection)),
-                            PrimitiveArrayNodeFactory.read(loadArray(sourceSection), index),
+                            ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index),
                             defaultValue);
                 } else {
                     if (argsNode.hasKwargs()) {
