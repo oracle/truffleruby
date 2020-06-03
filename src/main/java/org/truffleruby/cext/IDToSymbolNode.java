@@ -14,6 +14,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -29,18 +30,11 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
         return IDToSymbolNodeGen.create();
     }
 
-    @Specialization(guards = { "value >= 0", "value <= 0xff", "value == cachedValue" }, limit = "2")
-    protected Object unwrapSingleChar(long value,
-            @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("value") long cachedValue,
-            @Cached("singleCharSymbol(context, value)") Object symbol) {
-        return symbol;
-    }
-
-    @Specialization(guards = { "value >= 0", "value <= 0xff" }, replaces = "unwrapSingleChar")
+    @Specialization(guards = { "value >= 0", "value <= 0xff" })
     protected Object unwrapSingleCharUncached(long value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return singleCharSymbol(context, value);
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached ConditionProfile profile) {
+        return context.getSymbolTable().getSingleByteSymbol((char) value, profile);
     }
 
     @Specialization(guards = "!isSingleCharSymbol(value)")
@@ -55,9 +49,5 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
         }
         long l = (long) value;
         return l >= 0 && l <= 255;
-    }
-
-    public static Object singleCharSymbol(RubyContext context, long c) {
-        return context.getSymbol(String.valueOf((char) c));
     }
 }
