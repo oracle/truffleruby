@@ -598,8 +598,8 @@ module Commands
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --reveal        enable assertions, show core Ruby files in backtrace
           --asm           show assembly
-          --igv           make sure IGV is running and dump Graal graphs after partial escape
-          --igv-full      show all phases, not just up to the Truffle partial escape
+          --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
+          --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2)
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
