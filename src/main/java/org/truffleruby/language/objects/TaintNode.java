@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyLibrary;
 
@@ -25,10 +26,15 @@ public abstract class TaintNode extends RubyBaseNode {
 
     public abstract Object executeTaint(Object object);
 
-    @Specialization(limit = "3")
+    @Specialization(limit = "getRubyLibraryCacheLimit()")
     protected Object taint(Object self,
             @CachedLibrary("self") RubyLibrary rubyLibrary) {
         rubyLibrary.taint(self);
         return self;
     }
+
+    protected int getRubyLibraryCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().RUBY_LIBRARY_CACHE;
+    }
+
 }

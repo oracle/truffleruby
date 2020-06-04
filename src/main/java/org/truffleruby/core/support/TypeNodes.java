@@ -369,7 +369,7 @@ public abstract class TypeNodes {
 
         public abstract void execute(Object object);
 
-        @Specialization(limit = "3")
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected Object check(Object value,
                 @CachedLibrary("value") RubyLibrary rubyLibrary,
                 @Cached BranchProfile errorProfile) {

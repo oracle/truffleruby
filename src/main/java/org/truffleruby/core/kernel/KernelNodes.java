@@ -518,14 +518,14 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
-        @Specialization(guards = "!isRubyBignum(self)", limit = "3")
+        @Specialization(guards = "!isRubyBignum(self)", limit = "getRubyLibraryCacheLimit()")
         protected DynamicObject clone(DynamicObject self, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
                 @Cached ConditionProfile isRubyClass,
                 @CachedLibrary("self") RubyLibrary rubyLibrary,
-                @CachedLibrary(limit = "3") RubyLibrary rubyLibraryFreeze) {
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
             final DynamicObject newObject = copyNode.executeCopy(self);
 
             // Copy the singleton class if any.
@@ -844,7 +844,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "freeze")
     public abstract static class KernelFreezeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "3")
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected Object freeze(Object self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary) {
             rubyLibrary.freeze(self);
@@ -856,7 +856,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "frozen?")
     public abstract static class KernelFrozenNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "3")
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected boolean isFrozen(Object self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary) {
             return rubyLibrary.isFrozen(self);
@@ -1897,7 +1897,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "taint")
     public abstract static class KernelTaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "3")
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected Object taint(Object object,
                 @CachedLibrary("object") RubyLibrary rubyLibrary) {
             rubyLibrary.taint(object);
@@ -1909,7 +1909,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "tainted?")
     public abstract static class KernelIsTaintedNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "3")
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected boolean isTainted(Object object,
                 @CachedLibrary("object") RubyLibrary rubyLibrary) {
             return rubyLibrary.isTainted(object);
@@ -1980,7 +1980,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "untaint")
     public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(limit = "3")
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected Object untaint(Object object,
                 @CachedLibrary("object") RubyLibrary rubyLibrary) {
             rubyLibrary.untaint(object);

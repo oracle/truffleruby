@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyLibrary;
 
@@ -25,7 +26,7 @@ public abstract class IsTaintedNode extends RubyBaseNode {
 
     public abstract boolean executeIsTainted(Object object);
 
-    @Specialization(limit = "3", guards = "!isForeignObject(object)")
+    @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "!isForeignObject(object)")
     protected boolean freeze(Object object,
             @CachedLibrary("object") RubyLibrary rubyLibrary) {
         return rubyLibrary.isTainted(object);
@@ -35,4 +36,9 @@ public abstract class IsTaintedNode extends RubyBaseNode {
     protected boolean isTainted(Object object) {
         return false;
     }
+
+    protected int getRubyLibraryCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().RUBY_LIBRARY_CACHE;
+    }
+
 }

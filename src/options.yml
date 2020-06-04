@@ -131,6 +131,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
     INTEROP_NEW_CACHE: [interop-new-cache, integer, DEFAULT_CACHE, Cache size for interop NEW messages]
     TIME_FORMAT_CACHE: [time-format-cache, integer, DEFAULT_CACHE, Cache size for parsed time format specifiers]
     POW_CACHE: [integer-pow-cache, integer, DEFAULT_CACHE, Cache size for Integer#** with a constant exponent]
+    RUBY_LIBRARY_CACHE: [ruby-library-cache, integer, DEFAULT_CACHE, Ruby Library cache size]
 
     # Inline caches with a non-default size
     THREAD_CACHE: [thread-cache, integer, 1, Cache size of operations that depend on a particular thread]
