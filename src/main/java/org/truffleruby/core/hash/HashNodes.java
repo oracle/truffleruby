@@ -22,14 +22,14 @@ import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
 import org.truffleruby.core.symbol.CoreSymbols;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -493,7 +493,7 @@ public abstract class HashNodes {
             if (arityMoreThanOne.profile(Layouts.PROC.getSharedMethodInfo(block).getArity().getArityNumber() > 1)) {
                 return yield(block, key, value);
             } else {
-                return yield(block, createArray(new Object[]{ key, value }, 2));
+                return yield(block, createArray(new Object[]{ key, value }));
             }
         }
 
@@ -656,7 +656,7 @@ public abstract class HashNodes {
         protected DynamicObject mapNull(DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
-            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @ExplodeLoop
@@ -719,7 +719,7 @@ public abstract class HashNodes {
             if (arityMoreThanOne.profile(Layouts.PROC.getSharedMethodInfo(block).getArity().getArityNumber() > 1)) {
                 return yield(block, key, value);
             } else {
-                return yield(block, createArray(new Object[]{ key, value }, 2));
+                return yield(block, createArray(new Object[]{ key, value }));
             }
         }
 
@@ -786,9 +786,7 @@ public abstract class HashNodes {
             Layouts.HASH.setSize(hash, Layouts.HASH.getSize(hash) - 1);
 
             assert HashOperations.verifyStore(getContext(), hash);
-
-            Object[] objects = new Object[]{ key, value };
-            return createArray(objects, objects.length);
+            return createArray(new Object[]{ key, value });
         }
 
         @Specialization(guards = { "!isEmptyHash(hash)", "isBucketHash(hash)" })
@@ -834,9 +832,7 @@ public abstract class HashNodes {
             Layouts.HASH.setSize(hash, Layouts.HASH.getSize(hash) - 1);
 
             assert HashOperations.verifyStore(getContext(), hash);
-
-            Object[] objects = new Object[]{ key, value };
-            return createArray(objects, objects.length);
+            return createArray(new Object[]{ key, value });
         }
 
     }

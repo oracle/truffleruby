@@ -18,6 +18,7 @@ import java.util.Map;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -143,7 +144,7 @@ public class LexicalScope {
         @ExportMessage
         @TruffleBoundary
         protected Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
-            return new VariableNamesObject(slots.keySet().toArray(new String[0]));
+            return new VariableNamesObject(slots.keySet().toArray(StringUtils.EMPTY_STRING_ARRAY));
         }
 
         @ExportMessage

@@ -26,6 +26,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @ImportStatic(FormatGuards.class)
 public abstract class FormatNode extends RubyContextNode {
 
+    public static final FormatNode[] EMPTY_ARRAY = new FormatNode[0];
+
     private final ConditionProfile writeMoreThanZeroBytes = ConditionProfile.create();
     private final ConditionProfile tooFewArgumentsProfile = ConditionProfile.create();
     private final ConditionProfile sourceRangeProfile = ConditionProfile.create();

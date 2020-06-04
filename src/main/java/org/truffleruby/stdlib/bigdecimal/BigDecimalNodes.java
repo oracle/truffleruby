@@ -423,14 +423,13 @@ public abstract class BigDecimalNodes {
             final BigDecimal[] result = divmodBigDecimal(
                     Layouts.BIG_DECIMAL.getValue(a),
                     Layouts.BIG_DECIMAL.getValue(b));
-            final Object[] store = new Object[]{ createBigDecimal(result[0]), createBigDecimal(result[1]) };
-            return createArray(store, store.length);
+            return createArray(new Object[]{ createBigDecimal(result[0]), createBigDecimal(result[1]) });
         }
 
         @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "isNormalZero(a)", "!isNormalZero(b)" })
         protected Object divmodZeroDividend(DynamicObject a, DynamicObject b) {
             final Object[] store = new Object[]{ createBigDecimal(BigDecimal.ZERO), createBigDecimal(BigDecimal.ZERO) };
-            return createArray(store, store.length);
+            return createArray(store);
         }
 
         @Specialization(guards = { "isNormal(a)", "isNormalRubyBigDecimal(b)", "isNormalZero(b)" })
@@ -450,10 +449,9 @@ public abstract class BigDecimalNodes {
             final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
 
             if (nanProfile.profile(aType == BigDecimalType.NAN || bType == BigDecimalType.NAN)) {
-                final Object[] store = new Object[]{
+                return createArray(new Object[]{
                         createBigDecimal(BigDecimalType.NAN),
-                        createBigDecimal(BigDecimalType.NAN) };
-                return createArray(store, store.length);
+                        createBigDecimal(BigDecimalType.NAN) });
             }
 
             if (nanProfile.profile(
@@ -463,10 +461,9 @@ public abstract class BigDecimalNodes {
 
             if (normalNegProfile.profile(
                     aType == BigDecimalType.NEGATIVE_ZERO || (aType == BigDecimalType.NORMAL && isNormalZero(a)))) {
-                final Object[] store = new Object[]{
+                return createArray(new Object[]{
                         createBigDecimal(BigDecimal.ZERO),
-                        createBigDecimal(BigDecimal.ZERO) };
-                return createArray(store, store.length);
+                        createBigDecimal(BigDecimal.ZERO) });
             }
 
             if (negNormalProfile
@@ -480,14 +477,12 @@ public abstract class BigDecimalNodes {
                         BigDecimalType.NAN,
                         BigDecimalType.POSITIVE_INFINITY }[sign + 1];
 
-                final Object[] store = new Object[]{ createBigDecimal(type), createBigDecimal(BigDecimalType.NAN) };
-                return createArray(store, store.length);
+                return createArray(new Object[]{ createBigDecimal(type), createBigDecimal(BigDecimalType.NAN) });
             }
 
             if (infinityProfile
                     .profile(bType == BigDecimalType.POSITIVE_INFINITY || bType == BigDecimalType.NEGATIVE_INFINITY)) {
-                final Object[] store = new Object[]{ createBigDecimal(BigDecimal.ZERO), createBigDecimal(a) };
-                return createArray(store, store.length);
+                return createArray(new Object[]{ createBigDecimal(BigDecimal.ZERO), createBigDecimal(a) });
             }
 
             throw Utils.unsupportedOperation("unreachable code branch");
@@ -1266,12 +1261,12 @@ public abstract class BigDecimalNodes {
             final BigDecimal bigDecimalValue = Layouts.BIG_DECIMAL.getValue(value).abs();
             final int precs = nearestBiggerMultipleOf9(
                     bigDecimalValue.stripTrailingZeros().unscaledValue().toString().length());
-            return createArray(new int[]{ precs, precs + 9 }, 2);
+            return createArray(new int[]{ precs, precs + 9 });
         }
 
         @Specialization(guards = "!isNormal(value)")
         protected Object precsSpecial(DynamicObject value) {
-            return createArray(new int[]{ 9, 9 }, 2);
+            return createArray(new int[]{ 9, 9 });
         }
 
     }

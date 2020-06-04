@@ -144,7 +144,7 @@ public class CommandLineParser {
             }
         }
         // Remaining arguments are for the script itself
-        config.setArguments(arglist.toArray(new String[arglist.size()]));
+        config.setArguments(arglist.toArray(CommandLineOptions.EMPTY_STRING_ARRAY));
     }
 
     private boolean isInterpreterArgument(String argument) {

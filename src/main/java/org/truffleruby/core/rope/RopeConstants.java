@@ -18,7 +18,7 @@ import org.jcodings.specific.UTF8Encoding;
 
 public class RopeConstants {
 
-    public static final byte[] EMPTY_BYTES = new byte[]{};
+    public static final byte[] EMPTY_BYTES = new byte[0];
 
     public static final LeafRope EMPTY_ASCII_8BIT_ROPE = new AsciiOnlyLeafRope(EMPTY_BYTES, ASCIIEncoding.INSTANCE)
             .computeHashCode();

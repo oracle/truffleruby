@@ -10,7 +10,6 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -42,7 +41,7 @@ public abstract class ArraySliceNode extends RubyContextSourceNode {
         final int length = Layouts.ARRAY.getSize(array) + to - from;
 
         if (emptyArray.profile(length <= 0)) {
-            return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+            return ArrayHelpers.createEmptyArray(getContext());
         } else {
             final Object slice = cowNode.execute(array, from, length);
             return createArray(slice, length);

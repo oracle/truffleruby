@@ -42,7 +42,7 @@ import com.oracle.truffle.api.source.SourceSection;
 @GenerateWrapper
 public abstract class RubyNode extends RubyBaseNode implements InstrumentableNode {
 
-    public static final RubyNode[] EMPTY_ARRAY = new RubyNode[]{};
+    public static final RubyNode[] EMPTY_ARRAY = new RubyNode[0];
 
     private static final byte FLAG_NEWLINE = 0;
     private static final byte FLAG_COVERAGE_LINE = 1;
@@ -253,9 +253,16 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
             return ArrayHelpers.createArray(getContext(), store, size);
         }
 
+        default DynamicObject createArray(int[] store) {
+            return ArrayHelpers.createArray(getContext(), store);
+        }
+
+        default DynamicObject createArray(long[] store) {
+            return ArrayHelpers.createArray(getContext(), store);
+        }
+
         default DynamicObject createArray(Object[] store) {
-            assert store.getClass() == Object[].class;
-            return createArray(store, store.length);
+            return ArrayHelpers.createArray(getContext(), store);
         }
 
         default DynamicObject createBignum(BigInteger value) {

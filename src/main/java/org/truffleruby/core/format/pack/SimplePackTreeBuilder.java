@@ -76,7 +76,7 @@ public class SimplePackTreeBuilder implements SimplePackListener {
 
     public void exitSequence() {
         final List<FormatNode> sequence = sequenceStack.pop();
-        appendNode(SharedTreeBuilder.createSequence(sequence.toArray(new FormatNode[sequence.size()])));
+        appendNode(SharedTreeBuilder.createSequence(sequence.toArray(FormatNode.EMPTY_ARRAY)));
     }
 
     @Override

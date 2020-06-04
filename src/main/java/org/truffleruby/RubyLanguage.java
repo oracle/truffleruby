@@ -15,6 +15,7 @@ import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.debug.GlobalScope;
@@ -181,7 +182,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
                 new RubyParsingRequestNode(
                         this,
                         request.getSource(),
-                        request.getArgumentNames().toArray(new String[]{})));
+                        request.getArgumentNames().toArray(StringUtils.EMPTY_STRING_ARRAY)));
     }
 
     @Override

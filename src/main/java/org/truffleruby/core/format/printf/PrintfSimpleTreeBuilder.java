@@ -33,6 +33,7 @@ import org.truffleruby.core.format.read.array.ReadValueNodeGen;
 import org.truffleruby.core.format.write.bytes.WriteBytesNodeGen;
 import org.truffleruby.core.format.write.bytes.WritePaddedBytesNodeGen;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 
@@ -44,7 +45,7 @@ public class PrintfSimpleTreeBuilder {
 
     public static final int DEFAULT = -1;
 
-    private static final byte[] EMPTY_BYTES = new byte[]{};
+    private static final byte[] EMPTY_BYTES = RopeConstants.EMPTY_BYTES;
 
     public PrintfSimpleTreeBuilder(RubyContext context, List<SprintfConfig> configs) {
         this.context = context;
@@ -214,7 +215,7 @@ public class PrintfSimpleTreeBuilder {
 
     public FormatNode getNode() {
         buildTree();
-        return SharedTreeBuilder.createSequence(sequence.toArray(new FormatNode[sequence.size()]));
+        return SharedTreeBuilder.createSequence(sequence.toArray(FormatNode.EMPTY_ARRAY));
     }
 
 }

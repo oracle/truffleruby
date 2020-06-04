@@ -101,16 +101,16 @@ public class GeneralDivModNode extends RubyContextNode {
         if (integerDiv instanceof Long && CoreLibrary.fitsIntoInteger((long) integerDiv) &&
                 CoreLibrary.fitsIntoInteger(mod)) {
             useFixnumPairProfile.enter();
-            return createArray(new int[]{ (int) (long) integerDiv, (int) mod }, 2);
+            return createArray(new int[]{ (int) (long) integerDiv, (int) mod });
         } else if (integerDiv instanceof Long) {
             useObjectPairProfile.enter();
-            return createArray(new long[]{ (long) integerDiv, mod }, 2);
+            return createArray(new long[]{ (long) integerDiv, mod });
         } else {
             useObjectPairProfile.enter();
             return createArray(new Object[]{
                     fixnumOrBignumQuotient.fixnumOrBignum((BigInteger) integerDiv),
                     mod
-            }, 2);
+            });
         }
     }
 
@@ -136,7 +136,7 @@ public class GeneralDivModNode extends RubyContextNode {
 
         return createArray(new Object[]{
                 fixnumOrBignumQuotient.fixnumOrBignum(div),
-                mod }, 2);
+                mod });
     }
 
     @TruffleBoundary
@@ -156,7 +156,7 @@ public class GeneralDivModNode extends RubyContextNode {
 
         return createArray(new Object[]{
                 fixnumOrBignumQuotient.fixnumOrBignum(bigIntegerResults[0]),
-                fixnumOrBignumRemainder.fixnumOrBignum(bigIntegerResults[1]) }, 2);
+                fixnumOrBignumRemainder.fixnumOrBignum(bigIntegerResults[1]) });
     }
 
 }

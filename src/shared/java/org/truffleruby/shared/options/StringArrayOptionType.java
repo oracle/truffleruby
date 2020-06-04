@@ -16,6 +16,8 @@ import org.graalvm.options.OptionType;
 
 public class StringArrayOptionType {
 
+    public static final String[] EMPTY_STRING_ARRAY = new String[0];
+
     public static final OptionType<String[]> INSTANCE = new OptionType<>(
             "String[]",
             StringArrayOptionType::parseStringArray);
@@ -74,7 +76,7 @@ public class StringArrayOptionType {
                 throw new IllegalArgumentException();
         }
 
-        return values.toArray(new String[values.size()]);
+        return values.toArray(EMPTY_STRING_ARRAY);
     }
 
     public static String append(String currentValues, String newElement) {

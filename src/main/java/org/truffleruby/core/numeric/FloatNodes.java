@@ -931,7 +931,7 @@ public abstract class FloatNodes {
                     decimal,
                     sign,
                     string.length()
-            }, 4);
+            });
         }
 
     }

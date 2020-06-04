@@ -27,6 +27,8 @@ public class Pointer implements AutoCloseable {
     public static final Pointer NULL = new Pointer(0);
     public static final int SIZE = Long.BYTES;
 
+    public static final Pointer[] EMPTY_ARRAY = new Pointer[0];
+
     /** Allocates memory and produces a pointer to it. Does not clear or initialize the memory, so it will contain
      * arbitrary values. Use {@link #calloc} to get cleared memory. */
     public static Pointer malloc(long size) {

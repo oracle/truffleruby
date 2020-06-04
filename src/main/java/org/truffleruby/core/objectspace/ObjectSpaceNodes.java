@@ -205,8 +205,7 @@ public abstract class ObjectSpaceNodes {
                 }
 
                 defineFinalizer(object, finalizer);
-                Object[] objects = new Object[]{ 0, finalizer };
-                return createArray(objects, objects.length);
+                return createArray(new Object[]{ 0, finalizer });
             } else {
                 errorProfile.enter();
                 throw new RaiseException(

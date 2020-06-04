@@ -12,13 +12,14 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.Node;
+import org.truffleruby.core.array.ArrayUtils;
 
 /** Base of all Ruby nodes */
 @TypeSystemReference(RubyTypes.class)
 @ImportStatic(RubyGuards.class)
 public abstract class RubyBaseNode extends Node {
 
-    public static final Object[] EMPTY_ARGUMENTS = new Object[0];
+    public static final Object[] EMPTY_ARGUMENTS = ArrayUtils.EMPTY_ARRAY;
 
     public static final Object nil = Nil.INSTANCE;
 

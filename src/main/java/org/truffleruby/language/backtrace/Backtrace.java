@@ -254,12 +254,14 @@ public class Backtrace {
         }
 
         this.totalUnderlyingElements = retainedCount;
-        return this.stackTrace = stackTraceList.toArray(new TruffleStackTraceElement[stackTraceList.size()]);
+        return this.stackTrace = stackTraceList.toArray(EMPTY_STACK_TRACE_ELEMENTS_ARRAY);
     }
 
     public TruffleStackTraceElement[] getStackTrace() {
         return getStackTrace(this.raiseException);
     }
+
+    private static final TruffleStackTraceElement[] EMPTY_STACK_TRACE_ELEMENTS_ARRAY = new TruffleStackTraceElement[0];
 
     /** Returns a ruby array of {@code Thread::Backtrace::Locations} with maximum length {@code length}, and omitting
      * locations as requested ({@link #getOmitted()}). If more locations are omitted than are available, return a Ruby
@@ -312,7 +314,7 @@ public class Backtrace {
         for (int i = 0; i < locationsLength; i++) {
             locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(factory, this, i);
         }
-        return ArrayHelpers.createArray(context, locations, locations.length);
+        return ArrayHelpers.createArray(context, locations);
     }
 
     // endregion

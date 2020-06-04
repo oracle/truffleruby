@@ -347,8 +347,7 @@ public abstract class ModuleNodes {
                 ancestors.add(module);
             }
 
-            Object[] objects = ancestors.toArray(new Object[ancestors.size()]);
-            return createArray(objects, objects.length);
+            return createArray(ancestors.toArray());
         }
     }
 
@@ -868,7 +867,7 @@ public abstract class ModuleNodes {
             for (String variable : allClassVariables.keySet()) {
                 store[i++] = getSymbol(variable);
             }
-            return createArray(store, size);
+            return createArray(store);
         }
     }
 
@@ -900,8 +899,7 @@ public abstract class ModuleNodes {
                 }
             }
 
-            Object[] objects = constantsArray.toArray(new Object[constantsArray.size()]);
-            return createArray(objects, objects.length);
+            return createArray(constantsArray.toArray());
         }
 
     }
@@ -1394,8 +1392,7 @@ public abstract class ModuleNodes {
                 }
             }
 
-            Object[] objects = modules.toArray(new Object[modules.size()]);
-            return createArray(objects, objects.length);
+            return createArray(modules.toArray());
         }
     }
 
@@ -1489,8 +1486,7 @@ public abstract class ModuleNodes {
                 lexicalScope = lexicalScope.getParent();
             }
 
-            Object[] objects = modules.toArray(new Object[modules.size()]);
-            return createArray(objects, objects.length);
+            return createArray(modules.toArray());
         }
     }
 
@@ -1631,7 +1627,7 @@ public abstract class ModuleNodes {
                     .getFields(module)
                     .filterMethods(getContext(), includeAncestors, MethodFilter.by(visibility))
                     .toArray();
-            return createArray(objects, objects.length);
+            return createArray(objects);
         }
 
     }
@@ -1731,7 +1727,7 @@ public abstract class ModuleNodes {
                     .getFields(module)
                     .filterMethods(getContext(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
-            return createArray(objects, objects.length);
+            return createArray(objects);
         }
     }
 
@@ -1987,13 +1983,12 @@ public abstract class ModuleNodes {
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<DynamicObject> refinementNamespaces = new HashSet<>();
-            for (DynamicObject refinementModules[] : declarationContext.getRefinements().values()) {
+            for (DynamicObject[] refinementModules : declarationContext.getRefinements().values()) {
                 for (DynamicObject refinementModule : refinementModules) {
                     refinementNamespaces.add(Layouts.MODULE.getFields(refinementModule).getRefinementNamespace());
                 }
             }
-            final Object[] refinements = refinementNamespaces.toArray(new Object[refinementNamespaces.size()]);
-            return createArray(refinements, refinements.length);
+            return createArray(refinementNamespaces.toArray());
         }
 
     }
@@ -2008,13 +2003,12 @@ public abstract class ModuleNodes {
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<DynamicObject> refinements = new HashSet<>();
-            for (DynamicObject refinementModules[] : declarationContext.getRefinements().values()) {
+            for (DynamicObject[] refinementModules : declarationContext.getRefinements().values()) {
                 for (DynamicObject refinementModule : refinementModules) {
                     refinements.add(refinementModule);
                 }
             }
-            final Object[] refinementsArray = refinements.toArray(new Object[refinements.size()]);
-            return createArray(refinementsArray, refinementsArray.length);
+            return createArray(refinements.toArray());
         }
 
     }

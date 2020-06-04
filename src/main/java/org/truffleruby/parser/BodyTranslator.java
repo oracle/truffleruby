@@ -267,6 +267,9 @@ import com.oracle.truffle.api.source.SourceSection;
 /** A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes. */
 public class BodyTranslator extends Translator {
 
+    public static final ToSNode[] EMPTY_TO_S_NODE_ARRAY = new ToSNode[0];
+    public static final RescueNode[] EMPTY_RESCUE_NODE_ARRAY = new RescueNode[0];
+
     protected final BodyTranslator parent;
     protected final TranslatorEnvironment environment;
 
@@ -649,7 +652,7 @@ public class BodyTranslator extends Translator {
     }
 
     public static final Object BAD_FRAME_SLOT = new Object();
-    private static final ParseNode[] EMPTY_ARGUMENTS = new ParseNode[]{};
+    private static final ParseNode[] EMPTY_ARGUMENTS = ParseNode.EMPTY_ARRAY;
 
     public Deque<Object> frameOnStackMarkerSlotStack = new ArrayDeque<>();
 
@@ -1110,7 +1113,7 @@ public class BodyTranslator extends Translator {
         }
 
         final InterpolatedRegexpNode i = new InterpolatedRegexpNode(
-                children.toArray(new ToSNode[children.size()]),
+                children.toArray(EMPTY_TO_S_NODE_ARRAY),
                 node.getOptions());
         i.unsafeSetSourceSection(sourceSection);
 
@@ -2831,7 +2834,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret = new TryNode(
                 new ExceptionTranslatingNode(tryPart, UnsupportedOperationBehavior.TYPE_ERROR),
-                rescueNodes.toArray(new RescueNode[rescueNodes.size()]),
+                rescueNodes.toArray(EMPTY_RESCUE_NODE_ARRAY),
                 elsePart,
                 canOmitBacktrace);
         ret.unsafeSetSourceSection(sourceSection);

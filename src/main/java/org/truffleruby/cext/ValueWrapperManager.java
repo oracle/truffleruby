@@ -60,7 +60,7 @@ public class ValueWrapperManager {
     public final ValueWrapper undefWrapper = new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
     public final ValueWrapper nilWrapper;
 
-    private Object[] blockMap = new Object[0];
+    private Object[] blockMap = ArrayUtils.EMPTY_ARRAY;
 
     private final ThreadLocal<HandleThreadData> threadBlocks;
 

@@ -61,6 +61,7 @@ import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -140,7 +141,7 @@ public abstract class ReadlineNodes {
                     readline.getTerminal().getWidth()
             };
 
-            return ArrayHelpers.createArray(getContext(), store, 2);
+            return ArrayHelpers.createArray(getContext(), store);
         }
 
     }
@@ -368,7 +369,7 @@ public abstract class ReadlineNodes {
             while (buf.hasRemaining()) {
                 l.add(String.valueOf(buf.get()));
             }
-            delimiters = l.toArray(new String[l.size()]);
+            delimiters = l.toArray(StringUtils.EMPTY_STRING_ARRAY);
         }
 
         @TruffleBoundary

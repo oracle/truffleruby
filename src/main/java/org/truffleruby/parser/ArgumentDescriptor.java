@@ -35,7 +35,7 @@ public class ArgumentDescriptor {
     public final String name;
 
     public static final ArgumentDescriptor[] ANON_REST = { new ArgumentDescriptor(ArgumentType.anonrest) };
-    public static final ArgumentDescriptor[] EMPTY_ARRAY = new ArgumentDescriptor[]{};
+    public static final ArgumentDescriptor[] EMPTY_ARRAY = new ArgumentDescriptor[0];
 
     public ArgumentDescriptor(ArgumentType type, String name) {
         if (name == null && !type.anonymous) {

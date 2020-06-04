@@ -23,9 +23,9 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 
 public class Options {
 
-    /** --load-paths=new String[]{} */
+    /** --load-paths=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] LOAD_PATHS;
-    /** --required-libraries=new String[]{} */
+    /** --required-libraries=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] REQUIRED_LIBRARIES;
     /** --working-directory="" */
     public final String WORKING_DIRECTORY;
@@ -147,9 +147,9 @@ public class Options {
     public final boolean IGNORE_LINES_BEFORE_RUBY_SHEBANG;
     /** --syntax-check=false */
     public final boolean SYNTAX_CHECK;
-    /** --argv-global-values=new String[]{} */
+    /** --argv-global-values=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] ARGV_GLOBAL_VALUES;
-    /** --argv-global-flags=new String[]{} */
+    /** --argv-global-flags=StringArrayOptionType.EMPTY_STRING_ARRAY */
     public final String[] ARGV_GLOBAL_FLAGS;
     /** --building-core-cexts=false */
     public final boolean BUILDING_CORE_CEXTS;

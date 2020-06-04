@@ -33,7 +33,7 @@ public abstract class SingleValueCastNode extends RubyContextNode {
 
     @Specialization(guards = { "!noArguments(args)", "!singleArgument(args)" })
     protected DynamicObject castMany(Object[] args) {
-        return createArray(args, args.length);
+        return createArray(args);
     }
 
 }

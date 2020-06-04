@@ -402,8 +402,7 @@ public abstract class EncodingNodes {
 
         @Specialization
         protected DynamicObject list() {
-            final Object[] encodingsList = getContext().getEncodingManager().getEncodingList();
-            return createArray(encodingsList, encodingsList.length);
+            return createArray(getContext().getEncodingManager().getEncodingList());
         }
     }
 
@@ -692,7 +691,7 @@ public abstract class EncodingNodes {
             }
 
             final int index = Layouts.ENCODING.getEncoding(newEncoding).getIndex();
-            return createArray(new Object[]{ newEncoding, index }, 2);
+            return createArray(new Object[]{ newEncoding, index });
         }
 
     }

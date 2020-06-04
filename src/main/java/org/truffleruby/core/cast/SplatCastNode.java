@@ -11,7 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.array.ArrayDupNode;
 import org.truffleruby.core.array.ArrayDupNodeGen;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -61,10 +61,10 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
     protected Object splatNil(VirtualFrame frame, Object nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
-                return createArray(ArrayStoreLibrary.INITIAL_STORE, 0);
+                return ArrayHelpers.createEmptyArray(getContext());
 
             case ARRAY_WITH_NIL:
-                return createArray(new Object[]{ nil }, 1);
+                return createArray(new Object[]{ nil });
 
             case CONVERT:
                 return callToA(frame, nil);
@@ -100,7 +100,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
                 coreLibrary().arrayClass,
                 conversionMethod);
         if (array == nil) {
-            return createArray(new Object[]{ object }, 1);
+            return createArray(new Object[]{ object });
         } else {
             assert RubyGuards.isRubyArray(array);
             if (copy) {

@@ -25,6 +25,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.numeric.BigIntegerOps;
@@ -215,7 +216,7 @@ public abstract class TruffleDebugNodes {
                 array.add(ast(child));
             }
 
-            return createArray(array.toArray(), array.size());
+            return createArray(array.toArray());
         }
 
     }
@@ -563,7 +564,7 @@ public abstract class TruffleDebugNodes {
             @TruffleBoundary
             protected Object getMembers(boolean includeInternal,
                     @CachedContext(RubyLanguage.class) RubyContext context) {
-                return context.getEnv().asGuestValue(map.keySet().toArray(new String[map.size()]));
+                return context.getEnv().asGuestValue(map.keySet().toArray());
             }
 
             @TruffleBoundary
@@ -836,7 +837,7 @@ public abstract class TruffleDebugNodes {
             Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value, Layouts.ASSOCIATED_IDENTIFIER, null);
 
             if (associated == null) {
-                associated = new Pointer[]{};
+                associated = Pointer.EMPTY_ARRAY;
             }
 
             final long[] associatedValues = new long[associated.length];
@@ -845,8 +846,7 @@ public abstract class TruffleDebugNodes {
                 associatedValues[n] = associated[n].getAddress();
             }
 
-            return Layouts.ARRAY
-                    .createArray(getContext().getCoreLibrary().arrayFactory, associatedValues, associated.length);
+            return ArrayHelpers.createArray(getContext(), associatedValues);
         }
     }
 

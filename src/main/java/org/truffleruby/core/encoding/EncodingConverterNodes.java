@@ -125,7 +125,7 @@ public abstract class EncodingConverterNodes {
             ret[retIndex] = getSymbol(
                     RopeOperations.decodeAscii(destinationName, 0, destinationName.length).toUpperCase());
 
-            return createArray(ret, ret.length);
+            return createArray(ret);
         }
 
         /** We and JCodings process Encoding::Converter options flags differently. We split the processing between
@@ -177,7 +177,7 @@ public abstract class EncodingConverterNodes {
                 destinations[i++] = getSymbol(transcoder);
             }
 
-            return createArray(destinations, destinations.length);
+            return createArray(destinations);
         }
 
     }
@@ -398,7 +398,7 @@ public abstract class EncodingConverterNodes {
                         lastError.getReadAgainLength()), CR_UNKNOWN);
             }
 
-            return createArray(store, size);
+            return createArray(store);
         }
 
         private RubySymbol eConvResultToSymbol(EConvResult result) {
@@ -459,7 +459,7 @@ public abstract class EncodingConverterNodes {
                         CR_UNKNOWN);
             }
 
-            return createArray(ret, ret.length);
+            return createArray(ret);
         }
 
     }

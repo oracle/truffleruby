@@ -13,12 +13,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
 public class Arity {
 
-    public static final String[] NO_KEYWORDS = new String[]{};
+    public static final String[] NO_KEYWORDS = StringUtils.EMPTY_STRING_ARRAY;
     public static final Arity NO_ARGUMENTS = new Arity(0, 0, false);
     public static final Arity ONE_REQUIRED = new Arity(1, 0, false);
 

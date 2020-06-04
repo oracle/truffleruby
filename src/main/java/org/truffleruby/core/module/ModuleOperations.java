@@ -37,6 +37,8 @@ import com.oracle.truffle.api.utilities.NeverValidAssumption;
 
 public abstract class ModuleOperations {
 
+    public static final Assumption[] EMPTY_ASSUMPTION_ARRAY = new Assumption[0];
+
     @TruffleBoundary
     public static boolean includesModule(DynamicObject module, DynamicObject other) {
         assert RubyGuards.isRubyModule(module);
@@ -564,7 +566,7 @@ public abstract class ModuleOperations {
     }
 
     private static Assumption[] toArray(ArrayList<Assumption> assumptions) {
-        return assumptions.toArray(new Assumption[assumptions.size()]);
+        return assumptions.toArray(EMPTY_ASSUMPTION_ARRAY);
     }
 
     @TruffleBoundary

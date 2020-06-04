@@ -39,7 +39,7 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  * information that is not directly evaluated. In particular, f_arg production rule uses this to capture arg information
  * for the editor projects who want position info saved. */
 public abstract class ListParseNode extends ParseNode {
-    private static final ParseNode[] EMPTY = new ParseNode[0];
+    private static final ParseNode[] EMPTY = ParseNode.EMPTY_ARRAY;
     private static final int INITIAL_SIZE = 4;
     private ParseNode[] list;
     private int size = 0;

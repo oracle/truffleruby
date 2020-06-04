@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -73,7 +74,7 @@ public class GlobalVariables {
 
     @TruffleBoundary
     public String[] keys() {
-        return variables.keySet().toArray(new String[0]);
+        return variables.keySet().toArray(StringUtils.EMPTY_STRING_ARRAY);
     }
 
     @TruffleBoundary

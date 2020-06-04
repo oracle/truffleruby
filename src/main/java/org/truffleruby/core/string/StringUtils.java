@@ -16,6 +16,8 @@ import org.truffleruby.core.rope.RopeOperations;
 
 public abstract class StringUtils {
 
+    public static final String[] EMPTY_STRING_ARRAY = new String[0];
+
     @TruffleBoundary
     public static String create(byte[] bytes) {
         return new String(bytes);
