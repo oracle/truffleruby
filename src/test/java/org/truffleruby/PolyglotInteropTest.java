@@ -199,6 +199,15 @@ public class PolyglotInteropTest {
             Value bindings = context.getBindings("ruby");
             assertTrue(bindings.getMember("$DEBUG").isBoolean());
 
+            assertFalse(bindings.getMember("$VERBOSE").asBoolean());
+            bindings.putMember("$VERBOSE", true);
+            assertTrue(bindings.getMember("$VERBOSE").asBoolean());
+            bindings.putMember("$VERBOSE", false);
+
+            bindings.putMember("$polyglot_interop_test", 42);
+            assertEquals(42, bindings.getMember("$polyglot_interop_test").asInt());
+            assertEquals(42, context.eval("ruby", "$polyglot_interop_test").asInt());
+
             context.eval("ruby", "def my_test_method(); 42; end");
             Value myMethod = bindings.getMember("my_test_method");
             assertTrue(myMethod.canExecute());

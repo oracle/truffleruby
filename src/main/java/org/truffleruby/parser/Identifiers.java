@@ -36,38 +36,42 @@ public final class Identifiers {
     @TruffleBoundary
     public static boolean isValidConstantName(String id) {
         char c;
-        int len;
-        if ((len = id.length()) > 0 && (c = id.charAt(0)) <= 'Z' && c >= 'A') {
-            return isNameString(id, 1, len);
+        if (id.length() > 0 && (c = id.charAt(0)) <= 'Z' && c >= 'A') {
+            return isNameString(id, 1);
         }
         return false;
     }
 
     @TruffleBoundary
     public static boolean isValidClassVariableName(String id) {
-        int len;
-        if ((len = id.length()) > 2 && '@' == id.charAt(0) && '@' == id.charAt(1)) {
-            if (isInitialCharacter(id.charAt(2))) {
-                return isNameString(id, 3, len);
-            }
-        }
-        return false;
+        return id.startsWith("@@") && isValidIdentifier(id, 2);
     }
 
     @TruffleBoundary
-    public static boolean isInitialCharacter(int c) {
-        return Character.isAlphabetic(c) || c == '_';
+    public static boolean isValidGlobalVariableName(String id) {
+        return id.startsWith("$") && isValidIdentifier(id, 1);
     }
 
-    // check like Rubinius does for compatibility with their Struct Ruby implementation.
+    /** check like Rubinius does for compatibility with their Struct Ruby implementation. */
     @TruffleBoundary
     public static boolean isValidInstanceVariableName(String id) {
         return id.startsWith("@") && id.length() > 1 && Identifiers.isInitialCharacter(id.charAt(1));
     }
 
     @TruffleBoundary
-    private static boolean isNameString(String id, int start, int limit) {
-        for (int i = start; i < limit; i++) {
+    private static boolean isValidIdentifier(String id, int start) {
+        return id.length() > start && isInitialCharacter(id.charAt(start)) && isNameString(id, start + 1);
+    }
+
+    @TruffleBoundary
+    private static boolean isInitialCharacter(int c) {
+        return Character.isAlphabetic(c) || c == '_';
+    }
+
+    @TruffleBoundary
+    private static boolean isNameString(String id, int start) {
+        final int length = id.length();
+        for (int i = start; i < length; i++) {
             char c = id.charAt(i);
             if (!(Character.isLetterOrDigit(c) || c == '_')) {
                 return false;

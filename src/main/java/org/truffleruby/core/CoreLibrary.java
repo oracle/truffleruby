@@ -257,6 +257,8 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableReader stdinReader;
     @CompilationFinal private GlobalVariableReader stderrReader;
 
+    @CompilationFinal public DynamicObject topLevelBinding;
+
     private final ConcurrentMap<String, Boolean> patchFiles;
 
     public final String coreLoadPath;
@@ -958,6 +960,11 @@ public class CoreLibrary {
         DynamicObject dollarZeroValue = StringOperations
                 .createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
+
+        topLevelBinding = (DynamicObject) Layouts.MODULE
+                .getFields(objectClass)
+                .getConstant("TOPLEVEL_BINDING")
+                .getValue();
     }
 
     @TruffleBoundary

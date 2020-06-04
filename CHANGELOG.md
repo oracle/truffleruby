@@ -3,6 +3,7 @@
 New features:
 
 * Use `InteropLibrary#toDisplayString()` to better display objects from other languages.
+* Implement writing to the top scope for global variables (#2024).
 
 Bug fixes:
 
