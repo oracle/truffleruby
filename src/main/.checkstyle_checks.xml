@@ -197,7 +197,6 @@
   </module>
   <module name="RegexpMultiline">
     <property name="format" value="CompilerDirectives\.transferToInterpreterAndInvalidate\(\);\s+\w+Node\s+=\s+(?!insert\()"/>
-    <property name="fileExtensions" value="java"/>
     <property name="message" value="Lazily initialized child nodes must be explicitly inserted into the AST."/>
   </module>
   <!--<module name="RegexpHeader">-->
@@ -273,6 +272,5 @@
   </module>
   <!--<module name="RegexpSingleline">-->
     <!--<property name="format" value="System\.(out|err)\.print"/>-->
-    <!--<property name="fileExtensions" value="java"/>-->
   <!--</module>-->
 </module>
