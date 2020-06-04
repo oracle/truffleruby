@@ -278,17 +278,18 @@ public class BacktraceFormatter {
             }
 
             final RootNode rootNode = callNode.getRootNode();
+            if (rootNode != null) {
+                String identifier = rootNode.getName();
 
-            String identifier = rootNode.getName();
+                if (identifier != null && !identifier.isEmpty()) {
+                    if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
+                        identifier = identifier.substring(1);
+                    }
 
-            if (identifier != null && !identifier.isEmpty()) {
-                if (rootNode.getLanguageInfo().getId().equals("llvm") && identifier.startsWith("@")) {
-                    identifier = identifier.substring(1);
+                    builder.append(":in `");
+                    builder.append(identifier);
+                    builder.append("'");
                 }
-
-                builder.append(":in `");
-                builder.append(identifier);
-                builder.append("'");
             }
         } else if (callNode != null) {
             builder.append(getRootOrTopmostNode(callNode).getClass().getSimpleName());
