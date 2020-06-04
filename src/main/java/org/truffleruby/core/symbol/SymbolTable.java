@@ -38,7 +38,7 @@ public class SymbolTable {
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
     private final WeakValueCache<Rope, RubySymbol> symbolMap = new WeakValueCache<>();
 
-    private final RubySymbol[] singleButeSymbols = new RubySymbol[256];
+    private final RubySymbol[] singleByteSymbols = new RubySymbol[256];
 
     public SymbolTable(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
@@ -61,11 +61,11 @@ public class SymbolTable {
     }
 
     public RubySymbol getSingleByteSymbol(char index, BranchProfile nullProfile) {
-        RubySymbol symbol = singleButeSymbols[index];
+        RubySymbol symbol = singleByteSymbols[index];
         if (symbol == null) {
             nullProfile.enter();
             symbol = getSymbol(String.valueOf(index));
-            singleButeSymbols[index] = symbol;
+            singleByteSymbols[index] = symbol;
         }
         return symbol;
     }
