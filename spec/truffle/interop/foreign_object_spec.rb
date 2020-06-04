@@ -9,22 +9,17 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Foreign objects" do
-
-  it "implement #to_s with #inspect" do
-    foreign = Truffle::Debug.foreign_object
-    foreign.to_s.should == foreign.inspect
-  end
-
   it "can be printed with #puts" do
+    foreign = Truffle::Debug.foreign_object
     -> {
-      puts Truffle::Debug.foreign_object
-    }.should output_to_fd(/#<Foreign:0x\h+.+>\n/)
+      puts foreign
+    }.should output_to_fd("#{foreign}\n")
   end
 
   it "can be printed with #p" do
+    foreign = Truffle::Debug.foreign_object
     -> {
-      p Truffle::Debug.foreign_object
-    }.should output_to_fd(/#<Foreign:0x\h+.+>\n/)
+      p foreign
+    }.should output_to_fd("#{foreign.inspect}\n")
   end
-
 end

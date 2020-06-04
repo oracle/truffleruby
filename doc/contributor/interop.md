@@ -24,7 +24,6 @@ details.
 * [Java interop](#java-interop)
 * [Additional methods](#additional-methods)
 * [Notes on method resolution](#notes-on-method-resolution)
-* [Notes on inspect strings](#notes-on-inspect-strings)
 * [Notes on coercion](#notes-on-coercion)
 * [Notes on source encoding](#notes-on-source-encoding)
 
@@ -98,22 +97,12 @@ They have priority over methods that the foreign object actually provides.
 a letter) will send `IS_BOXED` on `object` and based on that will possibly
 `UNBOX` it, convert to Ruby, and then call the method on the unboxed version.
 
-`object.to_a` and `object.to_ary` calls `Truffle::Interop.to_array(object)`.
-
 `object.equal?(other)` returns whether `object` is the same as `other` using
 reference equality, like `BasicObject#equal?`. For Java interop objects it
 looks at the underlying Java object.
 
 `object.object_id` or `object.__id__` returns identity hash code. Note: There
 might be collisions. Implementation may change.
-
-`object.inspect` produces a Ruby-style inspect string - see
-[notes on inspect strings](#notes-on-inspect-strings) below.
-
-`object.to_s` calls `object.inspect`.
-
-`object.to_str` will try to `UNBOX` the object and return it if it's a `String`,
-or will raise `NoMethodError` if it isn't.
 
 `java_object.is_a?(java_class)` does `java_object instanceof java_class`, using
 the host object instance, rather than any runtime interop wrapper.
@@ -260,22 +249,6 @@ use it to get the method for `#to_a` on a foreign object, as it is a
 special-form, not a method.
 
 Interop ignores visibility entirely.
-
-## Notes on inspect strings
-
-TruffleRuby has the following rules for how to generate an `inspect` string
-for a foreign object (where `id` is the identity hash code):
-
-* If an object is a Java `null`, format as `#<Java null>`
-* Otherwise, if an object is a Java array, list, or something else with `HAS_SIZE`, format as `#<Java:0xid [a, b, c...]>`
-* Otherwise, if an object is a Java map, format as `#<Java:0xid {"key"=>value, "key"=>value...}>`
-* Otherwise, if an object is a Java class, format as `#<Java class MyJavaClassName>`
-* Otherwise, if an object is a Java object, format as `#<Java:0xid object MyJavaClassName>`
-* Otherwise, if an object is `null` (`IS_NULL`), format as `#<Foreign null>`
-* Otherwise, if an object is a pointer (`IS_POINTER)`), format as `#<Foreign pointer 0xaddress>`
-* Otherwise, if an object is an array (`HAS_SIZE`), format as `#<Foreign:0xid [a, b, c...]>`
-* Otherwise, if an object is a executable (`IS_EXECUTABLE`), format as `#<Foreign:0xid proc>`
-* Otherwise, format as `#<Foreign:0xid "member"=value, "member"=value...>`
 
 ## Notes on coercion
 

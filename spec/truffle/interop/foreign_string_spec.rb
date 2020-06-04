@@ -9,7 +9,6 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Foreign strings" do
-
   it "are boxed" do
     Truffle::Interop.boxed?(Truffle::Debug.foreign_string('test')).should be_true
   end
@@ -49,5 +48,4 @@ describe "Foreign strings" do
       p Truffle::Debug.foreign_string('a')
     }.should output_to_fd("\"a\"\n")
   end
-
 end

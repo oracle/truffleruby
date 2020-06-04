@@ -27,7 +27,14 @@ public class LoggingForeignObject implements TruffleObject {
 
     private final static Message IS_STRING = Message.resolve(InteropLibrary.class, "isString");
     private final static Message AS_STRING = Message.resolve(InteropLibrary.class, "asString");
+    private final static Message TO_DISPLAY_STRING = Message.resolve(InteropLibrary.class, "toDisplayString");
+
+    private final String asString;
     private final StringBuilder log = new StringBuilder();
+
+    public LoggingForeignObject(String asString) {
+        this.asString = asString;
+    }
 
     public synchronized void log(String message, Object... args) {
         log.append(String.format(message, args));
@@ -48,11 +55,16 @@ public class LoggingForeignObject implements TruffleObject {
 
         log(message.getSimpleName() + "(" + String.join(", ", a) + ")", flatArgs);
 
-        if (message == IS_STRING) {
-            return true;
+        if (asString != null) {
+            if (message == IS_STRING) {
+                return true;
+            }
+            if (message == AS_STRING) {
+                return asString;
+            }
         }
 
-        if (message == AS_STRING) {
+        if (message == TO_DISPLAY_STRING) {
             return getLog();
         }
 

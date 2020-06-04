@@ -4,6 +4,9 @@ New features:
 
 * Use `InteropLibrary#toDisplayString()` to better display objects from other languages.
 * Implement writing to the top scope for global variables (#2024).
+* `foreign_object.to_s` now uses `InteropLibrary#toDisplayString()` (and still `asString()` if `isString()`).
+* `foreign_object.inspect` has been improved to be more useful (include the language and meta object).
+* `foreign_object.class` now calls `getMetaObject()` (except for Java classes, same as before).
 
 Bug fixes:
 

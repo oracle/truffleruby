@@ -9,10 +9,11 @@
 require_relative '../../ruby/spec_helper'
 
 describe "Foreign arrays" do
-
-  it "implement #to_s with #inspect" do
+  it "can be printed with #print" do
     foreign = Truffle::Interop.to_java_array([1, 2, 3])
-    foreign.to_s.should == foreign.inspect
+    -> {
+      print foreign
+    }.should output_to_fd(foreign.to_s)
   end
 
   it "can be printed with #puts" do
@@ -22,17 +23,19 @@ describe "Foreign arrays" do
   end
 
   it "can be printed with #p" do
+    foreign = Truffle::Interop.to_java_array([1, 2, 3])
     -> {
-      p Truffle::Interop.to_java_array([1, 2, 3])
-    }.should output_to_fd(/#<Java:0x\h+ \[1, 2, 3\]>\n/)
+      p foreign
+    }.should output_to_fd("#{foreign.inspect}\n")
   end
-
 end
 
 describe "Foreign arrays that are also pointers" do
-  it "implement #to_s with #inspect" do
+  it "can be printed with #print" do
     foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
-    foreign.to_s.should == foreign.inspect
+    -> {
+      print foreign
+    }.should output_to_fd(foreign.to_s)
   end
 
   it "can be printed with #puts" do
@@ -42,14 +45,9 @@ describe "Foreign arrays that are also pointers" do
   end
 
   it "can be printed with #p" do
+    foreign = Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
     -> {
-      p Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
-    }.should output_to_fd(/#<Foreign pointer 0x\h+ \[1, 2, 3\]>\n/)
-  end
-
-  it "can be printed with #print" do
-    -> {
-      print Truffle::Debug.foreign_pointer_array_from_java(Truffle::Interop.to_java_array([1, 2, 3]))
-    }.should output_to_fd(/#<Foreign pointer 0x\h+ \[1, 2, 3\]>/)
+      p foreign
+    }.should output_to_fd("#{foreign.inspect}\n")
   end
 end
