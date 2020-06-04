@@ -9,10 +9,11 @@
  */
 package org.truffleruby.interop.messages;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.IsFrozenNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -97,20 +98,20 @@ public class ArrayMessages extends RubyObjectMessages {
 
     @ExportMessage
     protected static boolean isArrayElementModifiable(DynamicObject array, long index,
-            @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
-        return !isFrozenNode.execute(array) && inBounds(array, index);
+            @CachedLibrary("array") RubyLibrary rubyLibrary) {
+        return !rubyLibrary.isFrozen(array) && inBounds(array, index);
     }
 
     @ExportMessage
     protected static boolean isArrayElementRemovable(DynamicObject array, long index,
-            @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
-        return !isFrozenNode.execute(array) && inBounds(array, index);
+            @CachedLibrary("array") RubyLibrary rubyLibrary) {
+        return !rubyLibrary.isFrozen(array) && inBounds(array, index);
     }
 
     @ExportMessage
     protected static boolean isArrayElementInsertable(DynamicObject array, long index,
-            @Cached @Shared("isFrozenNode") IsFrozenNode isFrozenNode) {
-        return !isFrozenNode.execute(array) && RubyGuards.fitsInInteger(index) && index >= Layouts.ARRAY.getSize(array);
+            @CachedLibrary("array") RubyLibrary rubyLibrary) {
+        return !rubyLibrary.isFrozen(array) && RubyGuards.fitsInInteger(index) && index >= Layouts.ARRAY.getSize(array);
     }
 
     private static boolean inBounds(DynamicObject array, long index) {

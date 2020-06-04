@@ -10,33 +10,44 @@
 package org.truffleruby.core.hash;
 
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.IsFrozenNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
-    @Child private IsFrozenNode isFrozenNode;
     @Child private CallDispatchHeadNode dupNode;
-    @Child private CallDispatchHeadNode freezeNode;
 
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
-    @Specialization(guards = { "isRubyString(string)", "isFrozen(string)" })
-    protected Object alreadyFrozen(DynamicObject string, boolean compareByIdentity) {
+    @Specialization(
+            guards = { "isRubyString(string)", "rubyLibrary.isFrozen(string)" },
+            limit = "getRubyLibraryCacheLimit()")
+    protected Object alreadyFrozen(DynamicObject string, boolean compareByIdentity,
+            @CachedLibrary("string") RubyLibrary rubyLibrary) {
         return string;
     }
 
-    @Specialization(guards = { "isRubyString(string)", "!isFrozen(string)", "!compareByIdentity" })
-    protected Object dupAndFreeze(DynamicObject string, boolean compareByIdentity) {
-        return freeze(dup(string));
+    @Specialization(
+            guards = { "isRubyString(string)", "!rubyLibrary.isFrozen(string)", "!compareByIdentity" },
+            limit = "getRubyLibraryCacheLimit()")
+    protected Object dupAndFreeze(DynamicObject string, boolean compareByIdentity,
+            @CachedLibrary("string") RubyLibrary rubyLibrary,
+            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryObject) {
+        final Object object = dup(string);
+        rubyLibraryObject.freeze(object);
+        return object;
     }
 
-    @Specialization(guards = { "isRubyString(string)", "!isFrozen(string)", "compareByIdentity" })
-    protected Object compareByIdentity(DynamicObject string, boolean compareByIdentity) {
+    @Specialization(
+            guards = { "isRubyString(string)", "!rubyLibrary.isFrozen(string)", "compareByIdentity" },
+            limit = "getRubyLibraryCacheLimit()")
+    protected Object compareByIdentity(DynamicObject string, boolean compareByIdentity,
+            @CachedLibrary("string") RubyLibrary rubyLibrary) {
         return string;
     }
 
@@ -45,13 +56,6 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
         return value;
     }
 
-    protected boolean isFrozen(Object value) {
-        if (isFrozenNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            isFrozenNode = insert(IsFrozenNode.create());
-        }
-        return isFrozenNode.execute(value);
-    }
 
     private Object dup(Object value) {
         if (dupNode == null) {
@@ -61,12 +65,5 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
         return dupNode.call(value, "dup");
     }
 
-    private Object freeze(Object value) {
-        if (freezeNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            freezeNode = insert(CallDispatchHeadNode.createPrivate());
-        }
-        return freezeNode.call(value, "freeze");
-    }
 
 }

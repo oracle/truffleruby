@@ -24,8 +24,10 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.library.RubyLibrary;
 
 @ExportLibrary(InteropLibrary.class)
+@ExportLibrary(RubyLibrary.class)
 public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
 
     private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
@@ -129,6 +131,30 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
         protected static int getLimit() {
             return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
         }
+    }
+
+    // RubyLibrary messages
+
+    @ExportMessage
+    protected void freeze() {
+    }
+
+    @ExportMessage
+    protected boolean isFrozen() {
+        return true;
+    }
+
+    @ExportMessage
+    protected boolean isTainted() {
+        return false;
+    }
+
+    @ExportMessage
+    protected void taint() {
+    }
+
+    @ExportMessage
+    protected void untaint() {
     }
 
 }

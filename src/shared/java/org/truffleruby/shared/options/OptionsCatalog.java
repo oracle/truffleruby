@@ -115,6 +115,7 @@ public class OptionsCatalog {
     public static final OptionKey<Integer> INTEROP_NEW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> TIME_FORMAT_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> POW_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
+    public static final OptionKey<Integer> RUBY_LIBRARY_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> THREAD_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> IDENTITY_CACHE_KEY = new OptionKey<>(1);
     public static final OptionKey<Integer> CLASS_CACHE_KEY = new OptionKey<>(3);
@@ -814,6 +815,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor RUBY_LIBRARY_CACHE = OptionDescriptor
+            .newBuilder(RUBY_LIBRARY_CACHE_KEY, "ruby.ruby-library-cache")
+            .help("Ruby Library cache size")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor THREAD_CACHE = OptionDescriptor
             .newBuilder(THREAD_CACHE_KEY, "ruby.thread-cache")
             .help("Cache size of operations that depend on a particular thread")
@@ -1237,6 +1245,8 @@ public class OptionsCatalog {
                 return TIME_FORMAT_CACHE;
             case "ruby.integer-pow-cache":
                 return POW_CACHE;
+            case "ruby.ruby-library-cache":
+                return RUBY_LIBRARY_CACHE;
             case "ruby.thread-cache":
                 return THREAD_CACHE;
             case "ruby.identity-cache":
@@ -1405,6 +1415,7 @@ public class OptionsCatalog {
             INTEROP_NEW_CACHE,
             TIME_FORMAT_CACHE,
             POW_CACHE,
+            RUBY_LIBRARY_CACHE,
             THREAD_CACHE,
             IDENTITY_CACHE,
             CLASS_CACHE,

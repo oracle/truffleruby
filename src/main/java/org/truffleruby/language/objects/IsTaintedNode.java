@@ -9,15 +9,13 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.library.RubyLibrary;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.library.CachedLibrary;
 
 @GenerateUncached
 public abstract class IsTaintedNode extends RubyBaseNode {
@@ -28,44 +26,19 @@ public abstract class IsTaintedNode extends RubyBaseNode {
 
     public abstract boolean executeIsTainted(Object object);
 
-    @Specialization
-    protected boolean isTainted(boolean object) {
-        return false;
-    }
-
-    @Specialization
-    protected boolean isTainted(int object) {
-        return false;
-    }
-
-    @Specialization
-    protected boolean isTainted(long object) {
-        return false;
-    }
-
-    @Specialization
-    protected boolean isTainted(double object) {
-        return false;
-    }
-
-    @Specialization
-    protected boolean isTainted(Nil object) {
-        return false;
-    }
-
-    @Specialization
-    protected boolean isTaintedSymbol(RubySymbol object) {
-        return false;
-    }
-
-    @Specialization
-    protected boolean isTainted(DynamicObject object,
-            @Cached ReadObjectFieldNode readTaintedNode) {
-        return (boolean) readTaintedNode.execute(object, Layouts.TAINTED_IDENTIFIER, false);
+    @Specialization(limit = "getRubyLibraryCacheLimit()", guards = "!isForeignObject(object)")
+    protected boolean freeze(Object object,
+            @CachedLibrary("object") RubyLibrary rubyLibrary) {
+        return rubyLibrary.isTainted(object);
     }
 
     @Specialization(guards = "isForeignObject(object)")
     protected boolean isTainted(Object object) {
         return false;
     }
+
+    protected int getRubyLibraryCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().RUBY_LIBRARY_CACHE;
+    }
+
 }

@@ -9,20 +9,13 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.library.CachedLibrary;
 
 @GenerateUncached
 public abstract class TaintNode extends RubyBaseNode {
@@ -33,50 +26,15 @@ public abstract class TaintNode extends RubyBaseNode {
 
     public abstract Object executeTaint(Object object);
 
-    @Specialization
-    protected Object taint(boolean object) {
-        return object;
+    @Specialization(limit = "getRubyLibraryCacheLimit()")
+    protected Object taint(Object self,
+            @CachedLibrary("self") RubyLibrary rubyLibrary) {
+        rubyLibrary.taint(self);
+        return self;
     }
 
-    @Specialization
-    protected Object taint(int object) {
-        return object;
+    protected int getRubyLibraryCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().RUBY_LIBRARY_CACHE;
     }
 
-    @Specialization
-    protected Object taint(long object) {
-        return object;
-    }
-
-    @Specialization
-    protected Object taint(double object) {
-        return object;
-    }
-
-    @Specialization
-    protected Object taintNil(Nil object) {
-        return object;
-    }
-
-    @Specialization
-    protected Object taintSymbol(RubySymbol object) {
-        return object;
-    }
-
-    @Specialization
-    protected Object taint(DynamicObject object,
-            @Cached IsFrozenNode isFrozenNode,
-            @Cached IsTaintedNode isTaintedNode,
-            @Cached WriteObjectFieldNode writeTaintNode,
-            @Cached BranchProfile errorProfile,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-
-        if (!isTaintedNode.executeIsTainted(object) && isFrozenNode.execute(object)) {
-            errorProfile.enter();
-            throw new RaiseException(context, context.getCoreExceptions().frozenError(object, this));
-        }
-
-        writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, true);
-        return object;
-    }
 }

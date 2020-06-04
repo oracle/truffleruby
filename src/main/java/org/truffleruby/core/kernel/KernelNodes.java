@@ -63,7 +63,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -75,6 +74,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
@@ -98,9 +98,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
-import org.truffleruby.language.objects.FreezeNode;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -137,6 +135,7 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -513,8 +512,6 @@ public abstract class KernelNodes {
 
         @Child private CopyNode copyNode = CopyNode.create();
         @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
-        @Child private IsFrozenNode isFrozenNode = IsFrozenNode.create();
-        @Child private FreezeNode freezeNode;
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
@@ -523,12 +520,14 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
-        @Specialization(guards = "!isRubyBignum(self)")
+        @Specialization(guards = "!isRubyBignum(self)", limit = "getRubyLibraryCacheLimit()")
         protected DynamicObject clone(DynamicObject self, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
-                @Cached ConditionProfile isRubyClass) {
+                @Cached ConditionProfile isRubyClass,
+                @CachedLibrary("self") RubyLibrary rubyLibrary,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
             final DynamicObject newObject = copyNode.executeCopy(self);
 
             // Copy the singleton class if any.
@@ -542,13 +541,8 @@ public abstract class KernelNodes {
 
             propagateTaintNode.executePropagate(self, newObject);
 
-            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(isFrozenNode.execute(self))) {
-                if (freezeNode == null) {
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    freezeNode = insert(FreezeNode.create());
-                }
-
-                freezeNode.executeFreeze(newObject);
+            if (freezeProfile.profile(freeze) && isFrozenProfile.profile(rubyLibrary.isFrozen(self))) {
+                rubyLibraryFreeze.freeze(newObject);
             }
 
             if (isRubyClass.profile(RubyGuards.isRubyClass(self))) {
@@ -852,11 +846,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "freeze")
     public abstract static class KernelFreezeNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private FreezeNode freezeNode = FreezeNode.create();
-
-        @Specialization
-        protected Object freeze(Object self) {
-            return freezeNode.executeFreeze(self);
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        protected Object freeze(Object self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary) {
+            rubyLibrary.freeze(self);
+            return self;
         }
 
     }
@@ -864,16 +858,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = "frozen?")
     public abstract static class KernelFrozenNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsFrozenNode isFrozenNode;
-
-        @Specialization
-        protected boolean isFrozen(Object self) {
-            if (isFrozenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isFrozenNode = insert(IsFrozenNode.create());
-            }
-
-            return isFrozenNode.execute(self);
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        protected boolean isFrozen(Object self,
+                @CachedLibrary("self") RubyLibrary rubyLibrary) {
+            return rubyLibrary.isFrozen(self);
         }
 
     }
@@ -1911,15 +1899,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "taint")
     public abstract static class KernelTaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TaintNode taintNode;
-
-        @Specialization
-        protected Object taint(Object object) {
-            if (taintNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                taintNode = insert(TaintNode.create());
-            }
-            return taintNode.executeTaint(object);
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        protected Object taint(Object object,
+                @CachedLibrary("object") RubyLibrary rubyLibrary) {
+            rubyLibrary.taint(object);
+            return object;
         }
 
     }
@@ -1927,15 +1911,10 @@ public abstract class KernelNodes {
     @CoreMethod(names = "tainted?")
     public abstract static class KernelIsTaintedNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private IsTaintedNode isTaintedNode;
-
-        @Specialization
-        protected boolean isTainted(Object object) {
-            if (isTaintedNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isTaintedNode = insert(IsTaintedNode.create());
-            }
-            return isTaintedNode.executeIsTainted(object);
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        protected boolean isTainted(Object object,
+                @CachedLibrary("object") RubyLibrary rubyLibrary) {
+            return rubyLibrary.isTainted(object);
         }
 
     }
@@ -2003,52 +1982,11 @@ public abstract class KernelNodes {
     @CoreMethod(names = "untaint")
     public abstract static class UntaintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
-        @Child private IsTaintedNode isTaintedNode = IsTaintedNode.create();
-        @Child private WriteObjectFieldNode writeTaintNode = WriteObjectFieldNode.create();
-
-        @Specialization
-        protected int untaint(int num) {
-            return num;
-        }
-
-        @Specialization
-        protected long untaint(long num) {
-            return num;
-        }
-
-        @Specialization
-        protected double untaint(double num) {
-            return num;
-        }
-
-        @Specialization
-        protected boolean untaint(boolean bool) {
-            return bool;
-        }
-
-        @Specialization
-        protected Object untaint(Nil nil) {
-            return nil;
-        }
-
-        @Specialization
-        protected Object taint(DynamicObject object) {
-            if (!isTaintedNode.executeIsTainted(object)) {
-                return object;
-            }
-
-            checkFrozen(object);
-            writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, false);
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        protected Object untaint(Object object,
+                @CachedLibrary("object") RubyLibrary rubyLibrary) {
+            rubyLibrary.untaint(object);
             return object;
-        }
-
-        protected void checkFrozen(Object object) {
-            if (raiseIfFrozenNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                raiseIfFrozenNode = insert(TypeNodes.CheckFrozenNode.create());
-            }
-            raiseIfFrozenNode.execute(object);
         }
 
     }

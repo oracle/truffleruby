@@ -34,10 +34,10 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsFrozenNode;
 import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
@@ -379,12 +379,12 @@ public abstract class TypeNodes {
 
         public abstract void execute(Object object);
 
-        @Specialization
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected Object check(Object value,
-                @Cached IsFrozenNode isFrozenNode,
+                @CachedLibrary("value") RubyLibrary rubyLibrary,
                 @Cached BranchProfile errorProfile) {
 
-            if (isFrozenNode.execute(value)) {
+            if (rubyLibrary.isFrozen(value)) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().frozenError(value, this));
             }

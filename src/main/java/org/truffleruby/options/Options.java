@@ -213,6 +213,8 @@ public class Options {
     public final int TIME_FORMAT_CACHE;
     /** --integer-pow-cache=DEFAULT_CACHE */
     public final int POW_CACHE;
+    /** --ruby-library-cache=DEFAULT_CACHE */
+    public final int RUBY_LIBRARY_CACHE;
     /** --thread-cache=1 */
     public final int THREAD_CACHE;
     /** --identity-cache=1 */
@@ -376,6 +378,7 @@ public class Options {
         INTEROP_NEW_CACHE = options.hasBeenSet(OptionsCatalog.INTEROP_NEW_CACHE_KEY) ? options.get(OptionsCatalog.INTEROP_NEW_CACHE_KEY) : DEFAULT_CACHE;
         TIME_FORMAT_CACHE = options.hasBeenSet(OptionsCatalog.TIME_FORMAT_CACHE_KEY) ? options.get(OptionsCatalog.TIME_FORMAT_CACHE_KEY) : DEFAULT_CACHE;
         POW_CACHE = options.hasBeenSet(OptionsCatalog.POW_CACHE_KEY) ? options.get(OptionsCatalog.POW_CACHE_KEY) : DEFAULT_CACHE;
+        RUBY_LIBRARY_CACHE = options.hasBeenSet(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) ? options.get(OptionsCatalog.RUBY_LIBRARY_CACHE_KEY) : DEFAULT_CACHE;
         THREAD_CACHE = options.get(OptionsCatalog.THREAD_CACHE_KEY);
         IDENTITY_CACHE = options.get(OptionsCatalog.IDENTITY_CACHE_KEY);
         CLASS_CACHE = options.get(OptionsCatalog.CLASS_CACHE_KEY);
@@ -603,6 +606,8 @@ public class Options {
                 return TIME_FORMAT_CACHE;
             case "ruby.integer-pow-cache":
                 return POW_CACHE;
+            case "ruby.ruby-library-cache":
+                return RUBY_LIBRARY_CACHE;
             case "ruby.thread-cache":
                 return THREAD_CACHE;
             case "ruby.identity-cache":
