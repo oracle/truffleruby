@@ -9,17 +9,25 @@
  */
 package org.truffleruby.debug;
 
-import org.truffleruby.language.globals.GlobalVariableStorage;
+import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.globals.GlobalVariables;
+import org.truffleruby.parser.Identifiers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Scope;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.DynamicObject;
 
 public class GlobalScope {
 
@@ -31,6 +39,9 @@ public class GlobalScope {
         return Scope.newBuilder("global", new GlobalVariablesObject(globalVariables)).build();
     }
 
+    /** Ruby does not provide a way to set global variables with metaprogramming, except via eval(). Since the logic to
+     * access global variables is far from trivial, we use eval() here too, after validating that it's a valid global
+     * variable name. */
     @ExportLibrary(InteropLibrary.class)
     public static class GlobalVariablesObject implements TruffleObject {
 
@@ -40,7 +51,6 @@ public class GlobalScope {
             this.globalVariables = globalVariables;
         }
 
-        @SuppressWarnings("static-method")
         @ExportMessage
         protected boolean hasMembers() {
             return true;
@@ -48,49 +58,61 @@ public class GlobalScope {
 
         @ExportMessage
         @TruffleBoundary
-        protected Object readMember(String member) throws UnknownIdentifierException {
-            final GlobalVariableStorage storage = globalVariables.getStorage(member);
-            if (storage == null) {
-                throw UnknownIdentifierException.create(member);
-            } else {
-                return storage.getValue();
-            }
-        }
-
-        @ExportMessage
-        @TruffleBoundary
-        protected void writeMember(String member, Object value)
-                throws UnsupportedMessageException, UnknownIdentifierException {
-            final GlobalVariableStorage storage = globalVariables.getStorage(member);
-            if (storage == null) {
-                throw UnknownIdentifierException.create(member);
-            } else {
-                throw UnsupportedMessageException.create();
-            }
-        }
-
-        @ExportMessage
-        @TruffleBoundary
-        protected Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
+        protected Object getMembers(boolean includeInternal) {
             return new VariableNamesObject(globalVariables.keys());
         }
 
         @ExportMessage
         @TruffleBoundary
+        protected Object readMember(String member,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Exclusive @Cached CallDispatchHeadNode evalNode) throws UnknownIdentifierException {
+            if (!isMemberReadable(member)) {
+                throw UnknownIdentifierException.create(member);
+            } else {
+                final DynamicObject string = StringOperations
+                        .createString(context, StringOperations.encodeRope(member, UTF8Encoding.INSTANCE));
+                return evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
+            }
+        }
+
+        @ExportMessage
+        @TruffleBoundary
+        protected void writeMember(String member, Object value,
+                @CachedContext(RubyLanguage.class) RubyContext context,
+                @Exclusive @Cached CallDispatchHeadNode evalNode,
+                @Exclusive @Cached CallDispatchHeadNode callNode) throws UnknownIdentifierException {
+            if (!isValidGlobalVariableName(member)) {
+                throw UnknownIdentifierException.create(member);
+            } else {
+                final String code = "-> value { " + member + " = value }";
+                final DynamicObject string = StringOperations
+                        .createString(context, StringOperations.encodeRope(code, UTF8Encoding.INSTANCE));
+                final Object lambda = evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
+                callNode.call(lambda, "call", value);
+            }
+        }
+
+        @ExportMessage
+        @TruffleBoundary
         protected boolean isMemberReadable(String member) {
-            return globalVariables.doesVariableExist(member);
+            return isValidGlobalVariableName(member) && globalVariables.contains(member);
         }
 
-        @SuppressWarnings("static-method")
         @ExportMessage
+        @TruffleBoundary
         protected boolean isMemberModifiable(String member) {
-            return false;
+            return isValidGlobalVariableName(member) && globalVariables.contains(member);
         }
 
-        @SuppressWarnings("static-method")
         @ExportMessage
-        protected boolean isMemberInsertable(@SuppressWarnings("unused") String member) {
-            return false;
+        @TruffleBoundary
+        protected boolean isMemberInsertable(String member) {
+            return isValidGlobalVariableName(member) && !globalVariables.contains(member);
+        }
+
+        private static boolean isValidGlobalVariableName(String name) {
+            return Identifiers.isValidGlobalVariableName(name);
         }
 
     }

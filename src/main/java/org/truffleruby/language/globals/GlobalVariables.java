@@ -25,7 +25,8 @@ public class GlobalVariables {
 
     private final ConcurrentMap<String, GlobalVariableStorage> variables = new ConcurrentHashMap<>();
 
-    public boolean doesVariableExist(String name) {
+    @TruffleBoundary
+    public boolean contains(String name) {
         return variables.containsKey(name);
     }
 
