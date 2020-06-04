@@ -15,7 +15,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyLibrary;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.shared.SharedObjects;

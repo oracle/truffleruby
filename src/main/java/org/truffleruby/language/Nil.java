@@ -18,6 +18,7 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.language.library.RubyLibrary;
 
 /** The Ruby {@code nil}, the single instance of NilClass. */
 @ExportLibrary(InteropLibrary.class)
@@ -64,6 +65,8 @@ public final class Nil extends ImmutableRubyObject implements TruffleObject {
     protected boolean isNull() {
         return true;
     }
+
+    // RubyLibrary messages
 
     @ExportMessage
     protected void freeze() {

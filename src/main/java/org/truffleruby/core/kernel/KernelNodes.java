@@ -74,7 +74,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyLibrary;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;

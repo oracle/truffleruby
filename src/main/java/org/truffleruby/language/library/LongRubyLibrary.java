@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.library;
 
-import org.truffleruby.language.RubyLibrary;
-
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;

@@ -12,7 +12,7 @@ package org.truffleruby.interop.messages;
 import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyLibrary;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.dsl.Cached;

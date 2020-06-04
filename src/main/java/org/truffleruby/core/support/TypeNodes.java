@@ -33,7 +33,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyLibrary;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsANode;

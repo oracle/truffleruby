@@ -7,22 +7,19 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.language;
+package org.truffleruby.language.library;
 
 import com.oracle.truffle.api.library.LibraryFactory;
-import org.truffleruby.language.library.BooleanRubyLibrary;
-import org.truffleruby.language.library.DoubleRubyLibrary;
-import org.truffleruby.language.library.IntegerRubyLibrary;
-import org.truffleruby.language.library.LongRubyLibrary;
 
 import com.oracle.truffle.api.library.GenerateLibrary;
+import com.oracle.truffle.api.library.GenerateLibrary.DefaultExport;
 import com.oracle.truffle.api.library.Library;
 
 @GenerateLibrary
-@GenerateLibrary.DefaultExport(BooleanRubyLibrary.class)
-@GenerateLibrary.DefaultExport(IntegerRubyLibrary.class)
-@GenerateLibrary.DefaultExport(LongRubyLibrary.class)
-@GenerateLibrary.DefaultExport(DoubleRubyLibrary.class)
+@DefaultExport(BooleanRubyLibrary.class)
+@DefaultExport(IntegerRubyLibrary.class)
+@DefaultExport(LongRubyLibrary.class)
+@DefaultExport(DoubleRubyLibrary.class)
 public abstract class RubyLibrary extends Library {
 
     public static LibraryFactory<RubyLibrary> getFactory() {

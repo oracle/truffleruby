@@ -11,7 +11,7 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyLibrary;
+import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;

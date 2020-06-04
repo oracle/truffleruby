@@ -29,7 +29,7 @@ import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyLibrary;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;

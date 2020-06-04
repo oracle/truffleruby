@@ -10,7 +10,7 @@
 package org.truffleruby.core.hash;
 
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyLibrary;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;

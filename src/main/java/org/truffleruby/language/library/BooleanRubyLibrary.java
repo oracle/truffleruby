@@ -12,7 +12,6 @@ package org.truffleruby.language.library;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import org.truffleruby.language.RubyLibrary;
 
 @ExportLibrary(value = RubyLibrary.class, receiverType = Boolean.class)
 @GenerateUncached

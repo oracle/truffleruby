@@ -20,7 +20,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyLibrary;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -699,6 +699,7 @@ public class RubyObjectMessages {
     }
     // endregion
 
+    // region RubyLibrary
     @ExportMessage
     @ImportStatic(RubyGuards.class)
     static class Freeze {
@@ -759,6 +760,7 @@ public class RubyObjectMessages {
 
         writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, false);
     }
+    // endregion
 
     private static Node getNode(RubyLibrary node) {
         if (!node.isAdoptable()) {
