@@ -1,9 +1,5 @@
-// @formatter:off
-// created by jay 1.0.2 (c) 2002-2004 ats@cs.rit.edu
-// skeleton Java 1.0 (c) 2002 ats@cs.rit.edu
-
-// line 2 "RubyParser.y"
-/***** BEGIN LICENSE BLOCK *****
+/*
+ ***** BEGIN LICENSE BLOCK *****
  * Version: EPL 2.0/GPL 2.0/LGPL 2.1
  *
  * The contents of this file are subject to the Eclipse Public
@@ -38,6 +34,10 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  ***** END LICENSE BLOCK *****/
+// created by jay 1.0.2 (c) 2002-2004 ats@cs.rit.edu
+// skeleton Java 1.0 (c) 2002 ats@cs.rit.edu
+
+// line 2 "RubyParser.y"
 package org.truffleruby.parser.parser;
 
 import org.jcodings.Encoding;
@@ -146,6 +146,7 @@ import static org.truffleruby.parser.lexer.RubyLexer.EXPR_FNAME;
 import static org.truffleruby.parser.lexer.RubyLexer.EXPR_LABEL;
 import static org.truffleruby.parser.parser.ParserSupport.value_expr;
 
+// @formatter:off
 // CheckStyle: start generated
 @SuppressFBWarnings("IP")
 @SuppressWarnings({"unchecked", "fallthrough", "cast"})
@@ -158,7 +159,7 @@ public class RubyParser {
         this.lexer = new RubyLexer(support, source, warnings);
         support.setLexer(lexer);
     }
-// line 161 "-"
+// line 127 "-"
   // %token constants
   public static final int keyword_class = 257;
   public static final int keyword_module = 258;
@@ -3858,7 +3859,7 @@ states[651] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 }
-// line 2773 "RubyParser.y"
+// line 2739 "RubyParser.y"
 
     /** The parse method use an lexer stream and parse it to an AST node 
      * structure
@@ -3874,5 +3875,5 @@ states[651] = (support, lexer, yyVal, yyVals, yyTop) -> {
     }
 }
 // CheckStyle: stop generated
-// line 10674 "-"
 // @formatter:on
+// line 10641 "-"
