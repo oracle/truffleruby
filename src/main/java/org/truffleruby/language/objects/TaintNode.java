@@ -26,8 +26,9 @@ public abstract class TaintNode extends RubyBaseNode {
     public abstract Object executeTaint(Object object);
 
     @Specialization(limit = "3")
-    protected Object freeze(Object self,
+    protected Object taint(Object self,
             @CachedLibrary("self") RubyLibrary rubyLibrary) {
-        return rubyLibrary.taint(self);
+        rubyLibrary.taint(self);
+        return self;
     }
 }

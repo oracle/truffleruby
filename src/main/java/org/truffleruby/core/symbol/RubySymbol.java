@@ -133,9 +133,10 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
         }
     }
 
+    // RubyLibrary messages
+
     @ExportMessage
-    protected Object freeze() {
-        return this;
+    protected void freeze() {
     }
 
     @ExportMessage
@@ -149,13 +150,11 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
     }
 
     @ExportMessage
-    protected Object taint() {
-        return this;
+    protected void taint() {
     }
 
     @ExportMessage
-    protected Object untaint() {
-        return this;
+    protected void untaint() {
     }
 
 }

@@ -35,15 +35,15 @@ public abstract class RubyLibrary extends Library {
 
     private static final LibraryFactory<RubyLibrary> FACTORY = LibraryFactory.resolve(RubyLibrary.class);
 
-    public abstract Object freeze(Object object);
+    public abstract void freeze(Object object);
 
     public abstract boolean isFrozen(Object object);
 
     public abstract boolean isTainted(Object object);
 
-    public abstract Object taint(Object object);
+    public abstract void taint(Object object);
 
-    public abstract Object untaint(Object object);
+    public abstract void untaint(Object object);
 
 }
 

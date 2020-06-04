@@ -19,8 +19,7 @@ import org.truffleruby.language.RubyLibrary;
 public class IntegerRubyLibrary {
 
     @ExportMessage
-    protected static Object freeze(Integer object) {
-        return object;
+    protected static void freeze(Integer object) {
     }
 
     @ExportMessage
@@ -34,13 +33,11 @@ public class IntegerRubyLibrary {
     }
 
     @ExportMessage
-    protected static Object taint(Integer object) {
-        return object;
+    protected static void taint(Integer object) {
     }
 
     @ExportMessage
-    protected static Object untaint(Integer object) {
-        return object;
+    protected static void untaint(Integer object) {
     }
 
 }

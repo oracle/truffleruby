@@ -847,7 +847,8 @@ public abstract class KernelNodes {
         @Specialization(limit = "3")
         protected Object freeze(Object self,
                 @CachedLibrary("self") RubyLibrary rubyLibrary) {
-            return rubyLibrary.freeze(self);
+            rubyLibrary.freeze(self);
+            return self;
         }
 
     }
@@ -1899,7 +1900,8 @@ public abstract class KernelNodes {
         @Specialization(limit = "3")
         protected Object taint(Object object,
                 @CachedLibrary("object") RubyLibrary rubyLibrary) {
-            return rubyLibrary.taint(object);
+            rubyLibrary.taint(object);
+            return object;
         }
 
     }
@@ -1981,7 +1983,8 @@ public abstract class KernelNodes {
         @Specialization(limit = "3")
         protected Object untaint(Object object,
                 @CachedLibrary("object") RubyLibrary rubyLibrary) {
-            return rubyLibrary.untaint(object);
+            rubyLibrary.untaint(object);
+            return object;
         }
 
     }

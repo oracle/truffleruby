@@ -20,8 +20,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 public class DoubleRubyLibrary {
 
     @ExportMessage
-    protected static Object freeze(Double object) {
-        return object;
+    protected static void freeze(Double object) {
     }
 
     @ExportMessage
@@ -35,13 +34,11 @@ public class DoubleRubyLibrary {
     }
 
     @ExportMessage
-    protected static Object taint(Double object) {
-        return object;
+    protected static void taint(Double object) {
     }
 
     @ExportMessage
-    protected static Object untaint(Double object) {
-        return object;
+    protected static void untaint(Double object) {
     }
 
 }

@@ -34,8 +34,11 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
             guards = { "isRubyString(string)", "!rubyLibrary.isFrozen(string)", "!compareByIdentity" },
             limit = "3")
     protected Object dupAndFreeze(DynamicObject string, boolean compareByIdentity,
-            @CachedLibrary("string") RubyLibrary rubyLibrary) {
-        return rubyLibrary.freeze(dup(string));
+            @CachedLibrary("string") RubyLibrary rubyLibrary,
+            @CachedLibrary(limit = "3") RubyLibrary rubyLibraryObject) {
+        final Object object = dup(string);
+        rubyLibraryObject.freeze(object);
+        return object;
     }
 
     @Specialization(

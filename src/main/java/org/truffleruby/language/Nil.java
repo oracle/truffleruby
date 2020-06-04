@@ -66,8 +66,7 @@ public final class Nil extends ImmutableRubyObject implements TruffleObject {
     }
 
     @ExportMessage
-    protected Object freeze() {
-        return this;
+    protected void freeze() {
     }
 
     @ExportMessage
@@ -81,13 +80,11 @@ public final class Nil extends ImmutableRubyObject implements TruffleObject {
     }
 
     @ExportMessage
-    protected Object taint() {
-        return this;
+    protected void taint() {
     }
 
     @ExportMessage
-    protected Object untaint() {
-        return this;
+    protected void untaint() {
     }
 
 }

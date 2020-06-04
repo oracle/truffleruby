@@ -20,8 +20,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 public class LongRubyLibrary {
 
     @ExportMessage
-    protected static Object freeze(Long object) {
-        return object;
+    protected static void freeze(Long object) {
     }
 
     @ExportMessage
@@ -35,13 +34,11 @@ public class LongRubyLibrary {
     }
 
     @ExportMessage
-    protected static Object taint(Long object) {
-        return object;
+    protected static void taint(Long object) {
     }
 
     @ExportMessage
-    protected static Object untaint(Long object) {
-        return object;
+    protected static void untaint(Long object) {
     }
 
 }

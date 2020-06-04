@@ -704,15 +704,13 @@ public class RubyObjectMessages {
     static class Freeze {
 
         @Specialization(guards = "isRubyBignum(object)")
-        protected static Object freezeBignum(DynamicObject object) {
-            return object;
+        protected static void freezeBignum(DynamicObject object) {
         }
 
         @Specialization(guards = "!isRubyBignum(object)")
-        protected static Object freeze(DynamicObject object,
+        protected static void freeze(DynamicObject object,
                 @Exclusive @Cached WriteObjectFieldNode writeFrozenNode) {
             writeFrozenNode.write(object, Layouts.FROZEN_IDENTIFIER, true);
-            return object;
         }
 
     }
@@ -730,7 +728,7 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static Object taint(DynamicObject object,
+    protected static void taint(DynamicObject object,
             @CachedLibrary("object") RubyLibrary rubyLibrary,
             @Exclusive @Cached WriteObjectFieldNode writeTaintNode,
             @Exclusive @Cached BranchProfile errorProfile,
@@ -742,17 +740,16 @@ public class RubyObjectMessages {
         }
 
         writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, true);
-        return object;
     }
 
     @ExportMessage
-    protected static Object untaint(DynamicObject object,
+    protected static void untaint(DynamicObject object,
             @CachedLibrary("object") RubyLibrary rubyLibrary,
             @Exclusive @Cached WriteObjectFieldNode writeTaintNode,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Exclusive @Cached BranchProfile errorProfile) {
         if (!rubyLibrary.isTainted(object)) {
-            return object;
+            return;
         }
 
         if (rubyLibrary.isFrozen(object)) {
@@ -761,7 +758,6 @@ public class RubyObjectMessages {
         }
 
         writeTaintNode.write(object, Layouts.TAINTED_IDENTIFIER, false);
-        return object;
     }
 
     private static Node getNode(RubyLibrary node) {

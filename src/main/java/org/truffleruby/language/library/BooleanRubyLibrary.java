@@ -19,8 +19,7 @@ import org.truffleruby.language.RubyLibrary;
 public class BooleanRubyLibrary {
 
     @ExportMessage
-    protected static Object freeze(Boolean object) {
-        return object;
+    protected static void freeze(Boolean object) {
     }
 
     @ExportMessage
@@ -34,13 +33,11 @@ public class BooleanRubyLibrary {
     }
 
     @ExportMessage
-    protected static Object taint(Boolean object) {
-        return object;
+    protected static void taint(Boolean object) {
     }
 
     @ExportMessage
-    protected static Object untaint(Boolean object) {
-        return object;
+    protected static void untaint(Boolean object) {
     }
 
 }
