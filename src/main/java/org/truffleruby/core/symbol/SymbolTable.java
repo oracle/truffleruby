@@ -24,7 +24,7 @@ import org.truffleruby.parser.Identifiers;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class SymbolTable {
 
@@ -60,10 +60,10 @@ public class SymbolTable {
         }
     }
 
-    public RubySymbol getSingleByteSymbol(char index, ConditionProfile nullProfile) {
+    public RubySymbol getSingleByteSymbol(char index, BranchProfile nullProfile) {
         RubySymbol symbol = singleButeSymbols[index];
-        if (nullProfile.profile(symbol == null)) {
-            CompilerDirectives.transferToInterpreter();
+        if (symbol == null) {
+            nullProfile.enter();
             symbol = getSymbol(String.valueOf(index));
             singleButeSymbols[index] = symbol;
         }

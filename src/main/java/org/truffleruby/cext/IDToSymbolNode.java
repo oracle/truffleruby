@@ -14,7 +14,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -33,7 +33,7 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
     @Specialization(guards = { "value >= 0", "value <= 0xff" })
     protected Object unwrapSingleCharUncached(long value,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached ConditionProfile profile) {
+            @Cached BranchProfile profile) {
         return context.getSymbolTable().getSingleByteSymbol((char) value, profile);
     }
 
