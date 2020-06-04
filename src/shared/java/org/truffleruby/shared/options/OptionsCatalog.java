@@ -1,4 +1,3 @@
-// @formatter:off
 /*
  * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -18,6 +17,7 @@ import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionStability;
 
+// @formatter:off
 public class OptionsCatalog {
 
     public static final OptionKey<String[]> LOAD_PATHS_KEY = new OptionKey<>(new String[]{}, StringArrayOptionType.INSTANCE);
