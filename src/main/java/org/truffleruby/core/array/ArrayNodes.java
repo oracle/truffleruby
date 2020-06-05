@@ -80,7 +80,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -283,36 +282,198 @@ public abstract class ArrayNodes {
             lowerFixnum = { 1, 2 },
             raiseIfFrozenSelf = true,
             argumentNames = { "index_start_or_range", "length_or_value", "value" })
-    public abstract static class IndexSetNode extends ArrayIndexSetNode {
+    @ReportPolymorphism
+    @ImportStatic(ArrayHelpers.class)
+    public abstract static class IndexSetNode extends ArrayCoreMethodNode {
 
-        @Child private CallDispatchHeadNode fallbackNode;
+        private final BranchProfile negativeNormalizedIndexProfile = BranchProfile.create();
+        private final ConditionProfile negativeDenormalizedIndexProfile = ConditionProfile.create();
 
-        @Override
-        protected Object fallback(DynamicObject array, Object index, Object length, Object value) {
-            if (fallbackNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackNode = insert(CallDispatchHeadNode.createPrivate());
+        @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
+        @Child private ArrayIndexNodes.ReadNormalizedNode readNode;
+
+        public static IndexSetNode create() {
+            return ArrayNodesFactory.IndexSetNodeFactory.create(null);
+        }
+
+        abstract Object execute(DynamicObject array, int index, int length, DynamicObject replacement);
+
+        // array[index] = object
+
+        @Specialization
+        @ReportPolymorphism.Exclude
+        protected Object set(DynamicObject array, int index, Object value, NotProvided unused) {
+            final int normalizedIndex = normalize(array, index);
+            return writeNode.executeWrite(array, normalizedIndex, value);
+        }
+
+        // array[start, length] = array2
+
+        @Specialization(guards = { "wasProvided(replacement)", "length < 0" })
+        protected Object negativeLength(DynamicObject array, int start, int length, Object replacement) {
+            throw new RaiseException(getContext(), coreExceptions().negativeLengthError(length, this));
+        }
+
+        @Specialization(guards = { "length >= 0", "array == replacement" })
+        protected Object recursiveSet(DynamicObject array, int start, int length, DynamicObject replacement,
+                @Cached ArrayIndexNodes.ReadSliceNormalizedNode readSliceNode,
+                @Cached IndexSetNode recursiveNode) {
+            DynamicObject copy = (DynamicObject) readSliceNode.executeReadSlice(array, 0, getSize(array));
+            return recursiveNode.execute(array, start, length, copy);
+        }
+
+        @Specialization(guards = {
+                "isRubyArray(replacement)",
+                "array != replacement",
+                "length >= 0",
+                "length == getSize(replacement)" })
+        @ReportPolymorphism.Exclude
+        protected Object setOtherArraySameLength(DynamicObject array, int start, int length,
+                DynamicObject replacement) {
+            final int normalizedIndex = normalize(array, start);
+
+            for (int i = 0; i < length; i++) {
+                writeNode.executeWrite(array, normalizedIndex + i, read(replacement, i));
+            }
+            return replacement;
+        }
+
+        @Specialization(guards = {
+                "isRubyArray(replacement)",
+                "array != replacement",
+                "length >= 0",
+                "length != getSize(replacement)",
+                "!moveNeeded(rawStart, length, array)" })
+        protected Object setNoMove(DynamicObject array, int rawStart, int length, DynamicObject replacement,
+                @Cached ConditionProfile emptyReplacementProfile,
+                @Cached ConditionProfile growProfile,
+                @Cached ConditionProfile shrinkProfile) {
+
+            final int start = normalize(array, rawStart);
+            final int arraySize = getSize(array);
+            final int replacementSize = getSize(replacement);
+            final int newSize = start + replacementSize;
+
+            // Because start + length > arraySize, the array is overwritten from "start" to end, there are
+            // no items to be moved.
+
+            if (emptyReplacementProfile.profile(replacementSize == 0)) {
+                if (growProfile.profile(start > arraySize)) {
+                    // Empty replacement and start > arraysize: grow the array by appending nil.
+                    writeNode.executeWrite(array, start - 1, nil);
+                }
+            } else {
+                // Write last element first to grow only once.
+                for (int i = replacementSize - 1; i >= 0; --i) {
+                    writeNode.executeWrite(array, start + i, read(replacement, i));
+                }
             }
 
-            return fallbackNode.call(array, "element_set_fallback", index, length, value);
+            if (shrinkProfile.profile(newSize < arraySize)) {
+                setSize(array, newSize);
+            }
+
+            return replacement;
         }
-    }
 
-    @Primitive(
-            name = "array_aset",
-            raiseIfFrozen = 0,
-            lowerFixnum = { 1, 2 },
-            argumentNames = { "index_start_or_range", "length_or_value", "value" })
-    public abstract static class IndexSetPrimitiveNode extends ArrayIndexSetNode {
+        @Specialization(guards = {
+                "isRubyArray(replacement)",
+                "array != replacement",
+                "length >= 0",
+                "length != getSize(replacement)",
+                "moveNeeded(rawStart, length, array)" })
+        protected Object setWithMove(DynamicObject array, int rawStart, int length, DynamicObject replacement,
+                @Cached ConditionProfile emptyProfile,
+                @Cached ConditionProfile tailProfile,
+                @Cached ArrayEnsureCapacityNode ensureCapacityNode,
+                @Cached ConditionProfile moveLeftProfile,
+                @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores) {
 
-        // This primitive inherits from the same base as IndexSetNode and is called in its fallback.
-        // Hence we need to avoid infinite recursion on fallback.
+            final int start = normalize(array, rawStart);
+            final int arraySize = getSize(array);
+            final int replacementSize = getSize(replacement);
 
-        protected abstract RubyNode[] getArguments();
+            if (!emptyProfile.profile(arraySize == 0)) {
 
-        @Override
-        protected Object fallback(DynamicObject array, Object index, Object length, Object value) {
-            throw new UnsupportedSpecializationException(this, getArguments(), array, index, length, value);
+                // Resize array
+                final int newSize = arraySize - length + replacementSize;
+                ensureCapacityNode.executeEnsureCapacity(array, newSize); // needs a non-empty strategy
+                setSize(array, newSize);
+
+                // Move tail (i.e. the part of the array to the right of the overwritten area)
+                final int tailSize = arraySize - (start + length);
+                if (tailProfile.profile(tailSize > 0)) {
+                    final Object store = Layouts.ARRAY.getStore(array);
+                    if (moveLeftProfile.profile(replacementSize < length)) {
+                        // Moving elements left
+                        for (int i = 0; i < tailSize; i++) {
+                            mutableStores.write(
+                                    store,
+                                    start + replacementSize + i,
+                                    mutableStores.read(store, start + length + i));
+                        }
+                    } else {
+                        // Moving elements right
+                        for (int i = tailSize - 1; i >= 0; i--) {
+                            mutableStores.write(
+                                    store,
+                                    start + replacementSize + i,
+                                    mutableStores.read(store, start + length + i));
+                        }
+                    }
+                }
+            }
+
+            // Write replacement
+            for (int i = 0; i < replacementSize; i++) {
+                writeNode.executeWrite(array, start + i, read(replacement, i));
+            }
+
+            return replacement;
+        }
+
+        @Specialization(guards = "!fitsInInteger(start)")
+        protected Object fallback(DynamicObject array, Object start, Object value, NotProvided unused,
+                @Cached CallDispatchHeadNode fallbackNode) {
+            return fallbackNode.call(array, "element_set_index_fallback", start, value);
+        }
+
+        @Specialization(guards = {
+                "wasProvided(replacement)",
+                "validFallbackLength(length)",
+                "!fitsInInteger(start) || (!fitsInInteger(length) || !isRubyArray(replacement))" })
+        protected Object fallback(DynamicObject array, Object start, Object length, Object replacement,
+                @Cached CallDispatchHeadNode fallbackNode) {
+            return fallbackNode.call(array, "element_set_range_fallback", start, length, replacement);
+        }
+
+        // Helpers
+
+        private int normalize(DynamicObject array, int index) {
+            int normalized = ArrayOperations.normalizeIndex(getSize(array), index, negativeDenormalizedIndexProfile);
+            if (normalized < 0) {
+                negativeNormalizedIndexProfile.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().indexTooSmallError("array", index, getSize(array), this));
+            }
+            return normalized;
+        }
+
+        private Object read(DynamicObject array, int index) {
+            if (readNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                readNode = insert(ArrayIndexNodes.ReadNormalizedNode.create());
+            }
+            return readNode.executeRead(array, index);
+        }
+
+        protected static boolean moveNeeded(int start, int length, DynamicObject array) {
+            return start + length <= getSize(array);
+        }
+
+        protected static boolean validFallbackLength(Object length) {
+            return !RubyGuards.fitsInInteger(length) || ((Integer) length) >= 0;
         }
     }
 

@@ -161,30 +161,32 @@ class Array
     Primitive.array_read_slice_normalized(self, start, length)
   end
 
-  private def element_set_fallback(index, length, value)
-    if Primitive.undefined?(value)
-      value = length
-      if Range === index
-        index = Primitive.range_to_int_range(index, self)
-        converted = Array.try_convert(value)
-        converted = [value] unless converted
-        Primitive.array_aset(self, index, converted, undefined)
-        value
-      else
-        index = Primitive.rb_num2long(index)
-        Primitive.array_aset(self, index, value, undefined)
-      end
-    else
-      index = Primitive.rb_num2int(index)
-      length = Primitive.rb_num2int(length)
-      converted = value
-      unless Array === value
-        converted = Array.try_convert(value)
-        converted = [value] unless converted
-      end
-      Primitive.array_aset(self, index, length, converted)
+  private def element_set_index_fallback(index, value)
+    if Range === index
+      start, length = Truffle::RangeOperations.normalized_start_length(index, self.length)
+      raise RangeError, "#{index} out of range" if start < 0
+      length = 0 if length < 0
+      self[start, length] = convert_to_array_set_value(value) # no recursion
       value
+    else
+      self[Primitive.rb_num2int(index)] = value
     end
+  end
+
+  private def element_set_range_fallback(index, length, value)
+    index = Primitive.rb_num2int(index)
+    length = Primitive.rb_num2int(length)
+    self[index, length] = convert_to_array_set_value(value) # no recursion
+    value
+  end
+
+  private def convert_to_array_set_value(value)
+    converted = value
+    unless Array === converted
+      converted = Array.try_convert(value)
+      converted = [value] unless converted
+    end
+    converted
   end
 
   def assoc(obj)

@@ -29,6 +29,10 @@ public abstract class RubyGuards {
         return CoreLibrary.fitsIntoInteger(value);
     }
 
+    public static boolean fitsInInteger(Object value) {
+        return isBasicInteger(value) && CoreLibrary.fitsIntoInteger(((Number) value).longValue());
+    }
+
     public static boolean isLong(Object value) {
         return value instanceof Long;
     }
