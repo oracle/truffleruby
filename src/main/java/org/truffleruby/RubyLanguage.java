@@ -195,7 +195,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected ExecutableNode parse(InlineParsingRequest request) {
-        return new RubyInlineParsingRequestNode(this, request.getSource(), request.getFrame());
+        final RubyContext context = Objects.requireNonNull(getCurrentContext());
+        return new RubyInlineParsingRequestNode(this, context, request.getSource(), request.getFrame());
     }
 
     @SuppressWarnings("deprecation")
