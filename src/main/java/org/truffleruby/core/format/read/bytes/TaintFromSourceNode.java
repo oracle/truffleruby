@@ -9,11 +9,11 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.language.objects.TaintNode;
+import org.truffleruby.language.library.RubyLibrary;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -28,10 +28,10 @@ public abstract class TaintFromSourceNode extends FormatNode {
         return object;
     }
 
-    @Specialization(guards = "isSourceTainted(frame)")
+    @Specialization(guards = "isSourceTainted(frame)", limit = "getRubyLibraryCacheLimit()")
     protected Object taintNeeded(VirtualFrame frame, Object object,
-            @Cached TaintNode taintNode) {
-        taintNode.executeTaint(object);
+            @CachedLibrary("object") RubyLibrary rubyLibrary) {
+        rubyLibrary.taint(object);
         return object;
     }
 

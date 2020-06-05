@@ -13,12 +13,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.cext.CExtNodes;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.control.JavaException;
-import org.truffleruby.language.objects.TaintNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -36,11 +37,11 @@ public abstract class StringToPointerNode extends FormatNode {
     }
 
     @SuppressWarnings("unchecked")
-    @Specialization(guards = "isRubyString(string)")
+    @Specialization(guards = "isRubyString(string)", limit = "getRubyLibraryCacheLimit()")
     protected long toPointer(VirtualFrame frame, DynamicObject string,
             @Cached CExtNodes.StringToNativeNode stringToNativeNode,
-            @Cached TaintNode taintNode) {
-        taintNode.executeTaint(string);
+            @CachedLibrary("string") RubyLibrary rubyLibrary) {
+        rubyLibrary.taint(string);
 
         final Pointer pointer = stringToNativeNode.executeToNative(string).getNativePointer();
 

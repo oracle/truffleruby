@@ -15,8 +15,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.objects.IsTaintedNode;
-import org.truffleruby.language.objects.TaintNode;
+import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -30,8 +29,8 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     @Children private final ToSNode[] children;
 
     @Child private StringNodes.StringAppendPrimitiveNode appendNode;
-    @Child private IsTaintedNode isTaintedNode;
-    @Child private TaintNode taintNode;
+    @Child private RubyLibrary rubyLibrary;
+    @Child private RubyLibrary rubyLibraryTaint;
 
     private final Rope emptyRope;
 
@@ -67,11 +66,11 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     }
 
     private void executeTaint(Object obj) {
-        if (taintNode == null) {
+        if (rubyLibraryTaint == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            taintNode = insert(TaintNode.create());
+            rubyLibraryTaint = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
         }
-        taintNode.executeTaint(obj);
+        rubyLibraryTaint.taint(obj);
     }
 
     private DynamicObject executeStringAppend(DynamicObject builder, DynamicObject string) {
@@ -83,10 +82,10 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
     }
 
     private boolean executeIsTainted(Object object) {
-        if (isTaintedNode == null) {
+        if (rubyLibrary == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            isTaintedNode = insert(IsTaintedNode.create());
+            rubyLibrary = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
         }
-        return isTaintedNode.executeIsTainted(object);
+        return rubyLibrary.isTainted(object);
     }
 }

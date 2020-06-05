@@ -38,12 +38,10 @@ import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.IsANode;
-import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.PropertyFlags;
-import org.truffleruby.language.objects.TaintNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -296,25 +294,19 @@ public abstract class TypeNodes {
     @Primitive(name = "infect")
     public static abstract class InfectNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private IsTaintedNode isTaintedNode;
-        @Child private TaintNode taintNode;
+        @Child private RubyLibrary rubyLibraryTaint;
 
-        @Specialization
-        protected Object infect(Object host, Object source) {
-            if (isTaintedNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                isTaintedNode = insert(IsTaintedNode.create());
-            }
-
-            if (isTaintedNode.executeIsTainted(source)) {
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
+        protected Object infect(Object host, Object source,
+                @CachedLibrary("source") RubyLibrary rubyLibrary) {
+            if (rubyLibrary.isTainted(source)) {
                 // This lazy node allocation effectively gives us a branch profile
 
-                if (taintNode == null) {
+                if (rubyLibraryTaint == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    taintNode = insert(TaintNode.create());
+                    rubyLibraryTaint = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
                 }
-
-                taintNode.executeTaint(host);
+                rubyLibraryTaint.taint(host);
             }
 
             return host;

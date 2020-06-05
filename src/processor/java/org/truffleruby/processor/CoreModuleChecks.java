@@ -107,7 +107,8 @@ public class CoreModuleChecks {
 
         int end = parameters.size();
         for (int i = end - 1; i >= start; i--) {
-            boolean cached = parameters.get(i).getAnnotation(Cached.class) != null;
+            boolean cached = parameters.get(i).getAnnotation(Cached.class) != null ||
+                    parameters.get(i).getAnnotation(CachedLibrary.class) != null;
             if (cached) {
                 end--;
             } else {

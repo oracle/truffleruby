@@ -45,6 +45,7 @@ import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -67,9 +68,9 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.TaintNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -152,7 +153,6 @@ public abstract class ReadlineNodes {
     public abstract static class ReadlineNode extends CoreMethodNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private TaintNode taintNode = TaintNode.create();
 
         @CreateCast("prompt")
         protected RubyNode coercePromptToJavaString(RubyNode prompt) {
@@ -166,7 +166,8 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object readline(String prompt, boolean addToHistory) {
+        protected Object readline(String prompt, boolean addToHistory,
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
 
             // Use a Memo as readLine() can return null on Ctrl+D and we should not retry
@@ -202,7 +203,8 @@ public abstract class ReadlineNodes {
                         value,
                         getContext().getEncodingManager().getDefaultExternalEncoding(),
                         CodeRange.CR_UNKNOWN);
-                return taintNode.executeTaint(ret);
+                rubyLibrary.taint(ret);
+                return ret;
             }
         }
 
@@ -256,16 +258,17 @@ public abstract class ReadlineNodes {
     public abstract static class LineBufferNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-        @Child private TaintNode taintNode = TaintNode.create();
 
         @TruffleBoundary
         @Specialization
-        protected Object lineBuffer() {
+        protected Object lineBuffer(
+                @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             final CursorBuffer cb = getContext().getConsoleHolder().getReadline().getCursorBuffer();
 
             final DynamicObject ret = makeStringNode
                     .executeMake(cb.toString(), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
-            return taintNode.executeTaint(ret);
+            rubyLibrary.taint(ret);
+            return ret;
         }
 
     }

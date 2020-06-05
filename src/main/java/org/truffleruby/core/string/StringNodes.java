@@ -156,6 +156,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
@@ -163,7 +164,6 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -2665,7 +2665,7 @@ public abstract class StringNodes {
     @ReportPolymorphism
     public abstract static class UnpackNode extends CoreMethodNode {
 
-        @Child private TaintNode taintNode;
+        @Child private RubyLibrary rubyLibrary;
 
         private final BranchProfile exceptionProfile = BranchProfile.create();
 
@@ -2729,12 +2729,11 @@ public abstract class StringNodes {
             final DynamicObject array = createArray(result.getOutput(), result.getOutputLength());
 
             if (result.isTainted()) {
-                if (taintNode == null) {
+                if (rubyLibrary == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    taintNode = insert(TaintNode.create());
+                    rubyLibrary = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
                 }
-
-                taintNode.executeTaint(array);
+                rubyLibrary.taint(array);
             }
 
             return array;

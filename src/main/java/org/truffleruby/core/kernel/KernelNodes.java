@@ -100,7 +100,6 @@ import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
-import org.truffleruby.language.objects.IsTaintedNode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
@@ -111,7 +110,6 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 import org.truffleruby.language.objects.SingletonClassNode;
-import org.truffleruby.language.objects.TaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
@@ -1783,7 +1781,7 @@ public abstract class KernelNodes {
     public abstract static class SprintfNode extends CoreMethodArrayArgumentsNode {
 
         @Child private MakeStringNode makeStringNode;
-        @Child private TaintNode taintNode;
+        @Child private RubyLibrary rubyLibrary;
         @Child private BooleanCastNode readDebugGlobalNode = BooleanCastNodeGen
                 .create(ReadGlobalVariableNodeGen.create("$DEBUG"));
 
@@ -1794,19 +1792,20 @@ public abstract class KernelNodes {
                 guards = {
                         "isRubyString(format)",
                         "equalNode.execute(rope(format), cachedFormat)",
-                        "isDebug(frame) == cachedIsDebug" })
+                        "isDebug(frame) == cachedIsDebug" },
+                limit = "getRubyLibraryCacheLimit()")
         protected DynamicObject formatCached(VirtualFrame frame, DynamicObject format, Object[] arguments,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
                 @Cached("create(compileFormat(format, arguments, isDebug(frame)))") DirectCallNode callPackNode,
                 @Cached RopeNodes.EqualNode equalNode,
-                @Cached IsTaintedNode isTaintedNode) {
+                @CachedLibrary("format") RubyLibrary rubyLibrary) {
             final BytesResult result;
 
             try {
                 result = (BytesResult) callPackNode.call(
-                        new Object[]{ arguments, arguments.length, isTaintedNode.executeIsTainted(format), null });
+                        new Object[]{ arguments, arguments.length, rubyLibrary.isTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -1815,10 +1814,13 @@ public abstract class KernelNodes {
             return finishFormat(cachedFormatLength, result);
         }
 
-        @Specialization(guards = "isRubyString(format)", replaces = "formatCached")
+        @Specialization(
+                guards = "isRubyString(format)",
+                replaces = "formatCached",
+                limit = "getRubyLibraryCacheLimit()")
         protected DynamicObject formatUncached(VirtualFrame frame, DynamicObject format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
-                @Cached IsTaintedNode isTaintedNode) {
+                @CachedLibrary("format") RubyLibrary rubyLibrary) {
             final BytesResult result;
 
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
@@ -1826,7 +1828,7 @@ public abstract class KernelNodes {
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(format, arguments, isDebug),
-                        new Object[]{ arguments, arguments.length, isTaintedNode.executeIsTainted(format), null });
+                        new Object[]{ arguments, arguments.length, rubyLibrary.isTainted(format), null });
             } catch (FormatException e) {
                 exceptionProfile.enter();
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
@@ -1853,12 +1855,12 @@ public abstract class KernelNodes {
                     result.getStringCodeRange());
 
             if (result.isTainted()) {
-                if (taintNode == null) {
+                if (rubyLibrary == null) {
                     CompilerDirectives.transferToInterpreterAndInvalidate();
-                    taintNode = insert(TaintNode.create());
+                    rubyLibrary = insert(RubyLibrary.getFactory().createDispatched(getRubyLibraryCacheLimit()));
                 }
 
-                taintNode.executeTaint(string);
+                rubyLibrary.taint(string);
             }
 
             return string;

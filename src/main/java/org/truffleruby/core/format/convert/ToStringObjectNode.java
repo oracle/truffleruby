@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.format.convert;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.objects.IsTaintedNode;
+import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -32,11 +33,11 @@ public abstract class ToStringObjectNode extends FormatNode {
         return nil;
     }
 
-    @Specialization(guards = "isRubyString(string)")
+    @Specialization(guards = "isRubyString(string)", limit = "getRubyLibraryCacheLimit()")
     protected Object toStringString(VirtualFrame frame, DynamicObject string,
-            @Cached IsTaintedNode isTaintedNode,
+            @CachedLibrary("string") RubyLibrary rubyLibrary,
             @Cached ConditionProfile taintedProfile) {
-        if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {
+        if (taintedProfile.profile(rubyLibrary.isTainted(string))) {
             setTainted(frame);
         }
 

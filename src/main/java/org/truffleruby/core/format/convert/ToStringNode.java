@@ -11,6 +11,7 @@ package org.truffleruby.core.format.convert;
 
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
@@ -18,8 +19,8 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.IsTaintedNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -41,7 +42,6 @@ public abstract class ToStringNode extends FormatNode {
     @Child private CallDispatchHeadNode toStrNode;
     @Child private CallDispatchHeadNode toSNode;
     @Child private KernelNodes.ToSNode inspectNode;
-    @Child private IsTaintedNode isTaintedNode;
 
     private final ConditionProfile taintedProfile = ConditionProfile.create();
 
@@ -54,7 +54,6 @@ public abstract class ToStringNode extends FormatNode {
         this.conversionMethod = conversionMethod;
         this.inspectOnConversionFailure = inspectOnConversionFailure;
         this.valueOnNil = valueOnNil;
-        this.isTaintedNode = IsTaintedNode.create();
     }
 
     public abstract Object executeToString(VirtualFrame frame, Object object);
@@ -82,17 +81,18 @@ public abstract class ToStringNode extends FormatNode {
         return RopeOperations.encodeAsciiBytes(Double.toString(value));
     }
 
-    @Specialization(guards = "isRubyString(string)")
+    @Specialization(guards = "isRubyString(string)", limit = "getRubyLibraryCacheLimit()")
     protected byte[] toStringString(VirtualFrame frame, DynamicObject string,
+            @CachedLibrary("string") RubyLibrary rubyLibrary,
             @Cached RopeNodes.BytesNode bytesNode) {
-        if (taintedProfile.profile(isTaintedNode.executeIsTainted(string))) {
+        if (taintedProfile.profile(rubyLibrary.isTainted(string))) {
             setTainted(frame);
         }
         if ("inspect".equals(conversionMethod)) {
             final Object value = getToStrNode().call(string, conversionMethod);
 
             if (RubyGuards.isRubyString(value)) {
-                if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
+                if (taintedProfile.profile(rubyLibrary.isTainted(value))) {
                     setTainted(frame);
                 }
 
@@ -106,6 +106,7 @@ public abstract class ToStringNode extends FormatNode {
 
     @Specialization(guards = "isRubyArray(array)")
     protected byte[] toString(VirtualFrame frame, DynamicObject array,
+            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
             @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -115,7 +116,7 @@ public abstract class ToStringNode extends FormatNode {
         final Object value = toSNode.call(array, "to_s");
 
         if (RubyGuards.isRubyString(value)) {
-            if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
+            if (taintedProfile.profile(rubyLibrary.isTainted(value))) {
                 setTainted(frame);
             }
 
@@ -125,13 +126,15 @@ public abstract class ToStringNode extends FormatNode {
         }
     }
 
-    @Specialization(guards = { "!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
+    @Specialization(
+            guards = { "!isRubyString(object)", "!isRubyArray(object)", "!isForeignObject(object)" })
     protected byte[] toString(VirtualFrame frame, Object object,
+            @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
             @Cached RopeNodes.BytesNode bytesNode) {
         final Object value = getToStrNode().call(object, conversionMethod);
 
         if (RubyGuards.isRubyString(value)) {
-            if (taintedProfile.profile(isTaintedNode.executeIsTainted(value))) {
+            if (taintedProfile.profile(rubyLibrary.isTainted(value))) {
                 setTainted(frame);
             }
 
