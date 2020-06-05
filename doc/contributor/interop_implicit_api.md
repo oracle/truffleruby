@@ -21,9 +21,19 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.method_name` sends `invoke_member(foreign_object, method_name)`
 - `foreign_object.method_name(*arguments)` sends `invoke_member(foreign_object, method_name, *arguments)`
 - `foreign_object.new(*arguments)` sends `instantiate(foreign_object, *arguments)`
-- `foreign_object.class` sends `readMember(foreign_object, "class")` where `foreign_object` is a `java.lang.Class`
+- `foreign_object.class` sends `readMember(foreign_object, "class")` when `foreign_object` is a `java.lang.Class`
+- `foreign_object.class` sends `getMetaObject(foreign_object)`
+- `foreign_object.inspect` returns a Ruby-style `#inspect` string showing members, array elements, etc
+- `foreign_object.to_s` sends `asString(foreign_object)` when `isString(foreign_object)` is true
+- `foreign_object.to_s` sends `toDisplayString(foreign_object)` otherwise
+- `foreign_object.to_str` sends `asString(foreign_object)` when `isString(foreign_object)` is true
+- `foreign_object.to_str` raises `NoMethodError` otherwise
+- `foreign_object.to_a` converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`
+- `foreign_object.to_ary` converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`
 
 Use `.respond_to?` for calling `InteropLibrary` predicates:
+- `foreign_object.respond_to?(:inspect)` is always true
+- `foreign_object.respond_to?(:to_s)` is always true
 - `foreign_object.respond_to?(:to_str)` sends `isString(foreign_object)`
 - `foreign_object.respond_to?(:to_a)` sends `hasArrayElements(foreign_object)`
 - `foreign_object.respond_to?(:to_ary)` sends `hasArrayElements(foreign_object)`
@@ -31,6 +41,4 @@ Use `.respond_to?` for calling `InteropLibrary` predicates:
 - `foreign_object.respond_to?(:keys)` sends `hasMembers(foreign_object)`
 - `foreign_object.respond_to?(:call)` sends `isExecutable(foreign_object)`
 - `foreign_object.respond_to?(:new)` sends `isInstantiable(foreign_object)`
-- `foreign_object.respond_to?(:inspect)` is always true
-- `foreign_object.respond_to?(:to_s)` is always true
 - `foreign_object.respond_to?(:is_a?)` is always true

@@ -486,6 +486,11 @@ public abstract class TruffleDebugNodes {
             protected boolean isNull() {
                 return true;
             }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign null]";
+            }
         }
 
         @TruffleBoundary
@@ -517,6 +522,11 @@ public abstract class TruffleDebugNodes {
             protected long asPointer() {
                 return address;
             }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign pointer]";
+            }
         }
 
         @TruffleBoundary
@@ -532,6 +542,10 @@ public abstract class TruffleDebugNodes {
 
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignObject implements TruffleObject {
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign object]";
+            }
         }
 
         @TruffleBoundary
@@ -581,6 +595,11 @@ public abstract class TruffleDebugNodes {
                     throw UnknownIdentifierException.create(key);
                 }
                 return value;
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign object with members]";
             }
         }
 
@@ -643,6 +662,11 @@ public abstract class TruffleDebugNodes {
             protected long getArraySize() {
                 return array.length;
             }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign array]";
+            }
         }
 
         @TruffleBoundary
@@ -680,6 +704,12 @@ public abstract class TruffleDebugNodes {
             protected long asPointer() {
                 return 0; // shouldn't be used
             }
+
+            @Override
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign pointer array]";
+            }
         }
 
         @Override
@@ -714,6 +744,11 @@ public abstract class TruffleDebugNodes {
             protected Object execute(Object... arguments) {
                 return value;
             }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign executable]";
+            }
         }
 
         @TruffleBoundary
@@ -744,6 +779,11 @@ public abstract class TruffleDebugNodes {
             @ExportMessage
             protected String asString() {
                 return string;
+            }
+
+            @ExportMessage
+            protected String toDisplayString(boolean allowSideEffects) {
+                return "[foreign string]";
             }
         }
 

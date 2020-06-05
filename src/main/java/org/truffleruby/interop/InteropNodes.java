@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -35,6 +36,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -328,6 +330,41 @@ public abstract class InteropNodes {
                 throw translateInteropException.execute(e);
             }
             return fromJavaStringNode.executeFromJavaString(string);
+        }
+    }
+
+    @CoreMethod(names = "language", onSingleton = true, required = 1)
+    public abstract static class GetLanguageNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object getLanguage(Object receiver,
+                @CachedLibrary("receiver") InteropLibrary receivers,
+                @Cached FromJavaStringNode fromJavaStringNode) {
+            if (!receivers.hasLanguage(receiver)) {
+                return nil;
+            }
+
+            final Class<? extends TruffleLanguage<?>> language;
+            try {
+                language = receivers.getLanguage(receiver);
+            } catch (UnsupportedMessageException e) {
+                return nil;
+            }
+
+            final String name = languageClassToLanguageName(language);
+            return fromJavaStringNode.executeFromJavaString(name);
+        }
+
+        @TruffleBoundary
+        private String languageClassToLanguageName(Class<? extends TruffleLanguage<?>> language) {
+            String name = language.getSimpleName();
+            if (name.endsWith("Language")) {
+                name = name.substring(0, name.length() - "Language".length());
+            }
+            if (name.equals("Host")) {
+                name = "Java";
+            }
+            return name;
         }
     }
 
@@ -1219,23 +1256,28 @@ public abstract class InteropNodes {
 
     @CoreMethod(names = "java?", onSingleton = true, required = 1)
     public abstract static class InteropIsJavaNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected boolean isJava(Object value) {
             return getContext().getEnv().isHostObject(value);
         }
-
     }
 
     @CoreMethod(names = "java_class?", onSingleton = true, required = 1)
     public abstract static class InteropIsJavaClassNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected boolean isJavaClass(Object value) {
             return getContext().getEnv().isHostObject(value) &&
                     getContext().getEnv().asHostObject(value) instanceof Class;
         }
+    }
 
+    @CoreMethod(names = "is_java_map?", onSingleton = true, visibility = Visibility.PRIVATE, required = 1)
+    public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean isJavaMap(Object value) {
+            return getContext().getEnv().isHostObject(value) &&
+                    getContext().getEnv().asHostObject(value) instanceof Map;
+        }
     }
 
     @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
@@ -1254,6 +1296,26 @@ public abstract class InteropNodes {
                 }
             } else {
                 return coreLibrary().getLogicalClass(value);
+            }
+        }
+
+    }
+
+    @CoreMethod(names = "meta_qualified_name", onSingleton = true, required = 1)
+    public abstract static class GetMetaQualifiedNameNode extends InteropCoreMethodArrayArgumentsNode {
+
+        @Specialization(limit = "getCacheLimit()")
+        protected Object metaObject(Object metaObject,
+                @CachedLibrary("metaObject") InteropLibrary interop,
+                @CachedLibrary(limit = "1") InteropLibrary asStrings,
+                @Cached FromJavaStringNode fromJavaStringNode,
+                @Cached TranslateInteropExceptionNode translateInteropException) {
+            try {
+                final Object qualifiedName = interop.getMetaQualifiedName(metaObject);
+                final String string = asStrings.asString(qualifiedName);
+                return fromJavaStringNode.executeFromJavaString(string);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
             }
         }
 
@@ -1290,13 +1352,19 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "logging_foreign_object", onSingleton = true)
+    @CoreMethod(names = "logging_foreign_object", onSingleton = true, optional = 1)
     public abstract static class LoggingForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        protected TruffleObject loggingForeignObject() {
-            return new LoggingForeignObject();
+        protected TruffleObject loggingForeignObject(NotProvided asString) {
+            return new LoggingForeignObject(null);
+        }
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(asString)")
+        protected TruffleObject loggingForeignObject(DynamicObject asString) {
+            return new LoggingForeignObject(StringOperations.getString(asString));
         }
 
     }
