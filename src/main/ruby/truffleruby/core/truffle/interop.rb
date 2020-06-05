@@ -391,7 +391,8 @@ module Truffle
     end
 
     def self.pairs_from_object(object)
-      members(object).map { |key| [key, object[key]] }
+      readable_members = members(object).select { |member| Truffle::Interop.is_member_readable?(object, member) }
+      readable_members.map { |key| [key, object[key]] }
     end
 
     def self.unbox_if_needed(object)

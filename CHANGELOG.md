@@ -19,6 +19,7 @@ Bug fixes:
 * Fixed `rb_enc_precise_mbclen` to handle more inputs.
 * The output for `--engine.TraceCompilation` is now significantly easier to read, by having shorter method names and source names (oracle/graal#2052).
 * Fix indentation for squiggly heredoc with single quotes (#1564).
+* Only print members which are readable for foreign `#inspect` (#2027).
 
 Compatibility:
 
