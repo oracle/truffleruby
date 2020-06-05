@@ -104,7 +104,6 @@ end
 file = __FILE__
 
 File.write('src/main/java/org/truffleruby/options/Options.java', ERB.new(<<'JAVA').result)
-// @formatter:off
 /*
  * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -127,6 +126,7 @@ import org.truffleruby.shared.options.Profile;
 
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
+// @formatter:off
 public class Options {
 <% options.each do |o| %>
     /** --<%= o.name %>=<%= o.env_condition %><%= o.default %> */
@@ -157,7 +157,6 @@ public class Options {
 JAVA
 
 File.write('src/shared/java/org/truffleruby/shared/options/OptionsCatalog.java', ERB.new(<<JAVA).result)
-// @formatter:off
 /*
  * Copyright (c) 2016, 2019 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
@@ -177,6 +176,7 @@ import org.graalvm.options.OptionDescriptor;
 import org.graalvm.options.OptionKey;
 import org.graalvm.options.OptionStability;
 
+// @formatter:off
 public class OptionsCatalog {
 <% options.each do |o| %>
     public static final OptionKey<<%= o.boxed_type %>> <%= o.key_constant %> = new OptionKey<>(<%= o.default_value %><%= o.option_type ? ', ' + o.option_type : '' %>);<% end %>
