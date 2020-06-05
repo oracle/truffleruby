@@ -261,7 +261,7 @@ module FFI
     [:FLOAT64, 'DOUBLE', 8, :DOUBLE],
     [:LONGDOUBLE, 'LONGDOUBLE', 16],
     [:POINTER, 'POINTER', 8],
-    [:STRING, 'STRING', 8],
+    [:STRING, 'POINTER', 8],
     [:BUFFER_IN, 'POINTER', 8],
     [:BUFFER_OUT, 'POINTER', 8],
     [:BUFFER_INOUT, 'POINTER', 8],

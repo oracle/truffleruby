@@ -154,7 +154,8 @@ module FFI
       elsif FFI::Type::POINTER == type
         get_pointer_value(value)
       elsif FFI::Type::STRING == type
-        value ? Truffle::Type.check_null_safe(value) : nil
+        Truffle::Type.check_null_safe(value) unless nil.equal?(value)
+        get_pointer_value(value)
       elsif FFI::FunctionType === type and Proc === value
         callback(value, type)
       else
