@@ -62,7 +62,7 @@ module Truffle::Internal
     if last_arg.respond_to?(:to_hash)
       kwargs = last_arg.to_hash
 
-      if kwargs.nil?
+      if Primitive.nil? kwargs
         array.push last_arg
         return array
       end

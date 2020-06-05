@@ -152,7 +152,7 @@ module Truffle::POSIX
         end
 
         if return_type == :string
-          if result.nil?
+          if result.nil? # must not be Primitive.nil?
             result = nil
           else
             ptr = Truffle::FFI::Pointer.new(Truffle::Interop.as_pointer(result))

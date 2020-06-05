@@ -41,7 +41,7 @@ module Truffle
 
     def [](name)
       value = Primitive.vm_get_config_item name
-      raise KeyError, "key #{name} not found" if value.nil?
+      raise KeyError, "key #{name} not found" if Primitive.nil? value
       value
     end
     alias_method :get, :[]

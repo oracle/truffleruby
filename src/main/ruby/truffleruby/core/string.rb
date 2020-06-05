@@ -189,7 +189,7 @@ class String
   end
 
   def partition(pattern=nil)
-    return super() if pattern == nil && block_given?
+    return super() if Primitive.nil?(pattern) && block_given?
 
     if pattern.kind_of? Regexp
       if m = Truffle::RegexpOperations.match(pattern, self)
@@ -337,7 +337,7 @@ class String
     index = 0
     while index < bytesize
       current = Primitive.find_string(self, '\\', index)
-      current = bytesize if current.nil?
+      current = bytesize if Primitive.nil? current
 
       result.append(byteslice(index, current - index))
       break if current == bytesize
@@ -879,7 +879,7 @@ class String
       sep = StringValue(sep)
     end
 
-    return if sep.nil?
+    return if Primitive.nil? sep
 
     if sep == DEFAULT_RECORD_SEPARATOR
       return unless bytes = Primitive.string_previous_byte_index(self, bytesize)
@@ -961,7 +961,7 @@ class String
     end
 
     # weird edge case.
-    if sep.nil?
+    if Primitive.nil? sep
       yield self
       return self
     end
@@ -1563,7 +1563,7 @@ class String
       sprintf(self, args)
     else
       result = Truffle::Type.rb_check_convert_type args, Array, :to_ary
-      if result.nil?
+      if Primitive.nil? result
         sprintf(self, args)
       else
         sprintf(self, *result)
@@ -1609,7 +1609,7 @@ class String
     other = StringValue(other)
 
     enc = Encoding.compatible?(encoding, other.encoding)
-    if enc.nil?
+    if Primitive.nil? enc
       return nil
     end
 

@@ -85,7 +85,7 @@ class Array
   def <=>(other)
     other = Truffle::Type.rb_check_convert_type other, Array, :to_ary
     return 0 if equal? other
-    return nil if other.nil?
+    return nil if Primitive.nil? other
 
     total = other.size
 
@@ -335,7 +335,7 @@ class Array
 
   def dig(idx, *more)
     result = self.at(idx)
-    if result.nil? || more.empty?
+    if Primitive.nil?(result) || more.empty?
       result
     else
       raise TypeError, "#{result.class} does not have #dig method" unless result.respond_to?(:dig)
@@ -609,7 +609,7 @@ class Array
 
     out = +''
     raise ArgumentError, 'recursive array join' if Thread.detect_recursion self do
-      sep = sep.nil? ? $, : StringValue(sep)
+      sep = Primitive.nil?(sep) ? $, : StringValue(sep)
 
       # We've manually unwound the first loop entry for performance
       # reasons.
@@ -1220,7 +1220,7 @@ class Array
 
   private def range_end(range)
     last = range.end
-    return size - 1 if last.nil?
+    return size - 1 if Primitive.nil? last
     last = Truffle::Type.coerce_to_collection_index last
     last += size if last < 0
     last -=1 if range.exclude_end?
@@ -1313,7 +1313,7 @@ class Array
         o = array.at i
 
         tmp = Truffle::Type.rb_check_convert_type(o, Array, :to_ary)
-        if tmp.nil?
+        if Primitive.nil? tmp
           out << o
         else
           modified = true
@@ -1517,7 +1517,7 @@ class Array
         el2 = at(j)
         block_result = block.call(el1, el2)
 
-        if block_result.nil?
+        if Primitive.nil? block_result
           raise ArgumentError, 'block returned nil'
         elsif block_result > 0
           self[j] = el1

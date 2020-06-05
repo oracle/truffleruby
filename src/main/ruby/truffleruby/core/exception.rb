@@ -47,9 +47,9 @@ class Exception
 
   def to_s
     msg = Primitive.exception_message self
-    if msg.nil?
+    if Primitive.nil? msg
       formatter = Primitive.exception_formatter self
-      if formatter.nil?
+      if Primitive.nil? formatter
         self.class.to_s
       else
         msg = formatter.call(self).to_s
@@ -375,7 +375,7 @@ class SystemCallError < StandardError
         location = nil
       when 2
         message, errno = args
-        message = StringValue(message) unless message.nil?
+        message = StringValue(message) unless Primitive.nil? message
         location = nil
       when 3
         message, errno, location = args
@@ -387,7 +387,7 @@ class SystemCallError < StandardError
       if errno
         errno = Primitive.rb_num2long(errno)
         error = SystemCallError.errno_error(message, errno, location)
-        return error unless error.nil?
+        return error unless Primitive.nil? error
       end
       super(message, errno, location)
     else
@@ -451,13 +451,13 @@ class SignalException < Exception
 
   def initialize(sig, message = undefined)
     signo = Truffle::Type.rb_check_to_integer(sig, :to_int)
-    if signo.nil?
+    if Primitive.nil? signo
       raise ArgumentError, 'wrong number of arguments (given 2, expected 1)' unless Primitive.undefined?(message)
       if sig.is_a?(Symbol)
         sig = sig.to_s
       else
         sig_converted = Truffle::Type.rb_check_convert_type sig, String, :to_str
-        raise ArgumentError, "bad signal type #{sig.class.name}" if sig_converted.nil?
+        raise ArgumentError, "bad signal type #{sig.class.name}" if Primitive.nil? sig_converted
         sig = sig_converted
       end
       signal_name = sig
@@ -465,7 +465,7 @@ class SignalException < Exception
         signal_name = signal_name[3..-1]
       end
       signo = Signal::Names[signal_name]
-      if signo.nil?
+      if Primitive.nil? signo
         raise ArgumentError, "invalid signal name SIG#{sig}"
       end
       name_with_prefix = 'SIG%s' % signal_name
@@ -475,7 +475,7 @@ class SignalException < Exception
       end
       name_with_prefix = if Primitive.undefined?(message)
                            name = Signal::Numbers[signo]
-                           if name.nil?
+                           if Primitive.nil? name
                              'SIG%d' % signo
                            else
                              'SIG%s' % name

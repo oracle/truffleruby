@@ -64,7 +64,7 @@ module Truffle
   module Type
     def self.object_respond_to_no_built_in?(obj, name, include_private = false)
       meth = Primitive.vm_method_lookup obj, name
-      !meth.nil? && !Primitive.vm_method_is_basic(meth)
+      !Primitive.nil?(meth) && !Primitive.vm_method_is_basic(meth)
     end
 
     def self.check_funcall_callable(obj, name)
@@ -132,7 +132,7 @@ module Truffle
     end
 
     def self.rb_num2ulong(val)
-      raise TypeError, 'no implicit conversion from nil to integer' if val.nil?
+      raise TypeError, 'no implicit conversion from nil to integer' if Primitive.nil? val
 
       if Primitive.object_kind_of?(val, Integer)
         if Primitive.integer_fits_into_long(val)
@@ -149,7 +149,7 @@ module Truffle
     end
 
     def self.rb_num2dbl(val)
-      raise TypeError, 'no implicit conversion from nil to float' if val.nil?
+      raise TypeError, 'no implicit conversion from nil to float' if Primitive.nil? val
 
       if Primitive.object_kind_of?(val, Float)
         val
@@ -253,7 +253,7 @@ module Truffle
         obj
       else
         v = convert_type(obj, cls, meth, false)
-        if v.nil?
+        if Primitive.nil? v
           nil
         elsif !Primitive.object_kind_of?(v, cls)
           raise TypeError, "can't convert #{object_class(obj)} to #{cls} (#{object_class(obj)}##{meth} gives #{object_class(v)})"
@@ -381,7 +381,7 @@ module Truffle
     def self.execute_try_convert(obj, cls, meth)
       ret = obj.__send__(meth)
 
-      if ret.nil? || Primitive.object_kind_of?(ret, cls)
+      if Primitive.nil?(ret) || Primitive.object_kind_of?(ret, cls)
         ret
       else
         raise TypeError, "Coercion error: obj.#{meth} did NOT return a #{cls} (was #{object_class(ret)})"
@@ -504,7 +504,7 @@ module Truffle
         obj
       elsif obj.kind_of?(String)
         raise TypeError, "can't convert #{obj} into an exact number"
-      elsif obj.nil?
+      elsif Primitive.nil? obj
         raise TypeError, "can't convert nil into an exact number"
       else
         rb_check_convert_type(obj, Rational, :to_r) || coerce_to(obj, Integer, :to_int)
@@ -623,7 +623,7 @@ module Truffle
 
     # Needs to be in core for assigning $!
     def self.set_last_exception(error)
-      if !error.nil? && !error.is_a?(Exception)
+      if !Primitive.nil?(error) && !error.is_a?(Exception)
         raise TypeError, 'assigning non-exception to ?!'
       end
       Primitive.thread_set_exception(error)

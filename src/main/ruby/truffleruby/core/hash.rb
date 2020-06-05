@@ -173,11 +173,11 @@ class Hash
   end
 
   def compact
-    reject { |_k, v| v.nil? }
+    reject { |_k, v| Primitive.nil? v }
   end
 
   def compact!
-    reject! { |_k, v| v.nil? }
+    reject! { |_k, v| Primitive.nil? v }
   end
 
   def default(key=undefined)
@@ -190,7 +190,7 @@ class Hash
 
   def default_proc=(proc)
     Primitive.check_frozen self
-    unless proc.nil?
+    unless Primitive.nil? proc
       proc = Truffle::Type.coerce_to proc, Proc, :to_proc
 
       if proc.lambda? and proc.arity != 2
@@ -203,7 +203,7 @@ class Hash
 
   def dig(key, *more)
     result = self[key]
-    if result.nil? || more.empty?
+    if Primitive.nil?(result) || more.empty?
       result
     else
       raise TypeError, "#{result.class} does not have #dig method" unless result.respond_to?(:dig)

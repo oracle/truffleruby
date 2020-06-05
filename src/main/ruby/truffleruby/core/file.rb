@@ -486,9 +486,9 @@ class File < IO
     if first == ?~
       first_char = path[1]
 
-      if first_char == ?/ || first_char.nil?
+      if first_char == ?/ || Primitive.nil?(first_char)
         home = ENV['HOME']
-        raise ArgumentError, "couldn't find HOME environment variable when expanding '~'" if home.nil?
+        raise ArgumentError, "couldn't find HOME environment variable when expanding '~'" if Primitive.nil? home
         raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
       end
 
@@ -789,7 +789,7 @@ class File < IO
     copy = Truffle::Type.coerce_to_path(copy)
     st_c = File::Stat.stat(copy)
 
-    return false if st_o.nil? || st_c.nil?
+    return false if Primitive.nil?(st_o) || Primitive.nil?(st_c)
 
     return false unless st_o.dev == st_c.dev
     return false unless st_o.ino == st_c.ino

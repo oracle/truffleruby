@@ -142,7 +142,7 @@ class Struct
 
       name = self.class.name
 
-      if name.nil? || name.empty?
+      if Primitive.nil?(name) || name.empty?
         "#<struct #{values.join(', ')}>"
       else
         "#<struct #{self.class.name} #{values.join(', ')}>"
@@ -258,7 +258,7 @@ class Struct
     rescue IndexError, NameError
       nil # nothing found with key
     end
-    if result.nil? || more.empty?
+    if Primitive.nil?(result) || more.empty?
       result
     else
       raise TypeError, "#{result.class} does not have #dig method" unless result.respond_to?(:dig)

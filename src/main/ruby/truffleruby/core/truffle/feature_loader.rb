@@ -201,7 +201,7 @@ module Truffle
 
     # Done this way to avoid many duplicate Strings representing the file extensions
     def self.extension_symbol(path)
-      if !path.nil?
+      if !Primitive.nil?(path)
         if path.end_with?('.rb')
           :rb
         elsif path.end_with?('.so')
@@ -219,7 +219,7 @@ module Truffle
 
     # Done this way to avoid many duplicate Strings representing the file extensions
     def self.extension(path)
-      if !path.nil?
+      if !Primitive.nil?(path)
         if path.end_with?('.rb')
           '.rb'
         elsif path.end_with?('.so')

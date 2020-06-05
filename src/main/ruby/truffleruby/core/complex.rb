@@ -67,7 +67,7 @@ class Complex < Numeric
       return real
     end
 
-    if imag.nil?
+    if Primitive.nil? imag
       if real.kind_of?(Numeric) && !real.real?
         return real
       elsif !real.kind_of?(Numeric)
@@ -83,7 +83,7 @@ class Complex < Numeric
       return real + imag * Complex.new(0, 1)
     end
 
-    if !imag.nil? && !raise_exception && !Primitive.object_kind_of?(imag, Integer) &&
+    if !Primitive.nil?(imag) && !raise_exception && !Primitive.object_kind_of?(imag, Integer) &&
         !Primitive.object_kind_of?(imag, Float) && !Primitive.object_kind_of?(imag, Rational)
       return nil
     end

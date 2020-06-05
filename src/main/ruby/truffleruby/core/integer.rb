@@ -159,7 +159,7 @@ class Integer < Numeric
     if Primitive.undefined? enc
       if 0xff < self
         enc = Encoding.default_internal
-        if enc.nil?
+        if Primitive.nil? enc
           raise RangeError, "#{self} is outside of the valid character range"
         end
       elsif self < 0x80

@@ -120,7 +120,7 @@ class Encoding
   end
 
   def self.default_external=(enc)
-    raise ArgumentError, 'default external encoding cannot be nil' if enc.nil?
+    raise ArgumentError, 'default external encoding cannot be nil' if Primitive.nil? enc
 
     enc = find(enc)
     set_alias_index 'external', enc
@@ -130,7 +130,7 @@ class Encoding
   end
 
   def self.default_internal=(enc)
-    enc = find(enc) unless enc.nil?
+    enc = find(enc) unless Primitive.nil? enc
     set_alias_index 'internal', enc
     @default_internal = enc
     Primitive.encoding_set_default_internal enc
