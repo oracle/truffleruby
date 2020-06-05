@@ -393,15 +393,6 @@ module Truffle
       to_array(array)
     end
 
-    def self.is_java_map?(object)
-      begin
-        java?(object) and object.is_a?(::Java.type('java.util.Map'))
-      rescue RuntimeError
-        false # Access to host class java.util.Map is not allowed or does not exist. (HostLanguageException)
-      end
-    end
-    private_class_method :is_java_map?
-
     def self.pairs_from_java_map(map)
       enumerable(map.entrySet.toArray).map do |key_value|
         [key_value.getKey, key_value.getValue]

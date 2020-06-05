@@ -11,6 +11,7 @@ package org.truffleruby.interop;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -35,6 +36,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
+import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -1254,23 +1256,28 @@ public abstract class InteropNodes {
 
     @CoreMethod(names = "java?", onSingleton = true, required = 1)
     public abstract static class InteropIsJavaNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected boolean isJava(Object value) {
             return getContext().getEnv().isHostObject(value);
         }
-
     }
 
     @CoreMethod(names = "java_class?", onSingleton = true, required = 1)
     public abstract static class InteropIsJavaClassNode extends CoreMethodArrayArgumentsNode {
-
         @Specialization
         protected boolean isJavaClass(Object value) {
             return getContext().getEnv().isHostObject(value) &&
                     getContext().getEnv().asHostObject(value) instanceof Class;
         }
+    }
 
+    @CoreMethod(names = "is_java_map?", onSingleton = true, visibility = Visibility.PRIVATE, required = 1)
+    public abstract static class InteropIsJavaMapNode extends CoreMethodArrayArgumentsNode {
+        @Specialization
+        protected boolean isJavaMap(Object value) {
+            return getContext().getEnv().isHostObject(value) &&
+                    getContext().getEnv().asHostObject(value) instanceof Map;
+        }
     }
 
     @CoreMethod(names = "meta_object", onSingleton = true, required = 1)
