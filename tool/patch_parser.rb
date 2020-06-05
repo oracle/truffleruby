@@ -144,7 +144,7 @@ open("#{yytable_prefix}YyTables.java", "w") { |f|
  * and other provisions required by the GPL or the LGPL. If you do not delete
  * the provisions above, a recipient may use your version of this file under
  * the terms of any one of the EPL, the GPL or the LGPL.
- ***** END LICENSE BLOCK *****/          
+ ***** END LICENSE BLOCK *****/
 package #{package};
 
 // @formatter:off
