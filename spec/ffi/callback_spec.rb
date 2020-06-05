@@ -309,6 +309,15 @@ module CallbackSpecs
       expect(s2[:f32]).to be_within(0.0000001).of 1.234567
     end
 
+    it "returning :string is rejected as typedef" do
+      expect {
+        Module.new do
+          extend FFI::Library
+          ffi_lib TestLibrary::PATH
+          callback :cbVrA, [], :string
+        end
+      }.to raise_error(TypeError)
+    end
 
     it "global variable" do
       proc = Proc.new { 0x1e }

@@ -228,7 +228,11 @@ module FFI
 
       def callback(params, ret)
         mod = enclosing_module
-        FFI::CallbackInfo.new(find_type(ret, mod), params.map { |e| find_type(e, mod) })
+        ret_type = find_type(ret, mod)
+        if ret_type == Type::STRING
+          raise TypeError, ":string is not allowed as return type of callbacks"
+        end
+        FFI::CallbackInfo.new(ret_type, params.map { |e| find_type(e, mod) })
       end
 
       def packed(packed = 1)
