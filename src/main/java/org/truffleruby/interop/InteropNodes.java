@@ -57,6 +57,7 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -1380,6 +1381,17 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(asString)")
         protected Object loggingForeignObject(DynamicObject asString) {
             return new LoggingForeignObject(StringOperations.getString(asString));
+        }
+
+    }
+
+    @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1)
+    public abstract static class ProxyForeignObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected TruffleObject proxyForeignObject(Object delegate) {
+            return new ProxyForeignObject(delegate);
         }
 
     }

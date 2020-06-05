@@ -8,6 +8,7 @@ New features:
 * `foreign_object.to_s` now uses `InteropLibrary#toDisplayString()` (and still `asString()` if `isString()`).
 * `foreign_object.inspect` has been improved to be more useful (include the language and meta object).
 * `foreign_object.class` now calls `getMetaObject()` (except for Java classes, same as before).
+* `foreign_object.name = value` will now call `Interoplibrary#writeMember("name", value)` instead of `invokeMember("name=", value)`.
 
 Bug fixes:
 
