@@ -10,6 +10,7 @@
 package org.truffleruby;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
@@ -21,6 +22,7 @@ import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.debug.LexicalScope;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyEvalInteractiveRootNode;
 import org.truffleruby.language.RubyInlineParsingRequestNode;
 import org.truffleruby.language.RubyParsingRequestNode;
 import org.truffleruby.platform.Platform;
@@ -178,16 +180,23 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     @Override
     protected RootCallTarget parse(ParsingRequest request) {
-        return Truffle.getRuntime().createCallTarget(
-                new RubyParsingRequestNode(
-                        this,
-                        request.getSource(),
-                        request.getArgumentNames().toArray(StringUtils.EMPTY_STRING_ARRAY)));
+        if (request.getSource().isInteractive()) {
+            return Truffle.getRuntime().createCallTarget(new RubyEvalInteractiveRootNode(this, request.getSource()));
+        } else {
+            final RubyContext context = Objects.requireNonNull(getCurrentContext());
+            return Truffle.getRuntime().createCallTarget(
+                    new RubyParsingRequestNode(
+                            this,
+                            context,
+                            request.getSource(),
+                            request.getArgumentNames().toArray(StringUtils.EMPTY_STRING_ARRAY)));
+        }
     }
 
     @Override
     protected ExecutableNode parse(InlineParsingRequest request) {
-        return new RubyInlineParsingRequestNode(this, request.getSource(), request.getFrame());
+        final RubyContext context = Objects.requireNonNull(getCurrentContext());
+        return new RubyInlineParsingRequestNode(this, context, request.getSource(), request.getFrame());
     }
 
     @SuppressWarnings("deprecation")

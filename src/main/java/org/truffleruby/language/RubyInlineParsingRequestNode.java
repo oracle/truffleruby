@@ -19,11 +19,8 @@ import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorDriver;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -32,69 +29,54 @@ import com.oracle.truffle.api.source.Source;
 
 public class RubyInlineParsingRequestNode extends ExecutableNode {
 
-    private final Source source;
-    private final MaterializedFrame currentFrame;
-
-    @CompilationFinal private TruffleLanguage.ContextReference<RubyContext> contextReference;
-    @CompilationFinal private RubyContext cachedContext;
-    @CompilationFinal private InternalMethod method;
+    private final RubyContext context;
+    private final InternalMethod method;
 
     @Child private DirectCallNode callNode;
 
-    public RubyInlineParsingRequestNode(RubyLanguage language, Source source, MaterializedFrame currentFrame) {
+    public RubyInlineParsingRequestNode(
+            RubyLanguage language,
+            RubyContext context,
+            Source source,
+            MaterializedFrame currentFrame) {
         super(language);
-        this.source = source;
-        this.currentFrame = currentFrame;
+        this.context = context;
+
+        final TranslatorDriver translator = new TranslatorDriver(context);
+
+        // We use the current frame as the lexical scope to parse, but then we may run with a new frame in the future
+
+        final RubyRootNode rootNode = translator.parse(
+                new RubySource(source, RubyContext.getPath(source)),
+                ParserContext.INLINE,
+                null,
+                currentFrame,
+                null,
+                false,
+                null);
+
+        final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
+
+        callNode = insert(Truffle.getRuntime().createDirectCallNode(callTarget));
+        callNode.forceInlining();
+
+        final SharedMethodInfo sharedMethodInfo = rootNode.getSharedMethodInfo();
+        this.method = new InternalMethod(
+                context,
+                sharedMethodInfo,
+                sharedMethodInfo.getLexicalScope(),
+                DeclarationContext.topLevel(context),
+                sharedMethodInfo.getName(),
+                context.getCoreLibrary().objectClass,
+                Visibility.PUBLIC,
+                callTarget);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (contextReference == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            contextReference = lookupContextReference(RubyLanguage.class);
-        }
-        final RubyContext context = contextReference.get();
-
-        if (cachedContext == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            cachedContext = context;
-        }
-
-        if (callNode == null || context != cachedContext) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-
-            final TranslatorDriver translator = new TranslatorDriver(context);
-
-            // We use the current frame as the lexical scope to parse, but then we may run with a new frame in the future
-
-            final RubyRootNode rootNode = translator.parse(
-                    new RubySource(source, RubyContext.getPath(source)),
-                    ParserContext.INLINE,
-                    null,
-                    currentFrame,
-                    null,
-                    false,
-                    null);
-
-            final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
-
-            callNode = insert(Truffle.getRuntime().createDirectCallNode(callTarget));
-            callNode.forceInlining();
-
-            final SharedMethodInfo sharedMethodInfo = rootNode.getSharedMethodInfo();
-            method = new InternalMethod(
-                    context,
-                    sharedMethodInfo,
-                    sharedMethodInfo.getLexicalScope(),
-                    DeclarationContext.topLevel(context),
-                    sharedMethodInfo.getName(),
-                    context.getCoreLibrary().objectClass,
-                    Visibility.PUBLIC,
-                    callTarget);
-        }
+        assert RubyLanguage.getCurrentContext() == context;
 
         // We run the Ruby code as if it was written in a block
-
         final Object[] arguments = RubyArguments.pack(
                 frame.materialize(),
                 null,
