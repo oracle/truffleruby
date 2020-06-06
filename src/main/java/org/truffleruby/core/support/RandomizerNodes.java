@@ -46,6 +46,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -60,14 +61,14 @@ import com.oracle.truffle.api.object.DynamicObject;
 public abstract class RandomizerNodes {
 
     public static DynamicObject newRandomizer(RubyContext context) {
-        final BigInteger seed = RandomizerGenSeedNode.randomSeedBigInteger(context);
-        final Randomizer randomizer = RandomizerSetSeedPrimitiveNode.randomFromBigInteger(seed);
+        final DynamicObject seed = RandomizerGenSeedNode.randomSeedBignum(context);
+        final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
         return Layouts.RANDOMIZER.createRandomizer(context.getCoreLibrary().randomizerFactory, randomizer);
     }
 
     public static void resetSeed(RubyContext context, DynamicObject random) {
-        final BigInteger seed = RandomizerGenSeedNode.randomSeedBigInteger(context);
-        final Randomizer randomizer = RandomizerSetSeedPrimitiveNode.randomFromBigInteger(seed);
+        final DynamicObject seed = RandomizerGenSeedNode.randomSeedBignum(context);
+        final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
         Layouts.RANDOMIZER.setRandomizer(random, randomizer);
     }
 
@@ -81,30 +82,49 @@ public abstract class RandomizerNodes {
 
     }
 
-    @Primitive(name = "randomizer_set_seed")
-    public static abstract class RandomizerSetSeedPrimitiveNode extends PrimitiveArrayArgumentsNode {
-
-        @Specialization(guards = "isRubyBignum(seed)")
-        protected DynamicObject randomizerSeed(DynamicObject randomizer, DynamicObject seed) {
-            Layouts.RANDOMIZER.setRandomizer(randomizer, randomFromBigInteger(Layouts.BIGNUM.getValue(seed)));
-            return randomizer;
-        }
+    @CoreMethod(names = "seed")
+    public static abstract class RandomizerSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject randomizerSeed(DynamicObject randomizer, long seed) {
+        protected Object seed(DynamicObject randomizer) {
+            return Layouts.RANDOMIZER.getRandomizer(randomizer).getSeed();
+        }
+
+    }
+
+    @CoreMethod(names = "seed=", required = 1)
+    public static abstract class RandomizerSetSeedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected DynamicObject setSeed(DynamicObject randomizer, long seed) {
             Layouts.RANDOMIZER.setRandomizer(randomizer, randomFromLong(seed));
             return randomizer;
         }
 
+        @Specialization(guards = "isRubyBignum(seed)")
+        protected DynamicObject setSeed(DynamicObject randomizer, DynamicObject seed) {
+            Layouts.RANDOMIZER.setRandomizer(randomizer, randomFromBignum(seed));
+            return randomizer;
+        }
+
         @TruffleBoundary
-        protected static Randomizer randomFromLong(long seed) {
-            return Randomizer.randomFromLong(seed);
+        public static Randomizer randomFromLong(long seed) {
+            long v = Math.abs(seed);
+            if (v == (v & 0xffffffffL)) {
+                return new Randomizer(seed, (int) v);
+            } else {
+                int[] ints = new int[2];
+                ints[0] = (int) v;
+                ints[1] = (int) (v >> 32);
+                return new Randomizer(seed, ints);
+            }
         }
 
         public static int N = 624;
 
         @TruffleBoundary
-        public static Randomizer randomFromBigInteger(BigInteger big) {
+        public static Randomizer randomFromBignum(DynamicObject seed) {
+            BigInteger big = Layouts.BIGNUM.getValue(seed);
             if (big.signum() < 0) {
                 big = big.abs();
             }
@@ -116,9 +136,9 @@ public abstract class RandomizerNodes {
             int len = Math.min((buflen + 3) / 4, N);
             int[] ints = bigEndianToInts(buf, len);
             if (len <= 1) {
-                return new Randomizer(ints[0]);
+                return new Randomizer(seed, ints[0]);
             } else {
-                return new Randomizer(ints);
+                return new Randomizer(seed, ints);
             }
         }
 
@@ -300,16 +320,16 @@ public abstract class RandomizerNodes {
 
         @Specialization
         protected DynamicObject generateSeed() {
-            final BigInteger seed = randomSeedBigInteger(getContext());
-            return createBignum(seed);
+            return randomSeedBignum(getContext());
         }
 
         private static final int DEFAULT_SEED_CNT = 4;
 
         @TruffleBoundary
-        public static BigInteger randomSeedBigInteger(RubyContext context) {
+        public static DynamicObject randomSeedBignum(RubyContext context) {
             byte[] seed = context.getRandomSeedBytes(DEFAULT_SEED_CNT * 4);
-            return new BigInteger(seed).abs();
+            final BigInteger bigInteger = new BigInteger(seed).abs();
+            return BignumOperations.createBignum(context, bigInteger);
         }
 
     }

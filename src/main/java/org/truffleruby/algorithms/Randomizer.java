@@ -37,24 +37,26 @@ public class Randomizer {
     private final int[] state = new int[N];
 
     private int left = 1;
+    private final Object seed;
 
     public Randomizer() {
+        this(0L, 0);
     }
 
-    public Randomizer(int s) {
+    public Randomizer(Object seed, int s) {
+        this.seed = seed;
         state[0] = s;
         for (int j = 1; j < N; j++) {
             state[j] = (1812433253 * (state[j - 1] ^ (state[j - 1] >>> 30)) + j);
         }
-        left = 1;
     }
 
-    public Randomizer(int[] initKey) {
-        this(19650218);
+    public Randomizer(Object seed, int[] initKey) {
+        this(seed, 19650218);
         int len = initKey.length;
         int i = 1;
         int j = 0;
-        int k = N > len ? N : len;
+        int k = Math.max(N, len);
         for (; k > 0; k--) {
             state[i] = (state[i] ^ ((state[i - 1] ^ (state[i - 1] >>> 30)) * 1664525)) + initKey[j] + j;
             i++;
@@ -78,16 +80,8 @@ public class Randomizer {
         state[0] = 0x80000000;
     }
 
-    public static Randomizer randomFromLong(long seed) {
-        long v = Math.abs(seed);
-        if (v == (v & 0xffffffffL)) {
-            return new Randomizer((int) v);
-        } else {
-            int[] ints = new int[2];
-            ints[0] = (int) v;
-            ints[1] = (int) (v >> 32);
-            return new Randomizer(ints);
-        }
+    public Object getSeed() {
+        return seed;
     }
 
     public int genrandInt32() {
@@ -116,14 +110,14 @@ public class Randomizer {
         left = N;
 
         for (int j = N - M + 1; --j > 0; p++) {
-            state[p] = state[p + M] ^ twist(state[p + 0], state[p + 1]);
+            state[p] = state[p + M] ^ twist(state[p], state[p + 1]);
         }
 
         for (int j = M; --j > 0; p++) {
-            state[p] = state[p + M - N] ^ twist(state[p + 0], state[p + 1]);
+            state[p] = state[p + M - N] ^ twist(state[p], state[p + 1]);
         }
 
-        state[p] = state[p + M - N] ^ twist(state[p + 0], state[0]);
+        state[p] = state[p + M - N] ^ twist(state[p], state[0]);
     }
 
     private static int mixbits(int u, int v) {

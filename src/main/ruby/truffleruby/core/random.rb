@@ -31,15 +31,8 @@ class Truffle::Randomizer
     self.seed = generate_seed
   end
 
-  attr_reader :seed
-
-  def seed=(new_seed)
-    Primitive.randomizer_set_seed self, new_seed
-    @seed = new_seed
-  end
-
   def swap_seed(new_seed)
-    old_seed  = self.seed
+    old_seed = self.seed
     self.seed = new_seed
     old_seed
   end
