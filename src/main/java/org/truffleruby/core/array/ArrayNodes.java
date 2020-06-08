@@ -328,7 +328,10 @@ public abstract class ArrayNodes {
                 "length >= 0",
                 "length == getSize(replacement)" })
         @ReportPolymorphism.Exclude
-        protected Object setOtherArraySameLength(DynamicObject array, int start, int length,
+        protected Object setOtherArraySameLength(
+                DynamicObject array,
+                int start,
+                int length,
                 DynamicObject replacement) {
             final int normalizedIndex = normalize(array, start);
 
