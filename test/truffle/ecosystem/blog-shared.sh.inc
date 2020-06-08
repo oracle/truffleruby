@@ -6,7 +6,9 @@ source "$truffle/common.sh.inc"
 alias truffleruby="jt ruby -S"
 
 gem_test_pack_path="$1"
-echo "gem_test_pack_path: $gem_test_pack_path" # TODO
+
+# The Gemfile.lock is renamed to avoid GitHub thinking those gems are dependencies of TruffleRuby
+cp Gemfile.lock.renamed Gemfile.lock
 
 if [ "$gem_test_pack_path" ]; then
   truffleruby bundle config --local cache_path "$gem_test_pack_path/gem-cache"
