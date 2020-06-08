@@ -23,6 +23,7 @@ Bug fixes:
 * The output for `--engine.TraceCompilation` is now significantly easier to read, by having shorter method names and source names (oracle/graal#2052).
 * Fix indentation for squiggly heredoc with single quotes (#1564).
 * Only print members which are readable for foreign `#inspect` (#2027).
+* Fixed the return value of the first call to `Kernel#srand` in a Thread (#2028).
 
 Compatibility:
 
