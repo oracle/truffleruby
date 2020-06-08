@@ -21,7 +21,6 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.BranchProfile;
