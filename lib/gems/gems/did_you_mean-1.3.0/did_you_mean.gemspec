@@ -15,22 +15,18 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/yuki24/did_you_mean".freeze
   s.licenses = ["MIT".freeze]
   s.required_ruby_version = Gem::Requirement.new(">= 2.5.0".freeze)
-  s.rubygems_version = "2.7.6".freeze
+  s.rubygems_version = "3.1.2".freeze
   s.summary = "\"Did you mean?\" experience in Ruby".freeze
   s.test_files = ["test/core_ext/name_error_extension_test.rb".freeze, "test/edit_distance/jaro_winkler_test.rb".freeze, "test/experimental/initializer_name_correction_test.rb".freeze, "test/experimental/method_name_checker_test.rb".freeze, "test/fixtures/book.rb".freeze, "test/spell_checker_test.rb".freeze, "test/spell_checking/class_name_check_test.rb".freeze, "test/spell_checking/key_name_check_test.rb".freeze, "test/spell_checking/method_name_check_test.rb".freeze, "test/spell_checking/uncorrectable_name_check_test.rb".freeze, "test/spell_checking/variable_name_check_test.rb".freeze, "test/test_helper.rb".freeze, "test/verbose_formatter_test.rb".freeze]
 
   if s.respond_to? :specification_version then
     s.specification_version = 4
+  end
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
-      s.add_development_dependency(%q<rake>.freeze, [">= 0"])
-      s.add_development_dependency(%q<minitest>.freeze, [">= 0"])
-    else
-      s.add_dependency(%q<bundler>.freeze, [">= 0"])
-      s.add_dependency(%q<rake>.freeze, [">= 0"])
-      s.add_dependency(%q<minitest>.freeze, [">= 0"])
-    end
+  if s.respond_to? :add_runtime_dependency then
+    s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
+    s.add_development_dependency(%q<rake>.freeze, [">= 0"])
+    s.add_development_dependency(%q<minitest>.freeze, [">= 0"])
   else
     s.add_dependency(%q<bundler>.freeze, [">= 0"])
     s.add_dependency(%q<rake>.freeze, [">= 0"])

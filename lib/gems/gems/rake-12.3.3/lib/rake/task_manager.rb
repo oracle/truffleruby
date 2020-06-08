@@ -60,7 +60,8 @@ module Rake
     end
 
     def generate_message_for_undefined_task(task_name)
-      message = "Don't know how to build task '#{task_name}' (See the list of available tasks with `rake --tasks`)"
+      message = "Don't know how to build task '#{task_name}' "\
+                "(See the list of available tasks with `#{Rake.application.name} --tasks`)"
       message + generate_did_you_mean_suggestions(task_name)
     end
 

@@ -1,15 +1,15 @@
 # -*- encoding: utf-8 -*-
-# stub: rake 12.3.2 ruby lib
+# stub: rake 12.3.3 ruby lib
 
 Gem::Specification.new do |s|
   s.name = "rake".freeze
-  s.version = "12.3.2"
+  s.version = "12.3.3"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 1.3.2".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Hiroshi SHIBATA".freeze, "Eric Hodel".freeze, "Jim Weirich".freeze]
   s.bindir = "exe".freeze
-  s.date = "2018-12-07"
+  s.date = "2019-07-22"
   s.description = "Rake is a Make-like program implemented in Ruby. Tasks and dependencies are\nspecified in standard Ruby syntax.\nRake has the following features:\n  * Rakefiles (rake's version of Makefiles) are completely defined in standard Ruby syntax.\n    No XML files to edit. No quirky Makefile syntax to worry about (is that a tab or a space?)\n  * Users can specify tasks with prerequisites.\n  * Rake supports rule patterns to synthesize implicit tasks.\n  * Flexible FileLists that act like arrays but know about manipulating file names and paths.\n  * Supports parallel execution of tasks.\n".freeze
   s.email = ["hsbt@ruby-lang.org".freeze, "drbrain@segment7.net".freeze, "".freeze]
   s.executables = ["rake".freeze]

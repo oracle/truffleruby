@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib".freeze]
   s.authors = ["Tadayoshi Funaba".freeze]
   s.bindir = "exe".freeze
-  s.date = "2020-05-04"
+  s.date = "2020-06-08"
   s.description = "CMath is a library that provides trigonometric and transcendental functions for complex numbers. The functions in this module accept integers, floating-point numbers or complex numbers as arguments.".freeze
   s.email = [nil]
   s.files = ["cmath.rb".freeze]

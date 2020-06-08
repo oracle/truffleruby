@@ -17,29 +17,21 @@ Gem::Specification.new do |s|
   s.homepage = "https://github.com/k-tsj/power_assert".freeze
   s.licenses = ["2-clause BSDL".freeze, "Ruby's".freeze]
   s.rdoc_options = ["--main".freeze, "README.rdoc".freeze]
-  s.rubygems_version = "2.7.6".freeze
+  s.rubygems_version = "3.1.2".freeze
   s.summary = "Power Assert for Ruby".freeze
 
   if s.respond_to? :specification_version then
     s.specification_version = 4
+  end
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_development_dependency(%q<test-unit>.freeze, [">= 0"])
-      s.add_development_dependency(%q<rake>.freeze, [">= 0"])
-      s.add_development_dependency(%q<simplecov>.freeze, [">= 0"])
-      s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
-      s.add_development_dependency(%q<pry>.freeze, [">= 0"])
-      s.add_development_dependency(%q<byebug>.freeze, [">= 0"])
-      s.add_development_dependency(%q<benchmark-ips>.freeze, [">= 0"])
-    else
-      s.add_dependency(%q<test-unit>.freeze, [">= 0"])
-      s.add_dependency(%q<rake>.freeze, [">= 0"])
-      s.add_dependency(%q<simplecov>.freeze, [">= 0"])
-      s.add_dependency(%q<bundler>.freeze, [">= 0"])
-      s.add_dependency(%q<pry>.freeze, [">= 0"])
-      s.add_dependency(%q<byebug>.freeze, [">= 0"])
-      s.add_dependency(%q<benchmark-ips>.freeze, [">= 0"])
-    end
+  if s.respond_to? :add_runtime_dependency then
+    s.add_development_dependency(%q<test-unit>.freeze, [">= 0"])
+    s.add_development_dependency(%q<rake>.freeze, [">= 0"])
+    s.add_development_dependency(%q<simplecov>.freeze, [">= 0"])
+    s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
+    s.add_development_dependency(%q<pry>.freeze, [">= 0"])
+    s.add_development_dependency(%q<byebug>.freeze, [">= 0"])
+    s.add_development_dependency(%q<benchmark-ips>.freeze, [">= 0"])
   else
     s.add_dependency(%q<test-unit>.freeze, [">= 0"])
     s.add_dependency(%q<rake>.freeze, [">= 0"])
