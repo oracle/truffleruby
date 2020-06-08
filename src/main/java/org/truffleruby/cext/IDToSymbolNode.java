@@ -30,7 +30,7 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
         return IDToSymbolNodeGen.create();
     }
 
-    @Specialization(guards = { "value >= 0", "value <= 0xff" })
+    @Specialization(guards = "isSingleCharSymbol(value)")
     protected Object unwrapSingleCharUncached(long value,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached BranchProfile profile) {
