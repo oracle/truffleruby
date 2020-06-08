@@ -2,6 +2,7 @@
 
 New features:
 
+* Updated to Ruby 2.6.6.
 * Use `InteropLibrary#toDisplayString()` to better display objects from other languages.
 * Implement writing to the top scope for global variables (#2024).
 * `foreign_object.to_s` now uses `InteropLibrary#toDisplayString()` (and still `asString()` if `isString()`).

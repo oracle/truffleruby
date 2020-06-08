@@ -19,7 +19,7 @@ describe "The launcher" do
     bundler: /^Bundler version #{Regexp.escape @versions['gems']['default']['bundler']}$/,
     gem: /^#{Regexp.escape @versions['gems']['default']['gem']}$/,
     irb: /^irb #{Regexp.escape @versions['gems']['default']['irb']}/,
-    rake: /^rake, version #{Regexp.escape @versions['gems']['default']['rake']}/,
+    rake: /^rake, version #{Regexp.escape @versions['gems']['bundled']['rake']}/,
     rdoc: /^#{Regexp.escape @versions['gems']['default']['rdoc']}$/,
     ri: /^ri #{Regexp.escape @versions['gems']['default']['rdoc']}$/,
     ruby: /truffleruby .* like ruby #{Regexp.escape RUBY_VERSION}/,

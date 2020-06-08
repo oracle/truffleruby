@@ -1,6 +1,6 @@
 language: ruby
 
-rvm: 2.6.5
+rvm: 2.6.6
 
 matrix:
   include:

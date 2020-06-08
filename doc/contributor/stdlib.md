@@ -138,6 +138,6 @@ $ cat gems/bundled_gems
 * `minitest` 5.11.3 (test framework)
 * `net-telnet` 0.2.0
 * `power_assert` 1.1.3
-* `rake` 12.3.2 (hybrid bundled gem and standard library)
+* `rake` 12.3.3 (hybrid bundled gem and standard library)
 * `test-unit` 3.2.9 (test framework)
 * `xmlrpc` 0.3.0 (RPC using XML)

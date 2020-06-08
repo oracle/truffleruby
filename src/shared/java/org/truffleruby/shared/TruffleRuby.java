@@ -18,8 +18,8 @@ public class TruffleRuby {
     public static final String MIME_TYPE = "application/x-ruby";
     public static final String EXTENSION = ".rb";
     public static final String ENGINE_ID = "truffleruby";
-    public static final String LANGUAGE_VERSION = "2.6.5";
-    public static final int LANGUAGE_REVISION = 67812;
+    public static final String LANGUAGE_VERSION = "2.6.6";
+    public static final int LANGUAGE_REVISION = 67876;
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2019 Oracle and/or its affiliates";
     public static final boolean PRE_INITIALIZE_CONTEXTS = System

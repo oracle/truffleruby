@@ -294,7 +294,7 @@ module Rake
       matched = 0
       each do |fn|
         begin
-          open(fn, "r", *options) do |inf|
+          File.open(fn, "r", *options) do |inf|
             count = 0
             inf.each do |line|
               count += 1
