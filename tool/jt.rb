@@ -790,7 +790,9 @@ module Commands
         add_experimental_options.call
         vm_args << '--exceptions-print-uncaught-java=true'
       when '--infopoints'
-        vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
+        unless truffleruby_native?
+          vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
+        end
         vm_args << '--vm.Dgraal.TruffleEnableInfopoints=true'
       when '--fg'
         add_experimental_options.call
