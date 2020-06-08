@@ -35,7 +35,7 @@ old patches using the old reference branch.
 
 ```bash
 $ tool/import-mri-files.sh
-$ git diff vNN master | git apply -3
+$ git revert vNN
 ```
 
 You'll usually get some conflicts to work out.
@@ -64,17 +64,11 @@ You will need to copy that file to
 `lib/cext/include/truffleruby/config_linux.h` or
 `lib/cext/include/truffleruby/config_darwin.h`.
 
-## Make other changes
+After that you should clean your MRI source repository with:
 
-* Update `versions.json` and `.ruby-version`
-* Copy and paste `-h` and `--help` output to `RubyLauncher`
-* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
-* Update `doc/user/compatibility.md`
-* Update `doc/legal/legal.md`
-* Update `doc/contributor/stdlib.md`
-* Update method lists - see `spec/truffle/methods_spec.rb`
-* Update `ci.jsonnet` to use the corresponding MRI version for benchmarking
-* Grep for the old version with `git grep -F x.y.z`
+```bash
+git clean -Xdf
+```
 
 ## Update libraries from third-party repos
 
@@ -86,11 +80,15 @@ then copy the original source of `flori/json` into `lib/json`.
 You need a clean install (e.g., no extra gems installed) of MRI for this.
 
 ```
+export TRUFFLERUBY=$(pwd)
 rm -rf lib/gems/gems
-cp -R ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.0/gems lib/gems
-
 rm -rf lib/gems/specifications
-cp -r ~/.rubies/ruby-n.n.n/lib/ruby/gems/n.n.0/specifications lib/gems
+
+cd clean-install-of/ruby-n.n.n
+cp -R lib/ruby/gems/*.0/gems $TRUFFLERUBY/lib/gems
+cp -R lib/ruby/gems/*.0/specifications $TRUFFLERUBY/lib/gems
+
+cd $TRUFFLERUBY
 ruby tool/patch-default-gemspecs.rb
 ```
 
@@ -124,3 +122,17 @@ exec "$(dirname $SELF_PATH)/ruby" "$SELF_PATH" "$@"
 
 # ... the content of the executable
 ```
+
+## Make other changes
+
+In a separate commit, update all of these:
+
+* Update `.ruby-version`, `TruffleRuby.LANGUAGE_VERSION/LANGUAGE_REVISION` and `versions.json`
+* Copy and paste `-h` and `--help` output to `RubyLauncher`
+* Copy and paste the TruffleRuby `--help` output to `doc/user/options.md`
+* Update `doc/user/compatibility.md`
+* Update `doc/legal/legal.md`
+* Update `doc/contributor/stdlib.md`
+* Update method lists - see `spec/truffle/methods_spec.rb`
+* Update `ci.jsonnet` to use the corresponding MRI version for benchmarking
+* Grep for the old version with `git grep -F x.y.z`
