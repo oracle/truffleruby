@@ -2017,13 +2017,12 @@ EOS
         next if File.exist?(link)
         target = File.readlink(link)
         next unless target.start_with?("#{TRUFFLERUBY_DIR}/mxbuild")
-
         File.delete link
-        puts "Deleted old link: #{link} -> #{target}"
+        puts "Deleted broken link: #{link} -> #{target}"
       end
 
       link_path = "#{rubies_dir}/#{name}"
-      File.delete link_path if File.exist? link_path
+      File.delete link_path if File.symlink? link_path or File.exist? link_path
       File.symlink dest_ruby, link_path
     end
   end
