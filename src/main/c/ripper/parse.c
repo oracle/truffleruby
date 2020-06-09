@@ -87,6 +87,9 @@
 #include <ctype.h>
 #include "probes.h"
 
+/* TruffleRuby Parse is compiled as part of ripper so we undefine RIPPER.  */
+#undef RIPPER
+
 #ifndef WARN_PAST_SCOPE
 # define WARN_PAST_SCOPE 0
 #endif

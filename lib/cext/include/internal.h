@@ -45,6 +45,23 @@ typedef struct rb_imemo_tmpbuf_struct {
     size_t cnt; /* buffer size in VALUE */
 } rb_imemo_tmpbuf_t;
 
+VALUE rb_imemo_tmpbuf_auto_free_pointer(void *buf);
+rb_imemo_tmpbuf_t *rb_imemo_tmpbuf_parser_heap(void *buf, rb_imemo_tmpbuf_t *old_heap, size_t cnt);
+
+#if defined(HAVE_MALLOC_USABLE_SIZE) || defined(HAVE_MALLOC_SIZE) || defined(_WIN32)
+#define ruby_sized_xrealloc(ptr, new_size, old_size) ruby_xrealloc(ptr, new_size)
+#define ruby_sized_xrealloc2(ptr, new_count, element_size, old_count) ruby_xrealloc(ptr, new_count, element_size)
+#define ruby_sized_xfree(ptr, size) ruby_xfree(ptr)
+#define SIZED_REALLOC_N(var,type,n,old_n) REALLOC_N(var, type, n)
+#else
+RUBY_SYMBOL_EXPORT_BEGIN
+void *ruby_sized_xrealloc(void *ptr, size_t new_size, size_t old_size) RUBY_ATTR_ALLOC_SIZE((2));
+void *ruby_sized_xrealloc2(void *ptr, size_t new_count, size_t element_size, size_t old_count) RUBY_ATTR_ALLOC_SIZE((2, 3));
+void ruby_sized_xfree(void *x, size_t size);
+RUBY_SYMBOL_EXPORT_END
+#define SIZED_REALLOC_N(var,type,n,old_n) ((var)=(type*)ruby_sized_xrealloc((char*)(var), (n) * sizeof(type), (old_n) * sizeof(type)))
+#endif
+
 #ifndef IMEMO_DEBUG
 #define IMEMO_DEBUG 0
 #endif
@@ -78,24 +95,95 @@ VALUE rb_imemo_new_debug(enum imemo_type type, VALUE v1, VALUE v2, VALUE v3, VAL
 VALUE rb_imemo_new(enum imemo_type type, VALUE v1, VALUE v2, VALUE v3, VALUE v0);
 #endif
 
-#if defined(HAVE_MALLOC_USABLE_SIZE) || defined(HAVE_MALLOC_SIZE) || defined(_WIN32)
-#define ruby_sized_xrealloc(ptr, new_size, old_size) ruby_xrealloc(ptr, new_size)
-#define ruby_sized_xrealloc2(ptr, new_count, element_size, old_count) ruby_xrealloc(ptr, new_count, element_size)
-#define ruby_sized_xfree(ptr, size) ruby_xfree(ptr)
-#define SIZED_REALLOC_N(var,type,n,old_n) REALLOC_N(var, type, n)
-#else
-RUBY_SYMBOL_EXPORT_BEGIN
-void *ruby_sized_xrealloc(void *ptr, size_t new_size, size_t old_size) RUBY_ATTR_ALLOC_SIZE((2));
-void *ruby_sized_xrealloc2(void *ptr, size_t new_count, size_t element_size, size_t old_count) RUBY_ATTR_ALLOC_SIZE((2, 3));
-void ruby_sized_xfree(void *x, size_t size);
-RUBY_SYMBOL_EXPORT_END
-#define SIZED_REALLOC_N(var,type,n,old_n) ((var)=(type*)ruby_sized_xrealloc((char*)(var), (n) * sizeof(type), (old_n) * sizeof(type)))
-#endif
-
-
 VALUE rb_ident_hash_new(void);
 
 extern unsigned long ruby_scan_digits(const char *str, ssize_t len, int base, size_t *retlen, int *overflow);
 
+struct rb_global_entry {
+    struct rb_global_variable *var;
+    ID id;
+};
+
+struct rb_global_entry *rb_global_entry(ID);
+
+/* A macro for defining a flexible array, like: VALUE ary[FLEX_ARY_LEN]; */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+# define FLEX_ARY_LEN   /* VALUE ary[]; */
+#elif defined(__GNUC__) && !defined(__STRICT_ANSI__)
+# define FLEX_ARY_LEN 0 /* VALUE ary[0]; */
+#else
+# define FLEX_ARY_LEN 1 /* VALUE ary[1]; */
+#endif
+
+#define BIGNUM_SIGN_BIT ((VALUE)FL_USER1)
+#define BIGNUM_NEGATE(b) (RBASIC(b)->flags ^= BIGNUM_SIGN_BIT)
+
+struct RRational {
+    struct RBasic basic;
+    const VALUE num;
+    const VALUE den;
+};
+
+#define RRATIONAL(obj) (R_CAST(RRational)(obj))
+#define RRATIONAL_SET_NUM(rat, n) RB_OBJ_WRITE((rat), &((struct RRational *)(rat))->num,(n))
+
+struct RFloat {
+    struct RBasic basic;
+    double float_value;
+};
+
+#define RFLOAT(obj)  (R_CAST(RFloat)(obj))
+
+struct RComplex {
+    struct RBasic basic;
+    const VALUE real;
+    const VALUE imag;
+};
+
+#define RCOMPLEX(obj) (R_CAST(RComplex)(obj))
+
+#define RCOMPLEX_SET_REAL(cmp, r) RB_OBJ_WRITE((cmp), &((struct RComplex *)(cmp))->real,(r))
+#define RCOMPLEX_SET_IMAG(cmp, i) RB_OBJ_WRITE((cmp), &((struct RComplex *)(cmp))->imag,(i))
+
+/* re.c */
+VALUE rb_reg_compile(VALUE str, int options, const char *sourcefile, int sourceline);
+VALUE rb_reg_check_preprocess(VALUE);
+
+/* compile.c */
+struct rb_block;
+int rb_dvar_defined(ID, const struct rb_block *);
+int rb_local_defined(ID, const struct rb_block *);
+
+/* io.c */
+int rb_stderr_tty_p(void);
+
+/* error.c */
+extern VALUE rb_eEAGAIN;
+extern VALUE rb_eEWOULDBLOCK;
+extern VALUE rb_eEINPROGRESS;
+void rb_report_bug_valist(VALUE file, int line, const char *fmt, va_list args);
+VALUE rb_check_backtrace(VALUE);
+NORETURN(void rb_async_bug_errno(const char *,int));
+const char *rb_builtin_type_name(int t);
+const char *rb_builtin_class_name(VALUE x);
+PRINTF_ARGS(void rb_sys_warn(const char *fmt, ...), 1, 2);
+PRINTF_ARGS(void rb_syserr_warn(int err, const char *fmt, ...), 2, 3);
+PRINTF_ARGS(void rb_sys_warning(const char *fmt, ...), 1, 2);
+PRINTF_ARGS(void rb_syserr_warning(int err, const char *fmt, ...), 2, 3);
+#ifdef RUBY_ENCODING_H
+VALUE rb_syntax_error_append(VALUE, VALUE, int, int, rb_encoding*, const char*, va_list);
+PRINTF_ARGS(void rb_enc_warn(rb_encoding *enc, const char *fmt, ...), 2, 3);
+PRINTF_ARGS(void rb_sys_enc_warn(rb_encoding *enc, const char *fmt, ...), 2, 3);
+PRINTF_ARGS(void rb_syserr_enc_warn(int err, rb_encoding *enc, const char *fmt, ...), 3, 4);
+PRINTF_ARGS(void rb_enc_warning(rb_encoding *enc, const char *fmt, ...), 2, 3);
+PRINTF_ARGS(void rb_sys_enc_warning(rb_encoding *enc, const char *fmt, ...), 2, 3);
+PRINTF_ARGS(void rb_syserr_enc_warning(int err, rb_encoding *enc, const char *fmt, ...), 3, 4);
+#endif
+
+/* symbol.c */
+VALUE rb_sym_intern_ascii_cstr(const char *ptr);
+
+/* thread.c */
+VALUE rb_suppress_tracing(VALUE (*func)(VALUE), VALUE arg);
 
 #endif /* RUBY_INTERNAL_H */
