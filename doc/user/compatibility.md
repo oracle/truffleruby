@@ -68,7 +68,6 @@ The following standard libraries are unsupported.
 * `io/console` (partially implemented, could be implemented in the future)
 * `io/wait` (partially implemented, could be implemented in the future)
 * `pty` (could be implemented in the future)
-* `ripper` (has a no-op implementation, and could be implemented in the future)
 * `win32`
 * `win32ole`
 
