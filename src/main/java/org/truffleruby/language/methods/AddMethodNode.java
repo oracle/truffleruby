@@ -45,26 +45,21 @@ public abstract class AddMethodNode extends RubyContextNode {
             visibility = Visibility.PRIVATE;
         }
 
-        if (Layouts.MODULE.getFields(module).isRefinement()) {
-            final DynamicObject refinedModule = Layouts.MODULE.getFields(module).getRefinedModule();
-            addRefinedMethodEntry(refinedModule, method, visibility);
-        }
-
         doAddMethod(module, method, visibility);
     }
 
-    @TruffleBoundary
-    private void addRefinedMethodEntry(DynamicObject module, InternalMethod method, Visibility visibility) {
-        final MethodLookupResult result = ModuleOperations.lookupMethodCached(module, method.getName(), null);
-        final InternalMethod originalMethod = result.getMethod();
-        if (originalMethod == null) {
-            doAddMethod(module, method.withRefined(true).withOriginalMethod(null), visibility);
-        } else if (originalMethod.isRefined()) {
-            // Already marked as refined
-        } else {
-            doAddMethod(module, originalMethod.withRefined(true).withOriginalMethod(originalMethod), visibility);
-        }
-    }
+    //    @TruffleBoundary
+    //    private void addRefinedMethodEntry(DynamicObject module, InternalMethod method, Visibility visibility) {
+    //        final MethodLookupResult result = ModuleOperations.lookupMethodCached(module, method.getName(), null);
+    //        final InternalMethod originalMethod = result.getMethod();
+    //        if (originalMethod == null) {
+    //            doAddMethod(module, method.withRefined(true).withOriginalMethod(null), visibility);
+    //        } else if (originalMethod.isRefined()) {
+    //            // Already marked as refined
+    //        } else {
+    //            doAddMethod(module, originalMethod.withRefined(true).withOriginalMethod(originalMethod), visibility);
+    //        }
+    //    }
 
     private void doAddMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
         if (visibility == Visibility.MODULE_FUNCTION) {
