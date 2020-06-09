@@ -326,26 +326,6 @@ public abstract class ArrayNodes {
                 "isRubyArray(replacement)",
                 "array != replacement",
                 "length >= 0",
-                "length == getSize(replacement)" })
-        @ReportPolymorphism.Exclude
-        protected Object setOtherArraySameLength(
-                DynamicObject array,
-                int start,
-                int length,
-                DynamicObject replacement) {
-            final int normalizedIndex = normalize(array, start);
-
-            for (int i = 0; i < length; i++) {
-                writeNode.executeWrite(array, normalizedIndex + i, read(replacement, i));
-            }
-            return replacement;
-        }
-
-        @Specialization(guards = {
-                "isRubyArray(replacement)",
-                "array != replacement",
-                "length >= 0",
-                "length != getSize(replacement)",
                 "!moveNeeded(rawStart, length, array)" })
         protected Object setNoMove(DynamicObject array, int rawStart, int length, DynamicObject replacement,
                 @Cached ConditionProfile emptyReplacementProfile,
@@ -383,7 +363,6 @@ public abstract class ArrayNodes {
                 "isRubyArray(replacement)",
                 "array != replacement",
                 "length >= 0",
-                "length != getSize(replacement)",
                 "moveNeeded(rawStart, length, array)" })
         protected Object setWithMove(DynamicObject array, int rawStart, int length, DynamicObject replacement,
                 @Cached ConditionProfile emptyProfile,
