@@ -221,21 +221,36 @@ local part_definitions = {
   },
 
   platform: {
-    linux: common.sulong.deps.linux + {
-      platform_name:: "Linux",
+    local linux_deps = common.sulong.deps.linux + {
+      packages+: {
+        git: ">=1.8.3",
+        mercurial: ">=3.2.4",
+        ruby: ">=" + mri_version,
+        binutils: ">=2.30",
+      },
+    },
+
+    linux: linux_deps + {
+      platform_name:: "LinuxAMD64",
+      platform: "linux",
+      arch:: "amd64",
       "$.cap":: {
         normal_machine: ["linux", "amd64"],
         bench_machine: ["x52"] + self.normal_machine + ["no_frequency_scaling"],
       },
-      packages+: {
-        git: ">=1.8.3",
-        mercurial: ">=3.2.4",
-        ruby: "==" + mri_version,
-        binutils: ">=2.30",
+    },
+    linux_arm64: linux_deps + {
+      platform_name:: "LinuxARM64",
+      platform: "linux",
+      arch:: "aarch64",
+      "$.cap":: {
+        normal_machine: ["linux", "aarch64"],
       },
     },
     darwin: common.sulong.deps.darwin + {
-      platform_name:: "Darwin",
+      platform_name:: "DarwinAMD64",
+      platform: "darwin",
+      arch:: "amd64",
       "$.cap":: {
         normal_machine: ["darwin_mojave", "amd64"],
       },
@@ -339,7 +354,7 @@ local part_definitions = {
         ["set-export", "CC", "$TOOLCHAIN_PATH/clang"],
         ["set-export", "CXX", "$TOOLCHAIN_PATH/clang++"],
         # for finding libc++
-        ["set-export", "LD_LIBRARY_PATH", "$BUILD_DIR/graal/sulong/mxbuild/linux-amd64/SULONG_HOME/native/lib:$LD_LIBRARY_PATH"],
+        ["set-export", "LD_LIBRARY_PATH", "$BUILD_DIR/graal/sulong/mxbuild/" + self.platform + "-" + self.arch + "/SULONG_HOME/native/lib:$LD_LIBRARY_PATH"],
       ],
       run+: [
         ["ruby", "tool/generate-native-config.rb"],
@@ -466,6 +481,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "40:00" },
       "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-fast-linux-arm64":  $.platform.linux_arm64 + $.jdk.v11 + $.env.jvm + gate + $.run.test_fast + native_config + { timelimit: "30:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "40:00" },
       "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
@@ -634,10 +650,11 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     },
 
   manual_builds: {
-    local shared = $.jdk.v8 + $.use.common + $.cap.manual + { timelimit: "5:00" },
+    local shared = $.use.common + $.cap.manual + { timelimit: "10:00" },
 
-    "ruby-generate-native-config-linux": $.platform.linux + shared + $.run.generate_native_config,
-    "ruby-generate-native-config-darwin": $.platform.darwin + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux": $.platform.linux + $.jdk.v8 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-linux-arm64": $.platform.linux_arm64 + $.jdk.v11 + shared + $.run.generate_native_config,
+    "ruby-generate-native-config-darwin": $.platform.darwin + $.jdk.v8 + shared + $.run.generate_native_config,
   },
 
   builds:
