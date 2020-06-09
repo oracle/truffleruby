@@ -598,8 +598,8 @@ module Commands
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
           --reveal        enable assertions, show core Ruby files in backtrace
           --asm           show assembly
-          --igv           make sure IGV is running and dump Graal graphs after partial escape
-          --igv-full      show all phases, not just up to the Truffle partial escape
+          --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
+          --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2)
           --infopoints    show source location for each node in IGV
           --fg            disable background compilation
           --trace         show compilation information on stdout
@@ -790,8 +790,10 @@ module Commands
         add_experimental_options.call
         vm_args << '--exceptions-print-uncaught-java=true'
       when '--infopoints'
-        vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
-        vm_args << '--vm.Dgraal.TruffleEnableInfopoints=true'
+        unless truffleruby_native?
+          vm_args << '--vm.XX:+UnlockDiagnosticVMOptions' << '--vm.XX:+DebugNonSafepoints'
+        end
+        vm_args << '--engine.NodeSourcePositions=true'
       when '--fg'
         add_experimental_options.call
         vm_args << '--engine.BackgroundCompilation=false'
@@ -1788,7 +1790,9 @@ EOS
       vm_args << '--engine.CompilationFailureAction=ExitVM'
       vm_args << '--engine.TreatPerformanceWarningsAsErrors=all'
     end
-    run_ruby(*vm_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
+
+    args, ruby_args = args_split(args)
+    run_ruby(*vm_args, *ruby_args, "#{TRUFFLERUBY_DIR}/bench/benchmark", *args, use_exec: true)
   end
 
   def profile(*args)
@@ -2017,13 +2021,12 @@ EOS
         next if File.exist?(link)
         target = File.readlink(link)
         next unless target.start_with?("#{TRUFFLERUBY_DIR}/mxbuild")
-
         File.delete link
-        puts "Deleted old link: #{link} -> #{target}"
+        puts "Deleted broken link: #{link} -> #{target}"
       end
 
       link_path = "#{rubies_dir}/#{name}"
-      File.delete link_path if File.exist? link_path
+      File.delete link_path if File.symlink? link_path or File.exist? link_path
       File.symlink dest_ruby, link_path
     end
   end
