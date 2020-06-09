@@ -121,6 +121,14 @@ describe "The launcher" do
     end
   end
 
+  ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
+    it "should recognize ruby --vm options in #{var}" do
+      out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "--vm.Dfoo=bar" })
+      out.should == 'bar'
+      $?.success?.should == true
+    end
+  end
+
   def should_print_full_java_command(options, env: {})
     out = ruby_exe(nil, options: options, env: env)
     parts = out.split(' ')
