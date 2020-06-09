@@ -9,10 +9,24 @@ int rb_type(VALUE value) {
 }
 
 bool RB_TYPE_P(VALUE value, int type) {
+  if(value == Qundef){
+    return 0;
+  }
+
+  // Ripper uses RB_TYPE_P to check NODE* values for T_NODE
+  if(type == T_NODE && rb_tr_is_native_object(value)){
+    return RB_BUILTIN_TYPE_NATIVE(value) == type;
+  }
+
   return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "RB_TYPE_P", rb_tr_unwrap(value), type));
 }
 
 int rb_special_const_p(VALUE object) {
+  // Ripper calls this from add_mark_object
+  if(rb_tr_is_native_object(object)){
+    return 0;
+  }
+
   return polyglot_as_boolean(RUBY_CEXT_INVOKE_NO_WRAP("rb_special_const_p", object));
 }
 

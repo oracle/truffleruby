@@ -14,6 +14,12 @@ VALUE rb_reg_new(const char *s, long len, int options) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_reg_new", rb_tr_unwrap(rb_str_new(s, len)), options));
 }
 
+VALUE rb_reg_compile(VALUE str, int options, const char *sourcefile, int sourceline)
+{
+  // TODO BJF May-29-2020 implement sourcefile, sourceline
+  return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_reg_new", rb_tr_unwrap(str), options));
+}
+
 VALUE rb_reg_new_str(VALUE s, int options) {
   return rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_reg_new_str", rb_tr_unwrap(s), options));
 }

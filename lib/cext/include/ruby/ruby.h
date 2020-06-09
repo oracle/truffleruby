@@ -593,6 +593,10 @@ enum ruby_value_type {
 #define BUILTIN_TYPE(x) RB_BUILTIN_TYPE(x)
 
 #ifdef TRUFFLERUBY
+#define RB_BUILTIN_TYPE_NATIVE(x) (int)(((struct RBasic*)(x))->flags & RUBY_T_MASK)
+#endif
+
+#ifdef TRUFFLERUBY
 int rb_type(VALUE value);
 #else
 static inline int rb_type(VALUE obj);

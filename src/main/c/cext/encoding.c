@@ -376,3 +376,56 @@ int rb_tr_code_to_mbc(OnigCodePoint code, UChar *buf, OnigEncoding enc) {
    }
    return result_len;
 }
+
+#define ARG_ENCODING_FIXED    16
+#define ARG_ENCODING_NONE     32
+
+static int
+char_to_option(int c)
+{
+    int val;
+
+    switch (c) {
+      case 'i':
+	val = ONIG_OPTION_IGNORECASE;
+	break;
+      case 'x':
+	val = ONIG_OPTION_EXTEND;
+	break;
+      case 'm':
+	val = ONIG_OPTION_MULTILINE;
+	break;
+      default:
+	val = 0;
+	break;
+    }
+    return val;
+}
+
+extern int
+rb_char_to_option_kcode(int c, int *option, int *kcode)
+{
+    *option = 0;
+
+    switch (c) {
+      case 'n':
+        *kcode = rb_ascii8bit_encindex();
+        return (*option = ARG_ENCODING_NONE);
+      case 'e':
+      rb_tr_error("ENCINDEX_EUC_JP not implemented");
+	*kcode = -1; // ENCINDEX_EUC_JP;
+	break;
+      case 's':
+      rb_tr_error("ENCINDEX_Windows_31J not implemented");
+	*kcode =  -1; // ENCINDEX_Windows_31J;
+	break;
+      case 'u':
+	*kcode = rb_utf8_encindex();
+	break;
+      default:
+	*kcode = -1;
+	return (*option = char_to_option(c));
+    }
+    *option = ARG_ENCODING_FIXED;
+    return 1;
+}

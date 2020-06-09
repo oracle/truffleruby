@@ -14,6 +14,7 @@ VALUE (*rb_tr_wrap)(void *obj);
 VALUE (*rb_tr_longwrap)(long obj);
 void* (*rb_tr_id2sym)(ID id);
 ID (*rb_tr_sym2id)(VALUE val);
+bool (*rb_tr_is_native_object)(VALUE value);
 
 void rb_tr_init_printf(void);
 void rb_tr_init_exception(void);
@@ -21,6 +22,7 @@ void rb_tr_init_exception(void);
 // Run when loading C-extension support
 void rb_tr_init(void *ruby_cext) {
   rb_tr_cext = ruby_cext;
+  rb_tr_is_native_object = polyglot_invoke(rb_tr_cext, "rb_tr_is_native_object_function");
   rb_tr_unwrap = polyglot_invoke(rb_tr_cext, "rb_tr_unwrap_function");
   rb_tr_id2sym = polyglot_invoke(rb_tr_cext, "rb_tr_id2sym_function");
   rb_tr_sym2id = polyglot_invoke(rb_tr_cext, "rb_tr_sym2id_function");

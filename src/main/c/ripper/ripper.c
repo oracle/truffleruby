@@ -10698,11 +10698,36 @@ ripper_dispatch_delayed_token(struct parser_params *p, int t)
 #include "ruby/regex.h"
 #include "ruby/util.h"
 
+
+#ifdef TRUFFLERUBY
+// rb_enc_isalnum not yet implemented
+#undef rb_enc_isalnum
+int rb_enc_isalnum(unsigned char c, rb_encoding *enc) {
+  return isalpha(c) || isdigit(c)  || c == '_' || !ISASCII(c);
+}
+
+// rb_enc_isspace not yet implemented
+#undef rb_enc_isspace
+int rb_enc_isspace(unsigned char c, rb_encoding *enc) {
+  return c == ' ';
+}
+#endif
+
+
 static inline int
 is_identchar(const char *ptr, const char *MAYBE_UNUSED(ptr_end), rb_encoding *enc)
 {
     return rb_enc_isalnum((unsigned char)*ptr, enc) || *ptr == '_' || !ISASCII(*ptr);
 }
+
+#ifdef TRUFFLERUBY
+// is_local_id standard depends on id_type
+#undef is_local_id
+int is_local_id(ID id){
+  const char* cstr = rb_id2name(id);
+  return is_identchar(cstr, NULL, NULL);
+}
+#endif
 
 static inline int
 parser_is_identchar(struct parser_params *p)
@@ -11974,7 +11999,18 @@ tokadd_string(struct parser_params *p,
 static inline rb_strterm_t *
 new_strterm(VALUE v1, VALUE v2, VALUE v3, VALUE v0)
 {
+#ifdef TRUFFLERUBY
+    rb_strterm_t *term = xmalloc(sizeof(rb_strterm_t));
+    VALUE flags = T_IMEMO | (imemo_parser_strterm << FL_USHIFT);
+    term->flags = flags;
+    term->u.heredoc.sourceline = v0;
+    term->u.heredoc.term = v1;
+    term->u.heredoc.lastline = v2;
+    term->u.heredoc.u3.lastidx = v3;
+    return term;
+#else
     return (rb_strterm_t*)rb_imemo_new(imemo_parser_strterm, v1, v2, v3, v0);
+#endif
 }
 
 /* imemo_parser_strterm for literal */

@@ -8,3 +8,5 @@
 // Private helper macros
 
 #define rb_boolean(c) ((c) ? Qtrue : Qfalse)
+
+extern bool (*rb_tr_is_native_object)(VALUE value);

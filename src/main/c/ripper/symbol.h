@@ -15,12 +15,30 @@
 #include "id.h"
 
 #define DYNAMIC_ID_P(id) (!(id&ID_STATIC_SYM)&&id>tLAST_OP_ID)
+
+#ifdef TRUFFLERUBY
+#define STATIC_ID2SYM(id)  rb_id2sym(id)
+#else
 #define STATIC_ID2SYM(id)  (((VALUE)(id)<<RUBY_SPECIAL_SHIFT)|SYMBOL_FLAG)
+#endif
 
 #ifdef HAVE_BUILTIN___BUILTIN_CONSTANT_P
+#ifdef TRUFFLERUBY
+static inline VALUE tr_char_to_symbol(int c) {
+  char str[2];
+  str[0] = c;
+  str[1] = '\0';
+  return rb_intern(&str[0]);
+}
+
+#define rb_id2sym(id) \
+    RB_GNUC_EXTENSION_BLOCK(__builtin_constant_p(id) ? \
+			    tr_char_to_symbol(id) : rb_id2sym(id))
+#else
 #define rb_id2sym(id) \
     RB_GNUC_EXTENSION_BLOCK(__builtin_constant_p(id) && !DYNAMIC_ID_P(id) ? \
 			    STATIC_ID2SYM(id) : rb_id2sym(id))
+#endif
 #endif
 
 struct RSymbol {

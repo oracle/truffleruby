@@ -1592,6 +1592,15 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_tr_is_native_object_function", onSingleton = true, required = 0)
+    public abstract static class IsNativeObjectFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object isNativeObjectFunction() {
+            return new ValueWrapperManager.IsNativeObjectFunction();
+        }
+    }
+
     @CoreMethod(names = "rb_tr_unwrap_function", onSingleton = true, required = 0)
     public abstract static class UnwrapperFunctionNode extends CoreMethodArrayArgumentsNode {
 

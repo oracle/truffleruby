@@ -37,3 +37,7 @@ VALUE rb_gc_latest_gc_info(VALUE key) {
 void rb_gc_register_mark_object(VALUE obj) {
   RUBY_CEXT_INVOKE_NO_WRAP("rb_gc_register_mark_object", obj);
 }
+
+void rb_gc_writebarrier(VALUE a, VALUE b) {
+
+}
