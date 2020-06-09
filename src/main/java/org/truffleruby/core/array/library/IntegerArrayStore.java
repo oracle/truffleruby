@@ -127,6 +127,11 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
+    public static void clear(int[] store, int start, int length) {
+        Arrays.fill(store, start, start + length, 0);
+    }
+
+    @ExportMessage
     protected static int[] toJavaArrayCopy(int[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }

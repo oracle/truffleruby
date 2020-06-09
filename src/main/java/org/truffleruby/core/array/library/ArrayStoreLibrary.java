@@ -100,6 +100,13 @@ public abstract class ArrayStoreLibrary extends Library {
      * {@code destStart}. {@code length} entries will be copied. */
     public abstract void copyContents(Object store, int srcStart, Object dest, int destStart, int length);
 
+    /** Clear the part of the array starting at {@code start} and extending for {@code length} elements by setting
+     * this range to the default value for the {@code store}. */
+    @Abstract(ifExported = "write")
+    public void clear(Object store, int start, int length) {
+        throw new UnsupportedOperationException();
+    }
+
     /** Create a mutable copy of {@code store} of length {@code length}. */
     public abstract Object toJavaArrayCopy(Object store, int length);
 

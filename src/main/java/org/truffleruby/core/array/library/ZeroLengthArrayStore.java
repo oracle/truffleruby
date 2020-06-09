@@ -26,7 +26,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
-@ExportLibrary(value = ArrayStoreLibrary.class)
+@ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
 public class ZeroLengthArrayStore {
 

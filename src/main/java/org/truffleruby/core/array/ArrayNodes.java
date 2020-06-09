@@ -328,16 +328,16 @@ public abstract class ArrayNodes {
                 "length >= 0",
                 "!moveNeeded(rawStart, length, array)" })
         protected Object setNoMove(DynamicObject array, int rawStart, int length, DynamicObject replacement,
+                @Cached ArrayTruncateNode truncateNode,
                 @Cached ConditionProfile emptyReplacementProfile,
-                @Cached ConditionProfile growProfile,
-                @Cached ConditionProfile shrinkProfile) {
+                @Cached ConditionProfile growProfile) {
 
             final int start = normalize(array, rawStart);
             final int arraySize = getSize(array);
             final int replacementSize = getSize(replacement);
             final int newSize = start + replacementSize;
 
-            // Because start + length > arraySize, the array is overwritten from "start" to end, there are
+            // Because start + length >= arraySize, the array is overwritten from "start" to end, there are
             // no items to be moved.
 
             if (emptyReplacementProfile.profile(replacementSize == 0)) {
@@ -352,10 +352,7 @@ public abstract class ArrayNodes {
                 }
             }
 
-            if (shrinkProfile.profile(newSize < arraySize)) {
-                setSize(array, newSize);
-            }
-
+            truncateNode.execute(array, newSize); // no-op (except checks) if truncation not needed
             return replacement;
         }
 
@@ -781,7 +778,6 @@ public abstract class ArrayNodes {
                 return value;
             }
         }
-
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")

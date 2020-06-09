@@ -140,6 +140,11 @@ public class LongArrayStore {
     }
 
     @ExportMessage
+    public static void clear(long[] store, int start, int length) {
+        Arrays.fill(store, start, start + length, 0);
+    }
+
+    @ExportMessage
     protected static long[] toJavaArrayCopy(long[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }

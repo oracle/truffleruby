@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.array.library;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -163,6 +164,13 @@ public final class NativeArrayStorage implements ObjectGraphNode {
             for (int i = srcStart; i < length; i++) {
                 destStores.write(destStore, destStart + i, srcStores.read(srcStore, (srcStart + i)));
             }
+        }
+    }
+
+    @ExportMessage
+    protected void clear(int start, int length) {
+        for (int i = start; i < length; ++i) {
+            writeElement(i, 0);
         }
     }
 

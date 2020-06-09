@@ -10,6 +10,7 @@
 
 package org.truffleruby.core.array.library;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -100,6 +101,11 @@ public class ObjectArrayStore {
         protected static boolean isObjectStore(Object store) {
             return store instanceof Object[];
         }
+    }
+
+    @ExportMessage
+    public static void clear(Object[] store, int start, int length) {
+        Arrays.fill(store, start, start + length, null);
     }
 
     @ExportMessage
