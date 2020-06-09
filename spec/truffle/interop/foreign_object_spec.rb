@@ -23,11 +23,4 @@ describe "Foreign objects" do
     }.should output_to_fd("#{foreign.inspect}\n")
   end
 
-  it "receives a #writeMember when an assignment method is called" do
-    pm = TruffleInteropSpecs::PolyglotMember.new
-    pfo = Truffle::Interop.proxy_foreign_object(pm)
-    pfo.foo = :bar
-    messages = pm.log
-    messages.should include([:polyglot_write_member, "foo", :bar])
-  end
 end

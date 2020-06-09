@@ -327,7 +327,22 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @Specialization(guards = {
             "name == cachedName",
             "!isOperatorMethod(cachedName)",
-            "isAssignmentMethod(cachedName)"
+            "isAssignmentMethod(cachedName)",
+            "args.length != 1"
+    }, limit = "1")
+    protected Object assignmentBadArgs(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().argumentError(args.length, 1, this));
+    }
+
+    @Specialization(guards = {
+            "name == cachedName",
+            "!isOperatorMethod(cachedName)",
+            "isAssignmentMethod(cachedName)",
+            "args.length == 1"
     }, limit = "1")
     protected Object assignment(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,

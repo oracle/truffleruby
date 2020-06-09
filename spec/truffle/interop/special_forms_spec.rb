@@ -75,6 +75,28 @@ describe "Interop special forms" do
     Truffle::Interop.to_display_string(@object).should include("writeArrayElement(0, 1)")
   end
 
+  it description['.name = value', :writeMember, [:name, :value]] do
+    pm = TruffleInteropSpecs::PolyglotMember.new
+    pfo = Truffle::Interop.proxy_foreign_object(pm)
+    pfo.foo = :bar
+    messages = pm.log
+    messages.should include([:polyglot_write_member, "foo", :bar])
+  end
+
+  it description['.name = *arguments', :writeMember, [:name, 'arguments']] do
+    pm = TruffleInteropSpecs::PolyglotMember.new
+    pfo = Truffle::Interop.proxy_foreign_object(pm)
+    pfo.foo = :bar, :baz
+    messages = pm.log
+    messages.should include([:polyglot_write_member, "foo", [:bar, :baz]])
+  end
+
+  it "raises an argument error if an assignment method is called with more than 1 argument" do
+    pm = TruffleInteropSpecs::PolyglotMember.new
+    pfo = Truffle::Interop.proxy_foreign_object(pm)
+    -> { pfo.__send__(:foo=, :bar, :baz)}.should raise_error(ArgumentError)
+  end
+
   it description['.delete(name)', :removeMember, [:name]] do
     -> { @object.delete :foo }.should raise_error(Polyglot::UnsupportedMessageError)
     Truffle::Interop.to_display_string(@object).should include("removeMember(foo)")
