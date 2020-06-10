@@ -3626,8 +3626,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "find_character", required = 1, lowerFixnum = 1)
+    @Primitive(name = "string_find_character", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
     public static abstract class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
 

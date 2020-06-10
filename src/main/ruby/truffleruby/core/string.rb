@@ -253,7 +253,7 @@ class String
       fin = match.byte_end(0)
 
       if match.collapsing?
-        if char = find_character(fin)
+        if char = Primitive.string_find_character(self, fin)
           index = fin + char.bytesize
         else
           index = fin + 1

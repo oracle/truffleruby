@@ -99,7 +99,7 @@ module Truffle
         Primitive.string_append(ret, val)
 
         if match.collapsing?
-          if (char = orig.find_character(offset))
+          if (char = Primitive.string_find_character(orig, offset))
             offset += char.bytesize
           else
             offset += 1

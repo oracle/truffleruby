@@ -294,7 +294,7 @@ class StringIO
 
     return nil if eof?
 
-    char = d.string.find_character(d.pos)
+    char = Primitive.string_find_character(d.string, d.pos)
     d.pos += char.bytesize
     char
   end
