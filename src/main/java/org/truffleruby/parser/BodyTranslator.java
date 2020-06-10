@@ -2774,25 +2774,23 @@ public class BodyTranslator extends Translator {
             canOmitBacktrace = true;
         }
 
-        while (rescueBody != null) {
+        while (rescueBody != null) { // each rescue clause
             if (rescueBody.getExceptionNodes() != null) {
                 final Deque<ParseNode> exceptionNodes = new ArrayDeque<>();
                 exceptionNodes.push(rescueBody.getExceptionNodes());
 
-                while (!exceptionNodes.isEmpty()) {
+                while (!exceptionNodes.isEmpty()) { // each "exception matcher" in that rescue clause: rescue A => a, B => b
                     final ParseNode exceptionNode = exceptionNodes.pop();
 
                     if (exceptionNode instanceof ArrayParseNode) {
                         final RescueNode rescueNode = translateRescueArrayParseNode(
                                 (ArrayParseNode) exceptionNode,
-                                rescueBody,
-                                sourceSection);
+                                rescueBody);
                         rescueNodes.add(rescueNode);
                     } else if (exceptionNode instanceof SplatParseNode) {
                         final RescueNode rescueNode = translateRescueSplatParseNode(
                                 (SplatParseNode) exceptionNode,
-                                rescueBody,
-                                sourceSection);
+                                rescueBody);
                         rescueNodes.add(rescueNode);
                     } else if (exceptionNode instanceof ArgsCatParseNode) {
                         final ArgsCatParseNode argsCat = (ArgsCatParseNode) exceptionNode;
@@ -2841,40 +2839,35 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, ret);
     }
 
-    private RescueNode translateRescueArrayParseNode(ArrayParseNode arrayParse, RescueBodyParseNode rescueBody,
-            SourceIndexLength sourceSection) {
+    private RescueNode translateRescueArrayParseNode(ArrayParseNode arrayParse, RescueBodyParseNode rescueBody) {
         final ParseNode[] exceptionNodes = arrayParse.children();
 
         final RubyNode[] handlingClasses = createArray(exceptionNodes.length);
-
         for (int n = 0; n < handlingClasses.length; n++) {
             handlingClasses[n] = exceptionNodes[n].accept(this);
         }
 
-        RubyNode translatedBody;
-
+        final RubyNode translatedBody;
         if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
-            translatedBody = nilNode(sourceSection);
+            translatedBody = nilNode(rescueBody.getPosition());
         } else {
             translatedBody = rescueBody.getBodyNode().accept(this);
         }
 
-        return withSourceSection(sourceSection, new RescueClassesNode(handlingClasses, translatedBody));
+        return withSourceSection(arrayParse.getPosition(), new RescueClassesNode(handlingClasses, translatedBody));
     }
 
-    private RescueNode translateRescueSplatParseNode(SplatParseNode splat, RescueBodyParseNode rescueBody,
-            SourceIndexLength sourceSection) {
-        final RubyNode splatTranslated = translateNodeOrNil(sourceSection, splat.getValue());
+    private RescueNode translateRescueSplatParseNode(SplatParseNode splat, RescueBodyParseNode rescueBody) {
+        final RubyNode splatTranslated = translateNodeOrNil(rescueBody.getPosition(), splat.getValue());
 
-        RubyNode rescueBodyTranslated;
-
+        final RubyNode rescueBodyTranslated;
         if (rescueBody.getBodyNode() == null || rescueBody.getBodyNode().getPosition() == null) {
-            rescueBodyTranslated = nilNode(sourceSection);
+            rescueBodyTranslated = nilNode(rescueBody.getPosition());
         } else {
             rescueBodyTranslated = rescueBody.getBodyNode().accept(this);
         }
 
-        return withSourceSection(sourceSection, new RescueSplatNode(context, splatTranslated, rescueBodyTranslated));
+        return withSourceSection(splat.getPosition(), new RescueSplatNode(context, splatTranslated, rescueBodyTranslated));
     }
 
     @Override
