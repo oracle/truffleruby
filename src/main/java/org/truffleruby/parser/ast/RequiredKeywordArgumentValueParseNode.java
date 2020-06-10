@@ -36,7 +36,10 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  *
  * MRI passes a -1 as a special value so we are doing something similar but more explicit. */
 public class RequiredKeywordArgumentValueParseNode extends ParseNode implements InvisibleNode {
-    public RequiredKeywordArgumentValueParseNode() {
+
+    public static final RequiredKeywordArgumentValueParseNode INSTANCE = new RequiredKeywordArgumentValueParseNode();
+
+    private RequiredKeywordArgumentValueParseNode() {
         super(SourceIndexLength.UNAVAILABLE_POSITION);
     }
 
