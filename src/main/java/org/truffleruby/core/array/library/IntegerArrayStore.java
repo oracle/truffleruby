@@ -116,8 +116,8 @@ public class IntegerArrayStore {
         @Specialization(guards = "!isIntStore(destStore)", limit = "storageStrategyLimit()")
         protected static void copyContents(int[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
-            for (int i = srcStart; i < length; i++) {
-                destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
+            for (int i = 0; i < length; i++) {
+                destStores.write(destStore, destStart + i, srcStore[srcStart + i]);
             }
         }
 

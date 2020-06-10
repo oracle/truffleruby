@@ -161,8 +161,8 @@ public final class NativeArrayStorage implements ObjectGraphNode {
                 int length,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary srcStores,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary destStores) {
-            for (int i = srcStart; i < length; i++) {
-                destStores.write(destStore, destStart + i, srcStores.read(srcStore, (srcStart + i)));
+            for (int i = 0; i < length; i++) {
+                destStores.write(destStore, destStart + i, srcStores.read(srcStore, srcStart + i));
             }
         }
     }
