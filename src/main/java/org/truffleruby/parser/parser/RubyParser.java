@@ -2542,7 +2542,7 @@ states[347] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[348] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new Integer((support.isInClass() ? 2 : 0) & (support.isInDef() ? 1 : 0));
+    yyVal = (support.isInClass() ? 2 : 0) & (support.isInDef() ? 1 : 0);
     support.setInDef(false);
     support.setIsInClass(false);
     support.pushLocalScope();
