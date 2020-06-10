@@ -339,12 +339,13 @@ class String
       current = Primitive.find_string(self, '\\', index)
       current = bytesize if Primitive.nil? current
 
-      result.append(byteslice(index, current - index))
+
+      Primitive.string_append(result, byteslice(index, current - index))
       break if current == bytesize
 
       # found backslash escape, looking next
       if current == bytesize - 1
-        result.append('\\') # backslash at end of string
+        Primitive.string_append(result, '\\') # backslash at end of string
         break
       end
       index = current + 1
@@ -388,7 +389,7 @@ class String
                    else     # unknown escape
                      '\\' + cap.chr
                    end
-      result.append(additional)
+      Primitive.string_append(result, additional)
       index += 1
     end
   end
@@ -790,12 +791,12 @@ class String
 
         tainted ||= val.tainted?
 
-        ret.append val
+        Primitive.string_append(ret, val)
       else
         replacement.to_sub_replacement(ret, match)
       end
 
-      ret.append(match.post_match)
+      Primitive.string_append(ret, match.post_match)
       tainted ||= val.tainted?
 
       ret.taint if tainted
@@ -948,7 +949,7 @@ class String
     end
 
     Primitive.infect(self, other)
-    append(other)
+    Primitive.string_append(self, other)
   end
 
   def chr

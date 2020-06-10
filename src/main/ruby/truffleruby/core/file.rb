@@ -548,7 +548,7 @@ class File < IO
     if items.empty?
       str << '/'
     else
-      items.each { |x| str.append "/#{x}" }
+      items.each { |x| Primitive.string_append(str, "/#{x}") }
     end
 
     str

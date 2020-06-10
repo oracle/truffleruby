@@ -90,13 +90,13 @@ module Truffle
         offset = match.byte_begin(0)
 
         str = match.pre_match_from(last_end)
-        ret.append str if str
+        Primitive.string_append(ret, str) if str
 
         val = yield ret, match
         untrusted ||= val.untrusted?
         val = val.to_s
         tainted ||= val.tainted?
-        ret.append val
+        Primitive.string_append(ret, val)
 
         if match.collapsing?
           if (char = orig.find_character(offset))
@@ -120,7 +120,7 @@ module Truffle
       end
 
       str = orig.byteslice(last_end, orig.bytesize-last_end+1)
-      ret.append str if str
+      Primitive.string_append(ret, str) if str
 
       ret.taint if tainted
       ret.untrust if untrusted
