@@ -43,14 +43,40 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.shared.BasicPlatform;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class NativeConfiguration {
 
     public static final String PREFIX = "platform.";
 
     private final Map<String, Object> configuration = new HashMap<>(); // Only written to by create() once per RubyContext.
+
+    public static NativeConfiguration loadNativeConfiguration(RubyContext context) {
+        final NativeConfiguration nativeConfiguration = new NativeConfiguration();
+
+        if (Platform.OS == BasicPlatform.OS_TYPE.LINUX) {
+            if (Platform.ARCHITECTURE.equals("x86_64")) {
+                LinuxAMD64NativeConfiguration.load(nativeConfiguration, context);
+                return nativeConfiguration;
+            } else if (Platform.ARCHITECTURE.equals("arm64") || Platform.ARCHITECTURE.equals("aarch64")) {
+                LinuxARM64NativeConfiguration.load(nativeConfiguration, context);
+                return nativeConfiguration;
+            }
+        } else if (Platform.OS == BasicPlatform.OS_TYPE.DARWIN) {
+            if (Platform.ARCHITECTURE.equals("x86_64")) {
+                DarwinAMD64NativeConfiguration.load(nativeConfiguration, context);
+                return nativeConfiguration;
+            }
+        }
+
+        RubyLanguage.LOGGER.severe("no native configuration for platform " + RubyLanguage.PLATFORM);
+        return nativeConfiguration;
+    }
 
     public void config(String key, Object value) {
         configuration.put(key, value);

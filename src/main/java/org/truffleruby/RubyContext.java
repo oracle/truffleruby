@@ -63,10 +63,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.options.Options;
 import org.truffleruby.parser.TranslatorDriver;
-import org.truffleruby.platform.DarwinNativeConfiguration;
-import org.truffleruby.platform.LinuxNativeConfiguration;
 import org.truffleruby.platform.NativeConfiguration;
-import org.truffleruby.platform.Platform;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
@@ -176,7 +173,7 @@ public class RubyContext {
 
         Metrics.printTime("before-create-core-library");
         coreLibrary = new CoreLibrary(this);
-        nativeConfiguration = loadNativeConfiguration();
+        nativeConfiguration = NativeConfiguration.loadNativeConfiguration(this);
         coreLibrary.initialize();
         valueWrapperManager = new ValueWrapperManager(this);
         Metrics.printTime("after-create-core-library");
@@ -400,24 +397,6 @@ public class RubyContext {
         featureLoader.initialize(nativeConfiguration, truffleNFIPlatform);
         Metrics.printTime("after-create-native-platform");
         return truffleNFIPlatform;
-    }
-
-    private NativeConfiguration loadNativeConfiguration() {
-        final NativeConfiguration nativeConfiguration = new NativeConfiguration();
-
-        switch (Platform.OS) {
-            case LINUX:
-                LinuxNativeConfiguration.load(nativeConfiguration, this);
-                break;
-            case DARWIN:
-                DarwinNativeConfiguration.load(nativeConfiguration, this);
-                break;
-            default:
-                RubyLanguage.LOGGER.severe("no native configuration for this platform");
-                break;
-        }
-
-        return nativeConfiguration;
     }
 
     @TruffleBoundary

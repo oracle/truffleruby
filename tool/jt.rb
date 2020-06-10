@@ -2147,7 +2147,8 @@ EOS
   end
 
   def check_native_configuration
-    diff = sh 'git', 'diff', 'src/main/java/org/truffleruby/platform/DarwinNativeConfiguration.java', 'src/main/java/org/truffleruby/platform/LinuxNativeConfiguration.java', capture: :out
+    files = Dir.glob('src/main/java/org/truffleruby/platform/*NativeConfiguration.java')
+    diff = sh 'git', 'diff', *files, capture: :out
     unless diff.empty?
       STDERR.puts 'DIFF:'
       STDERR.puts diff

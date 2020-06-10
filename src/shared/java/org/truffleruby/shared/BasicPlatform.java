@@ -89,8 +89,7 @@ public abstract class BasicPlatform {
 
         if (architecture == null) {
             architecture = "unknown";
-        }
-        if (architecture.equals("amd64")) {
+        } else if (architecture.equals("amd64")) {
             architecture = "x86_64";
         }
 
