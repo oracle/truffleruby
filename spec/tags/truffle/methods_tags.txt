@@ -45,6 +45,5 @@ fails:Public methods on String should include each_grapheme_cluster
 fails:Public methods on String should include freeze
 fails:Public methods on String should include grapheme_clusters
 fails:Public methods on String should include undump
-fails:Public methods on String should not include substring
 fails:Public methods on String should not include to_sub_replacement
 fails:Public methods on ENV.singleton_class should include slice

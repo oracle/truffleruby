@@ -4758,8 +4758,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "substring", lowerFixnum = { 1, 2 }, required = 2)
+    @Primitive(name = "string_substring", lowerFixnum = { 1, 2 })
     @ImportStatic(StringGuards.class)
     public static abstract class StringSubstringPrimitiveNode extends CoreMethodArrayArgumentsNode {
 

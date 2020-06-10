@@ -99,7 +99,7 @@ module Process
 
   section = 'platform.clocks.'
   Truffle::Config.section(section) do |key, value|
-    const_set(key.substring(section.size, key.length), value)
+    const_set(Primitive.string_substring(key, section.size, key.length), value)
   end
 
   def self.clock_getres(id, unit=:float_second)

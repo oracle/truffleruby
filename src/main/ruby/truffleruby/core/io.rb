@@ -1810,7 +1810,7 @@ class IO
   #  AA
   def putc(obj)
     if Primitive.object_kind_of? obj, String
-      write obj.substring(0, 1)
+      write Primitive.string_substring(obj, 0, 1)
     else
       byte = Truffle::Type.coerce_to(obj, Integer, :to_int) & 0xff
       write byte.chr

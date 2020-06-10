@@ -202,9 +202,9 @@ class String
         post_start = i + pattern.length
         post_len = size - post_start
 
-        return [substring(0, i),
+        return [Primitive.string_substring(self, 0, i),
                 pattern,
-                substring(post_start, post_len)]
+                Primitive.string_substring(self, post_start, post_len)]
       end
     end
 
@@ -225,9 +225,9 @@ class String
         post_start = i + pattern.length
         post_len = size - post_start
 
-        return [substring(0, i),
+        return [Primitive.string_substring(self, 0, i),
                 pattern.dup,
-                substring(post_start, post_len)]
+                Primitive.string_substring(self, post_start, post_len)]
       end
 
       # Nothing worked out, this is the default.
@@ -929,7 +929,7 @@ class String
   end
 
   def chr
-    substring 0, 1
+    Primitive.string_substring(self, 0, 1)
   end
 
   def each_line(sep=$/, chomp: false)
