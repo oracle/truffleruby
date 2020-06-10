@@ -2037,7 +2037,7 @@ class IO
     if buffer
       buffer = StringValue(buffer)
 
-      buffer.shorten! buffer.bytesize
+      Truffle::StringOperations.shorten!(buffer, buffer.bytesize)
 
       return buffer if size == 0
 

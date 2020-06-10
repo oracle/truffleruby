@@ -410,11 +410,6 @@ class String
   end
   private :subpattern
 
-  def shorten!(size)
-    return if empty?
-    Truffle::StringOperations.truncate(self, bytesize - size)
-  end
-
   def each_codepoint
     return to_enum(:each_codepoint) { size } unless block_given?
 

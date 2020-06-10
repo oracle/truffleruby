@@ -179,6 +179,11 @@ module Truffle
       end
     end
 
+    def self.shorten!(string, size)
+      return if string.empty?
+      Truffle::StringOperations.truncate(string, string.bytesize - size)
+    end
+
     def self.validate_case_mapping_options(options, downcasing)
       if options.size > 2
         raise ArgumentError, 'too many options'
