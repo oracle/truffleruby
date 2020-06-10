@@ -72,11 +72,11 @@ public abstract class ParseNode {
     }
 
     /** Location of this node within the source */
-    public SourceIndexLength getPosition() {
+    public final SourceIndexLength getPosition() {
         return new SourceIndexLength(sourceCharIndex, sourceLength);
     }
 
-    public void setPosition(SourceIndexLength position) {
+    public final void setPosition(SourceIndexLength position) {
         sourceCharIndex = position.getCharIndex();
         sourceLength = position.getLength();
     }
