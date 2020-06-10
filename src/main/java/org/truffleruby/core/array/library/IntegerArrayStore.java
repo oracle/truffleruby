@@ -132,6 +132,14 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
+    static class Fill {
+        @Specialization
+        protected static void fill(int[] store, int start, int length, int value) {
+            Arrays.fill(store, start, start + length, value);
+        }
+    }
+
+    @ExportMessage
     protected static int[] toJavaArrayCopy(int[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }

@@ -137,6 +137,14 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
+    static class Fill {
+        @Specialization
+        protected static void fill(double[] store, int start, int length, double value) {
+            Arrays.fill(store, start, start + length, value);
+        }
+    }
+
+    @ExportMessage
     protected static double[] toJavaArrayCopy(double[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }

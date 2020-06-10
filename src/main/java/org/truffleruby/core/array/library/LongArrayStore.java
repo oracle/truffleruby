@@ -145,6 +145,19 @@ public class LongArrayStore {
     }
 
     @ExportMessage
+    static class Fill {
+        @Specialization
+        protected static void fill(long[] store, int start, int length, int value) {
+            Arrays.fill(store, start, start + length, value);
+        }
+
+        @Specialization
+        protected static void write(long[] store, int start, int length, long value) {
+            Arrays.fill(store, start, start + length, value);
+        }
+    }
+
+    @ExportMessage
     protected static long[] toJavaArrayCopy(long[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }

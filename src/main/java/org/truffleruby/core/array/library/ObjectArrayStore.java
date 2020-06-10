@@ -109,6 +109,11 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
+    public static void fill(Object[] store, int start, int length, Object value) {
+        Arrays.fill(store, start, start + length, value);
+    }
+
+    @ExportMessage
     protected static Object[] toJavaArrayCopy(Object[] store, int length) {
         return ArrayUtils.extractRange(store, 0, length);
     }

@@ -169,8 +169,14 @@ public final class NativeArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected void clear(int start, int length) {
+     pointer.writeBytes(start * Pointer.SIZE, length * Pointer.SIZE, (byte) 0);
+    }
+
+    @ExportMessage
+    public static void fill(NativeArrayStorage store, int start, int length, Object value,
+            @CachedLibrary("store") ArrayStoreLibrary stores) {
         for (int i = start; i < length; ++i) {
-            writeElement(i, 0);
+            stores.write(store, i, value);
         }
     }
 
