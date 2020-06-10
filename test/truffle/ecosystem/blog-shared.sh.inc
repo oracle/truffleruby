@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 truffle=$(dirname "$ecosystem")
+# shellcheck source=test/truffle/common.sh.inc
 source "$truffle/common.sh.inc"
 
 alias truffleruby="jt ruby -S"
