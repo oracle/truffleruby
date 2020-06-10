@@ -48,19 +48,6 @@ public abstract class AddMethodNode extends RubyContextNode {
         doAddMethod(module, method, visibility);
     }
 
-    //    @TruffleBoundary
-    //    private void addRefinedMethodEntry(DynamicObject module, InternalMethod method, Visibility visibility) {
-    //        final MethodLookupResult result = ModuleOperations.lookupMethodCached(module, method.getName(), null);
-    //        final InternalMethod originalMethod = result.getMethod();
-    //        if (originalMethod == null) {
-    //            doAddMethod(module, method.withRefined(true).withOriginalMethod(null), visibility);
-    //        } else if (originalMethod.isRefined()) {
-    //            // Already marked as refined
-    //        } else {
-    //            doAddMethod(module, originalMethod.withRefined(true).withOriginalMethod(originalMethod), visibility);
-    //        }
-    //    }
-
     private void doAddMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
         if (visibility == Visibility.MODULE_FUNCTION) {
             addMethodToModule(module, method.withVisibility(Visibility.PRIVATE));

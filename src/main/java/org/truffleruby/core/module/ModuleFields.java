@@ -424,15 +424,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return false;
         }
 
-        if (method.isRefined()) {
-            if (method.getOriginalMethod() == null) {
-                return false;
-            } else {
-                methods.put(methodName, method.withOriginalMethod(null));
-            }
-        } else {
-            methods.remove(methodName);
-        }
+        methods.remove(methodName);
 
         newMethodsVersion();
         changedMethod(methodName);

@@ -420,9 +420,6 @@ public abstract class ModuleOperations {
                 final InternalMethod method = fields.getMethod(name);
 
                 if (method != null) {
-                    if (method.getOriginalMethod() != null) {
-                        return new MethodLookupResult(method.getOriginalMethod(), toArray(assumptions));
-                    }
                     return new MethodLookupResult(method, toArray(assumptions));
                 }
             }
@@ -450,9 +447,6 @@ public abstract class ModuleOperations {
                 final InternalMethod method = fields.getMethod(name);
 
                 if (method != null) {
-                    if (method.getOriginalMethod() != null) {
-                        return method.getOriginalMethod();
-                    }
                     return method;
                 }
             }
