@@ -123,7 +123,8 @@ public class BacktraceFormatter {
         if (backtrace != null) {
             formatted = formatBacktrace(rubyException, backtrace);
         } else {
-            final Object fullMessage = context.send(rubyException, "full_message");
+            // formatBacktrace() uses top order, so use the same order here to be consistent
+            final Object fullMessage = context.send(rubyException, "full_message_order_top");
             if (RubyGuards.isRubyString(fullMessage)) {
                 formatted = StringOperations.getString((DynamicObject) fullMessage);
             } else {
