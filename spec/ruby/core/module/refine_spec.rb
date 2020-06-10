@@ -241,6 +241,32 @@ describe "Module#refine" do
       result.should == "foo from singleton class"
     end
 
+    it "this is temporary test to verify the new lookup" do
+      module A
+        def foo
+          "foo"
+        end
+      end
+
+      class B
+      end
+
+      refinement =
+        Module.new do
+          refine B do
+            include A
+          end
+        end
+
+      result = nil
+      Module.new do
+        using refinement
+        result = B.new.foo
+      end
+
+      result.should == "foo"
+    end
+
     it "looks in prepended modules from the refinement first" do
       refinement = Module.new do
         refine ModuleSpecs::ClassWithFoo  do
