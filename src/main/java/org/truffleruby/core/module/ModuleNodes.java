@@ -790,7 +790,7 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         @Specialization
         protected boolean isClassVariableDefinedString(DynamicObject module, String name) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
@@ -813,7 +813,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         protected Object getClassVariable(DynamicObject module, String name) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
@@ -842,7 +842,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         protected Object setClassVariable(DynamicObject module, String name, Object value) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);
 
@@ -1824,7 +1824,7 @@ public abstract class ModuleNodes {
             return NameToJavaStringNode.create(name);
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         @Specialization
         protected Object removeClassVariableString(DynamicObject module, String name) {
             SymbolTable.checkClassVariableName(getContext(), name, module, this);

@@ -119,7 +119,7 @@ public class SymbolTable {
     }
 
     // TODO (eregon, 10/10/2015): this check could be done when a Symbol is created to be much cheaper
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     public static String checkInstanceVariableName(
             RubyContext context,
             String name,
@@ -134,7 +134,7 @@ public class SymbolTable {
         return name;
     }
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     public static String checkClassVariableName(
             RubyContext context,
             String name,

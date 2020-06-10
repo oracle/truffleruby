@@ -64,7 +64,7 @@ public abstract class RequireNode extends RubyContextNode {
         return requireWithMetrics(feature, expandedPath, expandedPathString);
     }
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     private boolean requireWithMetrics(String feature, String expandedPathRaw, DynamicObject pathString) {
         requireMetric("before-require-" + feature);
         try {

@@ -47,7 +47,7 @@ public abstract class ProcessNodes {
     @Primitive(name = "process_kill_raise")
     public abstract static class ProcessKillRaiseNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         @Specialization
         protected int raise(RubySymbol signalName) {
             final Signal signal = new Signal(signalName.getString());

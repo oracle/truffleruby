@@ -44,7 +44,7 @@ public class LookupForExistingModuleNode extends LookupConstantBaseNode implemen
         return deepConstantSearch(name, lexicalScope, lexicalParent);
     }
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     private RubyConstant deepConstantSearch(String name, LexicalScope lexicalScope, DynamicObject lexicalParent) {
         final RubyConstant constant = deepConstantLookup(name, lexicalParent);
 
