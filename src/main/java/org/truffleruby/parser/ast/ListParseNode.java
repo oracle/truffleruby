@@ -104,16 +104,10 @@ public abstract class ListParseNode extends ParseNode {
         // Ruby Grammar productions return plenty of nulls.
         if (node == null || node == NilImplicitParseNode.NIL) {
             addInternal(NilImplicitParseNode.NIL);
-
             return this;
         }
 
         addInternal(node);
-
-        if (getPosition() == null) {
-            setPosition(node.getPosition());
-        }
-
         return this;
     }
 
@@ -129,10 +123,6 @@ public abstract class ListParseNode extends ParseNode {
     public ListParseNode addAll(ListParseNode other) {
         if (other != null && other.size() > 0) {
             addAllInternal(other);
-
-            if (getPosition() == null) {
-                setPosition(other.getPosition());
-            }
         }
         return this;
     }

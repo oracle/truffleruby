@@ -43,6 +43,10 @@ public final class SourceIndexLength {
         }
     }
 
+    public boolean isAvailable() {
+        return length != UNAVAILABLE;
+    }
+
     public int getCharIndex() {
         return charIndex;
     }
