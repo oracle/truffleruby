@@ -9,12 +9,6 @@ sdbm/test_sdbm.rb
 io/console/test_io_console.rb
 io/wait/test_io_wait.rb
 test_pty.rb
-ripper/test_files.rb
-ripper/test_filter.rb
-ripper/test_lexer.rb
-ripper/test_parser_events.rb
-ripper/test_scanner_events.rb
-ripper/test_sexp.rb
 win32ole/test_err_in_callback.rb
 win32ole/test_folderitem2_invokeverb.rb
 win32ole/test_nil2vtempty.rb
