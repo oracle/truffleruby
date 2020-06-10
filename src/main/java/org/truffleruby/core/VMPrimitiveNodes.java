@@ -174,6 +174,10 @@ public abstract class VMPrimitiveNodes {
                 // We need to rethrow the existing RaiseException, otherwise we would lose the
                 // TruffleStackTrace stored in it.
                 assert backtrace.getRaiseException().getException() == exception;
+
+                if (getContext().getOptions().BACKTRACE_ON_RAISE) {
+                    getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(exception);
+                }
                 throw backtrace.getRaiseException();
             } else {
                 throw new RaiseException(getContext(), exception, internal);
