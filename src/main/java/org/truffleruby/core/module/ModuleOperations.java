@@ -405,7 +405,6 @@ public abstract class ModuleOperations {
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
             if ((refinements = getRefinementsFor(declarationContext, ancestor)) != null) {
                 for (DynamicObject refinement : refinements) {
-                    // TODO: pass new declaration context without current refinements
                     final MethodLookupResult refinedMethod = lookupMethodCached(refinement, name, null);
                     if (refinedMethod.isDefined()) {
                         for (Assumption assumption : refinedMethod.getAssumptions()) {
@@ -436,7 +435,6 @@ public abstract class ModuleOperations {
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
             if ((refinements = getRefinementsFor(declarationContext, ancestor)) != null) {
                 for (DynamicObject refinement : refinements) {
-                    // TODO: pass new declaration context without current refinements
                     final InternalMethod refinedMethod = lookupMethodUncached(refinement, name, null);
                     if (refinedMethod != null) {
                         return refinedMethod;
@@ -487,7 +485,8 @@ public abstract class ModuleOperations {
         for (DynamicObject module : Layouts.MODULE.getFields(objectMetaClass).ancestors()) {
             if ((refinements = getRefinementsFor(declarationContext, module)) != null) {
                 for (DynamicObject refinement : refinements) {
-
+                    // TODO: pass new declaration context without current refinements
+                    //       to lookup super in other namespaces
                     final MethodLookupResult superMethodInRefinement = lookupSuperMethod(
                             declaringModule,
                             name,
