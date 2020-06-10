@@ -16,9 +16,14 @@ import com.oracle.truffle.api.source.SourceSection;
 public final class SourceIndexLength {
 
     public static final int UNAVAILABLE = -1;
+    public static final SourceIndexLength UNAVAILABLE_POSITION = new SourceIndexLength();
 
     private final int charIndex;
     private final int length; // -1 indicates unavailable, which is the same encoding as SourceSection
+
+    private SourceIndexLength() {
+        this(UNAVAILABLE, UNAVAILABLE);
+    }
 
     public SourceIndexLength(int charIndex, int length) {
         this.charIndex = charIndex;
