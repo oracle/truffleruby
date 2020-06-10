@@ -3376,8 +3376,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "chr_at", required = 1, lowerFixnum = 1)
+    @Primitive(name = "string_chr_at", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
     public static abstract class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
 

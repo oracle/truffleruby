@@ -169,7 +169,7 @@ class StringIO
     string = d.string
 
     while d.pos < string.bytesize
-      char = string.chr_at d.pos
+      char = Primitive.string_chr_at(string, d.pos)
 
       unless char
         raise ArgumentError, "invalid byte sequence in #{d.encoding}"

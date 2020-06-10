@@ -314,7 +314,7 @@ class IO
           @start += 1
 
           char.force_encoding(io.external_encoding || Encoding.default_external)
-          if char.chr_at(0)
+          if Primitive.string_chr_at(char, 0)
             return IO.read_encode io, char
           end
         end

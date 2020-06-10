@@ -584,7 +584,7 @@ class String
     index = 0
     total = bytesize
     while index < total
-      char = chr_at index
+      char = Primitive.string_chr_at(self, index)
 
       if char
         index += inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
@@ -857,10 +857,10 @@ class String
     bytes = Primitive.string_previous_byte_index(self, bytesize)
     return unless bytes
 
-    chr = chr_at bytes
+    chr = Primitive.string_chr_at(self, bytes)
     if chr.ord == 10
       if i = Primitive.string_previous_byte_index(self, bytes)
-        chr = chr_at i
+        chr = Primitive.string_chr_at(self, i)
 
         bytes = i if chr.ord == 13
       end
@@ -885,14 +885,14 @@ class String
     if sep == DEFAULT_RECORD_SEPARATOR
       return unless bytes = Primitive.string_previous_byte_index(self, bytesize)
 
-      chr = chr_at bytes
+      chr = Primitive.string_chr_at(self, bytes)
 
       case chr.ord
       when 13
         # do nothing
       when 10
         if j = Primitive.string_previous_byte_index(self, bytes)
-          chr = chr_at j
+          chr = Primitive.string_chr_at(self, j)
 
           if chr.ord == 13
             bytes = j
@@ -906,13 +906,13 @@ class String
       bytes = bytesize
 
       while i = Primitive.string_previous_byte_index(self, bytes)
-        chr = chr_at i
+        chr = Primitive.string_chr_at(self, i)
         break unless chr.ord == 10
 
         bytes = i
 
         if j = Primitive.string_previous_byte_index(self, i)
-          chr = chr_at j
+          chr = Primitive.string_chr_at(self, j)
           if chr.ord == 13
             bytes = j
           end
