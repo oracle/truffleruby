@@ -126,6 +126,7 @@ public class BacktraceFormatter {
                 fullMessageString = fullMessage.toString() + "\n";
             }
             printer.print(fullMessageString);
+            printer.flush();
         }
     }
 

@@ -25,6 +25,7 @@ Bug fixes:
 * Fix indentation for squiggly heredoc with single quotes (#1564).
 * Only print members which are readable for foreign `#inspect` (#2027).
 * Fixed the return value of the first call to `Kernel#srand` in a Thread (#2028).
+* Fix missing flushing when printing an exception at top-level with a custom backtrace, which caused no output being shown (#1750, #1895).
 
 Compatibility:
 
