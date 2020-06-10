@@ -63,7 +63,7 @@ module Truffle
 
     def self.gsub_internal_replacement(orig, pattern, replacement)
       gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m|
-        replacement.to_sub_replacement(ret, m)
+        Truffle::StringOperations.to_sub_replacement(replacement, ret, m)
       end
     end
 
@@ -182,6 +182,67 @@ module Truffle
     def self.shorten!(string, size)
       return if string.empty?
       Truffle::StringOperations.truncate(string, string.bytesize - size)
+    end
+
+    def self.to_sub_replacement(string, result, match)
+      index = 0
+      while index < string.bytesize
+        current = Primitive.find_string(string, '\\', index)
+        current = string.bytesize if Primitive.nil? current
+
+
+        Primitive.string_append(result, string.byteslice(index, current - index))
+        break if current == string.bytesize
+
+        # found backslash escape, looking next
+        if current == string.bytesize - 1
+          Primitive.string_append(result, '\\') # backslash at end of string
+          break
+        end
+        index = current + 1
+
+        cap = string.getbyte(index)
+
+        additional = case cap
+                     when 38   # ?&
+                       match[0]
+                     when 96   # ?`
+                       match.pre_match
+                     when 39   # ?'
+                       match.post_match
+                     when 43   # ?+
+                       match.captures.compact[-1].to_s
+                     when 48..57   # ?0..?9
+                       match[cap - 48].to_s
+                     when 92 # ?\\ escaped backslash
+                       '\\'
+                     when 107 # \k named capture
+                       if string.getbyte(index + 1) == 60
+                         name = +''
+                         i = index + 2
+                         data = string.bytes
+                         while i < string.bytesize && data[i] != 62
+                           name << data[i]
+                           i += 1
+                         end
+                         if i >= string.bytesize
+                           name << '\\'
+                           name << cap.chr
+                           index += 1
+                           next
+                         end
+                         index = i
+                         name.force_encoding result.encoding
+                         match[name]
+                       else
+                         '\\' + cap.chr
+                       end
+                     else     # unknown escape
+                       '\\' + cap.chr
+                     end
+        Primitive.string_append(result, additional)
+        index += 1
+      end
     end
 
     def self.validate_case_mapping_options(options, downcasing)

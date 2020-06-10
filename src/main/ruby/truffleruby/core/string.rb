@@ -333,67 +333,6 @@ class String
     str.tr_s!(source, replacement) || str
   end
 
-  def to_sub_replacement(result, match)
-    index = 0
-    while index < bytesize
-      current = Primitive.find_string(self, '\\', index)
-      current = bytesize if Primitive.nil? current
-
-
-      Primitive.string_append(result, byteslice(index, current - index))
-      break if current == bytesize
-
-      # found backslash escape, looking next
-      if current == bytesize - 1
-        Primitive.string_append(result, '\\') # backslash at end of string
-        break
-      end
-      index = current + 1
-
-      cap = getbyte(index)
-
-      additional = case cap
-                   when 38   # ?&
-                     match[0]
-                   when 96   # ?`
-                     match.pre_match
-                   when 39   # ?'
-                     match.post_match
-                   when 43   # ?+
-                     match.captures.compact[-1].to_s
-                   when 48..57   # ?0..?9
-                     match[cap - 48].to_s
-                   when 92 # ?\\ escaped backslash
-                     '\\'
-                   when 107 # \k named capture
-                     if getbyte(index + 1) == 60
-                       name = +''
-                       i = index + 2
-                       data = bytes
-                       while i < bytesize && data[i] != 62
-                         name << data[i]
-                         i += 1
-                       end
-                       if i >= bytesize
-                         name << '\\'
-                         name << cap.chr
-                         index += 1
-                         next
-                       end
-                       index = i
-                       name.force_encoding result.encoding
-                       match[name]
-                     else
-                       '\\' + cap.chr
-                     end
-                   else     # unknown escape
-                     '\\' + cap.chr
-                   end
-      Primitive.string_append(result, additional)
-      index += 1
-    end
-  end
-
   def subpattern(pattern, capture)
     match = Truffle::RegexpOperations.match(pattern, self)
 
@@ -788,7 +727,7 @@ class String
 
         Primitive.string_append(ret, val)
       else
-        replacement.to_sub_replacement(ret, match)
+        Truffle::StringOperations.to_sub_replacement(replacement, ret, match)
       end
 
       Primitive.string_append(ret, match.post_match)
