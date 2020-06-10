@@ -30,6 +30,14 @@ EOS
     }
   end
 
+  it "stops the Java stacktrace at the CallTarget boundary" do
+    -> { Truffle::Debug.throw_java_exception 'message' }.should raise_error { |e|
+      message = e.message
+      message.should.include?('RubyRootNode.execute')
+      message.should_not.include?('.RubyCallNode.')
+    }
+  end
+
   it "formats to include the source information including cause" do
     -> { Truffle::Debug.throw_java_exception_with_cause 'message' }.should raise_error { |e|
       message = e.message.gsub(/:\d+/, ':LINE')
