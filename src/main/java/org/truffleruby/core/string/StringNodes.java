@@ -4740,8 +4740,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "byte_append", required = 1)
+    @Primitive(name = "string_byte_append")
     public static abstract class StringByteAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();

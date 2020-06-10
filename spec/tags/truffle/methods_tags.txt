@@ -45,7 +45,6 @@ fails:Public methods on String should include each_grapheme_cluster
 fails:Public methods on String should include freeze
 fails:Public methods on String should include grapheme_clusters
 fails:Public methods on String should include undump
-fails:Public methods on String should not include byte_append
 fails:Public methods on String should not include chr_at
 fails:Public methods on String should not include concat_internal
 fails:Public methods on String should not include find_character
