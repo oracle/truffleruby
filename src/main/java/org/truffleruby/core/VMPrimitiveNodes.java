@@ -176,7 +176,7 @@ public abstract class VMPrimitiveNodes {
                 assert backtrace.getRaiseException().getException() == exception;
 
                 if (getContext().getOptions().BACKTRACE_ON_RAISE) {
-                    getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(exception);
+                    getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("raise: ", exception);
                 }
                 throw backtrace.getRaiseException();
             } else {

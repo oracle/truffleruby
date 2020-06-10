@@ -699,7 +699,9 @@ public class ThreadManager {
                 break; // Successfully executed the safepoint and sent the exceptions.
             } catch (RaiseException e) {
                 final DynamicObject rubyException = e.getException();
-                context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(rubyException);
+                context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(
+                        "Exception while killing other threads:\n",
+                        rubyException);
             }
         }
     }

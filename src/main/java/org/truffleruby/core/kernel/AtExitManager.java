@@ -84,7 +84,7 @@ public class AtExitManager {
                 logicalClass == context.getCoreLibrary().signalExceptionClass) {
             // Do not show the backtrace for these
         } else {
-            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(rubyException);
+            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("", rubyException);
         }
         return rubyException;
     }
