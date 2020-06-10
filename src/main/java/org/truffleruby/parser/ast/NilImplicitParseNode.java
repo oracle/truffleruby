@@ -26,14 +26,17 @@
  ***** END LICENSE BLOCK *****/
 package org.truffleruby.parser.ast;
 
+import org.truffleruby.language.SourceIndexLength;
+
 /** A node which behaves like a nil node, but is not actually present in the AST as a syntactical element (e.g. IDE's
  * should ignore occurences of this node. We have this as separate subclass so that IDE consumers can more easily ignore
  * these. */
 public class NilImplicitParseNode extends NilParseNode implements InvisibleNode {
+
     public static final NilImplicitParseNode NIL = new NilImplicitParseNode();
 
-    public NilImplicitParseNode() {
-        super(null);
+    private NilImplicitParseNode() {
+        super(SourceIndexLength.UNAVAILABLE_POSITION);
     }
 
     @Override

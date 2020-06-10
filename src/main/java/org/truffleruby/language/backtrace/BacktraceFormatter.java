@@ -9,12 +9,11 @@
  */
 package org.truffleruby.language.backtrace;
 
-import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
-import com.oracle.truffle.api.TruffleStackTraceElement;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -28,6 +27,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -95,7 +95,7 @@ public class BacktraceFormatter {
 
     @TruffleBoundary
     public void printRubyExceptionMessageOnEnvStderr(DynamicObject rubyException) {
-        final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+        final PrintStream printer = new PrintStream(context.getEnv().err(), true);
         final Object message = context.send(
                 context.getCoreLibrary().truffleExceptionOperationsModule,
                 "message_and_class",
@@ -111,28 +111,38 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printRubyExceptionOnEnvStderr(DynamicObject rubyException) {
-        final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+    public void printRubyExceptionOnEnvStderr(String info, DynamicObject rubyException) {
+        final PrintStream printer = new PrintStream(context.getEnv().err(), true);
+        if (!info.isEmpty()) {
+            printer.print(info);
+        }
+
         // can be null, if @custom_backtrace is used
         final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
+        final String formatted;
         if (backtrace != null) {
-            printer.println(formatBacktrace(rubyException, backtrace));
+            formatted = formatBacktrace(rubyException, backtrace);
         } else {
-            final Object fullMessage = context.send(rubyException, "full_message");
-            final Object fullMessageString;
+            // formatBacktrace() uses top order, so use the same order here to be consistent
+            final Object fullMessage = context.send(rubyException, "full_message_order_top");
             if (RubyGuards.isRubyString(fullMessage)) {
-                fullMessageString = StringOperations.getString((DynamicObject) fullMessage);
+                formatted = StringOperations.getString((DynamicObject) fullMessage);
             } else {
-                fullMessageString = fullMessage.toString() + "\n";
+                formatted = fullMessage.toString();
             }
-            printer.print(fullMessageString);
+        }
+
+        if (formatted.endsWith("\n")) {
+            printer.print(formatted);
+        } else {
+            printer.println(formatted);
         }
     }
 
     @TruffleBoundary
     public void printBacktraceOnEnvStderr(Node currentNode) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
-        final PrintWriter printer = new PrintWriter(context.getEnv().err(), true);
+        final PrintStream printer = new PrintStream(context.getEnv().err(), true);
         printer.println(formatBacktrace(null, backtrace));
     }
 

@@ -2542,7 +2542,7 @@ states[347] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[348] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = new Integer((support.isInClass() ? 2 : 0) & (support.isInDef() ? 1 : 0));
+    yyVal = (support.isInClass() ? 2 : 0) | (support.isInDef() ? 1 : 0);
     support.setInDef(false);
     support.setIsInClass(false);
     support.pushLocalScope();
@@ -3606,7 +3606,7 @@ states[583] = (support, lexer, yyVal, yyVals, yyTop) -> {
 };
 states[584] = (support, lexer, yyVal, yyVals, yyTop) -> {
     lexer.setCurrentArg(null);
-    yyVal = support.keyword_arg(lexer.getPosition(), support.assignableKeyword(((Rope)yyVals[0+yyTop]), new RequiredKeywordArgumentValueParseNode()));
+    yyVal = support.keyword_arg(lexer.getPosition(), support.assignableKeyword(((Rope)yyVals[0+yyTop]), RequiredKeywordArgumentValueParseNode.INSTANCE));
     return yyVal;
 };
 states[585] = (support, lexer, yyVal, yyVals, yyTop) -> {
@@ -3614,7 +3614,7 @@ states[585] = (support, lexer, yyVal, yyVals, yyTop) -> {
     return yyVal;
 };
 states[586] = (support, lexer, yyVal, yyVals, yyTop) -> {
-    yyVal = support.keyword_arg(lexer.getPosition(), support.assignableKeyword(((Rope)yyVals[0+yyTop]), new RequiredKeywordArgumentValueParseNode()));
+    yyVal = support.keyword_arg(lexer.getPosition(), support.assignableKeyword(((Rope)yyVals[0+yyTop]), RequiredKeywordArgumentValueParseNode.INSTANCE));
     return yyVal;
 };
 states[587] = (support, lexer, yyVal, yyVals, yyTop) -> {

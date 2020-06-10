@@ -40,8 +40,13 @@ class Dir
   attr_reader :path
   alias_method :to_path, :path
 
-  def initialize(path, options=undefined)
-    @path = Truffle::Type.coerce_to_path path
+  def initialize(path, options = undefined)
+    path = Truffle::Type.coerce_to_path path
+    Errno.handle path unless initialize_internal(path, options)
+  end
+
+  private def initialize_internal(path, options = undefined)
+    @path = path
 
     if Primitive.undefined? options
       enc = nil
@@ -53,8 +58,8 @@ class Dir
 
     @encoding = enc || Encoding.filesystem
 
-    @ptr = Truffle::POSIX.opendir(@path)
-    Errno.handle @path if @ptr.null?
+    @ptr = Truffle::POSIX.opendir(path)
+    @ptr.null? ? nil : self
   end
 
   private def ensure_open

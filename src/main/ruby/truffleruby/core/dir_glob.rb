@@ -212,18 +212,19 @@ class Dir
       def call(matches, path, glob_base_dir)
         return if path and !File.exist?("#{path_join(glob_base_dir, path)}/.")
 
-        begin
-          dir = Dir.new(path_join(glob_base_dir, path ? path : '.'))
-        rescue SystemCallError
-          return
-        end
-
-        while ent = dir.read
-          if match? ent
-            matches << path_join(path, ent)
+        dir_path = path_join(glob_base_dir, path ? path : '.')
+        dir = Dir.allocate.send(:initialize_internal, dir_path)
+        if dir
+          begin
+            while ent = dir.read
+              if match? ent
+                matches << path_join(path, ent)
+              end
+            end
+          ensure
+            dir.close
           end
         end
-        dir.close
       end
     end
 

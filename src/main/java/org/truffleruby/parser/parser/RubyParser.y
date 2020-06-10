@@ -1558,7 +1558,7 @@ primary         : literal
                     support.setIsInClass($<Boolean>4.booleanValue());
                 }
                 | k_class tLSHFT expr {
-                    $$ = new Integer((support.isInClass() ? 2 : 0) & (support.isInDef() ? 1 : 0));
+                    $$ = (support.isInClass() ? 2 : 0) | (support.isInDef() ? 1 : 0);
                     support.setInDef(false);
                     support.setIsInClass(false);
                     support.pushLocalScope();
@@ -2496,14 +2496,14 @@ f_kw            : f_label arg_value {
                 }
                 | f_label {
                     lexer.setCurrentArg(null);
-                    $$ = support.keyword_arg(lexer.getPosition(), support.assignableKeyword($1, new RequiredKeywordArgumentValueParseNode()));
+                    $$ = support.keyword_arg(lexer.getPosition(), support.assignableKeyword($1, RequiredKeywordArgumentValueParseNode.INSTANCE));
                 }
 
 f_block_kw      : f_label primary_value {
                     $$ = support.keyword_arg(support.getPosition($2), support.assignableKeyword($1, $2));
                 }
                 | f_label {
-                    $$ = support.keyword_arg(lexer.getPosition(), support.assignableKeyword($1, new RequiredKeywordArgumentValueParseNode()));
+                    $$ = support.keyword_arg(lexer.getPosition(), support.assignableKeyword($1, RequiredKeywordArgumentValueParseNode.INSTANCE));
                 }
              
 

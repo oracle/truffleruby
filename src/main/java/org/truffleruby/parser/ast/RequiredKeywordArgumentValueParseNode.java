@@ -28,6 +28,7 @@ package org.truffleruby.parser.ast;
 
 import java.util.List;
 
+import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.visitor.NodeVisitor;
 
 /** Marker to indicate that rather than assigning nil (where in multiple places we have nulls getting implicitly
@@ -35,8 +36,11 @@ import org.truffleruby.parser.ast.visitor.NodeVisitor;
  *
  * MRI passes a -1 as a special value so we are doing something similar but more explicit. */
 public class RequiredKeywordArgumentValueParseNode extends ParseNode implements InvisibleNode {
-    public RequiredKeywordArgumentValueParseNode() {
-        super(null);
+
+    public static final RequiredKeywordArgumentValueParseNode INSTANCE = new RequiredKeywordArgumentValueParseNode();
+
+    private RequiredKeywordArgumentValueParseNode() {
+        super(SourceIndexLength.UNAVAILABLE_POSITION);
     }
 
     @Override

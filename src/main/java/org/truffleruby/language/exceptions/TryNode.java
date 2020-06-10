@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -17,6 +18,7 @@ import org.truffleruby.language.methods.ExceptionTranslatingNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ControlFlowException;
@@ -84,7 +86,7 @@ public class TryNode extends RubyContextSourceNode {
         for (RescueNode rescue : rescueParts) {
             if (rescue.canHandle(frame, exception.getException())) {
                 if (getContext().getOptions().BACKTRACE_ON_RESCUE) {
-                    getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(exception.getException());
+                    printBacktraceOnRescue(rescue, exception);
                 }
 
                 if (canOmitBacktrace) {
@@ -105,6 +107,14 @@ public class TryNode extends RubyContextSourceNode {
         }
 
         throw exception;
+    }
+
+    @TruffleBoundary
+    private void printBacktraceOnRescue(RescueNode rescue, RaiseException exception) {
+        String info = "rescued at " + RubyContext.fileLine(
+                getContext().getCallStack().getTopMostUserSourceSection(rescue.getEncapsulatingSourceSection())) +
+                ":\n";
+        getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception.getException());
     }
 
     private Object setLastExceptionAndRunRescue(VirtualFrame frame, RaiseException exception,

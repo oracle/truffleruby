@@ -150,6 +150,10 @@ class Exception
     result
   end
 
+  private def full_message_order_top
+    full_message(order: :top)
+  end
+
   class << self
     alias_method :exception, :new
   end

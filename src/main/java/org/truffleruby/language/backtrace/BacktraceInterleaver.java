@@ -51,8 +51,10 @@ public class BacktraceInterleaver {
     }
 
     public static boolean isCallBoundary(StackTraceElement element) {
-        return element.toString().startsWith("org.graalvm.compiler.truffle.runtime.OptimizedCallTarget.callProxy") ||
-                element.toString().startsWith("com.oracle.truffle.api.impl.DefaultCallTarget.call");
+        return (element.getClassName().equals("org.graalvm.compiler.truffle.runtime.OptimizedCallTarget") &&
+                element.getMethodName().equals("executeRootNode")) ||
+                (element.getClassName().equals("com.oracle.truffle.api.impl.DefaultCallTarget") &&
+                        element.getMethodName().startsWith("call"));
     }
 
     private static boolean isIntoRuby(StackTraceElement[] elements, int index) {

@@ -919,7 +919,9 @@ public class CoreLibrary {
         } catch (IOException e) {
             throw new JavaException(e);
         } catch (RaiseException e) {
-            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(e.getException());
+            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(
+                    "Exception while loading core library:\n",
+                    e.getException());
             throw new TruffleFatalException("couldn't load the core library", e);
         }
     }

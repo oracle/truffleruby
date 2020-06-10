@@ -47,7 +47,7 @@ public class RaiseException extends RuntimeException implements TruffleException
         assert !isSyntaxError() || getSourceLocation() != null;
 
         if (context.getOptions().BACKTRACE_ON_RAISE) {
-            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(exception);
+            context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("raise: ", exception);
         }
     }
 

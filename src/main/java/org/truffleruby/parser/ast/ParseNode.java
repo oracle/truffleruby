@@ -36,6 +36,7 @@ package org.truffleruby.parser.ast;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.parser.ast.types.INameNode;
@@ -54,13 +55,9 @@ public abstract class ParseNode {
     protected boolean newline;
 
     public ParseNode(SourceIndexLength position) {
-        if (position == null) {
-            sourceCharIndex = -1;
-            sourceLength = -1;
-        } else {
-            sourceCharIndex = position.getCharIndex();
-            sourceLength = position.getLength();
-        }
+        Objects.requireNonNull(position);
+        sourceCharIndex = position.getCharIndex();
+        sourceLength = position.getLength();
     }
 
     public void setNewline() {
@@ -72,11 +69,11 @@ public abstract class ParseNode {
     }
 
     /** Location of this node within the source */
-    public SourceIndexLength getPosition() {
+    public final SourceIndexLength getPosition() {
         return new SourceIndexLength(sourceCharIndex, sourceLength);
     }
 
-    public void setPosition(SourceIndexLength position) {
+    public final void setPosition(SourceIndexLength position) {
         sourceCharIndex = position.getCharIndex();
         sourceLength = position.getLength();
     }
