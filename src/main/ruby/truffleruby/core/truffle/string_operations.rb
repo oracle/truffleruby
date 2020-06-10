@@ -128,6 +128,25 @@ module Truffle
       [ret, last_match]
     end
 
+    def self.concat_internal(string, other)
+      Primitive.check_frozen string
+
+      unless other.kind_of? String
+        if other.kind_of? Integer
+          if string.encoding == Encoding::US_ASCII and other >= 128 and other < 256
+            string.force_encoding(Encoding::ASCII_8BIT)
+          end
+
+          other = other.chr(string.encoding)
+        else
+          other = StringValue(other)
+        end
+      end
+
+      Primitive.infect(string, other)
+      Primitive.string_append(string, other)
+    end
+
     def self.copy_from(string, other, other_offset, byte_count_to_copy, dest_offset)
       sz = string.bytesize
       osz = other.bytesize

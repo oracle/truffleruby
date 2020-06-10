@@ -483,7 +483,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "rest.length == 0", "wasProvided(first)", "!isRubyString(first)" })
         protected Object concatGeneric(DynamicObject string, Object first, Object[] rest,
                 @Cached("createPrivate()") CallDispatchHeadNode callNode) {
-            return callNode.call(string, "concat_internal", first);
+            return callNode.call(coreLibrary().truffleStringOperationsModule, "concat_internal", string, first);
         }
 
         @ExplodeLoop
