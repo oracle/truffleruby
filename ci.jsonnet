@@ -293,6 +293,7 @@ local part_definitions = {
       mx_build_options:: ["--jdt", "$JDT", "--warning-as-error", "--force-deprecation-as-warning"],
       packages+: {
         "pip:pylint": "==1.9.0",
+        "shellcheck": "==0.6.0",
       },
       run+: jt(["lint"]),
     },

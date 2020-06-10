@@ -2160,6 +2160,12 @@ EOS
     end
   end
 
+  private def check_bash_scripts
+    sh_files = Dir.glob('**/*.sh')
+    sh_files.reject! { |f| f.start_with?('truffleruby-gem-test-pack') }
+    sh 'shellcheck', '-a', '-x', *sh_files
+  end
+
   def check_license
     v = '1.0' # to avoid self-matching
     ["Eclipse Public License version #{v}", "Eclipse Public License #{v}", "EPL #{v}", "EPL#{v}", "EPL-#{v}"].each do |match|
@@ -2345,6 +2351,7 @@ EOS
 
     mx 'verify-ci'
 
+    check_bash_scripts
     check_parser
     check_documentation_urls
     check_license
