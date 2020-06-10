@@ -138,6 +138,16 @@ describe "Interop special forms" do
     Truffle::Interop.to_display_string(@object).should include("invokeMember(bar, 1, 2, 3)")
   end
 
+  it description['.method_name(*arguments) &block', :invoke_member, ['method_name', '*arguments, block']] do
+    pm = TruffleInteropSpecs::PolyglotMember.new
+    pfo = Truffle::Interop.proxy_foreign_object(pm)
+    block = Proc.new {}
+    pfo.foo = -> *x { 1 }
+    pfo.foo(1, 2, 3, &block)
+    messages = pm.log
+    messages.should include([:polyglot_invoke_member, "foo", 1, 2, 3, block])
+  end
+
   it description['.new(*arguments)', :instantiate, ['*arguments']] do
     -> { @object.new }.should raise_error(Polyglot::UnsupportedMessageError)
     Truffle::Interop.to_display_string(@object).should include("instantiate()")

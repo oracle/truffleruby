@@ -20,12 +20,14 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public final class CachedForeignDispatchNode extends CachedDispatchNode {
 
     @Child private OutgoingForeignCallNode outgoingForeignCallNode;
     @Child private TranslateExceptionNode exceptionTranslatingNode;
     final private String methodName;
+    final private ConditionProfile blockProfile = ConditionProfile.create();
     final private BranchProfile errorProfile = BranchProfile.create();
 
     public CachedForeignDispatchNode(RubyContext context, DispatchNode next, String methodName) {
@@ -52,7 +54,14 @@ public final class CachedForeignDispatchNode extends CachedDispatchNode {
             DynamicObject blockObject,
             Object[] argumentsObjects) {
         if (guard(methodName, receiverObject)) {
-            return doDispatch(frame, receiverObject, argumentsObjects);
+            if (blockProfile.profile(blockObject == null)) {
+                return doDispatch(frame, receiverObject, argumentsObjects);
+            } else {
+                Object[] newArgs = new Object[argumentsObjects.length + 1];
+                System.arraycopy(argumentsObjects, 0, newArgs, 0, argumentsObjects.length);
+                newArgs[argumentsObjects.length] = blockObject;
+                return doDispatch(frame, receiverObject, newArgs);
+            }
         } else {
             return next.executeDispatch(frame, receiverObject, methodName, blockObject, argumentsObjects);
         }

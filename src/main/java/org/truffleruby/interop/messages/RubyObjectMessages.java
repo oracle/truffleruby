@@ -471,9 +471,12 @@ public class RubyObjectMessages {
 
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object rubyName = nameToRubyNode.executeConvert(name);
+        Object[] combinedArguments = new Object[convertedArguments.length + 1];
+        combinedArguments[0] = rubyName;
+        System.arraycopy(convertedArguments, 0, combinedArguments, 1, convertedArguments.length);
         Object dynamic;
         try {
-            dynamic = dispatchDynamic.call(receiver, "polyglot_invoke_member", rubyName, convertedArguments);
+            dynamic = dispatchDynamic.call(receiver, "polyglot_invoke_member", combinedArguments);
         } catch (RaiseException e) {
             throw translateRubyException.execute(e, name, arguments);
         }
