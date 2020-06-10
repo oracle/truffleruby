@@ -163,7 +163,7 @@ class Array
 
   private def element_set_index_fallback(index, value)
     if Range === index
-      start, length = Truffle::RangeOperations.normalized_start_length(index, self.length)
+      start, length = Truffle::RangeOperations.normalized_start_length(index, size)
       raise RangeError, "#{index} out of range" if start < 0
       length = 0 if length < 0
       self[start, length] = convert_to_array_set_value(value) # no recursion

@@ -83,7 +83,7 @@ module Truffle
       start = Primitive.rb_num2int(range.first)
       start += size if start < 0
       if Primitive.nil?(range.end)
-        length = size
+        length = size - start
       else
         length = Primitive.rb_num2int(range.end)
         length += size if length < 0
