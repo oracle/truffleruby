@@ -85,6 +85,10 @@
 #include <stdio.h>
 #include <errno.h>
 #include <ctype.h>
+
+#ifdef TRUFFLERUBY
+#define DTRACE_PROBES_DISABLED 1
+#endif
 #include "probes.h"
 
 #ifndef WARN_PAST_SCOPE
