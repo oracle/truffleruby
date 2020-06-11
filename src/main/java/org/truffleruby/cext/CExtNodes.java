@@ -1493,6 +1493,24 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_tr_id2sym_function", onSingleton = true, required = 0)
+    public abstract static class UnwrapperIDFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object unwrapFunction() {
+            return new ValueWrapperManager.ID2SymbolFunction();
+        }
+    }
+
+    @CoreMethod(names = "rb_tr_sym2id_function", onSingleton = true, required = 0)
+    public abstract static class Sym2IDFunctionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object unwrapFunction() {
+            return new ValueWrapperManager.Symbol2IDFunction();
+        }
+    }
+
     @CoreMethod(names = "rb_tr_wrap_function", onSingleton = true, required = 0)
     public abstract static class WrapperFunctionNode extends CoreMethodArrayArgumentsNode {
 
