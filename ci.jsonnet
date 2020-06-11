@@ -87,7 +87,7 @@ local part_definitions = {
 
     clean: {
       # Clean build results to make sure nothing refers to them while testing
-      setup+: jt(["mx", "--env", self.mx_env, "clean"]),
+      setup+: [["mx", "--env", self.mx_env, "clean"]],
     },
 
     build: $.use.build_no_clean + $.use.clean,
@@ -259,10 +259,15 @@ local part_definitions = {
   },
 
   run: {
+    clean: {
+      # $.use.clean but as run instead of setup
+      run+: [["mx", "--env", self.mx_env, "clean"]],
+    },
+
     test_unit_tck: {
       # Run unittests first before cleaning, they need a full non-cleaned build
-      setup+: jt(["test", "unit"]) +
-              jt(["test", "tck"])
+      run+: jt(["test", "unit"]) +
+            jt(["test", "tck"])
     },
 
     test_specs: {
@@ -335,6 +340,11 @@ local part_definitions = {
         ["ruby", "tool/generate-native-config.rb"],
         ["cat", "src/main/java/org/truffleruby/platform/" + self.platform_name + "NativeConfiguration.java"],
       ],
+    },
+
+    check_native_config: {
+      is_after+:: ["$.run.generate_native_config"],
+      run+: jt(["check_native_configuration"]),
     },
   },
 
@@ -444,12 +454,13 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     {
       local gate_no_build = $.cap.gate + $.use.common + { timelimit: "01:00:00" },
       local gate = gate_no_build + $.use.build,
+      local native_config = $.run.generate_native_config + $.run.check_native_config,
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
-      "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "40:00" },
-      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "40:00" },
-      "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "01:20:00" },
-      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + $.use.clean + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "40:00" },
+      "ruby-test-specs-linux-11":    $.platform.linux  + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "40:00" },
+      "ruby-test-specs-darwin":      $.platform.darwin + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "01:20:00" },
+      "ruby-test-specs-darwin-11":   $.platform.darwin + $.jdk.v11 + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "01:20:00" },
       "ruby-test-fast-linux":        $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_fast + { timelimit: "30:00" },  # To catch missing slow tags
       "ruby-test-mri-linux":         $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "40:00" },
       "ruby-test-mri-darwin":        $.platform.darwin + $.jdk.v8  + $.env.jvm + gate + $.run.test_mri + { timelimit: "01:30:00" },
