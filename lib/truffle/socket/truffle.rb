@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -161,7 +163,7 @@ module Truffle
       vals = {}
       section = 'platform.socket.'
       Truffle::Config.section(section) do |key, value|
-        vals[key.substring(section.size, key.length)] = value
+        vals[Primitive.string_substring(key, section.size, key.length)] = value
       end
       vals
     end

@@ -483,7 +483,7 @@ public abstract class StringNodes {
         @Specialization(guards = { "rest.length == 0", "wasProvided(first)", "!isRubyString(first)" })
         protected Object concatGeneric(DynamicObject string, Object first, Object[] rest,
                 @Cached("createPrivate()") CallDispatchHeadNode callNode) {
-            return callNode.call(string, "concat_internal", first);
+            return callNode.call(coreLibrary().truffleStringOperationsModule, "concat_internal", string, first);
         }
 
         @ExplodeLoop
@@ -3154,8 +3154,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "append", required = 1)
+    @Primitive(name = "string_append")
     public static abstract class StringAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private StringAppendNode stringAppendNode = StringAppendNode.create();
@@ -3377,8 +3376,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "chr_at", required = 1, lowerFixnum = 1)
+    @Primitive(name = "string_chr_at", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
     public static abstract class StringChrAtPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
@@ -3628,8 +3626,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "find_character", required = 1, lowerFixnum = 1)
+    @Primitive(name = "string_find_character", lowerFixnum = 1)
     @ImportStatic(StringGuards.class)
     public static abstract class StringFindCharacterNode extends CoreMethodArrayArgumentsNode {
 
@@ -4741,8 +4738,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "byte_append", required = 1)
+    @Primitive(name = "string_byte_append")
     public static abstract class StringByteAppendPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Child private RopeNodes.ConcatNode concatNode = RopeNodes.ConcatNode.create();
@@ -4762,8 +4758,7 @@ public abstract class StringNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "substring", lowerFixnum = { 1, 2 }, required = 2)
+    @Primitive(name = "string_substring", lowerFixnum = { 1, 2 })
     @ImportStatic(StringGuards.class)
     public static abstract class StringSubstringPrimitiveNode extends CoreMethodArrayArgumentsNode {
 

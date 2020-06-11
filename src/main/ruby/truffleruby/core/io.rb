@@ -314,7 +314,7 @@ class IO
           @start += 1
 
           char.force_encoding(io.external_encoding || Encoding.default_external)
-          if char.chr_at(0)
+          if Primitive.string_chr_at(char, 0)
             return IO.read_encode io, char
           end
         end
@@ -1810,7 +1810,7 @@ class IO
   #  AA
   def putc(obj)
     if Primitive.object_kind_of? obj, String
-      write obj.substring(0, 1)
+      write Primitive.string_substring(obj, 0, 1)
     else
       byte = Truffle::Type.coerce_to(obj, Integer, :to_int) & 0xff
       write byte.chr
@@ -2037,7 +2037,7 @@ class IO
     if buffer
       buffer = StringValue(buffer)
 
-      buffer.shorten! buffer.bytesize
+      Truffle::StringOperations.shorten!(buffer, buffer.bytesize)
 
       return buffer if size == 0
 

@@ -212,6 +212,7 @@ public class CoreLibrary {
     public final DynamicObject arityExceptionClass;
     public final DynamicObject truffleFeatureLoaderModule;
     public final DynamicObject truffleKernelOperationsModule;
+    public final DynamicObject truffleStringOperationsModule;
     public final DynamicObject truffleRegexpOperationsModule;
     public final DynamicObject truffleThreadOperationsModule;
     public final DynamicObject bigDecimalClass;
@@ -616,7 +617,7 @@ public class CoreLibrary {
         defineModule(truffleModule, "Graal");
         defineModule(truffleModule, "Ropes");
         truffleRegexpOperationsModule = defineModule(truffleModule, "RegexpOperations");
-        defineModule(truffleModule, "StringOperations");
+        truffleStringOperationsModule = defineModule(truffleModule, "StringOperations");
         truffleBootModule = defineModule(truffleModule, "Boot");
         defineModule(truffleModule, "System");
         truffleFeatureLoaderModule = defineModule(truffleModule, "FeatureLoader");

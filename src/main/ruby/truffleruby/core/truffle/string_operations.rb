@@ -63,7 +63,7 @@ module Truffle
 
     def self.gsub_internal_replacement(orig, pattern, replacement)
       gsub_internal_core(orig, pattern, replacement.tainted?, replacement.untrusted? ) do |ret, m|
-        replacement.to_sub_replacement(ret, m)
+        Truffle::StringOperations.to_sub_replacement(replacement, ret, m)
       end
     end
 
@@ -90,16 +90,16 @@ module Truffle
         offset = match.byte_begin(0)
 
         str = match.pre_match_from(last_end)
-        ret.append str if str
+        Primitive.string_append(ret, str) if str
 
         val = yield ret, match
         untrusted ||= val.untrusted?
         val = val.to_s
         tainted ||= val.tainted?
-        ret.append val
+        Primitive.string_append(ret, val)
 
         if match.collapsing?
-          if (char = orig.find_character(offset))
+          if (char = Primitive.string_find_character(orig, offset))
             offset += char.bytesize
           else
             offset += 1
@@ -120,12 +120,31 @@ module Truffle
       end
 
       str = orig.byteslice(last_end, orig.bytesize-last_end+1)
-      ret.append str if str
+      Primitive.string_append(ret, str) if str
 
       ret.taint if tainted
       ret.untrust if untrusted
 
       [ret, last_match]
+    end
+
+    def self.concat_internal(string, other)
+      Primitive.check_frozen string
+
+      unless other.kind_of? String
+        if other.kind_of? Integer
+          if string.encoding == Encoding::US_ASCII and other >= 128 and other < 256
+            string.force_encoding(Encoding::ASCII_8BIT)
+          end
+
+          other = other.chr(string.encoding)
+        else
+          other = StringValue(other)
+        end
+      end
+
+      Primitive.infect(string, other)
+      Primitive.string_append(string, other)
     end
 
     def self.copy_from(string, other, other_offset, byte_count_to_copy, dest_offset)
@@ -157,6 +176,72 @@ module Truffle
         end
       else
         raise ArgumentError, 'invalid option'
+      end
+    end
+
+    def self.shorten!(string, size)
+      return if string.empty?
+      Truffle::StringOperations.truncate(string, string.bytesize - size)
+    end
+
+    def self.to_sub_replacement(string, result, match)
+      index = 0
+      while index < string.bytesize
+        current = Primitive.find_string(string, '\\', index)
+        current = string.bytesize if Primitive.nil? current
+
+
+        Primitive.string_append(result, string.byteslice(index, current - index))
+        break if current == string.bytesize
+
+        # found backslash escape, looking next
+        if current == string.bytesize - 1
+          Primitive.string_append(result, '\\') # backslash at end of string
+          break
+        end
+        index = current + 1
+
+        cap = string.getbyte(index)
+
+        additional = case cap
+                     when 38   # ?&
+                       match[0]
+                     when 96   # ?`
+                       match.pre_match
+                     when 39   # ?'
+                       match.post_match
+                     when 43   # ?+
+                       match.captures.compact[-1].to_s
+                     when 48..57   # ?0..?9
+                       match[cap - 48].to_s
+                     when 92 # ?\\ escaped backslash
+                       '\\'
+                     when 107 # \k named capture
+                       if string.getbyte(index + 1) == 60
+                         name = +''
+                         i = index + 2
+                         data = string.bytes
+                         while i < string.bytesize && data[i] != 62
+                           name << data[i]
+                           i += 1
+                         end
+                         if i >= string.bytesize
+                           name << '\\'
+                           name << cap.chr
+                           index += 1
+                           next
+                         end
+                         index = i
+                         name.force_encoding result.encoding
+                         match[name]
+                       else
+                         '\\' + cap.chr
+                       end
+                     else     # unknown escape
+                       '\\' + cap.chr
+                     end
+        Primitive.string_append(result, additional)
+        index += 1
       end
     end
 

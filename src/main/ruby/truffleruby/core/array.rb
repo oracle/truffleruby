@@ -598,7 +598,7 @@ class Array
     end
 
     Primitive.infect(result, self)
-    result.shorten!(2)
+    Truffle::StringOperations.shorten!(result, 2)
     result << ']'
     result
   end

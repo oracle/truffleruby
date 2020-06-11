@@ -202,9 +202,9 @@ class String
         post_start = i + pattern.length
         post_len = size - post_start
 
-        return [substring(0, i),
+        return [Primitive.string_substring(self, 0, i),
                 pattern,
-                substring(post_start, post_len)]
+                Primitive.string_substring(self, post_start, post_len)]
       end
     end
 
@@ -225,9 +225,9 @@ class String
         post_start = i + pattern.length
         post_len = size - post_start
 
-        return [substring(0, i),
+        return [Primitive.string_substring(self, 0, i),
                 pattern.dup,
-                substring(post_start, post_len)]
+                Primitive.string_substring(self, post_start, post_len)]
       end
 
       # Nothing worked out, this is the default.
@@ -253,7 +253,7 @@ class String
       fin = match.byte_end(0)
 
       if match.collapsing?
-        if char = find_character(fin)
+        if char = Primitive.string_find_character(self, fin)
           index = fin + char.bytesize
         else
           index = fin + 1
@@ -333,66 +333,6 @@ class String
     str.tr_s!(source, replacement) || str
   end
 
-  def to_sub_replacement(result, match)
-    index = 0
-    while index < bytesize
-      current = Primitive.find_string(self, '\\', index)
-      current = bytesize if Primitive.nil? current
-
-      result.append(byteslice(index, current - index))
-      break if current == bytesize
-
-      # found backslash escape, looking next
-      if current == bytesize - 1
-        result.append('\\') # backslash at end of string
-        break
-      end
-      index = current + 1
-
-      cap = getbyte(index)
-
-      additional = case cap
-                   when 38   # ?&
-                     match[0]
-                   when 96   # ?`
-                     match.pre_match
-                   when 39   # ?'
-                     match.post_match
-                   when 43   # ?+
-                     match.captures.compact[-1].to_s
-                   when 48..57   # ?0..?9
-                     match[cap - 48].to_s
-                   when 92 # ?\\ escaped backslash
-                     '\\'
-                   when 107 # \k named capture
-                     if getbyte(index + 1) == 60
-                       name = +''
-                       i = index + 2
-                       data = bytes
-                       while i < bytesize && data[i] != 62
-                         name << data[i]
-                         i += 1
-                       end
-                       if i >= bytesize
-                         name << '\\'
-                         name << cap.chr
-                         index += 1
-                         next
-                       end
-                       index = i
-                       name.force_encoding result.encoding
-                       match[name]
-                     else
-                       '\\' + cap.chr
-                     end
-                   else     # unknown escape
-                     '\\' + cap.chr
-                   end
-      result.append(additional)
-      index += 1
-    end
-  end
-
   def subpattern(pattern, capture)
     match = Truffle::RegexpOperations.match(pattern, self)
 
@@ -408,11 +348,6 @@ class String
     [match, str]
   end
   private :subpattern
-
-  def shorten!(size)
-    return if empty?
-    Truffle::StringOperations.truncate(self, bytesize - size)
-  end
 
   def each_codepoint
     return to_enum(:each_codepoint) { size } unless block_given?
@@ -583,7 +518,7 @@ class String
     index = 0
     total = bytesize
     while index < total
-      char = chr_at index
+      char = Primitive.string_chr_at(self, index)
 
       if char
         index += inspect_char(enc, result_encoding, ascii, unicode, index, char, array)
@@ -790,12 +725,12 @@ class String
 
         tainted ||= val.tainted?
 
-        ret.append val
+        Primitive.string_append(ret, val)
       else
-        replacement.to_sub_replacement(ret, match)
+        Truffle::StringOperations.to_sub_replacement(replacement, ret, match)
       end
 
-      ret.append(match.post_match)
+      Primitive.string_append(ret, match.post_match)
       tainted ||= val.tainted?
 
       ret.taint if tainted
@@ -856,10 +791,10 @@ class String
     bytes = Primitive.string_previous_byte_index(self, bytesize)
     return unless bytes
 
-    chr = chr_at bytes
+    chr = Primitive.string_chr_at(self, bytes)
     if chr.ord == 10
       if i = Primitive.string_previous_byte_index(self, bytes)
-        chr = chr_at i
+        chr = Primitive.string_chr_at(self, i)
 
         bytes = i if chr.ord == 13
       end
@@ -884,14 +819,14 @@ class String
     if sep == DEFAULT_RECORD_SEPARATOR
       return unless bytes = Primitive.string_previous_byte_index(self, bytesize)
 
-      chr = chr_at bytes
+      chr = Primitive.string_chr_at(self, bytes)
 
       case chr.ord
       when 13
         # do nothing
       when 10
         if j = Primitive.string_previous_byte_index(self, bytes)
-          chr = chr_at j
+          chr = Primitive.string_chr_at(self, j)
 
           if chr.ord == 13
             bytes = j
@@ -905,13 +840,13 @@ class String
       bytes = bytesize
 
       while i = Primitive.string_previous_byte_index(self, bytes)
-        chr = chr_at i
+        chr = Primitive.string_chr_at(self, i)
         break unless chr.ord == 10
 
         bytes = i
 
         if j = Primitive.string_previous_byte_index(self, i)
-          chr = chr_at j
+          chr = Primitive.string_chr_at(self, j)
           if chr.ord == 13
             bytes = j
           end
@@ -932,27 +867,8 @@ class String
     self
   end
 
-  def concat_internal(other)
-    Primitive.check_frozen self
-
-    unless other.kind_of? String
-      if other.kind_of? Integer
-        if encoding == Encoding::US_ASCII and other >= 128 and other < 256
-          force_encoding(Encoding::ASCII_8BIT)
-        end
-
-        other = other.chr(encoding)
-      else
-        other = StringValue(other)
-      end
-    end
-
-    Primitive.infect(self, other)
-    append(other)
-  end
-
   def chr
-    substring 0, 1
+    Primitive.string_substring(self, 0, 1)
   end
 
   def each_line(sep=$/, chomp: false)

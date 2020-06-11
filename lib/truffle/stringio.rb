@@ -169,7 +169,7 @@ class StringIO
     string = d.string
 
     while d.pos < string.bytesize
-      char = string.chr_at d.pos
+      char = Primitive.string_chr_at(string, d.pos)
 
       unless char
         raise ArgumentError, "invalid byte sequence in #{d.encoding}"
@@ -218,12 +218,12 @@ class StringIO
     string = d.string
 
     if @append || pos == string.bytesize
-      string.byte_append str
+      Primitive.string_byte_append(string, str)
       d.pos = string.bytesize
     elsif pos > string.bytesize
       replacement = "\000" * (pos - string.bytesize)
       Primitive.string_splice(string, replacement, string.bytesize, 0, string.encoding)
-      string.byte_append str
+      Primitive.string_byte_append(string, str)
       d.pos = string.bytesize
     else
       stop = string.bytesize - pos
@@ -294,7 +294,7 @@ class StringIO
 
     return nil if eof?
 
-    char = d.string.find_character(d.pos)
+    char = Primitive.string_find_character(d.string, d.pos)
     d.pos += char.bytesize
     char
   end
@@ -378,12 +378,12 @@ class StringIO
     string = d.string
 
     if @append || pos == string.bytesize
-      string.byte_append char
+      Primitive.string_byte_append(string, char)
       d.pos = string.bytesize
     elsif pos > string.bytesize
       replacement = "\000" * (pos - string.bytesize)
       Primitive.string_splice(string, replacement, string.bytesize, 0, string.encoding)
-      string.byte_append char
+      Primitive.string_byte_append(string, char)
       d.pos = string.bytesize
     else
       Primitive.string_splice(string, char, pos, char.bytesize, string.encoding)
