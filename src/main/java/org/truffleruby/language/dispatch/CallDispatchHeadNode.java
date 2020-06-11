@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.dispatch;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.utils.Utils;
+import org.truffleruby.utils.UnreachableCodeException;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 
@@ -97,17 +98,20 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         @Override
         public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject,
                 Object[] argumentsObjects) {
-            throw Utils.unreachable();
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            return new UnreachableCodeException();
         }
 
         @Override
         public void reset(String reason) {
-            throw Utils.unreachable();
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw new UnreachableCodeException();
         }
 
         @Override
         public DispatchNode getFirstDispatchNode() {
-            throw Utils.unreachable();
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            throw new UnreachableCodeException();
         }
 
         @Override
