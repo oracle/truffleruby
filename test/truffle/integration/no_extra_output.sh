@@ -9,7 +9,7 @@ set +x
 
 function check() {
   if [ "$1" -ne 0 ]; then
-    echo Command failed with $1
+    echo Command failed with "$1"
     echo Output:
     cat temp.txt
     exit 1

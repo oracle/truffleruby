@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SELF_PATH=$(cd "$(dirname "$BASH_SOURCE")" && pwd -P)/$(basename "$BASH_SOURCE")
+SELF_PATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)/$(basename "${BASH_SOURCE[0]}")
 while [ -h "$SELF_PATH" ]; do
   DIR=$(dirname "$SELF_PATH")
   SYM=$(readlink "$SELF_PATH")
@@ -62,4 +62,5 @@ function test_server {
 }
 
 shopt -s expand_aliases
+# shellcheck disable=SC2139
 alias jt="$repo/tool/jt.rb"

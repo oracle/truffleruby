@@ -9,21 +9,21 @@ if [ -n "$bad" ]; then
 	exit 1
 fi
 
-bad=$(egrep '\)\{' src/main/c/cext/ruby.c || exit 0)
+bad=$(grep -E '\)\{' src/main/c/cext/ruby.c || exit 0)
 if [ -n "$bad" ]; then
 	echo "There should be a space between ) and {"
 	echo "$bad"
 	exit 1
 fi
 
-bad=$(egrep '\bif\(' src/main/c/cext/ruby.c || exit 0)
+bad=$(grep -E '\bif\(' src/main/c/cext/ruby.c || exit 0)
 if [ -n "$bad" ]; then
 	echo "There should be a space between if and ("
 	echo "$bad"
 	exit 1
 fi
 
-bad=$(egrep "$(printf '\t')" src/main/c/cext/ruby.c || exit 0)
+bad=$(grep -E "$(printf '\t')" src/main/c/cext/ruby.c || exit 0)
 if [ -n "$bad" ]; then
 	echo "There should be no tabs in ruby.c"
 	echo "$bad"

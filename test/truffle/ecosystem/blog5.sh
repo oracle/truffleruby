@@ -8,5 +8,6 @@ while [ -h "$SELF_PATH" ]; do
 done
 
 ecosystem=$(dirname "$SELF_PATH")
-cd "$ecosystem/blog5"
+cd "$ecosystem/blog5" || exit 1
+# shellcheck source=test/truffle/ecosystem/blog-shared.sh.inc
 source "$ecosystem/blog-shared.sh.inc"
