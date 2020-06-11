@@ -915,6 +915,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
+        @Child protected ReferenceEqualNode equalNode;
         private final BranchProfile errorProfile = BranchProfile.create();
 
         @Specialization(guards = "self == from")
@@ -927,12 +928,12 @@ public abstract class KernelNodes {
             return self;
         }
 
-        @Specialization(guards = "self == from")
+        @Specialization(guards = "getEqualNode().executeReferenceEqual(self, from)")
         protected Object initialiseSameObject(Object self, Object from) {
             return self;
         }
 
-        @Specialization
+        @Specialization(guards = "!getEqualNode().executeReferenceEqual(self, from)")
         protected Object initializeCopy(DynamicObject self, DynamicObject from,
                 @Cached CheckFrozenNode checkFrozenNode) {
             checkFrozenNode.execute(self);
@@ -946,6 +947,13 @@ public abstract class KernelNodes {
             return self;
         }
 
+        protected ReferenceEqualNode getEqualNode() {
+            if (equalNode == null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                equalNode = insert(ReferenceEqualNode.create());
+            }
+            return equalNode;
+        }
     }
 
     @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
