@@ -221,6 +221,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             build_args=[
                 '-H:+DetectUserDirectoriesInImageHeap',
                 '-H:+TruffleCheckBlackListedMethods',
+                '-H:+RemoveSaturatedTypeFlows',
             ],
             language='ruby',
             links=['bin/<exe:ruby>'],
