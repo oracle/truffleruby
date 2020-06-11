@@ -412,12 +412,10 @@ rb_char_to_option_kcode(int c, int *option, int *kcode)
         *kcode = rb_ascii8bit_encindex();
         return (*option = ARG_ENCODING_NONE);
       case 'e':
-      rb_tr_error("ENCINDEX_EUC_JP not implemented");
-	*kcode = -1; // ENCINDEX_EUC_JP;
+	*kcode = rb_enc_find_index("EUC-JP");
 	break;
       case 's':
-      rb_tr_error("ENCINDEX_Windows_31J not implemented");
-	*kcode =  -1; // ENCINDEX_Windows_31J;
+      *kcode = rb_enc_find_index("Windows-31J");
 	break;
       case 'u':
 	*kcode = rb_utf8_encindex();
