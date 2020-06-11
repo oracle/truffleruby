@@ -263,6 +263,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.utils.UnreachableCodeException;
 
 /** A JRuby parser node visitor which translates JRuby AST nodes into truffle Nodes. */
 public class BodyTranslator extends Translator {
@@ -1031,7 +1032,7 @@ public class BodyTranslator extends Translator {
         } else if (constNode instanceof Colon3ParseNode) {
             moduleNode = new ObjectLiteralNode(context.getCoreLibrary().objectClass);
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnreachableCodeException();
         }
 
         final RubyNode ret = new WriteConstantNode(node.getName(), moduleNode, rhs);
@@ -2283,7 +2284,7 @@ public class BodyTranslator extends Translator {
                     sequence(sourceSection, sequence),
                     environment.findLocalVarNode(tempRHSName, sourceSection));
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnreachableCodeException();
         }
 
         final RubyNode ret = new DefinedWrapperNode(context.getCoreStrings().ASSIGNMENT, result);
@@ -2789,7 +2790,7 @@ public class BodyTranslator extends Translator {
                                 new ArrayParseNode(argsPush.getSecondNode().getPosition(), argsPush.getSecondNode()));
                         exceptionNodes.push(argsPush.getFirstNode());
                     } else {
-                        throw new UnsupportedOperationException();
+                        throw new UnreachableCodeException();
                     }
                 }
             } else {

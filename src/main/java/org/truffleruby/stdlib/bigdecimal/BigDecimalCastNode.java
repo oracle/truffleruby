@@ -52,6 +52,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @ImportStatic(BigDecimalCoreMethodNode.class)
 public abstract class BigDecimalCastNode extends RubyContextNode {
@@ -139,7 +140,7 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
         } else if (RubyGuards.isRubyBignum(object)) {
             return new BigDecimal(Layouts.BIGNUM.getValue((DynamicObject) object));
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnreachableCodeException();
         }
     }
 

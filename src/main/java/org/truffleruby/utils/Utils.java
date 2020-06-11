@@ -10,7 +10,6 @@
 
 package org.truffleruby.utils;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 import java.util.Objects;
@@ -62,28 +61,5 @@ public final class Utils {
             builder.append(part);
         }
         return builder.toString();
-    }
-
-    /** Returns a exception to be thrown in unreachable code paths and calls
-     * {@link CompilerDirectives#transferToInterpreterAndInvalidate()}. */
-    public static UnreachableCodeException unreachable() {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        return new UnreachableCodeException();
-    }
-
-    /** Returns a exception to be thrown in unreachable code paths and calls
-     * {@link CompilerDirectives#transferToInterpreterAndInvalidate()}. */
-    public static UnreachableCodeException unreachable(String msg) {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        return new UnreachableCodeException(msg);
-    }
-
-    /** Returns a exception to be thrown in unreachable code paths and calls
-     * {@link CompilerDirectives#transferToInterpreterAndInvalidate()}. */
-    @SuppressWarnings("RedundantCast")
-    public static UnreachableCodeException unreachable(String... msgParts) {
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        // The cast avoids ECJ complaining about ambiguity.
-        return new UnreachableCodeException(concat((Object[]) msgParts));
     }
 }

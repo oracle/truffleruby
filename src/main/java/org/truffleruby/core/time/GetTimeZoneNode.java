@@ -45,6 +45,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
+import org.truffleruby.utils.UnreachableCodeException;
 
 public abstract class GetTimeZoneNode extends RubyContextNode {
 
@@ -87,7 +88,7 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
         } else if (RubyGuards.isRubyString(tz)) {
             return parse(tzString);
         } else {
-            throw new UnsupportedOperationException();
+            throw new UnreachableCodeException();
         }
     }
 

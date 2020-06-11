@@ -49,6 +49,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.llvm.api.Toolchain;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule("Truffle::Boot")
 public abstract class TruffleBootNodes {
@@ -344,7 +345,7 @@ public abstract class TruffleBootNodes {
             } else if (value instanceof String[]) {
                 return toRubyArray((String[]) value);
             } else {
-                throw new UnsupportedOperationException();
+                throw new UnreachableCodeException();
             }
         }
 

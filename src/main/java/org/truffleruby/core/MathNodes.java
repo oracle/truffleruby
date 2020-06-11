@@ -55,6 +55,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule("Math")
 public abstract class MathNodes {
@@ -602,10 +603,9 @@ public abstract class MathNodes {
 
         protected final BranchProfile exceptionProfile = BranchProfile.create();
 
-        // TODO: why can't we leave this abstract?
-
+        // Must be implemented because we can't prevent Truffle from generating the useless SimpleMonadicClassGen.
         protected double doFunction(double a) {
-            throw new UnsupportedOperationException();
+            throw new UnreachableCodeException();
         }
 
         @Specialization
@@ -648,10 +648,9 @@ public abstract class MathNodes {
 
         protected final BranchProfile exceptionProfile = BranchProfile.create();
 
-        // TODO: why can't we leave this abstract?
-
+        // Must be implemented because we can't prevent Truffle from generating the useless SimpleDyadicClassGen.
         protected double doFunction(double a, double b) {
-            throw new UnsupportedOperationException();
+            throw new UnreachableCodeException();
         }
 
         @Specialization

@@ -21,6 +21,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.utils.UnreachableCodeException;
 
 public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
@@ -315,7 +316,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
                     } else if (object instanceof Long) {
                         store[n] = (int) (long) object;
                     } else {
-                        throw new UnsupportedOperationException();
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        throw new UnreachableCodeException();
                     }
                 }
 
@@ -330,7 +332,8 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
                     } else if (object instanceof Long) {
                         store[n] = (long) object;
                     } else {
-                        throw new UnsupportedOperationException();
+                        CompilerDirectives.transferToInterpreterAndInvalidate();
+                        throw new UnreachableCodeException();
                     }
                 }
 

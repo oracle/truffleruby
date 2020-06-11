@@ -55,6 +55,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "Encoding", isClass = true)
 public abstract class EncodingNodes {
@@ -585,7 +586,7 @@ public abstract class EncodingNodes {
                 case "locale":
                     return getContext().getEncodingManager().getLocaleEncoding();
                 default:
-                    throw new UnsupportedOperationException();
+                    throw new UnreachableCodeException();
             }
         }
     }

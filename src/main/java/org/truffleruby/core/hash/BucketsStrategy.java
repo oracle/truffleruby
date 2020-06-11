@@ -300,6 +300,7 @@ public abstract class BucketsStrategy {
         } else if (hashValue instanceof Long) {
             return (int) (long) hashValue;
         } else {
+            // TODO review: isn't there something more graceful to be done here?
             throw new UnsupportedOperationException();
         }
     }
