@@ -12734,7 +12734,11 @@ formal_argument(struct parser_params *p, ID lhs)
 	return 0;
 #else
       default:
+#ifdef TRUFFLERUBY
+	lhs = dispatch1(param_error, ID2SYM(lhs));
+#else
 	lhs = dispatch1(param_error, lhs);
+#endif
 	ripper_error(p);
 	return 0;
 #endif

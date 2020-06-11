@@ -31,9 +31,10 @@ static inline VALUE tr_char_to_symbol(int c) {
   return rb_intern(&str[0]);
 }
 
+#undef rb_id2sym
 #define rb_id2sym(id) \
     RB_GNUC_EXTENSION_BLOCK(__builtin_constant_p(id) ? \
-			    tr_char_to_symbol(id) : rb_id2sym(id))
+			    tr_char_to_symbol(id) : rb_tr_wrap(rb_tr_id2sym(id)))
 #else
 #define rb_id2sym(id) \
     RB_GNUC_EXTENSION_BLOCK(__builtin_constant_p(id) && !DYNAMIC_ID_P(id) ? \
