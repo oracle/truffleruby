@@ -37,6 +37,7 @@
  */
 package org.truffleruby.core;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -605,6 +606,7 @@ public abstract class MathNodes {
 
         // Must be implemented because we can't prevent Truffle from generating the useless SimpleMonadicClassGen.
         protected double doFunction(double a) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnreachableCodeException();
         }
 
@@ -650,6 +652,7 @@ public abstract class MathNodes {
 
         // Must be implemented because we can't prevent Truffle from generating the useless SimpleDyadicClassGen.
         protected double doFunction(double a, double b) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
             throw new UnreachableCodeException();
         }
 

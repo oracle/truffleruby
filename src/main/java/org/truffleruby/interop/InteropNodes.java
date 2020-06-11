@@ -10,7 +10,6 @@
 package org.truffleruby.interop;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Map;
 
 import org.jcodings.specific.UTF8Encoding;
@@ -23,6 +22,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -1231,7 +1231,7 @@ public abstract class InteropNodes {
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             int size = Layouts.ARRAY.getSize(array);
             Object[] copy = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(array), 0, size);
-            return getContext().getEnv().asGuestValue(Arrays.asList(copy));
+            return getContext().getEnv().asGuestValue(ArrayUtils.asList(copy));
         }
 
         @Specialization(guards = "!isRubyArray(array)")

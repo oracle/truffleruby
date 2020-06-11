@@ -192,7 +192,7 @@ public class CallStackManager {
     public Backtrace getBacktrace(Node currentNode, SourceSection sourceLocation, int omit, Throwable javaThrowable) {
         if (context.getOptions().EXCEPTIONS_STORE_JAVA || context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
             if (javaThrowable == null) {
-                javaThrowable = new Exception();
+                javaThrowable = newException();
             }
         }
 
@@ -228,6 +228,11 @@ public class CallStackManager {
 
         return rootNode instanceof InternalRootNode || callNode.getEncapsulatingSourceSection() == null;
 
+    }
+
+    @TruffleBoundary
+    private Exception newException() {
+        return new Exception();
     }
 
 }

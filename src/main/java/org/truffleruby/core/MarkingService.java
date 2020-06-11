@@ -194,6 +194,7 @@ public class MarkingService extends ReferenceProcessingService<MarkerReference> 
         queueForMarking(ValueWrapperManager.HandleBlock.DUMMY_BLOCK);
     }
 
+    @TruffleBoundary
     public void addMarker(Object object, MarkerAction action) {
         add(new MarkerReference(object, referenceProcessor.processingQueue, action, this));
     }

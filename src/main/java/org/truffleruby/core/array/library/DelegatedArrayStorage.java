@@ -11,6 +11,7 @@ package org.truffleruby.core.array.library;
 
 import java.util.Set;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -97,6 +98,7 @@ public class DelegatedArrayStorage implements ObjectGraphNode {
 
     @ExportMessage
     protected void sort(int size) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         throw new UnsupportedOperationException();
     }
 

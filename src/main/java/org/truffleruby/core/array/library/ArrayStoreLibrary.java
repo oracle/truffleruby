@@ -10,6 +10,7 @@
 
 package org.truffleruby.core.array.library;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.library.GenerateLibrary;
 import com.oracle.truffle.api.library.Library;
 import com.oracle.truffle.api.library.LibraryFactory;
@@ -75,6 +76,7 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Write {@code value} to {@code index} of {@code store}. */
     @Abstract(ifExported = { "acceptsValue", "acceptsAllValues", "isMutable" })
     public void write(Object store, int index, Object value) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         throw new UnsupportedOperationException();
     }
 
@@ -104,6 +106,7 @@ public abstract class ArrayStoreLibrary extends Library {
     /** Sort the first {@code size} elements of {@code store} in place. */
     @Abstract(ifExported = "isPrimitive")
     public void sort(Object store, int size) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         throw new UnsupportedOperationException();
     }
 
