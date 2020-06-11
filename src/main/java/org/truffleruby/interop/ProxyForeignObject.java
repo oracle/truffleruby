@@ -27,7 +27,7 @@ public class ProxyForeignObject implements TruffleObject {
 
     @ExportMessage
     protected Object send(Message message, Object[] args,
-                          @CachedLibrary("this.delegate") ReflectionLibrary reflections) throws Exception {
+            @CachedLibrary("this.delegate") ReflectionLibrary reflections) throws Exception {
         return reflections.send(delegate, message, args);
     }
 }

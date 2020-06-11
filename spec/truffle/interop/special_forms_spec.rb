@@ -94,7 +94,7 @@ describe "Interop special forms" do
   it "raises an argument error if an assignment method is called with more than 1 argument" do
     pm = TruffleInteropSpecs::PolyglotMember.new
     pfo = Truffle::Interop.proxy_foreign_object(pm)
-    -> { pfo.__send__(:foo=, :bar, :baz)}.should raise_error(ArgumentError)
+    -> { pfo.__send__(:foo=, :bar, :baz) }.should raise_error(ArgumentError)
   end
 
   it description['.delete(name)', :removeMember, [:name]] do
