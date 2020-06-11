@@ -10729,7 +10729,7 @@ is_identchar(const char *ptr, const char *MAYBE_UNUSED(ptr_end), rb_encoding *en
 #undef is_local_id
 int is_local_id(ID id){
   const char* cstr = rb_id2name(id);
-  return is_identchar(cstr, NULL, NULL);
+  return is_identchar(cstr, NULL, NULL) && !isupper(cstr[0]);
 }
 #endif
 
