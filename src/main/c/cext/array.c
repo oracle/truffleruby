@@ -58,6 +58,14 @@ VALUE rb_ary_pop(VALUE array) {
   return RUBY_INVOKE(array, "pop");
 }
 
+VALUE rb_ary_sort(VALUE array) {
+  return RUBY_INVOKE(array, "sort");
+}
+
+VALUE rb_ary_sort_bang(VALUE array) {
+  return RUBY_INVOKE(array, "sort!");
+}
+
 void rb_ary_store(VALUE array, long index, VALUE value) {
   RUBY_INVOKE_NO_WRAP(array, "[]=", LONG2FIX(index), value);
 }
