@@ -1,5 +1,6 @@
 package org.truffleruby.core.array;
 
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -22,7 +23,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     public abstract void execute(DynamicObject array, int size);
 
     @Specialization(
-            guards = { "getSize(array) > size", "arrays.isMutable(getStore(array))" },
+            guards = { "getSize(array) > size", "stores.isMutable(getStore(array))" },
             limit = "storageStrategyLimit()")
     void truncate(DynamicObject array, int size,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
@@ -45,6 +46,6 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "getSize(array) <= size")
-    void truncate(DynamicObject array, int size) {
+    void doNothing(DynamicObject array, int size) {
     }
 }

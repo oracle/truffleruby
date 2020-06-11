@@ -27,7 +27,7 @@ public abstract class ArrayEnsureCapacityNode extends RubyContextNode {
         return ArrayEnsureCapacityNodeGen.create();
     }
 
-    public abstract Object executeEnsureCapacity(DynamicObject array, int requiredCapacity);
+    public abstract boolean executeEnsureCapacity(DynamicObject array, int requiredCapacity);
 
     @Specialization(guards = "!stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
     protected boolean ensureCapacityAndMakeMutable(DynamicObject array, int requiredCapacity,

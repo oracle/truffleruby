@@ -286,12 +286,6 @@ public abstract class ArrayNodes {
     @ImportStatic(ArrayHelpers.class)
     public abstract static class IndexSetNode extends ArrayCoreMethodNode {
 
-        private final BranchProfile negativeNormalizedIndexProfile = BranchProfile.create();
-        private final ConditionProfile negativeDenormalizedIndexProfile = ConditionProfile.create();
-
-        @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
-        @Child private ArrayIndexNodes.ReadNormalizedNode readNode;
-
         public static IndexSetNode create() {
             return ArrayNodesFactory.IndexSetNodeFactory.create(null);
         }
@@ -300,11 +294,25 @@ public abstract class ArrayNodes {
 
         // array[index] = object
 
-        @Specialization
+        @Specialization(guards = "normalize(array, index) >= 0")
         @ReportPolymorphism.Exclude
-        protected Object set(DynamicObject array, int index, Object value, NotProvided unused) {
-            final int normalizedIndex = normalize(array, index);
-            return writeNode.executeWrite(array, normalizedIndex, value);
+        protected Object set(DynamicObject array, int index, Object value, NotProvided unused,
+                @Cached ArrayWriteNormalizedNode writeNode) {
+            index = normalize(array, index);
+            return writeNode.executeWrite(array, index, value);
+        }
+
+        @Specialization(guards = "normalize(array, start) < 0")
+        protected Object doesntNormalize(DynamicObject array, int start, Object value, NotProvided unused) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().indexTooSmallError("array", start, getSize(array), this));
+        }
+
+        @Specialization(guards = "!isInteger(start)")
+        protected Object fallbackUnary(DynamicObject array, Object start, Object value, NotProvided unused,
+                @Cached CallDispatchHeadNode fallbackNode) {
+            return fallbackNode.call(array, "element_set_index_fallback", start, value);
         }
 
         // array[start, length] = array2
@@ -314,145 +322,86 @@ public abstract class ArrayNodes {
             throw new RaiseException(getContext(), coreExceptions().negativeLengthError(length, this));
         }
 
-        @Specialization(guards = { "length >= 0", "array == replacement" })
-        protected Object recursiveSet(DynamicObject array, int start, int length, DynamicObject replacement,
-                @Cached ArrayIndexNodes.ReadSliceNormalizedNode readSliceNode,
-                @Cached IndexSetNode recursiveNode) {
-            DynamicObject copy = (DynamicObject) readSliceNode.executeReadSlice(array, 0, getSize(array));
-            return recursiveNode.execute(array, start, length, copy);
+        @Specialization(guards = {
+                "length >= 0",
+                "normalize(array, start) < 0"})
+        protected Object doesntNormalize(DynamicObject array, int start, int length, DynamicObject replacement) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().indexTooSmallError("array", start, getSize(array), this));
         }
 
         @Specialization(guards = {
                 "isRubyArray(replacement)",
-                "array != replacement",
                 "length >= 0",
-                "!moveNeeded(rawStart, length, array)" })
-        protected Object setNoMove(DynamicObject array, int rawStart, int length, DynamicObject replacement,
-                @Cached ArrayTruncateNode truncateNode,
-                @Cached ConditionProfile emptyReplacementProfile,
-                @Cached ConditionProfile growProfile) {
+                "normalize(array, start) >= 0",
+                "!moveNeeded(start, length, array)" })
+        protected Object setNoMove(DynamicObject array, int start, int length, DynamicObject replacement,
+                @Cached ArrayPrepareForCopyNode prepareToCopy,
+                @Cached ArrayCopyCompatibleRangeNode copyRange,
+                @Cached ArrayTruncateNode truncateNode) {
 
-            final int start = normalize(array, rawStart);
-            final int arraySize = getSize(array);
+            start = normalize(array, start);
             final int replacementSize = getSize(replacement);
-            final int newSize = start + replacementSize;
-
-            // Because start + length >= arraySize, the array is overwritten from "start" to end, there are
+            // Because start + length >= array.size, the array is overwritten from "start" to end, there are
             // no items to be moved.
-
-            if (emptyReplacementProfile.profile(replacementSize == 0)) {
-                if (growProfile.profile(start > arraySize)) {
-                    // Empty replacement and start > arraysize: grow the array by appending nil.
-                    writeNode.executeWrite(array, start - 1, nil);
-                }
-            } else {
-                // Write last element first to grow only once.
-                for (int i = replacementSize - 1; i >= 0; --i) {
-                    writeNode.executeWrite(array, start + i, read(replacement, i));
-                }
-            }
-
-            truncateNode.execute(array, newSize); // no-op (except checks) if truncation not needed
+            prepareToCopy.execute(array, replacement, start, replacementSize);
+            copyRange.execute(array, replacement, start, 0, replacementSize);
+            truncateNode.execute(array, start + replacementSize); // no-op (except checks) if truncation not needed
             return replacement;
         }
 
         @Specialization(guards = {
                 "isRubyArray(replacement)",
-                "array != replacement",
                 "length >= 0",
-                "moveNeeded(rawStart, length, array)" })
-        protected Object setWithMove(DynamicObject array, int rawStart, int length, DynamicObject replacement,
-                @Cached ConditionProfile emptyProfile,
-                @Cached ConditionProfile tailProfile,
-                @Cached ArrayEnsureCapacityNode ensureCapacityNode,
-                @Cached ConditionProfile moveLeftProfile,
-                @CachedLibrary(limit = "1") ArrayStoreLibrary mutableStores) {
+                "normalize(array, start) >= 0",
+                "moveNeeded(start, length, array)" })
+        protected Object setWithMove(DynamicObject array, int start, int length, DynamicObject replacement,
+                @Cached ArrayPrepareForCopyNode prepareToCopy,
+                @Cached ArrayCopyCompatibleRangeNode shift,
+                @Cached ArrayCopyCompatibleRangeNode copyRange,
+                @Cached ArrayTruncateNode truncate) {
 
-            final int start = normalize(array, rawStart);
-            final int arraySize = getSize(array);
+            start = normalize(array, start);
+            final int originalSize = getSize(array);
             final int replacementSize = getSize(replacement);
 
-            if (!emptyProfile.profile(arraySize == 0)) {
+            // the tail is the part of the array to the right of the overwritten area
+            final int tailSize = originalSize - (start + length);
 
-                // Resize array
-                final int newSize = arraySize - length + replacementSize;
-                ensureCapacityNode.executeEnsureCapacity(array, newSize); // needs a non-empty strategy
-                setSize(array, newSize);
+            // the length that needs to be available after `start`
+            final int requiredLength = replacementSize + tailSize;
 
-                // Move tail (i.e. the part of the array to the right of the overwritten area)
-                final int tailSize = arraySize - (start + length);
-                if (tailProfile.profile(tailSize > 0)) {
-                    final Object store = Layouts.ARRAY.getStore(array);
-                    if (moveLeftProfile.profile(replacementSize < length)) {
-                        // Moving elements left
-                        for (int i = 0; i < tailSize; i++) {
-                            mutableStores.write(
-                                    store,
-                                    start + replacementSize + i,
-                                    mutableStores.read(store, start + length + i));
-                        }
-                    } else {
-                        // Moving elements right
-                        for (int i = tailSize - 1; i >= 0; i--) {
-                            mutableStores.write(
-                                    store,
-                                    start + replacementSize + i,
-                                    mutableStores.read(store, start + length + i));
-                        }
-                    }
-                }
-            }
-
-            // Write replacement
-            for (int i = 0; i < replacementSize; i++) {
-                writeNode.executeWrite(array, start + i, read(replacement, i));
-            }
-
+            prepareToCopy.execute(array, replacement, start, requiredLength);
+            shift.execute(array, array, start + replacementSize, start + length, tailSize);
+            copyRange.execute(array, replacement, start, 0, replacementSize);
+            truncate.execute(array, originalSize - length + replacementSize);
             return replacement;
-        }
-
-        @Specialization(guards = "!fitsInInteger(start)")
-        protected Object fallback(DynamicObject array, Object start, Object value, NotProvided unused,
-                @Cached CallDispatchHeadNode fallbackNode) {
-            return fallbackNode.call(array, "element_set_index_fallback", start, value);
         }
 
         @Specialization(guards = {
                 "wasProvided(replacement)",
-                "validFallbackLength(length)",
-                "!fitsInInteger(start) || (!fitsInInteger(length) || !isRubyArray(replacement))" })
-        protected Object fallback(DynamicObject array, Object start, Object length, Object replacement,
+                "!isInteger(start) || (!isInteger(length) || validReplacementFallback(length, replacement))" })
+        protected Object fallbackBinary(DynamicObject array, Object start, Object length, Object replacement,
                 @Cached CallDispatchHeadNode fallbackNode) {
             return fallbackNode.call(array, "element_set_range_fallback", start, length, replacement);
         }
 
         // Helpers
 
-        private int normalize(DynamicObject array, int index) {
-            int normalized = ArrayOperations.normalizeIndex(getSize(array), index, negativeDenormalizedIndexProfile);
-            if (normalized < 0) {
-                negativeNormalizedIndexProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().indexTooSmallError("array", index, getSize(array), this));
-            }
-            return normalized;
-        }
-
-        private Object read(DynamicObject array, int index) {
-            if (readNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                readNode = insert(ArrayIndexNodes.ReadNormalizedNode.create());
-            }
-            return readNode.executeRead(array, index);
+        protected int normalize(DynamicObject array, int index) {
+            return ArrayOperations.normalizeIndex(getSize(array), index);
         }
 
         protected static boolean moveNeeded(int start, int length, DynamicObject array) {
-            return start + length <= getSize(array);
+            // only valid if normalizeIndex(size, start) >= 0 (should be safeguarded by previous guards)
+            final int size = Layouts.ARRAY.getSize(array);
+            return ArrayOperations.normalizeIndex(size, start) + length < size;
         }
 
-        protected static boolean validFallbackLength(Object length) {
-            return !RubyGuards.fitsInInteger(length) || ((Integer) length) >= 0;
+        protected static boolean validReplacementFallback(Object length, Object replacement) {
+            // cast safeguarded by previous guards
+            return ((Integer) length) >= 0 && !RubyGuards.isRubyArray(replacement);
         }
     }
 
