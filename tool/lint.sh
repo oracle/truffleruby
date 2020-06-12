@@ -2,30 +2,41 @@
 
 set -e
 
-bad=$(ruby -e 'puts STDIN.read.scan /^.+\)\s*\n\s*\{/' < src/main/c/cext/ruby.c || exit 0)
-if [ -n "$bad" ]; then
-	echo "The function definition opening brace should be on the same line: ...args) {"
-	echo "$bad"
-	exit 1
-fi
+for f in src/main/c/cext/*.c
+do
+  if [[ "$f" == "src/main/c/cext/st.c" ]]; then
+   continue
+  fi
 
-bad=$(grep -E '\)\{' src/main/c/cext/ruby.c || exit 0)
-if [ -n "$bad" ]; then
-	echo "There should be a space between ) and {"
-	echo "$bad"
-	exit 1
-fi
+  bad=$(ruby -e 'puts STDIN.read.scan /^.+\)\s*\n\s*\{/' < "$f" || exit 0)
+  if [ -n "$bad" ]; then
+    echo "Error in $f"
+    echo "The function definition opening brace should be on the same line: ...args) {"
+    echo "$bad"
+    exit 1
+  fi
 
-bad=$(grep -E '\bif\(' src/main/c/cext/ruby.c || exit 0)
-if [ -n "$bad" ]; then
-	echo "There should be a space between if and ("
-	echo "$bad"
-	exit 1
-fi
+  bad=$(grep -E '\)\{' "$f" || exit 0)
+  if [ -n "$bad" ]; then
+    echo "Error in $f"
+    echo "There should be a space between ) and {"
+    echo "$bad"
+    exit 1
+  fi
 
-bad=$(grep -E "$(printf '\t')" src/main/c/cext/ruby.c || exit 0)
-if [ -n "$bad" ]; then
-	echo "There should be no tabs in ruby.c"
-	echo "$bad"
-	exit 1
-fi
+  bad=$(grep -E '\bif\(' "$f" || exit 0)
+  if [ -n "$bad" ]; then
+    echo "Error in $f"
+    echo "There should be a space between if and ("
+    echo "$bad"
+    exit 1
+  fi
+
+  bad=$(grep -E "$(printf '\t')" "$f" || exit 0)
+  if [ -n "$bad" ]; then
+    echo "Error in $f"
+    echo "There should be no tabs in $f"
+    echo "$bad"
+    exit 1
+  fi
+done
