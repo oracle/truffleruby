@@ -16,7 +16,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyContextNode;
 
 import java.util.Arrays;
 
@@ -36,7 +36,7 @@ import static org.truffleruby.Layouts.ARRAY;
  * particular, {@code null} values in object arrays). */
 @ReportPolymorphism
 @ImportStatic(ArrayGuards.class)
-public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
+public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
 
     public static ArrayPrepareForCopyNode create() {
         return ArrayPrepareForCopyNodeGen.create();
@@ -44,12 +44,10 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
 
     public abstract void execute(DynamicObject dst, DynamicObject src, int dstStart, int length);
 
+    @ReportPolymorphism.Exclude
     @Specialization(guards = { "length == 0", "start <= getSize(dst)" })
     protected void noChange(DynamicObject dst, DynamicObject src, int start, int length) {
     }
-
-    // TODO special case when everything is arraystore?
-    //  - inline ensurecapacity logic
 
     @Specialization(guards = "start > getSize(dst)", limit = "storageStrategyLimit()")
     protected void nilPad(DynamicObject dst, DynamicObject src, int start, int length,
@@ -57,7 +55,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
 
         final int oldSize = ARRAY.getSize(dst);
         final Object oldStore = ARRAY.getStore(dst);
-        final Object[] newStore = new Object[start + length];
+        final Object[] newStore = new Object[ArrayUtils.capacity(getContext(), oldSize, start + length)];
         dstStores.copyContents(oldStore, 0, newStore, 0, oldSize); // copy the original store
         Arrays.fill(newStore, oldSize, start, nil); // nil-pad the new empty part
         ARRAY.setStore(dst, newStore);
@@ -70,8 +68,6 @@ public abstract class ArrayPrepareForCopyNode extends RubyBaseNode {
     protected void resizeCompatible(DynamicObject dst, DynamicObject src, int start, int length,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
             @CachedLibrary("getStore(dst)") ArrayStoreLibrary dstStores) {
-
-        // TODO solution not to duplicate the library call?
 
         // Necessary even if under capacity to ensure that the destination gets a mutable store.
         ensureCapacityNode.executeEnsureCapacity(dst, start + length);

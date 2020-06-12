@@ -282,7 +282,6 @@ public abstract class ArrayNodes {
             lowerFixnum = { 1, 2 },
             raiseIfFrozenSelf = true,
             argumentNames = { "index_start_or_range", "length_or_value", "value" })
-    @ReportPolymorphism
     @ImportStatic(ArrayHelpers.class)
     public abstract static class IndexSetNode extends ArrayCoreMethodNode {
 

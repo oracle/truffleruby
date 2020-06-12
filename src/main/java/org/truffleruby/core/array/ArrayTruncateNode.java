@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -51,6 +52,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
         ARRAY.setSize(array, size);
     }
 
+    @ReportPolymorphism.Exclude
     @Specialization(guards = "getSize(array) <= size")
     protected void doNothing(DynamicObject array, int size) {
     }
