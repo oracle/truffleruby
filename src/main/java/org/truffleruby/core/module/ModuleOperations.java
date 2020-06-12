@@ -271,7 +271,7 @@ public abstract class ModuleOperations {
         return lookupConstantWithInherit(context, module, lastSegment, inherit, currentNode);
     }
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     public static ConstantLookupResult lookupConstantWithInherit(RubyContext context, DynamicObject module, String name,
             boolean inherit, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
@@ -586,7 +586,7 @@ public abstract class ModuleOperations {
         return classVariableLookup(module, module1 -> Layouts.MODULE.getFields(module1).getClassVariables().get(name));
     }
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     public static void setClassVariable(final RubyContext context, DynamicObject module, final String name,
             final Object value, final Node currentNode) {
         assert RubyGuards.isRubyModule(module);
@@ -622,7 +622,7 @@ public abstract class ModuleOperations {
         return found != null;
     }
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     public static Object removeClassVariable(ModuleFields moduleFields, RubyContext context, Node currentNode,
             String name) {
         moduleFields.checkFrozen(context, currentNode);

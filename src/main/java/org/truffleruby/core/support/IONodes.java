@@ -415,7 +415,7 @@ public abstract class IONodes {
     @Primitive(name = "io_read_polyglot", lowerFixnum = 0)
     public static abstract class IOReadPolyglotNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         @Specialization
         protected Object read(int length,
                 @Cached MakeStringNode makeStringNode) {
@@ -448,7 +448,7 @@ public abstract class IONodes {
     @Primitive(name = "io_write_polyglot", lowerFixnum = 0)
     public static abstract class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
         protected int write(int fd, DynamicObject string) {
             final OutputStream stream;

@@ -302,7 +302,7 @@ public class ConvertBytes {
         return 0;
     }
 
-    @TruffleBoundary(transferToInterpreterOnException = false)
+    @TruffleBoundary
     public Object byteListToInum() {
         if (_str == null) {
             if (badcheck) {

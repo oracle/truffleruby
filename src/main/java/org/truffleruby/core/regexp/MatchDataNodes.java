@@ -342,13 +342,13 @@ public abstract class MatchDataNodes {
             return regexpNode.executeGetRegexp(matchData);
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         private int getBackRefFromString(DynamicObject matchData, DynamicObject index) {
             final Rope value = Layouts.STRING.getRope(index);
             return getBackRefFromRope(matchData, index, value);
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         private int getBackRefFromSymbol(DynamicObject matchData, RubySymbol index) {
             final Rope value = index.getRope();
             return getBackRefFromRope(matchData, index, value);

@@ -3713,7 +3713,7 @@ public abstract class StringNodes {
             return makeStringNode.fromRope(rope);
         }
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         @Specialization(
                 guards = { "isRubyEncoding(rubyEncoding)", "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
         protected DynamicObject stringFromCodepoint(long code, DynamicObject rubyEncoding,
@@ -3762,7 +3762,7 @@ public abstract class StringNodes {
     @Primitive(name = "string_to_f")
     public static abstract class StringToFPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @TruffleBoundary(transferToInterpreterOnException = false)
+        @TruffleBoundary
         @Specialization
         protected Object stringToF(DynamicObject string,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignumNode,
