@@ -12,12 +12,15 @@ package org.truffleruby.core.format;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.frame.FrameUtil;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.format.exceptions.TooFewArgumentsException;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -36,19 +39,11 @@ public abstract class FormatNode extends RubyContextNode {
     public abstract Object execute(VirtualFrame frame);
 
     public int getSourceLength(VirtualFrame frame) {
-        try {
-            return frame.getInt(FormatFrameDescriptor.SOURCE_LENGTH_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        return FrameUtil.getIntSafe(frame, FormatFrameDescriptor.SOURCE_LENGTH_SLOT);
     }
 
     protected int getSourcePosition(VirtualFrame frame) {
-        try {
-            return frame.getInt(FormatFrameDescriptor.SOURCE_POSITION_SLOT);
-        } catch (FrameSlotTypeException e) {
-            throw new IllegalStateException(e);
-        }
+        return FrameUtil.getIntSafe(frame, FormatFrameDescriptor.SOURCE_POSITION_SLOT);
     }
 
     protected void setSourcePosition(VirtualFrame frame, int position) {
@@ -201,6 +196,23 @@ public abstract class FormatNode extends RubyContextNode {
         return output;
     }
 
+    private static final Class<? extends ByteBuffer> HEAP_BYTE_BUFFER_CLASS = ByteBuffer
+            .wrap(RopeConstants.EMPTY_BYTES)
+            .getClass();
+
+    public ByteBuffer wrapByteBuffer(VirtualFrame frame, byte[] source) {
+        final int position = getSourcePosition(frame);
+        final int length = getSourceLength(frame);
+        return CompilerDirectives
+                .castExact(wrapByteBuffer(source, position, length - position), HEAP_BYTE_BUFFER_CLASS);
+    }
+
+    @TruffleBoundary
+    private static ByteBuffer wrapByteBuffer(byte[] source, int position, int length) {
+        return ByteBuffer.wrap(source, position, length);
+    }
+
+    @TruffleBoundary
     public static int safeGet(ByteBuffer encode) {
         while (encode.hasRemaining()) {
             int got = encode.get() & 0xff;

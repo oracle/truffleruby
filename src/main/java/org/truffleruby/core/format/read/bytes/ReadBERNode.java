@@ -71,9 +71,8 @@ public abstract class ReadBERNode extends FormatNode {
     @Specialization
     protected Object encode(VirtualFrame frame, byte[] source) {
         final int position = getSourcePosition(frame);
-        final int length = getSourceLength(frame);
 
-        final ByteBuffer encode = ByteBuffer.wrap(source, position, length - position);
+        final ByteBuffer encode = wrapByteBuffer(frame, source);
         int pos = encode.position();
 
         final long ul = encode.get(pos) & 0x7f;
@@ -84,7 +83,6 @@ public abstract class ReadBERNode extends FormatNode {
         }
 
         assert (ul & UL_MASK) == 0;
-
         final BigIntegerAndPos bigIntegerAndPos = runLoop(encode, ul, pos);
 
         setSourcePosition(frame, position + bigIntegerAndPos.getPos());

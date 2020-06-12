@@ -75,9 +75,7 @@ public abstract class ReadBitStringNode extends FormatNode {
 
     @Specialization
     protected Object read(VirtualFrame frame, byte[] source) {
-        final int position = getSourcePosition(frame);
-
-        final ByteBuffer encode = ByteBuffer.wrap(source, position, getSourceLength(frame) - position);
+        final ByteBuffer encode = wrapByteBuffer(frame, source);
 
         final int occurrences;
 

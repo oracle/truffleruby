@@ -54,6 +54,7 @@ import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -65,10 +66,17 @@ public abstract class ReadUUStringNode extends FormatNode {
 
     @Specialization
     protected Object encode(VirtualFrame frame, byte[] source) {
-        final int position = getSourcePosition(frame);
+        final ByteBuffer encode = wrapByteBuffer(frame, source);
 
-        final ByteBuffer encode = ByteBuffer.wrap(source, position, getSourceLength(frame) - position);
+        final byte[] bytes = read(encode);
 
+        setSourcePosition(frame, encode.position());
+
+        return makeStringNode.executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+    }
+
+    @TruffleBoundary
+    private byte[] read(ByteBuffer encode) {
         int length = encode.remaining() * 3 / 4;
         byte[] lElem = new byte[length];
         int index = 0;
@@ -92,7 +100,7 @@ public abstract class ReadUUStringNode extends FormatNode {
             }
 
             while (len > 0) {
-                int mlen = len > 3 ? 3 : len;
+                int mlen = Math.min(len, 3);
 
                 if (encode.hasRemaining() && s >= ' ') {
                     a = (s - ' ') & 0x3F;
@@ -146,10 +154,7 @@ public abstract class ReadUUStringNode extends FormatNode {
             }
         }
 
-        setSourcePosition(frame, encode.position());
-
-        return makeStringNode
-                .executeMake(Arrays.copyOfRange(lElem, 0, index), ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        return Arrays.copyOfRange(lElem, 0, index);
     }
 
 }
