@@ -366,40 +366,32 @@ size_t rb_str_capacity(VALUE str) {
   return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_str_capacity", str));
 }
 
-static inline int
-ntz_int32(uint32_t x)
-{
+static inline int ntz_int32(uint32_t x) {
 #ifdef HAVE_BUILTIN___BUILTIN_CTZ
-    return __builtin_ctz(x);
+  return __builtin_ctz(x);
 #else
-    return rb_popcount32((~x) & (x-1));
+  return rb_popcount32((~x) & (x-1));
 #endif
 }
 
-static inline int
-ntz_int64(uint64_t x)
-{
+static inline int ntz_int64(uint64_t x) {
 #ifdef HAVE_BUILTIN___BUILTIN_CTZLL
-    return __builtin_ctzll(x);
+  return __builtin_ctzll(x);
 #else
-    return rb_popcount64((~x) & (x-1));
+  return rb_popcount64((~x) & (x-1));
 #endif
 }
 
-static inline int
-ntz_intptr(uintptr_t x)
-{
+static inline int ntz_intptr(uintptr_t x) {
 #if SIZEOF_VOIDP == 8
-    return ntz_int64(x);
+  return ntz_int64(x);
 #elif SIZEOF_VOIDP == 4
-    return ntz_int32(x);
+  return ntz_int32(x);
 #endif
 }
 
-static inline const char *
-search_nonascii(const char *p, const char *e)
-{
-    const uintptr_t *s, *t;
+static inline const char * search_nonascii(const char *p, const char *e) {
+  const uintptr_t *s, *t;
 
 #if defined(__STDC_VERSION) && (__STDC_VERSION__ >= 199901L)
 # if SIZEOF_UINTPTR_T == 8
@@ -419,105 +411,103 @@ search_nonascii(const char *p, const char *e)
 # endif
 #endif
 
-    if (UNALIGNED_WORD_ACCESS || e - p >= SIZEOF_VOIDP) {
+  if (UNALIGNED_WORD_ACCESS || e - p >= SIZEOF_VOIDP) {
 #if !UNALIGNED_WORD_ACCESS
-	if ((uintptr_t)p % SIZEOF_VOIDP) {
-	    int l = SIZEOF_VOIDP - (uintptr_t)p % SIZEOF_VOIDP;
-	    p += l;
-	    switch (l) {
-	      default: UNREACHABLE;
+    if ((uintptr_t)p % SIZEOF_VOIDP) {
+      int l = SIZEOF_VOIDP - (uintptr_t)p % SIZEOF_VOIDP;
+      p += l;
+      switch (l) {
+        default: UNREACHABLE;
 #if SIZEOF_VOIDP > 4
-	      case 7: if (p[-7]&0x80) return p-7;
-	      case 6: if (p[-6]&0x80) return p-6;
-	      case 5: if (p[-5]&0x80) return p-5;
-	      case 4: if (p[-4]&0x80) return p-4;
+        case 7: if (p[-7]&0x80) return p-7;
+        case 6: if (p[-6]&0x80) return p-6;
+        case 5: if (p[-5]&0x80) return p-5;
+        case 4: if (p[-4]&0x80) return p-4;
 #endif
-	      case 3: if (p[-3]&0x80) return p-3;
-	      case 2: if (p[-2]&0x80) return p-2;
-	      case 1: if (p[-1]&0x80) return p-1;
-	      case 0: break;
-	    }
-	}
+        case 3: if (p[-3]&0x80) return p-3;
+        case 2: if (p[-2]&0x80) return p-2;
+        case 1: if (p[-1]&0x80) return p-1;
+        case 0: break;
+      }
+    }
 #endif
 #if defined(HAVE_BUILTIN___BUILTIN_ASSUME_ALIGNED) &&! UNALIGNED_WORD_ACCESS
 #define aligned_ptr(value) \
-        __builtin_assume_aligned((value), sizeof(uintptr_t))
+      __builtin_assume_aligned((value), sizeof(uintptr_t))
 #else
 #define aligned_ptr(value) (uintptr_t *)(value)
 #endif
-	s = aligned_ptr(p);
-	t = aligned_ptr(e - (SIZEOF_VOIDP-1));
+      s = aligned_ptr(p);
+      t = aligned_ptr(e - (SIZEOF_VOIDP-1));
 #undef aligned_ptr
-	for (;s < t; s++) {
-	    if (*s & NONASCII_MASK) {
+      for (;s < t; s++) {
+        if (*s & NONASCII_MASK) {
 #ifdef WORDS_BIGENDIAN
-		return (const char *)s + (nlz_intptr(*s&NONASCII_MASK)>>3);
+        return (const char *)s + (nlz_intptr(*s&NONASCII_MASK)>>3);
 #else
-		return (const char *)s + (ntz_intptr(*s&NONASCII_MASK)>>3);
+        return (const char *)s + (ntz_intptr(*s&NONASCII_MASK)>>3);
 #endif
-	    }
-	}
-	p = (const char *)s;
+      }
     }
+    p = (const char *)s;
+  }
 
-    switch (e - p) {
-      default: UNREACHABLE;
+  switch (e - p) {
+    default: UNREACHABLE;
 #if SIZEOF_VOIDP > 4
-      case 7: if (e[-7]&0x80) return e-7;
-      case 6: if (e[-6]&0x80) return e-6;
-      case 5: if (e[-5]&0x80) return e-5;
-      case 4: if (e[-4]&0x80) return e-4;
+    case 7: if (e[-7]&0x80) return e-7;
+    case 6: if (e[-6]&0x80) return e-6;
+    case 5: if (e[-5]&0x80) return e-5;
+    case 4: if (e[-4]&0x80) return e-4;
 #endif
-      case 3: if (e[-3]&0x80) return e-3;
-      case 2: if (e[-2]&0x80) return e-2;
-      case 1: if (e[-1]&0x80) return e-1;
-      case 0: return NULL;
-    }
+    case 3: if (e[-3]&0x80) return e-3;
+    case 2: if (e[-2]&0x80) return e-2;
+    case 1: if (e[-1]&0x80) return e-1;
+    case 0: return NULL;
+  }
 }
 
-long
-rb_str_coderange_scan_restartable(const char *s, const char *e, rb_encoding *enc, int *cr)
-{
-    const char *p = s;
+long rb_str_coderange_scan_restartable(const char *s, const char *e, rb_encoding *enc, int *cr) {
+  const char *p = s;
 
-    if (*cr == ENC_CODERANGE_BROKEN)
-	return e - s;
-
-    if (rb_enc_to_index(enc) == rb_ascii8bit_encindex()) {
-	/* enc is ASCII-8BIT.  ASCII-8BIT string never be broken. */
-	if (*cr == ENC_CODERANGE_VALID) return e - s;
-	p = search_nonascii(p, e);
-        *cr = p ? ENC_CODERANGE_VALID : ENC_CODERANGE_7BIT;
-	return e - s;
-    }
-    else if (rb_enc_asciicompat(enc)) {
-	p = search_nonascii(p, e);
-	if (!p) {
-	    if (*cr != ENC_CODERANGE_VALID) *cr = ENC_CODERANGE_7BIT;
-	    return e - s;
-	}
-	for (;;) {
-	    int ret = rb_enc_precise_mbclen(p, e, enc);
-	    if (!MBCLEN_CHARFOUND_P(ret)) {
-		*cr = MBCLEN_INVALID_P(ret) ? ENC_CODERANGE_BROKEN: ENC_CODERANGE_UNKNOWN;
-		return p - s;
-	    }
-	    p += MBCLEN_CHARFOUND_LEN(ret);
-	    if (p == e) break;
-	    p = search_nonascii(p, e);
-	    if (!p) break;
-	}
-    }
-    else {
-	while (p < e) {
-	    int ret = rb_enc_precise_mbclen(p, e, enc);
-	    if (!MBCLEN_CHARFOUND_P(ret)) {
-		*cr = MBCLEN_INVALID_P(ret) ? ENC_CODERANGE_BROKEN: ENC_CODERANGE_UNKNOWN;
-		return p - s;
-	    }
-	    p += MBCLEN_CHARFOUND_LEN(ret);
-	}
-    }
-    *cr = ENC_CODERANGE_VALID;
+  if (*cr == ENC_CODERANGE_BROKEN)
     return e - s;
+
+  if (rb_enc_to_index(enc) == rb_ascii8bit_encindex()) {
+    /* enc is ASCII-8BIT.  ASCII-8BIT string never be broken. */
+    if (*cr == ENC_CODERANGE_VALID) return e - s;
+    p = search_nonascii(p, e);
+    *cr = p ? ENC_CODERANGE_VALID : ENC_CODERANGE_7BIT;
+    return e - s;
+  }
+  else if (rb_enc_asciicompat(enc)) {
+    p = search_nonascii(p, e);
+    if (!p) {
+      if (*cr != ENC_CODERANGE_VALID) *cr = ENC_CODERANGE_7BIT;
+      return e - s;
+    }
+    for (;;) {
+      int ret = rb_enc_precise_mbclen(p, e, enc);
+      if (!MBCLEN_CHARFOUND_P(ret)) {
+          *cr = MBCLEN_INVALID_P(ret) ? ENC_CODERANGE_BROKEN: ENC_CODERANGE_UNKNOWN;
+          return p - s;
+      }
+      p += MBCLEN_CHARFOUND_LEN(ret);
+      if (p == e) break;
+      p = search_nonascii(p, e);
+      if (!p) break;
+    }
+  }
+  else {
+    while (p < e) {
+      int ret = rb_enc_precise_mbclen(p, e, enc);
+      if (!MBCLEN_CHARFOUND_P(ret)) {
+        *cr = MBCLEN_INVALID_P(ret) ? ENC_CODERANGE_BROKEN: ENC_CODERANGE_UNKNOWN;
+        return p - s;
+      }
+      p += MBCLEN_CHARFOUND_LEN(ret);
+    }
+  }
+  *cr = ENC_CODERANGE_VALID;
+  return e - s;
 }

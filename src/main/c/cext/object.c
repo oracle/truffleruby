@@ -9,12 +9,12 @@ int rb_type(VALUE value) {
 }
 
 bool RB_TYPE_P(VALUE value, int type) {
-  if(value == Qundef){
+  if (value == Qundef) {
     return 0;
   }
 
   // Ripper uses RB_TYPE_P to check NODE* values for T_NODE
-  if(type == T_NODE && rb_tr_is_native_object(value)){
+  if (type == T_NODE && rb_tr_is_native_object(value)) {
     return RB_BUILTIN_TYPE_NATIVE(value) == type;
   }
 
@@ -23,7 +23,7 @@ bool RB_TYPE_P(VALUE value, int type) {
 
 int rb_special_const_p(VALUE object) {
   // Ripper calls this from add_mark_object
-  if(rb_tr_is_native_object(object)){
+  if (rb_tr_is_native_object(object)) {
     return 0;
   }
 
