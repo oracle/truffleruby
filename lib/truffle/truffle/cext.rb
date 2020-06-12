@@ -1224,7 +1224,7 @@ module Truffle::CExt
   end
 
   def rb_Rational(num, den)
-    Rational.new(num, den)
+    Rational(num, den)
   end
 
   def rb_rational_raw(num, den)

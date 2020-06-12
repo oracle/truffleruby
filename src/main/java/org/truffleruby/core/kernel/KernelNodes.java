@@ -63,6 +63,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -74,7 +75,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
@@ -90,6 +90,7 @@ import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.RequireNode;
 import org.truffleruby.language.loader.RequireNodeGen;
@@ -914,11 +915,21 @@ public abstract class KernelNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
-        private final BranchProfile errorProfile = BranchProfile.create();
+        @Child protected ReferenceEqualNode equalNode = ReferenceEqualNode.create();
 
-        @Specialization
-        protected Object initializeCopy(DynamicObject self, DynamicObject from) {
-            if (Layouts.BASIC_OBJECT.getLogicalClass(self) != Layouts.BASIC_OBJECT.getLogicalClass(from)) {
+        @Specialization(guards = "equalNode.executeReferenceEqual(self, from)")
+        protected Object initializeCopySame(Object self, Object from) {
+            return self;
+        }
+
+        @Specialization(guards = "!equalNode.executeReferenceEqual(self, from)")
+        protected Object initializeCopy(Object self, Object from,
+                @Cached CheckFrozenNode checkFrozenNode,
+                @Cached LogicalClassNode lhsClassNode,
+                @Cached LogicalClassNode rhsClassNode,
+                @Cached BranchProfile errorProfile) {
+            checkFrozenNode.execute(self);
+            if (lhsClassNode.executeLogicalClass(self) != rhsClassNode.executeLogicalClass(from)) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
@@ -927,7 +938,6 @@ public abstract class KernelNodes {
 
             return self;
         }
-
     }
 
     @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)

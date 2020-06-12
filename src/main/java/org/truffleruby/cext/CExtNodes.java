@@ -1485,6 +1485,16 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_thread_check_ints", onSingleton = true, required = 0)
+    public abstract static class CheckThreadInterrupt extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object checkInts() {
+            getContext().getSafepointManager().poll(this);
+            return nil;
+        }
+    }
+
     @CoreMethod(names = "rb_tr_unwrap_function", onSingleton = true, required = 0)
     public abstract static class UnwrapperFunctionNode extends CoreMethodArrayArgumentsNode {
 
