@@ -30,17 +30,18 @@ public abstract class LookupConstantBaseNode extends RubyContextNode {
         }
 
         if (warnNode.shouldWarn()) {
-            warnNode.warningMessage(
-                    getSection(),
-                    "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated");
+            warnNode.warningMessage(getSection(), formatMessage(module, name));
         }
     }
 
     @TruffleBoundary
     private SourceSection getSection() {
-        return getContext()
-                .getCallStack()
-                .getTopMostUserSourceSection(getEncapsulatingSourceSection());
+        return getContext().getCallStack().getTopMostUserSourceSection(getEncapsulatingSourceSection());
+    }
+
+    @TruffleBoundary
+    private String formatMessage(DynamicObject module, String name) {
+        return "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated";
     }
 
     protected int getCacheLimit() {

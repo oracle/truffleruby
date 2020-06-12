@@ -159,6 +159,11 @@ public class RopeOperations {
             buffer[i] = (char) bytes[byteOffset + i];
         }
 
+        return newString(buffer);
+    }
+
+    @TruffleBoundary
+    private static String newString(char[] buffer) {
         return new String(buffer);
     }
 

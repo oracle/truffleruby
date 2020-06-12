@@ -14,7 +14,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyGuards;
@@ -22,6 +21,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -80,7 +80,7 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
             errorProfile.enter();
             if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == context.getCoreLibrary().noMethodErrorClass) {
                 throw new RaiseException(context, context.getCoreExceptions().typeError(
-                        StringUtils.toString(object) + " is not a symbol nor a string",
+                        Utils.concat(object, " is not a symbol nor a string"),
                         this));
             } else {
                 throw e;

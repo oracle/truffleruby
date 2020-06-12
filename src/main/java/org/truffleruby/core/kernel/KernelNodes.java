@@ -116,6 +116,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 import org.truffleruby.parser.TranslatorEnvironment;
+import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -1948,6 +1949,7 @@ public abstract class KernelNodes {
             return toHexString((long) value);
         }
 
+        @TruffleBoundary
         @Specialization
         protected String toHexString(long value) {
             return Long.toHexString(value);
@@ -1983,8 +1985,10 @@ public abstract class KernelNodes {
             Object id = objectIDNode.executeObjectID(self);
             String hexID = toHexStringNode.executeToHexString(id);
 
-            final DynamicObject string = makeStringNode
-                    .executeMake("#<" + className + ":0x" + hexID + ">", UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+            final DynamicObject string = makeStringNode.executeMake(
+                    Utils.concat("#<", className, ":0x", hexID, ">"),
+                    UTF8Encoding.INSTANCE,
+                    CodeRange.CR_UNKNOWN);
             propagateTaintNode.executePropagate(self, string);
             return string;
         }
