@@ -76,3 +76,19 @@ unsigned long ruby_scan_digits(const char *str, ssize_t len, int base, size_t *r
   *retlen = str - start;
   return ret;
 }
+
+unsigned long ruby_scan_oct(const char *start, size_t len, size_t *retlen) {
+  register const char *s = start;
+  register unsigned long retval = 0;
+  size_t i;
+
+  for (i = 0; i < len; i++) {
+    if ((s[0] < '0') || ('7' < s[0])) {
+        break;
+    }
+  retval <<= 3;
+  retval |= *s++ - '0';
+  }
+  *retlen = (int)(s - start); /* less than len */
+  return retval;
+}
