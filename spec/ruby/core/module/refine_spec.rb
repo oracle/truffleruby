@@ -267,6 +267,38 @@ describe "Module#refine" do
       result.should == "foo"
     end
 
+    it "looks in later prepended modules to the refined module first" do
+      module A
+        def foo
+         "foo from A"
+        end
+      end
+
+      module IncludeMeLater
+        def foo
+          "foo from IncludeMeLater"
+        end
+      end
+
+      class C
+        include A
+      end
+
+      refinement =
+        Module.new do
+          refine C do; end
+        end
+
+      result = nil
+      Module.new do
+        using refinement
+        C.include IncludeMeLater
+        result = C.new.foo
+      end
+
+      result.should == "foo from IncludeMeLater"
+    end
+
     it "looks in prepended modules from the refinement first" do
       refinement = Module.new do
         refine ModuleSpecs::ClassWithFoo  do

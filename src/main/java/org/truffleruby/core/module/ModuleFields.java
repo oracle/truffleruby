@@ -597,6 +597,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.isRefinement = true;
         this.refinedModule = refinedModule;
         this.refinementNamespace = refinementNamespace;
+        this.parentModule = Layouts.MODULE.getFields(refinedModule).start;
     }
 
     public DynamicObject getRefinedModule() {
