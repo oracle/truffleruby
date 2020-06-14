@@ -76,7 +76,7 @@ public class SubstringRope extends ManagedRope {
             return bytes;
         }
 
-        return RopeOperations.flattenBytes(this);
+        return super.getBytesSlow();
     }
 
     @Override

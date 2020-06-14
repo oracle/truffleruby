@@ -546,6 +546,7 @@ public abstract class RopeNodes {
                 ManagedRope left = currentRopeQueue.pop();
 
                 if (left.depth() >= flattenThreshold) {
+                    // TODO (eregon, 15 June 2020): should this cache the resulting bytes by using getBytes()?
                     left = flattenNode.executeFlatten(left);
                 }
 
@@ -564,6 +565,7 @@ public abstract class RopeNodes {
                     ManagedRope right = currentRopeQueue.pop();
 
                     if (right.depth() >= flattenThreshold) {
+                        // TODO (eregon, 15 June 2020): should this cache the resulting bytes by using getBytes()?
                         right = flattenNode.executeFlatten(right);
                     }
 

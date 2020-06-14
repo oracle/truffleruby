@@ -296,10 +296,13 @@ public class RopeOperations {
         return result;
     }
 
-    /** Performs an iterative depth first search of the Rope tree to calculate its byte[] without needing to populate
-     * the byte[] for each level beneath. Every LeafRope has its byte[] populated by definition. The goal is to
-     * determine which descendant LeafRopes contribute bytes to the top-most Rope's logical byte[] and how many bytes
-     * they should contribute. Then each such LeafRope copies the appropriate range of bytes to a shared byte[].
+    /** This method should not be used directly, because it does not cache the result in the Rope. Use
+     * {@link Rope#getBytes()} instead.
+     *
+     * Performs an iterative depth first search of the Rope tree to calculate its byte[] without needing to populate the
+     * byte[] for each level beneath. Every LeafRope has its byte[] populated by definition. The goal is to determine
+     * which descendant LeafRopes contribute bytes to the top-most Rope's logical byte[] and how many bytes they should
+     * contribute. Then each such LeafRope copies the appropriate range of bytes to a shared byte[].
      *
      * Rope trees can be very deep. An iterative algorithm is preferable to recursion because it removes the overhead of
      * stack frame management. Additionally, a recursive algorithm will eventually overflow the stack if the Rope tree
