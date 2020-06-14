@@ -278,7 +278,7 @@ public class RopeOperations {
     public static void visitBytes(Rope rope, BytesVisitor visitor, int offset, int length) {
         // TODO CS 14-Nov-17 use a proper ropes visiting API
 
-        visitor.accept(flattenBytes(rope), offset, length);
+        visitor.accept(rope.getBytes(), offset, length);
     }
 
     @TruffleBoundary
