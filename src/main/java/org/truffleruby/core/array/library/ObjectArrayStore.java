@@ -104,12 +104,12 @@ public class ObjectArrayStore {
     }
 
     @ExportMessage
-    public static void clear(Object[] store, int start, int length) {
+    protected static void clear(Object[] store, int start, int length) {
         Arrays.fill(store, start, start + length, null);
     }
 
     @ExportMessage
-    public static void fill(Object[] store, int start, int length, Object value) {
+    protected static void fill(Object[] store, int start, int length, Object value) {
         Arrays.fill(store, start, start + length, value);
     }
 

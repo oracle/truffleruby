@@ -140,7 +140,7 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    public static void clear(long[] store, int start, int length) {
+    protected static void clear(long[] store, int start, int length) {
         Arrays.fill(store, start, start + length, 0);
     }
 

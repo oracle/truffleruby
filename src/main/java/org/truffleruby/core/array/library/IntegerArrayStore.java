@@ -127,7 +127,7 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    public static void clear(int[] store, int start, int length) {
+    protected static void clear(int[] store, int start, int length) {
         Arrays.fill(store, start, start + length, 0);
     }
 

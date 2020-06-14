@@ -1,6 +1,14 @@
+/*
+ * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 2.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -10,9 +18,7 @@ import org.truffleruby.language.RubyBaseNode;
 
 import static org.truffleruby.Layouts.ARRAY;
 
-/**
- * Truncates an array by setting its size and clearing the remainder of the store with default values.
- */
+/** Truncates an array by setting its size and clearing the remainder of the store with default values. */
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayTruncateNode extends RubyBaseNode {
 
@@ -25,7 +31,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     @Specialization(
             guards = { "getSize(array) > size", "stores.isMutable(getStore(array))" },
             limit = "storageStrategyLimit()")
-    void truncate(DynamicObject array, int size,
+    protected void truncate(DynamicObject array, int size,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
 
         ARRAY.setSize(array, size);
@@ -35,7 +41,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     @Specialization(
             guards = { "getSize(array) > size", "!stores.isMutable(array)" },
             limit = "storageStrategyLimit()")
-    void truncateCopy(DynamicObject array, int size,
+    protected void truncateCopy(DynamicObject array, int size,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
 
         final Object store = ARRAY.getStore(array);
@@ -46,6 +52,6 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "getSize(array) <= size")
-    void doNothing(DynamicObject array, int size) {
+    protected void doNothing(DynamicObject array, int size) {
     }
 }

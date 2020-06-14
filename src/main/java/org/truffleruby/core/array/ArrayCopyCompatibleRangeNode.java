@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * code is released under a tri EPL/GPL/LGPL license. You can use it,
+ * redistribute it and/or modify it under the terms of the:
+ *
+ * Eclipse Public License version 2.0, or
+ * GNU General Public License version 2, or
+ * GNU Lesser General Public License version 2.1.
+ */
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -14,16 +23,19 @@ import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import static org.truffleruby.Layouts.ARRAY;
 
-/**
- * Copies a portion of an array to another array, whose store is known to have sufficient capacity, and to be
+/** Copies a portion of an array to another array, whose store is known to have sufficient capacity, and to be
  * compatible with the source array's store.
  *
- * <p>This never checks the array's sizes, which may therefore be adjusted afterwards.
+ * <p>
+ * This never checks the array's sizes, which may therefore be adjusted afterwards.
  *
- * <p>Also propagates sharing from the source array to destination array.
+ * <p>
+ * Also propagates sharing from the source array to destination array.
  *
- * <p>Typically only called after {@link ArrayPrepareForCopyNode} has been invoked on the destination.</p>
- */
+ * <p>
+ * Typically only called after {@link ArrayPrepareForCopyNode} has been invoked on the destination.
+ * </p>
+*/
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
 public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
@@ -35,7 +47,7 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
     public abstract void execute(DynamicObject dst, DynamicObject src, int dstStart, int srcStart, int length);
 
     @Specialization(limit = "storageStrategyLimit()")
-    void copy(DynamicObject dst, DynamicObject src, int dstStart, int srcStart, int length,
+    protected void copy(DynamicObject dst, DynamicObject src, int dstStart, int srcStart, int length,
             @CachedLibrary("getStore(src)") ArrayStoreLibrary stores,
             @Cached IsSharedNode isSharedNode,
             @Cached WriteBarrierNode writeBarrierNode,
