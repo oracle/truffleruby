@@ -270,14 +270,6 @@ public class RopeOperations {
         return new StringAttributes(end - start, codeRange);
     }
 
-    public static LeafRope flatten(Rope rope) {
-        if (rope instanceof LeafRope) {
-            return (LeafRope) rope;
-        }
-
-        return create(flattenBytes(rope), rope.getEncoding(), rope.getCodeRange());
-    }
-
     public static void visitBytes(Rope rope, BytesVisitor visitor) {
         visitBytes(rope, visitor, 0, rope.byteLength());
     }
@@ -487,7 +479,12 @@ public class RopeOperations {
                             patternLength);
 
                     // TODO (nirvdrum 25-Aug-2016): Flattening the rope with CR_VALID will cause a character length recalculation, even though we already know what it is. That operation should be made more optimal.
-                    final Rope flattenedChild = flatten(child);
+                    final LeafRope flattenedChild;
+                    if (child instanceof LeafRope) {
+                        flattenedChild = (LeafRope) child;
+                    } else {
+                        flattenedChild = create(flattenBytes(child), child.getEncoding(), child.getCodeRange());
+                    }
                     for (int i = 0; i < loopCount; i++) {
                         workStack.push(flattenedChild);
                     }
