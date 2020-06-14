@@ -36,7 +36,6 @@ import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.collections.Memo;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.RopeNodesFactory.WithEncodingNodeGen;
@@ -270,29 +269,10 @@ public class RopeOperations {
         return new StringAttributes(end - start, codeRange);
     }
 
-    public static void visitBytes(Rope rope, BytesVisitor visitor) {
-        visitBytes(rope, visitor, 0, rope.byteLength());
-    }
-
-    @TruffleBoundary
-    public static void visitBytes(Rope rope, BytesVisitor visitor, int offset, int length) {
-        // TODO CS 14-Nov-17 use a proper ropes visiting API
-
-        visitor.accept(rope.getBytes(), offset, length);
-    }
-
     @TruffleBoundary
     public static byte[] extractRange(Rope rope, int offset, int length) {
         final byte[] result = new byte[length];
-
-        final Memo<Integer> resultPosition = new Memo<>(0);
-
-        visitBytes(rope, (bytes, offset1, length1) -> {
-            final int resultPositionValue = resultPosition.get();
-            System.arraycopy(bytes, offset1, result, resultPositionValue, length1);
-            resultPosition.set(resultPositionValue + length1);
-        }, offset, length);
-
+        System.arraycopy(rope.getBytes(), offset, result, 0, length);
         return result;
     }
 

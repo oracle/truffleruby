@@ -22,7 +22,6 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.control.JavaException;
@@ -103,12 +102,13 @@ public abstract class DigestNodes {
     @CoreMethod(names = "update", onSingleton = true, required = 2)
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyString(message)")
         protected DynamicObject update(DynamicObject digestObject, DynamicObject message) {
             final MessageDigest digest = Layouts.DIGEST.getDigest(digestObject);
+            final Rope rope = StringOperations.rope(message);
 
-            RopeOperations.visitBytes(StringOperations.rope(message), digest::update);
-
+            digest.update(rope.getBytes());
             return digestObject;
         }
 
