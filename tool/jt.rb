@@ -2098,8 +2098,10 @@ EOS
     too_long = []
     Dir.chdir(TRUFFLERUBY_DIR) do
       Dir.glob('**/*') do |f|
-        if File.basename(f).size > max_length
-          too_long << f
+        if !f.start_with?('graal_dumps/')
+          if File.basename(f).size > max_length
+            too_long << f
+          end
         end
       end
     end
