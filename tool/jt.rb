@@ -2147,9 +2147,9 @@ EOS
     end
   end
 
-  private def check_bash_scripts
-    sh_files = Dir.glob('**/*.sh')
-    sh_files.reject! { |f| f.start_with?('truffleruby-gem-test-pack') }
+  def shellcheck
+    files = sh 'git', 'ls-files', capture: :out
+    sh_files = files.lines.map(&:chomp).select { |f| f.end_with?('.sh') }
     sh 'shellcheck', '-a', '-x', *sh_files
   end
 
@@ -2327,9 +2327,12 @@ EOS
     ENV['ECLIPSE_EXE'] ||= install_eclipse
 
     check_filename_length
+
+    # Lint
     rubocop
     sh 'tool/lint.sh'
     mx 'gate', '--tags', 'style'
+    shellcheck
 
     # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`
     #  - includes verifylibraryurls though
@@ -2338,7 +2341,6 @@ EOS
 
     mx 'verify-ci'
 
-    check_bash_scripts
     check_parser
     check_documentation_urls
     check_license
