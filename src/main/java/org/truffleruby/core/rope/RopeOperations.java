@@ -36,6 +36,7 @@ import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.collections.BoundedIntStack;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.RopeNodesFactory.WithEncodingNodeGen;
@@ -308,7 +309,7 @@ public class RopeOperations {
         // need to track each SubstringRope's bounded length and how much that bounded length contributes to the total
         // byte[] for any ancestor (e.g., a SubstringRope of a ConcatRope with SubstringRopes for each of its children).
         // Because we need to track multiple levels, we can't use a single updated int.
-        final Deque<Integer> substringLengths = new ArrayDeque<>();
+        final BoundedIntStack substringLengths = new BoundedIntStack(rope.depth());
 
         final Deque<Rope> workStack = new ArrayDeque<>();
         workStack.push(rope);
