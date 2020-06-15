@@ -68,20 +68,8 @@ public abstract class ByteArrayNodes {
     public abstract static class GetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int getByte(DynamicObject bytes, int index,
-                @Cached ConditionProfile nullByteIndexProfile) {
+        protected int getByte(DynamicObject bytes, int index) {
             final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
-
-            // Handling out-of-bounds issues like this is non-standard. In Rubinius, it would raise an exception instead.
-            // We're modifying the semantics to address a primary use case for this class: Rubinius's @data array
-            // in the String class. Rubinius Strings are NULL-terminated and their code working with Strings takes
-            // advantage of that fact. So, where they expect to receive a NULL byte, we'd be out-of-bounds and raise
-            // an exception. Simply appending a NULL byte may trigger a full copy of the original byte[], which we
-            // want to avoid. The compromise is bending on the semantics here.
-            if (nullByteIndexProfile.profile(index == builder.getLength())) {
-                return 0;
-            }
-
             return builder.get(index) & 0xff;
         }
 
