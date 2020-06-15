@@ -2408,7 +2408,7 @@ class IO
   end
 
   def ungetbyte(obj)
-    ensure_open
+    ensure_open_and_readable
 
     case obj
     when String
@@ -2426,7 +2426,7 @@ class IO
   end
 
   def ungetc(obj)
-    ensure_open
+    ensure_open_and_readable
 
     case obj
     when String
