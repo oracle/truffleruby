@@ -396,16 +396,28 @@ public abstract class ModuleOperations {
         return definedMethods;
     }
 
-    @TruffleBoundary
     public static MethodLookupResult lookupMethodCached(DynamicObject module, String name,
             DeclarationContext declarationContext) {
+        return lookupMethodCached(module, null, name, declarationContext);
+    }
+
+    @TruffleBoundary
+    private static MethodLookupResult lookupMethodCached(DynamicObject module, DynamicObject lookupTo, String name,
+            DeclarationContext declarationContext) {
         final ArrayList<Assumption> assumptions = new ArrayList<>();
-        DynamicObject[] refinements;
 
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
-            if ((refinements = getRefinementsFor(declarationContext, ancestor)) != null) {
-                for (DynamicObject refinement : refinements) {
-                    final MethodLookupResult refinedMethod = lookupMethodCached(refinement, name, null);
+            if (ancestor == lookupTo) {
+                return new MethodLookupResult(null, toArray(assumptions));
+            }
+            final DynamicObject[] refinements = getRefinementsFor(declarationContext, ancestor);
+            if (refinements != null) {
+                for (int i = 0; i < refinements.length; i++) {
+                    final MethodLookupResult refinedMethod = lookupMethodCached(
+                            refinements[i],
+                            getLookupTo(refinements, ancestor, i),
+                            name,
+                            null);
                     if (refinedMethod.isDefined()) {
                         for (Assumption assumption : refinedMethod.getAssumptions()) {
                             assumptions.add(assumption);
@@ -428,14 +440,28 @@ public abstract class ModuleOperations {
         return new MethodLookupResult(null, toArray(assumptions));
     }
 
-    @TruffleBoundary
     public static InternalMethod lookupMethodUncached(DynamicObject module, String name,
             DeclarationContext declarationContext) {
-        DynamicObject[] refinements;
+        return lookupMethodUncached(module, null, name, declarationContext);
+    }
+
+    @TruffleBoundary
+    private static InternalMethod lookupMethodUncached(DynamicObject module, DynamicObject lookupTo, String name,
+            DeclarationContext declarationContext) {
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
-            if ((refinements = getRefinementsFor(declarationContext, ancestor)) != null) {
-                for (DynamicObject refinement : refinements) {
-                    final InternalMethod refinedMethod = lookupMethodUncached(refinement, name, null);
+            if (ancestor == lookupTo) {
+                return null;
+            }
+            final DynamicObject[] refinements = getRefinementsFor(declarationContext, ancestor);
+
+            if (refinements != null) {
+                for (int i = 0; i < refinements.length; i++) {
+
+                    final InternalMethod refinedMethod = lookupMethodUncached(
+                            refinements[i],
+                            getLookupTo(refinements, ancestor, i),
+                            name,
+                            null);
                     if (refinedMethod != null) {
                         return refinedMethod;
                     }
@@ -467,30 +493,38 @@ public abstract class ModuleOperations {
         final String name = currentMethod.getSharedMethodInfo().getName(); // use the original name
         return lookupSuperMethod(
                 currentMethod.getDeclaringModule(),
+                null,
                 name,
                 objectMetaClass,
                 currentMethod.getDeclarationContext());
     }
 
     @TruffleBoundary
-    private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, String name,
+    private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, DynamicObject lookupTo,
+            String name,
             DynamicObject objectMetaClass, DeclarationContext declarationContext) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert RubyGuards.isRubyModule(objectMetaClass);
 
         final ArrayList<Assumption> assumptions = new ArrayList<>();
         boolean foundDeclaringModule = false;
-        DynamicObject[] refinements;
 
-        for (DynamicObject module : Layouts.MODULE.getFields(objectMetaClass).ancestors()) {
-            if ((refinements = getRefinementsFor(declarationContext, module)) != null) {
-                for (DynamicObject refinement : refinements) {
+        for (DynamicObject ancestor : Layouts.MODULE.getFields(objectMetaClass).ancestors()) {
+            if (ancestor == lookupTo) {
+                return new MethodLookupResult(null, toArray(assumptions));
+            }
+
+            final DynamicObject[] refinements = getRefinementsFor(declarationContext, ancestor);
+
+            if (refinements != null) {
+                for (int i = 0; i < refinements.length; i++) {
                     // TODO: pass new declaration context without current refinements
                     //       to lookup super in other namespaces
                     final MethodLookupResult superMethodInRefinement = lookupSuperMethod(
                             declaringModule,
+                            getLookupTo(refinements, ancestor, i),
                             name,
-                            refinement,
+                            refinements[i],
                             null);
                     if (superMethodInRefinement.isDefined()) {
                         for (Assumption assumption : superMethodInRefinement.getAssumptions()) {
@@ -504,11 +538,11 @@ public abstract class ModuleOperations {
             }
 
             if (!foundDeclaringModule) {
-                if (module == declaringModule) {
+                if (ancestor == declaringModule) {
                     foundDeclaringModule = true;
                 }
             } else {
-                final ModuleFields fields = Layouts.MODULE.getFields(module);
+                final ModuleFields fields = Layouts.MODULE.getFields(ancestor);
                 assumptions.add(fields.getMethodsUnmodifiedAssumption());
                 final InternalMethod method = fields.getMethod(name);
                 if (method != null) {
@@ -526,6 +560,16 @@ public abstract class ModuleOperations {
             return null;
         }
         return declarationContext.getRefinementsFor(module);
+    }
+
+    private static DynamicObject getLookupTo(DynamicObject[] refinements, DynamicObject refinedModule, int i) {
+        // If we have more then one active refinement for C (where C is refined module):
+        //     R1.ancestors = [R1, A, C, ...]
+        //     R2.ancestors = [R2, B, C, ...]
+        //     R3.ancestors = [R3, D, C, ...]
+        // we are looking BEFORE С for the first n - 1 refinements:
+        // R3 -> D -> R2 -> B -> R1 -> A -> C -> ...
+        return (i == refinements.length - 1) ? null : refinedModule;
     }
 
     private static Assumption[] toArray(ArrayList<Assumption> assumptions) {
