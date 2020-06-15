@@ -38,6 +38,7 @@ public class SubstringRope extends ManagedRope {
             CodeRange codeRange) {
         // TODO (nirvdrum 07-Jan-16) Verify that this rope is only used for character substrings and not arbitrary byte slices. The former should always have the child's code range while the latter may not.
         super(encoding, codeRange, byteLength, characterLength, child.depth() + 1, null);
+        assert !(child instanceof SubstringRope) : child.getClass();
         this.child = child;
         this.byteOffset = byteOffset;
 
@@ -71,14 +72,12 @@ public class SubstringRope extends ManagedRope {
     @Override
     protected byte[] getBytesSlow() {
         if (child.getRawBytes() != null) {
-            final byte[] ret = new byte[byteLength()];
-
-            System.arraycopy(child.getRawBytes(), byteOffset, ret, 0, byteLength());
-
-            return ret;
+            final byte[] bytes = new byte[byteLength()];
+            System.arraycopy(child.getRawBytes(), byteOffset, bytes, 0, byteLength());
+            return bytes;
         }
 
-        return RopeOperations.flattenBytes(this);
+        return super.getBytesSlow();
     }
 
     @Override

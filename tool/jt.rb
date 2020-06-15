@@ -644,7 +644,7 @@ module Commands
       jt metrics instructions ...                    how many CPU instructions are used to run a program
       jt metrics minheap ...                         what is the smallest heap you can use to run an application
       jt metrics time ...                            how long does it take to run a command, broken down into different phases
-      jt benchmark [options] args...                 run benchmark-interface
+      jt benchmark args... [-- ruby options]         run benchmark-interface
                                        note that to run most MRI benchmarks, you should translate them first with normal
                                        Ruby and cache the result, such as benchmark bench/mri/bm_vm1_not.rb --cache
                                        jt benchmark bench/mri/bm_vm1_not.rb --use-cache
@@ -1772,10 +1772,14 @@ EOS
 
   def benchmark(*args)
     vm_args = []
-    if truffleruby_compiler?
-      vm_args << '--experimental-options'
-      vm_args << '--engine.CompilationFailureAction=ExitVM'
-      vm_args << '--engine.TreatPerformanceWarningsAsErrors=all'
+    if truffleruby?
+      if truffleruby_compiler?
+        vm_args << '--experimental-options'
+        vm_args << '--engine.CompilationFailureAction=ExitVM'
+        vm_args << '--engine.TreatPerformanceWarningsAsErrors=all'
+      else
+        STDERR.puts 'WARNING: benchmarking without the GraalVM compiler'
+      end
     end
 
     args, ruby_args = args_split(args)

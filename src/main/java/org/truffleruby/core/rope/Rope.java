@@ -64,6 +64,7 @@ public abstract class Rope implements Comparable<Rope> {
 
     public abstract byte[] getBytes();
 
+    /** The caller of this method will cache the resulting byte[]. */
     protected byte[] getBytesSlow() {
         return RopeOperations.flattenBytes(this);
     }

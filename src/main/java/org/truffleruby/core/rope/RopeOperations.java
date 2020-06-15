@@ -36,7 +36,7 @@ import org.jcodings.ascii.AsciiTables;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.collections.Memo;
+import org.truffleruby.collections.BoundedIntStack;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.rope.RopeNodesFactory.WithEncodingNodeGen;
@@ -270,44 +270,20 @@ public class RopeOperations {
         return new StringAttributes(end - start, codeRange);
     }
 
-    public static LeafRope flatten(Rope rope) {
-        if (rope instanceof LeafRope) {
-            return (LeafRope) rope;
-        }
-
-        return create(flattenBytes(rope), rope.getEncoding(), rope.getCodeRange());
-    }
-
-    public static void visitBytes(Rope rope, BytesVisitor visitor) {
-        visitBytes(rope, visitor, 0, rope.byteLength());
-    }
-
-    @TruffleBoundary
-    public static void visitBytes(Rope rope, BytesVisitor visitor, int offset, int length) {
-        // TODO CS 14-Nov-17 use a proper ropes visiting API
-
-        visitor.accept(flattenBytes(rope), offset, length);
-    }
-
     @TruffleBoundary
     public static byte[] extractRange(Rope rope, int offset, int length) {
         final byte[] result = new byte[length];
-
-        final Memo<Integer> resultPosition = new Memo<>(0);
-
-        visitBytes(rope, (bytes, offset1, length1) -> {
-            final int resultPositionValue = resultPosition.get();
-            System.arraycopy(bytes, offset1, result, resultPositionValue, length1);
-            resultPosition.set(resultPositionValue + length1);
-        }, offset, length);
-
+        System.arraycopy(rope.getBytes(), offset, result, 0, length);
         return result;
     }
 
-    /** Performs an iterative depth first search of the Rope tree to calculate its byte[] without needing to populate
-     * the byte[] for each level beneath. Every LeafRope has its byte[] populated by definition. The goal is to
-     * determine which descendant LeafRopes contribute bytes to the top-most Rope's logical byte[] and how many bytes
-     * they should contribute. Then each such LeafRope copies the appropriate range of bytes to a shared byte[].
+    /** This method should not be used directly, because it does not cache the result in the Rope. Use
+     * {@link Rope#getBytes()} instead.
+     *
+     * Performs an iterative depth first search of the Rope tree to calculate its byte[] without needing to populate the
+     * byte[] for each level beneath. Every LeafRope has its byte[] populated by definition. The goal is to determine
+     * which descendant LeafRopes contribute bytes to the top-most Rope's logical byte[] and how many bytes they should
+     * contribute. Then each such LeafRope copies the appropriate range of bytes to a shared byte[].
      *
      * Rope trees can be very deep. An iterative algorithm is preferable to recursion because it removes the overhead of
      * stack frame management. Additionally, a recursive algorithm will eventually overflow the stack if the Rope tree
@@ -333,7 +309,7 @@ public class RopeOperations {
         // need to track each SubstringRope's bounded length and how much that bounded length contributes to the total
         // byte[] for any ancestor (e.g., a SubstringRope of a ConcatRope with SubstringRopes for each of its children).
         // Because we need to track multiple levels, we can't use a single updated int.
-        final Deque<Integer> substringLengths = new ArrayDeque<>();
+        final BoundedIntStack substringLengths = new BoundedIntStack(rope.depth());
 
         final Deque<Rope> workStack = new ArrayDeque<>();
         workStack.push(rope);
@@ -487,7 +463,12 @@ public class RopeOperations {
                             patternLength);
 
                     // TODO (nirvdrum 25-Aug-2016): Flattening the rope with CR_VALID will cause a character length recalculation, even though we already know what it is. That operation should be made more optimal.
-                    final Rope flattenedChild = flatten(child);
+                    final LeafRope flattenedChild;
+                    if (child instanceof LeafRope) {
+                        flattenedChild = (LeafRope) child;
+                    } else {
+                        flattenedChild = create(flattenBytes(child), child.getEncoding(), child.getCodeRange());
+                    }
                     for (int i = 0; i < loopCount; i++) {
                         workStack.push(flattenedChild);
                     }

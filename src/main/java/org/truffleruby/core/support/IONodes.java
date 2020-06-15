@@ -79,7 +79,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadLocalBuffer;
@@ -90,6 +89,7 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.Platform;
+import org.truffleruby.utils.UnreachableCodeException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -98,7 +98,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "IO", isClass = true)
 public abstract class IONodes {
@@ -466,17 +465,16 @@ public abstract class IONodes {
             }
 
             final Rope rope = rope(string);
+            final byte[] bytes = rope.getBytes();
 
-            RopeOperations.visitBytes(
-                    rope,
-                    (bytes, offset, length) -> getContext().getThreadManager().runUntilResult(this, () -> {
-                        try {
-                            stream.write(bytes, offset, length);
-                        } catch (IOException e) {
-                            throw new JavaException(e);
-                        }
-                        return BlockingAction.SUCCESS;
-                    }));
+            getContext().getThreadManager().runUntilResult(this, () -> {
+                try {
+                    stream.write(bytes);
+                } catch (IOException e) {
+                    throw new JavaException(e);
+                }
+                return BlockingAction.SUCCESS;
+            });
 
             return rope.byteLength();
         }

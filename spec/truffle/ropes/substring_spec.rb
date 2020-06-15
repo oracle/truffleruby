@@ -24,4 +24,21 @@ describe "A substring" do
     end
   end
 
+  describe "of a substring of a complex Rope" do
+    it "computes the bytes of that Rope to avoid flattening repetitively" do
+      side = 512
+      big_string = ("a".b * side + "é".b + "z".b * side)
+      substring = big_string[1...-1]
+      Truffle::Ropes.should.bytes?(big_string)
+      Truffle::Ropes.should_not.bytes?(substring)
+
+      subsubstring = substring.byteslice(4, 8)
+      Truffle::Ropes.should.bytes?(big_string)
+      Truffle::Ropes.should_not.bytes?(subsubstring)
+
+      # done last as it computes the bytes as a side effect
+      subsubstring.should == "aaaaaaaa"
+    end
+  end
+
 end
