@@ -618,6 +618,8 @@ module Commands
       jt test mri test/mri/tests/test_find.rb [-- <MRI runner options>]
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
+      jt lint                                        run all lints, used in CI
+      jt lint fast                                   run fast lints, recommended for pre-commit
       jt test specs [fast] [mspec arguments] [-- ruby options]
       jt test specs                                  run all specs
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
@@ -2325,27 +2327,36 @@ EOS
     Formatting.format_specializations_arguments
   end
 
-  def lint
+  def lint(*args)
+    fast = args.first == 'fast'
+
     ENV['ECLIPSE_EXE'] ||= install_eclipse
 
-    check_filename_length
+    check_filename_length unless fast
 
     # Lint
     rubocop
     sh 'tool/lint.sh'
-    mx 'gate', '--tags', 'style'
+    if fast
+      checkstyle
+      command_format
+    else
+      mx 'gate', '--tags', 'style'
+    end
     shellcheck
 
     # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`
     #  - includes verifylibraryurls though
     #  - building with jdt in the ci definition could be dropped since fullbuild builds with JDT
-    mx 'spotbugs'
+    mx 'spotbugs' unless fast
 
     mx 'verify-ci'
 
-    check_parser
-    check_documentation_urls
-    check_license
+    unless fast
+      check_parser
+      check_documentation_urls
+      check_license
+    end
     abort 'Some Specializations were not protected.' if format_specializations_visibility
     abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
   end
