@@ -2088,7 +2088,7 @@ EOS
 
   def command_format(*args)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
-    mx 'eclipseformat', '--no-backup', '--primary', *args, continue_on_failure: true
+    mx 'eclipseformat', '--no-backup', '--primary', *args
     format_specializations_visibility
     format_specializations_arguments
   end
