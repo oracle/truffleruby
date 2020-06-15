@@ -2343,6 +2343,8 @@ EOS
       command_format
     else
       mx 'gate', '--tags', 'style'
+      abort 'Some Specializations were not protected.' if format_specializations_visibility
+      abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
     end
     shellcheck
 
@@ -2358,8 +2360,6 @@ EOS
       check_documentation_urls
       check_license
     end
-    abort 'Some Specializations were not protected.' if format_specializations_visibility
-    abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
   end
 
   def sync
