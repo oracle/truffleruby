@@ -49,7 +49,9 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
     protected void noChange(DynamicObject dst, DynamicObject src, int start, int length) {
     }
 
-    @Specialization(guards = "start > getSize(dst)", limit = "storageStrategyLimit()")
+    @Specialization(
+            guards = "start > getSize(dst)",
+            limit = "storageStrategyLimit()")
     protected void nilPad(DynamicObject dst, DynamicObject src, int start, int length,
             @CachedLibrary("getStore(dst)") ArrayStoreLibrary dstStores) {
 
