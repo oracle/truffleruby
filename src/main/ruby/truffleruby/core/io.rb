@@ -171,7 +171,8 @@ class IO
 
       count = Primitive.min(unused, max)
 
-      buffer, bytes_read = fill_read(io, count)
+      buffer = Truffle::POSIX.read_string_at_least_one_byte(io, count)
+      bytes_read = buffer ? buffer.bytesize : 0
       if bytes_read > 0
         # Detect if another thread has updated the buffer
         # and now there isn't enough room for this data.
@@ -204,12 +205,6 @@ class IO
           Primitive.min(size, max)
         end
       end
-    end
-
-    def fill_read(io, count)
-      buffer = Truffle::POSIX.read_string_at_least_one_byte(io, count)
-      bytes_read = buffer ? buffer.bytesize : 0
-      [buffer, bytes_read]
     end
 
     def empty_to(io)
