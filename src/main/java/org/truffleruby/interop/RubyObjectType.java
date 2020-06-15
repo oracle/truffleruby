@@ -24,7 +24,7 @@ public class RubyObjectType extends ObjectType {
     @TruffleBoundary
     public String toString(DynamicObject object) {
         if (RubyGuards.isRubyString(object)) {
-            return StringOperations.getString(object);
+            return StringOperations.rope(object).toString();
         } else if (RubyGuards.isRubyException(object)) {
             return Layouts.EXCEPTION.getMessage(object).toString();
         } else if (RubyGuards.isRubyModule(object)) {
