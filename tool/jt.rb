@@ -619,7 +619,7 @@ module Commands
                                                      run tests in given file, -n option of the runner can be used to further
                                                      limit executed test methods
       jt lint                                        run all lints, used in CI
-      jt lint fast                                   run fast lints, recommended for pre-commit
+      jt lint fast                                   run fast lints, recommended as a git hook (see tool/hooks/lint-check.sh)
       jt test specs [fast] [mspec arguments] [-- ruby options]
       jt test specs                                  run all specs
       jt test specs fast                             run all specs except sub-processes, GC, sleep, ...
