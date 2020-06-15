@@ -2152,9 +2152,10 @@ EOS
   end
 
   def shellcheck
-    files = sh 'git', 'ls-files', capture: :out
+    files = sh 'git', 'ls-files', capture: :out, no_print_cmd: true
     sh_files = files.lines.map(&:chomp).select { |f| f.end_with?('.sh') }
-    sh 'shellcheck', '-a', '-x', *sh_files
+    puts bold '$ shellcheck -a -x ...'
+    sh 'shellcheck', '-a', '-x', *sh_files, no_print_cmd: true
   end
 
   def check_license
