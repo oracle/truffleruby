@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.support;
 
-import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 
 import com.oracle.truffle.api.object.DynamicObject;
@@ -23,10 +22,12 @@ public interface ByteArrayLayout extends BasicObjectLayout {
             DynamicObject metaClass);
 
     DynamicObject createByteArray(DynamicObjectFactory factory,
-            ByteArrayBuilder bytes);
+            byte[] bytes);
 
     boolean isByteArray(DynamicObject object);
 
-    ByteArrayBuilder getBytes(DynamicObject object);
+    byte[] getBytes(DynamicObject object);
+
+    void setBytes(DynamicObject object, byte[] value);
 
 }

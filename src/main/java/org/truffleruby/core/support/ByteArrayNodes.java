@@ -14,8 +14,8 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -23,31 +23,23 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.ArrayUtils;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "Truffle::ByteArray", isClass = true)
 public abstract class ByteArrayNodes {
 
-    public static DynamicObject createByteArray(DynamicObjectFactory factory, ByteArrayBuilder bytes) {
-        return Layouts.BYTE_ARRAY.createByteArray(factory, bytes);
-    }
-
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, new ByteArrayBuilder());
+            return Layouts.BYTE_ARRAY.createByteArray(coreLibrary().byteArrayFactory, RopeConstants.EMPTY_BYTES);
         }
 
     }
@@ -57,8 +49,8 @@ public abstract class ByteArrayNodes {
 
         @Specialization
         protected DynamicObject initialize(DynamicObject byteArray, int size) {
-            final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
-            bytes.unsafeReplace(new byte[size], 0);
+            final byte[] bytes = new byte[size];
+            Layouts.BYTE_ARRAY.setBytes(byteArray, bytes);
             return byteArray;
         }
 
@@ -68,21 +60,9 @@ public abstract class ByteArrayNodes {
     public abstract static class GetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int getByte(DynamicObject bytes, int index,
-                @Cached ConditionProfile nullByteIndexProfile) {
-            final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
-
-            // Handling out-of-bounds issues like this is non-standard. In Rubinius, it would raise an exception instead.
-            // We're modifying the semantics to address a primary use case for this class: Rubinius's @data array
-            // in the String class. Rubinius Strings are NULL-terminated and their code working with Strings takes
-            // advantage of that fact. So, where they expect to receive a NULL byte, we'd be out-of-bounds and raise
-            // an exception. Simply appending a NULL byte may trigger a full copy of the original byte[], which we
-            // want to avoid. The compromise is bending on the semantics here.
-            if (nullByteIndexProfile.profile(index == builder.getLength())) {
-                return 0;
-            }
-
-            return builder.get(index) & 0xff;
+        protected int getByte(DynamicObject byteArray, int index) {
+            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            return bytes[index] & 0xff;
         }
 
     }
@@ -91,23 +71,18 @@ public abstract class ByteArrayNodes {
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject prepend(DynamicObject bytes, DynamicObject string,
+        protected DynamicObject prepend(DynamicObject byteArray, DynamicObject string,
                 @Cached RopeNodes.BytesNode bytesNode) {
+            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+
             final Rope rope = StringOperations.rope(string);
             final int prependLength = rope.byteLength();
-            final int originalLength = Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes().length;
+            final int originalLength = bytes.length;
             final int newLength = prependLength + originalLength;
             final byte[] prependedBytes = new byte[newLength];
             System.arraycopy(bytesNode.execute(rope), 0, prependedBytes, 0, prependLength);
-            System.arraycopy(
-                    Layouts.BYTE_ARRAY.getBytes(bytes).getUnsafeBytes(),
-                    0,
-                    prependedBytes,
-                    prependLength,
-                    originalLength);
-            return ByteArrayNodes.createByteArray(
-                    coreLibrary().byteArrayFactory,
-                    ByteArrayBuilder.createUnsafeBuilder(prependedBytes));
+            System.arraycopy(bytes, 0, prependedBytes, prependLength, originalLength);
+            return Layouts.BYTE_ARRAY.createByteArray(coreLibrary().byteArrayFactory, prependedBytes);
         }
 
     }
@@ -116,15 +91,16 @@ public abstract class ByteArrayNodes {
     public abstract static class SetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object setByte(DynamicObject bytes, int index, int value,
+        protected int setByte(DynamicObject byteArray, int index, int value,
                 @Cached BranchProfile errorProfile) {
-            if (index < 0 || index >= Layouts.BYTE_ARRAY.getBytes(bytes).getLength()) {
+            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            if (index < 0 || index >= bytes.length) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().indexError("index out of bounds", this));
             }
 
-            Layouts.BYTE_ARRAY.getBytes(bytes).set(index, value);
-            return Layouts.BYTE_ARRAY.getBytes(bytes).get(index);
+            bytes[index] = (byte) value;
+            return value;
         }
 
     }
@@ -141,9 +117,9 @@ public abstract class ByteArrayNodes {
                 int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(source);
-            final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
-            System.arraycopy(bytesNode.execute(rope), srcStart, bytes.getUnsafeBytes(), dstStart, length);
+            System.arraycopy(bytesNode.execute(rope), srcStart, bytes, dstStart, length);
             return source;
         }
 
@@ -158,33 +134,12 @@ public abstract class ByteArrayNodes {
             assert length > 0;
 
             final Pointer ptr = Layouts.POINTER.getPointer(source);
-            final ByteArrayBuilder bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
 
             PointerNodes.checkNull(ptr, getContext(), this, nullPointerProfile);
 
-            ptr.readBytes(srcStart, bytes.getUnsafeBytes(), dstStart, length);
+            ptr.readBytes(srcStart, bytes, dstStart, length);
             return source;
-        }
-
-    }
-
-    @CoreMethod(names = "size")
-    public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected int size(DynamicObject bytes) {
-            return Layouts.BYTE_ARRAY.getBytes(bytes).getLength();
-        }
-
-    }
-
-    @CoreMethod(names = "length=", required = 1, lowerFixnum = 1)
-    public abstract static class SetLengthNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected int setLength(DynamicObject bytes, int length) {
-            Layouts.BYTE_ARRAY.getBytes(bytes).setLength(length);
-            return length;
         }
 
     }
@@ -193,14 +148,12 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyString(pattern)", "isSingleBytePattern(pattern)" })
-        protected Object getByteSingleByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
+        protected Object getByteSingleByte(DynamicObject byteArray, DynamicObject pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile tooSmallStartProfile,
-                @Cached BranchProfile tooLargeStartProfile,
-                @Cached BranchProfile matchFoundProfile,
-                @Cached BranchProfile noMatchProfile) {
+                @Cached BranchProfile tooLargeStartProfile) {
 
-            final ByteArrayBuilder in = Layouts.BYTE_ARRAY.getBytes(bytes);
+            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
             final Rope rope = StringOperations.rope(pattern);
             final byte searchByte = bytesNode.execute(rope)[0];
 
@@ -214,19 +167,19 @@ public abstract class ByteArrayNodes {
                 start = 0;
             }
 
-            final int index = ArrayUtils.indexOf(in.getUnsafeBytes(), start, length, searchByte);
+            final int index = ArrayUtils.indexOf(bytes, start, length, searchByte);
 
             return index == -1 ? nil : index + 1;
         }
 
         @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
-        protected Object getByte(DynamicObject bytes, DynamicObject pattern, int start, int length,
+        protected Object getByte(DynamicObject byteArray, DynamicObject pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached ConditionProfile notFoundProfile) {
             final Rope patternRope = StringOperations.rope(pattern);
             final int index = indexOf(
-                    Layouts.BYTE_ARRAY.getBytes(bytes),
+                    Layouts.BYTE_ARRAY.getBytes(byteArray),
                     start,
                     length,
                     bytesNode.execute(patternRope));
@@ -243,7 +196,7 @@ public abstract class ByteArrayNodes {
             return RopeGuards.isSingleByteString(rope);
         }
 
-        public int indexOf(ByteArrayBuilder in, int start, int length, byte[] target) {
+        public int indexOf(byte[] in, int start, int length, byte[] target) {
             int targetCount = target.length;
             int fromIndex = start;
             if (fromIndex >= length) {
@@ -260,15 +213,15 @@ public abstract class ByteArrayNodes {
             int max = length - targetCount;
 
             for (int i = fromIndex; i <= max; i++) {
-                if (in.get(i) != first) {
-                    while (++i <= max && in.get(i) != first) {
+                if (in[i] != first) {
+                    while (++i <= max && in[i] != first) {
                     }
                 }
 
                 if (i <= max) {
                     int j = i + 1;
                     int end = j + targetCount - 1;
-                    for (int k = 1; j < end && in.get(j) == target[k]; j++, k++) {
+                    for (int k = 1; j < end && in[j] == target[k]; j++, k++) {
                     }
 
                     if (j == end) {
