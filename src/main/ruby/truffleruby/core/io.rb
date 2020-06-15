@@ -179,7 +179,6 @@ class IO
           Truffle::KernelOperations.internal_raise RuntimeError, 'internal implementation error - IO buffer overrun', nil, true
         end
         @storage.fill(@used, buffer, 0, bytes_read)
-        @storage.length = @used + bytes_read
         @used += bytes_read
       end
       bytes_read

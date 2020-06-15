@@ -94,7 +94,6 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.binding.BindingNodes;
@@ -156,12 +155,12 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -4988,15 +4987,15 @@ public abstract class StringNodes {
     @CoreMethod(names = "from_bytearray", onSingleton = true, required = 4, lowerFixnum = { 2, 3 })
     public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isByteArray(bytes)", "isRubyEncoding(rubyEncoding)" })
+        @Specialization(guards = { "isByteArray(byteArray)", "isRubyEncoding(rubyEncoding)" })
         protected DynamicObject stringFromByteArray(
-                DynamicObject bytes,
+                DynamicObject byteArray,
                 int start,
                 int count,
                 DynamicObject rubyEncoding,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final ByteArrayBuilder builder = Layouts.BYTE_ARRAY.getBytes(bytes);
-            final byte[] array = ArrayUtils.extractRange(builder.getUnsafeBytes(), start, start + count);
+            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] array = ArrayUtils.extractRange(bytes, start, start + count);
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
 
             return makeStringNode.executeMake(array, encoding, CR_UNKNOWN);
