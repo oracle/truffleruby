@@ -145,24 +145,19 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
 
         protected void processReferenceQueue(Class<?> owner) {
-            if (context.getOptions().SINGLE_THREADED) {
-
+            if (context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages()) {
                 drainReferenceQueue();
-
             } else {
-
                 /* We can't create a new thread while the context is initializing or finalizing, as the polyglot API
                  * locks on creating new threads, and some core loading does things such as stat files which could
                  * allocate memory that is marked to be automatically freed and so would want to start the finalization
                  * thread. So don't start the finalization thread if we are initializing. We will rely on some other
                  * finalizer to be created to ever free this memory allocated during startup, but that's a reasonable
                  * assumption and a low risk of leaking a tiny number of bytes if it doesn't hold. */
-
                 if (processingThread == null && !context.isPreInitializing() && context.isInitialized() &&
                         !context.isFinalizing()) {
                     createProcessingThread(owner);
                 }
-
             }
         }
 
