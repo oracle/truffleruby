@@ -560,6 +560,17 @@ public class CExtNodes {
         }
     }
 
+    @CoreMethod(names = "rb_enc_isalnum", onSingleton = true, required = 2, lowerFixnum = 1)
+    public abstract static class RbEncIsAlNumNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyEncoding(value)")
+        protected boolean rbEncIsAlNum(int code, DynamicObject value) {
+            return EncodingOperations.getEncoding(value).isAlnum(code);
+        }
+
+    }
+
     @CoreMethod(names = "rb_str_new_nul", onSingleton = true, required = 1, lowerFixnum = 1)
     public abstract static class RbStrNewNulNode extends CoreMethodArrayArgumentsNode {
 
