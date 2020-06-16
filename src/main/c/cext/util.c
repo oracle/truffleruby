@@ -12,16 +12,16 @@ unsigned long ruby_scan_hex(const char *start, size_t len, size_t *retlen) {
   size_t i = 0;
 
   for (i = 0; i < len; i++) {
-    if (! s[0]) {
+    if (!s[0]) {
       break;
     }
     tmp = strchr(hexdigit, *s);
-    if (! tmp) {
+    if (!tmp) {
       break;
     }
-  retval <<= 4;
-  retval |= (tmp - hexdigit) & 15;
-  s++;
+    retval <<= 4;
+    retval |= (tmp - hexdigit) & 15;
+    s++;
   }
   *retlen = (int)(s - start);    /* less than len */
   return retval;
@@ -55,23 +55,25 @@ unsigned long ruby_scan_digits(const char *str, ssize_t len, int base, size_t *r
   *overflow = 0;
 
   if (!len) {
-  *retlen = 0;
-  return 0;
+    *retlen = 0;
+    return 0;
   }
 
   do {
-  int d = ruby_digit36_to_number_table[(unsigned char)*str++];
+    int d = ruby_digit36_to_number_table[(unsigned char)*str++];
     if (d == -1 || base <= d) {
-    --str;
-    break;
+      --str;
+      break;
     }
-    if (mul_overflow < ret)
+    if (mul_overflow < ret) {
       *overflow = 1;
+    }
     ret *= base;
     x = ret;
     ret += d;
-    if (ret < x)
+    if (ret < x) {
       *overflow = 1;
+    }
   } while (len < 0 || --len);
   *retlen = str - start;
   return ret;
@@ -84,10 +86,10 @@ unsigned long ruby_scan_oct(const char *start, size_t len, size_t *retlen) {
 
   for (i = 0; i < len; i++) {
     if ((s[0] < '0') || ('7' < s[0])) {
-        break;
+      break;
     }
-  retval <<= 3;
-  retval |= *s++ - '0';
+    retval <<= 3;
+    retval |= *s++ - '0';
   }
   *retlen = (int)(s - start); /* less than len */
   return retval;

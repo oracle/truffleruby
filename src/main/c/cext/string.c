@@ -470,20 +470,24 @@ static inline const char * search_nonascii(const char *p, const char *e) {
 long rb_str_coderange_scan_restartable(const char *s, const char *e, rb_encoding *enc, int *cr) {
   const char *p = s;
 
-  if (*cr == ENC_CODERANGE_BROKEN)
+  if (*cr == ENC_CODERANGE_BROKEN) {
     return e - s;
+  }
 
   if (rb_enc_to_index(enc) == rb_ascii8bit_encindex()) {
     /* enc is ASCII-8BIT.  ASCII-8BIT string never be broken. */
-    if (*cr == ENC_CODERANGE_VALID) return e - s;
+    if (*cr == ENC_CODERANGE_VALID) {
+      return e - s;
+    }
     p = search_nonascii(p, e);
     *cr = p ? ENC_CODERANGE_VALID : ENC_CODERANGE_7BIT;
     return e - s;
-  }
-  else if (rb_enc_asciicompat(enc)) {
+  } else if (rb_enc_asciicompat(enc)) {
     p = search_nonascii(p, e);
     if (!p) {
-      if (*cr != ENC_CODERANGE_VALID) *cr = ENC_CODERANGE_7BIT;
+      if (*cr != ENC_CODERANGE_VALID) {
+        *cr = ENC_CODERANGE_7BIT;
+      }
       return e - s;
     }
     for (;;) {
@@ -493,12 +497,15 @@ long rb_str_coderange_scan_restartable(const char *s, const char *e, rb_encoding
           return p - s;
       }
       p += MBCLEN_CHARFOUND_LEN(ret);
-      if (p == e) break;
+      if (p == e) {
+        break;
+      }
       p = search_nonascii(p, e);
-      if (!p) break;
+      if (!p) {
+        break;
+      }
     }
-  }
-  else {
+  } else {
     while (p < e) {
       int ret = rb_enc_precise_mbclen(p, e, enc);
       if (!MBCLEN_CHARFOUND_P(ret)) {
