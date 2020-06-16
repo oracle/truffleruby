@@ -9,12 +9,10 @@
  */
 package org.truffleruby.core.hash;
 
-import java.util.Collection;
 import java.util.Iterator;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -62,75 +60,6 @@ public abstract class BucketsStrategy {
     };
 
     private static final int[] CAPACITIES = MRI_PRIMES;
-
-    @TruffleBoundary
-    public static DynamicObject create(RubyContext context, Collection<KeyValue> entries, boolean byIdentity) {
-        int actualSize = entries.size();
-
-        final int bucketsCount = capacityGreaterThan(entries.size()) * OVERALLOCATE_FACTOR;
-        final Entry[] newEntries = new Entry[bucketsCount];
-
-        Entry firstInSequence = null;
-        Entry lastInSequence = null;
-
-        for (KeyValue entry : entries) {
-            Object key = entry.getKey();
-
-            if (!byIdentity && RubyGuards.isRubyString(key)) {
-                key = context.send(context.send(key, "dup"), "freeze");
-            }
-
-            final int hashed = hashKey(context, key);
-            Entry newEntry = new Entry(hashed, key, entry.getValue());
-
-            final int index = BucketsStrategy.getBucketIndex(hashed, newEntries.length);
-            Entry bucketEntry = newEntries[index];
-            boolean duplicateKey = false;
-
-            if (bucketEntry == null) {
-                newEntries[index] = newEntry;
-            } else {
-                Entry previousInBucket = null;
-
-                while (bucketEntry != null) {
-                    if (hashed == bucketEntry.getHashed() &&
-                            areKeysEqual(context, bucketEntry.getKey(), key, byIdentity)) {
-                        bucketEntry.setValue(entry.getValue());
-
-                        actualSize--;
-                        duplicateKey = true;
-                        break;
-                    }
-
-                    previousInBucket = bucketEntry;
-                    bucketEntry = bucketEntry.getNextInLookup();
-                }
-
-                if (!duplicateKey && previousInBucket != null) {
-                    previousInBucket.setNextInLookup(newEntry);
-                }
-            }
-
-            if (!duplicateKey) {
-                if (firstInSequence == null) {
-                    firstInSequence = newEntry;
-                }
-
-                if (lastInSequence != null) {
-                    lastInSequence.setNextInSequence(newEntry);
-                }
-
-                newEntry.setPreviousInSequence(lastInSequence);
-                newEntry.setNextInSequence(null);
-
-                lastInSequence = newEntry;
-            }
-        }
-
-        final Object nil = Nil.INSTANCE;
-        return context.getCoreLibrary().hashFactory.newInstance(
-                Layouts.HASH.build(newEntries, actualSize, firstInSequence, lastInSequence, nil, nil, false));
-    }
 
     @TruffleBoundary
     public static int capacityGreaterThan(int size) {
@@ -290,37 +219,6 @@ public abstract class BucketsStrategy {
         Layouts.HASH.setFirstInSequence(to, firstInSequence);
         Layouts.HASH.setLastInSequence(to, lastInSequence);
         assert HashOperations.verifyStore(context, to);
-    }
-
-    private static int hashKey(RubyContext context, Object key) {
-        final Object hashValue = context.send(key, "hash");
-
-        if (hashValue instanceof Integer) {
-            return (int) hashValue;
-        } else if (hashValue instanceof Long) {
-            return (int) (long) hashValue;
-        } else {
-            // TODO review: isn't there something more graceful to be done here?
-            throw new UnsupportedOperationException();
-        }
-    }
-
-    private static boolean areKeysEqual(RubyContext context, Object a, Object b, boolean byIdentity) {
-        final String method;
-
-        if (byIdentity) {
-            method = "equal?";
-        } else {
-            method = "eql?";
-        }
-
-        final Object equalityResult = context.send(a, method, b);
-
-        if (equalityResult instanceof Boolean) {
-            return (boolean) equalityResult;
-        }
-
-        throw new UnsupportedOperationException();
     }
 
 }
