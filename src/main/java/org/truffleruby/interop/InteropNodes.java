@@ -30,6 +30,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -61,6 +62,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.nodes.LanguageInfo;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.Source;
@@ -1032,6 +1034,25 @@ public abstract class InteropNodes {
         @Specialization(guards = "isRubyString(mimeType)")
         protected boolean isMimeTypeSupported(DynamicObject mimeType) {
             return getContext().getEnv().isMimeTypeSupported(StringOperations.getString(mimeType));
+        }
+
+    }
+
+    @CoreMethod(names = "languages", onSingleton = true, required = 0)
+    public abstract static class LanguagesNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected DynamicObject languages() {
+            final Map<String, LanguageInfo> languages = getContext().getEnv().getPublicLanguages();
+            final String[] languagesArray = languages.keySet().toArray(StringUtils.EMPTY_STRING_ARRAY);
+            final Object[] rubyStringArray = new Object[languagesArray.length];
+            for (int i = 0; i < languagesArray.length; i++) {
+                rubyStringArray[i] = StringOperations.createString(
+                        getContext(),
+                        StringOperations.encodeRope(languagesArray[i], UTF8Encoding.INSTANCE));
+            }
+            return createArray(languagesArray);
         }
 
     }
