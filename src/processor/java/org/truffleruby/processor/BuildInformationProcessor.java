@@ -45,7 +45,8 @@ public class BuildInformationProcessor extends AbstractProcessor {
     private final Set<String> processed = new HashSet<>();
 
     private File trufflerubyHome;
-    private String revision;
+    private String shortRevision;
+    private String fullRevision;
     private String compileDate;
     private String kernelMajorVersion;
 
@@ -54,7 +55,8 @@ public class BuildInformationProcessor extends AbstractProcessor {
         super.init(env);
         try {
             trufflerubyHome = findHome();
-            revision = runCommand("git rev-parse --short=8 HEAD");
+            fullRevision = runCommand("git rev-parse HEAD");
+            shortRevision = fullRevision.substring(0, 8);
             compileDate = runCommand("git log -1 --date=short --pretty=format:%cd");
             kernelMajorVersion = findKernelMajorVersion();
         } catch (Throwable e) {
@@ -176,8 +178,11 @@ public class BuildInformationProcessor extends AbstractProcessor {
 
                     final String value;
                     switch (name) {
-                        case "getRevision":
-                            value = revision;
+                        case "getShortRevision":
+                            value = shortRevision;
+                            break;
+                        case "getFullRevision":
+                            value = fullRevision;
                             break;
                         case "getCompileDate":
                             value = compileDate;
