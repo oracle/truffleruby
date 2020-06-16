@@ -375,6 +375,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
+    public void handleRefinedMethod(String methodName) {
+        final InternalMethod method = getMethod(methodName);
+
+        if (method != null) {
+            // invalidate assumptions not to use Inlined methods
+            changedMethod(methodName);
+        }
+    }
+
+    @TruffleBoundary
     public void addMethod(RubyContext context, Node currentNode, InternalMethod method) {
         assert ModuleOperations.canBindMethodTo(method, rubyModuleObject) ||
                 ModuleOperations.assignableTo(context.getCoreLibrary().objectClass, method.getDeclaringModule()) ||
