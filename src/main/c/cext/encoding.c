@@ -385,17 +385,17 @@ static int char_to_option(int c) {
 
   switch (c) {
     case 'i':
-  val = ONIG_OPTION_IGNORECASE;
-  break;
+      val = ONIG_OPTION_IGNORECASE;
+      break;
     case 'x':
-  val = ONIG_OPTION_EXTEND;
-  break;
+      val = ONIG_OPTION_EXTEND;
+      break;
     case 'm':
-  val = ONIG_OPTION_MULTILINE;
-  break;
+      val = ONIG_OPTION_MULTILINE;
+      break;
     default:
-  val = 0;
-  break;
+      val = 0;
+      break;
   }
   return val;
 }
@@ -408,17 +408,17 @@ extern int rb_char_to_option_kcode(int c, int *option, int *kcode) {
       *kcode = rb_ascii8bit_encindex();
       return (*option = ARG_ENCODING_NONE);
     case 'e':
-  *kcode = rb_enc_find_index("EUC-JP");
-  break;
+      *kcode = rb_enc_find_index("EUC-JP");
+      break;
     case 's':
-    *kcode = rb_enc_find_index("Windows-31J");
-  break;
+      *kcode = rb_enc_find_index("Windows-31J");
+      break;
     case 'u':
-  *kcode = rb_utf8_encindex();
-  break;
+      *kcode = rb_utf8_encindex();
+      break;
     default:
-  *kcode = -1;
-  return (*option = char_to_option(c));
+      *kcode = -1;
+      return (*option = char_to_option(c));
   }
   *option = ARG_ENCODING_FIXED;
   return 1;
