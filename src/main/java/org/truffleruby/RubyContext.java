@@ -89,6 +89,7 @@ public class RubyContext {
 
     private final RubyLanguage language;
     @CompilationFinal private TruffleLanguage.Env env;
+    @CompilationFinal private boolean hasOtherPublicLanguages;
 
     @CompilationFinal private Options options;
     @CompilationFinal private String rubyHome;
@@ -152,6 +153,7 @@ public class RubyContext {
 
         this.language = language;
         this.env = env;
+        this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(env);
 
         options = createOptions(env);
 
@@ -252,6 +254,7 @@ public class RubyContext {
      * in the same order as during normal initialization. */
     protected boolean patch(Env newEnv) {
         this.env = newEnv;
+        this.hasOtherPublicLanguages = computeHasOtherPublicLanguages(newEnv);
 
         final Options oldOptions = this.options;
         final Options newOptions = createOptions(newEnv);
@@ -364,6 +367,19 @@ public class RubyContext {
 
         Metrics.printTime("after-options");
         return options;
+    }
+
+    private static boolean computeHasOtherPublicLanguages(Env env) {
+        for (String language : env.getPublicLanguages().keySet()) {
+            if (!language.equals("ruby") && !language.equals("llvm")) { // GR-24239 See RubyLauncher#getDefaultLanguages
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean hasOtherPublicLanguages() {
+        return hasOtherPublicLanguages;
     }
 
     private long generateHashingSeed() {

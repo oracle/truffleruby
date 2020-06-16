@@ -47,6 +47,7 @@ Compatibility:
 * Single character IDs now behave more like those in MRI to improve C extension compatibility, so `rb_funcall(a, '+', b)` will now do the same thing as in MRI.
 * Removed extra public methods on `String`.
 * Implemented `rb_array_sort` and `rb_array_sort_bang`.
+* Do not create a finalizers `Thread` if there are other public languages, which is helpful for polyglot cases.
 
 Performance:
 
