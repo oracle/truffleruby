@@ -10,7 +10,6 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.Visibility;

@@ -17,7 +17,6 @@ import java.util.function.Function;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -567,9 +566,13 @@ public abstract class ModuleOperations {
         //     R1.ancestors = [R1, A, C, ...]
         //     R2.ancestors = [R2, B, C, ...]
         //     R3.ancestors = [R3, D, C, ...]
-        // we are looking BEFORE С for the first n - 1 refinements:
+        // we should look among C ancestors only for the last active refinement:
         // R3 -> D -> R2 -> B -> R1 -> A -> C -> ...
-        return (i == refinements.length - 1) ? null : refinedModule;
+        if (i != refinements.length - 1) {
+            return refinedModule;
+        }
+
+        return null;
     }
 
     private static Assumption[] toArray(ArrayList<Assumption> assumptions) {

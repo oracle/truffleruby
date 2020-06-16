@@ -242,58 +242,57 @@ describe "Module#refine" do
     end
 
     it "this is temporary test to verify the new lookup" do
-      module A
+      a = Module.new do
         def foo
           "foo"
         end
       end
 
-      class B
-      end
+      b = Class.new
 
       refinement =
         Module.new do
-          refine B do
-            include A
+          refine b do
+            include a
           end
         end
 
       result = nil
       Module.new do
         using refinement
-        result = B.new.foo
+        result = b.new.foo
       end
 
       result.should == "foo"
     end
 
     it "looks in later prepended modules to the refined module first" do
-      module A
+      a = Module.new do
         def foo
          "foo from A"
         end
       end
 
-      module IncludeMeLater
+      include_me_later = Module.new do
         def foo
           "foo from IncludeMeLater"
         end
       end
 
-      class C
-        include A
+      c = Class.new do
+        include a
       end
 
       refinement =
         Module.new do
-          refine C do; end
+          refine c do; end
         end
 
       result = nil
       Module.new do
         using refinement
-        C.include IncludeMeLater
-        result = C.new.foo
+        c.include include_me_later
+        result = c.new.foo
       end
 
       result.should == "foo from IncludeMeLater"
