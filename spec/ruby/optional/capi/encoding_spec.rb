@@ -98,6 +98,22 @@ describe "C-API Encoding function" do
     end
   end
 
+  describe "rb_enc_isspace" do
+    it "returns non-zero for space characters" do
+      @s.rb_enc_isspace(" ".ord, Encoding::US_ASCII).should == true
+      @s.rb_enc_isspace(" ".ord, Encoding::UTF_8).should == true
+    end
+
+    it "returns zero for non space characters" do
+      @s.rb_enc_isspace("-".ord, Encoding::US_ASCII).should == false
+      @s.rb_enc_isspace("A".ord, Encoding::US_ASCII).should == false
+      @s.rb_enc_isspace("3".ord, Encoding::US_ASCII).should == false
+      @s.rb_enc_isspace("-".ord, Encoding::UTF_8).should == false
+      @s.rb_enc_isspace("A".ord, Encoding::UTF_8).should == false
+      @s.rb_enc_isspace("3".ord, Encoding::UTF_8).should == false
+    end
+  end
+
   describe "rb_enc_from_index" do
     it "returns an Encoding" do
       @s.rb_enc_from_index(0).should be_an_instance_of(String)

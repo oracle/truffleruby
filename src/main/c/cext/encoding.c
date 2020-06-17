@@ -152,6 +152,10 @@ int rb_enc_isalnum(unsigned char c, rb_encoding *enc) {
   return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_enc_isalnum", c, rb_tr_unwrap(rb_enc_from_encoding(enc))));
 }
 
+int rb_enc_isspace(unsigned char c, rb_encoding *enc) {
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_enc_isspace", c, rb_tr_unwrap(rb_enc_from_encoding(enc))));
+}
+
 // returns Encoding, takes rb_encoding struct or RbEncoding
 VALUE rb_enc_from_encoding(rb_encoding *encoding) {
   if (polyglot_is_value(encoding)) {
