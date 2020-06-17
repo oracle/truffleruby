@@ -366,14 +366,6 @@ size_t rb_str_capacity(VALUE str) {
   return polyglot_as_i64(RUBY_CEXT_INVOKE_NO_WRAP("rb_str_capacity", str));
 }
 
-static inline int ntz_int32(uint32_t x) {
-#ifdef HAVE_BUILTIN___BUILTIN_CTZ
-  return __builtin_ctz(x);
-#else
-  return rb_popcount32((~x) & (x-1));
-#endif
-}
-
 static inline int ntz_int64(uint64_t x) {
 #ifdef HAVE_BUILTIN___BUILTIN_CTZLL
   return __builtin_ctzll(x);
@@ -383,11 +375,7 @@ static inline int ntz_int64(uint64_t x) {
 }
 
 static inline int ntz_intptr(uintptr_t x) {
-#if SIZEOF_VOIDP == 8
   return ntz_int64(x);
-#elif SIZEOF_VOIDP == 4
-  return ntz_int32(x);
-#endif
 }
 
 static inline const char * search_nonascii(const char *p, const char *e) {

@@ -2,8 +2,6 @@
 # frozen_string_literal: true
 
 
-#$srcs =
-
 require 'mkmf'
 require 'rbconfig'
 

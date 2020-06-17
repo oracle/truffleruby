@@ -15,18 +15,23 @@ import static org.truffleruby.cext.ValueWrapperManager.TAG_MASK;
 
 import org.truffleruby.language.RubyBaseNode;
 
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 
+/** The IsNativeObjectNode is implemented to determine if a native pointer belongs to a natively allocated NODE* which
+ * are used in Ripper. */
 @GenerateUncached
 @ImportStatic({ ValueWrapperManager.class })
 public abstract class IsNativeObjectNode extends RubyBaseNode {
 
+    /** Returns true if handle was natively allocated.
+     * 
+     * @param handle
+     * @return */
     public abstract Object execute(Object handle);
 
-    @Specialization(guards = "handle <= UNDEF_HANDLE")
+    @Specialization(guards = "handle < TAG_MASK")
     protected boolean isNativeObjectNilTrueFalseUndef(long handle) {
         return false;
     }
@@ -36,17 +41,12 @@ public abstract class IsNativeObjectNode extends RubyBaseNode {
         return false;
     }
 
-    @Specialization(guards = "isTaggedObject(handle)")
+    @Specialization(guards = "isMallocAligned(handle)")
     protected boolean isNativeObjectTaggedObject(long handle) {
         return handle < ValueWrapperManager.ALLOCATION_BASE;
     }
 
-    @Specialization
-    protected boolean isNativeObjectValueWrapper(ValueWrapper handle) {
-        return false;
-    }
-
-    @Fallback
+    @Specialization(guards = "!isLong(handle)")
     protected boolean isNativeObjectFallback(Object handle) {
         return false;
     }

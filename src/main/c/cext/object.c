@@ -23,6 +23,7 @@ bool RB_TYPE_P(VALUE value, int type) {
 
 int rb_special_const_p(VALUE object) {
   // Ripper calls this from add_mark_object
+  // Cannot unwrap a natively-allocated NODE*
   if (rb_tr_is_native_object(object)) {
     return 0;
   }

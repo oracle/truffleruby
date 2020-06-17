@@ -22,10 +22,10 @@ void rb_tr_init_exception(void);
 // Run when loading C-extension support
 void rb_tr_init(void *ruby_cext) {
   rb_tr_cext = ruby_cext;
-  rb_tr_is_native_object = polyglot_invoke(rb_tr_cext, "rb_tr_is_native_object_function");
   rb_tr_unwrap = polyglot_invoke(rb_tr_cext, "rb_tr_unwrap_function");
   rb_tr_id2sym = polyglot_invoke(rb_tr_cext, "rb_tr_id2sym_function");
   rb_tr_sym2id = polyglot_invoke(rb_tr_cext, "rb_tr_sym2id_function");
+  rb_tr_is_native_object = polyglot_invoke(rb_tr_cext, "rb_tr_is_native_object_function");
   rb_tr_wrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
   rb_tr_longwrap = polyglot_invoke(rb_tr_cext, "rb_tr_wrap_function");
 

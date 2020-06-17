@@ -45,7 +45,7 @@ clean_cexts:
 	$(Q) rm -f openssl/Makefile openssl/*.o openssl/openssl.$(DLEXT)
 	$(Q) rm -f zlib/Makefile zlib/*.o zlib/zlib.$(DLEXT)
 	$(Q) rm -f psych/Makefile psych/*.o psych/yaml/*.o psych/psych.$(DLEXT)
-	$(Q) rm -f ripper/Makefile ripper/*.o syslog/syslog.$(DLEXT)
+	$(Q) rm -f ripper/Makefile ripper/*.o ripper/ripper.$(DLEXT)
 	$(Q) rm -f syslog/Makefile syslog/*.o syslog/syslog.$(DLEXT)
 	$(Q) rm -f nkf/Makefile nkf/*.o nkf/nkf.$(DLEXT)
 	$(Q) rm -f etc/Makefile etc/*.o etc/etc.$(DLEXT) etc/constdefs.h

@@ -340,6 +340,10 @@ public class ValueWrapperManager {
         return handle != FALSE_HANDLE && (handle & TAG_MASK) == OBJECT_TAG;
     }
 
+    public static boolean isMallocAligned(long handle) {
+        return handle % 8 == 0;
+    }
+
     public static boolean isWrapper(Object value) {
         return value instanceof ValueWrapper;
     }
