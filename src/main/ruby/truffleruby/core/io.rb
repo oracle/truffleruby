@@ -2068,7 +2068,7 @@ class IO
   #  f2.reopen(f1)     #=> #<File:testfile>
   #  f2.readlines[0]   #=> "This is line one\n"
   def reopen(other, mode=undefined)
-    if other.respond_to?(:to_io)
+    if other.respond_to?(:to_io) # reopen(IO)
       flush
 
       if other.kind_of? IO
@@ -2088,11 +2088,15 @@ class IO
 
         Primitive.vm_set_class self, io.class
 
+        # We need to use that mode of other here like MRI, and not fcntl(), because fcntl(fd, F_GETFL)
+        # gives O_RDWR for the 3 standard IOs, even though they are not bidirectional.
+        @mode = other.instance_variable_get :@mode
+
         if io.respond_to?(:path)
           @path = io.path
         end
       end
-    else
+    else # reopen(filename, mode)
       flush unless closed?
 
       # If a mode isn't passed in, use the mode that the IO is already in.
@@ -2119,11 +2123,12 @@ class IO
       end
 
       seek 0, SEEK_SET
-    end
 
-    mode = Truffle::POSIX.fcntl(@descriptor, F_GETFL, 0)
-    Errno.handle if mode < 0
-    @mode = mode
+      mode = Truffle::POSIX.fcntl(@descriptor, F_GETFL, 0)
+      Errno.handle if mode < 0
+
+      @mode = mode
+    end
 
     self
   end

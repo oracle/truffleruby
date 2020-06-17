@@ -26,6 +26,7 @@ Bug fixes:
 * Only print members which are readable for foreign `#inspect` (#2027).
 * Fixed the return value of the first call to `Kernel#srand` in a Thread (#2028).
 * Fix missing flushing when printing an exception at top-level with a custom backtrace, which caused no output being shown (#1750, #1895).
+* Use the mode of the given `IO` for `IO#reopen(IO)` which is important for the 3 standard IOs (#2034).
 
 Compatibility:
 
