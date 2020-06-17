@@ -9,13 +9,11 @@
  */
 package org.truffleruby.core.hash;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -23,37 +21,25 @@ import com.oracle.truffle.api.object.DynamicObject;
 public class ConcatHashLiteralNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] children;
+    @Child private CallDispatchHeadNode hashMergeNode;
 
     public ConcatHashLiteralNode(RubyNode[] children) {
+        assert children.length > 1;
         this.children = children;
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
-        return buildHash(executeChildren(frame));
-    }
-
-    @TruffleBoundary
-    private Object buildHash(DynamicObject[] parts) {
-        final List<KeyValue> keyValues = new ArrayList<>();
-
-        for (int i = 0; i < parts.length; i++) {
-            for (KeyValue keyValue : HashOperations.iterableKeyValues(parts[i])) {
-                keyValues.add(keyValue);
-            }
-        }
-
-        return BucketsStrategy.create(getContext(), keyValues, false);
-    }
-
     @ExplodeLoop
-    protected DynamicObject[] executeChildren(VirtualFrame frame) {
-        DynamicObject[] values = new DynamicObject[children.length];
-        for (int i = 0; i < children.length; i++) {
-            DynamicObject hash = (DynamicObject) children[i].execute(frame);
-            values[i] = hash;
+    public Object execute(VirtualFrame frame) {
+        final DynamicObject hash = HashOperations.newEmptyHash(getContext());
+        if (hashMergeNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            hashMergeNode = insert(CallDispatchHeadNode.createPrivate());
         }
-        return values;
+        for (int i = 0; i < children.length; i++) {
+            hashMergeNode.call(hash, "merge!", children[i].execute(frame));
+        }
+        return hash;
     }
 
 }
