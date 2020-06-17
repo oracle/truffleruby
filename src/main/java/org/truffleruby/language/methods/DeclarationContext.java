@@ -32,6 +32,7 @@ import com.oracle.truffle.api.object.DynamicObject;
  * </ul>
 */
 public class DeclarationContext {
+    private static final Map<DynamicObject, DynamicObject[]> NO_REFINEMENTS = Collections.emptyMap();
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
     private interface DefaultDefinee {
@@ -80,7 +81,7 @@ public class DeclarationContext {
     private final Map<DynamicObject, DynamicObject[]> refinements; // immutable
 
     public DeclarationContext(Visibility visibility, DefaultDefinee defaultDefinee) {
-        this(visibility, defaultDefinee, Collections.emptyMap());
+        this(visibility, defaultDefinee, NO_REFINEMENTS);
     }
 
     public DeclarationContext(
@@ -89,7 +90,7 @@ public class DeclarationContext {
             Map<DynamicObject, DynamicObject[]> refinements) {
         this.visibility = visibility;
         this.defaultDefinee = defaultDefinee;
-        this.refinements = refinements;
+        this.refinements = refinements == null || refinements.isEmpty() ? NO_REFINEMENTS : refinements;
     }
 
     @TruffleBoundary
@@ -159,7 +160,10 @@ public class DeclarationContext {
         return defaultDefinee.getModuleToDefineMethods(singletonClassNode);
     }
 
+    public boolean hasRefinements() {
+        return refinements != NO_REFINEMENTS;
+    }
+
     /** Used when we know there cannot be a method definition inside a given method. */
     public static final DeclarationContext NONE = new DeclarationContext(Visibility.PUBLIC, null);
-
 }

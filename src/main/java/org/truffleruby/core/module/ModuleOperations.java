@@ -533,10 +533,10 @@ public abstract class ModuleOperations {
                             name,
                             refinement,
                             null);
+                    for (Assumption assumption : superMethodInRefinement.getAssumptions()) {
+                        assumptions.add(assumption);
+                    }
                     if (superMethodInRefinement.isDefined()) {
-                        for (Assumption assumption : superMethodInRefinement.getAssumptions()) {
-                            assumptions.add(assumption);
-                        }
                         return new MethodLookupResult(
                                 superMethodInRefinement.getMethod(),
                                 toArray(assumptions));

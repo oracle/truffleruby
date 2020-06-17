@@ -111,7 +111,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached BranchProfile foreignProfile,
             @Cached ConditionProfile noPrependedModulesProfile,
             @Cached ConditionProfile onMetaClassProfile,
-            @Cached ConditionProfile isRefinedProfile,
+            @Cached ConditionProfile hasRefinementsProfile,
             @Cached ConditionProfile notFoundProfile,
             @Cached ConditionProfile publicProfile,
             @Cached ConditionProfile privateProfile,
@@ -135,7 +135,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         InternalMethod topMethod;
         if (noPrependedModulesProfile.profile(fields.getFirstModuleChain() == fields) &&
                 onMetaClassProfile.profile((topMethod = fields.getMethod(name)) != null) &&
-                !isRefinedProfile.profile(declarationContext != null && declarationContext.getRefinements() != null)) {
+                !hasRefinementsProfile.profile(declarationContext != null && declarationContext.hasRefinements())) {
             method = topMethod;
         } else {
             method = ModuleOperations.lookupMethodUncached(metaClass, name, declarationContext);
