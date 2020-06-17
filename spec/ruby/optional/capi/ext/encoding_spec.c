@@ -106,6 +106,16 @@ static VALUE encoding_spec_rb_enc_find_index(VALUE self, VALUE name) {
   return INT2NUM(rb_enc_find_index(RSTRING_PTR(name)));
 }
 
+static VALUE encoding_spec_rb_enc_isalnum(VALUE self, VALUE chr, VALUE encoding) {
+  rb_encoding *e = rb_to_encoding(encoding);
+  return rb_enc_isalnum(FIX2INT(chr), e) ? Qtrue : Qfalse;
+}
+
+static VALUE encoding_spec_rb_enc_isspace(VALUE self, VALUE chr, VALUE encoding) {
+  rb_encoding *e = rb_to_encoding(encoding);
+  return rb_enc_isspace(FIX2INT(chr), e) ? Qtrue : Qfalse;
+}
+
 static VALUE encoding_spec_rb_enc_from_index(VALUE self, VALUE index) {
   return rb_str_new2(rb_enc_from_index(NUM2INT(index))->name);
 }
@@ -279,6 +289,8 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_copy", encoding_spec_rb_enc_copy, 2);
   rb_define_method(cls, "rb_enc_find", encoding_spec_rb_enc_find, 1);
   rb_define_method(cls, "rb_enc_find_index", encoding_spec_rb_enc_find_index, 1);
+  rb_define_method(cls, "rb_enc_isalnum", encoding_spec_rb_enc_isalnum, 2);
+  rb_define_method(cls, "rb_enc_isspace", encoding_spec_rb_enc_isspace, 2);
   rb_define_method(cls, "rb_enc_from_index", encoding_spec_rb_enc_from_index, 1);
   rb_define_method(cls, "rb_enc_from_encoding", encoding_spec_rb_enc_from_encoding, 1);
   rb_define_method(cls, "rb_enc_get", encoding_spec_rb_enc_get, 1);

@@ -237,9 +237,19 @@ char* rb_enc_left_char_head(char *start, char *p, char *end, rb_encoding *enc);
 #define rb_enc_islower(c,enc) ONIGENC_IS_CODE_LOWER((enc),(c))
 #define rb_enc_isupper(c,enc) ONIGENC_IS_CODE_UPPER((enc),(c))
 #define rb_enc_ispunct(c,enc) ONIGENC_IS_CODE_PUNCT((enc),(c))
+#ifdef TRUFFLERUBY
+int rb_enc_isalnum(unsigned char c, rb_encoding *enc);
+#define rb_enc_isalnum(c,enc) rb_enc_isalnum(c,enc)
+#else
 #define rb_enc_isalnum(c,enc) ONIGENC_IS_CODE_ALNUM((enc),(c))
+#endif
 #define rb_enc_isprint(c,enc) ONIGENC_IS_CODE_PRINT((enc),(c))
+#ifdef TRUFFLERUBY
+int rb_enc_isspace(unsigned char c, rb_encoding *enc);
+#define rb_enc_isspace(c,enc) rb_enc_isspace(c,enc)
+#else
 #define rb_enc_isspace(c,enc) ONIGENC_IS_CODE_SPACE((enc),(c))
+#endif
 #define rb_enc_isdigit(c,enc) ONIGENC_IS_CODE_DIGIT((enc),(c))
 
 int rb_enc_asciicompat(rb_encoding *enc);
