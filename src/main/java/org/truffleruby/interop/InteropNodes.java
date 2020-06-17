@@ -57,7 +57,6 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -152,7 +151,7 @@ public abstract class InteropNodes {
     public abstract static class ExecuteWithoutConversionNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object executeWithoutConversionForeignCached(TruffleObject receiver, Object[] args,
+        protected Object executeWithoutConversionForeignCached(Object receiver, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
             try {
@@ -760,7 +759,7 @@ public abstract class InteropNodes {
     public abstract static class RemoveMemberNode extends InteropCoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
-        protected Nil remove(TruffleObject receiver, Object identifier,
+        protected Nil remove(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
@@ -788,10 +787,10 @@ public abstract class InteropNodes {
     @CoreMethod(names = "members_without_conversion", onSingleton = true, required = 1, optional = 1)
     public abstract static class GetMembersNode extends InteropPrimitiveArrayArgumentsNode {
 
-        protected abstract Object executeMembers(TruffleObject receiver, boolean internal);
+        protected abstract Object executeMembers(Object receiver, boolean internal);
 
         @Specialization
-        protected Object members(TruffleObject receiver, NotProvided internal) {
+        protected Object members(Object receiver, NotProvided internal) {
             return executeMembers(receiver, false);
         }
 
@@ -811,7 +810,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_readable?", onSingleton = true, required = 2)
     public abstract static class IsMemberReadableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberReadable(TruffleObject receiver, Object name,
+        protected boolean isMemberReadable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberReadable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -821,7 +820,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_modifiable?", onSingleton = true, required = 2)
     public abstract static class IsMemberModifiableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberModifiable(TruffleObject receiver, Object name,
+        protected boolean isMemberModifiable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberModifiable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -831,7 +830,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_insertable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInsertableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberInsertable(TruffleObject receiver, Object name,
+        protected boolean isMemberInsertable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberInsertable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -841,7 +840,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_removable?", onSingleton = true, required = 2)
     public abstract static class IsMemberRemovableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberRemovable(TruffleObject receiver, Object name,
+        protected boolean isMemberRemovable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberRemovable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -851,7 +850,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_invocable?", onSingleton = true, required = 2)
     public abstract static class IsMemberInvocableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberInvocable(TruffleObject receiver, Object name,
+        protected boolean isMemberInvocable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberInvocable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -861,7 +860,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_internal?", onSingleton = true, required = 2)
     public abstract static class IsMemberInternalNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberInternal(TruffleObject receiver, Object name,
+        protected boolean isMemberInternal(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberInternal(receiver, toJavaStringNode.executeToJavaString(name));
@@ -871,7 +870,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_writable?", onSingleton = true, required = 2)
     public abstract static class IsMemberWritableNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberWritable(TruffleObject receiver, Object name,
+        protected boolean isMemberWritable(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberWritable(receiver, toJavaStringNode.executeToJavaString(name));
@@ -881,7 +880,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "is_member_existing?", onSingleton = true, required = 2)
     public abstract static class IsMemberExistingNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean isMemberExisting(TruffleObject receiver, Object name,
+        protected boolean isMemberExisting(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.isMemberExisting(receiver, toJavaStringNode.executeToJavaString(name));
@@ -891,7 +890,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "has_member_read_side_effects?", onSingleton = true, required = 2)
     public abstract static class HasMemberReadSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean hasMemberReadSideEffects(TruffleObject receiver, Object name,
+        protected boolean hasMemberReadSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasMemberReadSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
@@ -901,7 +900,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "has_member_write_side_effects?", onSingleton = true, required = 2)
     public abstract static class HasMemberWriteSideEffectsNode extends InteropCoreMethodArrayArgumentsNode {
         @Specialization(limit = "getCacheLimit()")
-        protected boolean hasMemberWriteSideEffects(TruffleObject receiver, Object name,
+        protected boolean hasMemberWriteSideEffects(Object receiver, Object name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @CachedLibrary("receiver") InteropLibrary receivers) {
             return receivers.hasMemberWriteSideEffects(receiver, toJavaStringNode.executeToJavaString(name));
@@ -1154,7 +1153,7 @@ public abstract class InteropNodes {
     public abstract static class InteropJavaInstanceOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isJavaObject(object)", "isJavaClassOrInterface(boxedJavaClass)" })
-        protected boolean javaInstanceOfJava(Object object, TruffleObject boxedJavaClass) {
+        protected boolean javaInstanceOfJava(Object object, Object boxedJavaClass) {
             final Object hostInstance = getContext().getEnv().asHostObject(object);
             if (hostInstance == null) {
                 return false;
@@ -1165,16 +1164,16 @@ public abstract class InteropNodes {
         }
 
         @Specialization(guards = { "!isJavaObject(object)", "isJavaClassOrInterface(boxedJavaClass)" })
-        protected boolean javaInstanceOfNotJava(Object object, TruffleObject boxedJavaClass) {
+        protected boolean javaInstanceOfNotJava(Object object, Object boxedJavaClass) {
             final Class<?> javaClass = (Class<?>) getContext().getEnv().asHostObject(boxedJavaClass);
             return javaClass.isInstance(object);
         }
 
         protected boolean isJavaObject(Object object) {
-            return object instanceof TruffleObject && getContext().getEnv().isHostObject(object);
+            return getContext().getEnv().isHostObject(object);
         }
 
-        protected boolean isJavaClassOrInterface(TruffleObject object) {
+        protected boolean isJavaClassOrInterface(Object object) {
             return getContext().getEnv().isHostObject(object) &&
                     getContext().getEnv().asHostObject(object) instanceof Class<?>;
         }
@@ -1245,21 +1244,16 @@ public abstract class InteropNodes {
     public abstract static class DeproxyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isJavaObject(object)")
-        protected Object deproxyJavaObject(TruffleObject object) {
+        protected Object deproxyJavaObject(Object object) {
             return getContext().getEnv().asHostObject(object);
         }
 
         @Specialization(guards = "!isJavaObject(object)")
-        protected Object deproxyNotJavaObject(TruffleObject object) {
+        protected Object deproxyNotJavaObject(Object object) {
             return object;
         }
 
-        @Specialization(guards = "!isTruffleObject(object)")
-        protected Object deproxyNotTruffle(Object object) {
-            return object;
-        }
-
-        protected boolean isJavaObject(TruffleObject object) {
+        protected boolean isJavaObject(Object object) {
             return getContext().getEnv().isHostObject(object);
         }
 
@@ -1378,13 +1372,13 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization
-        protected TruffleObject loggingForeignObject(NotProvided asString) {
+        protected Object loggingForeignObject(NotProvided asString) {
             return new LoggingForeignObject(null);
         }
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(asString)")
-        protected TruffleObject loggingForeignObject(DynamicObject asString) {
+        protected Object loggingForeignObject(DynamicObject asString) {
             return new LoggingForeignObject(StringOperations.getString(asString));
         }
 

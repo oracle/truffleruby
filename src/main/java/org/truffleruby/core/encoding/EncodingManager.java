@@ -43,7 +43,6 @@ import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 
 /** Always use {@link Encoding#getIndex()} for encoding indices. Never use
@@ -157,7 +156,7 @@ public class EncodingManager {
             // nl_item is int on at least Linux, macOS & Solaris
             final NativeFunction nl_langinfo = nfi.getFunction("nl_langinfo", "(sint32):string");
 
-            final long address = nfi.asPointer((TruffleObject) nl_langinfo.call(codeset));
+            final long address = nfi.asPointer(nl_langinfo.call(codeset));
             final byte[] bytes = new Pointer(address).readZeroTerminatedByteArray(context, 0);
             localeEncodingName = new String(bytes, StandardCharsets.US_ASCII);
         } else {
