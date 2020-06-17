@@ -87,6 +87,7 @@ class MSpecScript
     spec/ruby/core/file/absolute_path_spec.rb
     spec/ruby/core/matchdata/allocate_spec.rb
     spec/ruby/core/unboundmethod/bind_call_spec.rb
+    spec/ruby/core/builtin_constants/builtin_constants_spec.rb
   ]
 
   set :tags_patterns, [

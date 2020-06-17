@@ -74,7 +74,8 @@ public abstract class TruffleRubyNodes {
         protected DynamicObject revision() {
             return StringOperations.createFrozenString(
                     getContext(),
-                    RopeOperations.encodeAscii(BuildInformationImpl.INSTANCE.getRevision(), USASCIIEncoding.INSTANCE));
+                    RopeOperations
+                            .encodeAscii(BuildInformationImpl.INSTANCE.getShortRevision(), USASCIIEncoding.INSTANCE));
         }
 
     }

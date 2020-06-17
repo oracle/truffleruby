@@ -19,7 +19,7 @@ public class TruffleRuby {
     public static final String EXTENSION = ".rb";
     public static final String ENGINE_ID = "truffleruby";
     public static final String LANGUAGE_VERSION = "2.6.6";
-    public static final int LANGUAGE_REVISION = 67876;
+    public static final String LANGUAGE_REVISION = BuildInformationImpl.INSTANCE.getFullRevision();
     public static final String BOOT_SOURCE_NAME = "main_boot_source";
     public static final String RUBY_COPYRIGHT = "truffleruby - Copyright (c) 2013-2019 Oracle and/or its affiliates";
     public static final boolean PRE_INITIALIZE_CONTEXTS = System
@@ -49,12 +49,12 @@ public class TruffleRuby {
 
         // No version information, or just "dev" - use 0.0-commit
         if (systemVersion == null || systemVersion.equals("dev")) {
-            return "0.0-" + BuildInformationImpl.INSTANCE.getRevision();
+            return "0.0-" + BuildInformationImpl.INSTANCE.getShortRevision();
         }
 
         // A "-dev" version number - append the commit as well
         if (systemVersion.endsWith("-dev")) {
-            return systemVersion + "-" + BuildInformationImpl.INSTANCE.getRevision();
+            return systemVersion + "-" + BuildInformationImpl.INSTANCE.getShortRevision();
         }
 
         return systemVersion;
