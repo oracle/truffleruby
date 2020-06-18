@@ -76,6 +76,7 @@ public abstract class ModuleOperations {
         }
     }
 
+    @TruffleBoundary
     public static String constantName(RubyContext context, DynamicObject module, String name) {
         if (module == context.getCoreLibrary().objectClass) {
             return "::" + name;

@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.cext.UnwrapNode;
 import org.truffleruby.cext.UnwrapNodeGen.UnwrapNativeNodeGen;
@@ -35,7 +36,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 @ExportLibrary(ArrayStoreLibrary.class)
 @GenerateUncached
@@ -98,19 +98,22 @@ public final class NativeArrayStorage implements ObjectGraphNode {
         protected static void write(NativeArrayStorage storage, int index, Object value,
                 @CachedLibrary(limit = "1") InteropLibrary wrappers,
                 @Cached WrapNode wrapNode,
-                @Cached ConditionProfile isPointerProfile,
-                @Cached BranchProfile errorProfile) {
+                @Cached ConditionProfile isPointerProfile) {
             final ValueWrapper wrapper = wrapNode.execute(value);
             if (!isPointerProfile.profile(wrappers.isPointer(wrapper))) {
                 wrappers.toNative(wrapper);
             }
+
+            final long address;
             try {
                 assert wrappers.isPointer(wrapper);
-                storage.writeElement(index, wrappers.asPointer(wrapper));
+                address = wrappers.asPointer(wrapper);
             } catch (UnsupportedMessageException e) {
-                errorProfile.enter();
+                CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException();
             }
+
+            storage.writeElement(index, address);
         }
     }
 

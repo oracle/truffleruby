@@ -11,6 +11,7 @@ package org.truffleruby.core.array;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.List;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
@@ -224,4 +225,10 @@ public abstract class ArrayUtils {
     public static void sort(Object[] elements, int length) {
         Arrays.sort(elements, 0, length);
     }
+
+    @TruffleBoundary
+    public static List<Object> asList(Object[] array) {
+        return Arrays.asList(array);
+    }
+
 }

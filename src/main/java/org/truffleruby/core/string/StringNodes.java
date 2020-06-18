@@ -186,6 +186,7 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.utils.Utils;
 
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
@@ -1313,7 +1314,7 @@ public abstract class StringNodes {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
-                        coreExceptions().argumentError("unknown encoding name - " + stringName, this));
+                        coreExceptions().argumentError(Utils.concat("unknown encoding name - ", stringName), this));
             }
 
             return forceEncodingEncoding(string, rubyEncoding);

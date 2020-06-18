@@ -35,10 +35,11 @@ import org.truffleruby.core.rope.RopeNodesFactory.SetByteNodeGen;
 import org.truffleruby.core.string.StringAttributes;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -51,7 +52,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.SlowPathException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.utils.Utils;
 
 public abstract class RopeNodes {
 
@@ -737,8 +737,8 @@ public abstract class RopeNodes {
                 if (delta < 0) {
                     errorProfile.enter();
                     throw Utils.unsupportedOperation(
-                            "Code range is reported as valid, but is invalid for the given encoding: " +
-                                    encodingName(encoding));
+                            "Code range is reported as valid, but is invalid for the given encoding: ",
+                            encoding);
                 }
 
                 p += delta;
@@ -860,11 +860,6 @@ public abstract class RopeNodes {
 
         protected static boolean isFixedWidth(Encoding encoding) {
             return encoding.isFixedWidth();
-        }
-
-        @TruffleBoundary
-        private String encodingName(Encoding encoding) {
-            return encoding.toString();
         }
 
     }

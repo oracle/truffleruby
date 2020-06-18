@@ -30,6 +30,7 @@ import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.parser.ArgumentDescriptor;
+import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -91,8 +92,9 @@ public abstract class UnboundMethodNodes {
                             this));
                 } else {
                     throw new RaiseException(getContext(), coreExceptions().typeError(
-                            "bind argument must be an instance of " +
-                                    Layouts.MODULE.getFields(declaringModule).getName(),
+                            Utils.concat(
+                                    "bind argument must be an instance of ",
+                                    Layouts.MODULE.getFields(declaringModule).getName()),
                             this));
                 }
             }

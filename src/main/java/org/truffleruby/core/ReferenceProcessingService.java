@@ -18,7 +18,9 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
+import org.truffleruby.utils.UnreachableCodeException;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ReferenceProcessingService<R extends ReferenceProcessingService.ProcessingReference<R>> {
@@ -53,11 +55,9 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
 
         private void check(R previous, R next) {
-
             if (next != null && next == previous) {
-                throw new Error();
+                throw new UnreachableCodeException("broken doubly-linked list of WeakProcessingReference");
             }
-
         }
 
         public R getPrevious() {
@@ -226,6 +226,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         }
     }
 
+    @TruffleBoundary
     protected synchronized void remove(R ref) {
         if (ref.getNext() == ref) {
             // Already removed.
@@ -255,6 +256,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
         ref.remove();
     }
 
+    @TruffleBoundary
     protected synchronized void add(R newRef) {
         if (first != null) {
             newRef.setNext(first);

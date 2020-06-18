@@ -68,10 +68,7 @@ public abstract class ReadBase64StringNode extends FormatNode {
 
     @Specialization
     protected Object read(VirtualFrame frame, byte[] source) {
-        final int position = getSourcePosition(frame);
-        final int length = getSourceLength(frame);
-
-        final ByteBuffer encode = ByteBuffer.wrap(source, position, length - position);
+        final ByteBuffer encode = wrapByteBuffer(frame, source);
 
         final byte[] result = read(encode);
 
