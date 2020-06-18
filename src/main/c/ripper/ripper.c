@@ -10715,6 +10715,10 @@ int rb_enc_isalnum(unsigned char c, rb_encoding *enc) {
 int rb_enc_isspace(unsigned char c, rb_encoding *enc) {
   return c == ' ';
 }
+
+#undef idMesg
+#define idMesg rb_intern("message")
+
 #endif
 
 

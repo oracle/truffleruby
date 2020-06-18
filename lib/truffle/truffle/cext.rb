@@ -473,6 +473,22 @@ module Truffle::CExt
     Regexp.new(pattern, options)
   end
 
+  def rb_reg_compile(pattern, options)
+    err = nil
+    result = begin
+               Regexp.new(pattern, options)
+             rescue => e
+               err = e
+               nil
+             end
+    if err
+      Truffle::Type.set_last_exception(err)
+      nil
+    else
+      result
+    end
+  end
+
   def rb_reg_new_str(str, options)
     Regexp.new(str, options)
   end
