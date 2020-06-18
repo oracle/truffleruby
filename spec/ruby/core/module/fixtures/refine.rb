@@ -11,3 +11,7 @@ module ModuleSpecs
     def foo; "foo from included module"; end
   end
 end
+
+def build_refined_class
+  Class.new(ModuleSpecs::ClassWithFoo)
+end
