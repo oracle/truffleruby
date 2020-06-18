@@ -15,16 +15,15 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
-import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -447,10 +446,7 @@ public class RubyObjectMessages {
             try {
                 removeInstanceVariableNode.call(receiver, "remove_instance_variable", rubyName);
             } catch (RaiseException e) { // raises only if the name is missing
-                errorProfile.enter();
-                UnknownIdentifierException unknownIdentifier = UnknownIdentifierException.create(name);
-                ExceptionOperations.initCause(unknownIdentifier, e);
-                throw unknownIdentifier;
+                throw UnknownIdentifierException.create(name, e);
             }
         }
     }
