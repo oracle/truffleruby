@@ -424,7 +424,7 @@ public class RubyObjectMessages {
             @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @CachedLibrary("receiver") RubyLibrary rubyLibrary)
+            @CachedLibrary("receiver") InteropLibrary interopLibrary)
             throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
@@ -435,17 +435,16 @@ public class RubyObjectMessages {
             throw translateRubyException.execute(e, name);
         }
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (rubyLibrary.isFrozen(receiver)) {
-                errorProfile.enter();
-                throw UnsupportedMessageException.create();
-            }
-            if (!isIVar(name)) {
+            if (!interopLibrary.isMemberRemovable(receiver, name)) {
                 errorProfile.enter();
                 throw UnknownIdentifierException.create(name);
             }
+
             try {
                 removeInstanceVariableNode.call(receiver, "remove_instance_variable", rubyName);
             } catch (RaiseException e) { // raises only if the name is missing
+                // concurrent change in whether the member is removable
+                errorProfile.enter();
                 throw UnknownIdentifierException.create(name, e);
             }
         }
