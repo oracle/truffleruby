@@ -16,7 +16,6 @@ import org.truffleruby.language.objects.ObjectIVarSetNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -39,7 +38,7 @@ public class ManagedStructObjectType extends ObjectType {
         return MANAGED_STRUCT.createManagedStruct(type);
     }
 
-    public static boolean isInstance(TruffleObject receiver) {
+    public static boolean isInstance(Object receiver) {
         return MANAGED_STRUCT.isManagedStruct(receiver);
     }
 

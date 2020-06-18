@@ -605,7 +605,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object foreignObjectFromMap(TruffleObject map) {
+        protected Object foreignObjectFromMap(Object map) {
             return new ForeignObjectFromMap((Map) getContext().getEnv().asHostObject(map));
         }
 
@@ -671,7 +671,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object foreignArrayFromJava(TruffleObject array,
+        protected Object foreignArrayFromJava(Object array,
                 @CachedLibrary("hostObject(array)") ArrayStoreLibrary hostObjects) {
             final Object hostObject = hostObject(array);
             final int size = hostObjects.capacity(hostObject);
@@ -679,7 +679,7 @@ public abstract class TruffleDebugNodes {
             return new ForeignArrayFromJava(boxedArray);
         }
 
-        protected Object hostObject(TruffleObject array) {
+        protected Object hostObject(Object array) {
             return getContext().getEnv().asHostObject(array);
         }
     }
@@ -715,7 +715,7 @@ public abstract class TruffleDebugNodes {
         @Override
         @TruffleBoundary
         @Specialization
-        protected Object foreignArrayFromJava(TruffleObject array,
+        protected Object foreignArrayFromJava(Object array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             final Object hostObject = getContext().getEnv().asHostObject(array);
             final int size = stores.capacity(hostObject);

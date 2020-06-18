@@ -13,7 +13,6 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class RubyGuards {
@@ -271,10 +270,6 @@ public abstract class RubyGuards {
 
     public static boolean isForeignObject(Object object) {
         return !isRubyValue(object);
-    }
-
-    public static boolean isTruffleObject(Object object) {
-        return object instanceof TruffleObject;
     }
 
     // Sentinels

@@ -40,7 +40,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
@@ -230,7 +229,7 @@ public abstract class RequireNode extends RubyContextNode {
     private void requireCExtension(String feature, String expandedPath) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
-        final TruffleObject library;
+        final Object library;
 
         try {
             featureLoader.ensureCExtImplementationLoaded(feature, this);
@@ -248,7 +247,7 @@ public abstract class RequireNode extends RubyContextNode {
 
         final String initFunctionName = "Init_" + getBaseName(expandedPath);
 
-        final TruffleObject initFunction = findFunctionInLibrary(library, initFunctionName, expandedPath);
+        final Object initFunction = findFunctionInLibrary(library, initFunctionName, expandedPath);
 
         InteropLibrary initFunctionInteropLibrary = InteropLibrary.getFactory().getUncached(initFunction);
         if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
@@ -267,7 +266,7 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
-    TruffleObject findFunctionInLibrary(TruffleObject library, String functionName, String path) {
+    Object findFunctionInLibrary(Object library, String functionName, String path) {
         final Object function;
         try {
             function = InteropLibrary.getFactory().getUncached(library).readMember(library, functionName);
@@ -286,19 +285,7 @@ public abstract class RequireNode extends RubyContextNode {
                             .loadError(String.format("%s() not found (READ returned null)", functionName), path, null));
         }
 
-        if (!(function instanceof TruffleObject)) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().loadError(
-                            String.format(
-                                    "%s() was a %s rather than a TruffleObject",
-                                    functionName,
-                                    function.getClass().getSimpleName()),
-                            path,
-                            null));
-        }
-
-        return (TruffleObject) function;
+        return function;
     }
 
     @TruffleBoundary

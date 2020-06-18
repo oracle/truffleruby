@@ -15,7 +15,6 @@ import org.truffleruby.language.control.JavaException;
 
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
@@ -24,14 +23,14 @@ import com.oracle.truffle.api.source.Source;
 
 public class TruffleNFIPlatform {
 
-    final TruffleObject defaultLibrary;
+    final Object defaultLibrary;
 
     private final String size_t;
     private final NativeFunction strlen;
     private final NativeFunction strnlen;
 
     public TruffleNFIPlatform(RubyContext context) {
-        defaultLibrary = (TruffleObject) context
+        defaultLibrary = context
                 .getEnv()
                 .parseInternal(Source.newBuilder("nfi", "default", "native").build())
                 .call();
@@ -41,19 +40,19 @@ public class TruffleNFIPlatform {
         strnlen = getFunction("strnlen", String.format("(pointer,%s):%s", size_t, size_t));
     }
 
-    public TruffleObject getDefaultLibrary() {
+    public Object getDefaultLibrary() {
         return defaultLibrary;
     }
 
-    public TruffleObject lookup(TruffleObject library, String name) {
+    public Object lookup(Object library, String name) {
         try {
-            return (TruffleObject) InteropLibrary.getFactory().getUncached(library).readMember(library, name);
+            return InteropLibrary.getFactory().getUncached(library).readMember(library, name);
         } catch (UnknownIdentifierException | UnsupportedMessageException e) {
             throw new JavaException(e);
         }
     }
 
-    private static Object invoke(TruffleObject receiver, String identifier, Object... args) {
+    private static Object invoke(Object receiver, String identifier, Object... args) {
         try {
             return InteropLibrary.getFactory().getUncached(receiver).invokeMember(receiver, identifier, args);
         } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException
@@ -62,13 +61,13 @@ public class TruffleNFIPlatform {
         }
     }
 
-    private TruffleObject bind(TruffleObject function, String signature) {
-        return (TruffleObject) invoke(function, "bind", signature);
+    private Object bind(Object function, String signature) {
+        return invoke(function, "bind", signature);
     }
 
-    public long asPointer(TruffleObject truffleObject) {
+    public long asPointer(Object object) {
         try {
-            return InteropLibrary.getFactory().getUncached(truffleObject).asPointer(truffleObject);
+            return InteropLibrary.getFactory().getUncached(object).asPointer(object);
         } catch (UnsupportedMessageException e) {
             throw new JavaException(e);
         }
@@ -99,8 +98,8 @@ public class TruffleNFIPlatform {
     }
 
     public NativeFunction getFunction(String functionName, String signature) {
-        final TruffleObject symbol = lookup(defaultLibrary, functionName);
-        final TruffleObject function = bind(symbol, signature);
+        final Object symbol = lookup(defaultLibrary, functionName);
+        final Object function = bind(symbol, signature);
         return new NativeFunction(function);
     }
 
@@ -118,10 +117,10 @@ public class TruffleNFIPlatform {
 
     public static class NativeFunction {
 
-        private final TruffleObject function;
+        private final Object function;
         private final InteropLibrary functionInteropLibrary;
 
-        private NativeFunction(TruffleObject function) {
+        private NativeFunction(Object function) {
             this.function = function;
             this.functionInteropLibrary = InteropLibrary.getFactory().getUncached(this.function);
         }

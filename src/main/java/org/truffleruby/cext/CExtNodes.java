@@ -98,7 +98,6 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -1362,7 +1361,7 @@ public class CExtNodes {
     public abstract static class WrapValueNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected TruffleObject wrapInt(Object value,
+        protected Object wrapInt(Object value,
                 @Cached WrapNode wrapNode) {
             return wrapNode.execute(value);
         }

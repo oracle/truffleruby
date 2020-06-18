@@ -206,6 +206,9 @@
       <property name="format" value="transferToInterpreterOnException"/>
       <property name="message" value="Don't use transferToInterpreterOnException"/>
     </module>
+    <module name="IllegalType">
+      <property name="illegalClassNames" value="TruffleObject"/>
+    </module>
   </module>
   <module name="RegexpMultiline">
     <property name="format" value='Node currentNode,\s*RubyContext context'/>

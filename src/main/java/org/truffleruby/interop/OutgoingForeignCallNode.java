@@ -26,7 +26,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -168,13 +167,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         final Object a = receiver;
-
-        if (!(args[0] instanceof TruffleObject)) {
-            return false;
-        }
-
-        final TruffleObject b = (TruffleObject) args[0];
-
+        final Object b = args[0];
         if (context.getEnv().isHostObject(a) && context.getEnv().isHostObject(b)) {
             return context.getEnv().asHostObject(a) == context.getEnv().asHostObject(b);
         } else {

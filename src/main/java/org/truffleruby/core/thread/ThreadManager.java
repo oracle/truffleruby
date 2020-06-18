@@ -52,7 +52,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTrace;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 
@@ -277,10 +276,10 @@ public class ThreadManager {
     private void setupSignalHandler(TruffleNFIPlatform nfi, NativeConfiguration config) {
         SIGVTALRM = (int) config.get("platform.signal.SIGVTALRM");
 
-        final TruffleObject libC = nfi.getDefaultLibrary();
+        final Object libC = nfi.getDefaultLibrary();
 
         // We use abs() as a function taking a int and having no side effects
-        final TruffleObject abs = nfi.lookup(libC, "abs");
+        final Object abs = nfi.lookup(libC, "abs");
         final NativeFunction sigaction = nfi.getFunction("sigaction", "(sint32,pointer,pointer):sint32");
 
         final int sizeOfSigAction = (int) config.get("platform.sigaction.sizeof");

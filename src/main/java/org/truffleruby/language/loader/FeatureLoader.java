@@ -44,7 +44,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -183,7 +182,7 @@ public class FeatureLoader {
         final Pointer buffer = IOThreadBufferAllocateNode
                 .getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
         try {
-            final long address = nfi.asPointer((TruffleObject) getcwd.call(buffer.getAddress(), bufferSize));
+            final long address = nfi.asPointer(getcwd.call(buffer.getAddress(), bufferSize));
             if (address == 0) {
                 context.send(context.getCoreLibrary().errnoModule, "handle");
             }
@@ -419,9 +418,9 @@ public class FeatureLoader {
                 final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
 
                 final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
-                final TruffleObject library = loadCExtLibRuby(rubyLibPath, feature);
+                final Object library = loadCExtLibRuby(rubyLibPath, feature);
 
-                final TruffleObject initFunction = requireNode
+                final Object initFunction = requireNode
                         .findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
 
                 try {
@@ -437,7 +436,7 @@ public class FeatureLoader {
         }
     }
 
-    private TruffleObject loadCExtLibRuby(String rubyLibPath, String feature) {
+    private Object loadCExtLibRuby(String rubyLibPath, String feature) {
         if (context.getOptions().CEXTS_LOG_LOAD) {
             RubyLanguage.LOGGER.info(() -> String.format("loading cext implementation %s", rubyLibPath));
         }
@@ -456,7 +455,7 @@ public class FeatureLoader {
     }
 
     @TruffleBoundary
-    public TruffleObject loadCExtLibrary(String feature, String path) {
+    public Object loadCExtLibrary(String feature, String path) {
         Metrics.printTime("before-load-cext-" + feature);
         try {
             final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(context, path);
@@ -473,20 +472,7 @@ public class FeatureLoader {
             } catch (Exception e) {
                 throw new JavaException(e);
             }
-
-            if (!(result instanceof TruffleObject)) {
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().loadError(
-                                String.format(
-                                        "%s returned a %s rather than a TruffleObject",
-                                        path,
-                                        result.getClass().getSimpleName()),
-                                path,
-                                null));
-            }
-
-            return (TruffleObject) result;
+            return result;
         } catch (IOException e) {
             throw new JavaException(e);
         } finally {
