@@ -44,34 +44,6 @@ void rb_tr_init_global_constants(void);
 #define rb_output_rs RUBY_CEXT_INVOKE("rb_output_rs")
 #define rb_default_rs RUBY_CEXT_INVOKE("rb_default_rs")
 
-// Managed Structs
-
-void* rb_tr_new_managed_struct_internal(void *type);
-#define rb_tr_new_managed_struct(type) rb_tr_new_managed_struct_internal(polyglot_##type##_typeid())
-VALUE rb_data_object_alloc_managed(VALUE klass, size_t size, RUBY_DATA_FUNC dmark, RUBY_DATA_FUNC dfree, void *interoptypeid);
-VALUE rb_data_typed_object_alloc_managed(VALUE ruby_class, size_t size, const rb_data_type_t *data_type, void *interoptypeid);
-
-#define Data_Make_Managed_Struct0(result, klass, type, size, mark, free, sval) \
-    VALUE result = rb_data_object_alloc_managed((klass), (size), \
-                     (RUBY_DATA_FUNC)(mark), \
-                     (RUBY_DATA_FUNC)(free), \
-                     polyglot_##type##_typeid()); \
-    (void)((sval) = (type *)DATA_PTR(result));
-
-#define Data_Make_Managed_Struct(klass,type,mark,free,sval) ({\
-    Data_Make_Managed_Struct0(data_struct_obj, klass, type, sizeof(type), mark, free, sval); \
-    data_struct_obj; \
-})
-
-#define TypedData_Make_Managed_Struct0(result, klass, type, size, data_type, sval, interoptype) \
-    VALUE result = rb_data_typed_object_alloc_managed(klass, size, data_type, polyglot_##interoptype##_typeid()); \
-    (void)((sval) = (type *)DATA_PTR(result));
-
-#define TypedData_Make_Managed_Struct(klass, type, data_type, sval, interoptype) ({\
-    TypedData_Make_Managed_Struct0(data_struct_obj, klass, type, sizeof(type), data_type, sval, interoptype); \
-    data_struct_obj; \
-})
-
 bool rb_tr_obj_taintable_p(VALUE object);
 bool rb_tr_obj_tainted_p(VALUE object);
 void rb_tr_obj_infect(VALUE a, VALUE b);
