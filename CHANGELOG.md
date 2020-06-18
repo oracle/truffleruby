@@ -50,6 +50,7 @@ Compatibility:
 * Implemented `rb_array_sort` and `rb_array_sort_bang`.
 * Do not create a finalizers `Thread` if there are other public languages, which is helpful for polyglot cases (#2035).
 * Implemented `rb_enc_isalnum` and `rb_enc_isspace`.
+* `RUBY_REVISION` is now the full commit hash used to build TruffleRuby, similar to MRI 2.7+.
 
 Performance:
 
