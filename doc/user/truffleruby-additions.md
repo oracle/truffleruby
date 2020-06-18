@@ -42,7 +42,7 @@ used.
 extensions available.
 
 `TruffleRuby.revision` reports the source control revision used to build
-TruffleRuby.
+TruffleRuby as a String. Also available as `RUBY_REVISION`, like CRuby 2.7+.
 
 `TruffleRuby.full_memory_barrier` ensures lack of reordering of loads or stores
 before the barrier with loads or stores after the barrier.

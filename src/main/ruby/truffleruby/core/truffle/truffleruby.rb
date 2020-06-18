@@ -10,6 +10,10 @@
 
 module TruffleRuby
 
+  def self.revision
+    ::RUBY_REVISION
+  end
+
   def self.synchronized(object)
     Truffle::System.synchronized(object) do
       yield
