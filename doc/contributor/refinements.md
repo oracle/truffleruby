@@ -8,20 +8,22 @@ This example creates a refinement `R` under the module `M` for the refined class
 `C`. The method `refine` is used inside a `Module` to create a refinement.
 
 ```ruby
-class C
-  def one
-    "one unrefined"
-  end
-end
+class C; end # C is the refined module or class
 
-module M
-  refine C do
-    # self is R, the anonymous refinement module
-    def one
-      "one refined"
+module M # M is the namespace module
+  R = refine C do # R is the refinement module
+    def foo # is the refined method
+      "foo"
     end
   end
 end
+
+C.foo
+#=> UndefinedMethod
+
+using M # activate the refinements from the namespace
+C.foo
+#=> "foo"
 ```
 
 The `refine` block is module eval'ed into a new anonymous module `R`.
@@ -73,7 +75,11 @@ using M2; # R2.ancestors = [R2, D, E, C, Object, Kernel, ...]
 C.new.foo # => ?
 ```
 
-If there are active refinements for the module is found, method lookup recursively iterates by them to find refinement method in `[R, ..Rn]`'s ancestors. To avoid repeated calculations, we stop the search for the ancestors of `R` when `C` is found and proceed to the next active refinement.
+During method lookup, if active refinements are found in the the `DeclarationContext` (from the frame),
+then we check if any of the ancestors has refinements.
+For each refined module, method lookup recursively searches for a refinement method in `[R, ...Rn]`'s ancestors.
+To avoid repeated calculations, and to not search C and above before other refinements,
+we stop the search for the ancestors of `R` when `C` is found and proceed to the next active refinement.
 
 If nothing was found in active refinements, then the lookup will continue with default behavior and will search in `C` and its ancestors.
 

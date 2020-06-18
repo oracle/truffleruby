@@ -221,7 +221,7 @@ describe "Module#refine" do
   #   * The included modules of C
   describe "method lookup" do
     it "looks in the object singleton class first" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine refined_class do
@@ -243,7 +243,7 @@ describe "Module#refine" do
       result.should == "foo from singleton class"
     end
 
-    it "looks in later prepended modules to the refined module first" do
+    it "looks in later included modules of the refined module first" do
       a = Module.new do
         def foo
          "foo from A"
@@ -260,10 +260,9 @@ describe "Module#refine" do
         include a
       end
 
-      refinement =
-        Module.new do
-          refine c do; end
-        end
+      refinement = Module.new do
+         refine c do; end
+       end
 
       result = nil
       Module.new do
@@ -276,7 +275,7 @@ describe "Module#refine" do
     end
 
     it "looks in prepended modules from the refinement first" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine refined_class do
@@ -297,7 +296,7 @@ describe "Module#refine" do
     end
 
     it "looks in refinement then" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine(refined_class) do
@@ -317,7 +316,7 @@ describe "Module#refine" do
     end
 
     it "looks in included modules from the refinement then" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine refined_class do
@@ -335,7 +334,7 @@ describe "Module#refine" do
     end
 
     it "looks in the class then" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine(refined_class) { }
@@ -354,7 +353,7 @@ describe "Module#refine" do
 
   # methods in a subclass have priority over refinements in a superclass
   it "does not override methods in subclasses" do
-    refined_class = build_refined_class
+    refined_class = ModuleSpecs.build_refined_class
 
     subclass = Class.new(refined_class) do
       def foo; "foo from subclass"; end
@@ -377,7 +376,7 @@ describe "Module#refine" do
 
   context "for methods accessed indirectly" do
     it "is honored by Kernel#send" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine refined_class do
@@ -395,7 +394,7 @@ describe "Module#refine" do
     end
 
     it "is honored by BasicObject#__send__" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine refined_class do
@@ -432,7 +431,7 @@ describe "Module#refine" do
 
     ruby_version_is "" ... "2.6" do
       it "is not honored by Kernel#public_send" do
-        refined_class = build_refined_class
+        refined_class = ModuleSpecs.build_refined_class
 
         refinement = Module.new do
           refine refined_class do
@@ -452,7 +451,7 @@ describe "Module#refine" do
 
     ruby_version_is "2.6" do
       it "is honored by Kernel#public_send" do
-        refined_class = build_refined_class
+        refined_class = ModuleSpecs.build_refined_class
 
         refinement = Module.new do
           refine refined_class do
@@ -667,7 +666,7 @@ describe "Module#refine" do
 
   context "when super is called in a refinement" do
     it "looks in the included to refinery module" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
       
       refinement = Module.new do
         refine refined_class do
@@ -689,7 +688,7 @@ describe "Module#refine" do
     end
 
     it "looks in the refined class" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine refined_class do
@@ -712,7 +711,7 @@ describe "Module#refine" do
     # class even if there is another refinement which has been activated
     # in the same context.
     it "looks in the refined class even if there is another active refinement" do
-      refined_class = build_refined_class
+      refined_class = ModuleSpecs.build_refined_class
 
       refinement = Module.new do
         refine refined_class do

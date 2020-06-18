@@ -405,6 +405,7 @@ public abstract class ModuleOperations {
             DeclarationContext declarationContext) {
         final ArrayList<Assumption> assumptions = new ArrayList<>();
 
+        // Look in ancestors
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
             if (ancestor == lookupTo) {
                 return new MethodLookupResult(null, toArray(assumptions));
@@ -417,7 +418,7 @@ public abstract class ModuleOperations {
                     //     R1.ancestors = [R1, A, C, ...]
                     //     R2.ancestors = [R2, B, C, ...]
                     //     R3.ancestors = [R3, D, C, ...]
-                    // we are only looking to C
+                    // we are only looking up to C
                     // R3 -> D -> R2 -> B -> R1 -> A
                     final MethodLookupResult refinedMethod = lookupMethodCached(
                             refinement,
@@ -508,8 +509,7 @@ public abstract class ModuleOperations {
 
     @TruffleBoundary
     private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, DynamicObject lookupTo,
-            String name,
-            DynamicObject objectMetaClass, DeclarationContext declarationContext) {
+            String name, DynamicObject objectMetaClass, DeclarationContext declarationContext) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert RubyGuards.isRubyModule(objectMetaClass);
 
@@ -525,8 +525,6 @@ public abstract class ModuleOperations {
 
             if (refinements != null) {
                 for (DynamicObject refinement : refinements) {
-                    // TODO: pass new declaration context without current refinements
-                    //       to lookup super in other namespaces
                     final MethodLookupResult superMethodInRefinement = lookupSuperMethod(
                             declaringModule,
                             null, // super in refined class takes precedence
