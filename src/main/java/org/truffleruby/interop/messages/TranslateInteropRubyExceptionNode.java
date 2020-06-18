@@ -9,10 +9,10 @@
  */
 package org.truffleruby.interop.messages;
 
+import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.IntegerCastNode;
-import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -31,6 +31,7 @@ import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
@@ -41,7 +42,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
             return execute(exception, 0, null, null);
         } catch (InvalidArrayIndexException | UnknownIdentifierException | UnsupportedTypeException
                 | ArityException e) {
-            throw handleBadErrorType(e);
+            throw handleBadErrorType(e, exception);
         }
     }
 
@@ -50,7 +51,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         try {
             return execute(exception, index, null, null);
         } catch (UnknownIdentifierException | UnsupportedTypeException | ArityException e) {
-            throw handleBadErrorType(e);
+            throw handleBadErrorType(e, exception);
         }
     }
 
@@ -59,7 +60,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         try {
             return execute(exception, 0, name, null);
         } catch (InvalidArrayIndexException | UnsupportedTypeException | ArityException e) {
-            throw handleBadErrorType(e);
+            throw handleBadErrorType(e, exception);
         }
     }
 
@@ -68,7 +69,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         try {
             return execute(exception, index, null, new Object[]{ value });
         } catch (UnknownIdentifierException | ArityException e) {
-            throw handleBadErrorType(e);
+            throw handleBadErrorType(e, exception);
         }
     }
 
@@ -77,7 +78,7 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         try {
             return execute(exception, 0, name, arguments);
         } catch (InvalidArrayIndexException e) {
-            throw handleBadErrorType(e);
+            throw handleBadErrorType(e, exception);
         }
     }
 
@@ -159,15 +160,13 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
         throw exception;
     }
 
-    protected AssertionError handleBadErrorType(InteropException e) {
+    protected AssertionError handleBadErrorType(InteropException e, RaiseException rubyException) {
         RubyContext context = RubyLanguage.getCurrentContext();
-        RaiseException raiseException = new RaiseException(
-                context,
-                context.getCoreExceptions().runtimeError(
-                        Utils.concat("Wrong exception raised from a Ruby method implementing polyglot behavior: ", e),
-                        this));
-        ExceptionOperations.initCause(raiseException, e);
-        throw raiseException;
+        final DynamicObject exception = context.getCoreExceptions().runtimeError(
+                Utils.concat("Wrong exception raised from a Ruby method implementing polyglot behavior: ", e),
+                this);
+        Layouts.EXCEPTION.setCause(exception, rubyException);
+        throw new RaiseException(context, exception);
     }
 
 }
