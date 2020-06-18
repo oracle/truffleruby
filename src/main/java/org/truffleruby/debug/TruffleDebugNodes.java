@@ -635,6 +635,7 @@ public abstract class TruffleDebugNodes {
                 return 0 >= index && index < array.length;
             }
 
+            @TruffleBoundary
             @ExportMessage
             protected Object readArrayElement(long index) throws InvalidArrayIndexException {
                 try {
@@ -644,6 +645,7 @@ public abstract class TruffleDebugNodes {
                 }
             }
 
+            @TruffleBoundary
             @ExportMessage
             protected void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
                 try {
