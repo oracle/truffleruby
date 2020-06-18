@@ -208,6 +208,7 @@ unsigned int rb_enc_codepoint(const char *p, const char *e, rb_encoding *enc);
 #define rb_enc_codepoint(p,e,enc) rb_enc_codepoint_len((p),(e),0,(enc))
 #ifdef TRUFFLERUBY
 int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc);
+#define rb_enc_mbc_to_codepoint(p, e, enc) rb_enc_mbc_to_codepoint(p, e, enc)
 #else
 #define rb_enc_mbc_to_codepoint(p, e, enc) ONIGENC_MBC_TO_CODE((enc),(UChar*)(p),(UChar*)(e))
 #endif
