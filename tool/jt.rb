@@ -2362,23 +2362,25 @@ EOS
 
   def lint(*args)
     fast = args.first == 'fast'
+    fast_exts_changed = fast ? `git diff --name-only`.lines.map { |f| File.extname(f.strip) }.uniq : []
+    changed = ->(ext) { !fast or fast_exts_changed.include?(ext) }
 
     ENV['ECLIPSE_EXE'] ||= install_eclipse
 
     check_filename_length unless fast
 
     # Lint
-    rubocop
-    sh 'tool/lint.sh'
+    rubocop if changed['.rb']
+    sh 'tool/lint.sh' if changed['.c']
     if fast
-      checkstyle
-      command_format
+      checkstyle if changed['.java']
+      command_format if changed['.java']
     else
       mx 'gate', '--tags', 'style'
       abort 'Some Specializations were not protected.' if format_specializations_visibility
       abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
     end
-    shellcheck
+    shellcheck if changed['.sh'] or changed['.inc']
 
     # TODO (pitr-ch 11-Aug-2019): consider running all tasks in the `mx gate --tags fullbuild`
     #  - includes verifylibraryurls though
