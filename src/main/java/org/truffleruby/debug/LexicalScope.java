@@ -25,6 +25,8 @@ import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Scope;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -38,6 +40,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class LexicalScope {
 
@@ -203,11 +206,12 @@ public class LexicalScope {
         }
 
         @ExportMessage
-        @TruffleBoundary
-        protected Object readArrayElement(long index) throws InvalidArrayIndexException {
+        protected Object readArrayElement(long index,
+                @Shared("errorProfile") @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
             if (isArrayElementReadable(index)) {
                 return args[(int) index];
             } else {
+                errorProfile.enter();
                 throw InvalidArrayIndexException.create(index);
             }
         }
@@ -225,10 +229,12 @@ public class LexicalScope {
         }
 
         @ExportMessage
-        protected void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
+        protected void writeArrayElement(long index, Object value,
+                @Shared("errorProfile") @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
             if (isArrayElementReadable(index)) {
                 args[(int) index] = value;
             } else {
+                errorProfile.enter();
                 throw InvalidArrayIndexException.create(index);
             }
         }

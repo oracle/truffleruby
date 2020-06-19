@@ -18,6 +18,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
@@ -93,7 +94,7 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary // Exception#initCause is blacklisted in TruffleFeature
-    public static void initCause(Exception exception, Throwable cause) {
+    public static void initCause(RaiseException exception, Throwable cause) {
         exception.initCause(cause);
     }
 

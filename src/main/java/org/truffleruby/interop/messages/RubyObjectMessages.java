@@ -15,21 +15,21 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
-import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -104,29 +104,35 @@ public class RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static String getMetaQualifiedName(DynamicObject rubyClass) throws UnsupportedMessageException {
+    protected static String getMetaQualifiedName(DynamicObject rubyClass,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
         if (isMetaObject(rubyClass)) {
             return Layouts.MODULE.getFields(rubyClass).getName();
         } else {
+            errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
     }
 
     @ExportMessage
-    protected static String getMetaSimpleName(DynamicObject rubyClass) throws UnsupportedMessageException {
+    protected static String getMetaSimpleName(DynamicObject rubyClass,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
         if (isMetaObject(rubyClass)) {
             return Layouts.MODULE.getFields(rubyClass).getSimpleName();
         } else {
+            errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
     }
 
     @ExportMessage
     protected static boolean isMetaInstance(DynamicObject rubyClass, Object instance,
-            @Cached IsANode isANode) throws UnsupportedMessageException {
+            @Cached IsANode isANode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
         if (isMetaObject(rubyClass)) {
             return isANode.executeIsA(instance, rubyClass);
         } else {
+            errorProfile.enter();
             throw UnsupportedMessageException.create();
         }
     }
@@ -139,6 +145,7 @@ public class RubyObjectMessages {
                 RubyGuards.isRubyUnboundMethod(receiver) || RubyGuards.isRubyProc(receiver);
     }
 
+    @TruffleBoundary
     @ExportMessage
     protected static SourceSection getSourceLocation(DynamicObject receiver) throws UnsupportedMessageException {
         if (RubyGuards.isRubyModule(receiver)) {
@@ -425,7 +432,7 @@ public class RubyObjectMessages {
             @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
             @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
             @Shared("errorProfile") @Cached BranchProfile errorProfile,
-            @CachedLibrary("receiver") RubyLibrary rubyLibrary)
+            @CachedLibrary("receiver") InteropLibrary interopLibrary)
             throws UnknownIdentifierException, UnsupportedMessageException {
 
         Object rubyName = nameToRubyNode.executeConvert(name);
@@ -436,21 +443,17 @@ public class RubyObjectMessages {
             throw translateRubyException.execute(e, name);
         }
         if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
-            if (rubyLibrary.isFrozen(receiver)) {
-                errorProfile.enter();
-                throw UnsupportedMessageException.create();
-            }
-            if (!isIVar(name)) {
+            if (!interopLibrary.isMemberRemovable(receiver, name)) {
                 errorProfile.enter();
                 throw UnknownIdentifierException.create(name);
             }
+
             try {
                 removeInstanceVariableNode.call(receiver, "remove_instance_variable", rubyName);
             } catch (RaiseException e) { // raises only if the name is missing
+                // concurrent change in whether the member is removable
                 errorProfile.enter();
-                UnknownIdentifierException unknownIdentifier = UnknownIdentifierException.create(name);
-                ExceptionOperations.initCause(unknownIdentifier, e);
-                throw unknownIdentifier;
+                throw UnknownIdentifierException.create(name, e);
             }
         }
     }

@@ -9,12 +9,13 @@
  */
 package org.truffleruby.debug;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @ExportLibrary(InteropLibrary.class)
 public class VariableNamesObject implements TruffleObject {
@@ -37,11 +38,12 @@ public class VariableNamesObject implements TruffleObject {
     }
 
     @ExportMessage
-    @TruffleBoundary
-    protected Object readArrayElement(long index) throws InvalidArrayIndexException {
+    protected Object readArrayElement(long index,
+            @Cached BranchProfile errorProfile) throws InvalidArrayIndexException {
         if (isArrayElementReadable(index)) {
             return names[(int) index];
         } else {
+            errorProfile.enter();
             throw InvalidArrayIndexException.create(index);
         }
     }

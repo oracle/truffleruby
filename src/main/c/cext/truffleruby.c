@@ -19,10 +19,6 @@ VALUE rb_java_to_string(VALUE obj) {
   return RUBY_CEXT_INVOKE("rb_java_to_string", obj);
 }
 
-void* rb_tr_new_managed_struct_internal(void *type) {
-  return polyglot_invoke(RUBY_CEXT, "rb_tr_new_managed_struct", type);
-}
-
 // BasicObject#equal?
 int rb_tr_obj_equal(VALUE first, VALUE second) {
   return RTEST(rb_funcall(first, rb_intern("equal?"), 1, second));

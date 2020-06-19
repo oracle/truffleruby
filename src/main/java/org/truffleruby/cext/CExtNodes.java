@@ -83,8 +83,8 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
-import org.truffleruby.utils.Utils;
 import org.truffleruby.utils.UnreachableCodeException;
+import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -1343,16 +1343,6 @@ public class CExtNodes {
             }
 
             return codeRangeNode.execute(rope);
-        }
-
-    }
-
-    @CoreMethod(names = "rb_tr_new_managed_struct", onSingleton = true, required = 1)
-    public abstract static class RbTrNewManagedStructNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected DynamicObject newManagedStruct(Object type) {
-            return ManagedStructObjectType.createManagedStruct(type);
         }
 
     }
