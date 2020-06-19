@@ -310,7 +310,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             this.newHierarchyVersion();
         }
 
-        prependInvalidation();
+        invalidateBuiltinsAssumptions();
     }
 
     /** Set the value of a constant, possibly redefining it. */
@@ -630,6 +630,15 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public void newHierarchyVersion() {
         newConstantsVersion();
         newMethodsVersion();
+        newBultinsVersion();
+    }
+
+    public void invalidateBuiltinsAssumptions() {
+        if (!inlinedBuiltinsAssumptions.isEmpty()) {
+            for (Assumption assumption : inlinedBuiltinsAssumptions.values()) {
+                assumption.invalidate();
+            }
+        }
     }
 
     public void newMethodsVersion() {
@@ -806,18 +815,16 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return assumption;
     }
 
+    private void newBultinsVersion() {
+        if (isRefinement()) {
+            Layouts.MODULE.getFields(getRefinedModule()).invalidateBuiltinsAssumptions();
+        }
+    }
+
     private void changedMethod(String name) {
         Assumption assumption = inlinedBuiltinsAssumptions.get(name);
         if (assumption != null) {
             assumption.invalidate();
-        }
-    }
-
-    private void prependInvalidation() {
-        if (!inlinedBuiltinsAssumptions.isEmpty()) {
-            for (Assumption assumption : inlinedBuiltinsAssumptions.values()) {
-                assumption.invalidate();
-            }
         }
     }
 }

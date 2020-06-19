@@ -243,6 +243,26 @@ describe "Module#refine" do
       result.should == "foo from singleton class"
     end
 
+    it "looks in the included modules for builtin methods" do
+      a = Module.new do
+        def /(other) quo(other) end
+      end
+
+      refinement = Module.new do
+        refine Integer do
+          include a
+        end
+      end
+
+      result = nil
+      Module.new do
+        using refinement
+        result = 1 / 2
+      end
+
+      result.should == Rational(1, 2)
+    end
+
     it "looks in later included modules of the refined module first" do
       a = Module.new do
         def foo
