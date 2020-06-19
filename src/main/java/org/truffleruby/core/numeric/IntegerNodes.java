@@ -55,7 +55,6 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.utils.UnreachableCodeException;
 
 @CoreModule(value = "Integer", isClass = true)
 public abstract class IntegerNodes {
@@ -1162,8 +1161,7 @@ public abstract class IntegerNodes {
                 // We raise a RangeError.
                 // MRI would raise a NoMemoryError; JRuby would raise a coercion error.
                 toIntNode.execute(b);
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnreachableCodeException();
+                throw CompilerDirectives.shouldNotReachHere();
             }
         }
 

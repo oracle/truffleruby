@@ -39,7 +39,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.utils.UnreachableCodeException;
 
 @GenerateUncached
 public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
@@ -151,8 +150,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
             } else if (cachedDispatchAction == DispatchAction.RESPOND_TO_METHOD) {
                 return !method.isUnimplemented();
             } else {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnreachableCodeException();
+                throw CompilerDirectives.shouldNotReachHere();
             }
         }
 
@@ -197,8 +195,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
         } else if (cachedDispatchAction == DispatchAction.RESPOND_TO_METHOD) {
             return false;
         } else {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new UnreachableCodeException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

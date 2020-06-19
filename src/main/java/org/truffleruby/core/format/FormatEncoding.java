@@ -9,11 +9,11 @@
  */
 package org.truffleruby.core.format;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.utils.UnreachableCodeException;
 
 public enum FormatEncoding {
 
@@ -80,10 +80,10 @@ public enum FormatEncoding {
                     case UTF_8:
                         return UTF_8;
                     default:
-                        throw new UnreachableCodeException();
+                        throw CompilerDirectives.shouldNotReachHere();
                 }
             default:
-                throw new UnreachableCodeException();
+                throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

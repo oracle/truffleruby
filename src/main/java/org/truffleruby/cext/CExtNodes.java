@@ -83,7 +83,6 @@ import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
 import org.truffleruby.parser.Identifiers;
-import org.truffleruby.utils.UnreachableCodeException;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -766,10 +765,9 @@ public class CExtNodes {
                 case "module_function":
                     return callerVisibility.isModuleFunction();
                 default:
-                    throw new UnreachableCodeException();
+                    throw CompilerDirectives.shouldNotReachHere();
             }
         }
-
     }
 
     @CoreMethod(names = "rb_iter_break_value", onSingleton = true, required = 1)

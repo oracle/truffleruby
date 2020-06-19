@@ -40,6 +40,7 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.language.RubyContextNode;
@@ -52,7 +53,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.utils.UnreachableCodeException;
 
 @ImportStatic(BigDecimalCoreMethodNode.class)
 public abstract class BigDecimalCastNode extends RubyContextNode {
@@ -140,7 +140,7 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
         } else if (RubyGuards.isRubyBignum(object)) {
             return new BigDecimal(Layouts.BIGNUM.getValue((DynamicObject) object));
         } else {
-            throw new UnreachableCodeException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

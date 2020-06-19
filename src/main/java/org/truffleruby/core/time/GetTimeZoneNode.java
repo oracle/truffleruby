@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
@@ -45,7 +46,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
-import org.truffleruby.utils.UnreachableCodeException;
 
 public abstract class GetTimeZoneNode extends RubyContextNode {
 
@@ -88,7 +88,7 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
         } else if (RubyGuards.isRubyString(tz)) {
             return parse(tzString);
         } else {
-            throw new UnreachableCodeException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

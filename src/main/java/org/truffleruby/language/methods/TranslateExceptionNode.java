@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import java.util.EnumSet;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -36,7 +37,6 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.utils.UnreachableCodeException;
 
 @GenerateUncached
 public abstract class TranslateExceptionNode extends RubyBaseNode {
@@ -216,7 +216,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             case ARGUMENT_ERROR:
                 return context.getCoreExceptions().argumentError(message, this, exception);
             default:
-                throw new UnreachableCodeException();
+                throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

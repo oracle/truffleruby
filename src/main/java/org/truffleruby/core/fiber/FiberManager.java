@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -38,7 +39,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.utils.UnreachableCodeException;
 
 /** Manages Ruby {@code Fiber} objects for a given Ruby thread. */
 public class FiberManager {
@@ -236,7 +236,7 @@ public class FiberManager {
             }
             return resumeMessage.getArgs();
         } else {
-            throw new UnreachableCodeException();
+            throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

@@ -80,7 +80,6 @@ import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.utils.UnreachableCodeException;
 
 /** When adding a new class (MyClass) to the core library, you need to:
  * <ul>
@@ -763,8 +762,7 @@ public class CoreLibrary {
             case TRUE:
                 return true;
             default:
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnreachableCodeException();
+                throw CompilerDirectives.shouldNotReachHere();
         }
     }
 
@@ -1032,8 +1030,7 @@ public class CoreLibrary {
             return (double) value;
         }
 
-        CompilerDirectives.transferToInterpreterAndInvalidate();
-        throw new UnreachableCodeException();
+        throw CompilerDirectives.shouldNotReachHere();
     }
 
     public static boolean fitsIntoInteger(long value) {
