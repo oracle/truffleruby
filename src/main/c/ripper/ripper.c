@@ -80,7 +80,11 @@
 #include "internal.h"
 #include "node.h"
 #include "parse.h"
+#ifdef TRUFFLERUBY
+#include <ruby/symbol.h>
+#else
 #include "symbol.h"
+#endif
 #include "regenc.h"
 #include <stdio.h>
 #include <errno.h>
@@ -10702,40 +10706,11 @@ ripper_dispatch_delayed_token(struct parser_params *p, int t)
 #include "ruby/regex.h"
 #include "ruby/util.h"
 
-
-#ifdef TRUFFLERUBY
-// rb_enc_isalnum not yet implemented
-#undef rb_enc_isalnum
-int rb_enc_isalnum(unsigned char c, rb_encoding *enc) {
-  return isalpha(c) || isdigit(c)  || c == '_' || !ISASCII(c);
-}
-
-// rb_enc_isspace not yet implemented
-#undef rb_enc_isspace
-int rb_enc_isspace(unsigned char c, rb_encoding *enc) {
-  return c == ' ';
-}
-
-#undef idMesg
-#define idMesg rb_intern("message")
-
-#endif
-
-
 static inline int
 is_identchar(const char *ptr, const char *MAYBE_UNUSED(ptr_end), rb_encoding *enc)
 {
     return rb_enc_isalnum((unsigned char)*ptr, enc) || *ptr == '_' || !ISASCII(*ptr);
 }
-
-#ifdef TRUFFLERUBY
-// is_local_id standard depends on id_type
-#undef is_local_id
-int is_local_id(ID id){
-  const char* cstr = rb_id2name(id);
-  return is_identchar(cstr, NULL, NULL) && !isupper(cstr[0]);
-}
-#endif
 
 static inline int
 parser_is_identchar(struct parser_params *p)
@@ -15160,8 +15135,13 @@ new_xstring(struct parser_params *p, NODE *node, const YYLTYPE *loc)
 static int
 id_is_var(struct parser_params *p, ID id)
 {
+
+#ifdef TRUFFLERUBY
+	switch (id_type(id)) {
+#else
     if (is_notop_id(id)) {
 	switch (id & ID_SCOPE_MASK) {
+#endif
 	  case ID_GLOBAL: case ID_INSTANCE: case ID_CONST: case ID_CLASS:
 	    return 1;
 	  case ID_LOCAL:
@@ -15170,7 +15150,9 @@ id_is_var(struct parser_params *p, ID id)
 	    /* method call without arguments */
 	    return 0;
 	}
+#ifndef TRUFFLERUBY
     }
+#endif
     compile_error(p, "identifier %"PRIsVALUE" is not valid to get", rb_id2str(id));
     return 0;
 }

@@ -70,7 +70,7 @@ cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
 cp "$RUBY_BUILD_DIR"/id.h lib/cext/include/truffleruby/internal
 cp "$RUBY_BUILD_DIR"/{node.c,parse.c,lex.c} src/main/c/ripper
 cp "$RUBY_BUILD_DIR"/ext/ripper/*.{c,rb} src/main/c/ripper
-cp "$RUBY_BUILD_DIR"/{node.h,parse.h,probes.h,probes.dmyh,regenc.h,symbol.h} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/{node.h,parse.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
 
 # test/
 rm -rf test/mri/tests

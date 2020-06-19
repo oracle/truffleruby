@@ -80,7 +80,11 @@
 #include "internal.h"
 #include "node.h"
 #include "parse.h"
+#ifdef TRUFFLERUBY
+#include <ruby/symbol.h>
+#else
 #include "symbol.h"
+#endif
 #include "regenc.h"
 #include <stdio.h>
 #include <errno.h>
