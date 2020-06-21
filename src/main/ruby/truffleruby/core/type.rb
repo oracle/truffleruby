@@ -500,9 +500,9 @@ module Truffle
 
     # Equivalent of num_exact in MRI's time.c, used by Time methods.
     def self.coerce_to_exact_num(obj)
-      if obj.kind_of?(Integer)
+      if Primitive.object_kind_of? obj, Integer
         obj
-      elsif obj.kind_of?(String)
+      elsif Primitive.object_kind_of? obj, String
         raise TypeError, "can't convert #{obj} into an exact number"
       elsif Primitive.nil? obj
         raise TypeError, "can't convert nil into an exact number"
@@ -514,7 +514,7 @@ module Truffle
     def self.coerce_to_utc_offset(offset)
       offset = String.try_convert(offset) || offset
 
-      if offset.kind_of?(String)
+      if Primitive.object_kind_of? offset, String
         unless offset.encoding.ascii_compatible? && offset.match(/\A(\+|-)(\d\d):(\d\d)(?::(\d\d))?\z/)
           raise ArgumentError, '"+HH:MM" or "-HH:MM" expected for utc_offset'
         end
@@ -623,10 +623,11 @@ module Truffle
 
     # Needs to be in core for assigning $!
     def self.set_last_exception(error)
-      if !Primitive.nil?(error) && !error.is_a?(Exception)
+      if Primitive.nil?(error) || Primitive.object_kind_of?(error, Exception)
+        Primitive.thread_set_exception(error)
+      else
         raise TypeError, 'assigning non-exception to ?!'
       end
-      Primitive.thread_set_exception(error)
     end
 
     def self.is_special_const?(object)
