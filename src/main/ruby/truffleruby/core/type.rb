@@ -296,29 +296,25 @@ module Truffle
     end
 
     def self.check_funcall(recv, meth, args = [])
-      check_funcall_default(recv, meth, args, undefined)
-    end
-
-    def self.check_funcall_default(recv, meth, args, default)
       if Truffle::Interop.foreign?(recv)
         if recv.respond_to?(meth)
           recv.__send__(meth, *args)
         else
-          default
+          undefined
         end
       else
-        respond = check_funcall_respond_to(recv, meth, true)
+        respond = check_funcall_respond_to?(recv, meth, true)
         if respond == 0
-          default
+          undefined
         elsif check_funcall_callable(recv, meth)
           recv.__send__(meth, *args)
         else
-          check_funcall_missing(recv, meth, args, respond, default, true)
+          check_funcall_missing(recv, meth, args, respond, true)
         end
       end
     end
 
-    def self.check_funcall_respond_to(obj, meth, priv)
+    def self.check_funcall_respond_to?(obj, meth, priv)
       # TODO Review BJF vm_respond_to
       if object_respond_to_no_built_in?(obj, :respond_to?, true)
         if obj.__send__(:respond_to?, meth, true)
@@ -331,11 +327,11 @@ module Truffle
       end
     end
 
-    def self.check_funcall_missing(recv, meth, args, respond, default, priv = false)
+    def self.check_funcall_missing(recv, meth, args, respond, priv = false)
       ret = basic_obj_respond_to_missing(recv, meth, priv)
       respond_to_missing = !Primitive.undefined?(ret)
       if respond_to_missing and !ret
-        default
+        undefined
       elsif object_respond_to_no_built_in?(recv, :method_missing, true)
         begin
           recv.__send__(:method_missing, meth, *args)
