@@ -56,7 +56,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.SetTopLevelBindingNode;
 import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -274,8 +273,8 @@ public class TranslatorDriver {
 
             for (int n = 0; n < argumentNames.length; n++) {
                 final String name = argumentNames[n];
-                final RubyNode readNode = ProfileArgumentNodeGen
-                        .create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
+                final RubyNode readNode = Translator
+                        .profileArgument(context, new ReadPreArgumentNode(n, MissingArgumentBehavior.NIL));
                 final FrameSlot slot = environment.getFrameDescriptor().findFrameSlot(name);
                 sequence.add(new WriteLocalVariableNode(slot, readNode));
             }

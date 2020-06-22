@@ -31,7 +31,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.NotProvidedNode;
-import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadBlockFromCurrentFrameArgumentsNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
@@ -269,7 +268,7 @@ public class CoreMethodNodeManager {
         final boolean needsSelf = needsSelf(method);
 
         if (needsSelf) {
-            RubyNode readSelfNode = ProfileArgumentNodeGen.create(new ReadSelfNode());
+            RubyNode readSelfNode = Translator.profileArgument(context, new ReadSelfNode());
             argumentsNodes[i++] = transformArgument(method, readSelfNode, 0);
         }
 
@@ -278,8 +277,8 @@ public class CoreMethodNodeManager {
         final int nArgs = required + optional;
 
         for (int n = 0; n < nArgs; n++) {
-            RubyNode readArgumentNode = ProfileArgumentNodeGen
-                    .create(new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
+            RubyNode readArgumentNode = Translator
+                    .profileArgument(context, new ReadPreArgumentNode(n, MissingArgumentBehavior.NOT_PROVIDED));
             argumentsNodes[i++] = transformArgument(method, readArgumentNode, n + 1);
         }
 

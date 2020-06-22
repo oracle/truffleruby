@@ -64,7 +64,6 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
-import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
@@ -413,13 +412,14 @@ public abstract class ModuleNodes {
                     null,
                     false);
 
-            final RubyNode self = ProfileArgumentNodeGen.create(new ReadSelfNode());
+            final RubyNode self = Translator.profileArgument(getContext(), new ReadSelfNode());
             final RubyNode accessInstanceVariable;
             if (isGetter) {
                 accessInstanceVariable = new ReadInstanceVariableNode(ivar, self);
             } else {
-                RubyNode readArgument = ProfileArgumentNodeGen
-                        .create(new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
+                RubyNode readArgument = Translator.profileArgument(
+                        getContext(),
+                        new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
                 accessInstanceVariable = new WriteInstanceVariableNode(ivar, self, readArgument);
             }
 

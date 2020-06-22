@@ -167,6 +167,8 @@ public class Options {
     public final boolean LAZY_TRANSLATION_CORE;
     /** --basic-ops-inline=true */
     public final boolean BASICOPS_INLINE;
+    /** --profile-arguments=true */
+    public final boolean PROFILE_ARGUMENTS;
     /** --default-cache=8 */
     public final int DEFAULT_CACHE;
     /** --method-lookup-cache=DEFAULT_CACHE */
@@ -355,6 +357,7 @@ public class Options {
         LAZY_BUILTINS = options.hasBeenSet(OptionsCatalog.LAZY_BUILTINS_KEY) ? options.get(OptionsCatalog.LAZY_BUILTINS_KEY) : DEFAULT_LAZY;
         LAZY_TRANSLATION_CORE = options.hasBeenSet(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) ? options.get(OptionsCatalog.LAZY_TRANSLATION_CORE_KEY) : DEFAULT_LAZY;
         BASICOPS_INLINE = options.get(OptionsCatalog.BASICOPS_INLINE_KEY);
+        PROFILE_ARGUMENTS = options.get(OptionsCatalog.PROFILE_ARGUMENTS_KEY);
         DEFAULT_CACHE = options.get(OptionsCatalog.DEFAULT_CACHE_KEY);
         METHOD_LOOKUP_CACHE = options.hasBeenSet(OptionsCatalog.METHOD_LOOKUP_CACHE_KEY) ? options.get(OptionsCatalog.METHOD_LOOKUP_CACHE_KEY) : DEFAULT_CACHE;
         DISPATCH_CACHE = options.hasBeenSet(OptionsCatalog.DISPATCH_CACHE_KEY) ? options.get(OptionsCatalog.DISPATCH_CACHE_KEY) : DEFAULT_CACHE;
@@ -560,6 +563,8 @@ public class Options {
                 return LAZY_TRANSLATION_CORE;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
+            case "ruby.profile-arguments":
+                return PROFILE_ARGUMENTS;
             case "ruby.default-cache":
                 return DEFAULT_CACHE;
             case "ruby.method-lookup-cache":

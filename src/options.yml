@@ -105,6 +105,7 @@ INTERNAL: # Options for debugging the TruffleRuby implementation
 
     # Options to help debugging the implementation performance
     BASICOPS_INLINE: [basic-ops-inline, boolean, true, Inline basic operations (like Fixnum operators) in the AST without a call]
+    PROFILE_ARGUMENTS: [profile-arguments, boolean, true, profile the value and class of the receiver and arguments]
 
     # Inline cache sizes
     DEFAULT_CACHE: [default-cache, integer, 8, Default size for caches]
