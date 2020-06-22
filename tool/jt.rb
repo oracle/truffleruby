@@ -18,9 +18,9 @@ require 'pathname'
 autoload :JSON, 'json'
 
 if RUBY_ENGINE != 'ruby' && !RUBY_DESCRIPTION.include?('Native')
-  $stderr.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
-  $stderr.puts '  Consider using following bash alias to run on MRI.'
-  $stderr.puts '  `alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb`'
+  STDERR.puts 'WARNING: jt is not running on MRI or TruffleRuby Native, startup is slow'
+  STDERR.puts '  Consider using following bash alias to run on MRI.'
+  STDERR.puts '  `alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb`'
 end
 
 abort "ERROR: jt requires Ruby 2.3 and above, was #{RUBY_VERSION}" if (RUBY_VERSION.split('.').map(&:to_i) <=> [2, 3, 0]) < 0
@@ -206,7 +206,7 @@ module Utilities
               *('Interpreted' if truffleruby? && !truffleruby_compiler?),
               truffleruby? ? 'TruffleRuby' : 'a Ruby',
               *('with Graal' if truffleruby_compiler?)]
-      $stderr.puts "Using #{tags.join(' ')}: #{shortened_path}"
+      STDERR.puts "Using #{tags.join(' ')}: #{shortened_path}"
     end
 
     # use same ruby_launcher in subprocess jt instances
@@ -380,7 +380,8 @@ module Utilities
     out = nil
     begin
       pid = Process.spawn(*args)
-    rescue Errno::ENOENT # No such executable
+    rescue Errno::ENOENT => no_such_executable
+      STDERR.puts bold no_such_executable
       status = raw_sh_failed_status
     else
       raw_sh_track_subprocess(pid) do
@@ -407,8 +408,8 @@ module Utilities
         status.success?
       end
     else
-      $stderr.puts "FAILED (#{status}): #{printable_cmd(args)}"
-      $stderr.puts out if capture
+      STDERR.puts "FAILED (#{status}): #{printable_cmd(args)}"
+      STDERR.puts out if capture
       exit(status.exitstatus || status.termsig || status.stopsig || 1)
     end
   end
@@ -1389,7 +1390,7 @@ EOS
     gem_test_pack = File.expand_path(name, TRUFFLERUBY_DIR)
 
     unless Dir.exist?(gem_test_pack)
-      $stderr.puts 'Cloning the truffleruby-gem-test-pack repository'
+      STDERR.puts 'Cloning the truffleruby-gem-test-pack repository'
       unless Remotes.bitbucket
         abort 'Need a git remote in truffleruby with the internal repository URL'
       end
@@ -1754,7 +1755,7 @@ EOS
           result[stack.map(&:first)] += (time - start)
           stack.pop
         else
-          $stderr.puts line
+          STDERR.puts line
         end
       # [Full GC (Metadata GC Threshold)  23928K->23265K(216064K), 0.1168747 secs]
       elsif line =~ /^\[(.+), (\d+\.\d+) secs\]$/
@@ -1764,7 +1765,7 @@ EOS
         result[stack.map(&:first)] += (time * 1000.0)
         stack.pop
       else
-        $stderr.puts line
+        STDERR.puts line
       end
     end
 
