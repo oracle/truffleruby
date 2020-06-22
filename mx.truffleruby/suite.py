@@ -268,6 +268,7 @@ suite = {
             "buildEnv": {
               "NFI_HEADERS_DIR": "<path:truffle:TRUFFLE_NFI_NATIVE>/include",
               "TRUFFLERUBY_BOOTSTRAP_LAUNCHER": "<path:TRUFFLERUBY-BOOTSTRAP-LAUNCHER>/miniruby",
+              "GRAALVM_TOOLCHAIN_CC": "<toolchainGetToolPath:native,CC>",
             },
             "output": ".",
             "results": [

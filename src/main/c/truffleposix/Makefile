@@ -7,12 +7,7 @@ else
 SOEXT := so
 endif
 
-ifeq ($(OS),SunOS)
-CC := gcc
-else
-CC := cc
-endif
-
+CC := $(GRAALVM_TOOLCHAIN_CC)
 CFLAGS := -Wall -Werror -fPIC -std=c99 -g
 LDFLAGS := -m64
 

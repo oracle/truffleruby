@@ -39,10 +39,10 @@ package org.truffleruby.platform;
 
 import org.truffleruby.RubyContext;
 
-public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
+public class LinuxARM64NativeConfiguration extends DefaultNativeConfiguration {
 
     public static void load(NativeConfiguration configuration, RubyContext context) {
-        // Generated from tool/generate-native-config.rb on x86_64-linux
+        // Generated from tool/generate-native-config.rb on aarch64-linux
         configuration.config("platform.sigaction.sizeof", 152);
         configuration.config("platform.sigaction.sa_handler.offset", 0);
         configuration.config("platform.sigaction.sa_handler.size", 8);
@@ -358,6 +358,7 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.file.O_NONBLOCK", 2048);
         configuration.config("platform.file.O_NDELAY", 2048);
         configuration.config("platform.file.O_SYNC", 1052672);
+        configuration.config("platform.file.O_TMPFILE", 4210688);
         configuration.config("platform.file.S_IRUSR", 256);
         configuration.config("platform.file.S_IWUSR", 128);
         configuration.config("platform.file.S_IXUSR", 64);
@@ -410,8 +411,8 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.PF_ISDN", 34);
         configuration.config("platform.socket.AF_LOCAL", 1);
         configuration.config("platform.socket.PF_LOCAL", 1);
-        configuration.config("platform.socket.AF_MAX", 37);
-        configuration.config("platform.socket.PF_MAX", 37);
+        configuration.config("platform.socket.AF_MAX", 41);
+        configuration.config("platform.socket.PF_MAX", 41);
         configuration.config("platform.socket.AF_PACKET", 17);
         configuration.config("platform.socket.PF_PACKET", 17);
         configuration.config("platform.socket.AF_ROUTE", 16);
@@ -563,6 +564,7 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.MSG_DONTWAIT", 64);
         configuration.config("platform.socket.MSG_EOR", 128);
         configuration.config("platform.socket.MSG_ERRQUEUE", 8192);
+        configuration.config("platform.socket.MSG_FASTOPEN", 536870912);
         configuration.config("platform.socket.MSG_FIN", 512);
         configuration.config("platform.socket.MSG_MORE", 32768);
         configuration.config("platform.socket.MSG_NOSIGNAL", 16384);
@@ -585,8 +587,11 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.SCM_TIMESTAMP", 29);
         configuration.config("platform.socket.SCM_TIMESTAMPING", 37);
         configuration.config("platform.socket.SCM_TIMESTAMPNS", 35);
+        configuration.config("platform.socket.SCM_WIFI_STATUS", 41);
         configuration.config("platform.socket.SEEK_CUR", 1);
+        configuration.config("platform.socket.SEEK_DATA", 3);
         configuration.config("platform.socket.SEEK_END", 2);
+        configuration.config("platform.socket.SEEK_HOLE", 4);
         configuration.config("platform.socket.SEEK_SET", 0);
         configuration.config("platform.socket.SHUT_RD", 0);
         configuration.config("platform.socket.SHUT_RDWR", 2);
@@ -612,13 +617,18 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.SO_DOMAIN", 39);
         configuration.config("platform.socket.SO_DONTROUTE", 5);
         configuration.config("platform.socket.SO_ERROR", 4);
+        configuration.config("platform.socket.SO_GET_FILTER", 26);
         configuration.config("platform.socket.SO_KEEPALIVE", 9);
         configuration.config("platform.socket.SO_LINGER", 13);
+        configuration.config("platform.socket.SO_LOCK_FILTER", 44);
         configuration.config("platform.socket.SO_MARK", 36);
+        configuration.config("platform.socket.SO_MAX_PACING_RATE", 47);
+        configuration.config("platform.socket.SO_NOFCS", 43);
         configuration.config("platform.socket.SO_NO_CHECK", 11);
         configuration.config("platform.socket.SO_OOBINLINE", 10);
         configuration.config("platform.socket.SO_PASSCRED", 16);
         configuration.config("platform.socket.SO_PASSSEC", 34);
+        configuration.config("platform.socket.SO_PEEK_OFF", 42);
         configuration.config("platform.socket.SO_PEERCRED", 17);
         configuration.config("platform.socket.SO_PEERNAME", 28);
         configuration.config("platform.socket.SO_PEERSEC", 31);
@@ -634,6 +644,7 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.SO_SECURITY_AUTHENTICATION", 22);
         configuration.config("platform.socket.SO_SECURITY_ENCRYPTION_NETWORK", 24);
         configuration.config("platform.socket.SO_SECURITY_ENCRYPTION_TRANSPORT", 23);
+        configuration.config("platform.socket.SO_SELECT_ERR_QUEUE", 45);
         configuration.config("platform.socket.SO_SNDBUF", 7);
         configuration.config("platform.socket.SO_SNDBUFFORCE", 32);
         configuration.config("platform.socket.SO_SNDLOWAT", 19);
@@ -642,9 +653,12 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.SO_TIMESTAMPING", 37);
         configuration.config("platform.socket.SO_TIMESTAMPNS", 35);
         configuration.config("platform.socket.SO_TYPE", 3);
+        configuration.config("platform.socket.SO_WIFI_STATUS", 41);
         configuration.config("platform.socket.TCP_CONGESTION", 13);
+        configuration.config("platform.socket.TCP_COOKIE_TRANSACTIONS", 15);
         configuration.config("platform.socket.TCP_CORK", 3);
         configuration.config("platform.socket.TCP_DEFER_ACCEPT", 9);
+        configuration.config("platform.socket.TCP_FASTOPEN", 23);
         configuration.config("platform.socket.TCP_INFO", 11);
         configuration.config("platform.socket.TCP_KEEPCNT", 6);
         configuration.config("platform.socket.TCP_KEEPIDLE", 4);
@@ -653,8 +667,16 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.socket.TCP_MAXSEG", 2);
         configuration.config("platform.socket.TCP_MD5SIG", 14);
         configuration.config("platform.socket.TCP_NODELAY", 1);
+        configuration.config("platform.socket.TCP_QUEUE_SEQ", 21);
         configuration.config("platform.socket.TCP_QUICKACK", 12);
+        configuration.config("platform.socket.TCP_REPAIR", 19);
+        configuration.config("platform.socket.TCP_REPAIR_OPTIONS", 22);
+        configuration.config("platform.socket.TCP_REPAIR_QUEUE", 20);
         configuration.config("platform.socket.TCP_SYNCNT", 7);
+        configuration.config("platform.socket.TCP_THIN_DUPACK", 17);
+        configuration.config("platform.socket.TCP_THIN_LINEAR_TIMEOUTS", 16);
+        configuration.config("platform.socket.TCP_TIMESTAMP", 24);
+        configuration.config("platform.socket.TCP_USER_TIMEOUT", 18);
         configuration.config("platform.socket.TCP_WINDOW_CLAMP", 10);
         configuration.config("platform.socket.UDP_CORK", 1);
         configuration.config("platform.socket.SOMAXCONN", 128);
@@ -676,6 +698,7 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.process.RLIMIT_MEMLOCK", 8);
         configuration.config("platform.process.RLIMIT_AS", 9);
         configuration.config("platform.process.RLIMIT_RTPRIO", 14);
+        configuration.config("platform.process.RLIMIT_RTTIME", 15);
         configuration.config("platform.process.RLIMIT_SIGPENDING", 11);
         configuration.config("platform.process.RLIMIT_MSGQUEUE", 12);
         configuration.config("platform.process.RLIMIT_NICE", 13);
@@ -721,11 +744,14 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.dlopen.RTLD_GLOBAL", 256);
         configuration.config("platform.dlopen.RTLD_NEXT", -1);
         configuration.config("platform.dlopen.RTLD_DEFAULT", 0);
+        configuration.config("platform.clocks.CLOCK_BOOTTIME", 7);
+        configuration.config("platform.clocks.CLOCK_BOOTTIME_ALARM", 9);
         configuration.config("platform.clocks.CLOCK_MONOTONIC", 1);
         configuration.config("platform.clocks.CLOCK_MONOTONIC_COARSE", 6);
         configuration.config("platform.clocks.CLOCK_MONOTONIC_RAW", 4);
         configuration.config("platform.clocks.CLOCK_PROCESS_CPUTIME_ID", 2);
         configuration.config("platform.clocks.CLOCK_REALTIME", 0);
+        configuration.config("platform.clocks.CLOCK_REALTIME_ALARM", 8);
         configuration.config("platform.clocks.CLOCK_REALTIME_COARSE", 5);
         configuration.config("platform.clocks.CLOCK_THREAD_CPUTIME_ID", 3);
         configuration.config("platform.typedef.int8_t", string(context, "char"));
@@ -758,7 +784,7 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.uintmax_t", string(context, "ulong"));
         configuration.config("platform.typedef.ptrdiff_t", string(context, "long"));
         configuration.config("platform.typedef.size_t", string(context, "ulong"));
-        configuration.config("platform.typedef.wchar_t", string(context, "int"));
+        configuration.config("platform.typedef.wchar_t", string(context, "uint"));
         configuration.config("platform.typedef.u_char", string(context, "uchar"));
         configuration.config("platform.typedef.u_short", string(context, "ushort"));
         configuration.config("platform.typedef.u_int", string(context, "uint"));
@@ -771,7 +797,7 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.dev_t", string(context, "ulong"));
         configuration.config("platform.typedef.gid_t", string(context, "uint"));
         configuration.config("platform.typedef.mode_t", string(context, "uint"));
-        configuration.config("platform.typedef.nlink_t", string(context, "ulong"));
+        configuration.config("platform.typedef.nlink_t", string(context, "uint"));
         configuration.config("platform.typedef.uid_t", string(context, "uint"));
         configuration.config("platform.typedef.off_t", string(context, "long"));
         configuration.config("platform.typedef.off64_t", string(context, "long"));
@@ -796,7 +822,7 @@ public class LinuxNativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.typedef.u_int64_t", string(context, "ulong_long"));
         configuration.config("platform.typedef.register_t", string(context, "long"));
         configuration.config("platform.typedef.fd_mask", string(context, "long"));
-        configuration.config("platform.typedef.blksize_t", string(context, "long"));
+        configuration.config("platform.typedef.blksize_t", string(context, "int"));
         configuration.config("platform.typedef.blkcnt_t", string(context, "long"));
         configuration.config("platform.typedef.fsblkcnt_t", string(context, "ulong"));
         configuration.config("platform.typedef.fsfilcnt_t", string(context, "ulong"));

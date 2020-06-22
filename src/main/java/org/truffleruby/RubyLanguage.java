@@ -72,7 +72,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public static final String PLATFORM = String.format(
             "%s-%s%s",
-            Platform.ARCHITECTURE,
+            Platform.getArchName(),
             Platform.getOSName(),
             Platform.getKernelMajorVersion());
 

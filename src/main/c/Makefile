@@ -17,10 +17,6 @@ endif
 ROOT := $(realpath ../../..)
 RUBY := $(TRUFFLERUBY_BOOTSTRAP_LAUNCHER)
 
-CC := clang
-CFLAGS := -Wall -Werror -Wno-unused-function -fPIC -std=c99
-LDFLAGS := -m64
-
 TRUFFLE_POSIX := truffleposix/libtruffleposix.$(SOEXT)
 SPAWN_HELPER := spawn-helper/spawn-helper
 

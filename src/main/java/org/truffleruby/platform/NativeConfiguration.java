@@ -43,14 +43,45 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.ObjectGraph;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public class NativeConfiguration {
 
     public static final String PREFIX = "platform.";
 
     private final Map<String, Object> configuration = new HashMap<>(); // Only written to by create() once per RubyContext.
+
+    public static NativeConfiguration loadNativeConfiguration(RubyContext context) {
+        final NativeConfiguration nativeConfiguration = new NativeConfiguration();
+
+        switch (Platform.OS) {
+            case LINUX:
+                switch (Platform.ARCHITECTURE) {
+                    case AMD64:
+                        LinuxAMD64NativeConfiguration.load(nativeConfiguration, context);
+                        return nativeConfiguration;
+                    case ARM64:
+                    case AARCH64:
+                        LinuxARM64NativeConfiguration.load(nativeConfiguration, context);
+                        return nativeConfiguration;
+                }
+                break;
+            case DARWIN:
+                switch (Platform.ARCHITECTURE) {
+                    case AMD64:
+                        DarwinAMD64NativeConfiguration.load(nativeConfiguration, context);
+                        return nativeConfiguration;
+                }
+                break;
+        }
+
+        RubyLanguage.LOGGER.severe("no native configuration for platform " + RubyLanguage.PLATFORM);
+        return nativeConfiguration;
+    }
 
     public void config(String key, Object value) {
         configuration.put(key, value);

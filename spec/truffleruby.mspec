@@ -28,6 +28,10 @@ class MSpecScript
     RbConfig::CONFIG['host_os'].include?('solaris')
   end
 
+  def self.arm64?
+    %w[arm64 aarch64].include? RbConfig::CONFIG['host_cpu']
+  end
+
   if child_process?
     system_ruby = ENV['SYSTEM_RUBY'] || `which ruby`.chomp
     if !system_ruby.empty? and `#{system_ruby} --version`.start_with?('ruby ')
@@ -114,6 +118,10 @@ class MSpecScript
     excludes << 'darwin'
   elsif solaris?
     excludes << 'solaris'
+  end
+
+  if arm64?
+    excludes << 'arm64'
   end
 
   # All specs, excluding specs needing C-extensions support.

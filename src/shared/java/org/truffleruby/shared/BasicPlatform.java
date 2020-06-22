@@ -40,7 +40,6 @@ import java.util.Locale;
 public abstract class BasicPlatform {
 
     public enum OS_TYPE {
-
         LINUX("linux"),
         DARWIN("darwin"),
         SOLARIS("solaris"),
@@ -53,11 +52,28 @@ public abstract class BasicPlatform {
         }
     }
 
+    public enum ARCH {
+        AMD64("x86_64"),
+        ARM64("arm64"),
+        AARCH64("aarch64"),
+        UNKNOWN("unknown");
+
+        private final String rubyName;
+
+        ARCH(String rubyName) {
+            this.rubyName = rubyName;
+        }
+    }
+
     public static final OS_TYPE OS = determineOS();
-    public static final String ARCHITECTURE = determineArchitecture();
+    public static final ARCH ARCHITECTURE = determineArchitecture();
 
     public static String getOSName() {
         return OS.rubyName;
+    }
+
+    public static String getArchName() {
+        return ARCHITECTURE.rubyName;
     }
 
     public static OS_TYPE determineOS() {
@@ -84,17 +100,20 @@ public abstract class BasicPlatform {
         throw new UnsupportedOperationException("Unknown platform: " + osName);
     }
 
-    private static String determineArchitecture() {
+    private static ARCH determineArchitecture() {
         String architecture = System.getProperty("os.arch");
 
-        if (architecture == null) {
-            architecture = "unknown";
+        switch (architecture) {
+            case "amd64":
+            case "x86_64":
+                return ARCH.AMD64;
+            case "arm64":
+                return ARCH.ARM64;
+            case "aarch64":
+                return ARCH.AARCH64;
+            default:
+                return ARCH.UNKNOWN;
         }
-        if (architecture.equals("amd64")) {
-            architecture = "x86_64";
-        }
-
-        return architecture;
     }
 
     public static String getKernelMajorVersion() {

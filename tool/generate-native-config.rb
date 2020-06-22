@@ -42,11 +42,14 @@ SCRIPT = File.expand_path(__FILE__)[ROOT.size+1..-1]
 EXTRA_CFLAGS = ''
 
 case RUBY_PLATFORM
+when /aarch64-linux/
+  PLATFORM_FILE = 'org/truffleruby/platform/LinuxARM64NativeConfiguration.java'
+  EXTRA_CFLAGS << ' -D_GNU_SOURCE'
 when /x86_64-linux/
-  PLATFORM_FILE = 'org/truffleruby/platform/LinuxNativeConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/LinuxAMD64NativeConfiguration.java'
   EXTRA_CFLAGS << ' -D_GNU_SOURCE'
 when /x86_64-darwin/
-  PLATFORM_FILE = 'org/truffleruby/platform/DarwinNativeConfiguration.java'
+  PLATFORM_FILE = 'org/truffleruby/platform/DarwinAMD64NativeConfiguration.java'
 else
   raise "Unsupported platform #{RUBY_PLATFORM}"
 end
@@ -429,7 +432,7 @@ class TypesGenerator < Generator
     # which this script does not handle yet:
     # typedef struct _opaque_pthread_t
     # *__darwin_pthread_t;
-    if RUBY_PLATFORM =~ /x86_64-darwin/
+    if RUBY_PLATFORM.include?('darwin') and !@typedefs.include?('pthread_t')
       register "typedef.pthread_t", :pointer
     end
   end
