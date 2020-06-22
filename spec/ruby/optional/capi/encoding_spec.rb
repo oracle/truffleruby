@@ -88,6 +88,7 @@ describe "C-API Encoding function" do
       @s.rb_enc_isalnum("2".ord, Encoding::US_ASCII).should == true
       @s.rb_enc_isalnum("a".ord, Encoding::UTF_8).should == true
       @s.rb_enc_isalnum("2".ord, Encoding::UTF_8).should == true
+      @s.rb_enc_isalnum("é".encode(Encoding::ISO_8859_1).ord, Encoding::ISO_8859_1).should == true
     end
 
     it "returns zero for non alpha-numeric characters" do
@@ -117,6 +118,15 @@ describe "C-API Encoding function" do
   describe "rb_enc_from_index" do
     it "returns an Encoding" do
       @s.rb_enc_from_index(0).should be_an_instance_of(String)
+    end
+  end
+
+  describe "rb_enc_mbc_to_codepoint" do
+    it "returns the correct codepoint for the given character and size" do
+       @s.rb_enc_mbc_to_codepoint("é", 2).should == 0x00E9
+       @s.rb_enc_mbc_to_codepoint("éa", 2).should == 0x00E9
+       @s.rb_enc_mbc_to_codepoint("éa", 1).should == 0xC3
+       @s.rb_enc_mbc_to_codepoint("éa", 3).should == 0x00E9
     end
   end
 

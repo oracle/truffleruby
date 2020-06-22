@@ -1311,6 +1311,17 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 3, lowerFixnum = 3)
+    public abstract static class RbEncMbcToCodepointNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
+        protected int rbEncMbcToCodepoint(DynamicObject enc, DynamicObject str, int end) {
+            final Rope rope = StringOperations.rope(str);
+            return EncodingOperations.getEncoding(enc).mbcToCode(rope.getBytes(), 0, end);
+        }
+
+    }
+
     @CoreMethod(names = "rb_enc_precise_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
     public abstract static class RbEncPreciseMbclenNode extends CoreMethodArrayArgumentsNode {
 
