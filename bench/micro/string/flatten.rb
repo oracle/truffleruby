@@ -6,14 +6,16 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-str = "x"
-100.times do
-  str = "ab#{str}yz"[1...-1]
-end
+if RUBY_ENGINE == 'truffleruby'
+  str = "x"
+  100.times do
+    str = "ab#{str}yz"[1...-1]
+  end
 
-flat = Truffle::Ropes.flatten_rope(str)
-# Truffle::Ropes.debug_print_rope(str)
-
-benchmark "core-string-flatten" do
   flat = Truffle::Ropes.flatten_rope(str)
+  # Truffle::Ropes.debug_print_rope(str)
+
+  benchmark "core-string-flatten" do
+    flat = Truffle::Ropes.flatten_rope(str)
+  end
 end
