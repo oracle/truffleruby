@@ -14,10 +14,18 @@ describe "Integer#&" do
   before :each do
     @long = (1 << 48) + 1
     @mask = Primitive.integer_lower(((1 << 30) - 1))
+    # Use a single call site to ensure it works even if long & long was used before.
+    # (a, b) is not used to avoid promoting to long just because of the FrameSlot kind.
+    @and = -> *args { args[0].send(:&, args[1]) }
+    @and.call(@long, @long)
   end
 
   it "returns an int for (int, int)" do
     result = (1 & 3)
+    result.should == 1
+    Truffle::Debug.java_class_of(result).should == 'Integer'
+
+    result = @and.call(1, 3)
     result.should == 1
     Truffle::Debug.java_class_of(result).should == 'Integer'
   end
@@ -29,6 +37,10 @@ describe "Integer#&" do
     result = (@long & @mask)
     result.should == 1
     Truffle::Debug.java_class_of(result).should == 'Integer'
+
+    result = @and.call(@long, @mask)
+    result.should == 1
+    Truffle::Debug.java_class_of(result).should == 'Integer'
   end
 
   it "returns an int for (int, long)" do
@@ -36,6 +48,10 @@ describe "Integer#&" do
     Truffle::Debug.java_class_of(@mask).should == 'Integer'
 
     result = (@mask & @long)
+    result.should == 1
+    Truffle::Debug.java_class_of(result).should == 'Integer'
+
+    result = @and.call(@mask, @long)
     result.should == 1
     Truffle::Debug.java_class_of(result).should == 'Integer'
   end
