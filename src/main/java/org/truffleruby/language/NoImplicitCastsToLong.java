@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -12,9 +12,9 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
-/** Also see {@link NoImplicitCastsToLong} */
+/** Same as {@link RubyTypes} but without implicit casts from * to long. */
 @TypeSystem
-public abstract class RubyTypes {
+public abstract class NoImplicitCastsToLong {
 
     @ImplicitCast
     public static int promoteToInt(byte value) {
@@ -23,21 +23,6 @@ public abstract class RubyTypes {
 
     @ImplicitCast
     public static int promoteToInt(short value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static long promoteToLong(byte value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static long promoteToLong(short value) {
-        return value;
-    }
-
-    @ImplicitCast
-    public static long promoteToLong(int value) {
         return value;
     }
 
