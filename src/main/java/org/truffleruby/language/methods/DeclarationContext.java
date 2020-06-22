@@ -90,7 +90,7 @@ public class DeclarationContext {
             Map<DynamicObject, DynamicObject[]> refinements) {
         this.visibility = visibility;
         this.defaultDefinee = defaultDefinee;
-        this.refinements = refinements == null || refinements.isEmpty() ? NO_REFINEMENTS : refinements;
+        this.refinements = refinements;
     }
 
     @TruffleBoundary

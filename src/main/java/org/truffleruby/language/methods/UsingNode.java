@@ -42,7 +42,9 @@ public abstract class UsingNode extends RubyContextNode {
         final Frame callerFrame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_WRITE);
         final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(callerFrame);
         final Map<DynamicObject, DynamicObject[]> newRefinements = usingModule(declarationContext, module);
-        DeclarationContext.setRefinements(callerFrame, declarationContext, newRefinements);
+        if (!newRefinements.isEmpty()) {
+            DeclarationContext.setRefinements(callerFrame, declarationContext, newRefinements);
+        }
     }
 
     @TruffleBoundary
