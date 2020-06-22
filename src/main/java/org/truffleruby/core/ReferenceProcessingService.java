@@ -14,11 +14,11 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.function.Consumer;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
-import org.truffleruby.utils.UnreachableCodeException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -56,7 +56,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         private void check(R previous, R next) {
             if (next != null && next == previous) {
-                throw new UnreachableCodeException("broken doubly-linked list of WeakProcessingReference");
+                throw CompilerDirectives.shouldNotReachHere("broken doubly-linked list of WeakProcessingReference");
             }
         }
 

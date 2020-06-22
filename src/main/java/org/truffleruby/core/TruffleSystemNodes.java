@@ -43,6 +43,7 @@ import java.nio.file.NoSuchFileException;
 import java.util.Set;
 import java.util.logging.Level;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -64,7 +65,6 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.BasicPlatform;
-import org.truffleruby.utils.UnreachableCodeException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
@@ -247,7 +247,7 @@ public abstract class TruffleSystemNodes {
                 ProcessProperties.setArgumentVectorProgramName(StringOperations.getString(name));
             } else {
                 // already checked in the caller
-                throw new UnreachableCodeException();
+                throw CompilerDirectives.shouldNotReachHere();
             }
             return name;
         }

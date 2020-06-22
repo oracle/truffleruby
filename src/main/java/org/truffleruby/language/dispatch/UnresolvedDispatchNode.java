@@ -21,7 +21,6 @@ import org.truffleruby.language.objects.ShapeCachingGuards;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.utils.UnreachableCodeException;
 
 public final class UnresolvedDispatchNode extends DispatchNode {
 
@@ -98,12 +97,9 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                         case CALL_METHOD:
                             newDispatchNode = new CachedForeignDispatchNode(getContext(), first, methodNameString);
                             break;
-                        case RESPOND_TO_METHOD:
-                            CompilerDirectives.transferToInterpreterAndInvalidate();
-                            throw new UnreachableCodeException();
+                        case RESPOND_TO_METHOD: // fall through, default needed to prove variable initialization
                         default:
-                            CompilerDirectives.transferToInterpreterAndInvalidate();
-                            throw new UnreachableCodeException();
+                            throw CompilerDirectives.shouldNotReachHere();
                     }
                 } else if (RubyGuards.isRubyDynamicObject(receiverObject)) {
                     newDispatchNode = doDynamicObject(

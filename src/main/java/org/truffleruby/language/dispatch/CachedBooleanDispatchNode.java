@@ -22,7 +22,6 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.utils.UnreachableCodeException;
 
 public class CachedBooleanDispatchNode extends CachedDispatchNode {
 
@@ -117,8 +116,7 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
                     return true;
 
                 default:
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnreachableCodeException();
+                    throw CompilerDirectives.shouldNotReachHere();
             }
         } else {
             falseProfile.enter();
@@ -131,8 +129,7 @@ public class CachedBooleanDispatchNode extends CachedDispatchNode {
                     return true;
 
                 default:
-                    CompilerDirectives.transferToInterpreterAndInvalidate();
-                    throw new UnreachableCodeException();
+                    throw CompilerDirectives.shouldNotReachHere();
 
             }
         }

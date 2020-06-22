@@ -24,7 +24,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import org.truffleruby.utils.UnreachableCodeException;
 
 /*
  * TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
@@ -88,10 +87,8 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
             case NIL:
                 return nil;
 
-            default: {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnreachableCodeException();
-            }
+            default:
+                throw CompilerDirectives.shouldNotReachHere();
         }
     }
 

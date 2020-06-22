@@ -68,6 +68,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -89,7 +90,6 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.Platform;
-import org.truffleruby.utils.UnreachableCodeException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -461,7 +461,7 @@ public abstract class IONodes {
                     break;
                 default:
                     // already checked in the caller
-                    throw new UnreachableCodeException();
+                    throw CompilerDirectives.shouldNotReachHere();
             }
 
             final Rope rope = rope(string);
