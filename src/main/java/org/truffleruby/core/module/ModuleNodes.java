@@ -1941,27 +1941,26 @@ public abstract class ModuleNodes {
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
-        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode
-                .create(ProfileArgumentNodeGen.create(new ReadSelfNode()));
+        @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
         @Child private CallDispatchHeadNode methodUndefinedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        protected DynamicObject undefMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
+        protected DynamicObject undefMethods(DynamicObject module, Object[] names) {
             for (Object name : names) {
-                undefMethod(frame, module, nameToJavaStringNode.executeToJavaString(name));
+                undefMethod(module, nameToJavaStringNode.executeToJavaString(name));
             }
             return module;
         }
 
         /** Used only by undef keyword {@link org.truffleruby.parser.BodyTranslator#visitUndefNode} */
         @Specialization
-        protected DynamicObject undefKeyword(VirtualFrame frame, DynamicObject module, RubySymbol name) {
-            undefMethod(frame, module, name.getString());
+        protected DynamicObject undefKeyword(DynamicObject module, RubySymbol name) {
+            undefMethod(module, name.getString());
             return module;
         }
 
-        private void undefMethod(VirtualFrame frame, DynamicObject module, String name) {
-            raiseIfFrozenNode.execute(frame);
+        private void undefMethod(DynamicObject module, String name) {
+            raiseIfFrozenNode.execute(module);
 
             Layouts.MODULE.getFields(module).undefMethod(getContext(), this, name);
             if (RubyGuards.isSingletonClass(module)) {
