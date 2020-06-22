@@ -380,7 +380,8 @@ module Utilities
     out = nil
     begin
       pid = Process.spawn(*args)
-    rescue Errno::ENOENT # No such executable
+    rescue Errno::ENOENT => no_such_executable
+      STDERR.puts bold no_such_executable
       status = raw_sh_failed_status
     else
       raw_sh_track_subprocess(pid) do
