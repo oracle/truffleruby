@@ -49,108 +49,132 @@ describe "Interop special forms" do
     doc[form, result]
   end
 
+  proxy = -> obj {
+    logger = TruffleInteropSpecs::Logger.new
+    return Truffle::Interop.proxy_foreign_object(obj, logger), obj, logger
+  }
+
   # TODO (pitr-ch 23-Mar-2020): test what method has a precedence, special or the invokable-member on the foreign object
   # TODO (pitr-ch 23-Mar-2020): test left side operator conversion with asBoolean, asString, etc.
 
   it description['[name]', :readMember, [:name]] do
-    -> { @object[:foo] }.should raise_error(Polyglot::UnsupportedMessageError)
-    -> { @object['bar'] }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("readMember(foo)")
-    Truffle::Interop.to_display_string(@object).should include("readMember(bar)")
+    pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
+    -> { pfo[:foo] }.should raise_error(NameError)
+    -> { pfo['bar'] }.should raise_error(NameError)
+    l.log.should include(['readMember', 'foo'])
+    l.log.should include(['readMember', 'bar'])
+    pm.log.should include([:polyglot_read_member, 'foo'])
+    pm.log.should include([:polyglot_read_member, 'bar'])
   end
 
   it description['[index]', :readArrayElement, [:index]] do
-    -> { @object[0] }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("readArrayElement(0)")
+    pfo, pa, l  = proxy[TruffleInteropSpecs::PolyglotArray.new]
+    -> { pfo[0] }.should raise_error(IndexError)
+    l.log.should include(['readArrayElement', 0])
+    pa.log.should include([:polyglot_read_array_element, 0])
   end
 
   it description['[name] = value', :writeMember, [:name, :value]] do
-    -> { (@object[:foo] = 1) }.should raise_error(Polyglot::UnsupportedMessageError)
-    -> { (@object['bar'] = 2) }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("writeMember(foo, 1)")
-    Truffle::Interop.to_display_string(@object).should include("writeMember(bar, 2)")
+    pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
+    pfo[:foo] = 1
+    pfo['bar'] = 2
+    l.log.should include(['writeMember', 'foo', 1])
+    l.log.should include(['writeMember', 'bar', 2])
+    pm.log.should include([:polyglot_write_member, "foo", 1])
+    pm.log.should include([:polyglot_write_member, "bar", 2])
   end
 
   it description['[index] = value', :writeArrayElement, [:index, :value]] do
-    -> { (@object[0] = 1) }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("writeArrayElement(0, 1)")
+    pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
+    pfo[0] = 1
+    l.log.should include(['writeArrayElement', 0, 1])
+    pa.log.should include([:polyglot_write_array_element, 0, 1])
   end
 
   it description['.name = value', :writeMember, [:name, :value]] do
-    pm = TruffleInteropSpecs::PolyglotMember.new
-    pfo = Truffle::Interop.proxy_foreign_object(pm)
+    pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     pfo.foo = :bar
-    messages = pm.log
-    messages.should include([:polyglot_write_member, "foo", :bar])
+    l.log.should include(['writeMember', 'foo', :bar])
+    pm.log.should include([:polyglot_write_member, "foo", :bar])
   end
 
   it description['.name = *arguments', :writeMember, [:name, 'arguments']] do
-    pm = TruffleInteropSpecs::PolyglotMember.new
-    pfo = Truffle::Interop.proxy_foreign_object(pm)
+    pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     pfo.foo = :bar, :baz
-    messages = pm.log
-    messages.should include([:polyglot_write_member, "foo", [:bar, :baz]])
+    l.log.should include(['writeMember','foo', [:bar, :baz]])
+    pm.log.should include([:polyglot_write_member, "foo", [:bar, :baz]])
   end
 
   it "raises an argument error if an assignment method is called with more than 1 argument" do
-    pm = TruffleInteropSpecs::PolyglotMember.new
-    pfo = Truffle::Interop.proxy_foreign_object(pm)
+    pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
+    l.log.should_not include(['writeMember', :bar, :baz])
     -> { pfo.__send__(:foo=, :bar, :baz) }.should raise_error(ArgumentError)
   end
 
   it description['.delete(name)', :removeMember, [:name]] do
-    -> { @object.delete :foo }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("removeMember(foo)")
+    pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
+    -> { pfo.delete :foo }.should raise_error(NameError)
+    l.log.should include(['removeMember', 'foo'])
+    pm.log.should include([:polyglot_remove_member, 'foo'])
   end
 
   it description['.delete(index)', :removeArrayElement, [:index]] do
-    -> { @object.delete 14 }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("removeArrayElement(14)")
+    pfo, pa, l = proxy[TruffleInteropSpecs::PolyglotArray.new]
+    -> { pfo.delete 14 }.should raise_error(IndexError)
+    l.log.should include(['removeArrayElement', 14])
+    pa.log.should include([:polyglot_remove_array_element, 14])
   end
 
   it description['.call(*arguments)', :execute, ['*arguments']] do
-    -> { @object.call(1, 2, 3) }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("execute(1, 2, 3)")
+    pfo, logging_proc, l = proxy[-> *x {x}]
+    x = pfo.call(1, 2, 3)
+    l.log.should include(['execute', 1, 2, 3])
   end
 
   it description['.nil?', :isNull] do
-    @object.nil?
-    Truffle::Interop.to_display_string(@object).should include("isNull()")
+    pfo, obj, l = proxy[Object.new]
+    pfo.nil?
+    l.log.should include(['isNull'])
   end
 
   it description['.size', :getArraySize] do
-    -> { @object.size }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("getArraySize()")
+    pfo, obj, l = proxy[Object.new]
+    -> { pfo.size }.should raise_error(Polyglot::UnsupportedMessageError)
+    l.log.should include(['getArraySize'])
   end
 
   it description['.keys', :getMembers] do
-    -> { @object.keys }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("getMembers(false)")
+    pfo, obj, l = proxy[Object.new]
+    pfo.keys
+    l.log.should include(['getMembers', false])
   end
 
   it description['.method_name', :invoke_member, ['method_name']] do
-    -> { @object.foo }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("invokeMember(foo)")
+    pfo, obj, l = proxy[Object.new]
+    -> { pfo.foo }.should raise_error(NoMethodError)
+    l.log.should include(["invokeMember", "foo"])
   end
 
   it description['.method_name(*arguments)', :invoke_member, ['method_name', '*arguments']] do
-    -> { @object.bar(1, 2, 3) }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("invokeMember(bar, 1, 2, 3)")
+    pfo, obj, l = proxy[Object.new]
+    -> { pfo.bar(1, 2, 3) }.should raise_error(NoMethodError)
+    l.log.should include(["invokeMember", "bar", 1, 2, 3])
   end
 
   it description['.method_name(*arguments) &block', :invoke_member, ['method_name', '*arguments, block']] do
-    pm = TruffleInteropSpecs::PolyglotMember.new
-    pfo = Truffle::Interop.proxy_foreign_object(pm)
+    pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     block = Proc.new {}
     pfo.foo = -> *x { 1 }
     pfo.foo(1, 2, 3, &block)
+    l.log.should include(["invokeMember", "foo", 1, 2, 3, block])
     messages = pm.log
     messages.should include([:polyglot_invoke_member, "foo", 1, 2, 3, block])
   end
 
   it description['.new(*arguments)', :instantiate, ['*arguments']] do
-    -> { @object.new }.should raise_error(Polyglot::UnsupportedMessageError)
-    Truffle::Interop.to_display_string(@object).should include("instantiate()")
+    pfo, obj, l = proxy[Object.new]
+    -> { pfo.new }.should raise_error(Polyglot::UnsupportedMessageError)
+    l.log.should include(["instantiate"])
   end
 
   guard -> { !TruffleRuby.native? } do
@@ -160,7 +184,8 @@ describe "Interop special forms" do
   end
 
   it description['.class', :getMetaObject] do
-    @object.class.should == Truffle::Interop::Foreign
+    pfo, obj, l = proxy[@object]
+    pfo.class.should == Truffle::Interop::Foreign
     Truffle::Interop.to_display_string(@object).should include("hasMetaObject()")
   end
 

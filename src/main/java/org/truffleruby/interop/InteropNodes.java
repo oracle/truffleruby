@@ -1394,13 +1394,19 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1)
+    @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1, optional = 1)
     public abstract static class ProxyForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        protected Object proxyForeignObject(Object delegate) {
+        protected Object proxyForeignObject(Object delegate, NotProvided logger) {
             return new ProxyForeignObject(delegate);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object proxyForeignObject(Object delegate, DynamicObject logger) {
+            return new ProxyForeignObject(delegate, logger);
         }
 
     }
