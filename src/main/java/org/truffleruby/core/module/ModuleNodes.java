@@ -412,15 +412,14 @@ public abstract class ModuleNodes {
                     null,
                     false);
 
-            final RubyNode self = Translator.profileArgument(getContext(), new ReadSelfNode());
             final RubyNode accessInstanceVariable;
             if (isGetter) {
-                accessInstanceVariable = new ReadInstanceVariableNode(ivar, self);
+                accessInstanceVariable = new ReadInstanceVariableNode(ivar, new ReadSelfNode());
             } else {
                 RubyNode readArgument = Translator.profileArgument(
                         getContext(),
                         new ReadPreArgumentNode(0, MissingArgumentBehavior.RUNTIME_ERROR));
-                accessInstanceVariable = new WriteInstanceVariableNode(ivar, self, readArgument);
+                accessInstanceVariable = new WriteInstanceVariableNode(ivar, new ReadSelfNode(), readArgument);
             }
 
             final RubyNode body = Translator
