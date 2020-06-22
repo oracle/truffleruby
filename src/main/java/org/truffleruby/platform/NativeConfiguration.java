@@ -46,7 +46,6 @@ import java.util.Map.Entry;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.objects.ObjectGraph;
-import org.truffleruby.shared.BasicPlatform;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
@@ -59,19 +58,25 @@ public class NativeConfiguration {
     public static NativeConfiguration loadNativeConfiguration(RubyContext context) {
         final NativeConfiguration nativeConfiguration = new NativeConfiguration();
 
-        if (Platform.OS == BasicPlatform.OS_TYPE.LINUX) {
-            if (Platform.ARCHITECTURE.equals("x86_64")) {
-                LinuxAMD64NativeConfiguration.load(nativeConfiguration, context);
-                return nativeConfiguration;
-            } else if (Platform.ARCHITECTURE.equals("arm64") || Platform.ARCHITECTURE.equals("aarch64")) {
-                LinuxARM64NativeConfiguration.load(nativeConfiguration, context);
-                return nativeConfiguration;
-            }
-        } else if (Platform.OS == BasicPlatform.OS_TYPE.DARWIN) {
-            if (Platform.ARCHITECTURE.equals("x86_64")) {
-                DarwinAMD64NativeConfiguration.load(nativeConfiguration, context);
-                return nativeConfiguration;
-            }
+        switch (Platform.OS) {
+            case LINUX:
+                switch (Platform.ARCHITECTURE) {
+                    case AMD64:
+                        LinuxAMD64NativeConfiguration.load(nativeConfiguration, context);
+                        return nativeConfiguration;
+                    case ARM64:
+                    case AARCH64:
+                        LinuxARM64NativeConfiguration.load(nativeConfiguration, context);
+                        return nativeConfiguration;
+                }
+                break;
+            case DARWIN:
+                switch (Platform.ARCHITECTURE) {
+                    case AMD64:
+                        DarwinAMD64NativeConfiguration.load(nativeConfiguration, context);
+                        return nativeConfiguration;
+                }
+                break;
         }
 
         RubyLanguage.LOGGER.severe("no native configuration for platform " + RubyLanguage.PLATFORM);
