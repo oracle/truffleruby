@@ -11,6 +11,7 @@ package org.truffleruby.core.numeric;
 
 import java.math.BigInteger;
 
+import com.oracle.truffle.api.dsl.TypeSystemReference;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -35,6 +36,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.CoreSymbols;
+import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
@@ -964,6 +966,7 @@ public abstract class IntegerNodes {
 
     }
 
+    @TypeSystemReference(NoImplicitCastsToLong.class)
     @CoreMethod(names = "&", required = 1)
     public abstract static class BitAndNode extends BignumCoreMethodNode {
 
@@ -979,9 +982,19 @@ public abstract class IntegerNodes {
             return a & ((int) b);
         }
 
+        @Specialization(guards = "a < 0")
+        protected long bitAndIntLongNegative(int a, long b) {
+            return a & b;
+        }
+
         @Specialization(guards = "b >= 0")
         protected int bitAndLongInt(long a, int b) {
             return ((int) a) & b;
+        }
+
+        @Specialization(guards = "b < 0")
+        protected long bitAndLongIntNegative(long a, int b) {
+            return a & b;
         }
 
         @Specialization
@@ -990,8 +1003,18 @@ public abstract class IntegerNodes {
         }
 
         @Specialization(guards = "isRubyBignum(b)")
+        protected Object bitAndBignum(int a, DynamicObject b) {
+            return fixnumOrBignum(BigIntegerOps.and(Layouts.BIGNUM.getValue(b), a));
+        }
+
+        @Specialization(guards = "isRubyBignum(b)")
         protected Object bitAndBignum(long a, DynamicObject b) {
             return fixnumOrBignum(BigIntegerOps.and(Layouts.BIGNUM.getValue(b), a));
+        }
+
+        @Specialization
+        protected Object bitAnd(DynamicObject a, int b) {
+            return fixnumOrBignum(BigIntegerOps.and(Layouts.BIGNUM.getValue(a), b));
         }
 
         @Specialization
