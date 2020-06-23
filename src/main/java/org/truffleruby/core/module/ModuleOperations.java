@@ -464,18 +464,17 @@ public abstract class ModuleOperations {
 
             if (refinements != null) {
                 for (DynamicObject refinement : refinements) {
-
                     final InternalMethod refinedMethod = lookupMethodUncached(
                             refinement,
                             ancestor,
                             name,
                             null);
-
                     if (refinedMethod != null) {
                         return refinedMethod;
                     }
                 }
             }
+
             final ModuleFields fields = Layouts.MODULE.getFields(ancestor);
             final InternalMethod method = fields.getMethod(name);
 

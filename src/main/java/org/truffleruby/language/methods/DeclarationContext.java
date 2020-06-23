@@ -88,6 +88,8 @@ public class DeclarationContext {
             Visibility visibility,
             DefaultDefinee defaultDefinee,
             Map<DynamicObject, DynamicObject[]> refinements) {
+        assert refinements == NO_REFINEMENTS ||
+                !refinements.isEmpty() : "Should use NO_REFINEMENTS if empty for faster getRefinementsFor()";
         this.visibility = visibility;
         this.defaultDefinee = defaultDefinee;
         this.refinements = refinements;
