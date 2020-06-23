@@ -1373,7 +1373,8 @@ module Truffle::CExt
   def data_finalizer(free, data_holder)
     raise unless free.respond_to?(:call)
     proc {
-      Primitive.call_with_c_mutex(free, [data_holder.data]) unless Truffle::Interop.null?(data_holder.data)
+      data = data_holder.data
+      Primitive.call_with_c_mutex(free, [data]) unless Truffle::Interop.null?(data)
     }
   end
 
@@ -1381,7 +1382,8 @@ module Truffle::CExt
     raise unless mark.respond_to?(:call)
     proc { |obj|
       create_mark_list(obj)
-      Primitive.call_with_c_mutex(mark, [data_holder.data]) unless Truffle::Interop.null?(data_holder.data)
+      data = data_holder.data
+      Primitive.call_with_c_mutex(mark, [data]) unless Truffle::Interop.null?(data)
       set_mark_list_on_object(obj)
     }
   end

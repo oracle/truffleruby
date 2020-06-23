@@ -13,8 +13,13 @@
 
 module Truffle::CExt
   def RDATA(object)
-    rb_check_type(object, T_DATA)
-    RData.new(object)
+    # A specialized version of rb_check_type(object, T_DATA)
+    data_holder = Primitive.object_hidden_var_get(object, DATA_HOLDER)
+    unless data_holder
+      raise TypeError, "wrong argument type #{object.class} (expected T_DATA)"
+    end
+
+    RData.new(object, data_holder)
   end
 
   def RBASIC(object)
@@ -40,8 +45,9 @@ end
 
 # ruby.h: `struct RData` and struct `RTypedData`
 class Truffle::CExt::RData
-  def initialize(object)
+  def initialize(object, data_holder)
     @object = object
+    @data_holder = data_holder
   end
 
   private
@@ -56,14 +62,14 @@ class Truffle::CExt::RData
 
   def polyglot_read_member(name)
     case name
-    when 'basic'
-      get_basic
     when 'data'
-      data_holder.data
+      @data_holder.data
     when 'type'
       type
     when 'typed_flag'
       type ? 1 : 0
+    when 'basic'
+      get_basic
     else
       raise Truffle::Interop::UnknownIdentifierException
     end
@@ -71,7 +77,7 @@ class Truffle::CExt::RData
 
   def polyglot_write_member(name, value)
     raise Truffle::Interop::UnknownIdentifierException unless name == 'data'
-    data_holder.data = value
+    @data_holder.data = value
   end
 
   def polyglot_remove_member(name)
@@ -116,10 +122,6 @@ class Truffle::CExt::RData
 
   def get_basic
     @basic ||= Truffle::CExt::RBasic.new(@object)
-  end
-
-  def data_holder
-    Primitive.object_hidden_var_get(@object, Truffle::CExt::DATA_HOLDER)
   end
 
   def type
