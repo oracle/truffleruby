@@ -2364,7 +2364,7 @@ EOS
 
   def lint(*args)
     fast = args.first == 'fast'
-    fast_exts_changed = fast ? `git diff --name-only`.lines.map { |f| File.extname(f.strip) }.uniq : []
+    fast_exts_changed = fast ? `git diff --cached --name-only`.lines.map { |f| File.extname(f.strip) }.uniq : []
     changed = ->(ext) { !fast or fast_exts_changed.include?(ext) }
 
     ENV['ECLIPSE_EXE'] ||= install_eclipse
