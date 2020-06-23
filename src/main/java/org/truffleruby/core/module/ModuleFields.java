@@ -310,7 +310,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             this.newHierarchyVersion();
         }
 
-        prependInvalidation();
+        invalidateBuiltinsAssumptions();
     }
 
     /** Set the value of a constant, possibly redefining it. */
@@ -398,7 +398,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         if (!context.getCoreLibrary().isInitializing()) {
             newMethodsVersion();
+            // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
+            if (refinedModule != null) {
+                Layouts.MODULE.getFields(refinedModule).changedMethod(method.getName());
+            }
         }
 
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
@@ -424,15 +428,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return false;
         }
 
-        if (method.isRefined()) {
-            if (method.getOriginalMethod() == null) {
-                return false;
-            } else {
-                methods.put(methodName, method.withOriginalMethod(null));
-            }
-        } else {
-            methods.remove(methodName);
-        }
+        methods.remove(methodName);
 
         newMethodsVersion();
         changedMethod(methodName);
@@ -605,6 +601,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         this.isRefinement = true;
         this.refinedModule = refinedModule;
         this.refinementNamespace = refinementNamespace;
+        this.parentModule = Layouts.MODULE.getFields(refinedModule).start;
     }
 
     public DynamicObject getRefinedModule() {
@@ -627,6 +624,10 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     public void newHierarchyVersion() {
         newConstantsVersion();
         newMethodsVersion();
+
+        if (isRefinement()) {
+            Layouts.MODULE.getFields(getRefinedModule()).invalidateBuiltinsAssumptions();
+        }
     }
 
     public void newMethodsVersion() {
@@ -810,7 +811,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
     }
 
-    private void prependInvalidation() {
+    private void invalidateBuiltinsAssumptions() {
         if (!inlinedBuiltinsAssumptions.isEmpty()) {
             for (Assumption assumption : inlinedBuiltinsAssumptions.values()) {
                 assumption.invalidate();

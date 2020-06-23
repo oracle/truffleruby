@@ -8,28 +8,29 @@ This example creates a refinement `R` under the module `M` for the refined class
 `C`. The method `refine` is used inside a `Module` to create a refinement.
 
 ```ruby
-class C
-  def one
-    "one unrefined"
-  end
-end
+class C; end # C is the refined module or class
 
-module M
-  refine C do
-    # self is R, the anonymous refinement module
-    def one
-      "one refined"
+module M # M is the namespace module
+  R = refine C do # R is the refinement module
+    def foo # is the refined method
+      "foo"
     end
   end
 end
+
+C.foo
+#=> UndefinedMethod
+
+using M # activate the refinements from the namespace
+C.foo
+#=> "foo"
 ```
 
-The `refine` block is module eval'ed into a new anonymous module `R`. `R` is the
-refinement module and contains the method definitions from the refine block.
-Each method added in a refinement module also gets defined in the refined class
-`C` with a *refined* flag. If the refined class `C` contains an existing method
-with the same name, it is chained as the *original method* of the refined
-method. This makes it easy to account for refined methods in method lookup.
+The `refine` block is module eval'ed into a new anonymous module `R`.
+`R` is the refinement module and contains:
+1. The method definitions from the refine block.
+2. Included and prepended modules from the refine block.
+3. `C` ancestors. This is useful for `super` lookup, because `C`'s ancestors have a higher priority than, other active refinements.
 
 Next, `refine` puts the new `R` module into module `M`'s refinements tables,
 which is a map of refined classes to refinement modules. This specific entry
@@ -66,16 +67,37 @@ method and so the DeclarationContext can be looked up only once and doesn't need
 to be checked after.
 
 ## Method Dispatch
+Example:
+```ruby
+using M1; # R1.ancestors = [R1, A, B, C, Object, Kernel, ...]
+using M2; # R2.ancestors = [R2, D, E, C, Object, Kernel, ...]
 
-During method lookup, if a *refined* method is found, the `DeclarationContext`
-(from the frame) is consulted to see if refinements apply to that specific call.
-This *refined* flag enables to only check methods which have refinements for
-refinements and not every module in the ancestor chain. The same happens for
-`super` calls.
+C.new.foo # => ?
+```
+
+During method lookup, if active refinements are found in the the `DeclarationContext` (from the frame),
+then we check if any of the ancestors has refinements.
+For each refined module, method lookup recursively searches for a refinement method in `[R, ...Rn]`'s ancestors.
+To avoid repeated calculations, and to not search C and above before other refinements,
+we stop the search for the ancestors of `R` when `C` is found and proceed to the next active refinement.
+
+If nothing was found in active refinements, then the lookup will continue with default behavior and will search in `C` and its ancestors.
+
+The lookup order:
+```ruby
+R1 -> A -> B -> R2 -> D -> E -> C -> ...
+```
+
+The `super` lookup works in much the same way, except `C` ancestors have a higher priority than other active refinements.
+
+The lookup order for `super`:
+```ruby
+R1 -> A -> B -> C -> ... -> R2 -> D -> E -> C -> ...
+```
 
 ## References
 
 - [Refinements Spec](https://bugs.ruby-lang.org/projects/ruby-trunk/wiki/RefinementsSpec)
-- [Refinements Docs](https://ruby-doc.org/core-2.3.0/doc/syntax/refinements_rdoc.html)
-- [Module#refine](https://ruby-doc.org/core-2.3.0/Module.html#method-i-refine)
-- [Module#using](https://ruby-doc.org/core-2.3.0/Module.html#method-i-using)
+- [Refinements Docs](https://ruby-doc.org/core-2.7.0/doc/syntax/refinements_rdoc.html)
+- [Module#refine](https://ruby-doc.org/core-2.7.0/Module.html#method-i-refine)
+- [Module#using](https://ruby-doc.org/core-2.7.0/Module.html#method-i-using)

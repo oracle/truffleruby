@@ -111,7 +111,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             @Cached BranchProfile foreignProfile,
             @Cached ConditionProfile noPrependedModulesProfile,
             @Cached ConditionProfile onMetaClassProfile,
-            @Cached ConditionProfile isRefinedProfile,
+            @Cached ConditionProfile hasRefinementsProfile,
             @Cached ConditionProfile notFoundProfile,
             @Cached ConditionProfile publicProfile,
             @Cached ConditionProfile privateProfile,
@@ -128,16 +128,16 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             throw Utils.unsupportedOperation("method lookup not supported on foreign objects");
         }
 
+        final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(frame);
         final InternalMethod method;
         // Lookup first in the metaclass as we are likely to find the method there
         final ModuleFields fields = Layouts.MODULE.getFields(metaClass);
         InternalMethod topMethod;
         if (noPrependedModulesProfile.profile(fields.getFirstModuleChain() == fields) &&
                 onMetaClassProfile.profile((topMethod = fields.getMethod(name)) != null) &&
-                !isRefinedProfile.profile(topMethod.isRefined())) {
+                !hasRefinementsProfile.profile(declarationContext != null && declarationContext.hasRefinements())) {
             method = topMethod;
         } else {
-            final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(frame);
             method = ModuleOperations.lookupMethodUncached(metaClass, name, declarationContext);
         }
 
