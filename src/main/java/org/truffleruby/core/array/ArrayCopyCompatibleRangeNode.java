@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -41,7 +42,11 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
 
     public abstract void execute(DynamicObject dst, DynamicObject src, int dstStart, int srcStart, int length);
 
-    @Specialization(limit = "storageStrategyLimit()")
+    protected boolean noopGuard(DynamicObject dst, DynamicObject src, int dstStart, int srcStart, int length) {
+        return length == 0 || dst == src && dstStart == srcStart;
+    }
+
+    @Specialization(guards = "!noopGuard(dst, src, dstStart, srcStart, length)", limit = "storageStrategyLimit()")
     protected void copy(DynamicObject dst, DynamicObject src, int dstStart, int srcStart, int length,
             @CachedLibrary("getStore(src)") ArrayStoreLibrary stores,
             @Cached IsSharedNode isDstShared,
@@ -59,5 +64,9 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
                 writeBarrierNode.executeWriteBarrier(stores.read(srcStore, i));
             }
         }
+    }
+
+    @Fallback
+    protected void noop(DynamicObject dst, DynamicObject src, int dstStart, int srcStart, int length) {
     }
 }

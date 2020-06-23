@@ -293,21 +293,17 @@ public abstract class ArrayNodes {
 
         // array[index] = object
 
-        @Specialization(guards = "normalize(array, index) >= 0")
+        @Specialization
         @ReportPolymorphism.Exclude
         protected Object set(DynamicObject array, int index, Object value, NotProvided unused,
-                @Cached ArrayWriteNormalizedNode writeNode) {
-            index = normalize(array, index);
-            return writeNode.executeWrite(array, index, value);
+                @Cached ArrayWriteNormalizedNode writeNode,
+                @Cached ConditionProfile negativeDenormalizedIndex,
+                @Cached BranchProfile negativeNormalizedIndex) {
+            final int size = Layouts.ARRAY.getSize(array);
+            final int nIndex = normalize(size, index, negativeDenormalizedIndex, negativeNormalizedIndex);
+            return writeNode.executeWrite(array, nIndex, value);
         }
-
-        @Specialization(guards = "normalize(array, start) < 0")
-        protected Object doesntNormalize(DynamicObject array, int start, Object value, NotProvided unused) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().indexTooSmallError("array", start, getSize(array), this));
-        }
-
+        
         @Specialization(guards = "!isInteger(start)")
         protected Object fallbackUnary(DynamicObject array, Object start, Object value, NotProvided unused,
                 @Cached CallDispatchHeadNode fallbackNode) {
@@ -322,65 +318,51 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = {
-                "length >= 0",
-                "normalize(array, start) < 0" })
-        protected Object doesntNormalize(DynamicObject array, int start, int length, DynamicObject replacement) {
-            throw new RaiseException(
-                    getContext(),
-                    coreExceptions().indexTooSmallError("array", start, getSize(array), this));
-        }
-
-        @Specialization(guards = {
                 "isRubyArray(replacement)",
-                "length >= 0",
-                "normalize(array, start) >= 0",
-                "!moveNeeded(start, length, array)" })
-        protected Object setNoMove(DynamicObject array, int start, int length, DynamicObject replacement,
-                @Cached ArrayPrepareForCopyNode prepareToCopy,
-                @Cached ArrayCopyCompatibleRangeNode copyRange,
-                @Cached ArrayTruncateNode truncateNode) {
-
-            start = normalize(array, start);
-            final int replacementSize = getSize(replacement);
-            // Because start + length >= array.size, the array is overwritten from "start" to end, there are
-            // no items to be moved.
-            prepareToCopy.execute(array, replacement, start, replacementSize);
-            copyRange.execute(array, replacement, start, 0, replacementSize);
-            truncateNode.execute(array, start + replacementSize); // no-op (except checks) if truncation not needed
-            return replacement;
-        }
-
-        @Specialization(guards = {
-                "isRubyArray(replacement)",
-                "length >= 0",
-                "normalize(array, start) >= 0",
-                "moveNeeded(start, length, array)" })
-        protected Object setWithMove(DynamicObject array, int start, int length, DynamicObject replacement,
+                "length >= 0" })
+        protected Object setTernary(DynamicObject array, int start, int length, DynamicObject replacement,
+                @Cached ConditionProfile negativeDenormalizedIndex,
+                @Cached BranchProfile negativeNormalizedIndex,
+                @Cached ConditionProfile moveNeeded,
+                @Cached ConditionProfile differentLength,
                 @Cached ArrayPrepareForCopyNode prepareToCopy,
                 @Cached ArrayCopyCompatibleRangeNode shift,
                 @Cached ArrayCopyCompatibleRangeNode copyRange,
                 @Cached ArrayTruncateNode truncate) {
 
-            start = normalize(array, start);
-            final int originalSize = getSize(array);
-            final int replacementSize = getSize(replacement);
+            final int size = Layouts.ARRAY.getSize(array);
+            start = normalize(size, start, negativeDenormalizedIndex, negativeNormalizedIndex);
+            final int replacementSize = Layouts.ARRAY.getSize(replacement);
 
-            // the tail is the part of the array to the right of the overwritten area
-            final int tailSize = originalSize - (start + length);
+            if (moveNeeded.profile(start + length < size)) {
+                // There is a tail (the part of the array to the right of the overwritten area) to be moved.
 
-            // the length that needs to be available after `start`
-            final int requiredLength = replacementSize + tailSize;
+                final int originalSize = Layouts.ARRAY.getSize(array);
+                final int overwrittenAreaEnd = start + length;
+                final int tailSize = originalSize - overwrittenAreaEnd;
+                final int writtenAreaEnd = start + replacementSize;
+                final int newSize = originalSize - length + replacementSize;
+                final int requiredLength = newSize - start;
 
-            prepareToCopy.execute(array, replacement, start, requiredLength);
-            shift.execute(array, array, start + replacementSize, start + length, tailSize);
-            copyRange.execute(array, replacement, start, 0, replacementSize);
-            truncate.execute(array, originalSize - length + replacementSize);
+                prepareToCopy.execute(array, replacement, start, requiredLength);
+                shift.execute(array, array, writtenAreaEnd, overwrittenAreaEnd, tailSize);
+                copyRange.execute(array, replacement, start, 0, replacementSize);
+                truncate.execute(array, newSize);
+
+            } else {
+                // The array is overwriten from `start` to end, there is no tail to be moved.
+
+                prepareToCopy.execute(array, replacement, start, replacementSize);
+                copyRange.execute(array, replacement, start, 0, replacementSize);
+                truncate.execute(array, start + replacementSize);
+            }
+
             return replacement;
         }
 
         @Specialization(guards = {
                 "wasProvided(replacement)",
-                "!isInteger(start) || (!isInteger(length) || validReplacementFallback(length, replacement))" })
+                "fallbackGuard(start, length, replacement)" })
         protected Object fallbackBinary(DynamicObject array, Object start, Object length, Object replacement,
                 @Cached CallDispatchHeadNode fallbackNode) {
             return fallbackNode.call(array, "element_set_range_fallback", start, length, replacement);
@@ -388,19 +370,23 @@ public abstract class ArrayNodes {
 
         // Helpers
 
-        protected int normalize(DynamicObject array, int index) {
-            return ArrayOperations.normalizeIndex(getSize(array), index);
+        protected int normalize(int arraySize, int index,
+                ConditionProfile negativeDenormalizedIndex, BranchProfile negativeNormalizedIndex) {
+            if (negativeDenormalizedIndex.profile(index < 0)) {
+                index = arraySize + index;
+                if (index < 0) {
+                    negativeNormalizedIndex.enter();
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().indexTooSmallError("array", index, arraySize, this));
+                }
+            }
+            return index;
         }
 
-        protected static boolean moveNeeded(int start, int length, DynamicObject array) {
-            // only valid if normalizeIndex(size, start) >= 0 (should be safeguarded by previous guards)
-            final int size = Layouts.ARRAY.getSize(array);
-            return ArrayOperations.normalizeIndex(size, start) + length < size;
-        }
-
-        protected static boolean validReplacementFallback(Object length, Object replacement) {
-            // cast safeguarded by previous guards
-            return ((Integer) length) >= 0 && !RubyGuards.isRubyArray(replacement);
+        protected static boolean fallbackGuard(Object start, Object length, Object replacement) {
+            return !RubyGuards.isInteger(start) || !RubyGuards.isInteger(length) ||
+                    ((int) length) >= 0 && !RubyGuards.isRubyArray(replacement);
         }
     }
 
