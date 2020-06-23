@@ -57,7 +57,6 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -1390,7 +1389,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization
-        protected TruffleObject proxyForeignObject(Object delegate) {
+        protected Object proxyForeignObject(Object delegate) {
             return new ProxyForeignObject(delegate);
         }
 
