@@ -261,10 +261,10 @@ describe "Module#refine" do
           result = 1 / 2
         end
 
-        print result
+        print result.class
       RUBY
 
-      result.should == Rational(1, 2).to_s
+      result.should == 'Rational'
     end
 
     it "looks in later included modules of the refined module first" do
