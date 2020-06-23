@@ -375,12 +375,6 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void handleRefinedMethod(String methodName) {
-        // invalidate assumption to not use an AST-inlined method
-        changedMethod(methodName);
-    }
-
-    @TruffleBoundary
     public void addMethod(RubyContext context, Node currentNode, InternalMethod method) {
         assert ModuleOperations.canBindMethodTo(method, rubyModuleObject) ||
                 ModuleOperations.assignableTo(context.getCoreLibrary().objectClass, method.getDeclaringModule()) ||
@@ -404,7 +398,11 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         if (!context.getCoreLibrary().isInitializing()) {
             newMethodsVersion();
+            // invalidate assumptions to not use an AST-inlined methods
             changedMethod(method.getName());
+            if (refinedModule != null) {
+                Layouts.MODULE.getFields(refinedModule).changedMethod(method.getName());
+            }
         }
 
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
