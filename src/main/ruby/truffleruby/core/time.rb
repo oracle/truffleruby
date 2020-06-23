@@ -275,16 +275,19 @@ class Time
   class << self
     def at(sec, usec=undefined, unit=undefined)
       if Primitive.undefined?(usec)
-        if sec.kind_of?(Time)
+        if Primitive.object_kind_of?(sec, Time)
           copy = allocate
           copy.send(:initialize_copy, sec)
           return copy
-        elsif sec.kind_of?(Integer)
+        elsif Primitive.object_kind_of?(sec, Integer)
           return Primitive.time_at self, sec, 0
+        elsif Primitive.object_kind_of?(sec, Float) and sec >= 0.0
+          ns = (sec % 1.0 * 1e9).round
+          return Primitive.time_at self, sec.to_i, ns
         end
       end
 
-      if sec.kind_of?(Time) && usec.kind_of?(Integer)
+      if Primitive.object_kind_of?(sec, Time) && Primitive.object_kind_of?(usec, Integer)
         raise TypeError, "can't convert Time into an exact number"
       end
 
@@ -304,7 +307,7 @@ class Time
       s = Truffle::Type.coerce_to_exact_num(sec)
       u = Truffle::Type.coerce_to_exact_num(usec)
 
-      sec       = s.to_i
+      sec = s.to_i
       nsec_frac = s % 1.0
 
       sec -= 1 if s < 0 && nsec_frac > 0

@@ -140,7 +140,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean vmMethodIsBasic(VirtualFrame frame, DynamicObject method) {
+        protected boolean vmMethodIsBasic(DynamicObject method) {
             return Layouts.METHOD.getMethod(method).isBuiltIn();
         }
 

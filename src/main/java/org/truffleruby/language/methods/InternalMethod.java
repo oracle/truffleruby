@@ -36,6 +36,7 @@ public class InternalMethod implements ObjectGraphNode {
     private final Visibility visibility;
     private final boolean undefined;
     private final boolean unimplemented; // similar to MRI's rb_f_notimplement
+    /** True if the method is defined in the core library (in Java or Ruby) */
     private final boolean builtIn;
     private final DynamicObject proc; // only if method is created from a Proc
 
