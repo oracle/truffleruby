@@ -1384,6 +1384,17 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1)
+    public abstract static class ProxyForeignObjectNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization
+        protected Object proxyForeignObject(Object delegate) {
+            return new ProxyForeignObject(delegate);
+        }
+
+    }
+
     @CoreMethod(names = "to_string", onSingleton = true, required = 1)
     public abstract static class ToStringNode extends CoreMethodArrayArgumentsNode {
 

@@ -324,6 +324,39 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         return node.executeCall(receiver, name, args);
     }
 
+    @Specialization(guards = {
+            "name == cachedName",
+            "!isOperatorMethod(cachedName)",
+            "isAssignmentMethod(cachedName)",
+            "args.length != 1"
+    }, limit = "1")
+    protected Object assignmentBadArgs(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        throw new RaiseException(
+                context,
+                context.getCoreExceptions().argumentError(args.length, 1, this));
+    }
+
+    @Specialization(guards = {
+            "name == cachedName",
+            "!isOperatorMethod(cachedName)",
+            "isAssignmentMethod(cachedName)",
+            "args.length == 1"
+    }, limit = "1")
+    protected Object assignment(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @Cached(value = "getPropertyFromName(name)", allowUncached = true) String propertyName,
+            @CachedLibrary("receiver") InteropLibrary receivers,
+            @Cached TranslateInteropExceptionNode translateInteropException) {
+        try {
+            receivers.writeMember(receiver, propertyName, args[0]);
+        } catch (InteropException e) {
+            throw translateInteropException.execute(e);
+        }
+        return args[0];
+    }
+
     @Specialization(
             guards = {
                     "name == cachedName",
@@ -335,9 +368,11 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "!cachedName.equals(NIL)",
                     "!cachedName.equals(EQUAL)",
                     "!isRedirectToTruffleInterop(cachedName)",
-                    "!isOperatorMethod(cachedName)" },
+                    "!isOperatorMethod(cachedName)",
+                    "!isAssignmentMethod(cachedName)",
+            },
             limit = "1")
-    protected Object notOperator(Object receiver, String name, Object[] args,
+    protected Object notOperatorOrAssignment(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
             @Cached InteropNodes.InvokeNode invokeNode) {
         return invokeNode.execute(receiver, name, args);
@@ -346,6 +381,15 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     @TruffleBoundary
     protected static boolean isOperatorMethod(String name) {
         return !name.isEmpty() && !Character.isLetter(name.charAt(0));
+    }
+
+    @TruffleBoundary
+    protected static boolean isAssignmentMethod(String name) {
+        return !name.isEmpty() && !name.equals(INDEX_WRITE) && '=' == name.charAt(name.length() - 1);
+    }
+
+    protected static String getPropertyFromName(String name) {
+        return name.substring(0, name.length() - 1);
     }
 
     @GenerateUncached

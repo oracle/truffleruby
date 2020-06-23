@@ -12,6 +12,8 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object[index]` sends `readArrayElement(foreign_object, index)`
 - `foreign_object[name] = value` sends `writeMember(foreign_object, name, value)`
 - `foreign_object[index] = value` sends `writeArrayElement(foreign_object, index, value)`
+- `foreign_object.name = value` sends `writeMember(foreign_object, name, value)`
+- `foreign_object.name = *arguments` sends `writeMember(foreign_object, name, arguments)`
 - `foreign_object.delete(name)` sends `removeMember(foreign_object, name)`
 - `foreign_object.delete(index)` sends `removeArrayElement(foreign_object, index)`
 - `foreign_object.call(*arguments)` sends `execute(foreign_object, *arguments)`
