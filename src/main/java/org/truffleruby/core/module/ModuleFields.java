@@ -376,12 +376,8 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
     @TruffleBoundary
     public void handleRefinedMethod(String methodName) {
-        final InternalMethod method = getMethod(methodName);
-
-        if (method != null) {
-            // invalidate assumptions not to use Inlined methods
-            changedMethod(methodName);
-        }
+        // invalidate assumption to not use an AST-inlined method
+        changedMethod(methodName);
     }
 
     @TruffleBoundary
