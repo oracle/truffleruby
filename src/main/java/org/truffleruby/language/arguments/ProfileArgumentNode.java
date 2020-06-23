@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.arguments;
 
+import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -16,9 +17,11 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+@TypeSystemReference(NoImplicitCastsToLong.class)
 @NodeInfo(cost = NodeCost.NONE)
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ProfileArgumentNode extends RubyContextSourceNode {
@@ -35,13 +38,6 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
     protected int cacheInt(int value,
             @Cached("value") int cachedValue) {
         return cachedValue;
-    }
-
-    // We need this to avoid going to long once different int values are passed,
-    // due to the implicit cast int -> long.
-    @Specialization(replaces = "cacheInt")
-    protected int uncachedInt(int value) {
-        return value;
     }
 
     @Specialization(guards = "value == cachedValue", limit = "1")
@@ -69,7 +65,7 @@ public abstract class ProfileArgumentNode extends RubyContextSourceNode {
         }
     }
 
-    @Specialization(replaces = { "cacheBoolean", "cacheInt", "uncachedInt", "cacheLong", "cacheDouble", "cacheClass" })
+    @Specialization(replaces = { "cacheBoolean", "cacheInt", "cacheLong", "cacheDouble", "cacheClass" })
     protected Object unprofiled(Object object) {
         return object;
     }

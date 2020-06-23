@@ -12,12 +12,15 @@ package org.truffleruby.core.inlined;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.IntegerNodes.BitAndNode;
 import org.truffleruby.core.numeric.IntegerNodesFactory.BitAndNodeFactory;
+import org.truffleruby.language.NoImplicitCastsToLong;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+@TypeSystemReference(NoImplicitCastsToLong.class)
 public abstract class InlinedBitAndNode extends BinaryInlinedOperationNode {
 
     @Child BitAndNode fixnumBitAnd;
