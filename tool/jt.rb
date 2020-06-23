@@ -2401,7 +2401,7 @@ EOS
   end
 
   def sync
-    exec(RbConfig.ruby, "#{TRUFFLERUBY_DIR}/tool/sync.rb")
+    exec(RbConfig.ruby, "#{TRUFFLERUBY_DIR}/tool/sync.rb", ruby_home)
   end
 
   def docker(*args)
