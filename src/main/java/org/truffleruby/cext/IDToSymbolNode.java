@@ -18,7 +18,10 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.symbol.CoreSymbols;
+import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.control.RaiseException;
 
 @GenerateUncached
 @ReportPolymorphism
@@ -30,24 +33,37 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
         return IDToSymbolNodeGen.create();
     }
 
-    @Specialization(guards = "isSingleCharSymbol(value)")
-    protected Object unwrapSingleCharUncached(long value,
+    @Specialization(guards = "isStaticSymbol(value)")
+    protected Object unwrapStaticUncached(long value,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached BranchProfile profile) {
-        return context.getSymbolTable().getSingleByteSymbol((char) value, profile);
+            @Cached BranchProfile errorProfile) {
+        if (value >= CoreSymbols.STATIC_SYMBOLS_SIZE) {
+            value = value >> 4;
+        }
+        final RubySymbol symbol = CoreSymbols.STATIC_SYMBOLS[(int) value];
+        if (symbol == null) {
+            errorProfile.enter();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().runtimeError("invalid static ID2SYM id: " + value, this));
+        }
+        return symbol;
     }
 
-    @Specialization(guards = "!isSingleCharSymbol(value)")
+    @Specialization(guards = "!isStaticSymbol(value)")
     protected Object unwrapObject(Object value,
             @Cached UnwrapNode unwrapNode) {
         return unwrapNode.execute(value);
     }
 
-    public static boolean isSingleCharSymbol(Object value) {
+    public static boolean isDynamicSymbol(long value) {
+        return !((value & 0x1L) != 0) && value > CoreSymbols.LAST_OP_ID;
+    }
+
+    public static boolean isStaticSymbol(Object value) {
         if (!(value instanceof Long)) {
             return false;
         }
-        long l = (long) value;
-        return l >= 0 && l <= 255;
+        return !isDynamicSymbol((long) value);
     }
 }

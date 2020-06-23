@@ -576,6 +576,7 @@ module Commands
         jt build [parser|options] [options]
             parser                            build the parser
             options                           build the options
+            core-symbols                      build the core symbols
         jt build graalvm [options] [mx_options] [-- mx_build_options]
             graalvm                           build a GraalVM based on the given env file, the default is a minimal
                                               GraalVM with JVM and Truffleruby only available in mxbuild/truffleruby-jvm,
@@ -694,6 +695,8 @@ module Commands
       File.write(yytables, File.read(yytables).gsub('package org.jruby.parser;', 'package org.truffleruby.parser.parser;'))
     when 'options'
       sh 'tool/generate-options.rb'
+    when 'core-symbols'
+      sh 'tool/generate-core-symbols.rb'
     else
       build_graalvm(*project, *options)
     end

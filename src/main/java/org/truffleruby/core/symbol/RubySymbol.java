@@ -30,6 +30,8 @@ import org.truffleruby.language.library.RubyLibrary;
 @ExportLibrary(RubyLibrary.class)
 public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
 
+    public static final int UNASSIGNED = -1;
+
     private static final int CLASS_SALT = 92021474; // random number, stops hashes for similar values but different classes being the same, static because we want deterministic hashes
 
     private final String string;
@@ -37,12 +39,28 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
     private final int javaStringHashCode;
     private long objectId;
     private ValueWrapper valueWrapper;
+    private int id;
 
-    public RubySymbol(String string, Rope rope) {
+    public RubySymbol(String string, Rope rope, int id) {
         this.string = string;
         this.rope = rope;
         this.javaStringHashCode = string.hashCode();
         this.valueWrapper = null;
+        this.id = id;
+    }
+
+    public RubySymbol(String string, Rope rope) {
+        this(string, rope, UNASSIGNED);
+    }
+
+    public long getId() {
+        if (id == UNASSIGNED) {
+            return id;
+        }
+        if (id > CoreSymbols.LAST_OP_ID) {
+            return (id << 4) | 0x1L;
+        }
+        return id;
     }
 
     public String getString() {

@@ -9,18 +9,17 @@
  */
 package org.truffleruby.cext;
 
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyGuards;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
@@ -32,30 +31,26 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
     @Specialization(guards = "symbol == cachedSymbol", limit = "2")
     protected Object getIDCached(RubySymbol symbol,
             @Cached WrapNode wrapNode,
-            @Cached RopeNodes.BytesNode bytesNode,
             @Cached("symbol") RubySymbol cachedSymbol,
-            @Cached("getID(cachedSymbol, wrapNode, bytesNode)") Object cachedID) {
+            @Cached("getID(cachedSymbol, wrapNode)") Object cachedID) {
         return cachedID;
     }
 
     @Specialization(replaces = "getIDCached")
     protected Object getIDUncached(RubySymbol symbol,
             @Cached WrapNode wrapNode,
-            @Cached RopeNodes.BytesNode bytesNode,
-            @Cached ConditionProfile singleByteProfile) {
-        Rope rope = symbol.getRope();
-        if (singleByteProfile.profile(rope.byteLength() == 1)) {
-            return (long) bytesNode.execute(rope)[0];
+            @Cached ConditionProfile staticSymbolProfile) {
+        if (staticSymbolProfile.profile(symbol.getId() != RubySymbol.UNASSIGNED)) {
+            return symbol.getId();
         }
         return wrapNode.execute(symbol);
     }
 
     protected Object getID(RubySymbol symbol,
-            WrapNode wrapNode,
-            RopeNodes.BytesNode bytesNode) {
+            WrapNode wrapNode) {
         Rope rope = symbol.getRope();
-        if (rope.byteLength() == 1) {
-            return (long) bytesNode.execute(rope)[0];
+        if (symbol.getId() != RubySymbol.UNASSIGNED) {
+            return symbol.getId();
         }
         return wrapNode.execute(symbol);
     }
