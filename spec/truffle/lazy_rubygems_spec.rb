@@ -33,7 +33,7 @@ describe "Lazy RubyGems" do
     ruby_exe('puts StringIO').should == "StringIO\n"
   end
 
-  it "works for require 'rubygems/deprecate'" do
-    ruby_exe("require 'rubygems/deprecate'; p Gem::Deprecate").should == "Gem::Deprecate\n"
+  it "works for require 'rubygems/package'" do
+    ruby_exe("require 'rubygems/package'; p Gem::Package").should == "Gem::Package\n"
   end
 end

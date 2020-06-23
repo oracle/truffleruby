@@ -9,19 +9,14 @@
  */
 package org.truffleruby.language.control;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import org.truffleruby.core.exception.ExceptionOperations;
 
 public class JavaException extends RuntimeException {
 
     private static final long serialVersionUID = -5710714298554437748L;
 
     public JavaException(Throwable cause) {
-        super(doGetMessage(cause), cause);
-    }
-
-    @TruffleBoundary
-    private static String doGetMessage(Throwable cause) {
-        return cause.getMessage();
+        super(ExceptionOperations.getMessage(cause), cause);
     }
 
     @SuppressWarnings("sync-override")

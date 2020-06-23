@@ -34,6 +34,11 @@ public abstract class ExceptionOperations {
     public static final String NO_LOCAL_VARIABLE_OR_METHOD_ERROR = "NO_LOCAL_VARIABLE_OR_METHOD_ERROR";
 
     @TruffleBoundary
+    public static String getMessage(Throwable throwable) {
+        return throwable.getMessage();
+    }
+
+    @TruffleBoundary
     private static String messageFieldToString(RubyContext context, DynamicObject exception) {
         Object message = Layouts.EXCEPTION.getMessage(exception);
         if (message == null || message == Nil.INSTANCE) {

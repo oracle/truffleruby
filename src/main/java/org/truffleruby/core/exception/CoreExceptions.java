@@ -33,7 +33,6 @@ import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -837,8 +836,8 @@ public class CoreExceptions {
     }
 
     public DynamicObject noMethodErrorUnknownIdentifier(Object receiver, String name, Object[] args,
-            InteropException exception, Node currentNode) {
-        return noMethodError(exception.getMessage(), receiver, name, args, currentNode);
+            UnknownIdentifierException exception, Node currentNode) {
+        return noMethodError(ExceptionOperations.getMessage(exception), receiver, name, args, currentNode);
     }
 
     // LoadError
