@@ -573,15 +573,17 @@ class Array
 
   def insert(idx, *items)
     Primitive.check_frozen self
-
     return self if items.length == 0
 
-    # Adjust the index for correct insertion
     idx = Truffle::Type.coerce_to_collection_index idx
     idx += (size + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
-    self[idx, 0] = items   # Cheat
+    if items.size == 1
+      self[idx, 0] = [items[0]]
+    else
+      self[idx, 0] = items
+    end
     self
   end
   Truffle::Graal.always_split instance_method(:insert)
