@@ -145,22 +145,6 @@ class Array
     true
   end
 
-  private def element_reference_fallback(start, length)
-    if Primitive.undefined?(length)
-      if Range === start
-        start, length = Primitive.range_normalized_start_length(start, size)
-        length = 0 if length < 0 # must return [] if index in range
-      else
-        return at(start)
-      end
-    else
-      start = Primitive.rb_num2int(start)
-      start += size if start < 0
-      length = Primitive.rb_num2int(length)
-    end
-    Primitive.array_read_slice_normalized(self, start, length)
-  end
-
   def assoc(obj)
     each do |x|
       if x.kind_of? Array and x.first == obj
