@@ -35,8 +35,9 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     protected void truncate(DynamicObject array, int size,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
 
+        final int oldSize = ARRAY.getSize(array);
         ARRAY.setSize(array, size);
-        stores.clear(ARRAY.getStore(array), size, ARRAY.getSize(array) - size);
+        stores.clear(ARRAY.getStore(array), size, oldSize - size);
     }
 
     @Specialization(
@@ -46,7 +47,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
 
         final Object store = ARRAY.getStore(array);
-        final Object newStore = stores.allocator(store).allocate(size);
+        final Object newStore = stores.allocateForNewStore(store, store, size);
         stores.copyContents(store, 0, newStore, 0, size);
         ARRAY.setStore(array, newStore);
         ARRAY.setSize(array, size);

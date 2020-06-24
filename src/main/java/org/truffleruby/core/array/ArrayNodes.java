@@ -289,7 +289,7 @@ public abstract class ArrayNodes {
             return ArrayNodesFactory.IndexSetNodeFactory.create(null);
         }
 
-        abstract Object execute(DynamicObject array, int index, int length, DynamicObject replacement);
+        abstract Object executeIntIndices(DynamicObject array, int index, int length, Object replacement);
 
         // array[index] = object
 

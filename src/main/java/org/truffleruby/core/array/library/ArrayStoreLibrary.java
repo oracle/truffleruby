@@ -104,6 +104,7 @@ public abstract class ArrayStoreLibrary extends Library {
      * range to the default value for the {@code store}. */
     @Abstract(ifExported = "write")
     public void clear(Object store, int start, int length) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         throw new UnsupportedOperationException();
     }
 
@@ -111,6 +112,7 @@ public abstract class ArrayStoreLibrary extends Library {
      * {@code value}. */
     @Abstract(ifExported = "write")
     public void fill(Object store, int start, int length, Object value) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
         throw new UnsupportedOperationException();
     }
 

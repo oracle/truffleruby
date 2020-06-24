@@ -24,16 +24,14 @@ import static org.truffleruby.Layouts.ARRAY;
 
 /** This node prepares an array to receive content copied from another array. In particular:
  * <ul>
- * <li>It makes sure that the array's store's capacity is sufficient to handle the copy, and udpate its size.
- * <li>It makes sure the array's store is mutable, and compatible with the source array.
+ * <li>It makes sure that the array's store's capacity is sufficient to handle the copy, and update its size.
+ * <li>It makes sure the array's store is mutable, and compatible with the source array, generalizing it if needed.
  * <li>If the copy is done entirely beyond the current size of the array, it makes sure intervening slots are filled
  * with {@code nil}.
  * </ul>
  * <p>
- * The copy itself can then be performed with {@link ArrayCopyCompatibleRangeNode}.
- * <p>
- * IMPORTANT: The array may not be in a usable state after running this node, as it may contain uninitialized slots (in
- * particular, {@code null} values in object arrays). */
+ * The copy itself can then be performed with {@link ArrayCopyCompatibleRangeNode}. In fact it MUST be performed, as the
+ * array may otherwise contain uninitialized slots (in particular, {@code null} values in {@code Object} arrays). */
 @ReportPolymorphism
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
@@ -73,7 +71,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
 
         // Necessary even if under capacity to ensure that the destination gets a mutable store.
         ensureCapacityNode.executeEnsureCapacity(dst, start + length);
-        if (start + length > ARRAY.getSize(dst)) { // not worth profiling
+        if (start + length > ARRAY.getSize(dst)) {
             ARRAY.setSize(dst, start + length);
         }
     }
@@ -92,7 +90,7 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
 
         // NOTE(norswap, 10 Jun 2020)
         //  The semantics of this node guarantee that the whole array will be copied (some code relies on it).
-        //  Otherwise, we could copy only up to `start` if we could assume the rest of the array will be, and copy
+        //  Otherwise, we could copy only up to `start` if we could assume the rest of the array will be filled, and copy
         //  the rest ([start + length, oldDstSize[) only if actually required.
         //  It's not clear that even in that case much would be gained by splitting the copy in two parts, unless
         //  `length` is truly big.

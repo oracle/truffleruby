@@ -26,7 +26,7 @@ import static org.truffleruby.Layouts.ARRAY;
 /** Copies a portion of an array to another array, whose store is known to have sufficient capacity, and to be
  * compatible with the source array's store.
  * <p>
- * This never checks the array's sizes, which may therefore be adjusted afterwards.
+ * This never checks the array's size, which may therefore be adjusted afterwards.
  * <p>
  * Also propagates sharing from the source array to destination array.
  * <p>
@@ -44,7 +44,8 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
     @Specialization(limit = "storageStrategyLimit()")
     protected void copy(DynamicObject dst, DynamicObject src, int dstStart, int srcStart, int length,
             @CachedLibrary("getStore(src)") ArrayStoreLibrary stores,
-            @Cached IsSharedNode isSharedNode,
+            @Cached IsSharedNode isDstShared,
+            @Cached IsSharedNode isSrcShared,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached ConditionProfile share) {
 
@@ -52,8 +53,8 @@ public abstract class ArrayCopyCompatibleRangeNode extends RubyBaseNode {
         stores.copyContents(srcStore, srcStart, ARRAY.getStore(dst), dstStart, length);
 
         if (share.profile(srcStore instanceof Object[] &&
-                isSharedNode.executeIsShared(dst) &&
-                !isSharedNode.executeIsShared(src))) {
+                isDstShared.executeIsShared(dst) &&
+                !isSrcShared.executeIsShared(src))) {
             for (int i = 0; i < length; ++i) {
                 writeBarrierNode.executeWriteBarrier(stores.read(srcStore, i));
             }
