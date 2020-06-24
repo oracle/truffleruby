@@ -35,7 +35,7 @@ loop do
     end
   end
 
-  unless test_thread.join(5)
+  unless test_thread.join(10)
     puts 'That timed out :( either it takes too long to execute or to compile'
   end
 end

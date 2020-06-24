@@ -2389,7 +2389,7 @@ EOS
     #  - building with jdt in the ci definition could be dropped since fullbuild builds with JDT
     mx 'spotbugs' unless fast
 
-    mx 'verify-ci'
+    mx 'verify-ci' if changed['.py']
 
     unless fast
       check_parser
