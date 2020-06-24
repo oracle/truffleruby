@@ -19,12 +19,13 @@ end
 
 require 'fileutils'
 
+ruby_home = ARGV[0] or raise "Need the TruffleRuby home as first argument"
+
 FROM = File.expand_path('../..', File.realpath(__FILE__))
-graalvm_home = "#{FROM}/mxbuild/truffleruby-jvm"
-jre_dir = File.directory?("#{graalvm_home}/jre") ? "#{graalvm_home}/jre" : graalvm_home
-TO = "#{jre_dir}/languages/ruby"
+TO = File.expand_path(ruby_home)
 
 abort "#{TO} does not exist" unless File.directory?(TO)
+abort "#{TO} is not a TruffleRuby home" unless File.directory?("#{TO}/lib/truffle")
 
 # Must be consistent with TRUFFLERUBY_GRAALVM_SUPPORT in suite.py
 DIRS_TO_SYNC = %w[

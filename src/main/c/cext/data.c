@@ -35,10 +35,11 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 }
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
-  if (RTYPEDDATA_TYPE(value) != data_type) {
+  struct RTypedData* typed_data = RTYPEDDATA(value);
+  if (typed_data->type != data_type) {
     rb_raise(rb_eTypeError, "wrong argument type");
   }
-  return RTYPEDDATA_DATA(value);
+  return typed_data->data;
 }
 
 int rb_typeddata_inherited_p(const rb_data_type_t *child, const rb_data_type_t *parent) {
