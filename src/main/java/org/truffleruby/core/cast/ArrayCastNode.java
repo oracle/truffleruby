@@ -35,6 +35,10 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     @Child private CallDispatchHeadNode toArrayNode = CallDispatchHeadNode.createReturnMissing();
 
+    public static ArrayCastNode create() {
+        return ArrayCastNodeGen.create(null);
+    }
+
     public ArrayCastNode() {
         this(SplatCastNode.NilBehavior.NIL);
     }
@@ -42,6 +46,8 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
     public ArrayCastNode(SplatCastNode.NilBehavior nilBehavior) {
         this.nilBehavior = nilBehavior;
     }
+
+    public abstract Object execute(Object value);
 
     protected abstract RubyNode getChild();
 

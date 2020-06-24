@@ -33,6 +33,7 @@ import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
+import org.truffleruby.core.cast.ArrayCastNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -50,6 +51,7 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
+import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -90,6 +92,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
+import org.truffleruby.utils.Utils;
 
 @CoreModule(value = "Array", isClass = true)
 public abstract class ArrayNodes {
@@ -289,6 +292,8 @@ public abstract class ArrayNodes {
             return ArrayNodesFactory.IndexSetNodeFactory.create(null);
         }
 
+        abstract Object executeIntIndex(DynamicObject array, int index, Object value, NotProvided unused);
+
         abstract Object executeIntIndices(DynamicObject array, int index, int length, Object replacement);
 
         // array[index] = object
@@ -303,11 +308,27 @@ public abstract class ArrayNodes {
             final int nIndex = normalize(size, index, negativeDenormalizedIndex, negativeNormalizedIndex);
             return writeNode.executeWrite(array, nIndex, value);
         }
-        
-        @Specialization(guards = "!isInteger(start)")
-        protected Object fallbackUnary(DynamicObject array, Object start, Object value, NotProvided unused,
-                @Cached CallDispatchHeadNode fallbackNode) {
-            return fallbackNode.call(array, "element_set_index_fallback", start, value);
+
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object setRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused,
+                @Cached NormalizedStartLengthNode normalizedStartLength,
+                @Cached BranchProfile negativeStart) {
+            final int[] startLength = normalizedStartLength.execute(range, Layouts.ARRAY.getSize(array));
+            final int start = startLength[0];
+            if (start < 0) {
+                negativeStart.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().rangeError(Utils.concat("index ", start, " out of bounds"), this));
+            }
+            final int length = Math.max(startLength[1], 0); // negative range ending maps to zero length
+            return executeIntIndices(array, start, length, value);
+        }
+
+        @Specialization(guards = { "!isInteger(start)", "!isRubyRange(start)" })
+        protected Object fallbackBinary(DynamicObject array, Object start, Object value, NotProvided unused,
+                @Cached ToIntNode toInt) {
+            return executeIntIndex(array, toInt.execute(start), value, unused);
         }
 
         // array[start, length] = array2
@@ -361,11 +382,28 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = {
+                "!isRubyArray(replacement)",
                 "wasProvided(replacement)",
-                "fallbackGuard(start, length, replacement)" })
-        protected Object fallbackBinary(DynamicObject array, Object start, Object length, Object replacement,
-                @Cached CallDispatchHeadNode fallbackNode) {
-            return fallbackNode.call(array, "element_set_range_fallback", start, length, replacement);
+                "length >= 0" })
+        protected Object setTernary(DynamicObject array, int start, int length, Object replacement,
+                @Cached ArrayCastNode arrayCast,
+                @Cached ArrayBuilderNode arrayBuilder,
+                @Cached ArrayNodes.IndexSetNode recurse) {
+            Object converted = arrayCast.execute(replacement);
+            if (converted == nil) {
+                final BuilderState state = arrayBuilder.start();
+                arrayBuilder.appendValue(state, 0, replacement);
+                converted = ArrayHelpers.createArray(getContext(), arrayBuilder.finish(state, 1), 1);
+            }
+            recurse.executeIntIndices(array, start, length, converted);
+            return replacement;
+        }
+
+        @Specialization(guards = { "!isInteger(start) || !isInteger(length)", "wasProvided(replacement)" })
+        protected Object fallbackTernary(DynamicObject array, Object start, Object length, Object replacement,
+                @Cached ToIntNode startToInt,
+                @Cached ToIntNode lengthToInt) {
+            return executeIntIndices(array, startToInt.execute(start), lengthToInt.execute(length), replacement);
         }
 
         // Helpers
@@ -382,11 +420,6 @@ public abstract class ArrayNodes {
                 }
             }
             return index;
-        }
-
-        protected static boolean fallbackGuard(Object start, Object length, Object replacement) {
-            return !RubyGuards.isInteger(start) || !RubyGuards.isInteger(length) ||
-                    ((int) length) >= 0 && !RubyGuards.isRubyArray(replacement);
         }
     }
 

@@ -161,34 +161,6 @@ class Array
     Primitive.array_read_slice_normalized(self, start, length)
   end
 
-  private def element_set_index_fallback(index, value)
-    if Range === index
-      start, length = Truffle::RangeOperations.normalized_start_length(index, size)
-      raise RangeError, "#{index} out of range" if start < 0
-      length = 0 if length < 0
-      self[start, length] = convert_to_array_set_value(value) # no recursion
-      value
-    else
-      self[Primitive.rb_num2int(index)] = value
-    end
-  end
-
-  private def element_set_range_fallback(index, length, value)
-    index = Primitive.rb_num2int(index)
-    length = Primitive.rb_num2int(length)
-    self[index, length] = convert_to_array_set_value(value) # no recursion
-    value
-  end
-
-  private def convert_to_array_set_value(value)
-    converted = value
-    unless Array === converted
-      converted = Array.try_convert(value)
-      converted = [value] unless converted
-    end
-    converted
-  end
-
   def assoc(obj)
     each do |x|
       if x.kind_of? Array and x.first == obj
