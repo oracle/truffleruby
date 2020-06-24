@@ -286,10 +286,10 @@ public abstract class ArrayNodes {
             raiseIfFrozenSelf = true,
             argumentNames = { "index_start_or_range", "length_or_value", "value" })
     @ImportStatic(ArrayHelpers.class)
-    public abstract static class IndexSetNode extends ArrayCoreMethodNode {
+    public abstract static class SetIndexNode extends ArrayCoreMethodNode {
 
-        public static IndexSetNode create() {
-            return ArrayNodesFactory.IndexSetNodeFactory.create(null);
+        public static SetIndexNode create() {
+            return ArrayNodesFactory.SetIndexNodeFactory.create(null);
         }
 
         abstract Object executeIntIndex(DynamicObject array, int index, Object value, NotProvided unused);
@@ -388,7 +388,7 @@ public abstract class ArrayNodes {
         protected Object setTernary(DynamicObject array, int start, int length, Object replacement,
                 @Cached ArrayCastNode arrayCast,
                 @Cached ArrayBuilderNode arrayBuilder,
-                @Cached ArrayNodes.IndexSetNode recurse) {
+                @Cached SetIndexNode recurse) {
             Object converted = arrayCast.execute(replacement);
             if (converted == nil) {
                 final BuilderState state = arrayBuilder.start();
