@@ -92,6 +92,7 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> LAZY_BUILTINS_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
     public static final OptionKey<Boolean> LAZY_TRANSLATION_CORE_KEY = new OptionKey<>(DEFAULT_LAZY_KEY.getDefaultValue());
     public static final OptionKey<Boolean> BASICOPS_INLINE_KEY = new OptionKey<>(true);
+    public static final OptionKey<Boolean> PROFILE_ARGUMENTS_KEY = new OptionKey<>(true);
     public static final OptionKey<Integer> DEFAULT_CACHE_KEY = new OptionKey<>(8);
     public static final OptionKey<Integer> METHOD_LOOKUP_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
     public static final OptionKey<Integer> DISPATCH_CACHE_KEY = new OptionKey<>(DEFAULT_CACHE_KEY.getDefaultValue());
@@ -654,6 +655,13 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
+    public static final OptionDescriptor PROFILE_ARGUMENTS = OptionDescriptor
+            .newBuilder(PROFILE_ARGUMENTS_KEY, "ruby.profile-arguments")
+            .help("profile the value and class of the receiver and arguments")
+            .category(OptionCategory.INTERNAL)
+            .stability(OptionStability.EXPERIMENTAL)
+            .build();
+
     public static final OptionDescriptor DEFAULT_CACHE = OptionDescriptor
             .newBuilder(DEFAULT_CACHE_KEY, "ruby.default-cache")
             .help("Default size for caches")
@@ -1199,6 +1207,8 @@ public class OptionsCatalog {
                 return LAZY_TRANSLATION_CORE;
             case "ruby.basic-ops-inline":
                 return BASICOPS_INLINE;
+            case "ruby.profile-arguments":
+                return PROFILE_ARGUMENTS;
             case "ruby.default-cache":
                 return DEFAULT_CACHE;
             case "ruby.method-lookup-cache":
@@ -1392,6 +1402,7 @@ public class OptionsCatalog {
             LAZY_BUILTINS,
             LAZY_TRANSLATION_CORE,
             BASICOPS_INLINE,
+            PROFILE_ARGUMENTS,
             DEFAULT_CACHE,
             METHOD_LOOKUP_CACHE,
             DISPATCH_CACHE,

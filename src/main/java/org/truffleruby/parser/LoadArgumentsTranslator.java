@@ -28,7 +28,6 @@ import org.truffleruby.language.SourceIndexLength;
 import org.truffleruby.language.arguments.ArrayIsAtLeastAsLargeAsNode;
 import org.truffleruby.language.arguments.MissingArgumentBehavior;
 import org.truffleruby.language.arguments.MissingKeywordArgumentNode;
-import org.truffleruby.language.arguments.ProfileArgumentNodeGen;
 import org.truffleruby.language.arguments.ReadBlockFromCurrentFrameArgumentsNode;
 import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadKeywordRestArgumentNode;
@@ -321,7 +320,8 @@ public class LoadArgumentsTranslator extends Translator {
             return ArrayIndexNodes.ReadConstantIndexNode.create(loadArray(sourceSection), index);
         } else {
             if (state == State.PRE) {
-                return ProfileArgumentNodeGen.create(
+                return profileArgument(
+                        context,
                         new ReadPreArgumentNode(
                                 index,
                                 isProc ? MissingArgumentBehavior.NIL : MissingArgumentBehavior.RUNTIME_ERROR));
