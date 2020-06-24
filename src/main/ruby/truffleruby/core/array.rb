@@ -148,7 +148,7 @@ class Array
   private def element_reference_fallback(start, length)
     if Primitive.undefined?(length)
       if Range === start
-        start, length = Truffle::RangeOperations.normalized_start_length(start, size)
+        start, length = Primitive.range_normalized_start_length(start, size)
         length = 0 if length < 0 # must return [] if index in range
       else
         return at(start)

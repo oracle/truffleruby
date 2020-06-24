@@ -71,27 +71,5 @@ module Truffle
 
       [first, last, step_size]
     end
-
-    # Returns an array containing normalized int range parameters `[start, length]`,
-    # such that both are 32-bits java ints (if conversion is impossible, an error is raised),
-    # positive (negative values are converted by adding `size`).
-    #
-    # The length will *not* be clamped to size!
-    #
-    # `size` is assumed to be normalized: fitting in an int, and positive.
-    def self.normalized_start_length(range, size)
-      start = Primitive.rb_num2int(range.first)
-      start += size if start < 0
-      if Primitive.nil?(range.end)
-        length = size - start
-      else
-        length = Primitive.rb_num2int(range.end)
-        length += size if length < 0
-        length += 1 unless range.exclude_end?
-        length -= start
-      end
-      [start, length]
-    end
-
   end
 end
