@@ -1,0 +1,2 @@
+arm64(GR-24423):Integer#% bignum returns the modulus obtained from dividing self by the given argument
+arm64(GR-24423):Integer#modulo bignum returns the modulus obtained from dividing self by the given argument
