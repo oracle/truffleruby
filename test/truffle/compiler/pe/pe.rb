@@ -28,7 +28,7 @@
 
 require_relative 'pe_harness'
 
-TIMEOUT = 10
+TIMEOUT = 20
 
 EXAMPLES = []
 
