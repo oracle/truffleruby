@@ -133,3 +133,4 @@ slow:The launcher supports running ruby symlinked
 slow:The launcher supports running truffleruby symlinked
 slow:The launcher should recognize ruby --vm options in RUBYOPT
 slow:The launcher should recognize ruby --vm options in TRUFFLERUBYOPT
+arm64:The launcher for gem can install and uninstall the hello-world gem
