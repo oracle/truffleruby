@@ -159,11 +159,6 @@ public class RubyLauncher extends AbstractLanguageLauncher {
     }
 
     @Override
-    protected String[] getDefaultLanguages() {
-        return new String[]{ getLanguageId(), "llvm" };
-    }
-
-    @Override
     protected void printHelp(OptionCategory maxCategory) {
         printHelp(System.out);
     }

@@ -368,7 +368,7 @@ public class RubyContext {
 
     private static boolean computeHasOtherPublicLanguages(Env env) {
         for (String language : env.getPublicLanguages().keySet()) {
-            if (!language.equals("ruby") && !language.equals("llvm")) { // GR-24239 See RubyLauncher#getDefaultLanguages
+            if (!language.equals(TruffleRuby.LANGUAGE_ID)) {
                 return true;
             }
         }
