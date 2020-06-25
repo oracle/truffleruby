@@ -57,15 +57,7 @@ character_ids.each do |id|
 end
 
 offset = 128
-
 index = offset
-# ids[:token_op].each do |_id, _op, token|
-#  next unless token
-#  index += 1
-# end
-
-max_index = ids_map.keys.max
-
 
 File.write('src/main/java/org/truffleruby/core/symbol/CoreSymbols.java', ERB.new(<<'JAVA').result)
 /*
@@ -93,6 +85,9 @@ import org.truffleruby.core.rope.RopeOperations;
 // @formatter:off
 public class CoreSymbols {
 
+    public static long STATIC_SYMBOL_ID = 0x1;
+    private static long GLOBAL_SYMBOL_ID = (0x03 << 1);
+
     public static final List<RubySymbol> CORE_SYMBOLS = new ArrayList<>();
     public static final RubySymbol[] STATIC_SYMBOLS = new RubySymbol[216];
 
@@ -113,14 +108,14 @@ public class CoreSymbols {
     // Skipped preserved token: `<%=token%>`<% index += 1 %><% end %><% end %>
     public static final int LAST_OP_ID = <%=index-1%>;
 <% types.each do |type| %><% tokens = ids[type] %><% tokens.each do |token| %>
-    public static final RubySymbol <%=token.upcase%> = createRubySymbol("<%=ids[:predefined][token]%>", <%=index%>);<% index += 1 %><% end %><% end %>
+    public static final RubySymbol <%=token.upcase%> = createRubySymbol("<%=ids[:predefined][token]%>", to<%=type.capitalize%>(<%=index%>));<% index += 1 %><% end %><% end %>
 
     public static final int STATIC_SYMBOLS_SIZE = <%=index%>;
     static {
         assert STATIC_SYMBOLS_SIZE == STATIC_SYMBOLS.length;
     }
 
-    public static RubySymbol createRubySymbol(String string, int id) {
+    public static RubySymbol createRubySymbol(String string, long id) {
         Rope rope = RopeConstants.lookupUSASCII(string);
         if (rope == null) {
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
@@ -128,15 +123,41 @@ public class CoreSymbols {
 
         final RubySymbol symbol = new RubySymbol(string, rope, id);
         CORE_SYMBOLS.add(symbol);
-        if (id != RubySymbol.UNASSIGNED) {
-            STATIC_SYMBOLS[id] = symbol;
+
+        if (id != RubySymbol.UNASSIGNED_ID) {
+            final int index = idToIndex(id);
+            STATIC_SYMBOLS[index] = symbol;
         }
         return symbol;
     }
 
     public static RubySymbol createRubySymbol(String string) {
-        return createRubySymbol(string, RubySymbol.UNASSIGNED);
+        return createRubySymbol(string, RubySymbol.UNASSIGNED_ID);
     }
+
+    public static int idToIndex(long id) {
+      final int index;
+      if (id > LAST_OP_ID) {
+        index = (int) id >> 4;
+      } else {
+        index = (int) id;
+      }
+      assert index < STATIC_SYMBOLS_SIZE;
+      return index;
+    }
+
+    private static long toLocal(long id) {
+        return id << 4 | STATIC_SYMBOL_ID;
+    }
+
+    private static long toGlobal(long id) {
+        return id << 4 | STATIC_SYMBOL_ID | GLOBAL_SYMBOL_ID;
+    }
+
+    public static boolean isDynamicSymbol(long value) {
+        return (value & STATIC_SYMBOL_ID) == 0 && value > LAST_OP_ID;
+    }
+
 }
 // @formatter:on
 JAVA

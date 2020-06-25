@@ -23,6 +23,9 @@ import org.truffleruby.core.rope.RopeOperations;
 // @formatter:off
 public class CoreSymbols {
 
+    public static long STATIC_SYMBOL_ID = 0x1;
+    private static long GLOBAL_SYMBOL_ID = (0x03 << 1);
+
     public static final List<RubySymbol> CORE_SYMBOLS = new ArrayList<>();
     public static final RubySymbol[] STATIC_SYMBOLS = new RubySymbol[216];
 
@@ -107,64 +110,64 @@ public class CoreSymbols {
     // Skipped preserved token: `_debug_created_info`
     public static final int LAST_OP_ID = 164;
 
-    public static final RubySymbol MAX = createRubySymbol("max", 165);
-    public static final RubySymbol MIN = createRubySymbol("min", 166);
-    public static final RubySymbol FREEZE = createRubySymbol("freeze", 167);
-    public static final RubySymbol INSPECT = createRubySymbol("inspect", 168);
-    public static final RubySymbol INTERN = createRubySymbol("intern", 169);
-    public static final RubySymbol OBJECT_ID = createRubySymbol("object_id", 170);
-    public static final RubySymbol CONST_MISSING = createRubySymbol("const_missing", 171);
-    public static final RubySymbol METHODMISSING = createRubySymbol("method_missing", 172);
-    public static final RubySymbol METHOD_ADDED = createRubySymbol("method_added", 173);
-    public static final RubySymbol SINGLETON_METHOD_ADDED = createRubySymbol("singleton_method_added", 174);
-    public static final RubySymbol METHOD_REMOVED = createRubySymbol("method_removed", 175);
-    public static final RubySymbol SINGLETON_METHOD_REMOVED = createRubySymbol("singleton_method_removed", 176);
-    public static final RubySymbol METHOD_UNDEFINED = createRubySymbol("method_undefined", 177);
-    public static final RubySymbol SINGLETON_METHOD_UNDEFINED = createRubySymbol("singleton_method_undefined", 178);
-    public static final RubySymbol LENGTH = createRubySymbol("length", 179);
-    public static final RubySymbol SIZE = createRubySymbol("size", 180);
-    public static final RubySymbol GETS = createRubySymbol("gets", 181);
-    public static final RubySymbol SUCC = createRubySymbol("succ", 182);
-    public static final RubySymbol EACH = createRubySymbol("each", 183);
-    public static final RubySymbol PROC = createRubySymbol("proc", 184);
-    public static final RubySymbol LAMBDA = createRubySymbol("lambda", 185);
-    public static final RubySymbol SEND = createRubySymbol("send", 186);
-    public static final RubySymbol __SEND__ = createRubySymbol("__send__", 187);
-    public static final RubySymbol __ATTACHED__ = createRubySymbol("__attached__", 188);
-    public static final RubySymbol INITIALIZE = createRubySymbol("initialize", 189);
-    public static final RubySymbol INITIALIZE_COPY = createRubySymbol("initialize_copy", 190);
-    public static final RubySymbol INITIALIZE_CLONE = createRubySymbol("initialize_clone", 191);
-    public static final RubySymbol INITIALIZE_DUP = createRubySymbol("initialize_dup", 192);
-    public static final RubySymbol TO_INT = createRubySymbol("to_int", 193);
-    public static final RubySymbol TO_ARY = createRubySymbol("to_ary", 194);
-    public static final RubySymbol TO_STR = createRubySymbol("to_str", 195);
-    public static final RubySymbol TO_SYM = createRubySymbol("to_sym", 196);
-    public static final RubySymbol TO_HASH = createRubySymbol("to_hash", 197);
-    public static final RubySymbol TO_PROC = createRubySymbol("to_proc", 198);
-    public static final RubySymbol TO_IO = createRubySymbol("to_io", 199);
-    public static final RubySymbol TO_A = createRubySymbol("to_a", 200);
-    public static final RubySymbol TO_S = createRubySymbol("to_s", 201);
-    public static final RubySymbol TO_I = createRubySymbol("to_i", 202);
-    public static final RubySymbol TO_F = createRubySymbol("to_f", 203);
-    public static final RubySymbol TO_R = createRubySymbol("to_r", 204);
-    public static final RubySymbol BT = createRubySymbol("bt", 205);
-    public static final RubySymbol BT_LOCATIONS = createRubySymbol("bt_locations", 206);
-    public static final RubySymbol CALL = createRubySymbol("call", 207);
-    public static final RubySymbol MESG = createRubySymbol("mesg", 208);
-    public static final RubySymbol EXCEPTION = createRubySymbol("exception", 209);
-    public static final RubySymbol NOT = createRubySymbol("not", 210);
-    public static final RubySymbol AND = createRubySymbol("and", 211);
-    public static final RubySymbol OR = createRubySymbol("or", 212);
-    public static final RubySymbol USCORE = createRubySymbol("_", 213);
-    public static final RubySymbol LASTLINE = createRubySymbol("$_", 214);
-    public static final RubySymbol BACKREF = createRubySymbol("$~", 215);
+    public static final RubySymbol MAX = createRubySymbol("max", toLocal(165));
+    public static final RubySymbol MIN = createRubySymbol("min", toLocal(166));
+    public static final RubySymbol FREEZE = createRubySymbol("freeze", toLocal(167));
+    public static final RubySymbol INSPECT = createRubySymbol("inspect", toLocal(168));
+    public static final RubySymbol INTERN = createRubySymbol("intern", toLocal(169));
+    public static final RubySymbol OBJECT_ID = createRubySymbol("object_id", toLocal(170));
+    public static final RubySymbol CONST_MISSING = createRubySymbol("const_missing", toLocal(171));
+    public static final RubySymbol METHODMISSING = createRubySymbol("method_missing", toLocal(172));
+    public static final RubySymbol METHOD_ADDED = createRubySymbol("method_added", toLocal(173));
+    public static final RubySymbol SINGLETON_METHOD_ADDED = createRubySymbol("singleton_method_added", toLocal(174));
+    public static final RubySymbol METHOD_REMOVED = createRubySymbol("method_removed", toLocal(175));
+    public static final RubySymbol SINGLETON_METHOD_REMOVED = createRubySymbol("singleton_method_removed", toLocal(176));
+    public static final RubySymbol METHOD_UNDEFINED = createRubySymbol("method_undefined", toLocal(177));
+    public static final RubySymbol SINGLETON_METHOD_UNDEFINED = createRubySymbol("singleton_method_undefined", toLocal(178));
+    public static final RubySymbol LENGTH = createRubySymbol("length", toLocal(179));
+    public static final RubySymbol SIZE = createRubySymbol("size", toLocal(180));
+    public static final RubySymbol GETS = createRubySymbol("gets", toLocal(181));
+    public static final RubySymbol SUCC = createRubySymbol("succ", toLocal(182));
+    public static final RubySymbol EACH = createRubySymbol("each", toLocal(183));
+    public static final RubySymbol PROC = createRubySymbol("proc", toLocal(184));
+    public static final RubySymbol LAMBDA = createRubySymbol("lambda", toLocal(185));
+    public static final RubySymbol SEND = createRubySymbol("send", toLocal(186));
+    public static final RubySymbol __SEND__ = createRubySymbol("__send__", toLocal(187));
+    public static final RubySymbol __ATTACHED__ = createRubySymbol("__attached__", toLocal(188));
+    public static final RubySymbol INITIALIZE = createRubySymbol("initialize", toLocal(189));
+    public static final RubySymbol INITIALIZE_COPY = createRubySymbol("initialize_copy", toLocal(190));
+    public static final RubySymbol INITIALIZE_CLONE = createRubySymbol("initialize_clone", toLocal(191));
+    public static final RubySymbol INITIALIZE_DUP = createRubySymbol("initialize_dup", toLocal(192));
+    public static final RubySymbol TO_INT = createRubySymbol("to_int", toLocal(193));
+    public static final RubySymbol TO_ARY = createRubySymbol("to_ary", toLocal(194));
+    public static final RubySymbol TO_STR = createRubySymbol("to_str", toLocal(195));
+    public static final RubySymbol TO_SYM = createRubySymbol("to_sym", toLocal(196));
+    public static final RubySymbol TO_HASH = createRubySymbol("to_hash", toLocal(197));
+    public static final RubySymbol TO_PROC = createRubySymbol("to_proc", toLocal(198));
+    public static final RubySymbol TO_IO = createRubySymbol("to_io", toLocal(199));
+    public static final RubySymbol TO_A = createRubySymbol("to_a", toLocal(200));
+    public static final RubySymbol TO_S = createRubySymbol("to_s", toLocal(201));
+    public static final RubySymbol TO_I = createRubySymbol("to_i", toLocal(202));
+    public static final RubySymbol TO_F = createRubySymbol("to_f", toLocal(203));
+    public static final RubySymbol TO_R = createRubySymbol("to_r", toLocal(204));
+    public static final RubySymbol BT = createRubySymbol("bt", toLocal(205));
+    public static final RubySymbol BT_LOCATIONS = createRubySymbol("bt_locations", toLocal(206));
+    public static final RubySymbol CALL = createRubySymbol("call", toLocal(207));
+    public static final RubySymbol MESG = createRubySymbol("mesg", toLocal(208));
+    public static final RubySymbol EXCEPTION = createRubySymbol("exception", toLocal(209));
+    public static final RubySymbol NOT = createRubySymbol("not", toLocal(210));
+    public static final RubySymbol AND = createRubySymbol("and", toLocal(211));
+    public static final RubySymbol OR = createRubySymbol("or", toLocal(212));
+    public static final RubySymbol USCORE = createRubySymbol("_", toLocal(213));
+    public static final RubySymbol LASTLINE = createRubySymbol("$_", toGlobal(214));
+    public static final RubySymbol BACKREF = createRubySymbol("$~", toGlobal(215));
 
     public static final int STATIC_SYMBOLS_SIZE = 216;
     static {
         assert STATIC_SYMBOLS_SIZE == STATIC_SYMBOLS.length;
     }
 
-    public static RubySymbol createRubySymbol(String string, int id) {
+    public static RubySymbol createRubySymbol(String string, long id) {
         Rope rope = RopeConstants.lookupUSASCII(string);
         if (rope == null) {
             rope = RopeOperations.encodeAscii(string, USASCIIEncoding.INSTANCE);
@@ -172,14 +175,40 @@ public class CoreSymbols {
 
         final RubySymbol symbol = new RubySymbol(string, rope, id);
         CORE_SYMBOLS.add(symbol);
-        if (id != RubySymbol.UNASSIGNED) {
-            STATIC_SYMBOLS[id] = symbol;
+
+        if (id != RubySymbol.UNASSIGNED_ID) {
+            final int index = idToIndex(id);
+            STATIC_SYMBOLS[index] = symbol;
         }
         return symbol;
     }
 
     public static RubySymbol createRubySymbol(String string) {
-        return createRubySymbol(string, RubySymbol.UNASSIGNED);
+        return createRubySymbol(string, RubySymbol.UNASSIGNED_ID);
     }
+
+    public static int idToIndex(long id) {
+      final int index;
+      if (id > LAST_OP_ID) {
+        index = (int) id >> 4;
+      } else {
+        index = (int) id;
+      }
+      assert index < STATIC_SYMBOLS_SIZE;
+      return index;
+    }
+
+    private static long toLocal(long id) {
+        return id << 4 | STATIC_SYMBOL_ID;
+    }
+
+    private static long toGlobal(long id) {
+        return id << 4 | STATIC_SYMBOL_ID | GLOBAL_SYMBOL_ID;
+    }
+
+    public static boolean isDynamicSymbol(long value) {
+        return (value & STATIC_SYMBOL_ID) == 0 && value > LAST_OP_ID;
+    }
+
 }
 // @formatter:on

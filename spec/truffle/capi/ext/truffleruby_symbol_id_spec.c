@@ -74,11 +74,16 @@ VALUE symbol_id_spec_ID2SYM_SYM2ID(VALUE self, VALUE str) {
   }
 }
 
+VALUE symbol_id_spec_SYM2ID_ID2SYM(VALUE self, VALUE sym) {
+  return ID2SYM(SYM2ID(sym));
+}
+
 void Init_truffleruby_symbol_id_spec(void) {
   VALUE cls = rb_define_class("CApiTruffleRubySymbolIDSpecs", rb_cObject);
   rb_define_method(cls, "ID2SYM", symbol_id_spec_ID2SYM, 1);
   rb_define_method(cls, "SYM2ID", symbol_id_spec_SYM2ID, 2);
   rb_define_method(cls, "ID2SYM_SYM2ID", symbol_id_spec_ID2SYM_SYM2ID, 1);
+  rb_define_method(cls, "SYM2ID_ID2SYM", symbol_id_spec_SYM2ID_ID2SYM, 1);
 }
 
 #ifdef __cplusplus

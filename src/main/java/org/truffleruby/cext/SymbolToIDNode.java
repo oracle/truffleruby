@@ -9,7 +9,6 @@
  */
 package org.truffleruby.cext;
 
-import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -40,7 +39,7 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
     protected Object getIDUncached(RubySymbol symbol,
             @Cached WrapNode wrapNode,
             @Cached ConditionProfile staticSymbolProfile) {
-        if (staticSymbolProfile.profile(symbol.getId() != RubySymbol.UNASSIGNED)) {
+        if (staticSymbolProfile.profile(symbol.getId() != RubySymbol.UNASSIGNED_ID)) {
             return symbol.getId();
         }
         return wrapNode.execute(symbol);
@@ -48,8 +47,7 @@ public abstract class SymbolToIDNode extends RubyBaseNode {
 
     protected Object getID(RubySymbol symbol,
             WrapNode wrapNode) {
-        Rope rope = symbol.getRope();
-        if (symbol.getId() != RubySymbol.UNASSIGNED) {
+        if (symbol.getId() != RubySymbol.UNASSIGNED_ID) {
             return symbol.getId();
         }
         return wrapNode.execute(symbol);

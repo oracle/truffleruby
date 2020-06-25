@@ -21,7 +21,7 @@ describe "TruffleRuby ID2SYM" do
     @s.ID2SYM('idLTLT').should == :<<
     @s.ID2SYM('idEmptyP').should == :empty?
     @s.ID2SYM('idMesg').should == :mesg
-    @s.ID2SYM('idBACKREF').should == :"$~"
+    @s.ID2SYM('idBACKREF').should == :$~
   end
 
 end
@@ -37,7 +37,7 @@ describe "TruffleRuby SYM2ID" do
     @s.SYM2ID(:<<, 'idLTLT').should == true
     @s.SYM2ID(:empty?, 'idEmptyP').should == true
     @s.SYM2ID(:mesg, 'idMesg').should == true
-   # @s.SYM2ID(:"$~", 'idBACKREF').should == true
+    @s.SYM2ID(:$~, 'idBACKREF').should == true
   end
 
 end
@@ -53,7 +53,17 @@ describe "TruffleRuby ID2SYM/SYM2ID" do
     @s.ID2SYM_SYM2ID('idLTLT').should  == true
     @s.ID2SYM_SYM2ID('idEmptyP').should  == true
     @s.ID2SYM_SYM2ID('idMesg').should  == true
-    #@s.ID2SYM_SYM2ID('idBACKREF').should  == true
+    @s.ID2SYM_SYM2ID('idBACKREF').should  == true
+  end
+
+  it "returns the same symbol after SYM2ID then ID2SYM" do
+    @s.SYM2ID_ID2SYM(:+).should == :+
+    @s.SYM2ID_ID2SYM(:-).should  == :-
+    @s.SYM2ID_ID2SYM(:<<).should  == :<<
+    @s.SYM2ID_ID2SYM(:empty?).should  == :empty?
+    @s.SYM2ID_ID2SYM(:mesg).should  == :mesg
+    @s.SYM2ID_ID2SYM(:$~).should  == :$~
+    @s.SYM2ID_ID2SYM(:user_symbol).should  == :user_symbol
   end
 
 end
