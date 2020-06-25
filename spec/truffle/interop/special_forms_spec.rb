@@ -149,19 +149,43 @@ describe "Interop special forms" do
     l.log.should include(['getMembers', false])
   end
 
-  it description['.method_name', :invoke_member, ['method_name']] do
+  it description['.method_name', :readMember, ['method_name'], 'if member is not invocable'] do
     pfo, obj, l = proxy[Object.new]
-    -> { pfo.foo }.should raise_error(NoMethodError)
+    -> { pfo.foo }.should raise_error(NameError)
+    l.log.should include(["isMemberInvocable", "foo"])
+    l.log.should include(["readMember", "foo"])
+  end
+
+  it description['.method_name', :invokeMember, ['method_name'], 'if member is invocable'] do
+    pfo, obj, l = proxy[Class.new { def foo; 3; end }.new]
+    pfo.foo
+    l.log.should include(["isMemberInvocable", "foo"])
     l.log.should include(["invokeMember", "foo"])
   end
 
-  it description['.method_name(*arguments)', :invoke_member, ['method_name', '*arguments']] do
+  it description['.method_name', :readMember, ['method_name'], 'if member is readable and not invokable'] do
+    pfo, obj, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
+    pfo.foo = :bar
+    pfo.foo
+    l.log.should include(["isMemberInvocable", "foo"])
+    l.log.should include(["readMember", "foo"])
+  end
+
+  it description['.method_name', :readMember, ['method_name']] do
+    pfo, obj, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
+    pfo.foo = Proc.new { :bar }
+    pfo.foo.should == :bar
+    l.log.should include(["isMemberInvocable", "foo"])
+    l.log.should include(["invokeMember", "foo"])
+  end
+
+  it description['.method_name(*arguments)', :invokeMember, ['method_name', '*arguments'], 'if member is readable and invokable'] do
     pfo, obj, l = proxy[Object.new]
     -> { pfo.bar(1, 2, 3) }.should raise_error(NoMethodError)
     l.log.should include(["invokeMember", "bar", 1, 2, 3])
   end
 
-  it description['.method_name(*arguments) &block', :invoke_member, ['method_name', '*arguments, block']] do
+  it description['.method_name(*arguments) &block', :invokeMember, ['method_name', '*arguments, block']] do
     pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     block = Proc.new {}
     pfo.foo = -> *x { 1 }
@@ -195,34 +219,39 @@ describe "Interop special forms" do
   end
 
   it description['.to_s', :asString, [], 'when `isString(foreign_object)` is true'] do
-    @object = Truffle::Interop.logging_foreign_object("asString contents")
-    @object.to_s.should == "asString contents"
-    Truffle::Interop.to_display_string(@object).should include("asString()")
+    pfo, str, l = proxy['asString contents']
+    pfo.to_s.should == "asString contents"
+    l.log.should include(["asString"])
   end
 
   it description['.to_s', :toDisplayString, [], 'otherwise'] do
-    @object.to_s.should include("toDisplayString(")
+    pfo, str, l = proxy[Object.new]
+    pfo.to_s
+    l.log.should include(["toDisplayString", true])
   end
 
   it description['.to_str', :asString, [], 'when `isString(foreign_object)` is true'] do
-    @object = Truffle::Interop.logging_foreign_object("asString contents")
-    @object.to_str.should == "asString contents"
-    Truffle::Interop.to_display_string(@object).should include("isString()")
-    Truffle::Interop.to_display_string(@object).should include("asString()")
+    pfo, str, l = proxy["asString contents"]
+    pfo.to_str.should == "asString contents"
+    l.log.should include(["isString"])
+    l.log.should include(["asString"])
   end
 
   it doc['.to_str', 'raises `NoMethodError` otherwise'] do
-    -> { @object.to_str }.should raise_error(NoMethodError)
+    pfo, obj, l = proxy[Object.new]
+    -> { pfo.to_str }.should raise_error(NoMethodError)
   end
 
   it doc['.to_a', 'converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`'] do
-    -> { @object.to_a }.should raise_error(RuntimeError)
-    Truffle::Interop.to_display_string(@object).should include("hasArrayElements()")
+    pfo, obj, l = proxy[Object.new]
+    -> { pfo.to_a }.should raise_error(RuntimeError)
+    l.log.should include(["hasArrayElements"])
   end
 
   it doc['.to_ary', 'converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`'] do
-    -> { @object.to_a }.should raise_error(RuntimeError)
-    Truffle::Interop.to_display_string(@object).should include("hasArrayElements()")
+    pfo, obj, l = proxy[Object.new]
+    -> { pfo.to_a }.should raise_error(RuntimeError)
+    l.log.should include(["hasArrayElements"])
   end
 
   output << "\nUse `.respond_to?` for calling `InteropLibrary` predicates:\n"
@@ -236,38 +265,45 @@ describe "Interop special forms" do
   end
 
   it description['.respond_to?(:to_str)', :isString] do
-    @object.respond_to?(:to_str)
-    Truffle::Interop.to_display_string(@object).should include("isString()")
+    pfo, obj, l = proxy[Object.new]
+    pfo.respond_to?(:to_str)
+    l.log.should include(["isString"])
   end
 
   it description['.respond_to?(:to_a)', :hasArrayElements] do
-    @object.respond_to?(:to_a)
-    Truffle::Interop.to_display_string(@object).should include("hasArrayElements()")
+    pfo, obj, l = proxy[Object.new]
+    pfo.respond_to?(:to_a)
+    l.log.should include(["hasArrayElements"])
   end
 
   it description['.respond_to?(:to_ary)', :hasArrayElements] do
-    @object.respond_to?(:to_ary)
-    Truffle::Interop.to_display_string(@object).should include("hasArrayElements()")
+    pfo, obj, l = proxy[Object.new]
+    pfo.respond_to?(:to_ary)
+    l.log.should include(["hasArrayElements"])
   end
 
   it description['.respond_to?(:size)', :hasArrayElements] do
-    @object.respond_to?(:size)
-    Truffle::Interop.to_display_string(@object).should include("hasArrayElements()")
+    pfo, obj, l = proxy[Object.new]
+    pfo.respond_to?(:size)
+    l.log.should include(["hasArrayElements"])
   end
 
   it description['.respond_to?(:keys)', :hasMembers] do
-    @object.respond_to?(:keys)
-    Truffle::Interop.to_display_string(@object).should include("hasMembers()")
+    pfo, obj, l = proxy[Object.new]
+    pfo.respond_to?(:keys)
+    l.log.should include(["hasMembers"])
   end
 
   it description['.respond_to?(:call)', :isExecutable] do
-    @object.respond_to?(:call)
-    Truffle::Interop.to_display_string(@object).should include("isExecutable()")
+    pfo, obj, l = proxy[Object.new]
+    pfo.respond_to?(:call)
+    l.log.should include(["isExecutable"])
   end
 
   it description['.respond_to?(:new)', :isInstantiable] do
-    @object.respond_to?(:new)
-    Truffle::Interop.to_display_string(@object).should include("isInstantiable()")
+    pfo, obj, l = proxy[Object.new]
+    pfo.respond_to?(:new)
+    l.log.should include(["isInstantiable"])
   end
 
   it doc['.respond_to?(:is_a?)', "is always true"] do
