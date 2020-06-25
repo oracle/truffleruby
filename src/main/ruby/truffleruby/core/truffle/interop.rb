@@ -359,6 +359,10 @@ module Truffle
       case name.to_sym
       when :to_a, :to_ary
         Truffle::Interop.has_array_elements?(object)
+      when :to_f
+        Truffle::Interop.fits_in_double?(object) || Truffle::Interop.fits_in_long?(object)
+      when :to_i
+        Truffle::Interop.fits_in_int?(object) || Truffle::Interop.fits_in_long?(object)
       when :new
         Truffle::Interop.instantiable?(object)
       when :size
