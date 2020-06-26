@@ -10,6 +10,7 @@
 
 package org.truffleruby.core.array.library;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -92,14 +93,24 @@ public class ObjectArrayStore {
         @Specialization(guards = "!isObjectStore(destStore)", limit = "storageStrategyLimit()")
         protected static void copyContents(Object[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
-            for (int i = srcStart; i < length; i++) {
-                destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
+            for (int i = 0; i < length; i++) {
+                destStores.write(destStore, destStart + i, srcStore[srcStart + i]);
             }
         }
 
         protected static boolean isObjectStore(Object store) {
             return store instanceof Object[];
         }
+    }
+
+    @ExportMessage
+    protected static void clear(Object[] store, int start, int length) {
+        Arrays.fill(store, start, start + length, null);
+    }
+
+    @ExportMessage
+    protected static void fill(Object[] store, int start, int length, Object value) {
+        Arrays.fill(store, start, start + length, value);
     }
 
     @ExportMessage

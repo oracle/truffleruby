@@ -121,14 +121,24 @@ public class DoubleArrayStore {
         @Specialization(guards = "!isDoubleStore(destStore)", limit = "storageStrategyLimit()")
         protected static void copyContents(double[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
-            for (int i = srcStart; i < length; i++) {
-                destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
+            for (int i = 0; i < length; i++) {
+                destStores.write(destStore, destStart + i, srcStore[srcStart + i]);
             }
         }
 
         protected static boolean isDoubleStore(Object store) {
             return store instanceof double[];
         }
+    }
+
+    @ExportMessage
+    protected static void clear(double[] store, int start, int length) {
+        Arrays.fill(store, start, start + length, 0);
+    }
+
+    @ExportMessage
+    protected static void fill(double[] store, int start, int length, Object value) {
+        Arrays.fill(store, start, start + length, (double) value);
     }
 
     @ExportMessage

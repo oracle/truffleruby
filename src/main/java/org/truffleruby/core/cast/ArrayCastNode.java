@@ -28,12 +28,18 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 /*
  * TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
  */
+
+/** See also org.truffleruby.core.array.ArrayConvertNode */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     private final SplatCastNode.NilBehavior nilBehavior;
 
     @Child private CallDispatchHeadNode toArrayNode = CallDispatchHeadNode.createReturnMissing();
+
+    public static ArrayCastNode create() {
+        return ArrayCastNodeGen.create(null);
+    }
 
     public ArrayCastNode() {
         this(SplatCastNode.NilBehavior.NIL);
@@ -42,6 +48,8 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
     public ArrayCastNode(SplatCastNode.NilBehavior nilBehavior) {
         this.nilBehavior = nilBehavior;
     }
+
+    public abstract Object execute(Object value);
 
     protected abstract RubyNode getChild();
 

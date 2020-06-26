@@ -100,6 +100,23 @@ public abstract class ArrayStoreLibrary extends Library {
      * {@code destStart}. {@code length} entries will be copied. */
     public abstract void copyContents(Object store, int srcStart, Object dest, int destStart, int length);
 
+    /** Clear the part of the array starting at {@code start} and extending for {@code length} elements by setting this
+     * range to the default value for the {@code store}. */
+    @Abstract(ifExported = "write")
+    public void clear(Object store, int start, int length) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        throw new UnsupportedOperationException();
+    }
+
+    /** Fill the part of the array starting at {@code start} and extending for {@code length} elements using
+     * {@code value}, which must be accepted by the store. */
+    @Abstract(ifExported = "write")
+    public void fill(Object store, int start, int length, Object value) {
+        CompilerDirectives.transferToInterpreterAndInvalidate();
+        assert acceptsValue(store, value);
+        throw new UnsupportedOperationException();
+    }
+
     /** Create a mutable copy of {@code store} of length {@code length}. */
     public abstract Object toJavaArrayCopy(Object store, int length);
 
@@ -121,8 +138,12 @@ public abstract class ArrayStoreLibrary extends Library {
      * {@code newStore}. */
     public abstract ArrayAllocator generalizeForStore(Object store, Object newStore);
 
+    /** Return a new store of length {@code length} that can accept all the values of {@code store} and {@code newValue}
+     * . */
     public abstract Object allocateForNewValue(Object store, Object newValue, int length);
 
+    /** Return a new store of length {@code length} that can accept all the values of {@code store} and all the values
+     * of {@code newStore}. */
     public abstract Object allocateForNewStore(Object store, Object newStore, int length);
 
     /** Return an allocator for a mutable version of {@code store}. */

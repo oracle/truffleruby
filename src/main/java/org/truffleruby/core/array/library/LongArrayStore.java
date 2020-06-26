@@ -129,13 +129,31 @@ public class LongArrayStore {
         @Specialization(guards = "!isLongStore(destStore)", limit = "storageStrategyLimit()")
         protected static void copyContents(long[] srcStore, int srcStart, Object destStore, int destStart, int length,
                 @CachedLibrary("destStore") ArrayStoreLibrary destStores) {
-            for (int i = srcStart; i < length; i++) {
-                destStores.write(destStore, destStart + i, srcStore[(srcStart + i)]);
+            for (int i = 0; i < length; i++) {
+                destStores.write(destStore, destStart + i, srcStore[srcStart + i]);
             }
         }
 
         protected static boolean isLongStore(Object store) {
             return store instanceof long[];
+        }
+    }
+
+    @ExportMessage
+    protected static void clear(long[] store, int start, int length) {
+        Arrays.fill(store, start, start + length, 0);
+    }
+
+    @ExportMessage
+    static class Fill {
+        @Specialization
+        protected static void fill(long[] store, int start, int length, int value) {
+            Arrays.fill(store, start, start + length, value);
+        }
+
+        @Specialization
+        protected static void write(long[] store, int start, int length, long value) {
+            Arrays.fill(store, start, start + length, value);
         }
     }
 

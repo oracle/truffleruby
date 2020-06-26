@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -50,6 +50,7 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
+import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringCachingGuards;
@@ -80,7 +81,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -91,6 +91,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
+import org.truffleruby.utils.Utils;
 
 @CoreModule(value = "Array", isClass = true)
 public abstract class ArrayNodes {
@@ -283,36 +284,133 @@ public abstract class ArrayNodes {
             lowerFixnum = { 1, 2 },
             raiseIfFrozenSelf = true,
             argumentNames = { "index_start_or_range", "length_or_value", "value" })
-    public abstract static class IndexSetNode extends ArrayIndexSetNode {
+    @ImportStatic(ArrayHelpers.class)
+    public abstract static class SetIndexNode extends ArrayCoreMethodNode {
 
-        @Child private CallDispatchHeadNode fallbackNode;
+        public static SetIndexNode create() {
+            return ArrayNodesFactory.SetIndexNodeFactory.create(null);
+        }
 
-        @Override
-        protected Object fallback(DynamicObject array, Object index, Object length, Object value) {
-            if (fallbackNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                fallbackNode = insert(CallDispatchHeadNode.createPrivate());
+        abstract Object executeIntIndex(DynamicObject array, int index, Object value, NotProvided unused);
+
+        abstract Object executeIntIndices(DynamicObject array, int index, int length, Object replacement);
+
+        // array[index] = object
+
+        @Specialization
+        @ReportPolymorphism.Exclude
+        protected Object set(DynamicObject array, int index, Object value, NotProvided unused,
+                @Cached ArrayWriteNormalizedNode writeNode,
+                @Cached ConditionProfile negativeDenormalizedIndex,
+                @Cached BranchProfile negativeNormalizedIndex) {
+            final int size = Layouts.ARRAY.getSize(array);
+            final int nIndex = normalize(size, index, negativeDenormalizedIndex, negativeNormalizedIndex);
+            return writeNode.executeWrite(array, nIndex, value);
+        }
+
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object setRange(DynamicObject array, DynamicObject range, Object value, NotProvided unused,
+                @Cached NormalizedStartLengthNode normalizedStartLength,
+                @Cached BranchProfile negativeStart) {
+            final int[] startLength = normalizedStartLength.execute(range, Layouts.ARRAY.getSize(array));
+            final int start = startLength[0];
+            if (start < 0) {
+                negativeStart.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().rangeError(Utils.concat("index ", start, " out of bounds"), this));
+            }
+            final int length = Math.max(startLength[1], 0); // negative range ending maps to zero length
+            return executeIntIndices(array, start, length, value);
+        }
+
+        @Specialization(guards = { "!isInteger(start)", "!isRubyRange(start)" })
+        protected Object fallbackBinary(DynamicObject array, Object start, Object value, NotProvided unused,
+                @Cached ToIntNode toInt) {
+            return executeIntIndex(array, toInt.execute(start), value, unused);
+        }
+
+        // array[start, length] = array2
+
+        @Specialization(guards = { "wasProvided(replacement)", "length < 0" })
+        protected Object negativeLength(DynamicObject array, int start, int length, Object replacement) {
+            throw new RaiseException(getContext(), coreExceptions().negativeLengthError(length, this));
+        }
+
+        @Specialization(guards = {
+                "isRubyArray(replacement)",
+                "length >= 0" })
+        protected Object setTernary(DynamicObject array, int start, int length, DynamicObject replacement,
+                @Cached ConditionProfile negativeDenormalizedIndex,
+                @Cached BranchProfile negativeNormalizedIndex,
+                @Cached ConditionProfile moveNeeded,
+                @Cached ArrayPrepareForCopyNode prepareToCopy,
+                @Cached ArrayCopyCompatibleRangeNode shift,
+                @Cached ArrayCopyCompatibleRangeNode copyRange,
+                @Cached ArrayTruncateNode truncate) {
+
+            final int originalSize = Layouts.ARRAY.getSize(array);
+            start = normalize(originalSize, start, negativeDenormalizedIndex, negativeNormalizedIndex);
+            final int replacementSize = Layouts.ARRAY.getSize(replacement);
+            final int overwrittenAreaEnd = start + length;
+            final int tailSize = originalSize - overwrittenAreaEnd;
+
+            if (moveNeeded.profile(tailSize > 0)) {
+                // There is a tail (the part of the array to the right of the overwritten area) to be moved.
+                // Possibly, this is a move of size 0 (replacement size == length), which is optimized in the copy node.
+
+                final int writtenAreaEnd = start + replacementSize;
+                final int newSize = originalSize - length + replacementSize;
+                final int requiredLength = newSize - start;
+
+                prepareToCopy.execute(array, replacement, start, requiredLength);
+                shift.execute(array, array, writtenAreaEnd, overwrittenAreaEnd, tailSize);
+                copyRange.execute(array, replacement, start, 0, replacementSize);
+                truncate.execute(array, newSize);
+
+            } else {
+                // The array is overwriten from `start` to end, there is no tail to be moved.
+
+                prepareToCopy.execute(array, replacement, start, replacementSize);
+                copyRange.execute(array, replacement, start, 0, replacementSize);
+                truncate.execute(array, start + replacementSize);
             }
 
-            return fallbackNode.call(array, "element_set_fallback", index, length, value);
+            return replacement;
         }
-    }
 
-    @Primitive(
-            name = "array_aset",
-            raiseIfFrozen = 0,
-            lowerFixnum = { 1, 2 },
-            argumentNames = { "index_start_or_range", "length_or_value", "value" })
-    public abstract static class IndexSetPrimitiveNode extends ArrayIndexSetNode {
+        @Specialization(guards = {
+                "!isRubyArray(replacement)",
+                "wasProvided(replacement)",
+                "length >= 0" })
+        protected Object setTernary(DynamicObject array, int start, int length, Object replacement,
+                @Cached ArrayConvertNode convert,
+                @Cached SetIndexNode recurse) {
+            recurse.executeIntIndices(array, start, length, convert.execute(replacement));
+            return replacement;
+        }
 
-        // This primitive inherits from the same base as IndexSetNode and is called in its fallback.
-        // Hence we need to avoid infinite recursion on fallback.
+        @Specialization(guards = { "!isInteger(start) || !isInteger(length)", "wasProvided(replacement)" })
+        protected Object fallbackTernary(DynamicObject array, Object start, Object length, Object replacement,
+                @Cached ToIntNode startToInt,
+                @Cached ToIntNode lengthToInt) {
+            return executeIntIndices(array, startToInt.execute(start), lengthToInt.execute(length), replacement);
+        }
 
-        protected abstract RubyNode[] getArguments();
+        // Helpers
 
-        @Override
-        protected Object fallback(DynamicObject array, Object index, Object length, Object value) {
-            throw new UnsupportedSpecializationException(this, getArguments(), array, index, length, value);
+        protected int normalize(int arraySize, int index,
+                ConditionProfile negativeDenormalizedIndex, BranchProfile negativeNormalizedIndex) {
+            if (negativeDenormalizedIndex.profile(index < 0)) {
+                index = arraySize + index;
+                if (index < 0) {
+                    negativeNormalizedIndex.enter();
+                    throw new RaiseException(
+                            getContext(),
+                            coreExceptions().indexTooSmallError("array", index, arraySize, this));
+                }
+            }
+            return index;
         }
     }
 
@@ -638,7 +736,6 @@ public abstract class ArrayNodes {
                 return value;
             }
         }
-
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")

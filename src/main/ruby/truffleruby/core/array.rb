@@ -148,7 +148,7 @@ class Array
   private def element_reference_fallback(start, length)
     if Primitive.undefined?(length)
       if Range === start
-        start, length = Truffle::RangeOperations.normalized_start_length(start, size)
+        start, length = Primitive.range_normalized_start_length(start, size)
         length = 0 if length < 0 # must return [] if index in range
       else
         return at(start)
@@ -159,32 +159,6 @@ class Array
       length = Primitive.rb_num2int(length)
     end
     Primitive.array_read_slice_normalized(self, start, length)
-  end
-
-  private def element_set_fallback(index, length, value)
-    if Primitive.undefined?(value)
-      value = length
-      if Range === index
-        index = Primitive.range_to_int_range(index, self)
-        converted = Array.try_convert(value)
-        converted = [value] unless converted
-        Primitive.array_aset(self, index, converted, undefined)
-        value
-      else
-        index = Primitive.rb_num2long(index)
-        Primitive.array_aset(self, index, value, undefined)
-      end
-    else
-      index = Primitive.rb_num2int(index)
-      length = Primitive.rb_num2int(length)
-      converted = value
-      unless Array === value
-        converted = Array.try_convert(value)
-        converted = [value] unless converted
-      end
-      Primitive.array_aset(self, index, length, converted)
-      value
-    end
   end
 
   def assoc(obj)
@@ -571,15 +545,19 @@ class Array
 
   def insert(idx, *items)
     Primitive.check_frozen self
-
     return self if items.length == 0
 
-    # Adjust the index for correct insertion
     idx = Truffle::Type.coerce_to_collection_index idx
     idx += (size + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
-    self[idx, 0] = items   # Cheat
+    # This check avoids generalizing to Object[] needlessly when the element is an int/long/...
+    # We still generalize needlessly on bigger arrays, but avoiding this would require iterating the array.
+    if items.size == 1
+      self[idx, 0] = [items[0]]
+    else
+      self[idx, 0] = items
+    end
     self
   end
   Truffle::Graal.always_split instance_method(:insert)

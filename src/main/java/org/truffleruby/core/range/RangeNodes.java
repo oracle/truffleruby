@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.range;
 
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -16,6 +17,7 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
@@ -25,6 +27,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -43,7 +46,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-
 
 @CoreModule(value = "Range", isClass = true)
 public abstract class RangeNodes {
@@ -544,4 +546,102 @@ public abstract class RangeNodes {
 
     }
 
+    /** Returns an array containing normalized int range parameters {@code [start, length]}, such that both are 32-bits
+     * java ints (if conversion is impossible, an error is raised). The method attempts to make the value positive, by
+     * adding {@code size} to them if they are negative. They may still be negative after the operation however, as
+     * different core Ruby methods have different way of handling negative out-of-bound normalized values.
+     * <p>
+     * The length will NOT be clamped to size!
+     * <p>
+     * {@code size} is assumed to be normalized: fitting in an int, and positive. */
+    @Primitive(name = "range_normalized_start_length", lowerFixnum = 1)
+    @NodeChild(value = "range", type = RubyNode.class)
+    @NodeChild(value = "size", type = RubyNode.class)
+    public abstract static class NormalizedStartLengthPrimitiveNode extends PrimitiveNode {
+
+        @Child NormalizedStartLengthNode startLengthNode = NormalizedStartLengthNode.create();
+
+        @Specialization
+        protected DynamicObject normalize(DynamicObject range, int size) {
+            return ArrayHelpers.createArray(getContext(), startLengthNode.execute(range, size));
+        }
+    }
+
+    /** @see NormalizedStartLengthPrimitiveNode */
+    public abstract static class NormalizedStartLengthNode extends RubyContextNode {
+
+        public static NormalizedStartLengthNode create() {
+            return RangeNodesFactory.NormalizedStartLengthNodeGen.create();
+        }
+
+        public abstract int[] execute(DynamicObject range, int size);
+
+        private final BranchProfile overflow = BranchProfile.create();
+        private final ConditionProfile notExcluded = ConditionProfile.create();
+        private final ConditionProfile negativeBegin = ConditionProfile.create();
+        private final ConditionProfile negativeEnd = ConditionProfile.create();
+
+        @Specialization(guards = "isIntRange(range)")
+        protected int[] normalizeIntRange(DynamicObject range, int size) {
+            return normalize(
+                    Layouts.INT_RANGE.getBegin(range),
+                    Layouts.INT_RANGE.getEnd(range),
+                    Layouts.INT_RANGE.getExcludedEnd(range),
+                    size);
+        }
+
+        @Specialization(guards = "isLongRange(range)")
+        protected int[] normalizeLongRange(DynamicObject range, int size,
+                @Cached ToIntNode toInt) {
+            return normalize(
+                    toInt.execute(Layouts.LONG_RANGE.getBegin(range)),
+                    toInt.execute(Layouts.LONG_RANGE.getEnd(range)),
+                    Layouts.LONG_RANGE.getExcludedEnd(range),
+                    size);
+        }
+
+        @Specialization(guards = "isEndlessObjectRange(range)")
+        protected int[] normalizeEndlessRange(DynamicObject range, int size,
+                @Cached ToIntNode toInt) {
+            int begin = toInt.execute(Layouts.OBJECT_RANGE.getBegin(range));
+            return new int[]{ begin >= 0 ? begin : begin + size, size - begin };
+        }
+
+        @Specialization(guards = "isBoundedObjectRange(range)")
+        protected int[] normalizeObjectRange(DynamicObject range, int size,
+                @Cached ToIntNode toInt) {
+            return normalize(
+                    toInt.execute(Layouts.OBJECT_RANGE.getBegin(range)),
+                    toInt.execute(Layouts.OBJECT_RANGE.getEnd(range)),
+                    Layouts.OBJECT_RANGE.getExcludedEnd(range),
+                    size);
+        }
+
+        private int[] normalize(int begin, int end, boolean excludedEnd, int size) {
+
+            if (negativeBegin.profile(begin < 0)) {
+                begin += size; // no overflow
+            }
+
+
+            if (negativeEnd.profile(end < 0)) {
+                end += size; // no overflow
+            }
+
+            final int length;
+            try {
+                if (notExcluded.profile(!excludedEnd)) {
+                    end = Math.incrementExact(end);
+                }
+                length = Math.subtractExact(end, begin);
+            } catch (ArithmeticException e) {
+                overflow.enter();
+                throw new RaiseException(
+                        getContext(),
+                        coreExceptions().rangeError("long too big to convert into `int'", this));
+            }
+
+            return new int[]{ begin, length };
+        }
+    }
 }
