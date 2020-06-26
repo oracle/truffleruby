@@ -109,10 +109,11 @@ public abstract class ArrayStoreLibrary extends Library {
     }
 
     /** Fill the part of the array starting at {@code start} and extending for {@code length} elements using
-     * {@code value}. */
+     * {@code value}, which must be accepted by the store. */
     @Abstract(ifExported = "write")
     public void fill(Object store, int start, int length, Object value) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
+        assert acceptsValue(store, value);
         throw new UnsupportedOperationException();
     }
 

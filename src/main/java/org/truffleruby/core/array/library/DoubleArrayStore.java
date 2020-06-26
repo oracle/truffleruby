@@ -137,11 +137,8 @@ public class DoubleArrayStore {
     }
 
     @ExportMessage
-    static class Fill {
-        @Specialization
-        protected static void fill(double[] store, int start, int length, double value) {
-            Arrays.fill(store, start, start + length, value);
-        }
+    protected static void fill(double[] store, int start, int length, Object value) {
+        Arrays.fill(store, start, start + length, (double) value);
     }
 
     @ExportMessage

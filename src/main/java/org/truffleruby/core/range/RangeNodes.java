@@ -561,11 +561,6 @@ public abstract class RangeNodes {
 
         @Child NormalizedStartLengthNode startLengthNode = NormalizedStartLengthNode.create();
 
-        @CreateCast("size")
-        protected RubyNode castSize(RubyNode size) {
-            return ToIntNode.create(size);
-        }
-
         @Specialization
         protected DynamicObject normalize(DynamicObject range, int size) {
             return ArrayHelpers.createArray(getContext(), startLengthNode.execute(range, size));
@@ -582,8 +577,9 @@ public abstract class RangeNodes {
         public abstract int[] execute(DynamicObject range, int size);
 
         private final BranchProfile overflow = BranchProfile.create();
-        private final BranchProfile negativeStart = BranchProfile.create();
         private final ConditionProfile notExcluded = ConditionProfile.create();
+        private final ConditionProfile negativeBegin = ConditionProfile.create();
+        private final ConditionProfile negativeEnd = ConditionProfile.create();
 
         @Specialization(guards = "isIntRange(range)")
         protected int[] normalizeIntRange(DynamicObject range, int size) {
@@ -623,20 +619,21 @@ public abstract class RangeNodes {
 
         private int[] normalize(int begin, int end, boolean excludedEnd, int size) {
 
-            if (begin < 0) {
+            if (negativeBegin.profile(begin < 0)) {
                 begin += size; // no overflow
             }
 
-            int length = end;
-            if (length < 0) {
-                length += size; // no overflow
+
+            if (negativeEnd.profile(end < 0)) {
+                end += size; // no overflow
             }
 
+            final int length;
             try {
                 if (notExcluded.profile(!excludedEnd)) {
-                    length = Math.incrementExact(length);
+                    end = Math.incrementExact(end);
                 }
-                length = Math.subtractExact(length, begin);
+                length = Math.subtractExact(end, begin);
             } catch (ArithmeticException e) {
                 overflow.enter();
                 throw new RaiseException(

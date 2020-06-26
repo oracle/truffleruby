@@ -31,7 +31,7 @@ import static org.truffleruby.Layouts.ARRAY;
  * </ul>
  * <p>
  * The copy itself can then be performed with {@link ArrayCopyCompatibleRangeNode}. In fact it MUST be performed, as the
- * array may otherwise contain uninitialized slots (in particular, {@code null} values in {@code Object} arrays). */
+ * array may otherwise contain uninitialized elements (in particular, {@code null} values in {@code Object} arrays). */
 @ReportPolymorphism
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayPrepareForCopyNode extends RubyContextNode {

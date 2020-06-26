@@ -7,14 +7,11 @@
 # GNU Lesser General Public License version 2.1.
 
 array = (0...1000).to_a
-shift = 0
 
 benchmark 'simple-set' do
   i = 0
   while i < 1000
-    array[i] = i + shift
+    array[i] = i
     i += 1
   end
-  shift += 1
-  shift = 0 if shift > 1000
 end

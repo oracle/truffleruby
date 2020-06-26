@@ -551,6 +551,8 @@ class Array
     idx += (size + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
+    # This check avoids generalizing to Object[] needlessly when the element is an int/long/...
+    # We still generalize needlessly on bigger arrays, but avoiding this would require iterating the array.
     if items.size == 1
       self[idx, 0] = [items[0]]
     else

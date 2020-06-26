@@ -345,22 +345,21 @@ public abstract class ArrayNodes {
                 @Cached ConditionProfile negativeDenormalizedIndex,
                 @Cached BranchProfile negativeNormalizedIndex,
                 @Cached ConditionProfile moveNeeded,
-                @Cached ConditionProfile differentLength,
                 @Cached ArrayPrepareForCopyNode prepareToCopy,
                 @Cached ArrayCopyCompatibleRangeNode shift,
                 @Cached ArrayCopyCompatibleRangeNode copyRange,
                 @Cached ArrayTruncateNode truncate) {
 
-            final int size = Layouts.ARRAY.getSize(array);
-            start = normalize(size, start, negativeDenormalizedIndex, negativeNormalizedIndex);
+            final int originalSize = Layouts.ARRAY.getSize(array);
+            start = normalize(originalSize, start, negativeDenormalizedIndex, negativeNormalizedIndex);
             final int replacementSize = Layouts.ARRAY.getSize(replacement);
+            final int overwrittenAreaEnd = start + length;
+            final int tailSize = originalSize - overwrittenAreaEnd;
 
-            if (moveNeeded.profile(start + length < size)) {
+            if (moveNeeded.profile(tailSize > 0)) {
                 // There is a tail (the part of the array to the right of the overwritten area) to be moved.
+                // Possibly, this is a move of size 0 (replacement size == length), which is optimized in the copy node.
 
-                final int originalSize = Layouts.ARRAY.getSize(array);
-                final int overwrittenAreaEnd = start + length;
-                final int tailSize = originalSize - overwrittenAreaEnd;
                 final int writtenAreaEnd = start + replacementSize;
                 final int newSize = originalSize - length + replacementSize;
                 final int requiredLength = newSize - start;

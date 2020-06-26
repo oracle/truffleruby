@@ -132,11 +132,8 @@ public class IntegerArrayStore {
     }
 
     @ExportMessage
-    static class Fill {
-        @Specialization
-        protected static void fill(int[] store, int start, int length, int value) {
-            Arrays.fill(store, start, start + length, value);
-        }
+    protected static void fill(int[] store, int start, int length, Object value) {
+        Arrays.fill(store, start, start + length, (int) value);
     }
 
     @ExportMessage
