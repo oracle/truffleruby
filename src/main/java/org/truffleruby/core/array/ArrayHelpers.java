@@ -64,4 +64,31 @@ public abstract class ArrayHelpers {
         return Layouts.ARRAY.createArray(context.getCoreLibrary().arrayFactory, ArrayStoreLibrary.INITIAL_STORE, 0);
     }
 
+    /** Returns a Java array of the narrowest possible type holding {@code object}. */
+    public static Object specializedJavaArrayOf(ArrayBuilderNode builder, Object object) {
+        final ArrayBuilderNode.BuilderState state = builder.start();
+        builder.appendValue(state, 0, object);
+        return builder.finish(state, 1);
+    }
+
+    /** Returns a Java array of the narrowest possible type holding the {@code objects}. */
+    public static Object specializedJavaArrayOf(ArrayBuilderNode builder, Object... objects) {
+        final ArrayBuilderNode.BuilderState state = builder.start();
+        for (Object object : objects) {
+            builder.appendValue(state, 0, object);
+        }
+        return builder.finish(state, objects.length);
+    }
+
+    /** Returns a Ruby array backed by a store of the narrowest possible type, holding {@code object}. */
+    public static DynamicObject specializedRubyArrayOf(RubyContext context, ArrayBuilderNode builder, Object object) {
+        return createArray(context, specializedJavaArrayOf(builder, object), 1);
+    }
+
+    /** Returns a Ruby array backed by a store of the narrowest possible type, holding the {@code objects}. */
+    public static DynamicObject specializedRubyArrayOf(RubyContext context, ArrayBuilderNode builder,
+            Object... objects) {
+        return createArray(context, specializedJavaArrayOf(builder, objects), objects.length);
+    }
+
 }

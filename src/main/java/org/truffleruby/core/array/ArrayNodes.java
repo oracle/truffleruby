@@ -33,7 +33,6 @@ import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
-import org.truffleruby.core.cast.ArrayCastNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -385,16 +384,9 @@ public abstract class ArrayNodes {
                 "wasProvided(replacement)",
                 "length >= 0" })
         protected Object setTernary(DynamicObject array, int start, int length, Object replacement,
-                @Cached ArrayCastNode arrayCast,
-                @Cached ArrayBuilderNode arrayBuilder,
+                @Cached ArrayConvertNode convert,
                 @Cached SetIndexNode recurse) {
-            Object converted = arrayCast.execute(replacement);
-            if (converted == nil) {
-                final BuilderState state = arrayBuilder.start();
-                arrayBuilder.appendValue(state, 0, replacement);
-                converted = ArrayHelpers.createArray(getContext(), arrayBuilder.finish(state, 1), 1);
-            }
-            recurse.executeIntIndices(array, start, length, converted);
+            recurse.executeIntIndices(array, start, length, convert.execute(replacement));
             return replacement;
         }
 
