@@ -55,6 +55,7 @@ Compatibility:
 * `RUBY_REVISION` is now the full commit hash used to build TruffleRuby, similar to MRI 2.7+.
 * Implemented `rb_enc_mbc_to_codepoint`.
 * Change the lookup methods to achieve Refinements specification (#2033, @ssnickolay)
+* Implemented `ONIGENC_MBC_CASE_FOLD`.
 
 Performance:
 

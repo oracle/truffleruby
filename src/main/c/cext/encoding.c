@@ -331,3 +331,22 @@ int rb_uv_to_utf8(char buf[6], unsigned long uv) {
 
   rb_raise(rb_eRangeError, "pack(U): value out of range");
 }
+
+void write_p(const UChar** p, int offset) {
+  *p = *p + offset;
+}
+
+int rb_tr_enc_mbc_case_fold(rb_encoding *enc, int flag, const UChar** p, const UChar* end, UChar* result) {
+  int length = end - *p;
+  VALUE result_str = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_tr_enc_mbc_case_fold",
+          rb_tr_unwrap(rb_enc_from_encoding(enc)),
+          flag,
+          rb_tr_unwrap(rb_str_new((char *)*p, length)),
+          write_p,
+          p));
+   int result_len = RSTRING_LEN(result_str);
+   if (result_len > 0) {
+     strncpy((char *)result, RSTRING_PTR(result_str), result_len);
+   }
+   return result_len;
+}

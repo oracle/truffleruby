@@ -15,6 +15,8 @@ import java.math.BigInteger;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.jcodings.Encoding;
+import org.jcodings.IntHolder;
+import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -1248,6 +1250,51 @@ public class CExtNodes {
         @Specialization
         protected Object mbclenCharFoundLen(int r) {
             return StringSupport.MBCLEN_CHARFOUND_LEN(r);
+        }
+
+    }
+
+    @CoreMethod(names = "rb_tr_enc_mbc_case_fold", onSingleton = true, required = 5, lowerFixnum = 2)
+    public abstract static class RbTrMbcCaseFoldNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = { "isRubyString(string)", "isRubyEncoding(enc)" }, limit = "getCacheLimit()")
+        protected Object rbTrEncMbcCaseFold(
+                DynamicObject enc,
+                int flags,
+                DynamicObject string,
+                Object write_p,
+                Object p,
+                @CachedLibrary("write_p") InteropLibrary receivers,
+                @Cached BranchProfile exceptionProfile) {
+            final byte[] bytes = StringOperations.rope(string).getBytes();
+            final byte[] to = new byte[bytes.length];
+            final IntHolder intHolder = new IntHolder();
+            intHolder.value = 0;
+            final int resultLength = EncodingOperations
+                    .getEncoding(enc)
+                    .mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
+            execute(write_p, new Object[]{ p, intHolder.value }, receivers, exceptionProfile);
+            final byte[] result = new byte[resultLength];
+            if (resultLength > 0) {
+                System.arraycopy(to, 0, result, 0, resultLength);
+            }
+            return StringOperations.createString(
+                    getContext(),
+                    RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
+        }
+
+        private void execute(Object receiver, Object[] args, InteropLibrary receivers,
+                BranchProfile exceptionProfile) {
+            try {
+                receivers.execute(receiver, args);
+            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                exceptionProfile.enter();
+                throw new JavaException(e);
+            }
+        }
+
+        protected int getCacheLimit() {
+            return getContext().getOptions().DISPATCH_CACHE;
         }
 
     }
