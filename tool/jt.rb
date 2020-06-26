@@ -2310,7 +2310,6 @@ EOS
             next
           end
 
-
           braces = count_braces(line)
           # look for end of annotation
           while braces != 0
@@ -2318,6 +2317,11 @@ EOS
             line   = lines.shift
             braces += count_braces(line)
           end
+
+          # Never look for a declaration on the same line as the end of the annotation,
+          # as the regex below can cause false positives.
+          new_content << line
+          line = lines.shift
 
           # look for declaration
           while line !~ /[\w<>]+(\[\])? \w+\(/
