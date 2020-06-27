@@ -3,5 +3,3 @@ slow:Timeout.timeout raises specified error type when it times out
 slow:Timeout.timeout returns back the last value in the block
 slow:Timeout.timeout raises specified error type with specified message when it times out
 slow:Timeout.timeout raises specified error type with a default message when it times out if message is nil
-fails:Timeout.timeout raises specified error type with specified message when it times out
-fails:Timeout.timeout raises specified error type with a default message when it times out if message is nil

@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 #--
 # = timeout.rb
 #
@@ -47,10 +48,11 @@ module Timeout
   # Represents +thr+ asking for it to be timeout at in +secs+
   # seconds. At timeout, raise +exc+.
   class TimeoutRequest
-    def initialize(secs, thr, exc)
+    def initialize(secs, thr, exc, message)
       @left = secs
       @thread = thr
       @exception = exc
+      @message = message
     end
 
     attr_reader :thread, :left
@@ -65,7 +67,7 @@ module Timeout
     # Raise @exception if @thread.
     def cancel
       if @thread and @thread.alive?
-        @thread.raise @exception, 'execution expired'
+        @thread.raise @exception, @message
       end
 
       @left = 0
@@ -126,8 +128,8 @@ module Timeout
     end
   end
 
-  def self.add_timeout(time, exc)
-    r = TimeoutRequest.new(time, Thread.current, exc)
+  def self.add_timeout(time, exc, message)
+    r = TimeoutRequest.new(time, Thread.current, exc, message)
     @chan << r
     ensure_timeout_thread_running
     r
@@ -136,7 +138,7 @@ module Timeout
 
   if Truffle::Boot.single_threaded?
 
-    def timeout(sec, exception=Error)
+    def timeout(sec, exception = Error, message = nil)
       Truffle::Debug.log_warning 'threads are disabled, so timeout is being ignored'
       yield sec
     end
@@ -152,11 +154,11 @@ module Timeout
     # Timeout' into your classes so they have a #timeout method, as well as a
     # module method, so you can call it directly as Timeout.timeout().
 
-    def timeout(sec, exception=Error)
+    def timeout(sec, exception = Error, message = nil)
       return yield if sec == nil or sec.zero?
 
-      req = Timeout.add_timeout sec, exception
-
+      message ||= 'execution expired'
+      req = Timeout.add_timeout sec, exception, message
       begin
         yield sec
       ensure
