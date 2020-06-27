@@ -126,9 +126,9 @@ public class ValueWrapperManager {
         final int index = HandleBlock.getHandleIndex(handle);
         final HandleBlockWeakReference[] blockMap = this.blockMap;
         final HandleBlockWeakReference ref;
-        try {
+        if (index >= 0 && index < blockMap.length) {
             ref = blockMap[index];
-        } catch (ArrayIndexOutOfBoundsException e) {
+        } else {
             return null;
         }
         if (ref == null) {
