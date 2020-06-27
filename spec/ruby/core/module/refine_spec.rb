@@ -691,7 +691,7 @@ describe "Module#refine" do
   context "when super is called in a refinement" do
     it "looks in the included to refinery module" do
       refined_class = ModuleSpecs.build_refined_class
-      
+
       refinement = Module.new do
         refine refined_class do
           include ModuleSpecs::IncludedModule
