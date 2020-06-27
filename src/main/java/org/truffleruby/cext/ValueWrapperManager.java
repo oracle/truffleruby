@@ -21,8 +21,8 @@ import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -60,7 +60,7 @@ public class ValueWrapperManager {
     public final ValueWrapper undefWrapper = new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
     public final ValueWrapper nilWrapper;
 
-    private Object[] blockMap = ArrayUtils.EMPTY_ARRAY;
+    private volatile Object[] blockMap = ArrayUtils.EMPTY_ARRAY;
 
     private final ThreadLocal<HandleThreadData> threadBlocks;
 
@@ -105,9 +105,16 @@ public class ValueWrapperManager {
         long blockBase = block.getBase();
         Object[] map = blockMap;
         HandleBlockAllocator allocator = ValueWrapperManager.allocator;
-        map = ensureCapacity(map, blockIndex + 1);
+        boolean grow = false;
+        if (blockIndex + 1 > map.length) {
+            map = ArrayUtils.grow(map, blockIndex + 1);
+            grow = true;
+        }
         map[blockIndex] = new WeakReference<>(block);
-        blockMap = map;
+        if (grow) {
+            blockMap = map;
+        }
+
         context.getFinalizationService().addFinalizer(block, null, ValueWrapperManager.class, () -> {
             this.blockMap[blockIndex] = null;
             allocator.addFreeBlock(blockBase);
@@ -119,24 +126,15 @@ public class ValueWrapperManager {
         return weakReference.get();
     }
 
-    private Object[] ensureCapacity(Object[] map, int size) {
-        if (size > map.length) {
-            return ArrayUtils.grow(map, size);
-        } else {
-            return map;
-        }
-    }
-
     @SuppressWarnings("unchecked")
     public ValueWrapper getWrapperFromHandleMap(long handle) {
         final int index = HandleBlock.getHandleIndex(handle);
         final WeakReference<HandleBlock> ref;
-        synchronized (this) {
-            try {
-                ref = (WeakReference<HandleBlock>) blockMap[index];
-            } catch (ArrayIndexOutOfBoundsException e) {
-                return null;
-            }
+        final Object[] blockMap = this.blockMap;
+        try {
+            ref = (WeakReference<HandleBlock>) blockMap[index];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return null;
         }
         if (ref == null) {
             return null;
