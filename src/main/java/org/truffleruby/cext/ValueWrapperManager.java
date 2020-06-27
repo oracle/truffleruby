@@ -19,7 +19,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
@@ -60,7 +59,7 @@ public class ValueWrapperManager {
     public final ValueWrapper undefWrapper = new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
     public final ValueWrapper nilWrapper;
 
-    private volatile Object[] blockMap = ArrayUtils.EMPTY_ARRAY;
+    private volatile HandleBlockWeakReference[] blockMap = new HandleBlockWeakReference[0];
 
     private final ThreadLocal<HandleThreadData> threadBlocks;
 
@@ -103,14 +102,16 @@ public class ValueWrapperManager {
     public synchronized void addToBlockMap(HandleBlock block) {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
-        Object[] map = blockMap;
+        HandleBlockWeakReference[] map = blockMap;
         HandleBlockAllocator allocator = ValueWrapperManager.allocator;
         boolean grow = false;
         if (blockIndex + 1 > map.length) {
-            map = ArrayUtils.grow(map, blockIndex + 1);
+            final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
+            System.arraycopy(map, 0, copy, 0, map.length);
+            map = copy;
             grow = true;
         }
-        map[blockIndex] = new WeakReference<>(block);
+        map[blockIndex] = new HandleBlockWeakReference(block);
         if (grow) {
             blockMap = map;
         }
@@ -121,25 +122,19 @@ public class ValueWrapperManager {
         }, null);
     }
 
-    @TruffleBoundary // TODO GR-22214
-    private static <T> T weakReferenceGet(WeakReference<T> weakReference) {
-        return weakReference.get();
-    }
-
-    @SuppressWarnings("unchecked")
     public ValueWrapper getWrapperFromHandleMap(long handle) {
         final int index = HandleBlock.getHandleIndex(handle);
-        final WeakReference<HandleBlock> ref;
-        final Object[] blockMap = this.blockMap;
+        final HandleBlockWeakReference[] blockMap = this.blockMap;
+        final HandleBlockWeakReference ref;
         try {
-            ref = (WeakReference<HandleBlock>) blockMap[index];
+            ref = blockMap[index];
         } catch (ArrayIndexOutOfBoundsException e) {
             return null;
         }
         if (ref == null) {
             return null;
         }
-        final HandleBlock block = weakReferenceGet(ref);
+        final HandleBlock block = ref.get();
         if (block == null) {
             return null;
         }
@@ -250,6 +245,12 @@ public class ValueWrapperManager {
 
         public static int getHandleIndex(long handle) {
             return (int) ((handle - ALLOCATION_BASE) >> BLOCK_BITS);
+        }
+    }
+
+    protected static class HandleBlockWeakReference extends WeakReference<HandleBlock> {
+        HandleBlockWeakReference(HandleBlock referent) {
+            super(referent);
         }
     }
 
