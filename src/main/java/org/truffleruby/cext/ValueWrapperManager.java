@@ -127,14 +127,6 @@ public class ValueWrapperManager {
         }
     }
 
-    public synchronized Object getFromHandleMap(long handle) {
-        ValueWrapper wrapper = getWrapperFromHandleMap(handle);
-        if (wrapper == null) {
-            return null;
-        }
-        return wrapper.getObject();
-    }
-
     @SuppressWarnings("unchecked")
     public synchronized ValueWrapper getWrapperFromHandleMap(long handle) {
         final int index = HandleBlock.getHandleIndex(handle);
