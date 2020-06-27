@@ -9,9 +9,6 @@
  */
 package org.truffleruby.core.support;
 
-import java.lang.ref.WeakReference;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -21,11 +18,12 @@ import org.truffleruby.language.objects.WriteObjectFieldNode;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.HiddenKey;
+import com.oracle.truffle.api.utilities.TruffleWeakReference;
 
 @CoreModule("Truffle::WeakRefOperations")
 public abstract class WeakRefNodes {
 
-    private static final WeakReference<Object> EMPTY_WEAK_REF = new WeakReference<>(null);
+    private static final TruffleWeakReference<Object> EMPTY_WEAK_REF = new TruffleWeakReference<>(null);
     private static final HiddenKey fieldName = new HiddenKey("weak_ref");
 
     @Primitive(name = "weakref_set_object")
@@ -35,7 +33,7 @@ public abstract class WeakRefNodes {
 
         @Specialization
         protected Object weakRefSetObject(DynamicObject weakRef, Object object) {
-            fieldNode.write(weakRef, fieldName, new WeakReference<>(object));
+            fieldNode.write(weakRef, fieldName, new TruffleWeakReference<>(object));
             return object;
         }
     }
@@ -47,19 +45,10 @@ public abstract class WeakRefNodes {
 
         @Specialization
         protected Object weakRefObject(DynamicObject weakRef) {
-            @SuppressWarnings("unchecked")
-            final Object object = weakReferenceGet(
-                    (WeakReference<Object>) fieldNode.execute(weakRef, fieldName, EMPTY_WEAK_REF));
-            if (object == null) {
-                return nil;
-            } else {
-                return object;
-            }
+            final TruffleWeakReference<?> ref = (TruffleWeakReference<?>) fieldNode
+                    .execute(weakRef, fieldName, EMPTY_WEAK_REF);
+            final Object object = ref.get();
+            return object == null ? nil : object;
         }
-    }
-
-    @TruffleBoundary // TODO GR-22214
-    private static Object weakReferenceGet(WeakReference<Object> weakReference) {
-        return weakReference.get();
     }
 }
