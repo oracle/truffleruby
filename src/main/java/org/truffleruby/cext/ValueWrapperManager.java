@@ -128,19 +128,21 @@ public class ValueWrapperManager {
     }
 
     @SuppressWarnings("unchecked")
-    public synchronized ValueWrapper getWrapperFromHandleMap(long handle) {
+    public ValueWrapper getWrapperFromHandleMap(long handle) {
         final int index = HandleBlock.getHandleIndex(handle);
-        WeakReference<HandleBlock> ref;
-        try {
-            ref = (WeakReference<HandleBlock>) blockMap[index];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return null;
+        final WeakReference<HandleBlock> ref;
+        synchronized (this) {
+            try {
+                ref = (WeakReference<HandleBlock>) blockMap[index];
+            } catch (ArrayIndexOutOfBoundsException e) {
+                return null;
+            }
         }
         if (ref == null) {
             return null;
         }
-        HandleBlock block;
-        if ((block = weakReferenceGet(ref)) == null) {
+        final HandleBlock block = weakReferenceGet(ref);
+        if (block == null) {
             return null;
         }
         return block.getWrapper(handle);
