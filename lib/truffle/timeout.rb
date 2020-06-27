@@ -154,7 +154,6 @@ module Timeout
 
     def timeout(sec, exception=Error)
       return yield if sec == nil or sec.zero?
-      raise ThreadError, 'timeout within critical session' if Thread.respond_to?(:critical) && Thread.critical
 
       req = Timeout.add_timeout sec, exception
 
