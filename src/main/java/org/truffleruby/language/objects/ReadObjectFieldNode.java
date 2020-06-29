@@ -11,21 +11,17 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyGuards;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
-import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
 @ReportPolymorphism
 @GenerateUncached
-@ImportStatic({ RubyGuards.class, ShapeCachingGuards.class })
 public abstract class ReadObjectFieldNode extends RubyBaseNode {
 
     public static ReadObjectFieldNode create() {
@@ -34,36 +30,17 @@ public abstract class ReadObjectFieldNode extends RubyBaseNode {
 
     public abstract Object execute(DynamicObject object, Object name, Object defaultValue);
 
-    @Specialization(
-            guards = { "receiver.getShape() == cachedShape", "name == cachedName" },
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "getCacheLimit()")
-    protected Object readObjectFieldCached(DynamicObject receiver, Object name, Object defaultValue,
-            @Cached("receiver.getShape()") Shape cachedShape,
-            @Cached("name") Object cachedName,
-            @Cached("cachedShape.getProperty(cachedName)") Property cachedProperty) {
-        return readOrDefault(receiver, cachedShape, cachedProperty, defaultValue);
+    @Specialization(guards = "name == cachedName", limit = "getCacheLimit()")
+    protected Object readCached(DynamicObject receiver, Object name, Object defaultValue,
+            @Cached(value = "name", allowUncached = true) Object cachedName,
+            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
+        return objectLibrary.getOrDefault(receiver, cachedName, defaultValue);
     }
 
-    @Specialization(guards = "updateShape(object)")
-    protected Object updateShapeAndRead(DynamicObject object, Object name, Object defaultValue) {
-        return execute(object, name, defaultValue);
-    }
-
-    @TruffleBoundary
-    @Specialization(replaces = { "readObjectFieldCached", "updateShapeAndRead" })
-    protected Object readObjectFieldUncached(DynamicObject receiver, Object name, Object defaultValue) {
-        final Shape shape = receiver.getShape();
-        final Property property = shape.getProperty(name);
-        return readOrDefault(receiver, shape, property, defaultValue);
-    }
-
-    private static Object readOrDefault(DynamicObject object, Shape shape, Property property, Object defaultValue) {
-        if (property != null) {
-            return property.get(object, shape);
-        } else {
-            return defaultValue;
-        }
+    @Specialization(replaces = "readCached", limit = "getCacheLimit()")
+    protected Object readUncached(DynamicObject receiver, Object name, Object defaultValue,
+            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary) {
+        return objectLibrary.getOrDefault(receiver, name, defaultValue);
     }
 
     protected int getCacheLimit() {
