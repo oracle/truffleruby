@@ -78,7 +78,7 @@ public abstract class ToLongNode extends RubyContextSourceNode {
                 coreExceptions().typeError("no implicit conversion from nil to integer", this));
     }
 
-    @Specialization(guards = { "!isRubyInteger(object)", "!isNil(object)" })
+    @Specialization(guards = { "!isRubyInteger(object)", "!isDouble(object)", "!isNil(object)" })
     protected long coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
             @Cached ToLongNode fitNode) {
