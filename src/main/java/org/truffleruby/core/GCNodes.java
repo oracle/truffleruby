@@ -66,6 +66,7 @@ public abstract class GCNodes {
 
             do {
                 System.gc();
+                getContext().getSafepointManager().poll(this);
             } while (cache.get(key) != null);
 
             return nil;
