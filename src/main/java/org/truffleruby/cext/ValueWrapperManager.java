@@ -19,10 +19,9 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
-import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -60,7 +59,7 @@ public class ValueWrapperManager {
     public final ValueWrapper undefWrapper = new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
     public final ValueWrapper nilWrapper;
 
-    private Object[] blockMap = ArrayUtils.EMPTY_ARRAY;
+    private volatile HandleBlockWeakReference[] blockMap = new HandleBlockWeakReference[0];
 
     private final ThreadLocal<HandleThreadData> threadBlocks;
 
@@ -103,52 +102,40 @@ public class ValueWrapperManager {
     public synchronized void addToBlockMap(HandleBlock block) {
         int blockIndex = block.getIndex();
         long blockBase = block.getBase();
-        Object[] map = blockMap;
+        HandleBlockWeakReference[] map = blockMap;
         HandleBlockAllocator allocator = ValueWrapperManager.allocator;
-        map = ensureCapacity(map, blockIndex + 1);
-        map[blockIndex] = new WeakReference<>(block);
-        blockMap = map;
+        boolean grow = false;
+        if (blockIndex + 1 > map.length) {
+            final HandleBlockWeakReference[] copy = new HandleBlockWeakReference[blockIndex + 1];
+            System.arraycopy(map, 0, copy, 0, map.length);
+            map = copy;
+            grow = true;
+        }
+        map[blockIndex] = new HandleBlockWeakReference(block);
+        if (grow) {
+            blockMap = map;
+        }
+
         context.getFinalizationService().addFinalizer(block, null, ValueWrapperManager.class, () -> {
             this.blockMap[blockIndex] = null;
             allocator.addFreeBlock(blockBase);
         }, null);
     }
 
-    @TruffleBoundary // TODO GR-22214
-    private static <T> T weakReferenceGet(WeakReference<T> weakReference) {
-        return weakReference.get();
-    }
-
-    private Object[] ensureCapacity(Object[] map, int size) {
-        if (size > map.length) {
-            return ArrayUtils.grow(map, size);
-        } else {
-            return map;
-        }
-    }
-
-    public synchronized Object getFromHandleMap(long handle) {
-        ValueWrapper wrapper = getWrapperFromHandleMap(handle);
-        if (wrapper == null) {
-            return null;
-        }
-        return wrapper.getObject();
-    }
-
-    @SuppressWarnings("unchecked")
-    public synchronized ValueWrapper getWrapperFromHandleMap(long handle) {
+    public ValueWrapper getWrapperFromHandleMap(long handle) {
         final int index = HandleBlock.getHandleIndex(handle);
-        WeakReference<HandleBlock> ref;
-        try {
-            ref = (WeakReference<HandleBlock>) blockMap[index];
-        } catch (ArrayIndexOutOfBoundsException e) {
+        final HandleBlockWeakReference[] blockMap = this.blockMap;
+        final HandleBlockWeakReference ref;
+        if (index >= 0 && index < blockMap.length) {
+            ref = blockMap[index];
+        } else {
             return null;
         }
         if (ref == null) {
             return null;
         }
-        HandleBlock block;
-        if ((block = weakReferenceGet(ref)) == null) {
+        final HandleBlock block = ref.get();
+        if (block == null) {
             return null;
         }
         return block.getWrapper(handle);
@@ -258,6 +245,12 @@ public class ValueWrapperManager {
 
         public static int getHandleIndex(long handle) {
             return (int) ((handle - ALLOCATION_BASE) >> BLOCK_BITS);
+        }
+    }
+
+    protected static class HandleBlockWeakReference extends WeakReference<HandleBlock> {
+        HandleBlockWeakReference(HandleBlock referent) {
+            super(referent);
         }
     }
 

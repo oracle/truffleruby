@@ -80,12 +80,12 @@ public abstract class UnwrapNode extends RubyBaseNode {
         protected Object unwrapTaggedObject(long handle,
                 @CachedContext(RubyLanguage.class) RubyContext context,
                 @Cached BranchProfile noHandleProfile) {
-            final Object object = context.getValueWrapperManager().getFromHandleMap(handle);
-            if (object == null) {
+            final ValueWrapper wrapper = context.getValueWrapperManager().getWrapperFromHandleMap(handle);
+            if (wrapper == null) {
                 noHandleProfile.enter();
                 raiseError(handle);
             }
-            return object;
+            return wrapper.getObject();
         }
 
         @TruffleBoundary

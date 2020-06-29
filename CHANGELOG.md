@@ -62,6 +62,7 @@ Performance:
 * `instance variable ... not initialized` and similar warnings are now optimized to have no peak performance impact if they are not printed (depends on `$VERBOSE`).
 * Implement integer modular exponentiation using `BigInteger#mod_pow` (#1999, @skateman)
 * Fixed a performance issue when computing many substrings of a given non-leaf `String` with non-US-ASCII characters.
+* Speedup native handle to Ruby object lookup for C extensions.
 
 # 20.1.0
 
