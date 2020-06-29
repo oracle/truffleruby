@@ -24,10 +24,6 @@ HEADER
 
 describe "Interop special forms" do
 
-  before :each do
-    @object = Truffle::Interop.logging_foreign_object
-  end
-
   after :all do
     file = File.expand_path('../../../doc/contributor/interop_implicit_api.md', __dir__)
     File.open(file, 'w') do |out|
@@ -208,14 +204,14 @@ describe "Interop special forms" do
   end
 
   it description['.class', :getMetaObject] do
-    pfo, obj, l = proxy[@object]
+    pfo, obj, l = proxy[Truffle::Debug.foreign_object]
     pfo.class.should == Truffle::Interop::Foreign
-    Truffle::Interop.to_display_string(@object).should include("hasMetaObject()")
+    Truffle::Interop.to_display_string(Truffle::Debug.foreign_object).should include("hasMetaObject()")
   end
 
   it doc['.inspect', 'returns a Ruby-style `#inspect` string showing members, array elements, etc'] do
     # More detailed specs in spec/truffle/interop/foreign_inspect_to_s_spec.rb
-    @object.inspect.should =~ /\A#<Foreign:0x\h+>\z/
+    Truffle::Debug.foreign_object.inspect.should =~ /\A#<Foreign:0x\h+>\z/
   end
 
   it description['.to_s', :asString, [], 'when `isString(foreign_object)` is true'] do
@@ -257,11 +253,11 @@ describe "Interop special forms" do
   output << "\nUse `.respond_to?` for calling `InteropLibrary` predicates:\n"
 
   it doc['.respond_to?(:inspect)', "is always true"] do
-    @object.respond_to?(:inspect).should be_true
+    Truffle::Debug.foreign_object.respond_to?(:inspect).should be_true
   end
 
   it doc['.respond_to?(:to_s)', "is always true"] do
-    @object.respond_to?(:to_s).should be_true
+    Truffle::Debug.foreign_object.respond_to?(:to_s).should be_true
   end
 
   it description['.respond_to?(:to_str)', :isString] do
@@ -307,7 +303,7 @@ describe "Interop special forms" do
   end
 
   it doc['.respond_to?(:is_a?)', "is always true"] do
-    @object.respond_to?(:is_a?).should be_true
+    Truffle::Debug.foreign_object.respond_to?(:is_a?).should be_true
   end
 
   describe "#is_a?" do
