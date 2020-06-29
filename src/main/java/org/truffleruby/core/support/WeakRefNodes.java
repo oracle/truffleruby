@@ -15,6 +15,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.HiddenKey;
@@ -33,8 +34,13 @@ public abstract class WeakRefNodes {
 
         @Specialization
         protected Object weakRefSetObject(DynamicObject weakRef, Object object) {
-            fieldNode.write(weakRef, fieldName, new TruffleWeakReference<>(object));
+            fieldNode.write(weakRef, fieldName, newTruffleWeakReference(object));
             return object;
+        }
+
+        @TruffleBoundary // GR-24484
+        private TruffleWeakReference<Object> newTruffleWeakReference(Object object) {
+            return new TruffleWeakReference<>(object);
         }
     }
 
