@@ -355,35 +355,6 @@ class Packet
        queue
      end
    end
-
-end
-
-class Packet
-
-  attr_accessor :link, :id, :kind, :a1
-  attr_reader :a2
-   def initialize(link:, id:, kind:)
-      @link = link
-      @id = id
-      @kind = kind
-      @a1 = 0
-      @a2 = Array.new(4,0)
-   end
-
-   def addTo(queue:)
-     @link = nil
-     unless queue
-       self
-     else
-       nextPacket = queue
-       while (peek = nextPacket.link)
-         nextPacket = peek
-       end
-       nextPacket.link = self
-       queue
-     end
-   end
-
 end
 
 benchmark do
