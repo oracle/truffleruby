@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
 @ReportPolymorphism
@@ -41,8 +40,8 @@ public abstract class HasFieldNode extends RubyBaseNode {
     protected boolean hasFieldCached(DynamicObject receiver, Object name,
             @Cached("receiver.getShape()") Shape cachedShape,
             @Cached("name") Object cachedName,
-            @Cached("getProperty(cachedShape, cachedName)") Property cachedProperty) {
-        return cachedProperty != null;
+            @Cached("cachedShape.hasProperty(cachedName)") boolean hasProperty) {
+        return hasProperty;
     }
 
     @Specialization(guards = "updateShape(object)")
@@ -54,17 +53,7 @@ public abstract class HasFieldNode extends RubyBaseNode {
     @Specialization(replaces = { "hasFieldCached", "updateShapeAndHasField" })
     protected boolean hasFieldUncached(DynamicObject receiver, Object name) {
         final Shape shape = receiver.getShape();
-        final Property property = getProperty(shape, name);
-        return property != null;
-    }
-
-    @TruffleBoundary
-    public static Property getProperty(Shape shape, Object name) {
-        Property property = shape.getProperty(name);
-        if (!PropertyFlags.isDefined(property)) {
-            return null;
-        }
-        return property;
+        return shape.hasProperty(name);
     }
 
     protected int getCacheLimit() {

@@ -107,7 +107,6 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
-import org.truffleruby.language.objects.PropertyFlags;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -1015,8 +1014,7 @@ public abstract class KernelNodes {
         @Specialization
         protected boolean isInstanceVariableDefined(DynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
-            final Property property = object.getShape().getProperty(ivar);
-            return PropertyFlags.isDefined(property);
+            return object.getShape().hasProperty(ivar);
         }
 
     }
@@ -1077,26 +1075,17 @@ public abstract class KernelNodes {
                     removeField(object, name);
                 }
             } else {
-                if (!object.delete(name)) {
-                    throw new RaiseException(
-                            getContext(),
-                            coreExceptions().nameErrorInstanceVariableNotDefined(name, object, this));
-                }
+                removeField(object, name);
             }
             return value;
         }
 
         private void removeField(DynamicObject object, String name) {
-            Shape shape = object.getShape();
-            Property property = shape.getProperty(name);
-            if (!PropertyFlags.isDefined(property)) {
+            if (!DynamicObjectLibrary.getUncached().removeKey(object, name)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().nameErrorInstanceVariableNotDefined(name, object, this));
             }
-
-            Shape newShape = shape.replaceProperty(property, PropertyFlags.asRemoved(property));
-            object.setShapeAndGrow(shape, newShape);
         }
     }
 

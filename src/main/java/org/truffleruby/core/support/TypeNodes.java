@@ -35,14 +35,13 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.language.objects.ObjectIVarGetNode;
 import org.truffleruby.language.objects.ObjectIVarSetNode;
-import org.truffleruby.language.objects.PropertyFlags;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -131,7 +130,7 @@ public abstract class TypeNodes {
 
             for (Property property : shape.getProperties()) {
                 Object name = property.getKey();
-                if (PropertyFlags.isDefined(property) && name instanceof String) {
+                if (name instanceof String) {
                     names.add((String) name);
                 }
             }
@@ -187,8 +186,7 @@ public abstract class TypeNodes {
         @Specialization
         protected Object ivarIsDefined(DynamicObject object, RubySymbol name) {
             final String ivar = name.getString();
-            final Property property = object.getShape().getProperty(ivar);
-            return PropertyFlags.isDefined(property);
+            return object.getShape().hasProperty(ivar);
         }
 
     }

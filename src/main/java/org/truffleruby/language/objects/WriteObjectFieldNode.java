@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.extra.ffi.Pointer;
@@ -28,6 +27,7 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.FinalLocationException;
 import com.oracle.truffle.api.object.IncompatibleLocationException;
 import com.oracle.truffle.api.object.Location;
@@ -171,7 +171,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         final Shape oldShape = object.getShape();
         final Property property = oldShape.getProperty(name);
 
-        if (PropertyFlags.isDefined(property) && property.getLocation().canSet(object, value)) {
+        if (property != null && property.getLocation().canSet(object, value)) {
             return property.getLocation();
         } else {
             return null;
@@ -184,14 +184,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         if (generalize) {
             value = SOME_OBJECT;
         }
-        Property property = oldShape.getProperty(name);
-        if (property != null && PropertyFlags.isRemoved(property)) {
-            // Do not reuse location of removed properties
-            Location location = oldShape.allocator().locationForValue(value);
-            return oldShape.replaceProperty(property, property.relocate(location).copyWithFlags(0));
-        } else {
-            return oldShape.defineProperty(name, value, 0);
-        }
+        return oldShape.defineProperty(name, value, 0);
     }
 
     protected Location getNewLocation(Object name, Shape newShape) {

@@ -41,7 +41,7 @@ public abstract class ReadObjectFieldNode extends RubyBaseNode {
     protected Object readObjectFieldCached(DynamicObject receiver, Object name, Object defaultValue,
             @Cached("receiver.getShape()") Shape cachedShape,
             @Cached("name") Object cachedName,
-            @Cached("getProperty(cachedShape, cachedName)") Property cachedProperty) {
+            @Cached("cachedShape.getProperty(cachedName)") Property cachedProperty) {
         return readOrDefault(receiver, cachedShape, cachedProperty, defaultValue);
     }
 
@@ -54,17 +54,8 @@ public abstract class ReadObjectFieldNode extends RubyBaseNode {
     @Specialization(replaces = { "readObjectFieldCached", "updateShapeAndRead" })
     protected Object readObjectFieldUncached(DynamicObject receiver, Object name, Object defaultValue) {
         final Shape shape = receiver.getShape();
-        final Property property = getProperty(shape, name);
+        final Property property = shape.getProperty(name);
         return readOrDefault(receiver, shape, property, defaultValue);
-    }
-
-    @TruffleBoundary
-    public static Property getProperty(Shape shape, Object name) {
-        Property property = shape.getProperty(name);
-        if (!PropertyFlags.isDefined(property)) {
-            return null;
-        }
-        return property;
     }
 
     private static Object readOrDefault(DynamicObject object, Shape shape, Property property, Object defaultValue) {
