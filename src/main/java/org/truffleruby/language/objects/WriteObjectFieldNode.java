@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.extra.ffi.Pointer;
@@ -162,7 +163,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
                 newShape.getProperty(name).setSafe(object, value, shape, newShape);
             }
         } else {
-            object.define(name, value);
+            DynamicObjectLibrary.getUncached().put(object, name, value);
         }
     }
 

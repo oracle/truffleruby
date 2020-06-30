@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
 import org.truffleruby.Layouts;
@@ -515,8 +516,8 @@ public class CoreLibrary {
         symbolClass = defineClass("Symbol");
 
         threadClass = defineClass("Thread");
-        threadClass.define("@report_on_exception", true);
-        threadClass.define("@abort_on_exception", false);
+        DynamicObjectLibrary.getUncached().put(threadClass, "@report_on_exception", true);
+        DynamicObjectLibrary.getUncached().put(threadClass, "@abort_on_exception", false);
         threadFactory = Layouts.THREAD.createThreadShape(threadClass, threadClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(threadClass, threadFactory);
 

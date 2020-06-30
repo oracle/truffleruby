@@ -142,6 +142,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -496,7 +497,11 @@ public abstract class KernelNodes {
             // Concurrency: OK if callers create the object and publish it after copy
             // Only copy user-level instance variables, hidden ones are initialized later with #initialize_copy.
             for (Property property : getCopiedProperties(from.getShape())) {
-                to.define(property.getKey(), property.get(from, from.getShape()), property.getFlags());
+                DynamicObjectLibrary.getUncached().putWithFlags(
+                        to,
+                        property.getKey(),
+                        property.get(from, from.getShape()),
+                        property.getFlags());
             }
         }
 
