@@ -63,6 +63,81 @@ that.
 Some functions are re-implemented as macros, and some macros are re-implemented
 as functions, where this makes sense.
 
+### C Runtime Implementation Details
+
+#### `VALUE`
+
+`VALUE` is defined as `unsigned long` as on MRI. `VALUE`s represent either
+`ValueWrapper` or `LLVM Pointer` type objects.
+
+A `ValueWrapper` holds a Ruby object and can be converted to a native pointer.
+Generally, all `VALUE`s should be unwrapped before sending to Ruby and wrapped
+when returned from Ruby. Only `VALUE`s can be unwrapped and C int/long can be
+passed directly as Ruby Integers. Wrapping results from Ruby may be skipped when
+the desired result is a native value like C int/long and the value returned from
+Ruby has the corresponding type. Ruby values are converted to native values
+using a `polyglot_as*` method.
+
+`rb_tr_wrap`
+
+Wraps a Ruby value in a ValueWrapper.
+
+`rb_tr_unwrap`
+
+`ValueWrapper`, `Pointer` or `Long` values are unwrapped to any Ruby value.
+
+`RUBY_INVOKE(RECV, NAME, ARGS...)`
+
+Calls receiver with the given method name. Unwraps the receiver and arguments
+and wraps result.
+
+`RUBY_INVOKE_NO_WRAP(RECV, NAME, ARGS...)`
+
+Calls receiver with the given method name. Unwraps the receiver and arguments
+but does not wrap result.
+
+`RUBY_CEXT_INVOKE(NAME, ARGS...)`
+
+Invokes module methods on the `Truffle::CExt` module. Unwraps arguments and
+wraps result.
+
+`RUBY_CEXT_INVOKE_NO_WRAP(NAME, ARGS...)`
+
+Invokes module methods on the `Truffle::CExt` module. Unwraps arguments but does
+not wrap result. `polyglot_invoke()` is used instead when some of the arguments
+are not typed as VALUE.
+
+`polyglot_invoke`
+
+Calls receiver with the given method name. Does not unwrap the receiver and
+arguments and does not wrap result. This is useful if some of the arguments are
+not VALUE but some other type. `RUBY*_NO_WRAP` can be used when a native value
+result is desired and all arguments are `VALUE`. `RUBY*INVOKE` macros are all
+implemented using `polyglot_invoke`.
+
+`polyglot_as*`
+
+Converts a polyglot value to a native value. `polyglot_as*` methods are then
+used to convert the polyglot result to a native value when the return value is
+not a `VALUE`.
+
+`polyglot_*` 
+
+See [polyglot.h](https://github.com/oracle/graal/blob/master/sulong/projects/com.oracle.truffle.llvm.libraries.bitcode/include/polyglot.h) for documentation regarding the `polyglot_*` methods.
+
+
+##### ValueWrapper Long Representation
+When converted to native, the `ValueWrapper` takes the following long values.
+
+| Represented Value | Handle Bits                         | Comments |
+|-------------------|-------------------------------------|----------|
+| false             | 00000000 00000000 00000000 00000000 | |
+| true              | 00000000 00000000 00000000 00000010 | |
+| nil               | 00000000 00000000 00000000 00000100 | |
+| undefined         | 00000000 00000000 00000000 00000110 | |
+| Integer              | xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxx1 | Lowest mask bit set, small longs only, convert to long using >> 1 |
+| Object            | xxxxxxxx xxxxxxxx xxxxxxxx xxxxx000 | No mask bits set and does not equal 0, value is index into handle map |
+
 ### String pointers
 
 When a Ruby String is accessed via `RSTRING_PTR` or `RSTRING_END`, it is
