@@ -1,0 +1,2 @@
+fails:Digest::Instance#new returns a copy of the digest instance
+fails:Digest::Instance#new calls reset
