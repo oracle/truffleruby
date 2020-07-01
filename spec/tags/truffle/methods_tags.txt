@@ -50,4 +50,3 @@ fails:Public methods on Digest.singleton_class should include const_missing
 fails:Public methods on Digest::Instance should not include finish
 fails:Public methods on Digest::Instance should not include to_str
 fails:Public methods on Digest::Instance should include block_length
-fails:Public methods on Digest::Instance should include new
