@@ -30,6 +30,8 @@ update.
 
 ## Update MRI with modifications
 
+Install the target MRI version using the command `ruby-install ruby 2.6.6`.
+
 In your working branch you can import MRI files again, and you can re-apply
 old patches using the old reference branch.
 
@@ -137,3 +139,4 @@ In a separate commit, update all of these:
 * Run `jt test gems default-bundled-gems`
 * Update `ci.jsonnet` to use the corresponding MRI version for benchmarking
 * Grep for the old version with `git grep -F x.y.z`
+* If `id.def` or `id.h` has changed, `jt build core-symbols` and check for correctness.

@@ -140,7 +140,7 @@ int rb_obj_respond_to(VALUE object, ID id, int priv) {
 }
 
 int rb_method_boundp(VALUE klass, ID id, int ex) {
-  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_method_boundp", rb_tr_unwrap(klass), rb_tr_unwrap(id), ex));
+  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "rb_method_boundp", rb_tr_unwrap(klass), rb_tr_id2sym(id), ex));
 }
 
 VALUE rb_exec_recursive(VALUE (*func) (VALUE, VALUE, int), VALUE obj, VALUE arg) {

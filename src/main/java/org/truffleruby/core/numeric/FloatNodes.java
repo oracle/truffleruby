@@ -182,7 +182,7 @@ public abstract class FloatNodes {
         @Specialization(guards = "!isRubyNumber(exponent)")
         protected Object powCoerced(double base, Object exponent,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
-            return redoCoerced.call(base, "redo_coerced", CoreSymbols.POWER, exponent);
+            return redoCoerced.call(base, "redo_coerced", CoreSymbols.POW, exponent);
         }
 
     }
@@ -333,7 +333,7 @@ public abstract class FloatNodes {
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessEqualCoerced(double a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", CoreSymbols.LESS_OR_EQUAL, b);
+            return redoCompare.call(a, "redo_compare", CoreSymbols.LEQ, b);
         }
     }
 
@@ -450,7 +450,7 @@ public abstract class FloatNodes {
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterEqualCoerced(double a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", CoreSymbols.GREATER_OR_EQUAL, b);
+            return redoCompare.call(a, "redo_compare", CoreSymbols.GEQ, b);
         }
 
     }

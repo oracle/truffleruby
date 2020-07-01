@@ -724,7 +724,7 @@ public abstract class IntegerNodes {
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessEqualCoerced(Object a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", CoreSymbols.LESS_OR_EQUAL, b);
+            return redoCompare.call(a, "redo_compare", CoreSymbols.LEQ, b);
         }
 
     }
@@ -894,7 +894,7 @@ public abstract class IntegerNodes {
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterEqualCoerced(Object a, Object b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
-            return redoCompare.call(a, "redo_compare", CoreSymbols.GREATER_OR_EQUAL, b);
+            return redoCompare.call(a, "redo_compare", CoreSymbols.GEQ, b);
         }
 
     }

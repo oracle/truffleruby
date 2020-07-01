@@ -5,6 +5,8 @@
 set -x
 set -e
 
+RUBY_BUILD_DIR=$HOME/src/ruby-2.6.6
+
 topdir=$(cd ../ruby && pwd -P)
 
 # Generate ext/rbconfig/sizeof/sizes.c and limits.c
@@ -50,8 +52,8 @@ cp -r ../ruby/ext/psych/lib/psych lib/mri
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri
 
 # Copy C extensions in ext/, sorted alphabetically
-rm -r src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
-mkdir src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,zlib}
+rm -r src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,ripper,zlib}
+mkdir src/main/c/{etc,nkf,openssl,psych,rbconfig-sizeof,syslog,ripper,zlib}
 cp ../ruby/ext/etc/*.{c,rb} src/main/c/etc
 cp ../ruby/ext/nkf/*.{c,rb} src/main/c/nkf
 cp -r ../ruby/ext/nkf/nkf-utf8 src/main/c/nkf
@@ -61,6 +63,9 @@ cp -r ../ruby/ext/psych/yaml src/main/c/psych
 cp ../ruby/ext/rbconfig/sizeof/*.{c,rb} src/main/c/rbconfig-sizeof
 cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
+
+# Ripper
+cp "$RUBY_BUILD_DIR"/id.h lib/cext/include/truffleruby/internal
 
 # test/
 rm -rf test/mri/tests
@@ -96,3 +101,4 @@ cp -r ../ruby/ccan/. lib/cext/include/ccan
 
 # defs/
 cp ../ruby/defs/known_errors.def tool
+cp ../ruby/defs/id.def tool

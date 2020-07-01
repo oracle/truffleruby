@@ -9,6 +9,8 @@
  */
 package org.truffleruby.core.symbol;
 
+import java.util.Collection;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -23,9 +25,6 @@ import org.truffleruby.parser.Identifiers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.profiles.BranchProfile;
-
-import java.util.Collection;
 
 public class SymbolTable {
 
@@ -38,8 +37,6 @@ public class SymbolTable {
     // Weak map of RopeKey to Symbol to keep Symbols unique.
     // As long as the Symbol is referenced, the entry will stay in the symbolMap.
     private final WeakValueCache<Rope, RubySymbol> symbolMap = new WeakValueCache<>();
-
-    private final RubySymbol[] singleByteSymbols = new RubySymbol[256];
 
     public SymbolTable(RopeCache ropeCache) {
         this.ropeCache = ropeCache;
@@ -59,16 +56,6 @@ public class SymbolTable {
 
             stringToSymbolCache.put(symbol.getString(), symbol);
         }
-    }
-
-    public RubySymbol getSingleByteSymbol(char index, BranchProfile nullProfile) {
-        RubySymbol symbol = singleByteSymbols[index];
-        if (symbol == null) {
-            nullProfile.enter();
-            symbol = getSymbol(String.valueOf(index));
-            singleByteSymbols[index] = symbol;
-        }
-        return symbol;
     }
 
     @TruffleBoundary
