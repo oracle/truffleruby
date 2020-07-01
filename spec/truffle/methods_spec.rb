@@ -25,26 +25,32 @@ modules = %w[
   Array Hash String
   File IO
   ENV.singleton_class
+  Digest.singleton_class Digest::Class.singleton_class Digest::Instance
 ]
+
+requires = %w[digest]
+requires_code = requires.map { |lib| "require #{lib.inspect}" }.join("\n")
 
 guard -> { !defined?(SlowSpecsTagger) } do
   if RUBY_ENGINE == "ruby"
     modules.each do |mod|
       file = File.expand_path("../methods/#{mod}.txt", __FILE__)
-      methods = ruby_exe("puts #{mod}.public_instance_methods(false).sort")
+      code = "#{requires_code}\nputs #{mod}.public_instance_methods(false).sort"
+      methods = ruby_exe(code)
       methods = methods.lines.map { |line| line.chomp.to_sym }
       contents = methods.map { |meth| "#{meth}\n" }.join
       File.write file, contents
     end
   end
 
-  code = <<-EOR
+  code = <<-RUBY
+  #{requires_code}
   #{modules.inspect}.each { |m|
     puts m
     puts eval(m).public_instance_methods(false).sort
     puts
   }
-  EOR
+  RUBY
   all_methods = {}
   ruby_exe(code).rstrip.split("\n\n").each do |group|
     mod, *methods = group.lines.map(&:chomp)
