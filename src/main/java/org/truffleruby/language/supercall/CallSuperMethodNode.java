@@ -60,7 +60,7 @@ public class CallSuperMethodNode extends FrameSendingNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodNode = insert(CallInternalMethodNode.create());
         }
-        return callMethodNode.executeCallMethod(superMethod, frameArguments);
+        return callMethodNode.execute(superMethod, frameArguments);
     }
 
     private Object callMethodMissing(VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {

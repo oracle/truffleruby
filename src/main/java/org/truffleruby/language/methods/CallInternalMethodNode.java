@@ -28,7 +28,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return CallInternalMethodNodeGen.create();
     }
 
-    public abstract Object executeCallMethod(InternalMethod method, Object[] frameArguments);
+    public abstract Object execute(InternalMethod method, Object[] frameArguments);
 
     @Specialization(
             guards = "method.getCallTarget() == cachedCallTarget",
