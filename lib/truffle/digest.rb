@@ -72,6 +72,12 @@ module Digest
   end
 
   module Instance
+    def new
+      copy = clone
+      copy.reset
+      copy
+    end
+
     def update(message)
       Truffle::Digest.update @digest, message
     end
