@@ -67,7 +67,7 @@ public class ValueWrapperManager {
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
-        this.threadBlocks = ThreadLocal.withInitial((this::makeThreadData));
+        this.threadBlocks = ThreadLocal.withInitial(this::makeThreadData);
         nilWrapper = new ValueWrapper(Nil.INSTANCE, NIL_HANDLE, null);
     }
 
