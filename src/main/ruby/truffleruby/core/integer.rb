@@ -181,8 +181,7 @@ class Integer < Numeric
       raise RangeError, "float #{ndigits} out of range of integer"
     end
 
-    ndigits = Truffle::Type.rb_to_int(ndigits)
-    Truffle::Type.check_int(ndigits)
+    ndigits = Primitive.rb_num2int ndigits
 
     if ndigits >= 0
       case half

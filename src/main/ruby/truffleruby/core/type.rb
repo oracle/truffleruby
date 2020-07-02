@@ -209,12 +209,6 @@ module Truffle
       Integer === val && Primitive.integer_fits_into_long(val)
     end
 
-    def self.check_int(val)
-      unless Primitive.integer_fits_into_int(val)
-        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `int'"
-      end
-    end
-
     def self.check_uint(val)
       unless Primitive.integer_fits_into_uint(val)
         raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `uint'"
