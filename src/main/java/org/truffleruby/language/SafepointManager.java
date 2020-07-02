@@ -201,7 +201,7 @@ public class SafepointManager {
     }
 
     private void printStacktracesOfBlockedThreads() {
-        System.err.println("Dumping stacktraces of blocked threads:");
+        System.err.println("Dumping stacktraces of all threads:");
         for (Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
             final Thread thread = entry.getKey();
             if (thread != Thread.currentThread() && runningThreads.contains(thread)) {
@@ -217,13 +217,11 @@ public class SafepointManager {
                     }
                 }
 
-                if (blocked) {
-                    System.err.println(thread);
-                    for (int i = 0; i < stackTrace.length; i++) {
-                        System.err.println(stackTrace[i]);
-                    }
-                    System.err.println();
+                System.err.println((blocked ? "BLOCKED: " : "IN SAFEPOINT: ") + thread);
+                for (StackTraceElement stackTraceElement : stackTrace) {
+                    System.err.println(stackTraceElement);
                 }
+                System.err.println();
             }
         }
     }
