@@ -30,7 +30,7 @@ module Truffle
   module EnumerableHelper
     def self.cycle_size(enum_size, many)
       if many
-        many = Truffle::Type.coerce_to_collection_index many
+        many = Primitive.rb_num2int many
         many = 0 if many < 0
         Primitive.nil?(enum_size) ? nil : enum_size * many
       else

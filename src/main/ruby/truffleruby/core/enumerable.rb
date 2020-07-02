@@ -513,7 +513,7 @@ module Enumerable
     end
 
     if many
-      many = Truffle::Type.coerce_to_collection_index many
+      many = Primitive.rb_num2int many
       return nil if many <= 0
     else
       many = nil
@@ -545,7 +545,7 @@ module Enumerable
   end
 
   def drop(n)
-    n = Truffle::Type.coerce_to_collection_index n
+    n = Primitive.rb_num2int n
     raise ArgumentError, 'attempt to drop negative size' if n < 0
 
     ary = to_a
@@ -567,7 +567,7 @@ module Enumerable
   end
 
   def each_cons(num)
-    n = Truffle::Type.coerce_to_collection_index num
+    n = Primitive.rb_num2int num
     raise ArgumentError, "invalid size: #{n}" if n <= 0
 
     unless block_given?
@@ -594,7 +594,7 @@ module Enumerable
   end
 
   def each_slice(slice_size)
-    n = Truffle::Type.coerce_to_collection_index slice_size
+    n = Primitive.rb_num2int slice_size
     raise ArgumentError, "invalid slice size: #{n}" if n <= 0
 
     unless block_given?
@@ -916,7 +916,7 @@ module Enumerable
   end
 
   def take(n)
-    n = Truffle::Type.coerce_to_collection_index n
+    n = Primitive.rb_num2int n
     raise ArgumentError, "attempt to take negative size: #{n}" if n < 0
 
     array = []

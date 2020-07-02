@@ -437,11 +437,11 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "!isRubyNumber(salt)")
         protected Object startHashNotNumber(Object salt,
-                @Cached ToRubyIntegerNode toInteger,
+                @Cached ToRubyIntegerNode toRubyInteger,
                 @Cached ConditionProfile isIntegerProfile,
                 @Cached ConditionProfile isLongProfile,
                 @Cached ConditionProfile isBignumProfile) {
-            Object result = toInteger.execute(salt);
+            Object result = toRubyInteger.execute(salt);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return getContext().getHashing(this).start((int) result);
             } else if (isLongProfile.profile(result instanceof Long)) {
@@ -470,11 +470,11 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "!isRubyNumber(value)")
         protected Object updateHash(long hash, Object value,
-                @Cached ToRubyIntegerNode toInteger,
+                @Cached ToRubyIntegerNode toRubyInteger,
                 @Cached ConditionProfile isIntegerProfile,
                 @Cached ConditionProfile isLongProfile,
                 @Cached ConditionProfile isBignumProfile) {
-            Object result = toInteger.execute(value);
+            Object result = toRubyInteger.execute(value);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return Hashing.update(hash, (int) result);
             } else if (isLongProfile.profile(result instanceof Long)) {

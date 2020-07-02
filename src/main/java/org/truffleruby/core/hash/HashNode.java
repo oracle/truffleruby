@@ -23,7 +23,7 @@ public class HashNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode hashNode;
     @Child private ObjectIDNode objectIDNode;
-    @Child ToRubyIntegerNode toInteger;
+    @Child private ToRubyIntegerNode toRubyInteger;
 
     private final ConditionProfile isIntegerProfile1 = ConditionProfile.create();
     private final ConditionProfile isLongProfile1 = ConditionProfile.create();
@@ -47,12 +47,12 @@ public class HashNode extends RubyContextNode {
         } else if (isBignumProfile1.profile(Layouts.BIGNUM.isBignum(hashedObject))) {
             return BigIntegerOps.hashCode(hashedObject);
         } else {
-            if (toInteger == null) {
+            if (toRubyInteger == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toInteger = insert(ToRubyIntegerNode.create());
+                toRubyInteger = insert(ToRubyIntegerNode.create());
             }
 
-            final Object coercedHashedObject = toInteger.execute(hashedObject);
+            final Object coercedHashedObject = toRubyInteger.execute(hashedObject);
 
             if (isIntegerProfile2.profile(coercedHashedObject instanceof Integer)) {
                 return (int) coercedHashedObject;
