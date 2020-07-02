@@ -220,13 +220,17 @@ public abstract class ObjectSpaceNodes {
             final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
 
             synchronized (object) {
-                FinalizerReference ref = (FinalizerReference) getFinaliserNode
+                final FinalizerReference ref = (FinalizerReference) getFinaliserNode
                         .execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
-                FinalizerReference newRef = getContext()
-                        .getFinalizationService()
-                        .addFinalizer(object, ref, ObjectSpaceManager.class, action, root);
-                if (ref != newRef) {
+                if (ref == null) {
+                    final FinalizerReference newRef = getContext()
+                            .getFinalizationService()
+                            .addFinalizer(object, ObjectSpaceManager.class, action, root);
                     setFinalizerNode.write(object, Layouts.FINALIZER_REF_IDENTIFIER, newRef);
+                } else {
+                    getContext()
+                            .getFinalizationService()
+                            .addAdditionalFinalizer(ref, object, ObjectSpaceManager.class, action, root);
                 }
             }
         }
