@@ -594,7 +594,7 @@ class Enumerator::ArithmeticSequence < Enumerator
 
     return last if Primitive.undefined?(n)
 
-    n = Truffle::Type.rb_to_int(n) if !Primitive.object_kind_of?(n, Integer)
+    n = Primitive.rb_to_int(n) if !Primitive.object_kind_of?(n, Integer)
 
     raise ArgumentError, 'negative array size' if n < 0
 
@@ -656,7 +656,7 @@ class Enumerator::ArithmeticSequence < Enumerator
   def size
     from, to, step, exclude_end  = @begin, @end, @step, @exclude_end
     unless Primitive.object_kind_of?(from, Float) || Primitive.object_kind_of?(to, Float) || Primitive.object_kind_of?(step, Float)
-      step = Truffle::Type.rb_to_int(step)
+      step = Primitive.rb_to_int(step)
     end
     Truffle::NumericOperations.step_size(from, to, step, true, exclude_end)
   end

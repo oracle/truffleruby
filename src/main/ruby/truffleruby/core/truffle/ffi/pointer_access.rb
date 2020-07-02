@@ -45,7 +45,7 @@ class Truffle::FFI::Pointer
   alias_method :read_int8, :read_char
 
   def write_char(value)
-    Primitive.pointer_write_char address, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_char address, Primitive.rb_to_int(value)
     self
   end
   alias_method :write_int8, :write_char
@@ -56,7 +56,7 @@ class Truffle::FFI::Pointer
   alias_method :get_int8, :get_char
 
   def put_char(offset, value)
-    Primitive.pointer_write_char address + offset, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_char address + offset, Primitive.rb_to_int(value)
     self
   end
   alias_method :put_int8, :put_char
@@ -70,7 +70,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_char(ary)
     ary.each_with_index do |value, i|
-      Primitive.pointer_write_char address + (i * 1), Truffle::Type.rb_to_int(value)
+      Primitive.pointer_write_char address + (i * 1), Primitive.rb_to_int(value)
     end
     self
   end
@@ -95,7 +95,7 @@ class Truffle::FFI::Pointer
   alias_method :read_uint8, :read_uchar
 
   def write_uchar(value)
-    Primitive.pointer_write_uchar address, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_uchar address, Primitive.rb_to_int(value)
     self
   end
   alias_method :write_uint8, :write_uchar
@@ -106,7 +106,7 @@ class Truffle::FFI::Pointer
   alias_method :get_uint8, :get_uchar
 
   def put_uchar(offset, value)
-    Primitive.pointer_write_uchar address + offset, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_uchar address + offset, Primitive.rb_to_int(value)
     self
   end
   alias_method :put_uint8, :put_uchar
@@ -120,7 +120,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_uchar(ary)
     ary.each_with_index do |value, i|
-      Primitive.pointer_write_uchar address + (i * 1), Truffle::Type.rb_to_int(value)
+      Primitive.pointer_write_uchar address + (i * 1), Primitive.rb_to_int(value)
     end
     self
   end
@@ -145,7 +145,7 @@ class Truffle::FFI::Pointer
   alias_method :read_int16, :read_short
 
   def write_short(value)
-    Primitive.pointer_write_short address, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_short address, Primitive.rb_to_int(value)
     self
   end
   alias_method :write_int16, :write_short
@@ -156,7 +156,7 @@ class Truffle::FFI::Pointer
   alias_method :get_int16, :get_short
 
   def put_short(offset, value)
-    Primitive.pointer_write_short address + offset, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_short address + offset, Primitive.rb_to_int(value)
     self
   end
   alias_method :put_int16, :put_short
@@ -170,7 +170,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_short(ary)
     ary.each_with_index do |value, i|
-      Primitive.pointer_write_short address + (i * 2), Truffle::Type.rb_to_int(value)
+      Primitive.pointer_write_short address + (i * 2), Primitive.rb_to_int(value)
     end
     self
   end
@@ -195,7 +195,7 @@ class Truffle::FFI::Pointer
   alias_method :read_uint16, :read_ushort
 
   def write_ushort(value)
-    Primitive.pointer_write_ushort address, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_ushort address, Primitive.rb_to_int(value)
     self
   end
   alias_method :write_uint16, :write_ushort
@@ -206,7 +206,7 @@ class Truffle::FFI::Pointer
   alias_method :get_uint16, :get_ushort
 
   def put_ushort(offset, value)
-    Primitive.pointer_write_ushort address + offset, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_ushort address + offset, Primitive.rb_to_int(value)
     self
   end
   alias_method :put_uint16, :put_ushort
@@ -220,7 +220,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_ushort(ary)
     ary.each_with_index do |value, i|
-      Primitive.pointer_write_ushort address + (i * 2), Truffle::Type.rb_to_int(value)
+      Primitive.pointer_write_ushort address + (i * 2), Primitive.rb_to_int(value)
     end
     self
   end
@@ -245,7 +245,7 @@ class Truffle::FFI::Pointer
   alias_method :read_int32, :read_int
 
   def write_int(value)
-    Primitive.pointer_write_int address, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_int address, Primitive.rb_to_int(value)
     self
   end
   alias_method :write_int32, :write_int
@@ -256,7 +256,7 @@ class Truffle::FFI::Pointer
   alias_method :get_int32, :get_int
 
   def put_int(offset, value)
-    Primitive.pointer_write_int address + offset, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_int address + offset, Primitive.rb_to_int(value)
     self
   end
   alias_method :put_int32, :put_int
@@ -270,7 +270,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_int(ary)
     ary.each_with_index do |value, i|
-      Primitive.pointer_write_int address + (i * 4), Truffle::Type.rb_to_int(value)
+      Primitive.pointer_write_int address + (i * 4), Primitive.rb_to_int(value)
     end
     self
   end
@@ -295,7 +295,7 @@ class Truffle::FFI::Pointer
   alias_method :read_uint32, :read_uint
 
   def write_uint(value)
-    Primitive.pointer_write_uint address, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_uint address, Primitive.rb_to_int(value)
     self
   end
   alias_method :write_uint32, :write_uint
@@ -306,7 +306,7 @@ class Truffle::FFI::Pointer
   alias_method :get_uint32, :get_uint
 
   def put_uint(offset, value)
-    Primitive.pointer_write_uint address + offset, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_uint address + offset, Primitive.rb_to_int(value)
     self
   end
   alias_method :put_uint32, :put_uint
@@ -320,7 +320,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_uint(ary)
     ary.each_with_index do |value, i|
-      Primitive.pointer_write_uint address + (i * 4), Truffle::Type.rb_to_int(value)
+      Primitive.pointer_write_uint address + (i * 4), Primitive.rb_to_int(value)
     end
     self
   end
@@ -346,7 +346,7 @@ class Truffle::FFI::Pointer
   alias_method :read_long_long, :read_long
 
   def write_long(value)
-    Primitive.pointer_write_long address, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_long address, Primitive.rb_to_int(value)
     self
   end
   alias_method :write_int64, :write_long
@@ -359,7 +359,7 @@ class Truffle::FFI::Pointer
   alias_method :get_long_long, :get_long
 
   def put_long(offset, value)
-    Primitive.pointer_write_long address + offset, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_long address + offset, Primitive.rb_to_int(value)
     self
   end
   alias_method :put_int64, :put_long
@@ -375,7 +375,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_long(ary)
     ary.each_with_index do |value, i|
-      Primitive.pointer_write_long address + (i * 8), Truffle::Type.rb_to_int(value)
+      Primitive.pointer_write_long address + (i * 8), Primitive.rb_to_int(value)
     end
     self
   end
@@ -404,7 +404,7 @@ class Truffle::FFI::Pointer
   alias_method :read_ulong_long, :read_ulong
 
   def write_ulong(value)
-    Primitive.pointer_write_ulong address, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_ulong address, Primitive.rb_to_int(value)
     self
   end
   alias_method :write_uint64, :write_ulong
@@ -417,7 +417,7 @@ class Truffle::FFI::Pointer
   alias_method :get_ulong_long, :get_ulong
 
   def put_ulong(offset, value)
-    Primitive.pointer_write_ulong address + offset, Truffle::Type.rb_to_int(value)
+    Primitive.pointer_write_ulong address + offset, Primitive.rb_to_int(value)
     self
   end
   alias_method :put_uint64, :put_ulong
@@ -433,7 +433,7 @@ class Truffle::FFI::Pointer
 
   def write_array_of_ulong(ary)
     ary.each_with_index do |value, i|
-      Primitive.pointer_write_ulong address + (i * 8), Truffle::Type.rb_to_int(value)
+      Primitive.pointer_write_ulong address + (i * 8), Primitive.rb_to_int(value)
     end
     self
   end

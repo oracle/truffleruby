@@ -604,11 +604,11 @@ class IO
         options = offset
         offset = 0
       else
-        offset = Truffle::Type.rb_to_int(offset || 0)
+        offset = Primitive.rb_to_int(offset || 0)
         raise Errno::EINVAL, 'offset must not be negative' if offset < 0
       end
 
-      length = Truffle::Type.rb_to_int(length_or_options)
+      length = Primitive.rb_to_int(length_or_options)
       raise ArgumentError, 'length must not be negative' if length < 0
     else
       length = undefined
@@ -1118,8 +1118,8 @@ class IO
       raise NotImplementedError, "Unsupported advice: #{advice}"
     end
 
-    _offset = Truffle::Type.rb_to_int offset
-    _len = Truffle::Type.rb_to_int len
+    _offset = Primitive.rb_to_int offset
+    _len = Primitive.rb_to_int len
 
     # Primitive.io_advise self, advice, offset, len
     raise 'IO#advise not implemented'
@@ -1566,10 +1566,10 @@ class IO
     elsif arg.kind_of? String
       raise NotImplementedError, 'cannot handle String'
     else
-      arg = Truffle::Type.rb_to_int arg
+      arg = Primitive.rb_to_int arg
     end
 
-    command = Truffle::Type.rb_to_int command
+    command = Primitive.rb_to_int command
     Truffle::POSIX.fcntl @descriptor, command, arg
   end
 
@@ -1603,10 +1603,10 @@ class IO
       buffer.write_string(arg, arg.bytesize)
       real_arg = buffer.address
     else
-      real_arg = Truffle::Type.rb_to_int(arg)
+      real_arg = Primitive.rb_to_int(arg)
     end
 
-    command = Truffle::Type.rb_to_int(command)
+    command = Primitive.rb_to_int(command)
     ret = Truffle::POSIX.ioctl(@descriptor, command, real_arg)
     Errno.handle if ret < 0
 

@@ -44,7 +44,7 @@ module Math
     else
       ldexp(
         Truffle::Type.coerce_to_float(fraction),
-        Truffle::Type.rb_to_int(exponent))
+        Primitive.rb_to_int(exponent))
     end
   end
 

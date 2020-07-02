@@ -80,7 +80,7 @@ class Regexp
   def self.last_match(index=nil)
     match = Truffle::RegexpOperations.last_match(Primitive.caller_binding)
     if index
-      index = Truffle::Type.rb_to_int index
+      index = Primitive.rb_to_int index
       match[index] if match
     else
       match

@@ -226,7 +226,7 @@ module Truffle::CExt
   end
 
   def rb_to_int(val)
-    Truffle::Type.rb_to_int(val)
+    Primitive.rb_to_int(val)
   end
 
   def rb_fix2int(value)

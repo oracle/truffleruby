@@ -72,7 +72,7 @@ module Signal
         raise ArgumentError, "Unknown signal '#{original_signal}'"
       end
     else
-      number = Truffle::Type.rb_to_int signal
+      number = Primitive.rb_to_int signal
     end
 
     signame = self.signame(number)
@@ -132,7 +132,7 @@ module Signal
   end
 
   def self.signame(signo)
-    index = Truffle::Type.rb_to_int signo
+    index = Primitive.rb_to_int signo
 
     Numbers[index]
   end

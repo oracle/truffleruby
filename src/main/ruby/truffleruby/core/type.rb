@@ -144,7 +144,7 @@ module Truffle
         fval = val.to_int
         rb_num2ulong(fval)
       else
-        rb_num2ulong(rb_to_int(val))
+        rb_num2ulong(Primitive.rb_to_int(val))
       end
     end
 
