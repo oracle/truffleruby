@@ -66,14 +66,14 @@ public abstract class ArrayHelpers {
 
     /** Returns a Java array of the narrowest possible type holding {@code object}. */
     public static Object specializedJavaArrayOf(ArrayBuilderNode builder, Object object) {
-        final ArrayBuilderNode.BuilderState state = builder.start();
+        final ArrayBuilderNode.BuilderState state = builder.start(1);
         builder.appendValue(state, 0, object);
         return builder.finish(state, 1);
     }
 
     /** Returns a Java array of the narrowest possible type holding the {@code objects}. */
     public static Object specializedJavaArrayOf(ArrayBuilderNode builder, Object... objects) {
-        final ArrayBuilderNode.BuilderState state = builder.start();
+        final ArrayBuilderNode.BuilderState state = builder.start(objects.length);
         for (Object object : objects) {
             builder.appendValue(state, 0, object);
         }
