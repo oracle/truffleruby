@@ -179,9 +179,8 @@ public class SafepointManager {
                             waits * WAIT_TIME_IN_SECONDS,
                             phaser.getUnarrivedParties(),
                             phaser.getRegisteredParties()));
-                    printStacktracesOfBlockedThreads();
-
                     if (waits == 1) {
+                        printStacktracesOfBlockedThreads();
                         restoreDefaultInterruptHandler();
                     }
                     if (max >= exitTime) {
