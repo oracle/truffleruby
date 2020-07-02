@@ -1051,7 +1051,7 @@ public abstract class InteropNodes {
                         getContext(),
                         StringOperations.encodeRope(languagesArray[i], UTF8Encoding.INSTANCE));
             }
-            return createArray(languagesArray);
+            return createArray(rubyStringArray);
         }
 
     }
