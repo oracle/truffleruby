@@ -368,7 +368,7 @@ public class RubyContext {
 
     private static boolean computeHasOtherPublicLanguages(Env env) {
         for (String language : env.getPublicLanguages().keySet()) {
-            if (!language.equals(TruffleRuby.LANGUAGE_ID)) {
+            if (!language.equals(TruffleRuby.LANGUAGE_ID) && !language.equals("llvm") /* GR-24618 */) {
                 return true;
             }
         }

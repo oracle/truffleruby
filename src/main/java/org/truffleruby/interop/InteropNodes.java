@@ -1051,7 +1051,17 @@ public abstract class InteropNodes {
                         getContext(),
                         StringOperations.encodeRope(languagesArray[i], UTF8Encoding.INSTANCE));
             }
-            return createArray(languagesArray);
+            return createArray(rubyStringArray);
+        }
+
+    }
+
+    @CoreMethod(names = "other_languages?", onSingleton = true, required = 0)
+    public abstract static class HasOtherLanguagesNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean hasOtherlanguages() {
+            return getContext().hasOtherPublicLanguages();
         }
 
     }
