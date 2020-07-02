@@ -610,4 +610,17 @@ describe "C-API Encoding function" do
       end
     end
   end
+
+  describe "ONIGENC_MBC_CASE_FOLD" do
+    it "returns the correct case fold for the given string" do
+      @s.ONIGENC_MBC_CASE_FOLD("lower").should == ["l", 1]
+      @s.ONIGENC_MBC_CASE_FOLD("Upper").should == ["u", 1]
+    end
+
+    it "works with other encodings" do
+      @s.ONIGENC_MBC_CASE_FOLD("lower".force_encoding("binary")).should == ["l", 1]
+      @s.ONIGENC_MBC_CASE_FOLD("Upper".force_encoding("binary")).should == ["u", 1]
+      @s.ONIGENC_MBC_CASE_FOLD("É").should == ["é", 2]
+    end
+  end
 end

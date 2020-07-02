@@ -266,6 +266,18 @@ static VALUE encoding_spec_rb_uv_to_utf8(VALUE self, VALUE buf, VALUE num) {
   return INT2NUM(rb_uv_to_utf8(RSTRING_PTR(buf), NUM2INT(num)));
 }
 
+static VALUE encoding_spec_ONIGENC_MBC_CASE_FOLD(VALUE self, VALUE str) {
+  char *beg = RSTRING_PTR(str);
+  char *beg_initial = beg;
+  char *end = beg + 2;
+  OnigUChar fold[ONIGENC_GET_CASE_FOLD_CODES_MAX_NUM];
+  rb_encoding *enc = rb_enc_get(str);
+  int r = ONIGENC_MBC_CASE_FOLD(enc, ONIGENC_CASE_FOLD, &beg, (const OnigUChar *)end, fold);
+  VALUE str_result = r <= 0 ? Qnil : rb_enc_str_new((char *)fold, r, enc);
+  long bytes_used = beg - beg_initial;
+  return rb_ary_new3(2, str_result, INT2FIX(bytes_used));
+}
+
 void Init_encoding_spec(void) {
   VALUE cls;
   native_rb_encoding_pointer = (rb_encoding**) malloc(sizeof(rb_encoding*));
@@ -326,6 +338,7 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_codepoint_len", encoding_spec_rb_enc_codepoint_len, 1);
   rb_define_method(cls, "rb_enc_str_asciionly_p", encoding_spec_rb_enc_str_asciionly_p, 1);
   rb_define_method(cls, "rb_uv_to_utf8", encoding_spec_rb_uv_to_utf8, 2);
+  rb_define_method(cls, "ONIGENC_MBC_CASE_FOLD", encoding_spec_ONIGENC_MBC_CASE_FOLD, 1);
 }
 
 #ifdef __cplusplus

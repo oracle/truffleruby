@@ -329,8 +329,13 @@ int onigenc_ascii_only_case_map(OnigCaseFoldType* flagP, const OnigUChar** pp, c
 
 #define ONIGENC_NAME(enc)                      ((enc)->name)
 
+#ifdef TRUFFLERUBY
+#define ONIGENC_MBC_CASE_FOLD(enc,flag,pp,end,buf) \
+  rb_tr_enc_mbc_case_fold(enc,flag,pp,end,buf)
+#else
 #define ONIGENC_MBC_CASE_FOLD(enc,flag,pp,end,buf) \
   (enc)->mbc_case_fold(flag,(const OnigUChar** )pp,end,buf,enc)
+#endif
 #define ONIGENC_IS_ALLOWED_REVERSE_MATCH(enc,s,end) \
         (enc)->is_allowed_reverse_match(s,end,enc)
 #define ONIGENC_LEFT_ADJUST_CHAR_HEAD(enc,start,s,end) \
