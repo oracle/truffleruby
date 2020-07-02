@@ -112,7 +112,8 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     protected int coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
             @Cached ToIntNode fitNode) {
-        final Object coerced = toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int", object);
+        final Object coerced = toIntNode
+                .call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
         return fitNode.execute(coerced);
     }
 }

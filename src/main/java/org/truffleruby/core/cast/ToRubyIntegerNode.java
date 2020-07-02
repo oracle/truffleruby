@@ -50,6 +50,6 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
     @Specialization(guards = "!isRubyInteger(object)")
     protected Object coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode) {
-        return toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int", object);
+        return toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
     }
 }
