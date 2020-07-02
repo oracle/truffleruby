@@ -9,11 +9,11 @@
 array = (0...1000).to_a
 shift = 0
 
-benchmark 'set_span_move' do
+benchmark 'core-array-set-span-no-move' do
   i = 0
-  replacement = (shift...(shift + 10)).to_a
-  while i < 1000 - 10
-    array[i, 10] = replacement
+  replacement = (shift...(shift + 1000)).to_a
+  while i < 1000
+    array[0..-1] = replacement
     i += 1
   end
   shift += 1

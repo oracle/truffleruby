@@ -6,14 +6,14 @@
 # GNU General Public License version 2, or
 # GNU Lesser General Public License version 2.1.
 
-array = (0...100000).to_a
+array = (0...1000).to_a
 shift = 0
 
-benchmark 'set_range' do
+benchmark 'core-array-set-span-move' do
   i = 0
   replacement = (shift...(shift + 10)).to_a
   while i < 1000 - 10
-    array[i...(i+10)] = replacement
+    array[i, 10] = replacement
     i += 1
   end
   shift += 1
