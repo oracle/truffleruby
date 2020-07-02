@@ -81,7 +81,7 @@
 #include "node.h"
 #include "parse.h"
 #ifdef TRUFFLERUBY
-#include <ruby/symbol.h>
+#include <truffleruby/internal/symbol.h>
 #else
 #include "symbol.h"
 #endif

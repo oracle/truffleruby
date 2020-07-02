@@ -1,6 +1,6 @@
 #include <truffleruby-impl.h>
 #include <ruby/encoding.h>
-#include <ruby/symbol.h>
+#include <truffleruby/internal/symbol.h>
 
 // Symbol and ID, rb_sym*, rb_id*
 

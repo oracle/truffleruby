@@ -25,10 +25,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 @ImportStatic({ ValueWrapperManager.class })
 public abstract class IsNativeObjectNode extends RubyBaseNode {
 
-    /** Returns true if handle was natively allocated.
-     * 
-     * @param handle
-     * @return */
+    /** Returns true if handle was natively allocated. */
     public abstract Object execute(Object handle);
 
     @Specialization(guards = "handle < TAG_MASK")
