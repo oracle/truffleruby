@@ -216,10 +216,10 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary
         private void defineFinalizer(DynamicObject object, Object finalizer) {
-            synchronized (getContext().getFinalizationService()) {
-                final DynamicObject root = (finalizer instanceof DynamicObject) ? (DynamicObject) finalizer : null;
-                final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
+            final DynamicObject root = (finalizer instanceof DynamicObject) ? (DynamicObject) finalizer : null;
+            final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
 
+            synchronized (getContext().getFinalizationService()) {
                 FinalizerReference ref = (FinalizerReference) getFinaliserNode
                         .execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);
                 FinalizerReference newRef = getContext()
