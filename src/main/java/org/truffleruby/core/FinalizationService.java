@@ -11,6 +11,7 @@ package org.truffleruby.core;
 
 import java.util.Collection;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 
@@ -49,14 +50,17 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
         super(context, referenceProcessor);
     }
 
-    public synchronized FinalizerReference addFinalizer(Object object, FinalizerReference finalizerReference,
+    @TruffleBoundary
+    public FinalizerReference addFinalizer(Object object, FinalizerReference finalizerReference,
             Class<?> owner, Runnable action, DynamicObject root) {
-        if (finalizerReference == null) {
-            finalizerReference = new FinalizerReference(object, referenceProcessor.processingQueue, this);
-            add(finalizerReference);
-        }
+        synchronized (this) {
+            if (finalizerReference == null) {
+                finalizerReference = new FinalizerReference(object, referenceProcessor.processingQueue, this);
+                add(finalizerReference);
+            }
 
-        finalizerReference.addFinalizer(owner, action, root);
+            finalizerReference.addFinalizer(owner, action, root);
+        }
 
         referenceProcessor.processReferenceQueue(owner);
         return finalizerReference;
