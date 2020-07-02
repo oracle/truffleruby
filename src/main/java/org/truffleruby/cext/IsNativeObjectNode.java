@@ -9,10 +9,6 @@
  */
 package org.truffleruby.cext;
 
-import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
-import static org.truffleruby.cext.ValueWrapperManager.OBJECT_TAG;
-import static org.truffleruby.cext.ValueWrapperManager.TAG_MASK;
-
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -38,7 +34,7 @@ public abstract class IsNativeObjectNode extends RubyBaseNode {
         return false;
     }
 
-    @Specialization(guards = "isMallocAligned(handle)")
+    @Specialization(guards = { "handle != FALSE_HANDLE", "isMallocAligned(handle)" })
     protected boolean isNativeObjectTaggedObject(long handle) {
         return handle < ValueWrapperManager.ALLOCATION_BASE;
     }
@@ -46,10 +42,6 @@ public abstract class IsNativeObjectNode extends RubyBaseNode {
     @Specialization(guards = "!isLong(handle)")
     protected boolean isNativeObjectFallback(Object handle) {
         return false;
-    }
-
-    public static boolean isTaggedObject(long handle) {
-        return handle != FALSE_HANDLE && (handle & TAG_MASK) == OBJECT_TAG;
     }
 
 }
