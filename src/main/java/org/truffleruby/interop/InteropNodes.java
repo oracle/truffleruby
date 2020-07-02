@@ -1056,6 +1056,16 @@ public abstract class InteropNodes {
 
     }
 
+    @CoreMethod(names = "other_languages?", onSingleton = true, required = 0)
+    public abstract static class HasOtherLanguagesNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean hasOtherlanguages() {
+            return getContext().hasOtherPublicLanguages();
+        }
+
+    }
+
     @CoreMethod(names = "eval", onSingleton = true, required = 2)
     @ImportStatic({ StringCachingGuards.class, StringOperations.class })
     @ReportPolymorphism

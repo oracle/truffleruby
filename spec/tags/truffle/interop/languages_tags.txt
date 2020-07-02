@@ -1,0 +1,3 @@
+fails(GR-24618):Truffle::Interop.other_languages? returns true with --polyglot
+slow:Truffle::Interop.languages returns only ruby from the RubyLauncher
+slow:Truffle::Interop.other_languages? returns false without --polyglot
