@@ -2381,8 +2381,18 @@ EOS
 
   def lint(*args)
     fast = args.first == 'fast'
-    fast_exts_changed = fast ? `git diff --cached --name-only`.lines.map { |f| File.extname(f.strip) }.uniq : []
-    changed = ->(ext) { !fast or fast_exts_changed.include?(ext) }
+    if fast
+      changed_files = `git diff --cached --name-only` # Only staged files in the git index
+      if changed_files.empty? # post-commit hook
+        changed_files = `git diff --cached --name-only HEAD^`
+      end
+      raise 'Could not list changed files' if changed_files.empty?
+      exts_changed = changed_files.lines.map { |f| File.extname(f.strip) }.uniq
+      raise 'Could not list changed file extensions' if exts_changed.empty?
+      changed = -> ext { exts_changed.include?(ext) }
+    else
+      changed = -> _ext { true }
+    end
 
     ENV['ECLIPSE_EXE'] ||= install_eclipse
 
