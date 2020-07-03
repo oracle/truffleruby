@@ -27,6 +27,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
+import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
@@ -344,6 +345,16 @@ public abstract class TypeNodes {
         @Specialization
         protected long numToInt(Object value) {
             return toIntNode.execute(value);
+        }
+    }
+
+    @Primitive(name = "rb_to_int")
+    public static abstract class RbToIntNode extends PrimitiveArrayArgumentsNode {
+        @Child private ToRubyIntegerNode toRubyInteger = ToRubyIntegerNode.create();
+
+        @Specialization
+        protected Object toRubyInteger(Object value) {
+            return toRubyInteger.execute(value);
         }
     }
 
