@@ -2080,11 +2080,7 @@ EOS
 
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/rubocop-gems"
-      env = {
-        'GEM_HOME' => gem_home,
-        'GEM_PATH' => gem_home,
-        'PATH' => "#{gem_home}/bin:#{ENV['PATH']}"
-      }
+      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home }
       sh env, 'ruby', "#{gem_home}/bin/rubocop", *args
     else
       sh 'rubocop', '_0.66.0_', *args
