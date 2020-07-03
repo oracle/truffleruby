@@ -103,15 +103,6 @@ public abstract class RubyGuards {
         return Layouts.OBJECT_RANGE.isObjectRange(object);
     }
 
-    public static boolean isObjectRange(DynamicObject object) {
-        return Layouts.OBJECT_RANGE.isObjectRange(object);
-    }
-
-    public static boolean isEndlessRange(DynamicObject object) {
-        assert isObjectRange(object);
-        return Layouts.OBJECT_RANGE.getEnd(object) == Nil.INSTANCE;
-    }
-
     public static boolean isEndlessObjectRange(DynamicObject object) {
         return isObjectRange(object) && Layouts.OBJECT_RANGE.getEnd(object) == Nil.INSTANCE;
     }

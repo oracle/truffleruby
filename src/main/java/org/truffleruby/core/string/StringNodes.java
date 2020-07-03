@@ -621,7 +621,7 @@ public abstract class StringNodes {
                     Layouts.LONG_RANGE.getExcludedEnd(range));
         }
 
-        @Specialization(guards = { "isObjectRange(range)", "isEndlessRange(range)" })
+        @Specialization(guards = "isEndlessObjectRange(range)")
         protected Object sliceEndlessRange(DynamicObject string, DynamicObject range, NotProvided length) {
             boolean excludesEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
             return sliceRange(
@@ -632,7 +632,7 @@ public abstract class StringNodes {
                     excludesEnd);
         }
 
-        @Specialization(guards = { "isObjectRange(range)", "!isEndlessRange(range)" })
+        @Specialization(guards = "isBoundedObjectRange(range)")
         protected Object sliceObjectRange(DynamicObject string, DynamicObject range, NotProvided length) {
             return sliceRange(
                     string,
