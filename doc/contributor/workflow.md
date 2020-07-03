@@ -88,7 +88,7 @@ scratch.
 
 To speed up compilation of bundled C extensions, it is possible to use
 *native* toolchain launchers, which might save some build time.
-See the [related documentation](https://github.com/oracle/graal/blob/master/sulong/docs/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain)
+See the [related documentation](https://github.com/oracle/graal/blob/master/sulong/docs/contributor/TOOLCHAIN.md#using-a-prebuilt-graalvm-as-a-bootstrapping-toolchain)
 in Sulong to build and use them.
 
 You can also use `export JT_CACHE_TOOLCHAIN=true` to have the native toolchain
