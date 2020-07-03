@@ -1404,7 +1404,7 @@ EOS
     # Unset variable set by the pre-commit hook which confuses git
     env = { 'GIT_DIR' => nil, 'GIT_INDEX_FILE' => nil }
 
-    current = raw_sh(env, 'git', '-C', gem_test_pack, 'rev-parse', 'HEAD', capture: :out).chomp
+    current = raw_sh(env, 'git', '-C', gem_test_pack, 'rev-parse', 'HEAD', capture: :out, no_print_cmd: true).chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
       has_commit = raw_sh env, 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
       unless has_commit
