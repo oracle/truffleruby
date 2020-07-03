@@ -1841,7 +1841,7 @@ EOS
       dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
         STDERR.puts download_message
-        jvmci_releases = 'https://github.com/graalvm/openjdk8-jvmci-builder/releases/download'
+        jvmci_releases = 'https://github.com/graalvm/graal-jvmci-8/releases/download'
         filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
         chdir(dir) do
           raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
