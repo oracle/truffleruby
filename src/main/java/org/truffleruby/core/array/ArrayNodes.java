@@ -29,6 +29,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayEachIteratorNode.ArrayElementConsumerNode;
 import org.truffleruby.core.array.ArrayIndexNodes.ReadNormalizedNode;
+import org.truffleruby.core.array.ArrayIndexNodes.ReadSliceNormalizedNode;
 import org.truffleruby.core.array.ArrayNodesFactory.ReplaceNodeFactory;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
@@ -245,6 +246,8 @@ public abstract class ArrayNodes {
             argumentNames = { "index_start_or_range", "length" })
     public abstract static class IndexNode extends ArrayCoreMethodNode {
 
+        abstract Object executeIntIndices(DynamicObject array, int start, int length);
+
         @Specialization
         protected Object index(DynamicObject array, int index, NotProvided length,
                 @Cached ConditionProfile negativeIndexProfile,
@@ -254,9 +257,24 @@ public abstract class ArrayNodes {
             return readNode.executeRead(array, normalizedIndex);
         }
 
+        @Specialization(guards = "isRubyRange(range)")
+        protected Object indexRange(DynamicObject array, DynamicObject range, NotProvided length,
+                @Cached NormalizedStartLengthNode startLengthNode,
+                @Cached ReadSliceNormalizedNode readSlice) {
+            final int[] startLength = startLengthNode.execute(range, Layouts.ARRAY.getSize(array));
+            final int len = Math.max(startLength[1], 0); // negative range ending maps to zero length
+            return readSlice.executeReadSlice(array, startLength[0], len);
+        }
+
+        @Specialization(guards = { "!isInteger(index)", "!isRubyRange(index)" })
+        protected Object indexFallback(DynamicObject array, Object index, NotProvided length,
+                @Cached AtNode accessWithIndexConversion) {
+            return accessWithIndexConversion.executeAt(array, index);
+        }
+
         @Specialization
         protected Object slice(DynamicObject array, int start, int length,
-                @Cached ArrayIndexNodes.ReadSliceNormalizedNode readSliceNode,
+                @Cached ReadSliceNormalizedNode readSliceNode,
                 @Cached ConditionProfile negativeIndexProfile) {
             if (length < 0) {
                 return nil;
@@ -266,14 +284,11 @@ public abstract class ArrayNodes {
             return readSliceNode.executeReadSlice(array, normalizedStart, length);
         }
 
-        @Specialization(guards = "eitherNotInteger(index, maybeLength)")
-        protected Object fallbackIndex(DynamicObject array, Object index, Object maybeLength,
-                @Cached CallDispatchHeadNode fallbackNode) {
-            return fallbackNode.call(array, "element_reference_fallback", index, maybeLength);
-        }
-
-        protected boolean eitherNotInteger(Object index, Object length) {
-            return !RubyGuards.isInteger(index) || RubyGuards.wasProvided(length) && !RubyGuards.isInteger(length);
+        @Specialization(guards = { "wasProvided(length)", "!isInteger(start) || !isInteger(length)" })
+        protected Object sliceFallback(DynamicObject array, Object start, Object length,
+                @Cached ToIntNode indexToInt,
+                @Cached ToIntNode lengthToInt) {
+            return executeIntIndices(array, indexToInt.execute(start), lengthToInt.execute(length));
         }
     }
 
