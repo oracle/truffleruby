@@ -10,7 +10,9 @@
 package org.truffleruby.core;
 
 import java.util.Collection;
+import java.util.Objects;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
 
@@ -49,17 +51,27 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
         super(context, referenceProcessor);
     }
 
-    public synchronized FinalizerReference addFinalizer(Object object, FinalizerReference finalizerReference,
-            Class<?> owner, Runnable action, DynamicObject root) {
-        if (finalizerReference == null) {
-            finalizerReference = new FinalizerReference(object, referenceProcessor.processingQueue, this);
-            add(finalizerReference);
-        }
+    @TruffleBoundary
+    public FinalizerReference addFinalizer(Object object, Class<?> owner, Runnable action, DynamicObject root) {
+        final FinalizerReference newRef = new FinalizerReference(object, referenceProcessor.processingQueue, this);
+        // No need to synchronize since called on a new private object
+        newRef.addFinalizer(owner, action, root);
 
-        finalizerReference.addFinalizer(owner, action, root);
+        add(newRef);
+        referenceProcessor.processReferenceQueue(owner);
+
+        return newRef;
+    }
+
+    @TruffleBoundary
+    public void addAdditionalFinalizer(FinalizerReference existingRef, Object object, Class<?> owner, Runnable action,
+            DynamicObject root) {
+        Objects.requireNonNull(existingRef);
+
+        assert Thread.holdsLock(object) : "caller must synchronize access to the FinalizerReference";
+        existingRef.addFinalizer(owner, action, root);
 
         referenceProcessor.processReferenceQueue(owner);
-        return finalizerReference;
     }
 
     public final void drainFinalizationQueue() {

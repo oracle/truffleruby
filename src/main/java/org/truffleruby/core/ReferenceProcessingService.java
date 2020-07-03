@@ -144,6 +144,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
             this.context = context;
         }
 
+        @TruffleBoundary
         protected void processReferenceQueue(Class<?> owner) {
             if (context.getOptions().SINGLE_THREADED || context.hasOtherPublicLanguages()) {
                 drainReferenceQueue();
@@ -163,7 +164,12 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
 
         protected void createProcessingThread(Class<?> owner) {
             final ThreadManager threadManager = context.getThreadManager();
-            processingThread = threadManager.createBootThread(threadName());
+            synchronized (this) {
+                if (processingThread != null) {
+                    return;
+                }
+                processingThread = threadManager.createBootThread(threadName());
+            }
             final String sharingReason = "creating " + threadName() + " thread for " + owner.getSimpleName();
 
             threadManager.initialize(processingThread, null, threadName(), sharingReason, () -> {

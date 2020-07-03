@@ -175,13 +175,12 @@ public class SafepointManager {
             } catch (TimeoutException e) {
                 if (System.nanoTime() >= max) {
                     RubyLanguage.LOGGER.severe(String.format(
-                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call which should use runBlockingSystemCallUntilResult() - check with jstack",
+                            "waited %d seconds in the SafepointManager but %d of %d threads did not arrive - a thread is likely making a blocking native call - check with jstack",
                             waits * WAIT_TIME_IN_SECONDS,
                             phaser.getUnarrivedParties(),
                             phaser.getRegisteredParties()));
-                    printStacktracesOfBlockedThreads();
-
                     if (waits == 1) {
+                        printStacktracesOfBlockedThreads();
                         restoreDefaultInterruptHandler();
                     }
                     if (max >= exitTime) {
@@ -202,7 +201,7 @@ public class SafepointManager {
     }
 
     private void printStacktracesOfBlockedThreads() {
-        System.err.println("Dumping stacktraces of blocked threads:");
+        System.err.println("Dumping stacktraces of all threads:");
         for (Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
             final Thread thread = entry.getKey();
             if (thread != Thread.currentThread() && runningThreads.contains(thread)) {
@@ -218,13 +217,11 @@ public class SafepointManager {
                     }
                 }
 
-                if (blocked) {
-                    System.err.println(thread);
-                    for (int i = 0; i < stackTrace.length; i++) {
-                        System.err.println(stackTrace[i]);
-                    }
-                    System.err.println();
+                System.err.println((blocked ? "BLOCKED: " : "IN SAFEPOINT: ") + thread);
+                for (StackTraceElement stackTraceElement : stackTrace) {
+                    System.err.println(stackTraceElement);
                 }
+                System.err.println();
             }
         }
     }

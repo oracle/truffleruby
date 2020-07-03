@@ -67,7 +67,7 @@ public class ValueWrapperManager {
 
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
-        this.threadBlocks = ThreadLocal.withInitial((this::makeThreadData));
+        this.threadBlocks = ThreadLocal.withInitial(this::makeThreadData);
         nilWrapper = new ValueWrapper(Nil.INSTANCE, NIL_HANDLE, null);
     }
 
@@ -76,7 +76,6 @@ public class ValueWrapperManager {
         HandleBlockHolder holder = threadData.holder;
         context.getFinalizationService().addFinalizer(
                 threadData,
-                null,
                 ValueWrapperManager.class,
                 () -> context.getMarkingService().queueForMarking(holder.handleBlock),
                 null);
@@ -116,7 +115,7 @@ public class ValueWrapperManager {
             blockMap = map;
         }
 
-        context.getFinalizationService().addFinalizer(block, null, ValueWrapperManager.class, () -> {
+        context.getFinalizationService().addFinalizer(block, ValueWrapperManager.class, () -> {
             this.blockMap[blockIndex] = null;
             allocator.addFreeBlock(blockBase);
         }, null);

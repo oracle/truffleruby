@@ -45,7 +45,7 @@ public class Pointer implements AutoCloseable {
 
     private final long address;
     private final long size;
-    private boolean autorelease;
+    /** Non-null iff autorelease */
     private FinalizerReference finalizerRef = null;
 
     public Pointer(long address) {
@@ -219,7 +219,7 @@ public class Pointer implements AutoCloseable {
 
     @TruffleBoundary
     public synchronized void free(FinalizationService finalizationService) {
-        if (autorelease) {
+        if (finalizerRef != null) {
             disableAutorelease(finalizationService);
         }
         UNSAFE.freeMemory(address);
@@ -227,7 +227,7 @@ public class Pointer implements AutoCloseable {
 
     @TruffleBoundary
     public synchronized void freeNoAutorelease() {
-        if (autorelease) {
+        if (finalizerRef != null) {
             throw new UnsupportedOperationException("Calling freeNoAutorelease() on a autorelease Pointer");
         }
         UNSAFE.freeMemory(address);
@@ -251,21 +251,18 @@ public class Pointer implements AutoCloseable {
     }
 
     public synchronized boolean isAutorelease() {
-        return autorelease;
+        return finalizerRef != null;
     }
 
     @TruffleBoundary
     public synchronized void enableAutorelease(FinalizationService finalizationService) {
-        if (autorelease) {
+        if (finalizerRef != null) {
             return;
         }
 
         // We must be careful here that the finalizer does not capture the Pointer itself that we'd
         // like to finalize.
-        finalizerRef = finalizationService
-                .addFinalizer(this, finalizerRef, Pointer.class, new FreeAddressFinalizer(address), null);
-
-        autorelease = true;
+        finalizerRef = finalizationService.addFinalizer(this, Pointer.class, new FreeAddressFinalizer(address), null);
     }
 
     private static class FreeAddressFinalizer implements Runnable {
@@ -289,13 +286,13 @@ public class Pointer implements AutoCloseable {
 
     @TruffleBoundary
     public synchronized void disableAutorelease(FinalizationService finalizationService) {
-        if (!autorelease) {
+        if (finalizerRef == null) {
             return;
         }
 
-        finalizerRef = finalizationService.removeFinalizers(this, finalizerRef, Pointer.class);
-
-        autorelease = false;
+        FinalizerReference left = finalizationService.removeFinalizers(this, finalizerRef, Pointer.class);
+        assert left == null;
+        finalizerRef = null;
     }
 
     @Override
