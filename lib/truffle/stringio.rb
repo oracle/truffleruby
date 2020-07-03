@@ -683,7 +683,7 @@ class StringIO
 
   private def getline(arg_error, sep, limit)
     if limit != Undefined
-      limit = Truffle::Type.coerce_to_int limit if limit
+      limit = Truffle::Type.rb_to_int limit if limit
       sep = Truffle::Type.coerce_to sep, String, :to_str if sep
     else
       limit = nil
@@ -691,7 +691,7 @@ class StringIO
       unless sep == $/ or sep.nil?
         osep = sep
         sep = Truffle::Type.rb_check_convert_type sep, String, :to_str
-        limit = Truffle::Type.coerce_to_int osep unless sep
+        limit = Truffle::Type.rb_to_int osep unless sep
       end
     end
 

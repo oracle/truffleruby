@@ -409,7 +409,7 @@ module Truffle
       if fits_into_long?(index)
         index
       else
-        index = coerce_to_int(index)
+        index = Primitive.rb_to_int(index)
         check_long(index)
         index
       end
@@ -419,17 +419,9 @@ module Truffle
       if fits_into_long?(length)
         length
       else
-        length = coerce_to_int(length)
+        length = Primitive.rb_to_int(length)
         check_long(length)
         length
-      end
-    end
-
-    def self.coerce_to_int(obj)
-      if Integer === obj
-        obj
-      else
-        coerce_to(obj, Integer, :to_int)
       end
     end
 

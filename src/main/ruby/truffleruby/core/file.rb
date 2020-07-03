@@ -729,7 +729,7 @@ class File < IO
     pattern = StringValue(pattern)
     Truffle::Type.check_null_safe(pattern)
     path    = Truffle::Type.coerce_to_path(path)
-    flags   = Truffle::Type.coerce_to_int(flags)
+    flags   = Truffle::Type.rb_to_int(flags)
     brace_match = false
 
     if (flags & FNM_EXTGLOB) != 0

@@ -62,7 +62,7 @@ module Truffle
       if Primitive.undefined?(limit)
         limited = false
       else
-        limit = Truffle::Type.coerce_to_int limit
+        limit = Truffle::Type.rb_to_int limit
 
         if limit > 0
           return [string.dup] if limit == 1

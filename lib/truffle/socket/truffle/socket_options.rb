@@ -43,7 +43,7 @@ module Truffle
         elsif level.respond_to?(:to_str)
           socket_level(Socket.coerce_to_string(level), family)
         else
-          Truffle::Type.coerce_to_int level
+          Truffle::Type.rb_to_int level
         end
       end
 
@@ -73,7 +73,7 @@ module Truffle
           if optname.respond_to?(:to_str)
             socket_option(level, Socket.coerce_to_string(optname))
           else
-            Truffle::Type.coerce_to_int optname
+            Truffle::Type.rb_to_int optname
           end
         end
       end

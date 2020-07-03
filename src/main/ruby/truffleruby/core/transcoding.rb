@@ -189,13 +189,13 @@ class Encoding
       if Primitive.nil? offset
         offset = target.bytesize
       else
-        offset = Truffle::Type.coerce_to_int offset
+        offset = Truffle::Type.rb_to_int offset
       end
 
       if Primitive.nil? size
         size = -1
       else
-        size = Truffle::Type.coerce_to_int size
+        size = Truffle::Type.rb_to_int size
 
         if size < 0
           raise ArgumentError, 'byte size is negative'

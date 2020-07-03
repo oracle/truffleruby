@@ -177,9 +177,9 @@ module Truffle
       end
       if Range === omit
         range = omit
-        omit = Truffle::Type.coerce_to_int(range.begin)
+        omit = Truffle::Type.rb_to_int(range.begin)
         unless Primitive.nil? range.end
-          end_index = Truffle::Type.coerce_to_int(range.end)
+          end_index = Truffle::Type.rb_to_int(range.end)
           if end_index < 0
             length = end_index
           else
