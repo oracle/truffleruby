@@ -1879,6 +1879,8 @@ EOS
 
     eclipse_tar = eclipse_url.split('/').last
     eclipse_name = File.basename(eclipse_tar, '.tar.gz')
+    eclipse_path = File.expand_path("../#{eclipse_name}/#{eclipse_exe}", TRUFFLERUBY_DIR)
+    return eclipse_path if File.exist?(eclipse_path)
 
     dir = File.expand_path('..', TRUFFLERUBY_DIR)
     chdir(dir) do
@@ -1896,7 +1898,7 @@ EOS
       end
     end
 
-    File.expand_path("../#{eclipse_name}/#{eclipse_exe}", TRUFFLERUBY_DIR)
+    eclipse_path
   end
 
   def clone_enterprise
