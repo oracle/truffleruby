@@ -1283,7 +1283,7 @@ module Marshal
       end
     end
 
-    depth = Truffle::Type.coerce_to_int limit
+    depth = Primitive.rb_to_int limit
     ms = State.new nil, depth, nil
 
     if an_io

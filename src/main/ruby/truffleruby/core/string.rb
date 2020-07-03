@@ -1078,7 +1078,7 @@ class String
     when Regexp
       assign_regexp(index, count, replacement)
     else
-      index = Truffle::Type.coerce_to_int index
+      index = Primitive.rb_to_int index
 
       if count
         return self[index, count] = replacement
@@ -1104,7 +1104,7 @@ class String
     end
 
     if count
-      count = Truffle::Type.coerce_to_int count
+      count = Primitive.rb_to_int count
 
       if count < 0
         raise IndexError, 'count is negative'
@@ -1138,7 +1138,7 @@ class String
   end
 
   def assign_range(index, replacement)
-    start = Truffle::Type.coerce_to_int index.first
+    start = Primitive.rb_to_int index.first
 
     start += size if start < 0
 
@@ -1150,7 +1150,7 @@ class String
       raise IndexError, "unable to find character at: #{start}"
     end
 
-    stop = Truffle::Type.coerce_to_int index.last
+    stop = Primitive.rb_to_int index.last
     stop += size if stop < 0
     stop -= 1 if index.exclude_end?
 
@@ -1170,7 +1170,7 @@ class String
 
   def assign_regexp(index, count, replacement)
     if count
-      count = Truffle::Type.coerce_to_int count
+      count = Primitive.rb_to_int count
     else
       count = 0
     end
@@ -1207,7 +1207,7 @@ class String
 
     enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Truffle::Type.coerce_to_int width
+    width = Primitive.rb_to_int width
     return dup if width <= size
 
     width -= size
@@ -1252,7 +1252,7 @@ class String
 
     enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Truffle::Type.coerce_to_int width
+    width = Primitive.rb_to_int width
     return dup if width <= size
 
     width -= size
@@ -1296,7 +1296,7 @@ class String
 
     enc = Truffle::Type.compatible_encoding self, padding
 
-    width = Truffle::Type.coerce_to_int width
+    width = Primitive.rb_to_int width
     return dup if width <= size
 
     width -= size
@@ -1326,7 +1326,7 @@ class String
     if Primitive.undefined?(start)
       start = 0
     else
-      start = Truffle::Type.coerce_to_int start
+      start = Primitive.rb_to_int start
 
       start += size if start < 0
       if start < 0 or start > size
@@ -1451,7 +1451,7 @@ class String
   def insert(index, other)
     other = StringValue(other)
 
-    index = Truffle::Type.coerce_to_int index
+    index = Primitive.rb_to_int index
     index = length + 1 + index if index < 0
 
     if index > length or index < 0 then

@@ -82,7 +82,8 @@ public abstract class ToLongNode extends RubyContextSourceNode {
     protected long coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
             @Cached ToLongNode fitNode) {
-        final Object coerced = toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int", object);
+        final Object coerced = toIntNode
+                .call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
         return fitNode.execute(coerced);
     }
 }

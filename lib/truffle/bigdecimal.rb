@@ -44,7 +44,7 @@ class BigDecimal < Numeric
   ROUND_HALF_EVEN = 7
 
   def self.mode(key, value = nil)
-    key = Truffle::Type.coerce_to_int(key)
+    key = Primitive.rb_to_int(key)
     Truffle::Type.check_long(key)
 
     if key == ROUND_MODE
@@ -74,7 +74,7 @@ class BigDecimal < Numeric
   def self.limit(limit = nil)
     Thread.current[:'BigDecimal.precision_limit'] ||= 0
     if limit
-      limit = Truffle::Type.coerce_to_int(limit)
+      limit = Primitive.rb_to_int(limit)
       Truffle::Type.check_long(limit)
 
       old = Thread.current[:'BigDecimal.precision_limit']

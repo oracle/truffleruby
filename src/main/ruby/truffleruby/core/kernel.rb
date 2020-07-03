@@ -638,7 +638,7 @@ module Kernel
       prefix = if Primitive.undefined?(uplevel)
                  +''
                else
-                 uplevel = Truffle::Type.coerce_to_int(uplevel)
+                 uplevel = Primitive.rb_to_int(uplevel)
                  raise ArgumentError, "negative level (#{uplevel})" unless uplevel >= 0
 
                  caller, = Kernel.caller_locations(uplevel + 1, 1)

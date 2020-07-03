@@ -31,8 +31,8 @@ import org.truffleruby.utils.Utils;
  * <p>
  * Alternatively, consider:
  * <ul>
- * <li>{@link ToLongNode}: similar, but for 64-bits Java long. Equivalen to Ruby's C function {@code rb_num2long}, which
- * is used a lot by MRI (we replace some of these uses by {@link ToIntNode} in TruffleRuby, because arrays are
+ * <li>{@link ToLongNode}: similar, but for 64-bits Java long. Equivalent to Ruby's C function {@code rb_num2long},
+ * which is used a lot by MRI (we replace some of these uses by {@link ToIntNode} in TruffleRuby, because arrays are
  * {@code int}-sized.</li>
  * <li>{@link ToRubyIntegerNode}: when only {@code to_int} conversion is needed, but the resulting value can be a
  * Bignum. It matches Ruby's C function {@code rb_to_int}, and is a wrapper around our own (Ruby) implementation of that
@@ -112,7 +112,8 @@ public abstract class ToIntNode extends RubyContextSourceNode {
     protected int coerceObject(Object object,
             @Cached CallDispatchHeadNode toIntNode,
             @Cached ToIntNode fitNode) {
-        final Object coerced = toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int", object);
+        final Object coerced = toIntNode
+                .call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
         return fitNode.execute(coerced);
     }
 }

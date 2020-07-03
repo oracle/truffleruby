@@ -60,17 +60,17 @@ class Integer < Numeric
   end
 
   def [](index)
-    index = Truffle::Type.coerce_to_int(index)
+    index = Primitive.rb_to_int(index)
     index < 0 ? 0 : (self >> index) & 1
   end
 
   def allbits?(mask)
-    mask = Truffle::Type.coerce_to_int(mask)
+    mask = Primitive.rb_to_int(mask)
     (self & mask) == mask
   end
 
   def anybits?(mask)
-    mask = Truffle::Type.coerce_to_int(mask)
+    mask = Primitive.rb_to_int(mask)
     (self & mask) != 0
   end
 
@@ -116,7 +116,7 @@ class Integer < Numeric
   end
 
   def nobits?(mask)
-    mask = Truffle::Type.coerce_to_int(mask)
+    mask = Primitive.rb_to_int(mask)
     (self & mask) == 0
   end
 
@@ -181,8 +181,7 @@ class Integer < Numeric
       raise RangeError, "float #{ndigits} out of range of integer"
     end
 
-    ndigits = Truffle::Type.coerce_to_int(ndigits)
-    Truffle::Type.check_int(ndigits)
+    ndigits = Primitive.rb_num2int ndigits
 
     if ndigits >= 0
       case half
@@ -306,13 +305,13 @@ class Integer < Numeric
 
   def digits(base = 10)
     raise Math::DomainError, 'out of domain' if negative?
-    base = Truffle::Type.coerce_to_int(base)
+    base = Primitive.rb_to_int(base)
 
     to_s(base).chars.map(&:to_i).reverse
   end
 
   def self.sqrt(n)
-    n = Truffle::Type.coerce_to_int(n)
+    n = Primitive.rb_to_int(n)
     raise Math::DomainError if n.negative?
     Math.sqrt(n).floor
   end

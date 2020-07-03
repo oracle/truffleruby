@@ -11,6 +11,7 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
+import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -22,7 +23,7 @@ public class HashNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode hashNode;
     @Child private ObjectIDNode objectIDNode;
-    @Child private CallDispatchHeadNode coerceToIntNode;
+    @Child ToRubyIntegerNode toInteger;
 
     private final ConditionProfile isIntegerProfile1 = ConditionProfile.create();
     private final ConditionProfile isLongProfile1 = ConditionProfile.create();
@@ -46,13 +47,12 @@ public class HashNode extends RubyContextNode {
         } else if (isBignumProfile1.profile(Layouts.BIGNUM.isBignum(hashedObject))) {
             return BigIntegerOps.hashCode(hashedObject);
         } else {
-            if (coerceToIntNode == null) {
+            if (toInteger == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                coerceToIntNode = insert(CallDispatchHeadNode.createPrivate());
+                toInteger = insert(ToRubyIntegerNode.create());
             }
 
-            final Object coercedHashedObject = coerceToIntNode
-                    .call(coreLibrary().truffleTypeModule, "coerce_to_int", hashedObject);
+            final Object coercedHashedObject = toInteger.execute(hashedObject);
 
             if (isIntegerProfile2.profile(coercedHashedObject instanceof Integer)) {
                 return (int) coercedHashedObject;

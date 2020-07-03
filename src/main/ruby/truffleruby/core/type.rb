@@ -144,7 +144,7 @@ module Truffle
         fval = val.to_int
         rb_num2ulong(fval)
       else
-        rb_num2ulong(rb_to_int(val))
+        rb_num2ulong(Primitive.rb_to_int(val))
       end
     end
 
@@ -185,16 +185,13 @@ module Truffle
       end
     end
 
-    def self.rb_to_int(val)
-      if Primitive.object_kind_of?(val, Integer)
-        val
-      else
-        res = convert_type(val, Integer, :to_int, true)
-        unless Primitive.object_kind_of?(res, Integer)
-          conversion_mismatch(val, Integer, :to_int, res)
-        end
-        res
+    # Fallback for Primitive.{rb_to_int, rb_num2int, rb_num2long}
+    def self.rb_to_int_fallback(val)
+      res = convert_type(val, Integer, :to_int, true)
+      unless Primitive.object_kind_of?(res, Integer)
+        conversion_mismatch(val, Integer, :to_int, res)
       end
+      res
     end
 
     def self.conversion_mismatch(val, cls, meth, res)
@@ -207,12 +204,6 @@ module Truffle
 
     def self.fits_into_long?(val)
       Integer === val && Primitive.integer_fits_into_long(val)
-    end
-
-    def self.check_int(val)
-      unless Primitive.integer_fits_into_int(val)
-        raise RangeError, "integer #{val} too #{val < 0 ? 'small' : 'big'} to convert to `int'"
-      end
     end
 
     def self.check_uint(val)
@@ -409,7 +400,7 @@ module Truffle
       if fits_into_long?(index)
         index
       else
-        index = coerce_to_int(index)
+        index = Primitive.rb_to_int(index)
         check_long(index)
         index
       end
@@ -419,17 +410,9 @@ module Truffle
       if fits_into_long?(length)
         length
       else
-        length = coerce_to_int(length)
+        length = Primitive.rb_to_int(length)
         check_long(length)
         length
-      end
-    end
-
-    def self.coerce_to_int(obj)
-      if Integer === obj
-        obj
-      else
-        coerce_to(obj, Integer, :to_int)
       end
     end
 

@@ -51,6 +51,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcOperations;
@@ -62,7 +63,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -437,11 +437,11 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "!isRubyNumber(salt)")
         protected Object startHashNotNumber(Object salt,
-                @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                @Cached ToRubyIntegerNode toInteger,
                 @Cached ConditionProfile isIntegerProfile,
                 @Cached ConditionProfile isLongProfile,
                 @Cached ConditionProfile isBignumProfile) {
-            Object result = coerceToIntNode.call(coreLibrary().truffleTypeModule, "coerce_to_int", salt);
+            Object result = toInteger.execute(salt);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return getContext().getHashing(this).start((int) result);
             } else if (isLongProfile.profile(result instanceof Long)) {
@@ -470,11 +470,11 @@ public abstract class VMPrimitiveNodes {
 
         @Specialization(guards = "!isRubyNumber(value)")
         protected Object updateHash(long hash, Object value,
-                @Cached("createPrivate()") CallDispatchHeadNode coerceToIntNode,
+                @Cached ToRubyIntegerNode toInteger,
                 @Cached ConditionProfile isIntegerProfile,
                 @Cached ConditionProfile isLongProfile,
                 @Cached ConditionProfile isBignumProfile) {
-            Object result = coerceToIntNode.call(coreLibrary().truffleTypeModule, "coerce_to_int", value);
+            Object result = toInteger.execute(value);
             if (isIntegerProfile.profile(result instanceof Integer)) {
                 return Hashing.update(hash, (int) result);
             } else if (isLongProfile.profile(result instanceof Long)) {
