@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+#
 # Copyright (c) 2017, 2019 Oracle and/or its affiliates. All rights reserved. This
 # code is released under a tri EPL/GPL/LGPL license. You can use it,
 # redistribute it and/or modify it under the terms of the:
@@ -30,7 +32,7 @@ describe "ObjectSpace.define_finalizer" do
       ObjectSpace.define_finalizer object, finalizer
       ObjectSpace.reachable_objects_from(object).should include(finalizer)
     end
-    GC.start
+    Primitive.gc_force
     Truffle::Debug.drain_finalization_queue   # Not needed for correctness
     channel.receive_timeout(TIME_TOLERANCE).should == :finalized
   end
