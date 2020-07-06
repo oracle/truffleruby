@@ -36,4 +36,8 @@ describe "Lazy RubyGems" do
   it "works for require 'rubygems/package'" do
     ruby_exe("require 'rubygems/package'; p Gem::Package").should == "Gem::Package\n"
   end
+
+  it "works for require 'rubygems/specification'" do
+    ruby_exe("require 'rubygems/specification'; p Gem::Specification").should == "Gem::Specification\n"
+  end
 end
