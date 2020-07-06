@@ -34,11 +34,13 @@ import com.oracle.truffle.api.source.SourceSection;
 public class ThreadBacktraceLocationNodes {
 
     @TruffleBoundary
-    private static SourceSection getUserSourceSection(RubyContext context, DynamicObject threadBacktraceLocation) {
+    private static SourceSection getAvailableSourceSection(RubyContext context, DynamicObject threadBacktraceLocation) {
         final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
         final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
 
-        return context.getUserBacktraceFormatter().nextUserSourceSection(backtrace.getStackTrace(), activationIndex);
+        return context
+                .getUserBacktraceFormatter()
+                .nextAvailableSourceSection(backtrace.getStackTrace(), activationIndex);
     }
 
     @CoreMethod(names = "absolute_path")
@@ -48,7 +50,7 @@ public class ThreadBacktraceLocationNodes {
         @Specialization
         protected DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
+            final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
@@ -76,7 +78,7 @@ public class ThreadBacktraceLocationNodes {
         @Specialization
         protected DynamicObject path(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
+            final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
@@ -123,7 +125,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected int lineno(DynamicObject threadBacktraceLocation) {
-            final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
+            final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             return sourceSection.getStartLine();
         }

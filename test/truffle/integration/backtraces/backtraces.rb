@@ -32,6 +32,7 @@ def check(file)
   actual = actual.map { |line|
     line.sub(File.expand_path(dir), '')
         .sub(dir, '')
+        .sub(/(from <internal.+):(\d+):/, '\1:LINE:')
   }
 
   print = []

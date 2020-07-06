@@ -17,7 +17,6 @@ import java.util.List;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -233,15 +232,12 @@ public class BacktraceFormatter {
             final String reportedName;
 
             // Unavailable SourceSections are always skipped, as there is no source position information.
-            // Only show core library SourceSections if the flags contain the option.
-            if (isAvailable(sourceSection) &&
-                    (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) ||
-                            isUserSourceSection(context, sourceSection))) {
+            if (isAvailable(sourceSection)) {
                 reportedSourceSection = sourceSection;
                 final RootNode rootNode = callNode.getRootNode();
                 reportedName = ((RubyRootNode) rootNode).getSharedMethodInfo().getName();
             } else {
-                final SourceSection nextUserSourceSection = nextUserSourceSection(stackTrace, n);
+                final SourceSection nextUserSourceSection = nextAvailableSourceSection(stackTrace, n);
                 // if there is no next source section use a core one to avoid ???
                 reportedSourceSection = nextUserSourceSection != null ? nextUserSourceSection : sourceSection;
                 reportedName = Backtrace.labelFor(element);
@@ -250,7 +246,12 @@ public class BacktraceFormatter {
             if (reportedSourceSection == null) {
                 builder.append("???");
             } else {
-                builder.append(RubyContext.getPath(reportedSourceSection.getSource()));
+                String path = RubyContext.getPath(reportedSourceSection.getSource());
+                if (isRubyCore(context, reportedSourceSection.getSource())) {
+                    builder.append("<internal:core> ").append(path.substring(context.getCoreLibrary().coreLoadPath.length() + 1));
+                } else {
+                    builder.append(path);
+                }
                 builder.append(":");
                 builder.append(reportedSourceSection.getStartLine());
             }
@@ -332,14 +333,14 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
-    public SourceSection nextUserSourceSection(TruffleStackTraceElement[] stackTrace, int n) {
+    public SourceSection nextAvailableSourceSection(TruffleStackTraceElement[] stackTrace, int n) {
         while (n < stackTrace.length) {
             final Node callNode = stackTrace[n].getLocation();
 
             if (callNode != null) {
                 final SourceSection sourceSection = callNode.getEncapsulatingSourceSection();
 
-                if (isUserSourceSection(context, sourceSection)) {
+                if (isAvailable(sourceSection)) {
                     return sourceSection;
                 }
             }
@@ -359,8 +360,8 @@ public class BacktraceFormatter {
     }
 
     private static boolean isRubyCore(RubyContext context, Source source) {
-        final String name = source.getName();
-        return name.startsWith(RubyLanguage.RESOURCE_SCHEME);
+        final String path = RubyContext.getPath(source);
+        return path != null && path.startsWith(context.getOptions().CORE_LOAD_PATH);
     }
 
     public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
