@@ -488,7 +488,14 @@ module Utilities
 
   def find_java_home
     @java_home ||= begin
-      java_home = ENV['JAVA_HOME']
+      mx_env = File.expand_path('~/.mx/env')
+      if File.readable?(mx_env)
+        if line = File.readlines(mx_env).grep(/^JAVA_HOME=/).first
+          java_home = line.split('=', 2).last
+        end
+      end
+      java_home ||= ENV['JAVA_HOME']
+
       _, jvmci_version = jvmci_update_and_version
       if java_home
         if java_home.include?(jvmci_version)
