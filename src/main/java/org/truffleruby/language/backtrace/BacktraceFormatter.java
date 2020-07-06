@@ -234,7 +234,7 @@ public class BacktraceFormatter {
 
             // Unavailable SourceSections are always skipped, as there is no source position information.
             // Only show core library SourceSections if the flags contain the option.
-            if (sourceSection != null && sourceSection.isAvailable() &&
+            if (isAvailable(sourceSection) &&
                     (flags.contains(FormattingFlags.INCLUDE_CORE_FILES) ||
                             isUserSourceSection(context, sourceSection))) {
                 reportedSourceSection = sourceSection;
@@ -349,8 +349,12 @@ public class BacktraceFormatter {
         return null;
     }
 
+    public static boolean isAvailable(SourceSection sourceSection) {
+        return sourceSection != null && sourceSection.isAvailable();
+    }
+
     public static boolean isCore(RubyContext context, SourceSection sourceSection) {
-        if (sourceSection == null || !sourceSection.isAvailable()) {
+        if (!isAvailable(sourceSection)) {
             return true;
         }
 

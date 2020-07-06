@@ -83,6 +83,7 @@ import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
@@ -282,7 +283,7 @@ public abstract class KernelNodes {
                         .getCallStack()
                         .getCallerNodeIgnoringSend()
                         .getEncapsulatingSourceSection();
-                if (sourceSection == null || !sourceSection.isAvailable()) {
+                if (!BacktraceFormatter.isAvailable(sourceSection)) {
                     throw new RaiseException(
                             getContext(),
                             coreExceptions().loadError("cannot infer basepath", featureString, this));

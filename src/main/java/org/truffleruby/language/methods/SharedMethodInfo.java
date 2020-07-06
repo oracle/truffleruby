@@ -15,6 +15,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
@@ -173,7 +174,7 @@ public class SharedMethodInfo {
                 }
             }
 
-            if (sourceSection == null || !sourceSection.isAvailable()) {
+            if (!BacktraceFormatter.isAvailable(sourceSection)) {
                 descriptiveNameAndSource = descriptiveName;
             } else {
                 descriptiveNameAndSource = descriptiveName + " " +
