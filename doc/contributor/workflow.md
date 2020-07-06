@@ -9,7 +9,7 @@ they might need to add `export SDKROOT=$(xcrun --show-sdk-path)` to their shell 
 
 Additionally, you will need:
 
-* Ruby >= 2.4
+* Ruby >= 2.3 (we stick at this version as it is available all the way back to for example Ubuntu 16.04)
 * [CMake](https://cmake.org/), for building Sulong (GraalVM's LLVM support)
   CMake can be installed via the usual methods: `dnf`, `apt-get`, `brew`, ...)
 
