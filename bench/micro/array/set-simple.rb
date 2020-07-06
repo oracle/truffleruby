@@ -7,15 +7,11 @@
 # GNU Lesser General Public License version 2.1.
 
 array = (0...1000).to_a
-shift = 0
 
-benchmark 'set_span_no_move' do
+benchmark 'core-array-set-simple' do
   i = 0
-  replacement = (shift...(shift + 1000)).to_a
   while i < 1000
-    array[0..-1] = replacement
+    array[i] = i
     i += 1
   end
-  shift += 1
-  shift = 0 if shift > 1000
 end

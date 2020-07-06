@@ -7,11 +7,15 @@
 # GNU Lesser General Public License version 2.1.
 
 array = (0...1000).to_a
+shift = 0
 
-benchmark 'simple-set' do
+benchmark 'core-array-set-range' do
   i = 0
-  while i < 1000
-    array[i] = i
+  replacement = (shift...(shift + 10)).to_a
+  while i < 1000 - 10
+    array[i...(i+10)] = replacement
     i += 1
   end
+  shift += 1
+  shift = 0 if shift > 1000
 end
