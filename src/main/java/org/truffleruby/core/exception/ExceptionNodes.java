@@ -189,7 +189,8 @@ public abstract class ExceptionNodes {
                 Object backtraceLocations = Layouts.EXCEPTION.getBacktraceLocations(exception);
                 if (hasLocationsProfile.profile(backtraceLocations == null)) {
                     Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
-                    backtraceLocations = backtrace.getBacktraceLocations(GetBacktraceException.UNLIMITED, null);
+                    backtraceLocations = backtrace
+                            .getBacktraceLocations(getContext(), GetBacktraceException.UNLIMITED, null);
                     Layouts.EXCEPTION.setBacktraceLocations(exception, backtraceLocations);
                 }
                 return backtraceLocations;

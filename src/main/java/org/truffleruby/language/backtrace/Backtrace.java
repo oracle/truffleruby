@@ -56,7 +56,7 @@ import com.oracle.truffle.api.source.SourceSection;
  *
  * <p>
  * In general, there isn't any guarantee that the getters will return non-null values, excepted {@link #getStackTrace()}
- * and {@link #getBacktraceLocations(int, Node)}.
+ * and {@link #getBacktraceLocations(RubyContext, int, Node)}.
  *
  * <p>
  * NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions on the backtrace object
@@ -275,13 +275,9 @@ public class Backtrace {
      *
      * @param length the maximum number of locations to return (if positive), or -1 minus the number of items to exclude
      *            at the end. You can use {@link GetBacktraceException#UNLIMITED} to signal that you want all locations.
-     *
      * @param node the node at which we're requiring the backtrace. Can be null if the backtrace is associated with a
      *            ruby exception or if we are sure the activations have already been computed. */
-    public Object getBacktraceLocations(int length, Node node) {
-
-        final RubyContext context = RubyLanguage.getCurrentContext();
-
+    public Object getBacktraceLocations(RubyContext context, int length, Node node) {
         final int stackTraceLength;
         if (this.raiseException != null) {
             // When dealing with the backtrace of a Ruby exception, we use the wrapping
