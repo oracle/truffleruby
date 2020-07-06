@@ -15,12 +15,13 @@ describe 'Thread::Backtrace::Location#path' do
     locations = [:non_empty].map { caller_locations }.flatten
 
     locations.each do |location|
-      filename, _line_number, _in_method = location.to_s.split(':')
+      filename = location.to_s[/^(.+):\d+:/, 1]
       path = location.path
+      path.should_not.include?('(core)')
+      path.should_not.include?('resource:')
 
-      path.should_not == '(core)'
-      path.start_with?('resource:/').should be_false
-      File.basename(path).should == File.basename(filename)
+      # #path is consistent with #to_s output, like on MRI
+      path.should == filename
     end
   end
 

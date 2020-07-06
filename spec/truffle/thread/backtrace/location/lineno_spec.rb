@@ -15,8 +15,8 @@ describe 'Thread::Backtrace::Location#lineno' do
     locations = [:non_empty].map { caller_locations }.flatten
 
     locations.each do |location|
-      _filename, line_number, _in_method = location.to_s.split(':')
-      location.lineno.should == line_number.to_i
+      line_number = location.to_s[/:(\d+):/, 1]
+      location.lineno.should == Integer(line_number)
     end
   end
 
