@@ -354,12 +354,8 @@ public class BacktraceFormatter {
     }
 
     public static boolean isCore(RubyContext context, SourceSection sourceSection) {
-        if (!isAvailable(sourceSection)) {
-            return true;
-        }
-
-        final Source source = sourceSection.getSource();
-        return isRubyCore(context, source);
+        assert isAvailable(sourceSection);
+        return isRubyCore(context, sourceSection.getSource());
     }
 
     private static boolean isRubyCore(RubyContext context, Source source) {
@@ -368,7 +364,7 @@ public class BacktraceFormatter {
     }
 
     public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
-        return !isCore(context, sourceSection);
+        return isAvailable(sourceSection) && !isCore(context, sourceSection);
     }
 
     private Node getRootOrTopmostNode(Node node) {
