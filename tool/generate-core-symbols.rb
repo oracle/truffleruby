@@ -104,7 +104,7 @@ public class CoreSymbols {
 <% ids[:token_op].uniq {|_, op| op}.each do |id, op, token| %><% if token %>
     public static final RubySymbol <%=token%> = createRubySymbol("<%=op%>", <%=index%>);<% index += 1 %><% end %><% end %>
 <% ids[:preserved].each do |token| %><% if ids[:predefined][token] %>
-    public static final RubySymbol <%=token.start_with?('_') ? token[1..].upcase : token.upcase%> = createRubySymbol("<%=token == 'NULL' ?  '' : ids[:predefined][token]%>", <%=index%>);<% index += 1 %><% else %>
+    public static final RubySymbol <%=token.start_with?('_') ? token[1..-1].upcase : token.upcase%> = createRubySymbol("<%=token == 'NULL' ?  '' : ids[:predefined][token]%>", <%=index%>);<% index += 1 %><% else %>
     // Skipped preserved token: `<%=token%>`<% index += 1 %><% end %><% end %>
     public static final int LAST_OP_ID = <%=index-1%>;
 <% types.each do |type| %><% tokens = ids[type] %><% tokens.each do |token| %>
