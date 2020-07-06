@@ -9,15 +9,15 @@ ID rb_to_id(VALUE name) {
 
 #undef rb_intern
 ID rb_intern(const char *string) {
-  return (ID) RUBY_CEXT_INVOKE("rb_intern", rb_str_new_cstr(string));
+  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_str_new_cstr(string)));
 }
 
 ID rb_intern2(const char *string, long length) {
-  return (ID) SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_str_new(string, length)));
+  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern", rb_str_new(string, length)));
 }
 
 ID rb_intern3(const char *name, long len, rb_encoding *enc) {
-  return (ID) SYM2ID(RUBY_CEXT_INVOKE("rb_intern3", rb_str_new(name, len), rb_enc_from_encoding(enc)));
+  return SYM2ID(RUBY_CEXT_INVOKE("rb_intern3", rb_str_new(name, len), rb_enc_from_encoding(enc)));
 }
 
 VALUE rb_sym2str(VALUE string) {
