@@ -355,12 +355,12 @@ public class BacktraceFormatter {
         }
 
         final Source source = sourceSection.getSource();
+        return isRubyCore(context, source);
+    }
+
+    private static boolean isRubyCore(RubyContext context, Source source) {
         final String name = source.getName();
-        if (name.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
-            return true;
-        } else {
-            return false;
-        }
+        return name.startsWith(RubyLanguage.RESOURCE_SCHEME);
     }
 
     public static boolean isUserSourceSection(RubyContext context, SourceSection sourceSection) {
