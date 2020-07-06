@@ -143,16 +143,18 @@ public class FileLoader {
     }
 
     private boolean isInternal(String path) {
-        // If the file is part of the standard library then we may consider it internal
-
         final String canonicalPath;
-
         try {
             canonicalPath = new File(path).getCanonicalPath();
         } catch (IOException e) {
             return false;
         }
 
+        if (canonicalPath.startsWith(context.getCoreLibrary().coreLoadPath)) {
+            return context.getOptions().CORE_AS_INTERNAL;
+        }
+
+        // If the file is part of the standard library then we may consider it internal
         if (canonicalPath.startsWith(context.getRubyHome() + "/lib/") &&
                 !canonicalPath.startsWith(context.getRubyHome() + "/lib/gems/")) {
             return context.getOptions().STDLIB_AS_INTERNAL;
