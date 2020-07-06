@@ -396,26 +396,6 @@ module Truffle
       end
     end
 
-    def self.coerce_to_collection_index(index)
-      if fits_into_long?(index)
-        index
-      else
-        index = Primitive.rb_to_int(index)
-        check_long(index)
-        index
-      end
-    end
-
-    def self.coerce_to_collection_length(length)
-      if fits_into_long?(length)
-        length
-      else
-        length = Primitive.rb_to_int(length)
-        check_long(length)
-        length
-      end
-    end
-
     def self.coerce_to_float(obj)
       case obj
       when Float

@@ -205,7 +205,7 @@ class Array
   end
 
   def combination(num)
-    num = Truffle::Type.coerce_to_collection_index num
+    num = Primitive.rb_num2int num
 
     unless block_given?
       return to_enum(:combination, num) do
@@ -271,7 +271,7 @@ class Array
         each { |x| yield x }
       end
     else
-      n = Truffle::Type.coerce_to_collection_index n
+      n = Primitive.rb_num2int n
       n.times do
         each { |x| yield x }
       end
@@ -342,7 +342,7 @@ class Array
 
   def fetch(idx, default=undefined)
     orig = idx
-    idx = Truffle::Type.coerce_to_collection_index idx
+    idx = Primitive.rb_num2int idx
 
     idx += size if idx < 0
 
@@ -392,15 +392,13 @@ class Array
       return self if right <= left           # Nothing to modify
 
     elsif index
-      left = Truffle::Type.coerce_to_collection_length index
+      left = Primitive.rb_num2int index
       left += size if left < 0
       left = 0 if left < 0
 
       if !Primitive.undefined?(length) and length
         begin
-          right = Truffle::Type.coerce_to_collection_length length
-        rescue ArgumentError
-          raise RangeError, 'bignum too big to convert into `long'
+          right = Primitive.rb_num2int length
         rescue TypeError
           raise ArgumentError, 'second argument must be an Integer'
         end
@@ -435,14 +433,14 @@ class Array
   def first(n = undefined)
     return at(0) if Primitive.undefined?(n)
 
-    n = Truffle::Type.coerce_to_collection_index(n)
+    n = Primitive.rb_num2int n
     raise ArgumentError, 'Size must be positive' if n < 0
 
     Array.new self[0, n]
   end
 
   def flatten(level=-1)
-    level = Truffle::Type.coerce_to_collection_index level
+    level = Primitive.rb_num2int level
     return self.dup if level == 0
 
     out = self.class.allocate # new_reserved size
@@ -454,7 +452,7 @@ class Array
   def flatten!(level=-1)
     Primitive.check_frozen self
 
-    level = Truffle::Type.coerce_to_collection_index level
+    level = Primitive.rb_num2int level
     return nil if level == 0
 
     out = self.class.allocate # new_reserved size
@@ -531,7 +529,7 @@ class Array
     Primitive.check_frozen self
     return self if items.length == 0
 
-    idx = Truffle::Type.coerce_to_collection_index idx
+    idx = Primitive.rb_num2int idx
     idx += (size + 1) if idx < 0    # Negatives add AFTER the element
     raise IndexError, "#{idx} out of bounds" if idx < 0
 
@@ -627,7 +625,7 @@ class Array
       return []
     end
 
-    n = Truffle::Type.coerce_to_collection_index n
+    n = Primitive.rb_num2int n
     return [] if n == 0
 
     raise ArgumentError, 'count must be positive' if n < 0
@@ -646,7 +644,7 @@ class Array
     if Primitive.undefined? num
       num = size
     else
-      num = Truffle::Type.coerce_to_collection_index num
+      num = Primitive.rb_num2int num
     end
 
     if num < 0 || size < num
@@ -687,7 +685,7 @@ class Array
     if Primitive.undefined? num
       k = self.size
     else
-      k = Truffle::Type.coerce_to_collection_index num
+      k = Primitive.rb_num2int num
     end
     descending_factorial(n, k)
   end
@@ -905,7 +903,7 @@ class Array
   end
 
   def rotate(n=1)
-    n = Truffle::Type.coerce_to_collection_index n
+    n = Primitive.rb_num2int n
 
     len = self.length
     return Array.new(self) if len <= 1
@@ -916,7 +914,7 @@ class Array
   end
 
   def rotate!(n=1)
-    n = Truffle::Type.coerce_to_collection_index n
+    n = Primitive.rb_num2int n
     Primitive.check_frozen self
 
     len = self.length
@@ -933,7 +931,7 @@ class Array
     end
 
     def rand(size)
-      random = Truffle::Type.coerce_to_collection_index @rng.rand(size)
+      random = Primitive.rb_num2int @rng.rand(size)
       raise RangeError, 'random value must be >= 0' if random < 0
       raise RangeError, 'random value must be less than Array size' unless random < size
 
@@ -950,10 +948,10 @@ class Array
         count = nil
       else
         options = nil
-        count = Truffle::Type.coerce_to_collection_index count
+        count = Primitive.rb_num2int count
       end
     else
-      count = Truffle::Type.coerce_to_collection_index count
+      count = Primitive.rb_num2int count
       options = Truffle::Type.coerce_to options, Hash, :to_hash
     end
 
@@ -1089,7 +1087,7 @@ class Array
   end
 
   def drop(n)
-    n = Truffle::Type.coerce_to_collection_index n
+    n = Primitive.rb_num2int n
     raise ArgumentError, 'attempt to drop negative size' if n < 0
 
     new_size = size - n
@@ -1175,7 +1173,7 @@ class Array
   alias_method :prepend, :unshift
 
   private def range_begin(range)
-    first = Truffle::Type.coerce_to_collection_index range.begin
+    first = Primitive.rb_num2int range.begin
     first += size if first < 0
     first
   end
@@ -1183,7 +1181,7 @@ class Array
   private def range_end(range)
     last = range.end
     return size - 1 if Primitive.nil? last
-    last = Truffle::Type.coerce_to_collection_index last
+    last = Primitive.rb_num2int last
     last += size if last < 0
     last -=1 if range.exclude_end?
     last
@@ -1201,7 +1199,7 @@ class Array
         next if finish < start
         start.upto(finish) { |i| out << at(i) }
       else
-        i = Truffle::Type.coerce_to_collection_index elem
+        i = Primitive.rb_num2int elem
         out << at(i)
       end
     end
@@ -1527,7 +1525,7 @@ class Array
       else
         # make sure that negative values are not passed through to the
         # []= assignment
-        start = Truffle::Type.coerce_to_collection_index start
+        start = Primitive.rb_num2int start
         start = start + size if start < 0
 
         # This is to match the MRI behaviour of not extending the array
@@ -1546,8 +1544,8 @@ class Array
         end
       end
     else
-      start = Truffle::Type.coerce_to_collection_index start
-      length = Truffle::Type.coerce_to_collection_length length
+      start = Primitive.rb_num2int start
+      length = Primitive.rb_num2int length
       return nil if length < 0
 
       out = self[start, length]
