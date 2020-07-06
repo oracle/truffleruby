@@ -1404,7 +1404,7 @@ EOS
     # Unset variable set by the pre-commit hook which confuses git
     env = { 'GIT_DIR' => nil, 'GIT_INDEX_FILE' => nil }
 
-    current = raw_sh(env, 'git', '-C', gem_test_pack, 'rev-parse', 'HEAD', capture: :out).chomp
+    current = raw_sh(env, 'git', '-C', gem_test_pack, 'rev-parse', 'HEAD', capture: :out, no_print_cmd: true).chomp
     unless current == TRUFFLERUBY_GEM_TEST_PACK_VERSION
       has_commit = raw_sh env, 'git', '-C', gem_test_pack, 'cat-file', '-e', TRUFFLERUBY_GEM_TEST_PACK_VERSION, continue_on_failure: true
       unless has_commit
@@ -1841,7 +1841,7 @@ EOS
       dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
         STDERR.puts download_message
-        jvmci_releases = 'https://github.com/graalvm/openjdk8-jvmci-builder/releases/download'
+        jvmci_releases = 'https://github.com/graalvm/graal-jvmci-8/releases/download'
         filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
         chdir(dir) do
           raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
@@ -1879,6 +1879,8 @@ EOS
 
     eclipse_tar = eclipse_url.split('/').last
     eclipse_name = File.basename(eclipse_tar, '.tar.gz')
+    eclipse_path = File.expand_path("../#{eclipse_name}/#{eclipse_exe}", TRUFFLERUBY_DIR)
+    return eclipse_path if File.exist?(eclipse_path)
 
     dir = File.expand_path('..', TRUFFLERUBY_DIR)
     chdir(dir) do
@@ -1896,7 +1898,7 @@ EOS
       end
     end
 
-    File.expand_path("../#{eclipse_name}/#{eclipse_exe}", TRUFFLERUBY_DIR)
+    eclipse_path
   end
 
   def clone_enterprise
@@ -2078,11 +2080,7 @@ EOS
 
     if gem_test_pack?
       gem_home = "#{gem_test_pack}/rubocop-gems"
-      env = {
-        'GEM_HOME' => gem_home,
-        'GEM_PATH' => gem_home,
-        'PATH' => "#{gem_home}/bin:#{ENV['PATH']}"
-      }
+      env = { 'GEM_HOME' => gem_home, 'GEM_PATH' => gem_home }
       sh env, 'ruby', "#{gem_home}/bin/rubocop", *args
     else
       sh 'rubocop', '_0.66.0_', *args
@@ -2381,8 +2379,18 @@ EOS
 
   def lint(*args)
     fast = args.first == 'fast'
-    fast_exts_changed = fast ? `git diff --cached --name-only`.lines.map { |f| File.extname(f.strip) }.uniq : []
-    changed = ->(ext) { !fast or fast_exts_changed.include?(ext) }
+    if fast
+      changed_files = `git diff --cached --name-only` # Only staged files in the git index
+      if changed_files.empty? # post-commit hook
+        changed_files = `git diff --cached --name-only HEAD^`
+      end
+      raise 'Could not list changed files' if changed_files.empty?
+      exts_changed = changed_files.lines.map { |f| File.extname(f.strip) }.uniq
+      raise 'Could not list changed file extensions' if exts_changed.empty?
+      changed = -> ext { exts_changed.include?(ext) }
+    else
+      changed = -> _ext { true }
+    end
 
     ENV['ECLIPSE_EXE'] ||= install_eclipse
 
