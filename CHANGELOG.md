@@ -30,6 +30,7 @@ Bug fixes:
 * Fix missing flushing when printing an exception at top-level with a custom backtrace, which caused no output being shown (#1750, #1895).
 * Use the mode of the given `IO` for `IO#reopen(IO)` which is important for the 3 standard IOs (#2034).
 * Fix potential deadlock when running finalizers (#2041).
+* Let `require 'rubygems/specification'` work before `require 'rubygems'`.
 
 Compatibility:
 
