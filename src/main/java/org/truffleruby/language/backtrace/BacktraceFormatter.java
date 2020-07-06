@@ -355,15 +355,7 @@ public class BacktraceFormatter {
         }
 
         final Source source = sourceSection.getSource();
-        if (source == null) {
-            return true;
-        }
-
         final String name = source.getName();
-        if (name == null) {
-            return true;
-        }
-
         if (name.startsWith(RubyLanguage.RESOURCE_SCHEME)) {
             return true;
         } else {
