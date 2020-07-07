@@ -9,8 +9,6 @@
  */
 package org.truffleruby.interop;
 
-import java.lang.reflect.Executable;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -49,7 +47,7 @@ public class ProxyForeignObject implements TruffleObject {
         if (logger != null) {
             Object[] args;
             if (message == EXECUTABLE || message == INSTANTIATE) {
-                args = (Object[])rawArgs[0];
+                args = (Object[]) rawArgs[0];
             } else if (message == INVOKE) {
                 Object[] invokeArgs = (Object[]) rawArgs[1];
                 args = new Object[invokeArgs.length + 1];

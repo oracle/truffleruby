@@ -14,7 +14,6 @@ import java.util.Arrays;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
