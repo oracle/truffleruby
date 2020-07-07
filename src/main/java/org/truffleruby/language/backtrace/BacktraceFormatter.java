@@ -246,11 +246,10 @@ public class BacktraceFormatter {
             if (reportedSourceSection == null) {
                 builder.append("???");
             } else {
-                String path = RubyContext.getPath(reportedSourceSection.getSource());
                 if (isRubyCore(context, reportedSourceSection.getSource())) {
-                    builder.append("<internal:core> ").append(path.substring(context.getCoreLibrary().coreLoadPath.length() + 1));
+                    builder.append(formatCorePath(context, reportedSourceSection));
                 } else {
-                    builder.append(path);
+                    builder.append(RubyContext.getPath(reportedSourceSection.getSource()));
                 }
                 builder.append(":");
                 builder.append(reportedSourceSection.getStartLine());
@@ -357,6 +356,12 @@ public class BacktraceFormatter {
     public static boolean isCore(RubyContext context, SourceSection sourceSection) {
         assert isAvailable(sourceSection);
         return isRubyCore(context, sourceSection.getSource());
+    }
+
+    public static String formatCorePath(RubyContext context, SourceSection sourceSection) {
+        assert isCore(context, sourceSection);
+        final String path = RubyContext.getPath(sourceSection.getSource());
+        return "<internal:core> " + path.substring(context.getCoreLibrary().coreLoadPath.length() + 1);
     }
 
     private static boolean isRubyCore(RubyContext context, Source source) {

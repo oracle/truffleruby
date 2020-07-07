@@ -29,6 +29,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 
 @CoreModule(value = "Thread::Backtrace::Location", isClass = true)
 public class ThreadBacktraceLocationNodes {
@@ -83,8 +84,16 @@ public class ThreadBacktraceLocationNodes {
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                return makeStringNode
-                        .fromRope(getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource()));
+                final Rope path;
+                if (BacktraceFormatter.isCore(getContext(), sourceSection)) {
+                    path = StringOperations.encodeRope(
+                            BacktraceFormatter.formatCorePath(getContext(), sourceSection),
+                            UTF8Encoding.INSTANCE);
+                } else {
+                    path = getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource());
+                }
+
+                return makeStringNode.fromRope(path);
             }
         }
 
