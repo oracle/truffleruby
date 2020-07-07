@@ -15,7 +15,7 @@ VALUE rb_define_class_under(VALUE module, const char *name, VALUE superclass) {
 }
 
 VALUE rb_define_class_id_under(VALUE module, ID name, VALUE superclass) {
-  return RUBY_CEXT_INVOKE("rb_define_class_under", module, name, superclass);
+  return RUBY_CEXT_INVOKE("rb_define_class_under", module, ID2SYM(name), superclass);
 }
 
 VALUE rb_define_module(const char *name) {
@@ -66,7 +66,7 @@ void rb_define_alias(VALUE module, const char *new_name, const char *old_name) {
 }
 
 void rb_alias(VALUE module, ID new_name, ID old_name) {
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_alias", module, new_name, old_name);
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_alias", module, ID2SYM(new_name), ID2SYM(old_name));
 }
 
 void rb_undef_method(VALUE module, const char *name) {
@@ -74,11 +74,11 @@ void rb_undef_method(VALUE module, const char *name) {
 }
 
 void rb_undef(VALUE module, ID name) {
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_undef", module, name);
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_undef", module, ID2SYM(name));
 }
 
 void rb_attr(VALUE ruby_class, ID name, int read, int write, int ex) {
-  polyglot_invoke(RUBY_CEXT, "rb_attr", rb_tr_unwrap(ruby_class), rb_tr_unwrap(name), read, write, ex);
+  polyglot_invoke(RUBY_CEXT, "rb_attr", rb_tr_unwrap(ruby_class), rb_tr_unwrap(ID2SYM(name)), read, write, ex);
 }
 
 void rb_define_alloc_func(VALUE ruby_class, rb_alloc_func_t alloc_function) {

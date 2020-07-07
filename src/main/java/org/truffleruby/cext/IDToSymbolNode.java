@@ -10,7 +10,6 @@
 package org.truffleruby.cext;
 
 import static org.truffleruby.core.symbol.CoreSymbols.idToIndex;
-import static org.truffleruby.core.symbol.CoreSymbols.isDynamicSymbol;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -64,7 +63,7 @@ public abstract class IDToSymbolNode extends RubyBaseNode {
         if (!(value instanceof Long)) {
             return false;
         }
-        return !isDynamicSymbol((long) value);
+        return CoreSymbols.isStaticSymbol((long) value);
     }
 
 }

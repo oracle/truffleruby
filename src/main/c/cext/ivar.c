@@ -40,7 +40,7 @@ void rb_ivar_foreach(VALUE obj, int (*func)(ANYARGS), st_data_t arg) {
 }
 
 VALUE rb_attr_get(VALUE object, ID name) {
-  return RUBY_CEXT_INVOKE("rb_ivar_lookup", object, name, Qnil);
+  return RUBY_CEXT_INVOKE("rb_ivar_lookup", object, ID2SYM(name), Qnil);
 }
 
 void rb_copy_generic_ivar(VALUE clone, VALUE obj) {

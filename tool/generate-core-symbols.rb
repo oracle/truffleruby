@@ -56,6 +56,7 @@ character_ids.each do |id|
   ids_map[id.ord] = { :id => id, :name => names[id] }
 end
 
+min_index = ids_map.keys.min
 offset = 128
 index = offset
 
@@ -98,6 +99,7 @@ public class CoreSymbols {
     public static final RubySymbol NEVER = createRubySymbol("never");
     public static final RubySymbol ON_BLOCKING = createRubySymbol("on_blocking");
 
+    public static final int FIRST_OP_ID = <%=min_index%>;
 <% ids_map.each do |key, value|  %>
     public static final RubySymbol <%= value[:name] %> = CoreSymbols.createRubySymbol(<%= value[:id].inspect %>, <%= key %>);<% end %>
 
@@ -154,8 +156,9 @@ public class CoreSymbols {
         return id << 4 | STATIC_SYMBOL_ID | GLOBAL_SYMBOL_ID;
     }
 
-    public static boolean isDynamicSymbol(long value) {
-        return (value & STATIC_SYMBOL_ID) == 0 && value > LAST_OP_ID;
+    public static boolean isStaticSymbol(long value) {
+        return (value >= FIRST_OP_ID && value <= LAST_OP_ID) ||
+                ((value & STATIC_SYMBOL_ID) == STATIC_SYMBOL_ID && (value >> 4) < STATIC_SYMBOLS_SIZE);
     }
 
 }

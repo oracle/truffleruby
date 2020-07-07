@@ -132,11 +132,11 @@ int rb_sourceline(void) {
 }
 
 int rb_obj_method_arity(VALUE object, ID id) {
-  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_obj_method_arity", object, id));
+  return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_obj_method_arity", object, ID2SYM(id)));
 }
 
 int rb_obj_respond_to(VALUE object, ID id, int priv) {
-  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_obj_respond_to", rb_tr_unwrap(object), rb_tr_unwrap(id), priv));
+  return polyglot_as_boolean(polyglot_invoke(RUBY_CEXT, "rb_obj_respond_to", rb_tr_unwrap(object), rb_tr_id2sym(id), priv));
 }
 
 int rb_method_boundp(VALUE klass, ID id, int ex) {

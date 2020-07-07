@@ -68,15 +68,15 @@ VALUE rb_class_new_instance(int argc, const VALUE *argv, VALUE klass) {
 }
 
 VALUE rb_cvar_defined(VALUE klass, ID id) {
-  return RUBY_CEXT_INVOKE("rb_cvar_defined", klass, id);
+  return RUBY_CEXT_INVOKE("rb_cvar_defined", klass, ID2SYM(id));
 }
 
 VALUE rb_cvar_get(VALUE klass, ID id) {
-  return RUBY_CEXT_INVOKE("rb_cvar_get", klass, id);
+  return RUBY_CEXT_INVOKE("rb_cvar_get", klass, ID2SYM(id));
 }
 
 void rb_cvar_set(VALUE klass, ID id, VALUE val) {
-  RUBY_CEXT_INVOKE_NO_WRAP("rb_cvar_set", klass, id, val);
+  RUBY_CEXT_INVOKE_NO_WRAP("rb_cvar_set", klass, ID2SYM(id), val);
 }
 
 VALUE rb_cv_get(VALUE klass, const char *name) {
