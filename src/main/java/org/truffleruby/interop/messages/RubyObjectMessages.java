@@ -13,10 +13,12 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.basicobject.BasicObjectNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
@@ -52,6 +54,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 @ExportLibrary(value = RubyLibrary.class, receiverType = DynamicObject.class)
@@ -86,6 +89,32 @@ public class RubyObjectMessages {
             return kernelToSNode.executeToS(receiver);
         }
     }
+
+    // region Identity
+    /** Like {@link org.truffleruby.core.hash.HashNode} but simplified since
+     * {@link org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode} returns only long or Bignum. */
+    @ExportMessage
+    protected static int identityHashCode(DynamicObject receiver,
+            @Cached BasicObjectNodes.ObjectIDNode objectIDNode,
+            @Exclusive @Cached ConditionProfile longProfile) {
+        final Object hashValue = objectIDNode.executeObjectID(receiver);
+        if (longProfile.profile(hashValue instanceof Long)) {
+            return (int) (long) hashValue;
+        } else {
+            return BigIntegerOps.hashCode(hashValue);
+        }
+    }
+
+    @ExportMessage
+    protected static TriState isIdenticalOrUndefined(DynamicObject receiver, Object other,
+            @Exclusive @Cached ConditionProfile rubyObjectProfile) {
+        if (rubyObjectProfile.profile(RubyGuards.isRubyDynamicObject(other))) {
+            return receiver == other ? TriState.TRUE : TriState.FALSE;
+        } else {
+            return TriState.UNDEFINED;
+        }
+    }
+    // endregion
 
     // region MetaObject
     @ExportMessage

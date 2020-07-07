@@ -66,6 +66,7 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.utilities.TriState;
 
 @CoreModule("Truffle::Debug")
 public abstract class TruffleDebugNodes {
@@ -542,6 +543,18 @@ public abstract class TruffleDebugNodes {
 
         @ExportLibrary(InteropLibrary.class)
         public static class ForeignObject implements TruffleObject {
+            @TruffleBoundary
+            @ExportMessage
+            protected TriState isIdenticalOrUndefined(Object other) {
+                return other instanceof ForeignObject ? TriState.valueOf(this == other) : TriState.UNDEFINED;
+            }
+
+            @TruffleBoundary
+            @ExportMessage
+            protected int identityHashCode() {
+                return System.identityHashCode(this);
+            }
+
             @ExportMessage
             protected String toDisplayString(boolean allowSideEffects) {
                 return "[foreign object]";

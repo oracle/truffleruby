@@ -9,7 +9,13 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -17,9 +23,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.library.Message;
 import com.oracle.truffle.api.library.ReflectionLibrary;
-
-import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @ExportLibrary(ReflectionLibrary.class)
 public class ProxyForeignObject implements TruffleObject {
@@ -40,13 +43,15 @@ public class ProxyForeignObject implements TruffleObject {
         this.logger = logger;
     }
 
+    @TruffleBoundary
     @ExportMessage
     protected Object send(Message message, Object[] rawArgs,
             @Cached CallDispatchHeadNode dispatchNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
-            @CachedLibrary("this.delegate") ReflectionLibrary reflections) throws Exception {
+            @CachedLibrary("this.delegate") ReflectionLibrary reflections,
+            @CachedLanguage RubyLanguage language) throws Exception {
         if (logger != null) {
-            Object[] args;
+            final Object[] args;
             if (message == EXECUTABLE || message == INSTANTIATE) {
                 args = (Object[]) rawArgs[0];
             } else if (message == INVOKE) {
@@ -54,7 +59,14 @@ public class ProxyForeignObject implements TruffleObject {
             } else {
                 args = rawArgs;
             }
+
             Object[] loggingArgs = ArrayUtils.unshift(args, message.getSimpleName());
+            for (int i = 0; i < loggingArgs.length; i++) {
+                if (loggingArgs[i] instanceof InteropLibrary) {
+                    loggingArgs[i] = language.getSymbol("InteropLibrary");
+                }
+            }
+
             Object[] convertedArgs = foreignToRubyArgumentsNode.executeConvert(loggingArgs);
             dispatchNode.call(logger, "<<", convertedArgs);
         }
