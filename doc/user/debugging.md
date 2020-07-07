@@ -14,6 +14,17 @@ Java exceptions can be printed with `exceptions-print-uncaught-java` or
 
 See other `--backtraces-*` and `--exceptions-*` options for more possibilities.
 
+## Printing Stacktraces and Backtraces of a running Process
+
+One can send the `SIGQUIT` signal to TruffleRuby to make it print the Java stacktraces of all threads.
+`Ctrl + \ ` can be used to send `SIGQUIT` to the current process in a terminal.
+This is useful to debug hangs, deadlocks or know what the process is doing.
+This works on both TruffleRuby Native and JVM.
+
+Sending `SIGALRM` to a TruffleRuby process will print the Ruby backtraces of all threads.
+Note that printing the Ruby backtraces of all threads significantly lowers
+performance, so it should only be used for debugging.
+
 ## More Information in Backtraces
 
 We try to match MRI's backtrace format as closely as possible. This sometimes means
