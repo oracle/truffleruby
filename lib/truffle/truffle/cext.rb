@@ -72,6 +72,14 @@ module Truffle::CExt
   RUBY_ECONV_PARTIAL_INPUT = Encoding::Converter::PARTIAL_INPUT
   RUBY_ECONV_AFTER_OUTPUT = Encoding::Converter::AFTER_OUTPUT
 
+  SET_LIBTRUFFLERUBY = -> libtruffleruby do
+    LIBTRUFFLERUBY = libtruffleruby
+  end
+
+  def self.register_libtruffleruby(libtruffleruby)
+    SET_LIBTRUFFLERUBY.call(libtruffleruby)
+  end
+
   def supported?
     Interop.mime_type_supported?('application/x-sulong-library')
   end

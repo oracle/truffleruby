@@ -108,9 +108,7 @@ void RB_ENC_CODERANGE_SET(VALUE obj, int cr);
 #define ENC_CODERANGE_AND(a, b)      RB_ENC_CODERANGE_AND(a, b)
 #define ENCODING_CODERANGE_SET(obj, encindex, cr) RB_ENCODING_CODERANGE_SET(obj, encindex, cr)
 
-typedef struct rb_encoding {
-  char *name;
-} rb_encoding;
+typedef const OnigEncodingType rb_encoding;
 
 int rb_char_to_option_kcode(int c, int *option, int *kcode);
 

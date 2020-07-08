@@ -3,14 +3,18 @@
 
 // Encoding, rb_enc_*
 
-POLYGLOT_DECLARE_STRUCT(rb_encoding)
+POLYGLOT_DECLARE_TYPE(rb_encoding)
 
 // returns Truffle::CExt::RbEncoding, takes Encoding or String
 rb_encoding* rb_to_encoding(VALUE encoding) {
   encoding = RUBY_CEXT_INVOKE("rb_convert_to_encoding", encoding); // Convert to Encoding
-  rb_encoding *enc = polyglot_as_rb_encoding(RUBY_CEXT_INVOKE_NO_WRAP("rb_to_encoding", encoding));
-  enc->name = RSTRING_PTR(RUBY_INVOKE(encoding, "name"));
-  return enc;
+  return polyglot_as_rb_encoding(RUBY_CEXT_INVOKE_NO_WRAP("rb_to_encoding", encoding));
+}
+
+rb_encoding* rb_encoding_to_native(char* name) {
+  OnigEncodingType* native = calloc(1, sizeof(rb_encoding)); // calloc() to zero-fill
+  native->name = name;
+  return native;
 }
 
 rb_encoding* rb_default_external_encoding(void) {
