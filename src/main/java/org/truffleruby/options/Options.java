@@ -91,8 +91,6 @@ public class Options {
     public final boolean EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
     /** --exceptions-print-ruby-for-java=false */
     public final boolean EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
-    /** --exceptions-translate-assert=true */
-    public final boolean EXCEPTIONS_TRANSLATE_ASSERT;
     /** --exceptions-warn-stackoverflow=true */
     public final boolean EXCEPTIONS_WARN_STACKOVERFLOW;
     /** --exceptions-warn-out-of-memory=true */
@@ -317,7 +315,6 @@ public class Options {
         EXCEPTIONS_PRINT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_JAVA_KEY);
         EXCEPTIONS_PRINT_UNCAUGHT_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY);
         EXCEPTIONS_PRINT_RUBY_FOR_JAVA = options.get(OptionsCatalog.EXCEPTIONS_PRINT_RUBY_FOR_JAVA_KEY);
-        EXCEPTIONS_TRANSLATE_ASSERT = options.get(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT_KEY);
         EXCEPTIONS_WARN_STACKOVERFLOW = options.get(OptionsCatalog.EXCEPTIONS_WARN_STACKOVERFLOW_KEY);
         EXCEPTIONS_WARN_OUT_OF_MEMORY = options.get(OptionsCatalog.EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY);
         BACKTRACES_INTERLEAVE_JAVA = options.get(OptionsCatalog.BACKTRACES_INTERLEAVE_JAVA_KEY);
@@ -484,8 +481,6 @@ public class Options {
                 return EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
             case "ruby.exceptions-print-ruby-for-java":
                 return EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
-            case "ruby.exceptions-translate-assert":
-                return EXCEPTIONS_TRANSLATE_ASSERT;
             case "ruby.exceptions-warn-stackoverflow":
                 return EXCEPTIONS_WARN_STACKOVERFLOW;
             case "ruby.exceptions-warn-out-of-memory":

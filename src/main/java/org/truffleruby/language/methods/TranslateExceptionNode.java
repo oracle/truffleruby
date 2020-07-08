@@ -222,7 +222,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
     @TruffleBoundary
     private DynamicObject translateThrowable(RubyContext context, Throwable throwable) {
-        if (throwable instanceof AssertionError && !context.getOptions().EXCEPTIONS_TRANSLATE_ASSERT) {
+        if (throwable instanceof AssertionError) {
             throw (AssertionError) throwable;
         }
 
