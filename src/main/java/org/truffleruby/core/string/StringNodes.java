@@ -3771,9 +3771,10 @@ public abstract class StringNodes {
             if (rope.isEmpty()) {
                 return nil;
             }
-            if (string.toString().startsWith("0x")) {
+            final String javaString = StringOperations.getString(string);
+            if (javaString.startsWith("0x")) {
                 try {
-                    return Double.parseDouble(string.toString());
+                    return Double.parseDouble(javaString);
                 } catch (NumberFormatException e) {
                     // Try falling back to this implementation if the first fails, neither 100% complete
                     final Object result = ConvertBytes
