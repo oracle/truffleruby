@@ -97,8 +97,6 @@ public class Options {
     public final boolean EXCEPTIONS_WARN_STACKOVERFLOW;
     /** --exceptions-warn-out-of-memory=true */
     public final boolean EXCEPTIONS_WARN_OUT_OF_MEMORY;
-    /** --backtraces-hide-core-files=true */
-    public final boolean BACKTRACES_HIDE_CORE_FILES;
     /** --backtraces-interleave-java=false */
     public final boolean BACKTRACES_INTERLEAVE_JAVA;
     /** --backtraces-limit=9999 */
@@ -322,7 +320,6 @@ public class Options {
         EXCEPTIONS_TRANSLATE_ASSERT = options.get(OptionsCatalog.EXCEPTIONS_TRANSLATE_ASSERT_KEY);
         EXCEPTIONS_WARN_STACKOVERFLOW = options.get(OptionsCatalog.EXCEPTIONS_WARN_STACKOVERFLOW_KEY);
         EXCEPTIONS_WARN_OUT_OF_MEMORY = options.get(OptionsCatalog.EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY);
-        BACKTRACES_HIDE_CORE_FILES = options.get(OptionsCatalog.BACKTRACES_HIDE_CORE_FILES_KEY);
         BACKTRACES_INTERLEAVE_JAVA = options.get(OptionsCatalog.BACKTRACES_INTERLEAVE_JAVA_KEY);
         BACKTRACES_LIMIT = options.get(OptionsCatalog.BACKTRACES_LIMIT_KEY);
         BACKTRACES_OMIT_UNUSED = options.get(OptionsCatalog.BACKTRACES_OMIT_UNUSED_KEY);
@@ -493,8 +490,6 @@ public class Options {
                 return EXCEPTIONS_WARN_STACKOVERFLOW;
             case "ruby.exceptions-warn-out-of-memory":
                 return EXCEPTIONS_WARN_OUT_OF_MEMORY;
-            case "ruby.backtraces-hide-core-files":
-                return BACKTRACES_HIDE_CORE_FILES;
             case "ruby.backtraces-interleave-java":
                 return BACKTRACES_INTERLEAVE_JAVA;
             case "ruby.backtraces-limit":

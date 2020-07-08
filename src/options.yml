@@ -52,7 +52,6 @@ EXPERT:
     EXCEPTIONS_TRANSLATE_ASSERT: [exceptions-translate-assert, boolean, true, Translate failed Java assertions to Ruby exceptions]
     EXCEPTIONS_WARN_STACKOVERFLOW: [exceptions-warn-stackoverflow, boolean, true, Warn when a stack overflow error is thrown]
     EXCEPTIONS_WARN_OUT_OF_MEMORY: [exceptions-warn-out-of-memory, boolean, true, Warn when an out-of-memory error is thrown]
-    BACKTRACES_HIDE_CORE_FILES: [backtraces-hide-core-files, boolean, true, 'Hide core source files in backtraces, like MRI does']
     BACKTRACES_INTERLEAVE_JAVA: [backtraces-interleave-java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]
     BACKTRACES_LIMIT: [backtraces-limit, integer, 9999, Limit the size of Ruby backtraces]
     BACKTRACES_OMIT_UNUSED: [backtraces-omit-unused, boolean, true, Omit backtraces that should be unused as they have pure rescue expressions]

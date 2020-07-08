@@ -38,7 +38,6 @@ public class BacktraceFormatter {
     public enum FormattingFlags {
         OMIT_EXCEPTION,
         OMIT_FROM_PREFIX,
-        INCLUDE_CORE_FILES,
         INTERLEAVE_JAVA
     }
 
@@ -54,10 +53,6 @@ public class BacktraceFormatter {
     public static BacktraceFormatter createDefaultFormatter(RubyContext context) {
         final EnumSet<FormattingFlags> flags = EnumSet.noneOf(FormattingFlags.class);
 
-        if (!context.getOptions().BACKTRACES_HIDE_CORE_FILES) {
-            flags.add(FormattingFlags.INCLUDE_CORE_FILES);
-        }
-
         if (context.getOptions().BACKTRACES_INTERLEAVE_JAVA) {
             flags.add(FormattingFlags.INTERLEAVE_JAVA);
         }
@@ -72,7 +67,7 @@ public class BacktraceFormatter {
     public static String printableRubyBacktrace(RubyContext context, Node node) {
         final BacktraceFormatter backtraceFormatter = new BacktraceFormatter(
                 context,
-                EnumSet.of(FormattingFlags.INCLUDE_CORE_FILES));
+                EnumSet.noneOf(FormattingFlags.class));
         final String backtrace = backtraceFormatter.formatBacktrace(null, context.getCallStack().getBacktrace(node));
         if (backtrace.isEmpty()) {
             return "<empty backtrace>";

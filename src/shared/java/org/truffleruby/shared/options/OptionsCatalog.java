@@ -57,7 +57,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> EXCEPTIONS_TRANSLATE_ASSERT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_STACKOVERFLOW_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY = new OptionKey<>(true);
-    public static final OptionKey<Boolean> BACKTRACES_HIDE_CORE_FILES_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BACKTRACES_INTERLEAVE_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Integer> BACKTRACES_LIMIT_KEY = new OptionKey<>(9999);
     public static final OptionKey<Boolean> BACKTRACES_OMIT_UNUSED_KEY = new OptionKey<>(true);
@@ -406,13 +405,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor EXCEPTIONS_WARN_OUT_OF_MEMORY = OptionDescriptor
             .newBuilder(EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY, "ruby.exceptions-warn-out-of-memory")
             .help("Warn when an out-of-memory error is thrown")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor BACKTRACES_HIDE_CORE_FILES = OptionDescriptor
-            .newBuilder(BACKTRACES_HIDE_CORE_FILES_KEY, "ruby.backtraces-hide-core-files")
-            .help("Hide core source files in backtraces, like MRI does")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1137,8 +1129,6 @@ public class OptionsCatalog {
                 return EXCEPTIONS_WARN_STACKOVERFLOW;
             case "ruby.exceptions-warn-out-of-memory":
                 return EXCEPTIONS_WARN_OUT_OF_MEMORY;
-            case "ruby.backtraces-hide-core-files":
-                return BACKTRACES_HIDE_CORE_FILES;
             case "ruby.backtraces-interleave-java":
                 return BACKTRACES_INTERLEAVE_JAVA;
             case "ruby.backtraces-limit":
@@ -1367,7 +1357,6 @@ public class OptionsCatalog {
             EXCEPTIONS_TRANSLATE_ASSERT,
             EXCEPTIONS_WARN_STACKOVERFLOW,
             EXCEPTIONS_WARN_OUT_OF_MEMORY,
-            BACKTRACES_HIDE_CORE_FILES,
             BACKTRACES_INTERLEAVE_JAVA,
             BACKTRACES_LIMIT,
             BACKTRACES_OMIT_UNUSED,
