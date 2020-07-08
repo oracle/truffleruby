@@ -605,7 +605,7 @@ module Commands
       jt ruby [jt options] [--] [ruby options] args...
                                                      run TruffleRuby with args
           --stress        stress the compiler (compile immediately, foreground compilation, compilation exceptions are fatal)
-          --reveal        enable assertions, show core Ruby files in backtrace
+          --reveal        enable assertions
           --asm           show assembly
           --igv           dump select Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:1)
           --igv-full      dump all Graal graphs to graal_dumps/ (-Dgraal.Dump=Truffle:2)
@@ -788,8 +788,6 @@ module Commands
         core_load_path = false
       when '--reveal'
         vm_args += %w[--vm.ea --vm.esa] unless truffleruby_native?
-        add_experimental_options.call
-        vm_args += %w[--backtraces-hide-core-files=false]
       when '--stress'
         add_experimental_options.call
         vm_args << '--engine.CompileImmediately'

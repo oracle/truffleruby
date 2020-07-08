@@ -10,17 +10,20 @@ require_relative '../../../../ruby/spec_helper'
 
 describe 'Thread::Backtrace::Location#absolute_path' do
 
-  it 'should be the same absolute path as in the formatted description for core methods' do
+  it 'returns an existing and canonical path for core methods' do
     # Get the caller_locations from a call made into a core method.
     locations = [:non_empty].map { caller_locations }.flatten
 
     locations.each do |location|
-      filename, _line_number, _in_method = location.to_s.split(':')
       path = location.absolute_path
+      path.should_not.include?('(core)')
 
-      path.should_not == '(core)'
-      path.start_with?('resource:/').should be_false
-      location.absolute_path.should == File.expand_path(filename)
+      if path.include?('resource:')
+        skip
+      else
+        File.should.exist?(location.absolute_path)
+        File.realpath(location.absolute_path).should == location.absolute_path
+      end
     end
   end
 

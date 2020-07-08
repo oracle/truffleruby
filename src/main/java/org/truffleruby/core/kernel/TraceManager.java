@@ -19,6 +19,7 @@ import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -194,7 +195,7 @@ public class TraceManager {
             final DynamicObject file;
             final int line;
 
-            if (sourceSection != null && sourceSection.isAvailable()) {
+            if (BacktraceFormatter.isAvailable(sourceSection)) {
                 file = StringOperations
                         .createString(context, context.getPathToRopeCache().getCachedPath(sourceSection.getSource()));
                 line = getLine(sourceSection);

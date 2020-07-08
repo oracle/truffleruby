@@ -29,16 +29,19 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 
 @CoreModule(value = "Thread::Backtrace::Location", isClass = true)
 public class ThreadBacktraceLocationNodes {
 
     @TruffleBoundary
-    private static SourceSection getUserSourceSection(RubyContext context, DynamicObject threadBacktraceLocation) {
+    private static SourceSection getAvailableSourceSection(RubyContext context, DynamicObject threadBacktraceLocation) {
         final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
         final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
 
-        return context.getUserBacktraceFormatter().nextUserSourceSection(backtrace.getStackTrace(), activationIndex);
+        return context
+                .getUserBacktraceFormatter()
+                .nextAvailableSourceSection(backtrace.getStackTrace(), activationIndex);
     }
 
     @CoreMethod(names = "absolute_path")
@@ -48,7 +51,7 @@ public class ThreadBacktraceLocationNodes {
         @Specialization
         protected DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
+            final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
@@ -76,13 +79,21 @@ public class ThreadBacktraceLocationNodes {
         @Specialization
         protected DynamicObject path(DynamicObject threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
+            final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                return makeStringNode
-                        .fromRope(getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource()));
+                final Rope path;
+                if (BacktraceFormatter.isCore(getContext(), sourceSection)) {
+                    path = StringOperations.encodeRope(
+                            BacktraceFormatter.formatCorePath(getContext(), sourceSection),
+                            UTF8Encoding.INSTANCE);
+                } else {
+                    path = getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource());
+                }
+
+                return makeStringNode.fromRope(path);
             }
         }
 
@@ -123,7 +134,7 @@ public class ThreadBacktraceLocationNodes {
         @TruffleBoundary
         @Specialization
         protected int lineno(DynamicObject threadBacktraceLocation) {
-            final SourceSection sourceSection = getUserSourceSection(getContext(), threadBacktraceLocation);
+            final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             return sourceSection.getStartLine();
         }
