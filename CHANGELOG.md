@@ -56,9 +56,10 @@ Compatibility:
 * Implemented `rb_enc_isalnum` and `rb_enc_isspace`.
 * `RUBY_REVISION` is now the full commit hash used to build TruffleRuby, similar to MRI 2.7+.
 * Implemented `rb_enc_mbc_to_codepoint`.
-* Change the lookup methods to achieve Refinements specification (#2033, @ssnickolay)
+* Changed the lookup methods to achieve Refinements specification (#2033, @ssnickolay)
 * Implemented `Digest::Instance#new` (#2040).
 * Implemented `ONIGENC_MBC_CASE_FOLD`.
+* Fixed `refine + super` compatibility (#2039, @ssnickolay)
 
 Performance:
 
