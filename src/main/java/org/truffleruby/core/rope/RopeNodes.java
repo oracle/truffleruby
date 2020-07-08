@@ -154,7 +154,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = { "byteLength > 1", "!sameAsBase(base, byteLength)" })
-        protected Rope substringLazyRope(LazyRope base, int byteOffset, int byteLength,
+        protected Rope substringLazyRope(LazyIntRope base, int byteOffset, int byteLength,
                 @Cached MakeSubstringRopeNode makeSubstringRopeNode) {
             return makeSubstringRopeNode.executeMake(base.getEncoding(), base, byteOffset, byteLength);
         }
@@ -1142,7 +1142,7 @@ public abstract class RopeNodes {
         }
 
         @Specialization(guards = "rope.getRawBytes() == null")
-        protected int getByte(LazyRope rope, int index) {
+        protected int getByte(LazyIntRope rope, int index) {
             return rope.getBytes()[index] & 0xff;
         }
 
