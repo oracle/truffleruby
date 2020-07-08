@@ -429,7 +429,8 @@ public abstract class ModuleOperations {
                         assumptions.add(assumption);
                     }
                     if (refinedMethod.isDefined()) {
-                        return new MethodLookupResult(refinedMethod.getMethod(), toArray(assumptions));
+                        InternalMethod method = rememberUsedRefinements(refinedMethod.getMethod(), declarationContext);
+                        return new MethodLookupResult(method, toArray(assumptions));
                     }
                 }
             }
@@ -470,7 +471,7 @@ public abstract class ModuleOperations {
                             name,
                             null);
                     if (refinedMethod != null) {
-                        return refinedMethod;
+                        return rememberUsedRefinements(refinedMethod, declarationContext);
                     }
                 }
             }
@@ -495,68 +496,84 @@ public abstract class ModuleOperations {
         return method.getVisibility() == visibility ? method : null;
     }
 
-    public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass) {
+    public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass,
+            DeclarationContext declarationContext) {
+
         assert RubyGuards.isRubyModule(objectMetaClass);
         final String name = currentMethod.getSharedMethodInfo().getName(); // use the original name
         return lookupSuperMethod(
                 currentMethod.getDeclaringModule(),
-                null,
+                new SuperMethodLookup(null, false, null),
                 name,
                 objectMetaClass,
-                currentMethod.getDeclarationContext());
+                declarationContext).getResult();
     }
 
+
     @TruffleBoundary
-    private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, DynamicObject lookupTo,
+    private static SuperMethodLookup lookupSuperMethod(DynamicObject declaringModule, SuperMethodLookup lookup,
             String name, DynamicObject objectMetaClass, DeclarationContext declarationContext) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert RubyGuards.isRubyModule(objectMetaClass);
 
         final ArrayList<Assumption> assumptions = new ArrayList<>();
-        boolean foundDeclaringModule = false;
+        final DynamicObject lookupTo = lookup.getLookupTo();
+        final boolean isRefinedMethod = Layouts.MODULE.getFields(declaringModule).isRefinement();
 
         for (DynamicObject ancestor : Layouts.MODULE.getFields(objectMetaClass).ancestors()) {
             if (ancestor == lookupTo) {
-                return new MethodLookupResult(null, toArray(assumptions));
+                return lookup.withResult(new MethodLookupResult(null, toArray(assumptions)));
             }
 
             final DynamicObject[] refinements = getRefinementsFor(declarationContext, ancestor);
 
             if (refinements != null) {
                 for (DynamicObject refinement : refinements) {
-                    final MethodLookupResult superMethodInRefinement = lookupSuperMethod(
+                    lookup = lookupSuperMethod(
                             declaringModule,
-                            null, // super in refined class takes precedence
+                            lookup.withLookupTo(ancestor),
                             name,
                             refinement,
                             null);
+                    final MethodLookupResult superMethodInRefinement = lookup.getResult();
                     for (Assumption assumption : superMethodInRefinement.getAssumptions()) {
                         assumptions.add(assumption);
                     }
                     if (superMethodInRefinement.isDefined()) {
-                        return new MethodLookupResult(
-                                superMethodInRefinement.getMethod(),
-                                toArray(assumptions));
+                        InternalMethod method = superMethodInRefinement.getMethod();
+                        return lookup.withResult(new MethodLookupResult(
+                                rememberUsedRefinements(method, declarationContext),
+                                toArray(assumptions)));
+                    }
+                    if (lookup.getFoundDeclaringModule() && isRefinedMethod) {
+                        // if method is defined in refinement module (R)
+                        // we should lookup only in this active refinement and skip other
+                        break;
                     }
                 }
             }
 
-            if (!foundDeclaringModule) {
+            if (!lookup.getFoundDeclaringModule()) {
                 if (ancestor == declaringModule) {
-                    foundDeclaringModule = true;
+                    lookup = lookup.withFoundDeclaringModule(true);
                 }
             } else {
                 final ModuleFields fields = Layouts.MODULE.getFields(ancestor);
                 assumptions.add(fields.getMethodsUnmodifiedAssumption());
                 final InternalMethod method = fields.getMethod(name);
                 if (method != null) {
-                    return new MethodLookupResult(method, toArray(assumptions));
+                    return lookup.withResult(new MethodLookupResult(method, toArray(assumptions)));
                 }
             }
         }
 
         // Nothing found
-        return new MethodLookupResult(null, toArray(assumptions));
+        return lookup.withResult(new MethodLookupResult(null, toArray(assumptions)));
+    }
+
+    private static InternalMethod rememberUsedRefinements(InternalMethod method,
+            DeclarationContext declarationContext) {
+        return method.withActiveRefinements(declarationContext);
     }
 
     private static DynamicObject[] getRefinementsFor(DeclarationContext declarationContext, DynamicObject module) {

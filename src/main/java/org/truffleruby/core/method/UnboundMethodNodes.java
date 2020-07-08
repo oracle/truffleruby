@@ -203,7 +203,7 @@ public abstract class UnboundMethodNodes {
         protected Object superMethod(DynamicObject unboundMethod) {
             InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(unboundMethod);
             DynamicObject origin = Layouts.UNBOUND_METHOD.getOrigin(unboundMethod);
-            MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin);
+            MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, origin, null);
             if (!superMethod.isDefined()) {
                 return nil;
             } else {

@@ -30,6 +30,8 @@ public class InternalMethod implements ObjectGraphNode {
     /** Contains the "dynamic" lexical scope in case this method is under a class << expr; HERE; end */
     private final LexicalScope lexicalScope;
     private final DeclarationContext declarationContext;
+    /** The active refinements used during lookup and remembered this way on the method we will call */
+    private final DeclarationContext activeRefinements;
     private final String name;
 
     private final DynamicObject declaringModule;
@@ -111,6 +113,7 @@ public class InternalMethod implements ObjectGraphNode {
                 undefined,
                 false,
                 !context.getCoreLibrary().isLoaded(),
+                DeclarationContext.NONE,
                 proc,
                 callTarget,
                 capturedBlock);
@@ -126,6 +129,7 @@ public class InternalMethod implements ObjectGraphNode {
             boolean undefined,
             boolean unimplemented,
             boolean builtIn,
+            DeclarationContext activeRefinements,
             DynamicObject proc,
             RootCallTarget callTarget,
             DynamicObject capturedBlock) {
@@ -140,6 +144,7 @@ public class InternalMethod implements ObjectGraphNode {
         this.undefined = undefined;
         this.unimplemented = unimplemented;
         this.builtIn = builtIn;
+        this.activeRefinements = activeRefinements;
         this.proc = proc;
         this.callTarget = callTarget;
         this.capturedBlock = capturedBlock;
@@ -173,6 +178,10 @@ public class InternalMethod implements ObjectGraphNode {
         return builtIn;
     }
 
+    public boolean isRefined() {
+        return activeRefinements != null;
+    }
+
     public RootCallTarget getCallTarget() {
         return callTarget;
     }
@@ -193,6 +202,7 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    activeRefinements,
                     proc,
                     callTarget,
                     capturedBlock);
@@ -213,6 +223,7 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    activeRefinements,
                     proc,
                     callTarget,
                     capturedBlock);
@@ -233,6 +244,28 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    activeRefinements,
+                    proc,
+                    callTarget,
+                    capturedBlock);
+        }
+    }
+
+    public InternalMethod withActiveRefinements(DeclarationContext context) {
+        if (context == activeRefinements) {
+            return this;
+        } else {
+            return new InternalMethod(
+                    sharedMethodInfo,
+                    lexicalScope,
+                    declarationContext,
+                    name,
+                    declaringModule,
+                    visibility,
+                    undefined,
+                    unimplemented,
+                    builtIn,
+                    context,
                     proc,
                     callTarget,
                     capturedBlock);
@@ -253,6 +286,7 @@ public class InternalMethod implements ObjectGraphNode {
                     undefined,
                     unimplemented,
                     builtIn,
+                    activeRefinements,
                     proc,
                     callTarget,
                     capturedBlock);
@@ -270,6 +304,7 @@ public class InternalMethod implements ObjectGraphNode {
                 true,
                 unimplemented,
                 builtIn,
+                activeRefinements,
                 proc,
                 callTarget,
                 capturedBlock);
@@ -286,6 +321,7 @@ public class InternalMethod implements ObjectGraphNode {
                 undefined,
                 true,
                 builtIn,
+                activeRefinements,
                 proc,
                 callTarget,
                 capturedBlock);
@@ -353,4 +389,7 @@ public class InternalMethod implements ObjectGraphNode {
         return declarationContext;
     }
 
+    public DeclarationContext getActiveRefinements() {
+        return activeRefinements;
+    }
 }
