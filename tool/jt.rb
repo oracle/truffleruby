@@ -2386,14 +2386,11 @@ EOS
 
   def lint(*args)
     fast = args.first == 'fast'
-    if fast
-      changed_files = `git diff --cached --name-only` # Only staged files in the git index
-      if changed_files.empty? # post-commit hook
-        changed_files = `git diff --cached --name-only HEAD^`
-      end
-      raise 'Could not list changed files' if changed_files.empty?
+    args.shift if fast
+
+    if fast and compare_to = args.shift
+      changed_files = `git diff --cached --name-only #{compare_to}`
       exts_changed = changed_files.lines.map { |f| File.extname(f.strip) }.uniq
-      raise 'Could not list changed file extensions' if exts_changed.empty?
       changed = -> ext { exts_changed.include?(ext) }
     else
       changed = -> _ext { true }
