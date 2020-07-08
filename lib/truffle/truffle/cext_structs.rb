@@ -131,11 +131,6 @@ end
 
 # ruby.h: `struct RBasic`
 class Truffle::CExt::RBasic
-
-  def initialize(object)
-    @object = object
-  end
-
   USER_FLAGS = Primitive.object_hidden_var_create :user_flags
 
   # RUBY_FL* values are from ruby.h
@@ -145,6 +140,10 @@ class Truffle::CExt::RBasic
   RUBY_FL_USHIFT = 12
   USER_FLAGS_MASK = (1 << (RUBY_FL_USHIFT + 19)) - (1 << (RUBY_FL_USHIFT))
   private_constant :RUBY_FL_USHIFT, :USER_FLAGS_MASK
+
+  def initialize(object)
+    @object = object
+  end
 
   private
 
