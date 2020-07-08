@@ -497,10 +497,12 @@ class Truffle::CExt::RbEncoding
   end
 
   def polyglot_to_native
-    ENCODING_CACHE_MUTEX.synchronize do
-      unless @pointer
-        @pointer = Truffle::CExt::LIBTRUFFLERUBY.rb_encoding_to_native(@name)
-        NATIVE_CACHE[Truffle::Interop.as_pointer(@pointer)] = self
+    unless @pointer
+      ENCODING_CACHE_MUTEX.synchronize do
+        unless @pointer
+          @pointer = Truffle::CExt::LIBTRUFFLERUBY.rb_encoding_to_native(@name)
+          NATIVE_CACHE[Truffle::Interop.as_pointer(@pointer)] = self
+        end
       end
     end
   end
