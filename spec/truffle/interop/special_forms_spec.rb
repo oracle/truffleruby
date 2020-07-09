@@ -102,7 +102,7 @@ describe "Interop special forms" do
   end
 
   it "raises an argument error if an assignment method is called with more than 1 argument" do
-    pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
+    pfo, _, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     l.log.should_not include(['writeMember', :bar, :baz])
     -> { pfo.__send__(:foo=, :bar, :baz) }.should raise_error(ArgumentError)
   end
@@ -122,38 +122,38 @@ describe "Interop special forms" do
   end
 
   it description['.call(*arguments)', :execute, ['*arguments']] do
-    pfo, logging_proc, l = proxy[-> *x {x}]
-    x = pfo.call(1, 2, 3)
+    pfo, _, l = proxy[-> *x { x }]
+    pfo.call(1, 2, 3)
     l.log.should include(['execute', 1, 2, 3])
   end
 
   it description['.nil?', :isNull] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.nil?
     l.log.should include(['isNull'])
   end
 
   it description['.size', :getArraySize] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     -> { pfo.size }.should raise_error(Polyglot::UnsupportedMessageError)
     l.log.should include(['getArraySize'])
   end
 
   it description['.keys', :getMembers] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.keys
     l.log.should include(['getMembers', false])
   end
 
   it description['.method_name', :invokeMember, ['method_name'], 'if member is invocable'] do
-    pfo, obj, l = proxy[Class.new { def foo; 3; end }.new]
+    pfo, _, l = proxy[Class.new { def foo; 3; end }.new]
     pfo.foo
     l.log.should include(["isMemberInvocable", "foo"])
     l.log.should include(["invokeMember", "foo"])
   end
 
   it description['.method_name', :readMember, ['method_name'], 'if member is readable'] do
-    pfo, obj, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
+    pfo, _, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     pfo.foo = :bar
     pfo.foo
     l.log.should include(["isMemberInvocable", "foo"])
@@ -161,22 +161,22 @@ describe "Interop special forms" do
   end
 
   it description['.method_name', :readMember, ['method_name'], 'and raises if member is not invocable or readable'] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     -> { pfo.foo }.should raise_error(NameError)
     l.log.should include(["isMemberInvocable", "foo"])
     l.log.should include(["readMember", "foo"])
   end
 
   it description['.method_name(*arguments)', :invokeMember, ['method_name', '*arguments'], 'if member is readable and invokable'] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     -> { pfo.bar(1, 2, 3) }.should raise_error(NoMethodError)
     l.log.should include(["invokeMember", "bar", 1, 2, 3])
   end
 
   it description['.method_name(*arguments, &block)', :invokeMember, ['method_name', '*arguments, block']] do
     pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
-    block = Proc.new {}
-    pfo.foo = -> *x { 1 }
+    block = Proc.new { }
+    pfo.foo = -> *_ { 1 }
     pfo.foo(1, 2, 3, &block)
     l.log.should include(["invokeMember", "foo", 1, 2, 3, block])
     messages = pm.log
@@ -184,7 +184,7 @@ describe "Interop special forms" do
   end
 
   it description['.new(*arguments)', :instantiate, ['*arguments']] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     -> { pfo.new }.should raise_error(Polyglot::UnsupportedMessageError)
     l.log.should include(["instantiate"])
   end
@@ -196,7 +196,7 @@ describe "Interop special forms" do
   end
 
   it description['.class', :getMetaObject] do
-    pfo, obj, l = proxy[Truffle::Debug.foreign_object]
+    pfo, _, l = proxy[Truffle::Debug.foreign_object]
     pfo.class.should == Truffle::Interop::Foreign
     Truffle::Interop.to_display_string(Truffle::Debug.foreign_object)
     l.log.should include(["hasMetaObject"])
@@ -208,37 +208,38 @@ describe "Interop special forms" do
   end
 
   it description['.to_s', :asString, [], 'when `isString(foreign_object)` is true'] do
-    pfo, str, l = proxy['asString contents']
+    pfo, _, l = proxy['asString contents']
     pfo.to_s.should == "asString contents"
     l.log.should include(["asString"])
   end
 
   it description['.to_s', :toDisplayString, [], 'otherwise'] do
-    pfo, str, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.to_s
     l.log.should include(["toDisplayString", true])
   end
 
   it description['.to_str', :asString, [], 'when `isString(foreign_object)` is true'] do
-    pfo, str, l = proxy["asString contents"]
+    pfo, _, l = proxy["asString contents"]
     pfo.to_str.should == "asString contents"
     l.log.should include(["isString"])
     l.log.should include(["asString"])
   end
 
   it doc['.to_str', 'raises `NoMethodError` otherwise'] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     -> { pfo.to_str }.should raise_error(NoMethodError)
+    l.log.should include(["isString"])
   end
 
   it doc['.to_a', 'converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`'] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     -> { pfo.to_a }.should raise_error(RuntimeError)
     l.log.should include(["hasArrayElements"])
   end
 
   it doc['.to_ary', 'converts to a Ruby `Array` with `Truffle::Interop.to_array(foreign_object)`'] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     -> { pfo.to_a }.should raise_error(RuntimeError)
     l.log.should include(["hasArrayElements"])
   end
@@ -254,43 +255,43 @@ describe "Interop special forms" do
   end
 
   it description['.respond_to?(:to_str)', :isString] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:to_str)
     l.log.should include(["isString"])
   end
 
   it description['.respond_to?(:to_a)', :hasArrayElements] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:to_a)
     l.log.should include(["hasArrayElements"])
   end
 
   it description['.respond_to?(:to_ary)', :hasArrayElements] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:to_ary)
     l.log.should include(["hasArrayElements"])
   end
 
   it description['.respond_to?(:size)', :hasArrayElements] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:size)
     l.log.should include(["hasArrayElements"])
   end
 
   it description['.respond_to?(:keys)', :hasMembers] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:keys)
     l.log.should include(["hasMembers"])
   end
 
   it description['.respond_to?(:call)', :isExecutable] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:call)
     l.log.should include(["isExecutable"])
   end
 
   it description['.respond_to?(:new)', :isInstantiable] do
-    pfo, obj, l = proxy[Object.new]
+    pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:new)
     l.log.should include(["isInstantiable"])
   end
