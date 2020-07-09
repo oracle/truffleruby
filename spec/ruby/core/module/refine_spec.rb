@@ -817,7 +817,7 @@ describe "Module#refine" do
       end
     end
 
-    it "does't have access to refinement from included module" do
+    it "does't have access to active refinements for C from included module" do
       refined_class = ModuleSpecs.build_refined_class
 
       a = Module.new do
@@ -836,9 +836,40 @@ describe "Module#refine" do
         end
       end
 
+      Module.new do
+        using refinement
+        -> {
+          refined_class.new.foo
+        }.should raise_error(NameError) { |e| e.name.should == :bar }
+      end
+    end
+
+    it "does't have access to other active refinements from included module" do
+      refined_class = ModuleSpecs.build_refined_class
+
+      refinement_integer = Module.new do
+        refine Integer do
+          def bar
+            "bar is not seen from A methods"
+          end
+        end
+      end
+
+      a = Module.new do
+        def foo
+          super + 1.bar
+        end
+      end
+
+      refinement = Module.new do
+        refine refined_class do
+          include a
+        end
+      end
 
       Module.new do
         using refinement
+        using refinement_integer
         -> {
           refined_class.new.foo
         }.should raise_error(NameError) { |e| e.name.should == :bar }
@@ -921,6 +952,40 @@ describe "Module#refine" do
       end
 
       result.should == [:B, :A, :LAST, :C]
+    end
+
+    it "looks in the lexical scope refinements before other active refinements" do
+      refined_class = ModuleSpecs.build_refined_class(for_super: true)
+
+      refinement_local = Module.new do
+        refine refined_class do
+          def foo
+            [:LOCAL] + super
+          end
+        end
+      end
+
+      a = Module.new do
+        using refinement_local
+
+        def foo
+          [:A] + super
+        end
+      end
+
+      refinement = Module.new do
+        refine refined_class do
+          include a
+        end
+      end
+
+      result = nil
+      Module.new do
+        using refinement
+        result = refined_class.new.foo
+      end
+
+      result.should == [:A, :LOCAL, :C]
     end
   end
 

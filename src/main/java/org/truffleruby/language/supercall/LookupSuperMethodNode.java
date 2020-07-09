@@ -16,6 +16,7 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.objects.MetaClassNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -95,18 +96,21 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
     private DeclarationContext getDeclarationContext(InternalMethod currentMethod,
             DynamicObject selfMetaClass) {
         final DeclarationContext context = currentMethod.getDeclarationContext();
-        final DeclarationContext activeRefinements = currentMethod.getActiveRefinements();
+        final DeclarationContext callerContext = currentMethod.getActiveRefinements();
 
-        if (activeRefinements != null) {
+        if (callerContext != null) {
             // super from the refined method has access to the parent's active refinements for the selfMetaClass
-            final DynamicObject[] classRefinements = activeRefinements.getRefinementsFor(selfMetaClass);
+            final DynamicObject[] activeRefinements = callerContext.getRefinementsFor(selfMetaClass);
 
-            if (classRefinements == null) {
+            if (activeRefinements == null) {
                 return context;
             } else {
-                // add to the context active refinements for the selfMetaClass
                 final Map<DynamicObject, DynamicObject[]> newRefinements = new HashMap<>(context.getRefinements());
-                newRefinements.put(selfMetaClass, classRefinements);
+
+                // add class refinements in reverse order to keep the original positions
+                for (int i = activeRefinements.length - 1; i >= 0; i--) {
+                    UsingNode.applyRefinements(selfMetaClass, activeRefinements[i], newRefinements);
+                }
 
                 return context.withRefinements(newRefinements);
             }

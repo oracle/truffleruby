@@ -63,14 +63,14 @@ public abstract class UsingNode extends RubyContextNode {
                     .getFields(ancestor)
                     .getRefinements();
             for (Map.Entry<DynamicObject, DynamicObject> entry : refinements.entrySet()) {
-                usingRefinement(entry.getKey(), entry.getValue(), newRefinements);
+                applyRefinements(entry.getKey(), entry.getValue(), newRefinements);
             }
         }
 
         return newRefinements;
     }
 
-    private void usingRefinement(DynamicObject refinedModule, DynamicObject refinementModule,
+    public static void applyRefinements(DynamicObject refinedModule, DynamicObject refinementModule,
             Map<DynamicObject, DynamicObject[]> newRefinements) {
         final DynamicObject[] refinements = newRefinements.get(refinedModule);
         if (refinements == null) {
