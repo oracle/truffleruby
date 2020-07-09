@@ -19,6 +19,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.MetaClassNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -47,7 +48,7 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
     protected InternalMethod lookupSuperMethodCachedDynamicObject(VirtualFrame frame, DynamicObject self,
             @Cached("getCurrentMethod(frame)") InternalMethod currentMethod,
             @Cached("metaClass(self)") DynamicObject selfMetaClass,
-            @Cached("doLookup(frame, currentMethod, selfMetaClass)") MethodLookupResult superMethod) {
+            @Cached("doLookup(currentMethod, selfMetaClass)") MethodLookupResult superMethod) {
         return superMethod.getMethod();
     }
 
@@ -55,7 +56,7 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
     protected InternalMethod lookupSuperMethodUncached(VirtualFrame frame, Object self) {
         final InternalMethod currentMethod = getCurrentMethod(frame);
         final DynamicObject selfMetaClass = metaClass(self);
-        return doLookup(frame, currentMethod, selfMetaClass).getMethod();
+        return doLookup(currentMethod, selfMetaClass).getMethod();
     }
 
     protected InternalMethod getCurrentMethod(VirtualFrame frame) {
@@ -70,7 +71,8 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
         return metaClassNode.executeMetaClass(object);
     }
 
-    protected MethodLookupResult doLookup(VirtualFrame frame, InternalMethod currentMethod,
+    @TruffleBoundary
+    protected MethodLookupResult doLookup(InternalMethod currentMethod,
             DynamicObject selfMetaClass) {
         assert RubyGuards.isRubyClass(selfMetaClass);
 
@@ -78,7 +80,7 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
                 .lookupSuperMethod(
                         currentMethod,
                         selfMetaClass,
-                        getDeclarationContext(frame, currentMethod, selfMetaClass));
+                        getDeclarationContext(currentMethod, selfMetaClass));
         // TODO (eregon, 12 June 2015): Is this correct?
         if (!superMethod.isDefined()) {
             return superMethod.withNoMethod();
@@ -90,15 +92,14 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
         return getContext().getOptions().METHOD_LOOKUP_CACHE;
     }
 
-    private DeclarationContext getDeclarationContext(VirtualFrame frame, InternalMethod currentMethod,
+    private DeclarationContext getDeclarationContext(InternalMethod currentMethod,
             DynamicObject selfMetaClass) {
-        final DeclarationContext context = RubyArguments.getDeclarationContext(frame);
+        final DeclarationContext context = currentMethod.getDeclarationContext();
+        final DeclarationContext activeRefinements = currentMethod.getActiveRefinements();
 
-        if (currentMethod.isRefined()) {
+        if (activeRefinements != null) {
             // super from the refined method has access to the parent's active refinements for the selfMetaClass
-            final DynamicObject[] classRefinements = currentMethod
-                    .getActiveRefinements()
-                    .getRefinementsFor(selfMetaClass);
+            final DynamicObject[] classRefinements = activeRefinements.getRefinementsFor(selfMetaClass);
 
             if (classRefinements == null) {
                 return context;

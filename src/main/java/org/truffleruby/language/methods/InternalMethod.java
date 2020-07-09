@@ -178,10 +178,6 @@ public class InternalMethod implements ObjectGraphNode {
         return builtIn;
     }
 
-    public boolean isRefined() {
-        return activeRefinements != null;
-    }
-
     public RootCallTarget getCallTarget() {
         return callTarget;
     }
