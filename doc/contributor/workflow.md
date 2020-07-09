@@ -84,6 +84,25 @@ Note that build information such as the date and Git revision hash will not be
 updated when you build for a second time. Releases should always be built from
 scratch.
 
+### Using the correct version of the graal repository
+
+TruffleRuby needs the `truffle` and `sulong` suites from the `graal` repository.
+`jt build` will automatically clone the repository but not enforce a specific version (commit).
+When running `jt build`, you might see an early warning:
+```
+$ jt build
+$ mx --env jvm scheckimports --ignore-uncommitted --warn-only
+WARNING: imported version of sulong in truffleruby (89aaf87268) does not match parent (aa6d8e07a6)
+You might want to run "mx sforceimports" to use the imported version or update the import with "mx scheckimports"
+```
+
+This warning is important.
+If you did not create new commits  in `graal`, you will typically need to run `jt mx sforceimports`
+so that a known compatible commit of `graal` is used (that commit is recorded in `mx.truffleruby/suite.py`).
+
+This is not done automatically, because sometimes you might want to have changes in `graal`,
+and because developers of the Truffle or Sulong team typically want to use a different commit of `graal` to test their changes.
+
 ### Building C Extensions more quickly
 
 To speed up compilation of bundled C extensions, it is possible to use
