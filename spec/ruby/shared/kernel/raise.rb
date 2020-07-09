@@ -49,25 +49,6 @@ describe :kernel_raise, shared: true do
     -> { @object.raise(nil) }.should raise_error(TypeError)
   end
 
-  it "re-raises the previously rescued exception if no exception is specified" do
-    -> do
-      begin
-        @object.raise Exception, "outer"
-        ScratchPad.record :no_abort
-      rescue
-        begin
-          @object.raise StandardError, "inner"
-        rescue
-        end
-
-        @object.raise
-        ScratchPad.record :no_reraise
-      end
-    end.should raise_error(Exception, "outer")
-
-    ScratchPad.recorded.should be_nil
-  end
-
   it "re-raises a previously rescued exception without overwriting the backtrace" do
     begin
       initial_raise_line = __LINE__; @object.raise 'raised'
