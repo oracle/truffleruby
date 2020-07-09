@@ -285,12 +285,12 @@ class Thread
   def raise(exc = undefined, msg = undefined, ctx = nil)
     return nil unless alive?
 
-    exc = Truffle::KernelOperations.build_exception_for_raise(exc, msg)
+    exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
 
     exc.set_context ctx if ctx
     exc.capture_backtrace!(1) unless exc.backtrace?
 
-    Truffle::KernelOperations.show_exception_for_debug(exc, 1) if $DEBUG
+    Truffle::ExceptionOperations.show_exception_for_debug(exc, 1) if $DEBUG
 
     if self == Thread.current
       Primitive.vm_raise_exception exc

@@ -10,6 +10,39 @@
 
 module Truffle
   module ExceptionOperations
+    def self.build_exception_for_raise(exc, msg)
+      if Primitive.undefined? exc
+        ::RuntimeError.exception ''
+      elsif exc.respond_to? :exception
+        if Primitive.undefined? msg
+          exc = exc.exception
+        else
+          exc = exc.exception msg
+        end
+
+        exception_class_object_expected! unless Primitive.object_kind_of?(exc, ::Exception)
+        exc
+      elsif exc.kind_of? ::String
+        ::RuntimeError.exception exc
+      else
+        exception_class_object_expected!
+      end
+    end
+
+    # Avoid using #raise here to prevent infinite recursion
+    def self.exception_class_object_expected!
+      exc = ::TypeError.new('exception class/object expected')
+      exc.capture_backtrace!(1)
+
+      show_exception_for_debug(exc, 2) if $DEBUG
+
+      Primitive.vm_raise_exception exc
+    end
+
+    def self.show_exception_for_debug(exc, uplevel)
+      STDERR.puts "Exception: `#{exc.class}' at #{caller(uplevel + 1, 1)[0]} - #{exc.message}\n"
+    end
+
     def self.class_name(receiver)
       Truffle::Type.object_class(receiver).name
     end
