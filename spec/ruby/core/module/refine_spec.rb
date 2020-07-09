@@ -841,7 +841,7 @@ describe "Module#refine" do
         using refinement
         -> {
           refined_class.new.foo
-        }.should raise_error(NameError)
+        }.should raise_error(NameError) { |e| e.name.should == :bar }
       end
     end
 
@@ -861,13 +861,13 @@ describe "Module#refine" do
         end
       end
 
-      refinement = Module.new do
+      refinement_a = Module.new do
         refine refined_class do
           include a
         end
       end
 
-      refinement1 = Module.new do
+      refinement_b = Module.new do
         refine refined_class do
           include b
         end
@@ -875,8 +875,8 @@ describe "Module#refine" do
 
       result = nil
       Module.new do
-        using refinement
-        using refinement1
+        using refinement_a
+        using refinement_b
         result = refined_class.new.foo
       end
 
@@ -906,7 +906,7 @@ describe "Module#refine" do
         end
       end
 
-      refinement1 = Module.new do
+      refinement_a_b = Module.new do
         refine refined_class do
           include a
           include b
@@ -916,7 +916,7 @@ describe "Module#refine" do
       result = nil
       Module.new do
         using refinement
-        using refinement1
+        using refinement_a_b
         result = refined_class.new.foo
       end
 
