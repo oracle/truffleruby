@@ -50,7 +50,7 @@ public class ProxyForeignObject implements TruffleObject {
             if (message == EXECUTABLE || message == INSTANTIATE) {
                 args = (Object[]) rawArgs[0];
             } else if (message == INVOKE) {
-                args = ArrayUtils.unshift((Object[])rawArgs[1], rawArgs[0]);
+                args = ArrayUtils.unshift((Object[]) rawArgs[1], rawArgs[0]);
             } else {
                 args = rawArgs;
             }
