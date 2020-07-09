@@ -25,6 +25,14 @@ describe :kernel_raise, shared: true do
     -> { @object.raise("a bad thing") }.should raise_error(RuntimeError)
   end
 
+  it "passes no arguments to the constructor when given only an exception class" do
+    klass = Class.new(Exception) do
+      def initialize
+      end
+    end
+    -> { @object.raise(klass) }.should raise_error(klass) { |e| e.message.should == klass.to_s }
+  end
+
   it "raises a TypeError when passed a non-Exception object" do
     -> { @object.raise(Object.new) }.should raise_error(TypeError)
   end
