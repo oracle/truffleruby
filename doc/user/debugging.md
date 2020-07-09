@@ -4,12 +4,12 @@
 
 There are two ways to print exceptions, which can be useful to find the source of an error:
 
-* the standard Ruby `-d` flag which print the `file:line` where each exception was raised.
+* the standard Ruby `-d` flag which prints the `file:line` where each exception was raised.
 * `--backtraces-raise` which show the full backtrace on each exception raised.
 
 Both print all exceptions even if the exceptions are later rescued.
 
-Java exceptions can be printed with `exceptions-print-uncaught-java` or
+Java exceptions can be printed with `--exceptions-print-uncaught-java` or
 `--exceptions-print-java`.
 
 See other `--backtraces-*` and `--exceptions-*` options for more possibilities.

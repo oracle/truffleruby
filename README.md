@@ -120,6 +120,12 @@ try running your full Rails application on. However it is ready for
 experimentation and curious end-users to try on their gems and smaller
 applications, and to send us reports of issues they find.
 
+## Releases
+
+TruffleRuby has the same version and is released at the same time as GraalVM.
+There is a release every 3 months, see the [release roadmap](https://www.graalvm.org/docs/release-notes/version-roadmap/).
+There are additional Critical Patch Update releases which are based on regular releases and include extra security fixes.
+
 ## Migration from MRI
 
 TruffleRuby should in most cases work as a drop-in replacement for MRI, but you
