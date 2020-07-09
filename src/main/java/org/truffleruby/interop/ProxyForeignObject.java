@@ -18,6 +18,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.library.Message;
 import com.oracle.truffle.api.library.ReflectionLibrary;
 
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 @ExportLibrary(ReflectionLibrary.class)
@@ -49,21 +50,12 @@ public class ProxyForeignObject implements TruffleObject {
             if (message == EXECUTABLE || message == INSTANTIATE) {
                 args = (Object[]) rawArgs[0];
             } else if (message == INVOKE) {
-                Object[] invokeArgs = (Object[]) rawArgs[1];
-                args = new Object[invokeArgs.length + 1];
-                args[0] = rawArgs[0];
-                System.arraycopy(invokeArgs, 0, args, 1, invokeArgs.length);
+                args = ArrayUtils.unshift((Object[])rawArgs[1], rawArgs[0]);
             } else {
                 args = rawArgs;
             }
-            Object[] loggingArgs = new Object[args.length + 1];
-            loggingArgs[0] = message.getSimpleName();
-            System.arraycopy(args, 0, loggingArgs, 1, args.length);
+            Object[] loggingArgs = ArrayUtils.unshift(args, message.getSimpleName());
             Object[] convertedArgs = foreignToRubyArgumentsNode.executeConvert(loggingArgs);
-            for (int i = 0; i < convertedArgs.length; i++) {
-                if (convertedArgs[i] instanceof Object[]) {
-                }
-            }
             dispatchNode.call(logger, "log", convertedArgs);
         }
 
