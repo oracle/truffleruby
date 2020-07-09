@@ -314,7 +314,9 @@ public class RopeOperations {
         // need to track each SubstringRope's bounded length and how much that bounded length contributes to the total
         // byte[] for any ancestor (e.g., a SubstringRope of a ConcatRope with SubstringRopes for each of its children).
         // Because we need to track multiple levels, we can't use a single updated int.
-        final BoundedIntStack substringLengths = new BoundedIntStack(rope.depth());
+        // SubstringRope.child is never a SubstringRope, so there are most depth / 2 SubstringRope.
+        // TODO (eregon, 9 July 2020): maybe we should resize dynamically to avoid a too big array if the depth option is large?
+        final BoundedIntStack substringLengths = new BoundedIntStack(rope.depth() / 2);
 
         final Deque<Rope> workStack = new ArrayDeque<>();
         workStack.push(rope);
