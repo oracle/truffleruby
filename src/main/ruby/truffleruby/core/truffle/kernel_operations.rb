@@ -128,41 +128,6 @@ module Truffle
       load_error
     end
 
-    def self.internal_raise(exc, msg, ctx, internal)
-      skip = false
-      if Primitive.undefined? exc
-        exc = $!
-        if exc
-          skip = true
-        else
-          exc = RuntimeError.new ''
-        end
-      elsif exc.respond_to? :exception
-        if Primitive.undefined? msg
-          exc = exc.exception
-        else
-          exc = exc.exception msg
-        end
-        raise TypeError, 'exception class/object expected' unless exc.kind_of?(Exception)
-      elsif exc.kind_of? String
-        exc = RuntimeError.exception exc
-      else
-        raise TypeError, 'exception class/object expected'
-      end
-
-      unless skip
-        exc.set_context ctx if ctx
-        exc.capture_backtrace!(2) unless exc.backtrace?
-        Primitive.exception_set_cause exc, $! unless exc.equal?($!)
-      end
-
-      if $DEBUG
-        STDERR.puts "Exception: `#{exc.class}' #{caller(2, 1)[0]} - #{exc.message}\n"
-      end
-
-      Primitive.vm_raise_exception exc, internal
-    end
-
     def self.check_last_line(line)
       unless Primitive.object_kind_of? line, String
         raise TypeError, "$_ value need to be String (#{Truffle::ExceptionOperations.to_class_name(line)} given)"

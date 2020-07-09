@@ -168,7 +168,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isRubyException(exception)")
-        protected DynamicObject vmRaiseException(DynamicObject exception, boolean internal,
+        protected DynamicObject vmRaiseException(DynamicObject exception,
                 @Cached ConditionProfile reRaiseProfile) {
             final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
             if (reRaiseProfile.profile(backtrace != null && backtrace.getRaiseException() != null)) {
@@ -181,7 +181,7 @@ public abstract class VMPrimitiveNodes {
                 }
                 throw backtrace.getRaiseException();
             } else {
-                throw new RaiseException(getContext(), exception, internal);
+                throw new RaiseException(getContext(), exception);
             }
         }
 
@@ -192,7 +192,7 @@ public abstract class VMPrimitiveNodes {
                 // TruffleStackTrace stored in it.
                 throw backtrace.getRaiseException();
             } else {
-                throw new RaiseException(context, exception, false);
+                throw new RaiseException(context, exception);
             }
         }
 

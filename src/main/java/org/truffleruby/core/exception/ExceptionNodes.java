@@ -239,13 +239,8 @@ public abstract class ExceptionNodes {
     }
 
     @NonStandard
-    @CoreMethod(names = "capture_backtrace!", optional = 1, lowerFixnum = 1)
+    @CoreMethod(names = "capture_backtrace!", required = 1, lowerFixnum = 1)
     public abstract static class CaptureBacktraceNode extends CoreMethodArrayArgumentsNode {
-
-        @Specialization
-        protected Object captureBacktrace(DynamicObject exception, NotProvided offset) {
-            return captureBacktrace(exception, 1);
-        }
 
         @Specialization
         protected Object captureBacktrace(DynamicObject exception, int offset) {
