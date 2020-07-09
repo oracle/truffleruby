@@ -282,16 +282,20 @@ class Thread
   end
   alias_method :to_s, :inspect
 
-  def raise(exc=undefined, msg=nil, ctx=nil)
+  def raise(exc=undefined, msg=undefined, ctx=nil)
     return nil unless alive?
 
     if Primitive.undefined? exc
       no_argument = true
-      exc         = nil
+      exc = nil
     end
 
     if exc.respond_to? :exception
-      exc = exc.exception msg
+      if Primitive.undefined? msg
+        exc = exc.exception
+      else
+        exc = exc.exception msg
+      end
       Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
     elsif no_argument
       exc = RuntimeError.exception ''

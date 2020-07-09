@@ -60,6 +60,7 @@ Compatibility:
 * Change the lookup methods to achieve Refinements specification (#2033, @ssnickolay)
 * Implemented `Digest::Instance#new` (#2040).
 * Implemented `ONIGENC_MBC_CASE_FOLD`.
+* Fixed `Thread#raise` to call the exception class' constructor with no arguments when given no message (#2045).
 
 Performance:
 
