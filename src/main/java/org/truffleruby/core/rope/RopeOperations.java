@@ -329,15 +329,17 @@ public class RopeOperations {
                 continue;
             }
 
-            // Force lazy ropes
-            if (current instanceof LazyRope) {
-                ((LazyRope) current).fulfill();
+            final byte[] rawBytes;
+            if (current instanceof LazyIntRope) {
+                rawBytes = current.getBytesSlow();
+            } else {
+                rawBytes = current.getRawBytes();
             }
 
-            if (current.getRawBytes() != null) {
+            if (rawBytes != null) {
                 // In the absence of any SubstringRopes, we always take the full contents of the current rope.
                 if (substringLengths.isEmpty()) {
-                    System.arraycopy(current.getRawBytes(), byteOffset, buffer, bufferPosition, current.byteLength());
+                    System.arraycopy(rawBytes, byteOffset, buffer, bufferPosition, current.byteLength());
                     bufferPosition += current.byteLength();
                 } else {
                     int bytesToCopy = substringLengths.pop();
@@ -352,7 +354,7 @@ public class RopeOperations {
                         currentBytesToCopy = bytesToCopy;
                     }
 
-                    System.arraycopy(current.getRawBytes(), byteOffset, buffer, bufferPosition, currentBytesToCopy);
+                    System.arraycopy(rawBytes, byteOffset, buffer, bufferPosition, currentBytesToCopy);
                     bufferPosition += currentBytesToCopy;
                     bytesToCopy -= currentBytesToCopy;
 
@@ -561,7 +563,7 @@ public class RopeOperations {
             }
 
             return hash;
-        } else if (rope instanceof LazyRope) {
+        } else if (rope instanceof LazyIntRope) {
             return Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);
         } else if (rope instanceof NativeRope) {
             return Hashing.stringHash(rope.getBytes(), startingHashCode, offset, length);

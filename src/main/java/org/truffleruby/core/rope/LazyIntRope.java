@@ -10,12 +10,13 @@
 package org.truffleruby.core.rope;
 
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.Encoding;
 import org.jcodings.specific.USASCIIEncoding;
 
-import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public class LazyIntRope extends LazyRope {
+public class LazyIntRope extends ManagedRope {
 
     final int value;
 
@@ -24,7 +25,7 @@ public class LazyIntRope extends LazyRope {
     }
 
     protected LazyIntRope(int value, Encoding encoding, int length) {
-        super(encoding, length, length);
+        super(encoding, CodeRange.CR_7BIT, length, length, 1, null);
         this.value = value;
         assert Integer.toString(value).length() == length;
     }
@@ -63,16 +64,24 @@ public class LazyIntRope extends LazyRope {
         throw new UnsupportedOperationException("Must only be called for CR_VALID Strings");
     }
 
-    @Override
-    public byte[] fulfill() {
-        if (bytes == null) {
-            bytes = RopeOperations.encodeAsciiBytes(Integer.toString(value));
-        }
 
-        return bytes;
+    @Override
+    protected byte[] getBytesSlow() {
+        return RopeOperations.encodeAsciiBytes(valueToString(value));
+    }
+
+    @TruffleBoundary
+    private String valueToString(int value) {
+        return Integer.toString(value);
     }
 
     public int getValue() {
         return value;
     }
+
+    @Override
+    protected byte getByteSlow(int index) {
+        return getBytes()[index];
+    }
+
 }
