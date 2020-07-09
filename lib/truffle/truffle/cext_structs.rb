@@ -131,11 +131,6 @@ end
 
 # ruby.h: `struct RBasic`
 class Truffle::CExt::RBasic
-
-  def initialize(object)
-    @object = object
-  end
-
   USER_FLAGS = Primitive.object_hidden_var_create :user_flags
 
   # RUBY_FL* values are from ruby.h
@@ -145,6 +140,10 @@ class Truffle::CExt::RBasic
   RUBY_FL_USHIFT = 12
   USER_FLAGS_MASK = (1 << (RUBY_FL_USHIFT + 19)) - (1 << (RUBY_FL_USHIFT))
   private_constant :RUBY_FL_USHIFT, :USER_FLAGS_MASK
+
+  def initialize(object)
+    @object = object
+  end
 
   private
 
@@ -431,7 +430,7 @@ class Truffle::CExt::RbEncoding
   def initialize(encoding)
     @encoding = encoding
     @pointer = nil
-    @name = nil
+    @name = Truffle::CExt::LIBTRUFFLERUBY.RSTRING_PTR_IMPL(Primitive.cext_wrap(encoding.name))
   end
 
   private
@@ -446,12 +445,11 @@ class Truffle::CExt::RbEncoding
 
   def polyglot_read_member(name)
     raise Truffle::Interop::UnknownIdentifierException unless name == 'name'
-    @name or raise '@name not set'
+    @name
   end
 
   def polyglot_write_member(name, value)
-    raise Truffle::Interop::UnknownIdentifierException unless name == 'name'
-    @name = value
+    raise Truffle::Interop::UnsupportedMessageException
   end
 
   def polyglot_remove_member(name)
@@ -467,7 +465,7 @@ class Truffle::CExt::RbEncoding
   end
 
   def polyglot_member_modifiable?(name)
-    name == 'name'
+    false
   end
 
   def polyglot_member_removable?(name)
@@ -499,24 +497,17 @@ class Truffle::CExt::RbEncoding
   end
 
   def polyglot_to_native
-    name = @name or raise '@name not set'
-    unless Truffle::Interop.pointer?(name)
-      Truffle::Interop.to_native(name)
-      raise "#{name.inspect} could not be converted to native" unless Truffle::Interop.pointer?(name)
-    end
-    name_address = Truffle::Interop.as_pointer(name)
-
-    ENCODING_CACHE_MUTEX.synchronize do
-      unless @pointer
-        @pointer = Truffle::FFI::MemoryPointer.new(:pointer, 1)
-        @pointer.write_pointer name_address
-
-        NATIVE_CACHE[@pointer.address] = self
+    unless @pointer
+      ENCODING_CACHE_MUTEX.synchronize do
+        unless @pointer
+          @pointer = Truffle::CExt::LIBTRUFFLERUBY.rb_encoding_to_native(@name)
+          NATIVE_CACHE[Truffle::Interop.as_pointer(@pointer)] = self
+        end
       end
     end
   end
 
   def polyglot_as_pointer
-    @pointer.address
+    Truffle::Interop.as_pointer(@pointer)
   end
 end

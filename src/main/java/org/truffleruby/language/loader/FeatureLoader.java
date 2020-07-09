@@ -42,10 +42,8 @@ import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
-import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
@@ -423,9 +421,13 @@ public class FeatureLoader {
                 final Object initFunction = requireNode
                         .findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
 
+                final InteropLibrary interop = InteropLibrary.getFactory().getUncached();
                 try {
-                    InteropLibrary.getFactory().getUncached(initFunction).execute(initFunction, truffleCExt);
-                } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
+                    // rb_tr_init(Truffle::CExt)
+                    interop.execute(initFunction, truffleCExt);
+                    // Truffle::CExt.register_libtruffleruby(libtruffleruby)
+                    interop.invokeMember(truffleCExt, "register_libtruffleruby", library);
+                } catch (InteropException e) {
                     throw new JavaException(e);
                 }
             } finally {

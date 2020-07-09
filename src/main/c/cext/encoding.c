@@ -3,17 +3,21 @@
 
 // Encoding, rb_enc_*
 
-POLYGLOT_DECLARE_STRUCT(rb_encoding)
+POLYGLOT_DECLARE_TYPE(rb_encoding)
 
 // returns Truffle::CExt::RbEncoding, takes Encoding or String
-rb_encoding *rb_to_encoding(VALUE encoding) {
+rb_encoding* rb_to_encoding(VALUE encoding) {
   encoding = RUBY_CEXT_INVOKE("rb_convert_to_encoding", encoding); // Convert to Encoding
-  rb_encoding *enc = polyglot_as_rb_encoding(RUBY_CEXT_INVOKE_NO_WRAP("rb_to_encoding", encoding));
-  enc->name = RSTRING_PTR(RUBY_INVOKE(encoding, "name"));
-  return enc;
+  return polyglot_as_rb_encoding(RUBY_CEXT_INVOKE_NO_WRAP("rb_to_encoding", encoding));
 }
 
-rb_encoding *rb_default_external_encoding(void) {
+rb_encoding* rb_encoding_to_native(char* name) {
+  OnigEncodingType* native = calloc(1, sizeof(rb_encoding)); // calloc() to zero-fill
+  native->name = name;
+  return native;
+}
+
+rb_encoding* rb_default_external_encoding(void) {
   VALUE result = RUBY_CEXT_INVOKE("rb_default_external_encoding");
   if (NIL_P(result)) {
     return NULL;
@@ -21,7 +25,7 @@ rb_encoding *rb_default_external_encoding(void) {
   return rb_to_encoding(result);
 }
 
-rb_encoding *rb_default_internal_encoding(void) {
+rb_encoding* rb_default_internal_encoding(void) {
   VALUE result = RUBY_CEXT_INVOKE("rb_default_internal_encoding");
   if (NIL_P(result)) {
     return NULL;
@@ -29,7 +33,7 @@ rb_encoding *rb_default_internal_encoding(void) {
   return rb_to_encoding(result);
 }
 
-rb_encoding *rb_locale_encoding(void) {
+rb_encoding* rb_locale_encoding(void) {
   VALUE result = RUBY_CEXT_INVOKE("rb_locale_encoding");
   if (NIL_P(result)) {
     return NULL;
@@ -41,7 +45,7 @@ int rb_locale_encindex(void) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_locale_encindex"));
 }
 
-rb_encoding *rb_filesystem_encoding(void) {
+rb_encoding* rb_filesystem_encoding(void) {
   VALUE result = RUBY_CEXT_INVOKE("rb_filesystem_encoding");
   if (NIL_P(result)) {
     return NULL;
@@ -53,7 +57,7 @@ int rb_filesystem_encindex(void) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_filesystem_encindex"));
 }
 
-rb_encoding *get_encoding(VALUE string) {
+rb_encoding* get_encoding(VALUE string) {
   return rb_to_encoding(RUBY_INVOKE(string, "encoding"));
 }
 
@@ -75,7 +79,7 @@ int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {
       length));
 }
 
-rb_encoding *rb_enc_get(VALUE object) {
+rb_encoding* rb_enc_get(VALUE object) {
   return rb_to_encoding(RUBY_CEXT_INVOKE("rb_enc_get", object));
 }
 
@@ -83,7 +87,7 @@ void rb_enc_set_index(VALUE obj, int idx) {
   polyglot_invoke(RUBY_CEXT, "rb_enc_set_index", rb_tr_unwrap(obj), idx);
 }
 
-rb_encoding *rb_ascii8bit_encoding(void) {
+rb_encoding* rb_ascii8bit_encoding(void) {
   return rb_to_encoding(RUBY_CEXT_INVOKE("ascii8bit_encoding"));
 }
 
@@ -91,7 +95,7 @@ int rb_ascii8bit_encindex(void) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_ascii8bit_encindex"));
 }
 
-rb_encoding *rb_usascii_encoding(void) {
+rb_encoding* rb_usascii_encoding(void) {
   return rb_to_encoding(RUBY_CEXT_INVOKE("usascii_encoding"));
 }
 
@@ -110,7 +114,7 @@ int rb_usascii_encindex(void) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_usascii_encindex"));
 }
 
-rb_encoding *rb_utf8_encoding(void) {
+rb_encoding* rb_utf8_encoding(void) {
   return rb_to_encoding(RUBY_CEXT_INVOKE("utf8_encoding"));
 }
 
@@ -150,7 +154,7 @@ int rb_enc_find_index(const char *name) {
   return polyglot_as_i32(RUBY_CEXT_INVOKE_NO_WRAP("rb_enc_find_index", rb_str_new_cstr(name)));
 }
 
-rb_encoding *rb_enc_find(const char *name) {
+rb_encoding* rb_enc_find(const char *name) {
   int idx = rb_enc_find_index(name);
   if (idx < 0) idx = 0;
   return rb_enc_from_index(idx);
@@ -173,7 +177,7 @@ VALUE rb_enc_from_encoding(rb_encoding *encoding) {
   }
 }
 
-rb_encoding *rb_enc_from_index(int index) {
+rb_encoding* rb_enc_from_index(int index) {
   return rb_to_encoding(rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_enc_from_index", index)));
 }
 
