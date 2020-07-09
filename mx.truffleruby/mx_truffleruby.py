@@ -219,6 +219,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
             jar_distributions=['truffleruby:TRUFFLERUBY-LAUNCHER'],
             main_class='org.truffleruby.launcher.RubyLauncher',
             build_args=[
+                '-H:+DumpThreadStacksOnSignal',
                 '-H:+DetectUserDirectoriesInImageHeap',
                 '-H:+TruffleCheckBlackListedMethods',
             ],
