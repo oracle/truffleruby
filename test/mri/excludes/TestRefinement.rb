@@ -1,7 +1,6 @@
 exclude :test_eval_with_binding_scoping, "needs investigation"
 exclude :test_include_refinement, "needs investigation"
 exclude :test_prepend_after_refine, "needs investigation"
-exclude :test_refine_module, "needs investigation"
 exclude :test_refine_prepended_class, "needs investigation"
 exclude :test_refine_with_proc, "needs investigation"
 exclude :test_respond_to_should_use_refinements, "needs investigation"
