@@ -286,19 +286,14 @@ class Thread
     return nil unless alive?
 
     if Primitive.undefined? exc
-      no_argument = true
-      exc = nil
-    end
-
-    if exc.respond_to? :exception
+      exc = RuntimeError.exception ''
+    elsif exc.respond_to? :exception
       if Primitive.undefined? msg
         exc = exc.exception
       else
         exc = exc.exception msg
       end
       Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
-    elsif no_argument
-      exc = RuntimeError.exception ''
     elsif exc.kind_of? String
       exc = RuntimeError.exception exc
     else
