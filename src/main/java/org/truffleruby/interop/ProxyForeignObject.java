@@ -56,7 +56,7 @@ public class ProxyForeignObject implements TruffleObject {
             }
             Object[] loggingArgs = ArrayUtils.unshift(args, message.getSimpleName());
             Object[] convertedArgs = foreignToRubyArgumentsNode.executeConvert(loggingArgs);
-            dispatchNode.call(logger, "log", convertedArgs);
+            dispatchNode.call(logger, "<<", convertedArgs);
         }
 
         return reflections.send(delegate, message, rawArgs);

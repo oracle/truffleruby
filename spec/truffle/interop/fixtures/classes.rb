@@ -17,7 +17,7 @@ module TruffleInteropSpecs
       @log = []
     end
 
-    def log(*args)
+    def <<(*args)
       @log << args
     end
   end
