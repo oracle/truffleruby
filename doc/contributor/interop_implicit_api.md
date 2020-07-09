@@ -20,10 +20,9 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.nil?` sends `isNull(foreign_object)`
 - `foreign_object.size` sends `getArraySize(foreign_object)`
 - `foreign_object.keys` sends `getMembers(foreign_object)`
-- `foreign_object.method_name` sends `readMember(foreign_object, method_name)` if member is not invocable
 - `foreign_object.method_name` sends `invokeMember(foreign_object, method_name)` if member is invocable
-- `foreign_object.method_name` sends `readMember(foreign_object, method_name)` if member is readable and not invokable
-- `foreign_object.method_name` sends `readMember(foreign_object, method_name)`
+- `foreign_object.method_name` sends `readMember(foreign_object, method_name)` if member is readable
+- `foreign_object.method_name` sends `readMember(foreign_object, method_name)` and raises if member is not invocable or readable
 - `foreign_object.method_name(*arguments)` sends `invokeMember(foreign_object, method_name, *arguments)` if member is readable and invokable
 - `foreign_object.method_name(*arguments) &block` sends `invokeMember(foreign_object, method_name, *arguments, block)`
 - `foreign_object.new(*arguments)` sends `instantiate(foreign_object, *arguments)`

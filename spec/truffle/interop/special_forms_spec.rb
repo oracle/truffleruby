@@ -145,13 +145,6 @@ describe "Interop special forms" do
     l.log.should include(['getMembers', false])
   end
 
-  it description['.method_name', :readMember, ['method_name'], 'if member is not invocable'] do
-    pfo, obj, l = proxy[Object.new]
-    -> { pfo.foo }.should raise_error(NameError)
-    l.log.should include(["isMemberInvocable", "foo"])
-    l.log.should include(["readMember", "foo"])
-  end
-
   it description['.method_name', :invokeMember, ['method_name'], 'if member is invocable'] do
     pfo, obj, l = proxy[Class.new { def foo; 3; end }.new]
     pfo.foo
@@ -159,7 +152,7 @@ describe "Interop special forms" do
     l.log.should include(["invokeMember", "foo"])
   end
 
-  it description['.method_name', :readMember, ['method_name'], 'if member is readable and not invokable'] do
+  it description['.method_name', :readMember, ['method_name'], 'if member is readable'] do
     pfo, obj, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     pfo.foo = :bar
     pfo.foo
@@ -167,12 +160,11 @@ describe "Interop special forms" do
     l.log.should include(["readMember", "foo"])
   end
 
-  it description['.method_name', :readMember, ['method_name']] do
-    pfo, obj, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
-    pfo.foo = Proc.new { :bar }
-    pfo.foo.should == :bar
+  it description['.method_name', :readMember, ['method_name'], 'and raises if member is not invocable or readable'] do
+    pfo, obj, l = proxy[Object.new]
+    -> { pfo.foo }.should raise_error(NameError)
     l.log.should include(["isMemberInvocable", "foo"])
-    l.log.should include(["invokeMember", "foo"])
+    l.log.should include(["readMember", "foo"])
   end
 
   it description['.method_name(*arguments)', :invokeMember, ['method_name', '*arguments'], 'if member is readable and invokable'] do
@@ -206,7 +198,8 @@ describe "Interop special forms" do
   it description['.class', :getMetaObject] do
     pfo, obj, l = proxy[Truffle::Debug.foreign_object]
     pfo.class.should == Truffle::Interop::Foreign
-    Truffle::Interop.to_display_string(Truffle::Debug.foreign_object).should include("hasMetaObject()")
+    Truffle::Interop.to_display_string(Truffle::Debug.foreign_object)
+    l.log.should include(["hasMetaObject"])
   end
 
   it doc['.inspect', 'returns a Ruby-style `#inspect` string showing members, array elements, etc'] do
