@@ -173,7 +173,7 @@ describe "Interop special forms" do
     l.log.should include(["invokeMember", "bar", 1, 2, 3])
   end
 
-  it description['.method_name(*arguments) &block', :invokeMember, ['method_name', '*arguments, block']] do
+  it description['.method_name(*arguments, &block)', :invokeMember, ['method_name', '*arguments, block']] do
     pfo, pm, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     block = Proc.new {}
     pfo.foo = -> *x { 1 }
