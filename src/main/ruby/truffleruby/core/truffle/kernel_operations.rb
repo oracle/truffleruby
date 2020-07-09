@@ -128,7 +128,7 @@ module Truffle
       load_error
     end
 
-    def self.internal_raise(exc, msg, ctx, internal)
+    def self.internal_raise(exc, msg, ctx)
       skip = false
       if Primitive.undefined? exc
         exc = $!
@@ -160,7 +160,7 @@ module Truffle
         STDERR.puts "Exception: `#{exc.class}' #{caller(2, 1)[0]} - #{exc.message}\n"
       end
 
-      Primitive.vm_raise_exception exc, internal
+      Primitive.vm_raise_exception exc
     end
 
     def self.check_last_line(line)

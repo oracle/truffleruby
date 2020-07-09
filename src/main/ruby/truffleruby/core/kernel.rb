@@ -658,7 +658,7 @@ module Kernel
   module_function :warn
 
   def raise(exc=undefined, msg=undefined, ctx=nil)
-    Truffle::KernelOperations.internal_raise exc, msg, ctx, false
+    Truffle::KernelOperations.internal_raise exc, msg, ctx
   end
   module_function :raise
 

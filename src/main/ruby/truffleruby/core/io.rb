@@ -177,7 +177,7 @@ class IO
         # Detect if another thread has updated the buffer
         # and now there isn't enough room for this data.
         if bytes_read > unused
-          Truffle::KernelOperations.internal_raise RuntimeError, 'internal implementation error - IO buffer overrun', nil, true
+          raise RuntimeError, 'internal implementation error - IO buffer overrun'
         end
         @storage.fill(@used, buffer, 0, bytes_read)
         @used += bytes_read

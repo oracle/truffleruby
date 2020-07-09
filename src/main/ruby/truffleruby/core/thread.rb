@@ -308,7 +308,7 @@ class Thread
     end
 
     if self == Thread.current
-      Primitive.vm_raise_exception exc, false
+      Primitive.vm_raise_exception exc
     else
       Primitive.thread_raise self, exc
     end
