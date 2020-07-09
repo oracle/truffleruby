@@ -657,8 +657,21 @@ module Kernel
   end
   module_function :warn
 
-  def raise(exc=undefined, msg=undefined, ctx=nil)
-    Truffle::KernelOperations.internal_raise exc, msg, ctx
+  def raise(exc = undefined, msg = undefined, ctx = nil)
+    last = $!
+    if Primitive.undefined?(exc) and last
+      exc = last
+    else
+      exc = Truffle::KernelOperations.build_exception_for_raise(exc, msg)
+
+      exc.set_context ctx if ctx
+      exc.capture_backtrace!(1) unless exc.backtrace?
+      Primitive.exception_set_cause exc, last unless Primitive.object_equal(exc, last)
+    end
+
+    Truffle::KernelOperations.show_exception_for_debug(exc, 1) if $DEBUG
+
+    Primitive.vm_raise_exception exc
   end
   module_function :raise
 

@@ -128,39 +128,37 @@ module Truffle
       load_error
     end
 
-    def self.internal_raise(exc, msg, ctx)
-      skip = false
+    def self.build_exception_for_raise(exc, msg)
       if Primitive.undefined? exc
-        exc = $!
-        if exc
-          skip = true
-        else
-          exc = RuntimeError.new ''
-        end
+        ::RuntimeError.exception ''
       elsif exc.respond_to? :exception
         if Primitive.undefined? msg
           exc = exc.exception
         else
           exc = exc.exception msg
         end
-        raise TypeError, 'exception class/object expected' unless exc.kind_of?(Exception)
-      elsif exc.kind_of? String
-        exc = RuntimeError.exception exc
+
+        exception_class_object_expected! unless Primitive.object_kind_of?(exc, ::Exception)
+        exc
+      elsif exc.kind_of? ::String
+        ::RuntimeError.exception exc
       else
-        raise TypeError, 'exception class/object expected'
+        exception_class_object_expected!
       end
+    end
 
-      unless skip
-        exc.set_context ctx if ctx
-        exc.capture_backtrace!(2) unless exc.backtrace?
-        Primitive.exception_set_cause exc, $! unless exc.equal?($!)
-      end
+    # Avoid using #raise here to prevent infinite recursion
+    def self.exception_class_object_expected!
+      exc = ::TypeError.new('exception class/object expected')
+      exc.capture_backtrace!(1)
 
-      if $DEBUG
-        STDERR.puts "Exception: `#{exc.class}' #{caller(2, 1)[0]} - #{exc.message}\n"
-      end
+      Truffle::KernelOperations.show_exception_for_debug(exc, 2) if $DEBUG
 
       Primitive.vm_raise_exception exc
+    end
+
+    def self.show_exception_for_debug(exc, uplevel)
+      STDERR.puts "Exception: `#{exc.class}' at #{caller(uplevel + 1, 1)[0]} - #{exc.message}\n"
     end
 
     def self.check_last_line(line)

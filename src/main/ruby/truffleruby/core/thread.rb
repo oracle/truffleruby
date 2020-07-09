@@ -282,30 +282,15 @@ class Thread
   end
   alias_method :to_s, :inspect
 
-  def raise(exc=undefined, msg=undefined, ctx=nil)
+  def raise(exc = undefined, msg = undefined, ctx = nil)
     return nil unless alive?
 
-    if Primitive.undefined? exc
-      exc = RuntimeError.exception ''
-    elsif exc.respond_to? :exception
-      if Primitive.undefined? msg
-        exc = exc.exception
-      else
-        exc = exc.exception msg
-      end
-      Kernel.raise TypeError, 'exception class/object expected' unless Exception === exc
-    elsif exc.kind_of? String
-      exc = RuntimeError.exception exc
-    else
-      Kernel.raise TypeError, 'exception class/object expected'
-    end
+    exc = Truffle::KernelOperations.build_exception_for_raise(exc, msg)
 
     exc.set_context ctx if ctx
     exc.capture_backtrace!(1) unless exc.backtrace?
 
-    if $DEBUG
-      STDERR.puts "Exception: `#{exc.class}' - #{exc.message}"
-    end
+    Truffle::KernelOperations.show_exception_for_debug(exc, 1) if $DEBUG
 
     if self == Thread.current
       Primitive.vm_raise_exception exc
