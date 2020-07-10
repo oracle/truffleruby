@@ -398,7 +398,7 @@ public class FeatureLoader {
                 throw new RaiseException(
                         context,
                         context.getCoreExceptions().loadError(
-                                "cannot load as C extensions are disabled with -Xcexts=false",
+                                "cannot load as C extensions are disabled with --ruby.cexts=false",
                                 feature,
                                 null));
             }
