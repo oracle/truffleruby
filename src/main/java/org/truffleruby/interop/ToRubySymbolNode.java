@@ -19,7 +19,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 
 @GenerateUncached
-
 public abstract class ToRubySymbolNode extends Node {
 
     public abstract Object execute(String str);
