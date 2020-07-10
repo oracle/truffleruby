@@ -12,7 +12,6 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -30,8 +29,8 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayIndexNodes;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.ArrayUtils;
-import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -41,19 +40,19 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "MatchData", isClass = true)
@@ -230,7 +229,7 @@ public abstract class MatchDataNodes {
             return MatchDataNodesFactory.GetIndexNodeFactory.create(nodes);
         }
 
-        public abstract Object executeGetIndex(Object matchData, Object index, Object length);
+        protected abstract Object executeGetIndex(Object matchData, int index, NotProvided length);
 
         @Specialization
         protected Object getIndex(DynamicObject matchData, int index, NotProvided length,
@@ -283,14 +282,12 @@ public abstract class MatchDataNodes {
                 return executeGetIndex(matchData, backRefIndex, NotProvided.INSTANCE);
             } else {
                 final int i = getBackRef(matchData, regexp, name);
-
                 return executeGetIndex(matchData, i, NotProvided.INSTANCE);
             }
         }
 
         @Specialization
-        protected Object getIndexSymbol(DynamicObject matchData, RubySymbol index, NotProvided length,
-                @Cached BranchProfile errorProfile) {
+        protected Object getIndexSymbol(DynamicObject matchData, RubySymbol index, NotProvided length) {
             return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
 
@@ -299,7 +296,8 @@ public abstract class MatchDataNodes {
             return executeGetIndex(matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
         }
 
-        @Specialization(guards = { "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
+        @Specialization(
+                guards = { "!isInteger(index)", "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
         protected Object getIndex(DynamicObject matchData, Object index, NotProvided length,
                 @Cached ToIntNode toIntNode) {
             return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);

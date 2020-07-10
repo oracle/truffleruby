@@ -36,10 +36,10 @@ import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.array.library.NativeArrayStorage;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.CmpIntNode;
-import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToAryNode;
 import org.truffleruby.core.cast.ToAryNodeGen;
+import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.cast.ToLongNode;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.format.BytesResult;
 import org.truffleruby.core.format.FormatExceptionTranslator;
@@ -62,16 +62,17 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.PropagateTaintNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -92,7 +93,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
-import org.truffleruby.utils.Utils;
 
 @CoreModule(value = "Array", isClass = true)
 public abstract class ArrayNodes {
@@ -1027,8 +1027,8 @@ public abstract class ArrayNodes {
         @Child private CallDispatchHeadNode toAryNode;
         @Child private KernelNodes.RespondToNode respondToToAryNode;
 
-        public abstract DynamicObject executeInitialize(VirtualFrame frame, DynamicObject array, Object size,
-                Object fillingValue, Object block);
+        protected abstract DynamicObject executeInitialize(DynamicObject array, Object size, Object fillingValue,
+                NotProvided block);
 
         @Specialization
         protected DynamicObject initializeNoArgs(
@@ -1120,13 +1120,12 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "wasProvided(size)", "!isInteger(size)", "!isLong(size)", "wasProvided(fillingValue)" })
         protected DynamicObject initializeSizeOther(
-                VirtualFrame frame,
                 DynamicObject array,
                 Object size,
                 Object fillingValue,
                 NotProvided block) {
             int intSize = toInt(size);
-            return executeInitialize(frame, array, intSize, fillingValue, block);
+            return executeInitialize(array, intSize, fillingValue, block);
         }
 
         // With block
@@ -1168,36 +1167,35 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isInteger(object)", "!isLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
         protected DynamicObject initialize(
-                VirtualFrame frame,
                 DynamicObject array,
                 Object object,
                 NotProvided unusedValue,
                 NotProvided block) {
             DynamicObject copy = null;
-            if (respondToToAry(frame, object)) {
-                Object toAryResult = callToAry(frame, object);
+            if (respondToToAry(object)) {
+                Object toAryResult = callToAry(object);
                 if (RubyGuards.isRubyArray(toAryResult)) {
                     copy = (DynamicObject) toAryResult;
                 }
             }
 
             if (copy != null) {
-                return executeInitialize(frame, array, copy, NotProvided.INSTANCE, NotProvided.INSTANCE);
+                return executeInitialize(array, copy, NotProvided.INSTANCE, NotProvided.INSTANCE);
             } else {
                 int size = toInt(object);
-                return executeInitialize(frame, array, size, NotProvided.INSTANCE, NotProvided.INSTANCE);
+                return executeInitialize(array, size, NotProvided.INSTANCE, NotProvided.INSTANCE);
             }
         }
 
-        public boolean respondToToAry(VirtualFrame frame, Object object) {
+        public boolean respondToToAry(Object object) {
             if (respondToToAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 respondToToAryNode = insert(KernelNodesFactory.RespondToNodeFactory.create(null, null, null));
             }
-            return respondToToAryNode.executeDoesRespondTo(frame, object, coreStrings().TO_ARY.createInstance(), true);
+            return respondToToAryNode.executeDoesRespondTo(null, object, coreStrings().TO_ARY.createInstance(), true);
         }
 
-        protected Object callToAry(VirtualFrame frame, Object object) {
+        protected Object callToAry(Object object) {
             if (toAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toAryNode = insert(CallDispatchHeadNode.createPrivate());
