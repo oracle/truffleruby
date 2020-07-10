@@ -424,7 +424,7 @@ extern int rb_char_to_option_kcode(int c, int *option, int *kcode) {
   return 1;
 }
 
-int enc_is_unicode(rb_encoding *enc) {
+int enc_is_unicode(const OnigEncodingType *enc) {
   const char *name = rb_enc_name(enc);
   return !strncmp(name,"UTF", 3);
 }

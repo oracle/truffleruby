@@ -324,8 +324,12 @@ int onigenc_ascii_only_case_map(OnigCaseFoldType* flagP, const OnigUChar** pp, c
 #define ONIGENC_IS_MBC_ASCII_WORD(enc,s,end) \
    onigenc_ascii_is_code_ctype( \
 	ONIGENC_MBC_TO_CODE(enc,s,end),ONIGENC_CTYPE_WORD,enc)
+#ifdef TRUFFLERUBY
+int enc_is_unicode(const OnigEncodingType *enc);
+#define ONIGENC_IS_UNICODE(enc) enc_is_unicode(enc)
+#else
 #define ONIGENC_IS_UNICODE(enc)        ((enc)->flags & ONIGENC_FLAG_UNICODE)
-
+#endif
 
 #define ONIGENC_NAME(enc)                      ((enc)->name)
 

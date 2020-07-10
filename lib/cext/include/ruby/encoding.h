@@ -110,10 +110,6 @@ void RB_ENC_CODERANGE_SET(VALUE obj, int cr);
 
 typedef const OnigEncodingType rb_encoding;
 
-#undef ONIGENC_IS_UNICODE
-int enc_is_unicode(rb_encoding *enc);
-#define ONIGENC_IS_UNICODE(enc) enc_is_unicode(enc)
-
 int rb_char_to_option_kcode(int c, int *option, int *kcode);
 
 int rb_enc_replicate(const char *, rb_encoding *);

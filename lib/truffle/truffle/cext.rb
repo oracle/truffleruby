@@ -477,8 +477,7 @@ module Truffle::CExt
     err = nil
     result = begin
                Regexp.new(pattern, options)
-             rescue => e
-               err = e
+             rescue => err
                nil
              end
     if err

@@ -341,7 +341,7 @@ public class ValueWrapperManager {
     }
 
     public static boolean isMallocAligned(long handle) {
-        return handle % 8 == 0;
+        return handle != FALSE_HANDLE && (handle & 0b111) == 0;
     }
 
     public static boolean isWrapper(Object value) {
