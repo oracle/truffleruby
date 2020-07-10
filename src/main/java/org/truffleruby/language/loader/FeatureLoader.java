@@ -55,7 +55,9 @@ public class FeatureLoader {
 
     private final ReentrantLockFreeingMap<String> fileLocks = new ReentrantLockFreeingMap<>();
     /** Maps basename without extension -> autoload path -> autoload constant, to detect when require-ing a file already
-     * registered with autoload. */
+     * registered with autoload.
+     *
+     * Synchronization: Both levels of Map and the Lists are protected by registeredAutoloadsLock. */
     private final Map<String, Map<String, List<RubyConstant>>> registeredAutoloads = new HashMap<>();
     private final ReentrantLock registeredAutoloadsLock = new ReentrantLock();
 
@@ -86,7 +88,9 @@ public class FeatureLoader {
         try {
             final Map<String, List<RubyConstant>> constants = ConcurrentOperations
                     .getOrCompute(registeredAutoloads, basename, k -> new LinkedHashMap<>());
-            ConcurrentOperations.getOrCompute(constants, autoloadPath, k -> new ArrayList<>()).add(autoloadConstant);
+            final List<RubyConstant> list = ConcurrentOperations
+                    .getOrCompute(constants, autoloadPath, k -> new ArrayList<>());
+            list.add(autoloadConstant);
         } finally {
             registeredAutoloadsLock.unlock();
         }
@@ -94,21 +98,28 @@ public class FeatureLoader {
 
     public List<RubyConstant> getAutoloadConstants(String expandedPath) {
         final String basename = basenameWithoutExtension(expandedPath);
-        final Map<String, List<RubyConstant>> constantsMap;
+        final Map<String, RubyConstant[]> constantsMapCopy;
 
         registeredAutoloadsLock.lock();
         try {
-            constantsMap = registeredAutoloads.get(basename);
+            final Map<String, List<RubyConstant>> constantsMap = registeredAutoloads.get(basename);
             if (constantsMap == null || constantsMap.isEmpty()) {
                 return null;
+            }
+
+            // Deep-copy constantsMap so we can call findFeature() outside the lock
+            constantsMapCopy = new LinkedHashMap<>();
+            for (Map.Entry<String, List<RubyConstant>> entry : constantsMap.entrySet()) {
+                constantsMapCopy.put(entry.getKey(), entry.getValue().toArray(RubyConstant.EMPTY_ARRAY));
             }
         } finally {
             registeredAutoloadsLock.unlock();
         }
 
         final List<RubyConstant> constants = new ArrayList<>();
-        for (Map.Entry<String, List<RubyConstant>> entry : constantsMap.entrySet()) {
+        for (Map.Entry<String, RubyConstant[]> entry : constantsMapCopy.entrySet()) {
             final String expandedAutoloadPath = findFeature(entry.getKey());
+
             if (expandedPath.equals(expandedAutoloadPath)) {
                 for (RubyConstant constant : entry.getValue()) {
                     // Do not autoload recursively from the #require call in GetConstantNode
@@ -252,9 +263,7 @@ public class FeatureLoader {
                         RubyContext.fileLine(sourceSection),
                         originalFeature);
             });
-        }
 
-        if (context.getOptions().LOG_FEATURE_LOCATION) {
             RubyLanguage.LOGGER.info(String.format("current directory: %s", getWorkingDirectory()));
         }
 
@@ -392,7 +401,7 @@ public class FeatureLoader {
                 throw new RaiseException(
                         context,
                         context.getCoreExceptions().loadError(
-                                "cannot load as C extensions are disabled with -Xcexts=false",
+                                "cannot load as C extensions are disabled with --ruby.cexts=false",
                                 feature,
                                 null));
             }
