@@ -69,6 +69,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_int8, :read_array_of_char
 
   def write_array_of_char(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_char address + (i * 1), Primitive.rb_to_int(value)
     end
@@ -119,6 +120,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_uint8, :read_array_of_uchar
 
   def write_array_of_uchar(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_uchar address + (i * 1), Primitive.rb_to_int(value)
     end
@@ -169,6 +171,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_int16, :read_array_of_short
 
   def write_array_of_short(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_short address + (i * 2), Primitive.rb_to_int(value)
     end
@@ -219,6 +222,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_uint16, :read_array_of_ushort
 
   def write_array_of_ushort(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_ushort address + (i * 2), Primitive.rb_to_int(value)
     end
@@ -269,6 +273,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_int32, :read_array_of_int
 
   def write_array_of_int(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_int address + (i * 4), Primitive.rb_to_int(value)
     end
@@ -319,6 +324,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_uint32, :read_array_of_uint
 
   def write_array_of_uint(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_uint address + (i * 4), Primitive.rb_to_int(value)
     end
@@ -374,6 +380,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_long_long, :read_array_of_long
 
   def write_array_of_long(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_long address + (i * 8), Primitive.rb_to_int(value)
     end
@@ -432,6 +439,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_ulong_long, :read_array_of_ulong
 
   def write_array_of_ulong(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_ulong address + (i * 8), Primitive.rb_to_int(value)
     end
@@ -485,6 +493,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_float32, :read_array_of_float
 
   def write_array_of_float(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_float address + (i * 4), Truffle::Type.rb_to_f(value)
     end
@@ -535,6 +544,7 @@ class Truffle::FFI::Pointer
   alias_method :read_array_of_float64, :read_array_of_double
 
   def write_array_of_double(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_double address + (i * 8), Truffle::Type.rb_to_f(value)
     end
@@ -594,6 +604,7 @@ class Truffle::FFI::Pointer
   end
 
   def write_array_of_pointer(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_pointer address + (i * 8), get_pointer_value(value)
     end
