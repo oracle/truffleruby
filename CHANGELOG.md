@@ -13,7 +13,7 @@ New features:
 * Always show the Ruby core library files in backtraces (#1414).
 * The Java stacktrace is now shown when sending SIGQUIT to the process, also on TruffleRuby Native, see [Debugging](doc/user/debugging.md) for details (#2041).
 * Calls to foreign objects with a block argument will now pass the block as the last argument.
-* Some refinements have been made to interoperability with forign objects, see `doc/contrib/interop_implicit_api.md` for details.
+* `foreign.name` will now use `invokeMember` if invocable and if not use `readMember`, see `doc/contrib/interop_implicit_api.md` for details.
 
 Bug fixes:
 
