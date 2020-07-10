@@ -152,7 +152,7 @@ describe "Interop special forms" do
     l.log.should include(["invokeMember", "foo"])
   end
 
-  it description['.method_name', :readMember, ['method_name'], 'if member is readable'] do
+  it description['.method_name', :readMember, ['method_name'], 'if member is readable but not invocable'] do
     pfo, _, l = proxy[TruffleInteropSpecs::PolyglotMember.new]
     pfo.foo = :bar
     pfo.foo
@@ -160,14 +160,14 @@ describe "Interop special forms" do
     l.log.should include(["readMember", "foo"])
   end
 
-  it description['.method_name', :readMember, ['method_name'], 'and raises if member is not invocable or readable'] do
+  it description['.method_name', :readMember, ['method_name'], 'and raises if member is neither invocable nor readable'] do
     pfo, _, l = proxy[Object.new]
     -> { pfo.foo }.should raise_error(NameError)
     l.log.should include(["isMemberInvocable", "foo"])
     l.log.should include(["readMember", "foo"])
   end
 
-  it description['.method_name(*arguments)', :invokeMember, ['method_name', '*arguments'], 'if member is readable and invokable'] do
+  it description['.method_name(*arguments)', :invokeMember, ['method_name', '*arguments']] do
     pfo, _, l = proxy[Object.new]
     -> { pfo.bar(1, 2, 3) }.should raise_error(NoMethodError)
     l.log.should include(["invokeMember", "bar", 1, 2, 3])
