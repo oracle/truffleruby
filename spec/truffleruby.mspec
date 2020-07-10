@@ -163,6 +163,7 @@ if i = ARGV.index('slow') and ARGV[i-1] == '--excl-tag' and MSpecScript.child_pr
           if MSpec.current and state = MSpec.current.state # an example is running
             tag = SpecTag.new
             tag.tag = 'slow'
+            tag.comment = nil
             tag.description = "#{state.describe} #{state.it}"
             if MSpec.write_tag(tag)
               STDERR.puts "\nAdded slow tag for #{tag.description}"

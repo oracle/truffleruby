@@ -641,7 +641,17 @@ module Kernel
                  uplevel = Primitive.rb_to_int(uplevel)
                  raise ArgumentError, "negative level (#{uplevel})" unless uplevel >= 0
 
-                 caller, = Kernel.caller_locations(uplevel + 1, 1)
+                 uplevel += 1 # skip Kernel#warn itself
+                 initial, = Kernel.caller_locations(uplevel, 1)
+                 caller = initial
+                 # MRI would reuse the file:line of the user code caller for methods defined in C.
+                 # Similarly, we skip <internal:* calls, notably to skip Kernel#require calls.
+                 while caller and caller.path.start_with?('<internal:')
+                   uplevel += 1
+                   caller, = Kernel.caller_locations(uplevel, 1)
+                 end
+                 caller = initial unless caller
+
                  if caller
                    "#{caller.path}:#{caller.lineno}: warning: "
                  else
