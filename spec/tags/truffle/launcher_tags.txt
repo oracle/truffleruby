@@ -1,4 +1,3 @@
-slow:The launcher runs when symlinked
 slow:The launcher preserve spaces in options
 slow:The launcher prioritises options on the command line over system properties
 slow:The launcher prints an error for an unknown option
@@ -6,40 +5,13 @@ slow:The launcher StringArray option appends multiple options
 slow:The launcher StringArray option parses ,
 slow:The launcher StringArray option parses , respecting escaping
 slow:The launcher takes options from system properties set on the command line using --vm
-slow:The launcher '--vm.classpath=' adds the jar
-slow:The launcher '--vm.cp=' adds the jar
 slow:The launcher enables deterministic hashing if --hashing-deterministic is set
-slow:The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'irb' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'rake' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'rdoc' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'ri' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'ruby' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'testrb' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'truffleruby' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'irb' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'irb' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'rake' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'rake' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'rdoc' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'rdoc' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'ri' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'ri' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'ruby' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'ruby' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'testrb' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'testrb' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'truffleruby' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'truffleruby' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
 slow:The launcher prints help containing runtime options
 slow:The launcher prints help:languages containing ruby language options
 slow:The launcher prints help:languages containing llvm language options
 slow:The launcher understands ruby polyglot options
 slow:The launcher understands ruby polyglot options without ruby. prefix
 slow:The launcher does not create context on --version and -v
-slow:The launcher applies Truffle options
 slow:The launcher does not print a Java backtrace for an -S file that's not found
 slow:The launcher prints available user options for --help:languages
 slow:The launcher prints available expert options for --help:languages --help:expert
@@ -53,50 +25,8 @@ slow:The launcher takes --ruby.option options from RUBYOPT
 slow:The launcher sets the log level using --log.ruby.level=
 slow:The launcher logs options if --options-log is set
 slow:The launcher sets the log level using --log.level=
-slow:The launcher ignores --jit option with a warning
-slow:The launcher ignores --jit-... options with a warning and a hint to look at Graal options
 slow:The launcher ignores --jit... options with a warning and a hint to look at Graal documentation
 slow:The launcher warns on ignored options
-slow:The launcher 'bundle' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'bundle' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'bundle' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'bundler' in `RbConfig::CONFIG['bindir']` directory runs when symlinked
-slow:The launcher 'bundler' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs when symlinked
-slow:The launcher 'bundler' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs when symlinked
-slow:The launcher 'bundle' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'bundle' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'bundle' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
-slow:The launcher 'bundler' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'bundler' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'bundler' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
-slow:The launcher 'gem' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'gem' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
-slow:The launcher 'irb' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'irb' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'irb' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
-slow:The launcher 'rake' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'rake' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'rake' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
-slow:The launcher 'ri' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'ri' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'ri' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
-slow:The launcher 'ruby' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'ruby' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'ruby' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
-slow:The launcher 'truffleruby' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'truffleruby' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'truffleruby' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
-slow:The launcher 'bundle' runs as an -S command
-slow:The launcher 'bundler' runs as an -S command
-slow:The launcher 'gem' runs as an -S command
-slow:The launcher 'irb' runs as an -S command
-slow:The launcher 'rake' runs as an -S command
-slow:The launcher 'ri' runs as an -S command
-slow:The launcher 'rdoc' runs as an -S command
-slow:The launcher 'rdoc' in `RbConfig::CONFIG['bindir']` directory runs
-slow:The launcher 'rdoc' in `RbConfig::CONFIG['extra_bindirs'][0]` directory runs
-slow:The launcher 'rdoc' in `RbConfig::CONFIG['extra_bindirs'][1]` directory runs
 slow:The launcher prints the version with --version
 slow:The launcher runs bundle as an -S command
 slow:The launcher runs bundler as an -S command
