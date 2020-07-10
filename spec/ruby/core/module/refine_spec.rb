@@ -794,7 +794,7 @@ describe "Module#refine" do
       refinement = Module.new do
         refine refined_class do
           def bar
-            "you cannot see me from super because I belongs to another active R"
+            "you cannot see me from super because I belong to another active R"
           end
         end
       end

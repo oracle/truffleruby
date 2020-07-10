@@ -96,7 +96,7 @@ The `super` lookup [works in two modes](https://bugs.ruby-lang.org/issues/16977)
 1. If `super` is called from a method is directly in R, then we should search in `C` ancestors and ignore other active refinements.
 2. If `super` is called from a method placed in a module which included to R, then we should search over all active refinements (as we do for a regular lookup).
 
-Additionally, `super` has access to the caller active refinements, so we use `InterlaMethod#activeRefinements` to keep and re-use necessary refinements.
+Additionally, `super` has access to the caller active refinements, so we use `InternalMethod#activeRefinements` to keep and re-use necessary refinements.
 
 ## References
 
