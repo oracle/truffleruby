@@ -147,6 +147,7 @@ RUBY
 
     code << <<-RUBY
   def write_array_of_#{type}(ary)
+    Truffle::Type.rb_check_type(ary, ::Array)
     ary.each_with_index do |value, i|
       Primitive.pointer_write_#{type} address + (i * #{SIZEOF[base_type]}), #{transform.call('value')}
     end
