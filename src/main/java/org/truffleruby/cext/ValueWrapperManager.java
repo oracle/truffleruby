@@ -165,7 +165,7 @@ public class ValueWrapperManager {
     private static final int BLOCK_BYTE_SIZE = BLOCK_SIZE << TAG_BITS;
     private static final long BLOCK_MASK = -1L << BLOCK_BITS;
     private static final long OFFSET_MASK = ~BLOCK_MASK;
-    private static final long ALLOCATION_BASE = 0xffffffffL << BLOCK_BITS;
+    private static final long ALLOCATION_BASE = 0x0badL << 48;
 
     protected static class HandleBlockAllocator {
 
