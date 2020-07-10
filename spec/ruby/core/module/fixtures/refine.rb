@@ -16,8 +16,10 @@ module ModuleSpecs
   end
 
   def self.build_refined_class(for_super: false)
-    return Class.new(ClassWithSuperFoo) if for_super
-
-    return Class.new(ClassWithFoo)
+    if for_super
+      Class.new(ClassWithSuperFoo)
+    else
+      Class.new(ClassWithFoo)
+    end
   end
 end
