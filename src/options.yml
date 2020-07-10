@@ -49,7 +49,6 @@ EXPERT:
     EXCEPTIONS_PRINT_JAVA: [exceptions-print-java, boolean, false, Print Java exceptions at the point of translating them to Ruby exceptions]
     EXCEPTIONS_PRINT_UNCAUGHT_JAVA: [exceptions-print-uncaught-java, boolean, false, Print uncaught Java exceptions at the point of translating them to Ruby exceptions]
     EXCEPTIONS_PRINT_RUBY_FOR_JAVA: [exceptions-print-ruby-for-java, boolean, false, 'When printing a Java backtrace, also print the Ruby backtrace at that point']
-    EXCEPTIONS_TRANSLATE_ASSERT: [exceptions-translate-assert, boolean, true, Translate failed Java assertions to Ruby exceptions]
     EXCEPTIONS_WARN_STACKOVERFLOW: [exceptions-warn-stackoverflow, boolean, true, Warn when a stack overflow error is thrown]
     EXCEPTIONS_WARN_OUT_OF_MEMORY: [exceptions-warn-out-of-memory, boolean, true, Warn when an out-of-memory error is thrown]
     BACKTRACES_INTERLEAVE_JAVA: [backtraces-interleave-java, boolean, false, Interleave Java stacktraces into the Ruby backtrace]

@@ -54,7 +54,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_UNCAUGHT_JAVA_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> EXCEPTIONS_PRINT_RUBY_FOR_JAVA_KEY = new OptionKey<>(false);
-    public static final OptionKey<Boolean> EXCEPTIONS_TRANSLATE_ASSERT_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_STACKOVERFLOW_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> EXCEPTIONS_WARN_OUT_OF_MEMORY_KEY = new OptionKey<>(true);
     public static final OptionKey<Boolean> BACKTRACES_INTERLEAVE_JAVA_KEY = new OptionKey<>(false);
@@ -384,13 +383,6 @@ public class OptionsCatalog {
     public static final OptionDescriptor EXCEPTIONS_PRINT_RUBY_FOR_JAVA = OptionDescriptor
             .newBuilder(EXCEPTIONS_PRINT_RUBY_FOR_JAVA_KEY, "ruby.exceptions-print-ruby-for-java")
             .help("When printing a Java backtrace, also print the Ruby backtrace at that point")
-            .category(OptionCategory.EXPERT)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
-    public static final OptionDescriptor EXCEPTIONS_TRANSLATE_ASSERT = OptionDescriptor
-            .newBuilder(EXCEPTIONS_TRANSLATE_ASSERT_KEY, "ruby.exceptions-translate-assert")
-            .help("Translate failed Java assertions to Ruby exceptions")
             .category(OptionCategory.EXPERT)
             .stability(OptionStability.EXPERIMENTAL)
             .build();
@@ -1123,8 +1115,6 @@ public class OptionsCatalog {
                 return EXCEPTIONS_PRINT_UNCAUGHT_JAVA;
             case "ruby.exceptions-print-ruby-for-java":
                 return EXCEPTIONS_PRINT_RUBY_FOR_JAVA;
-            case "ruby.exceptions-translate-assert":
-                return EXCEPTIONS_TRANSLATE_ASSERT;
             case "ruby.exceptions-warn-stackoverflow":
                 return EXCEPTIONS_WARN_STACKOVERFLOW;
             case "ruby.exceptions-warn-out-of-memory":
@@ -1354,7 +1344,6 @@ public class OptionsCatalog {
             EXCEPTIONS_PRINT_JAVA,
             EXCEPTIONS_PRINT_UNCAUGHT_JAVA,
             EXCEPTIONS_PRINT_RUBY_FOR_JAVA,
-            EXCEPTIONS_TRANSLATE_ASSERT,
             EXCEPTIONS_WARN_STACKOVERFLOW,
             EXCEPTIONS_WARN_OUT_OF_MEMORY,
             BACKTRACES_INTERLEAVE_JAVA,
