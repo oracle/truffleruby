@@ -55,7 +55,9 @@ public class FeatureLoader {
 
     private final ReentrantLockFreeingMap<String> fileLocks = new ReentrantLockFreeingMap<>();
     /** Maps basename without extension -> autoload path -> autoload constant, to detect when require-ing a file already
-     * registered with autoload. */
+     * registered with autoload.
+     *
+     * Synchronization: Both levels of Map and the Lists are protected by registeredAutoloadsLock. */
     private final Map<String, Map<String, List<RubyConstant>>> registeredAutoloads = new HashMap<>();
     private final ReentrantLock registeredAutoloadsLock = new ReentrantLock();
 
@@ -86,7 +88,9 @@ public class FeatureLoader {
         try {
             final Map<String, List<RubyConstant>> constants = ConcurrentOperations
                     .getOrCompute(registeredAutoloads, basename, k -> new LinkedHashMap<>());
-            ConcurrentOperations.getOrCompute(constants, autoloadPath, k -> new ArrayList<>()).add(autoloadConstant);
+            final List<RubyConstant> list = ConcurrentOperations
+                    .getOrCompute(constants, autoloadPath, k -> new ArrayList<>());
+            list.add(autoloadConstant);
         } finally {
             registeredAutoloadsLock.unlock();
         }
@@ -102,27 +106,31 @@ public class FeatureLoader {
             if (constantsMap == null || constantsMap.isEmpty()) {
                 return null;
             }
-        } finally {
-            registeredAutoloadsLock.unlock();
-        }
 
-        final List<RubyConstant> constants = new ArrayList<>();
-        for (Map.Entry<String, List<RubyConstant>> entry : constantsMap.entrySet()) {
-            final String expandedAutoloadPath = findFeature(entry.getKey());
-            if (expandedPath.equals(expandedAutoloadPath)) {
-                for (RubyConstant constant : entry.getValue()) {
-                    // Do not autoload recursively from the #require call in GetConstantNode
-                    if (!constant.getAutoloadConstant().isAutoloading()) {
-                        constants.add(constant);
+            final List<RubyConstant> constants = new ArrayList<>();
+            for (Map.Entry<String, List<RubyConstant>> entry : constantsMap.entrySet()) {
+                // NOTE: this call might be expensive but it seems difficult to move it outside the lock.
+                // Contention does not seem a big issue since only addAutoload/removeAutoload need to wait.
+                // At least, findFeature() does not access registeredAutoloads or use registeredAutoloadsLock.
+                final String expandedAutoloadPath = findFeature(entry.getKey());
+
+                if (expandedPath.equals(expandedAutoloadPath)) {
+                    for (RubyConstant constant : entry.getValue()) {
+                        // Do not autoload recursively from the #require call in GetConstantNode
+                        if (!constant.getAutoloadConstant().isAutoloading()) {
+                            constants.add(constant);
+                        }
                     }
                 }
             }
-        }
 
-        if (constants.isEmpty()) {
-            return null;
-        } else {
-            return constants;
+            if (constants.isEmpty()) {
+                return null;
+            } else {
+                return constants;
+            }
+        } finally {
+            registeredAutoloadsLock.unlock();
         }
     }
 
