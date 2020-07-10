@@ -760,7 +760,7 @@ public abstract class ModuleNodes {
 
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
-        public abstract Object executeClassExec(DynamicObject self, Object[] args, Object block);
+        abstract Object executeClassExec(DynamicObject self, Object[] args, DynamicObject block);
 
         @Specialization
         protected Object classExec(DynamicObject self, Object[] args, DynamicObject block) {

@@ -394,7 +394,7 @@ public abstract class BasicObjectNodes {
 
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
-        public abstract Object executeInstanceExec(Object self, Object[] args, Object block);
+        abstract Object executeInstanceExec(Object self, Object[] args, DynamicObject block);
 
         @Specialization
         protected Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
