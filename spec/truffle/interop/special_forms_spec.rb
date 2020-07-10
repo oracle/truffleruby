@@ -197,8 +197,8 @@ describe "Interop special forms" do
 
   it description['.class', :getMetaObject] do
     pfo, _, l = proxy[Truffle::Debug.foreign_object]
+    # For Truffle::Debug.foreign_object, hasMetaObject() is false, so then .class returns Truffle::Interop::Foreign
     pfo.class.should == Truffle::Interop::Foreign
-    Truffle::Interop.to_display_string(Truffle::Debug.foreign_object)
     l.log.should include(["hasMetaObject"])
   end
 
