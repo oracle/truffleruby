@@ -98,39 +98,42 @@ public class FeatureLoader {
 
     public List<RubyConstant> getAutoloadConstants(String expandedPath) {
         final String basename = basenameWithoutExtension(expandedPath);
-        final Map<String, List<RubyConstant>> constantsMap;
+        final Map<String, RubyConstant[]> constantsMapCopy;
 
         registeredAutoloadsLock.lock();
         try {
-            constantsMap = registeredAutoloads.get(basename);
+            final Map<String, List<RubyConstant>> constantsMap = registeredAutoloads.get(basename);
             if (constantsMap == null || constantsMap.isEmpty()) {
                 return null;
             }
 
-            final List<RubyConstant> constants = new ArrayList<>();
+            // Deep-copy constantsMap so we can call findFeature() outside the lock
+            constantsMapCopy = new LinkedHashMap<>();
             for (Map.Entry<String, List<RubyConstant>> entry : constantsMap.entrySet()) {
-                // NOTE: this call might be expensive but it seems difficult to move it outside the lock.
-                // Contention does not seem a big issue since only addAutoload/removeAutoload need to wait.
-                // At least, findFeature() does not access registeredAutoloads or use registeredAutoloadsLock.
-                final String expandedAutoloadPath = findFeature(entry.getKey());
-
-                if (expandedPath.equals(expandedAutoloadPath)) {
-                    for (RubyConstant constant : entry.getValue()) {
-                        // Do not autoload recursively from the #require call in GetConstantNode
-                        if (!constant.getAutoloadConstant().isAutoloading()) {
-                            constants.add(constant);
-                        }
-                    }
-                }
-            }
-
-            if (constants.isEmpty()) {
-                return null;
-            } else {
-                return constants;
+                constantsMapCopy.put(entry.getKey(), entry.getValue().toArray(RubyConstant.EMPTY_ARRAY));
             }
         } finally {
             registeredAutoloadsLock.unlock();
+        }
+
+        final List<RubyConstant> constants = new ArrayList<>();
+        for (Map.Entry<String, RubyConstant[]> entry : constantsMapCopy.entrySet()) {
+            final String expandedAutoloadPath = findFeature(entry.getKey());
+
+            if (expandedPath.equals(expandedAutoloadPath)) {
+                for (RubyConstant constant : entry.getValue()) {
+                    // Do not autoload recursively from the #require call in GetConstantNode
+                    if (!constant.getAutoloadConstant().isAutoloading()) {
+                        constants.add(constant);
+                    }
+                }
+            }
+        }
+
+        if (constants.isEmpty()) {
+            return null;
+        } else {
+            return constants;
         }
     }
 

@@ -22,6 +22,8 @@ import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyConstant implements ObjectGraphNode {
 
+    public static final RubyConstant[] EMPTY_ARRAY = new RubyConstant[0];
+
     private final DynamicObject declaringModule;
     private final String name;
     private final Object value;
