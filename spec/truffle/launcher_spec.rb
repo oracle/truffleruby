@@ -34,10 +34,34 @@ describe "The launcher" do
   before :each do
     @gem_home = ENV['GEM_HOME']
     ENV['GEM_HOME'] = nil
+    @stderr = tmp("stderr")
+    @redirect = "2>#{@stderr}"
   end
 
   after :each do
     ENV['GEM_HOME'] = @gem_home
+    rm_r @stderr
+  end
+
+  def check_status_and_empty_stderr
+    status = $?
+
+    File.should.exist?(@stderr)
+    stderr = File.read(@stderr)
+    unless stderr.empty?
+      rm_r @stderr # cleanup for another sub-process in the same spec
+      raise SpecExpectationNotMetError, "Expected STDERR to be empty but was:\n#{stderr}"
+    end
+
+    status.should.success?
+  end
+
+  def check_status_or_print(stdout_and_stderr)
+    status = $?
+    unless status.success?
+      raise SpecExpectationNotMetError, "Process exited with #{$?.inspect}. STDOUT + STDERR was:\n#{stdout_and_stderr}"
+    end
+    status.should.success?
   end
 
   it "is in the bindir" do
@@ -47,9 +71,9 @@ describe "The launcher" do
   @launchers.each do |launcher, test|
     unless [:ruby, :truffleruby].include?(launcher)
       it "runs #{launcher} as an -S command" do
-        out = ruby_exe(nil, options: "-S#{launcher} --version")
+        out = ruby_exe(nil, options: "-S#{launcher} --version", args: @redirect)
         out.should =~ test
-        $?.success?.should == true
+        check_status_and_empty_stderr
       end
     end
   end
@@ -57,9 +81,9 @@ describe "The launcher" do
   @launchers.each do |launcher, test|
     it "supports running #{launcher} in any of the bin/ directories" do
       @bin_dirs.each do |bin_dir|
-        out = `#{bin_dir}/#{launcher} --version`
+        out = `#{bin_dir}/#{launcher} --version #{@redirect}`
         out.should =~ test
-        $?.success?.should == true
+        check_status_and_empty_stderr
       end
     end
   end
@@ -73,9 +97,9 @@ describe "The launcher" do
           Dir.chdir(path) do
             linkname = "linkto#{launcher}"
             File.symlink("#{bin_dir}/#{launcher}", linkname)
-            out = `./#{linkname} --version 2>&1`
+            out = `./#{linkname} --version #{@redirect}`
             out.should =~ test
-            $?.success?.should == true
+            check_status_and_empty_stderr
           end
         end
       end
@@ -85,10 +109,10 @@ describe "The launcher" do
   it "for gem can install and uninstall the hello-world gem" do
     # install
     Dir.chdir(__dir__ + '/fixtures/hello-world') do
-      `"#{@default_bindir}/gem" build hello-world.gemspec`
-      $?.success?.should == true
-      `"#{@default_bindir}/gem" install --local hello-world-0.0.1.gem`
-      $?.success?.should == true
+      `"#{@default_bindir}/gem" build hello-world.gemspec #{@redirect}`
+      check_status_and_empty_stderr
+      `"#{@default_bindir}/gem" install --local hello-world-0.0.1.gem #{@redirect}`
+      check_status_and_empty_stderr
     end
 
     begin
@@ -104,8 +128,8 @@ describe "The launcher" do
       end
     ensure
       # uninstall
-      `#{@default_bindir}/gem uninstall hello-world -x`
-      $?.success?.should == true
+      `#{@default_bindir}/gem uninstall hello-world -x #{@redirect}`
+      check_status_and_empty_stderr
       @bin_dirs.each do |bin_dir|
         File.exist?(bin_dir + '/hello-world.rb').should == false
       end
@@ -113,8 +137,8 @@ describe "The launcher" do
   end
 
   it "for gem shows that bundled gems are installed" do
-    gem_list = `#{@default_bindir}/gem list`
-    $?.success?.should == true
+    gem_list = `#{@default_bindir}/gem list #{@redirect}`
+    check_status_and_empty_stderr
     # see doc/contributor/stdlib.md
     @versions['gems']['bundled'].each_pair do |gem, version|
       gem_list.should =~ /#{Regexp.escape gem}.*#{Regexp.escape version}/
@@ -123,18 +147,18 @@ describe "The launcher" do
 
   ['RUBYOPT', 'TRUFFLERUBYOPT'].each do |var|
     it "should recognize ruby --vm options in #{var}" do
-      out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "--vm.Dfoo=bar" })
+      out = ruby_exe('print Truffle::System.get_java_property("foo")', env: { var => "--vm.Dfoo=bar" }, args: @redirect)
       out.should == 'bar'
-      $?.success?.should == true
+      check_status_and_empty_stderr
     end
   end
 
   def should_print_full_java_command(options, env: {})
-    out = ruby_exe(nil, options: options, env: env)
+    out = ruby_exe(nil, options: options, env: env, args: @redirect)
     parts = out.split(' ')
     parts[0].should == "$"
     parts[1].should =~ /(java|graalvm)$/
-    $?.success?.should == true
+    check_status_and_empty_stderr
   end
 
   it "does not create context on --version and -v" do
@@ -151,92 +175,92 @@ describe "The launcher" do
 
   it "preserve spaces in options" do
     out = ruby_exe("print Truffle::System.get_java_property('foo')",
-                   options: '--vm.Dfoo="value with spaces"')
-    $?.success?.should == true
+                   options: '--vm.Dfoo="value with spaces"', args: @redirect)
+    check_status_and_empty_stderr
     out.should == "value with spaces"
   end
 
   it "takes normal Ruby options from TRUFFLERUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "-W2" })
-    $?.success?.should == true
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "-W2" }, args: @redirect)
+    check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes --option options from TRUFFLERUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--verbose=true" })
-    $?.success?.should == true
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--verbose=true" }, args: @redirect)
+    check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes --ruby.option options from TRUFFLERUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--ruby.verbose=true" })
-    $?.success?.should == true
+    out = ruby_exe("puts $VERBOSE", env: { "TRUFFLERUBYOPT" => "--ruby.verbose=true" }, args: @redirect)
+    check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes normal Ruby options from RUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "-W2" })
-    $?.success?.should == true
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "-W2" }, args: @redirect)
+    check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes --option options from RUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--verbose=true" })
-    $?.success?.should == true
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--verbose=true" }, args: @redirect)
+    check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes --ruby.option options from RUBYOPT" do
-    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--ruby.verbose=true" })
-    $?.success?.should == true
+    out = ruby_exe("puts $VERBOSE", env: { "RUBYOPT" => "--ruby.verbose=true" }, args: @redirect)
+    check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "takes options from system properties set on the command line using --vm" do
-    out = ruby_exe("puts $VERBOSE", options: "--vm.Dpolyglot.ruby.verbose=true")
-    $?.success?.should == true
+    out = ruby_exe("puts $VERBOSE", options: "--vm.Dpolyglot.ruby.verbose=true", args: @redirect)
+    check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   it "prioritises options on the command line over system properties" do
-    out = ruby_exe("puts $VERBOSE", options: '--vm.Dpolyglot.ruby.verbose=nil -W2')
-    $?.success?.should == true
+    out = ruby_exe("puts $VERBOSE", options: '--vm.Dpolyglot.ruby.verbose=nil -W2', args: @redirect)
+    check_status_and_empty_stderr
     out.should == "true\n"
   end
 
   guard -> { !TruffleRuby.native? } do
     it "'--vm.cp=' or '--vm.classpath=' add the jar" do
-      out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.cp=does-not-exist.jar")
-      $?.success?.should == true
+      out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.cp=does-not-exist.jar", args: @redirect)
+      check_status_and_empty_stderr
       out.lines[0].should include(":does-not-exist.jar")
 
-      out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.classpath=does-not-exist.jar")
-      $?.success?.should == true
+      out = ruby_exe("puts Truffle::System.get_java_property('java.class.path')", options: "--vm.classpath=does-not-exist.jar", args: @redirect)
+      check_status_and_empty_stderr
       out.lines[0].should include(":does-not-exist.jar")
     end
   end
 
   it "prints available user options for --help:languages" do
-    out = ruby_exe(nil, options: "--help:languages")
-    $?.success?.should == true
+    out = ruby_exe(nil, options: "--help:languages", args: @redirect)
+    check_status_and_empty_stderr
     out.should include("--ruby.verbose")
   end
 
   it "prints available expert options for --help:languages --help:expert" do
-    out = ruby_exe(nil, options: "--help:languages --help:expert")
-    $?.success?.should == true
+    out = ruby_exe(nil, options: "--help:languages --help:expert", args: @redirect)
+    check_status_and_empty_stderr
     out.should include("--ruby.cexts-log-load")
   end
 
   it "prints available internal options for --help:languages --help:internal" do
-    out = ruby_exe(nil, options: "--help:languages --help:internal")
-    $?.success?.should == true
+    out = ruby_exe(nil, options: "--help:languages --help:internal", args: @redirect)
+    check_status_and_empty_stderr
     out.should include("--ruby.default-cache")
   end
 
   it "logs options if --options-log is set" do
     out = ruby_exe("14", options: "--experimental-options --log.level=CONFIG --options-log", args: "2>&1")
-    $?.success?.should == true
+    check_status_or_print(out)
     out.should include("[ruby] CONFIG")
   end
 
@@ -252,35 +276,35 @@ describe "The launcher" do
 
   it "sets the log level using --log.level=" do
     out = ruby_exe("14", options: "--experimental-options --options-log --log.level=CONFIG", args: "2>&1")
-    $?.success?.should == true
+    check_status_or_print(out)
     out.should include("CONFIG: option default-cache=")
   end
 
   it "sets the log level using --log.ruby.level=" do
     out = ruby_exe("14", options: "--experimental-options --options-log --log.ruby.level=CONFIG", args: "2>&1")
-    $?.success?.should == true
+    check_status_or_print(out)
     out.should include("CONFIG: option default-cache=")
   end
 
   describe 'StringArray option' do
     it "appends multiple options" do
-      out = ruby_exe("puts $LOAD_PATH", options: "-I a -I b")
-      $?.success?.should == true
+      out = ruby_exe("puts $LOAD_PATH", options: "-I a -I b", args: @redirect)
+      check_status_and_empty_stderr
       out.lines[0].should == "#{Dir.pwd}/a\n"
       out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
     it "parses ," do
-      out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a,b")
-      $?.success?.should == true
+      out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a,b", args: @redirect)
+      check_status_and_empty_stderr
       out.lines[0].should == "#{Dir.pwd}/a\n"
       out.lines[1].should == "#{Dir.pwd}/b\n"
     end
 
     it "parses , respecting escaping" do
       # \\\\ translates to one \
-      out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a\\\\,b,,\\\\c")
-      $?.success?.should == true
+      out = ruby_exe("puts $LOAD_PATH", options: "--load-paths=a\\\\,b,,\\\\c", args: @redirect)
+      check_status_and_empty_stderr
       out.lines[0].should == "#{Dir.pwd}/a,b\n"
       out.lines[1].should == "#{Dir.pwd}\n"
       out.lines[2].should == "#{Dir.pwd}/\\c\n"
@@ -289,14 +313,14 @@ describe "The launcher" do
 
   it "enables deterministic hashing if --hashing-deterministic is set" do
     out = ruby_exe("puts 14.hash", options: "--experimental-options --hashing-deterministic", args: "2>&1")
-    $?.success?.should == true
+    check_status_or_print(out)
     out.should include("SEVERE: deterministic hashing is enabled - this may make you vulnerable to denial of service attacks")
     out.should include("7141275149799654099")
   end
 
   it "prints help containing runtime options" do
-    out = ruby_exe(nil, options: "--help")
-    $?.success?.should == true
+    out = ruby_exe(nil, options: "--help", args: @redirect)
+    check_status_and_empty_stderr
 
     if TruffleRuby.native?
       out.should include("--native")
@@ -311,8 +335,8 @@ describe "The launcher" do
   end
 
   it "prints help:languages containing ruby language options" do
-    out = ruby_exe(nil, options: "--help:languages")
-    $?.success?.should == true
+    out = ruby_exe(nil, options: "--help:languages", args: @redirect)
+    check_status_and_empty_stderr
     out.should =~ /language options/i
     out.should include("Ruby:")
     out.should include("--ruby.load-paths=")
@@ -320,8 +344,8 @@ describe "The launcher" do
 
   guard -> { TruffleRuby.cexts? } do
     it "prints help:languages containing llvm language options" do
-      out = ruby_exe(nil, options: "--help:languages")
-      $?.success?.should == true
+      out = ruby_exe(nil, options: "--help:languages", args: @redirect)
+      check_status_and_empty_stderr
       out.should =~ /language options/i
       out.should include("LLVM:")
       out.should include("--llvm.libraryPath=")
@@ -329,20 +353,20 @@ describe "The launcher" do
   end
 
   it "prints the version with --version" do
-    out = ruby_exe(nil, options: "--version")
-    $?.success?.should == true
+    out = ruby_exe(nil, options: "--version", args: @redirect)
+    check_status_and_empty_stderr
     out.should include(RUBY_DESCRIPTION)
   end
 
   it "understands ruby polyglot options" do
-    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--experimental-options --ruby.rubygems=false")
-    $?.success?.should == true
+    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--experimental-options --ruby.rubygems=false", args: @redirect)
+    check_status_and_empty_stderr
     out.should include('false')
   end
 
   it "understands ruby polyglot options without ruby. prefix" do
-    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--experimental-options --rubygems=false")
-    $?.success?.should == true
+    out = ruby_exe("p Truffle::Boot.get_option('rubygems')", options: "--experimental-options --rubygems=false", args: @redirect)
+    check_status_and_empty_stderr
     out.should include('false')
   end
 
@@ -366,7 +390,7 @@ describe "The launcher" do
       "--jit-min-calls",
     ].each do |option|
       out = ruby_exe("p 14", options: option, args: "2>&1")
-      $?.success?.should == true
+      check_status_or_print(out)
       out.should include("JIT options are not supported - see the Graal documentation instead")
       out.should include("14")
     end
@@ -380,7 +404,7 @@ describe "The launcher" do
       "--dump=insns",
     ].each do |option|
       out = ruby_exe("p 14", options: option, args: "2>&1")
-      $?.success?.should == true
+      check_status_or_print(out)
       out.should include("[ruby] WARNING the #{option} switch is silently ignored as it is an internal development tool")
       out.should include("14")
     end
