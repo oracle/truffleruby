@@ -72,16 +72,12 @@ module Truffle
       Primitive.vm_method_lookup obj, name
     end
 
-    ##
     # Returns an object of given class. If given object already is one, it is
     # returned. Otherwise tries obj.meth and returns the result if it is of the
-    # right kind. TypeErrors are raised if the conversion method fails or the
+    # right kind. TypeError is raised if the conversion method fails or the
     # conversion result is wrong.
     #
-    # Uses Primitive.object_kind_of? to bypass type check overrides.
-    #
-    # Equivalent to MRI's rb_convert_type().
-
+    # Prefer the more correct #rb_convert_type.
     def self.coerce_to(obj, cls, meth)
       if Primitive.object_kind_of?(obj, cls)
         obj
@@ -266,6 +262,7 @@ module Truffle
       end
     end
 
+    # MRI: Check_Type / rb_check_type
     def self.rb_check_type(obj, cls)
       unless Primitive.object_kind_of?(obj, cls)
         raise TypeError, "wrong argument type #{object_class(obj)} (expected #{cls})"
