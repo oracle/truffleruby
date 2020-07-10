@@ -260,9 +260,7 @@ public class FeatureLoader {
                         RubyContext.fileLine(sourceSection),
                         originalFeature);
             });
-        }
 
-        if (context.getOptions().LOG_FEATURE_LOCATION) {
             RubyLanguage.LOGGER.info(String.format("current directory: %s", getWorkingDirectory()));
         }
 
