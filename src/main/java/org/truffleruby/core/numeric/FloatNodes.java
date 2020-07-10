@@ -223,7 +223,7 @@ public abstract class FloatNodes {
             return ModNodeFactory.create(null);
         }
 
-        public abstract Object executeMod(Object a, Object b);
+        public abstract Object executeMod(double a, double b);
 
         @Specialization
         protected double mod(double a, long b) {
