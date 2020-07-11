@@ -206,7 +206,7 @@ public abstract class MethodNodes {
             Object receiver = Layouts.METHOD.getReceiver(method);
             InternalMethod internalMethod = Layouts.METHOD.getMethod(method);
             DynamicObject selfMetaClass = metaClassNode.executeMetaClass(receiver);
-            MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
+            MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass, null);
             if (!superMethod.isDefined()) {
                 return nil;
             } else {
