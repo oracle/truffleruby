@@ -12,6 +12,7 @@ package org.truffleruby.interop.messages;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
@@ -471,9 +472,10 @@ public class RubyObjectMessages {
 
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object rubyName = nameToRubyNode.executeConvert(name);
+        Object[] combinedArguments = ArrayUtils.unshift(convertedArguments, rubyName);
         Object dynamic;
         try {
-            dynamic = dispatchDynamic.call(receiver, "polyglot_invoke_member", rubyName, convertedArguments);
+            dynamic = dispatchDynamic.call(receiver, "polyglot_invoke_member", combinedArguments);
         } catch (RaiseException e) {
             throw translateRubyException.execute(e, name, arguments);
         }

@@ -9,6 +9,8 @@
  */
 package org.truffleruby.interop;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -16,18 +18,47 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.library.Message;
 import com.oracle.truffle.api.library.ReflectionLibrary;
 
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+
 @ExportLibrary(ReflectionLibrary.class)
 public class ProxyForeignObject implements TruffleObject {
 
     protected final Object delegate;
+    protected final Object logger;
+
+    private final static Message EXECUTABLE = Message.resolve(InteropLibrary.class, "execute");
+    private final static Message INVOKE = Message.resolve(InteropLibrary.class, "invokeMember");
+    private final static Message INSTANTIATE = Message.resolve(InteropLibrary.class, "instantiate");
 
     public ProxyForeignObject(Object delegate) {
+        this(delegate, null);
+    }
+
+    public ProxyForeignObject(Object delegate, Object logger) {
         this.delegate = delegate;
+        this.logger = logger;
     }
 
     @ExportMessage
-    protected Object send(Message message, Object[] args,
+    protected Object send(Message message, Object[] rawArgs,
+            @Cached CallDispatchHeadNode dispatchNode,
+            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @CachedLibrary("this.delegate") ReflectionLibrary reflections) throws Exception {
-        return reflections.send(delegate, message, args);
+        if (logger != null) {
+            Object[] args;
+            if (message == EXECUTABLE || message == INSTANTIATE) {
+                args = (Object[]) rawArgs[0];
+            } else if (message == INVOKE) {
+                args = ArrayUtils.unshift((Object[]) rawArgs[1], rawArgs[0]);
+            } else {
+                args = rawArgs;
+            }
+            Object[] loggingArgs = ArrayUtils.unshift(args, message.getSimpleName());
+            Object[] convertedArgs = foreignToRubyArgumentsNode.executeConvert(loggingArgs);
+            dispatchNode.call(logger, "<<", convertedArgs);
+        }
+
+        return reflections.send(delegate, message, rawArgs);
     }
 }

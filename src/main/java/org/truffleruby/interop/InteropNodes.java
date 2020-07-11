@@ -1377,30 +1377,19 @@ public abstract class InteropNodes {
 
     }
 
-    @CoreMethod(names = "logging_foreign_object", onSingleton = true, optional = 1)
-    public abstract static class LoggingForeignObjectNode extends CoreMethodArrayArgumentsNode {
-
-        @TruffleBoundary
-        @Specialization
-        protected Object loggingForeignObject(NotProvided asString) {
-            return new LoggingForeignObject(null);
-        }
-
-        @TruffleBoundary
-        @Specialization(guards = "isRubyString(asString)")
-        protected Object loggingForeignObject(DynamicObject asString) {
-            return new LoggingForeignObject(StringOperations.getString(asString));
-        }
-
-    }
-
-    @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1)
+    @CoreMethod(names = "proxy_foreign_object", onSingleton = true, required = 1, optional = 1)
     public abstract static class ProxyForeignObjectNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
         @Specialization
-        protected Object proxyForeignObject(Object delegate) {
+        protected Object proxyForeignObject(Object delegate, NotProvided logger) {
             return new ProxyForeignObject(delegate);
+        }
+
+        @TruffleBoundary
+        @Specialization
+        protected Object proxyForeignObject(Object delegate, DynamicObject logger) {
+            return new ProxyForeignObject(delegate, logger);
         }
 
     }

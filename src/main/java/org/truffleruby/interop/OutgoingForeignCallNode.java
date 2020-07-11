@@ -370,6 +370,37 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "!isRedirectToTruffleInterop(cachedName)",
                     "!isOperatorMethod(cachedName)",
                     "!isAssignmentMethod(cachedName)",
+                    "args.length == 0"
+            },
+            limit = "1")
+    protected Object readOrInvoke(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @Cached ToRubySymbolNode toSymbolNode,
+            @Cached InteropNodes.InvokeNode invokeNode,
+            @Cached InteropNodes.ReadMemberNode readNode,
+            @Cached ConditionProfile invocable,
+            @CachedLibrary("receiver") InteropLibrary receivers) {
+        if (invocable.profile(receivers.isMemberInvocable(receiver, name))) {
+            return invokeNode.execute(receiver, name, args);
+        } else {
+            return readNode.execute(receiver, toSymbolNode.execute(cachedName));
+        }
+    }
+
+    @Specialization(
+            guards = {
+                    "name == cachedName",
+                    "!cachedName.equals(INDEX_READ)",
+                    "!cachedName.equals(INDEX_WRITE)",
+                    "!cachedName.equals(CALL)",
+                    "!cachedName.equals(NEW)",
+                    "!cachedName.equals(SEND)",
+                    "!cachedName.equals(NIL)",
+                    "!cachedName.equals(EQUAL)",
+                    "!isRedirectToTruffleInterop(cachedName)",
+                    "!isOperatorMethod(cachedName)",
+                    "!isAssignmentMethod(cachedName)",
+                    "args.length != 0"
             },
             limit = "1")
     protected Object notOperatorOrAssignment(Object receiver, String name, Object[] args,

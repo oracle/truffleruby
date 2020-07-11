@@ -10,6 +10,18 @@
 
 module TruffleInteropSpecs
 
+  class Logger
+    attr_reader :log
+
+    def initialize
+      @log = []
+    end
+
+    def <<(*args)
+      @log << args
+    end
+  end
+
   class AsPointerClass
     def polyglot_pointer?
       true

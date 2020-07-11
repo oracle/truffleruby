@@ -20,8 +20,11 @@ Format: `Ruby code` sends `InteropLibrary message`
 - `foreign_object.nil?` sends `isNull(foreign_object)`
 - `foreign_object.size` sends `getArraySize(foreign_object)`
 - `foreign_object.keys` sends `getMembers(foreign_object)`
-- `foreign_object.method_name` sends `invoke_member(foreign_object, method_name)`
-- `foreign_object.method_name(*arguments)` sends `invoke_member(foreign_object, method_name, *arguments)`
+- `foreign_object.method_name` sends `invokeMember(foreign_object, method_name)` if member is invocable
+- `foreign_object.method_name` sends `readMember(foreign_object, method_name)` if member is readable but not invocable
+- `foreign_object.method_name` sends `readMember(foreign_object, method_name)` and raises if member is neither invocable nor readable
+- `foreign_object.method_name(*arguments)` sends `invokeMember(foreign_object, method_name, *arguments)`
+- `foreign_object.method_name(*arguments, &block)` sends `invokeMember(foreign_object, method_name, *arguments, block)`
 - `foreign_object.new(*arguments)` sends `instantiate(foreign_object, *arguments)`
 - `foreign_object.class` sends `readMember(foreign_object, "class")` when `foreign_object` is a `java.lang.Class`
 - `foreign_object.class` sends `getMetaObject(foreign_object)`
