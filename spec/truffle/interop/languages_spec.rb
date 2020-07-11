@@ -13,11 +13,9 @@ describe "Truffle::Interop.languages" do
     Truffle::Interop.languages.should.include?('ruby')
   end
 
-  guard_not -> { TruffleRuby.native? and Truffle::Boot.was_preinitialized? } do # GR-24618
-    it "returns only ruby from the RubyLauncher" do
-      # Use RbConfig.ruby to remove a potential --polyglot option
-      `#{RbConfig.ruby} -e 'p Truffle::Interop.languages'`.should == "[\"ruby\"]\n"
-    end
+  it "returns only ruby from the RubyLauncher" do
+    # Use RbConfig.ruby to remove a potential --polyglot option
+    `#{RbConfig.ruby} -e 'p Truffle::Interop.languages'`.should == "[\"ruby\"]\n"
   end
 end
 
