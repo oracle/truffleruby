@@ -522,6 +522,16 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "code_to_mbclen", onSingleton = true, required = 2, lowerFixnum = 1)
+    public abstract static class CodeToMbcLenNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected int codeToMbcLen(int code, DynamicObject encoding) {
+            return EncodingOperations.getEncoding(encoding).codeToMbcLength(code);
+        }
+
+    }
+
     @CoreMethod(names = "rb_enc_codepoint_len", onSingleton = true, required = 2)
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 

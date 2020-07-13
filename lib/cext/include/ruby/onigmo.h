@@ -369,7 +369,12 @@ int onigenc_mbclen_approximate(const OnigUChar* p,const OnigUChar* e, const stru
 #define ONIGENC_MBC_MINLEN(enc)               ((enc)->min_enc_len)
 #define ONIGENC_IS_MBC_NEWLINE(enc,p,end)      (enc)->is_mbc_newline((p),(end),enc)
 #define ONIGENC_MBC_TO_CODE(enc,p,end)         (enc)->mbc_to_code((p),(end),enc)
+#ifdef TRUFFLERUBY
+int rb_tr_code_to_mbclen(OnigCodePoint code, OnigEncodingType *encoding);
+#define ONIGENC_CODE_TO_MBCLEN(enc,code)       rb_tr_code_to_mbclen(code,enc)
+#else
 #define ONIGENC_CODE_TO_MBCLEN(enc,code)       (enc)->code_to_mbclen(code,enc)
+#endif
 #define ONIGENC_CODE_TO_MBC(enc,code,buf)      (enc)->code_to_mbc(code,buf,enc)
 #define ONIGENC_PROPERTY_NAME_TO_CTYPE(enc,p,end) \
   (enc)->property_name_to_ctype(enc,p,end)
