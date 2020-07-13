@@ -92,6 +92,12 @@ describe :process_exit!, shared: true do
     $?.exitstatus.should == 21
   end
 
+  it "skips at_exit handlers" do
+    out = ruby_exe("at_exit { STDERR.puts 'at_exit' }; #{@object}.send(:exit!, 21)", args: '2>&1')
+    out.should == ""
+    $?.exitstatus.should == 21
+  end
+
   it "overrides the original exception and exit status when called from #at_exit" do
     code = <<-RUBY
     at_exit do
