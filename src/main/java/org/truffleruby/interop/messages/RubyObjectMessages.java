@@ -46,8 +46,8 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -769,7 +769,7 @@ public class RubyObjectMessages {
 
     private static Node getNode(RubyLibrary node) {
         if (!node.isAdoptable()) {
-            return NodeUtil.getCurrentEncapsulatingNode();
+            return EncapsulatingNodeReference.getCurrent().get();
         }
         return node;
     }
