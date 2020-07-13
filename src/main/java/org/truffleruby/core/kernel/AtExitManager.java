@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -42,15 +43,15 @@ public class AtExitManager {
     }
 
     public DynamicObject runAtExitHooks() {
-        return runExitHooks(atExitHooks);
+        return runExitHooks(atExitHooks, "at_exit");
     }
 
     public void runSystemExitHooks() {
-        runExitHooks(systemExitHooks);
+        runExitHooks(systemExitHooks, "system at_exit");
     }
 
     @TruffleBoundary
-    private DynamicObject runExitHooks(Deque<DynamicObject> stack) {
+    private DynamicObject runExitHooks(Deque<DynamicObject> stack, String name) {
         DynamicObject lastException = null;
 
         while (true) {
@@ -62,8 +63,12 @@ public class AtExitManager {
             try {
                 ProcOperations.rootCall(block);
             } catch (RaiseException e) {
-                lastException = handleAtExitException(context, e);
+                handleAtExitException(context, e.getException());
+                lastException = e.getException();
+            } catch (ExitException e) {
+                throw e;
             } catch (Exception e) {
+                System.err.println("Unexpected internal exception in " + name + ":");
                 e.printStackTrace();
             }
         }
@@ -77,8 +82,7 @@ public class AtExitManager {
     }
 
     @TruffleBoundary
-    public static DynamicObject handleAtExitException(RubyContext context, RaiseException raiseException) {
-        final DynamicObject rubyException = raiseException.getException();
+    public static void handleAtExitException(RubyContext context, DynamicObject rubyException) {
         DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
         if (logicalClass == context.getCoreLibrary().systemExitClass ||
                 logicalClass == context.getCoreLibrary().signalExceptionClass) {
@@ -86,7 +90,6 @@ public class AtExitManager {
         } else {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("", rubyException);
         }
-        return rubyException;
     }
 
 }

@@ -38,25 +38,34 @@ public class TopLevelRaiseHandler extends RubyContextSourceNode {
         int exitCode = 0;
         DynamicObject caughtException = null;
 
+        // Execute the main script
         try {
             body.execute(frame);
         } catch (RaiseException e) {
-            DynamicObject rubyException = AtExitManager.handleAtExitException(getContext(), e);
-            caughtException = rubyException;
-            setLastException(rubyException);
-            exitCode = statusFromException(rubyException);
+            caughtException = e.getException();
+            exitCode = statusFromException(caughtException);
+            setLastException(caughtException); // Set $! for at_exit
+            // printing the main script exception is delayed after at_exit hooks
         } catch (ExitException e) {
-            exitCode = e.getCode();
-        } finally {
-            final DynamicObject atExitException = getContext().getAtExitManager().runAtExitHooks();
+            // hard #exit!, return immediately, skip at_exit hooks
+            return e.getCode();
+        }
 
+        // Execute at_exit hooks (except if hard #exit!)
+        try {
+            DynamicObject atExitException = getContext().getAtExitManager().runAtExitHooks();
             if (atExitException != null) {
                 exitCode = statusFromException(atExitException);
             }
 
             if (caughtException != null) {
+                // print the main script exception now
+                AtExitManager.handleAtExitException(getContext(), caughtException);
                 handleSignalException(caughtException);
             }
+        } catch (ExitException e) {
+            // hard #exit! during at_exit: ignore the main script exception
+            exitCode = e.getCode();
         }
 
         return exitCode;
