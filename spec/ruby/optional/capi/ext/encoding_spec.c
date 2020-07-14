@@ -278,6 +278,12 @@ static VALUE encoding_spec_ONIGENC_MBC_CASE_FOLD(VALUE self, VALUE str) {
   return rb_ary_new3(2, str_result, INT2FIX(bytes_used));
 }
 
+static VALUE encoding_spec_rb_enc_codelen(VALUE self, VALUE code, VALUE encoding) {
+  unsigned int c = FIX2UINT(code);
+  rb_encoding *enc = rb_to_encoding(encoding);
+  return INT2FIX(rb_enc_codelen(c, enc));
+}
+
 void Init_encoding_spec(void) {
   VALUE cls;
   native_rb_encoding_pointer = (rb_encoding**) malloc(sizeof(rb_encoding*));
@@ -311,6 +317,7 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_associate_index", encoding_spec_rb_enc_associate_index, 2);
   rb_define_method(cls, "rb_enc_compatible", encoding_spec_rb_enc_compatible, 2);
   rb_define_method(cls, "rb_enc_copy", encoding_spec_rb_enc_copy, 2);
+  rb_define_method(cls, "rb_enc_codelen", encoding_spec_rb_enc_codelen, 2);
   rb_define_method(cls, "rb_enc_find", encoding_spec_rb_enc_find, 1);
   rb_define_method(cls, "rb_enc_find_index", encoding_spec_rb_enc_find_index, 1);
   rb_define_method(cls, "rb_enc_isalnum", encoding_spec_rb_enc_isalnum, 2);

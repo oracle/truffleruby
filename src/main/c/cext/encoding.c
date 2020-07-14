@@ -79,6 +79,18 @@ int rb_enc_mbc_to_codepoint(char *p, char *e, rb_encoding *enc) {
       length));
 }
 
+int rb_tr_code_to_mbclen(OnigCodePoint code, OnigEncodingType *encoding) {
+  return polyglot_as_i32(polyglot_invoke(RUBY_CEXT, "code_to_mbclen", code, rb_tr_unwrap(rb_enc_from_encoding(encoding))));
+}
+
+int rb_enc_codelen(int c, rb_encoding *enc) {
+  int n = ONIGENC_CODE_TO_MBCLEN(enc,c);
+  if (n == 0) {
+    rb_raise(rb_eArgError, "invalid codepoint 0x%x in %s", c, rb_enc_name(enc));
+  }
+  return n;
+}
+
 rb_encoding* rb_enc_get(VALUE object) {
   return rb_to_encoding(RUBY_CEXT_INVOKE("rb_enc_get", object));
 }

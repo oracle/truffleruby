@@ -66,6 +66,7 @@ Compatibility:
 * Fixed `Thread#raise` to call the exception class' constructor with no arguments when given no message (#2045).
 * Fixed `refine + super` compatibility (#2039, @ssnickolay)
 * Make the top-level exception handler more compatible with MRI (#2047).
+* Implemented `rb_enc_codelen`.
 
 Performance:
 

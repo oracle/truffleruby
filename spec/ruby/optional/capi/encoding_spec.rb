@@ -58,6 +58,15 @@ describe "C-API Encoding function" do
     end
   end
 
+  describe "rb_enc_codelen" do
+    it "returns the correct length for the given codepoint" do
+      @s.rb_enc_codelen(0x24, Encoding::UTF_8).should == 1
+      @s.rb_enc_codelen(0xA2, Encoding::UTF_8).should == 2
+      @s.rb_enc_codelen(0x20AC, Encoding::UTF_8).should == 3
+      @s.rb_enc_codelen(0x24B62, Encoding::UTF_8).should == 4
+    end
+  end
+
   describe "rb_enc_find" do
     it "returns the encoding of an Encoding" do
       @s.rb_enc_find("UTF-8").should == "UTF-8"
