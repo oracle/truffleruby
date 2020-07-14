@@ -330,6 +330,7 @@ int onigenc_ascii_only_case_map(OnigCaseFoldType* flagP, const OnigUChar** pp, c
 #define ONIGENC_NAME(enc)                      ((enc)->name)
 
 #ifdef TRUFFLERUBY
+int rb_tr_enc_mbc_case_fold(const OnigEncodingType *enc, int flag, const UChar** p, const UChar* end, UChar* lower);
 #define ONIGENC_MBC_CASE_FOLD(enc,flag,pp,end,buf) \
   rb_tr_enc_mbc_case_fold(enc,flag,pp,end,buf)
 #else
