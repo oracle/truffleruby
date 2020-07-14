@@ -21,8 +21,10 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.ObjectLocation;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
@@ -48,6 +50,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
     @ExplodeLoop
     protected void shareCached(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
+            @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary,
             @Cached("BASIC_OBJECT.getLogicalClass(cachedShape.getObjectType())") DynamicObject logicalClass,
             @Cached("BASIC_OBJECT.getMetaClass(cachedShape.getObjectType())") DynamicObject metaClass,
             @Cached("createShareInternalFieldsNode()") ShareInternalFieldsNode shareInternalFieldsNode,
@@ -55,7 +58,7 @@ public abstract class ShareObjectNode extends RubyContextNode {
             @Cached("createSharedShape(cachedShape)") Shape sharedShape) {
         // Mark the object as shared first to avoid recursion
         assert object.getShape() == cachedShape;
-        object.setShapeAndGrow(cachedShape, sharedShape);
+        objectLibrary.markShared(object);
         assert object.getShape() == sharedShape;
 
         // Share the logical class
