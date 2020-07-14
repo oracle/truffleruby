@@ -45,3 +45,58 @@ fails:Public methods on Digest.singleton_class should include const_missing
 fails:Public methods on Digest::Instance should not include finish
 fails:Public methods on Digest::Instance should not include to_str
 fails:Public methods on Digest::Instance should include block_length
+fails:Public methods on Dir should not include closed?
+fails:Public methods on Exception should not include backtrace?
+fails:Public methods on Exception should not include capture_backtrace!
+fails:Public methods on Exception should not include location
+fails:Public methods on Exception should not include set_context
+fails:Public methods on Exception should not include to_yaml_properties
+fails:Public methods on Exception should include respond_to?
+fails:Public methods on FalseClass should include ===
+fails:Public methods on TrueClass should include ===
+fails:Public methods on NilClass should include ===
+fails:Public methods on Fiber should not include alive?
+fails:Public methods on Fiber should not include transfer
+fails:Public methods on Fiber should include inspect
+fails:Public methods on Fiber should include to_s
+fails:Public methods on Mutex should not include marshal_dump
+fails:Public methods on Thread should not include freeze
+fails:Public methods on Thread should not include randomizer
+fails:Public methods on Thread should not include recursive_objects
+fails:Public methods on Thread should not include unblock
+fails:Public methods on Thread should include add_trace_func
+fails:Public methods on Thread should include pending_interrupt?
+fails:Public methods on Thread should include set_trace_func
+fails:Public methods on Proc should not include block
+fails:Public methods on Proc should not include block=
+fails:Public methods on Proc should not include bound_method
+fails:Public methods on Proc should not include bound_method=
+fails:Public methods on Proc should not include ruby_method
+fails:Public methods on Proc should not include ruby_method=
+fails:Public methods on Proc should include hash
+fails:Public methods on MatchData should not include byte_begin
+fails:Public methods on MatchData should not include byte_end
+fails:Public methods on MatchData should not include collapsing?
+fails:Public methods on MatchData should not include pre_match_from
+fails:Public methods on MatchData should include hash
+fails:Public methods on Method should include clone
+fails:Public methods on Method should include original_name
+fails:Public methods on UnboundMethod should not include bind_call
+fails:Public methods on UnboundMethod should include clone
+fails:Public methods on UnboundMethod should include original_name
+fails:Public methods on Regexp should not include match_from
+fails:Public methods on Regexp should not include match_onwards
+fails:Public methods on Regexp should not include option_to_string
+fails:Public methods on Regexp should not include search_region
+fails:Public methods on SizedQueue should not include closed?
+fails:Public methods on Struct should include filter
+fails:Public methods on Symbol should not include eql?
+fails:Public methods on Symbol should not include hash
+fails:Public methods on TracePoint should include __enable
+fails:Public methods on TracePoint should include callee_id
+fails:Public methods on TracePoint should include defined_class
+fails:Public methods on TracePoint should include eval_script
+fails:Public methods on TracePoint should include instruction_sequence
+fails:Public methods on TracePoint should include parameters
+fails:Public methods on TracePoint should include raised_exception
+fails:Public methods on TracePoint should include return_value

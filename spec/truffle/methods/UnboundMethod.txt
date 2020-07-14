@@ -1,0 +1,14 @@
+==
+arity
+bind
+clone
+eql?
+hash
+inspect
+name
+original_name
+owner
+parameters
+source_location
+super_method
+to_s

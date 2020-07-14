@@ -1,0 +1,7 @@
+lock
+locked?
+owned?
+sleep
+synchronize
+try_lock
+unlock

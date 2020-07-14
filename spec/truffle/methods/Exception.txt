@@ -1,0 +1,11 @@
+==
+backtrace
+backtrace_locations
+cause
+exception
+full_message
+inspect
+message
+respond_to?
+set_backtrace
+to_s

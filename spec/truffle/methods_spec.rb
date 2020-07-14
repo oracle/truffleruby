@@ -17,15 +17,13 @@ require_relative '../ruby/spec_helper'
 # $ jt purge spec/truffle/methods_spec.rb
 
 modules = %w[
-  BasicObject Kernel Object
-  Module Class
-  Enumerable Enumerator Enumerator::Lazy Range
-  Numeric Integer Float
-  Rational Complex
-  Array Hash String
-  File IO
-  ENV.singleton_class
-  Digest.singleton_class Digest::Class.singleton_class Digest::Instance
+  Array BasicObject Binding Class Complex Complex Data Digest.singleton_class
+  Digest::Class.singleton_class Digest::Instance Dir ENV.singleton_class
+  Encoding Enumerable Enumerator Enumerator::Lazy Exception FalseClass Fiber
+  File FileTest Float GC Hash IO Integer Kernel Marshal MatchData Math Method
+  Module Mutex NilClass Numeric Object ObjectSpace Proc Process Queue Random
+  Range Rational Regexp Signal SizedQueue String Struct Symbol SystemExit Thread
+  TracePoint TrueClass UnboundMethod Warning
 ]
 
 requires = %w[digest]

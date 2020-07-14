@@ -1,0 +1,3 @@
+inspect
+resume
+to_s

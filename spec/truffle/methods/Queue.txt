@@ -1,0 +1,14 @@
+<<
+clear
+close
+closed?
+deq
+empty?
+enq
+length
+marshal_dump
+num_waiting
+pop
+push
+shift
+size
