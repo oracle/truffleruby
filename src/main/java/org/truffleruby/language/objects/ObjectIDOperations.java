@@ -18,6 +18,7 @@ import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import java.math.BigInteger;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.cext.ValueWrapperManager;
@@ -135,10 +136,10 @@ public abstract class ObjectIDOperations {
         if (SharedObjects.isShared(context, object)) {
             synchronized (object) {
                 // no need for a write barrier here, objectID is a long.
-                object.define(Layouts.OBJECT_ID_IDENTIFIER, objectID);
+                DynamicObjectLibrary.getUncached().put(object, Layouts.OBJECT_ID_IDENTIFIER, objectID);
             }
         } else {
-            object.define(Layouts.OBJECT_ID_IDENTIFIER, objectID);
+            DynamicObjectLibrary.getUncached().put(object, Layouts.OBJECT_ID_IDENTIFIER, objectID);
         }
 
         return objectID;

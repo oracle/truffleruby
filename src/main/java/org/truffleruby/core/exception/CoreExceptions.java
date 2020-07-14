@@ -39,6 +39,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class CoreExceptions {
@@ -853,7 +854,8 @@ public class CoreExceptions {
             // This is a workaround for the rubygems/security.rb file expecting the error path to be openssl
             path = "openssl";
         }
-        loadError.define(
+        DynamicObjectLibrary.getUncached().put(
+                loadError,
                 "@path",
                 StringOperations.createString(context, StringOperations.encodeRope(path, UTF8Encoding.INSTANCE)));
         return loadError;
@@ -1142,7 +1144,7 @@ public class CoreExceptions {
         DynamicObject exceptionClass = context.getCoreLibrary().systemExitClass;
         final DynamicObject systemExit = ExceptionOperations
                 .createRubyException(context, exceptionClass, message, currentNode, null);
-        systemExit.define("@status", exitStatus);
+        DynamicObjectLibrary.getUncached().put(systemExit, "@status", exitStatus);
         return systemExit;
     }
 

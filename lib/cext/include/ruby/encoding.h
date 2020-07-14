@@ -251,11 +251,6 @@ int rb_enc_isspace(unsigned char c, rb_encoding *enc);
 #endif
 #define rb_enc_isdigit(c,enc) ONIGENC_IS_CODE_DIGIT((enc),(c))
 
-#ifdef TRUFFLERUBY
-/* This should be moved to onigmo.h when rb_encoding is typedef const OnigEncodingType rb_encoding; */
-int rb_tr_enc_mbc_case_fold(rb_encoding *enc, int flag, const UChar** p, const UChar* end, UChar* lower);
-#endif
-
 int rb_enc_asciicompat(rb_encoding *enc);
 
 int rb_enc_casefold(char *to, const char *p, const char *e, rb_encoding *enc);

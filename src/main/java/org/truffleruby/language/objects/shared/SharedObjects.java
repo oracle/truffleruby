@@ -12,6 +12,7 @@ package org.truffleruby.language.objects.shared;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -146,9 +147,7 @@ public class SharedObjects {
         }
 
         ShapeCachingGuards.updateShape(object);
-        final Shape oldShape = object.getShape();
-        final Shape newShape = oldShape.makeSharedShape();
-        object.setShapeAndGrow(oldShape, newShape);
+        DynamicObjectLibrary.getUncached().markShared(object);
 
         onShareHook(object);
         return true;

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
@@ -54,10 +55,10 @@ public abstract class ObjectIVarSetNode extends RubyBaseNode {
         if (SharedObjects.isShared(context, object)) {
             SharedObjects.writeBarrier(context, value);
             synchronized (object) {
-                object.define(checkName(context, object, name, checkName), value);
+                DynamicObjectLibrary.getUncached().put(object, checkName(context, object, name, checkName), value);
             }
         } else {
-            object.define(checkName(context, object, name, checkName), value);
+            DynamicObjectLibrary.getUncached().put(object, checkName(context, object, name, checkName), value);
         }
         return value;
     }
