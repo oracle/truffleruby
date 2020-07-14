@@ -1841,7 +1841,8 @@ EOS
     raise 'Installing JVMCI is only available on Linux and macOS currently' unless linux? || darwin?
 
     update, jvmci_version = jvmci_update_and_version
-    dir = File.expand_path('..', TRUFFLERUBY_DIR)
+    dir = File.expand_path('~/.mx/cache/extra')
+    FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
     java_home = begin
       dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
