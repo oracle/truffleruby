@@ -29,6 +29,9 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 GRAAL_DIR = File.expand_path('../graal', TRUFFLERUBY_DIR)
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
+CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/extra')
+FileUtils.mkdir_p(CACHE_EXTRA_DIR) unless Dir.exist?(CACHE_EXTRA_DIR)
+
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'fe5cfa6d14ce50b154fafbc8551cb656d4a39d3d'
 
 JDEBUG = '--vm.agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y'
@@ -1841,15 +1844,13 @@ EOS
     raise 'Installing JVMCI is only available on Linux and macOS currently' unless linux? || darwin?
 
     update, jvmci_version = jvmci_update_and_version
-    dir = File.expand_path('~/.mx/cache/extra')
-    FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
     java_home = begin
-      dir_pattern = "#{dir}/openjdk1.8.0*#{jvmci_version}"
+      dir_pattern = "#{CACHE_EXTRA_DIR}/openjdk1.8.0*#{jvmci_version}"
       if Dir[dir_pattern].empty?
         STDERR.puts download_message
         jvmci_releases = 'https://github.com/graalvm/graal-jvmci-8/releases/download'
         filename = "openjdk-8u#{update}-#{jvmci_version}-#{mx_os}-amd64.tar.gz"
-        chdir(dir) do
+        chdir(CACHE_EXTRA_DIR) do
           raw_sh 'curl', '-L', "#{jvmci_releases}/#{jvmci_version}/#{filename}", '-o', filename
           raw_sh 'tar', 'xf', filename
         end
@@ -1885,11 +1886,10 @@ EOS
 
     eclipse_tar = eclipse_url.split('/').last
     eclipse_name = File.basename(eclipse_tar, '.tar.gz')
-    eclipse_path = File.expand_path("../#{eclipse_name}/#{eclipse_exe}", TRUFFLERUBY_DIR)
+    eclipse_path = "#{CACHE_EXTRA_DIR}/#{eclipse_name}/#{eclipse_exe}"
     return eclipse_path if File.exist?(eclipse_path)
 
-    dir = File.expand_path('..', TRUFFLERUBY_DIR)
-    chdir(dir) do
+    chdir(CACHE_EXTRA_DIR) do
       unless File.exist?(eclipse_tar)
         raw_sh 'curl', '-L', eclipse_url, '-o', eclipse_tar
       end
