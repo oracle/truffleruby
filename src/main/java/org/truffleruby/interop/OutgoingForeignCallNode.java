@@ -221,7 +221,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             if (interop.fitsInDouble(receiver)) {
                 return interop.asDouble(receiver);
             } else if (interop.fitsInLong(receiver)) {
-                return (double) interop.asLong(receiver);
+                return /* (double) */ interop.asLong(receiver);
             } else {
                 errorProfile.enter();
                 throw new RaiseException(
