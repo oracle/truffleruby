@@ -36,8 +36,11 @@ VALUE rb_data_typed_object_make(VALUE ruby_class, const rb_data_type_t *type, vo
 
 void *rb_check_typeddata(VALUE value, const rb_data_type_t *data_type) {
   struct RTypedData* typed_data = RTYPEDDATA(value);
-  if (typed_data->type != data_type) {
-    rb_raise(rb_eTypeError, "wrong argument type");
+  // NOTE: this function is used on every access to typed data so it should remain fast.
+  // RB_TYPE_P(value, T_DATA) is already checked by `RTYPEDDATA(value)`, see Truffle::CExt.RDATA().
+  // RTYPEDDATA_P(value) is already checked implicitly by `typed_data->type` which would return `nil` if not `RTYPEDDATA_P`.
+  if (!rb_typeddata_inherited_p(typed_data->type, data_type)) {
+    rb_raise(rb_eTypeError, "wrong argument type %"PRIsVALUE" (expected %s)", rb_obj_class(value), data_type->wrap_struct_name);
   }
   return typed_data->data;
 }
