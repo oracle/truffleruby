@@ -244,6 +244,42 @@ describe "Interop special forms" do
     l.log.should include(["hasArrayElements"])
   end
 
+  it doc['.to_f', 'tries to converts to a Ruby `Float` using `asDouble()` and `(double) asLong()` or raises `TypeError`'] do
+    pfo, _, l = proxy[42]
+    pfo.to_f.should.eql?(42.0)
+    l.log.should include(["fitsInDouble"])
+    l.log.should include(["asDouble"])
+
+    does_not_fit_perfectly_in_double = (1 << 62) + 1
+    pfo, _, l = proxy[does_not_fit_perfectly_in_double]
+    pfo.to_f.should.eql?(does_not_fit_perfectly_in_double.to_f)
+    l.log.should include(["fitsInDouble"])
+    l.log.should include(["fitsInLong"])
+    l.log.should include(["asLong"])
+
+    pfo, _, l = proxy[Object.new]
+    -> { pfo.to_f }.should raise_error(TypeError, "can't convert foreign object to Float")
+    l.log.should include(["fitsInDouble"])
+    l.log.should include(["fitsInLong"])
+  end
+
+  it doc['.to_i', 'tries to converts to a Ruby `Integer` using `asInt()` and `asLong()` or raises `TypeError`'] do
+    pfo, _, l = proxy[42]
+    pfo.to_i.should.eql?(42)
+    l.log.should include(["fitsInInt"])
+    l.log.should include(["asInt"])
+
+    pfo, _, l = proxy[1 << 42]
+    pfo.to_i.should.eql?(1 << 42)
+    l.log.should include(["fitsInLong"])
+    l.log.should include(["asLong"])
+
+    pfo, _, l = proxy[Object.new]
+    -> { pfo.to_i }.should raise_error(TypeError, "can't convert foreign object to Integer")
+    l.log.should include(["fitsInInt"])
+    l.log.should include(["fitsInLong"])
+  end
+
   output << "\nUse `.respond_to?` for calling `InteropLibrary` predicates:\n"
 
   it doc['.respond_to?(:inspect)', "is always true"] do
@@ -270,6 +306,20 @@ describe "Interop special forms" do
     pfo, _, l = proxy[Object.new]
     pfo.respond_to?(:to_ary)
     l.log.should include(["hasArrayElements"])
+  end
+
+  it doc['.respond_to?(:to_f)', 'sends `fitsInDouble()` and `fitsInLong()`'] do
+    pfo, _, l = proxy[Object.new]
+    pfo.respond_to?(:to_f)
+    l.log.should include(["fitsInDouble"])
+    l.log.should include(["fitsInLong"])
+  end
+
+  it doc['.respond_to?(:to_i)', 'sends `fitsInInt()` and `fitsInLong()`'] do
+    pfo, _, l = proxy[Object.new]
+    pfo.respond_to?(:to_i)
+    l.log.should include(["fitsInInt"])
+    l.log.should include(["fitsInLong"])
   end
 
   it description['.respond_to?(:size)', :hasArrayElements] do

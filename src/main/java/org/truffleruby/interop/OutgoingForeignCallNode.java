@@ -26,7 +26,9 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @GenerateUncached
@@ -46,6 +48,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     protected final static String NEW = "new";
     protected final static String TO_A = "to_a";
     protected final static String TO_ARY = "to_ary";
+    protected final static String TO_I = "to_i";
+    protected final static String TO_F = "to_f";
     protected final static String RESPOND_TO = "respond_to?";
     protected final static String SEND = "__send__";
     protected final static String NIL = "nil?";
@@ -206,6 +210,52 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
         return dispatchNode.call(context.getCoreLibrary().truffleInteropModule, "remove_member", receiver, args[0]);
     }
 
+    @Specialization(guards = { "name == cachedName", "cachedName.equals(TO_F)", "args.length == 0" }, limit = "1")
+    protected double toF(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedLibrary("receiver") InteropLibrary interop,
+            @Cached TranslateInteropExceptionNode translateInteropException,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached BranchProfile errorProfile) {
+        try {
+            if (interop.fitsInDouble(receiver)) {
+                return interop.asDouble(receiver);
+            } else if (interop.fitsInLong(receiver)) {
+                return /* (double) */ interop.asLong(receiver);
+            } else {
+                errorProfile.enter();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().typeError("can't convert foreign object to Float", this));
+            }
+        } catch (UnsupportedMessageException e) {
+            throw translateInteropException.execute(e);
+        }
+    }
+
+    @Specialization(guards = { "name == cachedName", "cachedName.equals(TO_I)", "args.length == 0" }, limit = "1")
+    protected Object toI(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedLibrary("receiver") InteropLibrary interop,
+            @Cached TranslateInteropExceptionNode translateInteropException,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached BranchProfile errorProfile) {
+        try {
+            if (interop.fitsInInt(receiver)) {
+                return interop.asInt(receiver);
+            } else if (interop.fitsInLong(receiver)) {
+                return interop.asLong(receiver);
+            } else {
+                errorProfile.enter();
+                throw new RaiseException(
+                        context,
+                        context.getCoreExceptions().typeError("can't convert foreign object to Integer", this));
+            }
+        } catch (UnsupportedMessageException e) {
+            throw translateInteropException.execute(e);
+        }
+    }
+
     protected static boolean canHaveBadArguments(String cachedName) {
         return cachedName.equals(INDEX_READ) || cachedName.equals(INDEX_WRITE) || cachedName.equals(SEND) ||
                 cachedName.equals(NIL) || cachedName.equals(EQUAL) || cachedName.equals(OBJECT_ID) ||
@@ -240,6 +290,8 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             case KEYS:
             case INSPECT:
             case CLASS:
+            case TO_F:
+            case TO_I:
             case TO_S:
             case TO_STR:
             case NIL:
