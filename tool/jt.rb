@@ -29,8 +29,8 @@ TRUFFLERUBY_DIR = File.expand_path('../..', File.realpath(__FILE__))
 GRAAL_DIR = File.expand_path('../graal', TRUFFLERUBY_DIR)
 PROFILES_DIR = "#{TRUFFLERUBY_DIR}/profiles"
 
-CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/extra')
-FileUtils.mkdir_p(CACHE_EXTRA_DIR) unless Dir.exist?(CACHE_EXTRA_DIR)
+CACHE_EXTRA_DIR = File.expand_path('~/.mx/cache/truffleruby')
+FileUtils.mkdir_p(CACHE_EXTRA_DIR)
 
 TRUFFLERUBY_GEM_TEST_PACK_VERSION = 'fe5cfa6d14ce50b154fafbc8551cb656d4a39d3d'
 
