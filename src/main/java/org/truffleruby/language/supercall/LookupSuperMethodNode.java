@@ -68,14 +68,10 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    protected MethodLookupResult doLookup(InternalMethod currentMethod,
-            DynamicObject selfMetaClass) {
+    protected MethodLookupResult doLookup(InternalMethod currentMethod, DynamicObject selfMetaClass) {
         assert RubyGuards.isRubyClass(selfMetaClass);
 
-        MethodLookupResult superMethod = ModuleOperations
-                .lookupSuperMethod(
-                        currentMethod,
-                        selfMetaClass);
+        MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(currentMethod, selfMetaClass);
         // TODO (eregon, 12 June 2015): Is this correct?
         if (!superMethod.isDefined()) {
             return superMethod.withNoMethod();
