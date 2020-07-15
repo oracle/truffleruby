@@ -577,9 +577,6 @@ public abstract class ModuleOperations {
 
     private static InternalMethod rememberUsedRefinements(InternalMethod method,
             DeclarationContext declarationContext) {
-        if (declarationContext == null) {
-            return method;
-        }
         return method.withActiveRefinements(declarationContext);
     }
 
@@ -591,7 +588,7 @@ public abstract class ModuleOperations {
                 declarationContext.getRefinements());
         currentRefinements.put(ancestor, refinements);
 
-        return rememberUsedRefinements(method, declarationContext.withRefinements(currentRefinements));
+        return method.withActiveRefinements(declarationContext.withRefinements(currentRefinements));
     }
 
     private static DynamicObject[] getRefinementsFor(DeclarationContext declarationContext,
