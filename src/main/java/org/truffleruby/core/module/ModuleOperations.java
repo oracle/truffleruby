@@ -497,11 +497,10 @@ public abstract class ModuleOperations {
         return method.getVisibility() == visibility ? method : null;
     }
 
-    public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass,
-            DeclarationContext declarationContext) {
-
+    public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass) {
         assert RubyGuards.isRubyModule(objectMetaClass);
         final String name = currentMethod.getSharedMethodInfo().getName(); // use the original name
+
         Memo<Boolean> foundDeclaringModule = new Memo<>(false);
         return lookupSuperMethod(
                 currentMethod.getDeclaringModule(),
@@ -509,14 +508,15 @@ public abstract class ModuleOperations {
                 name,
                 objectMetaClass,
                 foundDeclaringModule,
-                declarationContext);
+                currentMethod.getDeclarationContext(),
+                currentMethod.getActiveRefinements());
     }
 
 
     @TruffleBoundary
     private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, DynamicObject lookupTo,
             String name, DynamicObject objectMetaClass, Memo<Boolean> foundDeclaringModule,
-            DeclarationContext declarationContext) {
+            DeclarationContext declarationContext, DeclarationContext callerDeclaringContext) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert RubyGuards.isRubyModule(objectMetaClass);
 
@@ -528,7 +528,7 @@ public abstract class ModuleOperations {
                 return new MethodLookupResult(null, toArray(assumptions));
             }
 
-            final DynamicObject[] refinements = getRefinementsFor(declarationContext, ancestor);
+            final DynamicObject[] refinements = getRefinementsFor(declarationContext, callerDeclaringContext, ancestor);
 
             if (refinements != null) {
                 for (DynamicObject refinement : refinements) {
@@ -538,6 +538,7 @@ public abstract class ModuleOperations {
                             name,
                             refinement,
                             foundDeclaringModule,
+                            null,
                             null);
                     for (Assumption assumption : superMethodInRefinement.getAssumptions()) {
                         assumptions.add(assumption);
@@ -545,7 +546,7 @@ public abstract class ModuleOperations {
                     if (superMethodInRefinement.isDefined()) {
                         InternalMethod method = superMethodInRefinement.getMethod();
                         return new MethodLookupResult(
-                                rememberUsedRefinements(method, declarationContext),
+                                rememberUsedRefinements(method, declarationContext, refinements, ancestor),
                                 toArray(assumptions));
                     }
                     if (foundDeclaringModule.get() && isRefinedMethod) {
@@ -576,7 +577,41 @@ public abstract class ModuleOperations {
 
     private static InternalMethod rememberUsedRefinements(InternalMethod method,
             DeclarationContext declarationContext) {
+        if (declarationContext == null) {
+            return method;
+        }
         return method.withActiveRefinements(declarationContext);
+    }
+
+    private static InternalMethod rememberUsedRefinements(InternalMethod method,
+            DeclarationContext declarationContext, DynamicObject[] refinements, DynamicObject ancestor) {
+        assert refinements != null;
+
+        final Map<DynamicObject, DynamicObject[]> currentRefinements = new HashMap<>(
+                declarationContext.getRefinements());
+        currentRefinements.put(ancestor, refinements);
+
+        return rememberUsedRefinements(method, declarationContext.withRefinements(currentRefinements));
+    }
+
+    private static DynamicObject[] getRefinementsFor(DeclarationContext declarationContext,
+            DeclarationContext callerDeclaringContext, DynamicObject module) {
+        final DynamicObject[] lexicalRefinements = getRefinementsFor(declarationContext, module);
+        final DynamicObject[] callerRefinements = getRefinementsFor(callerDeclaringContext, module);
+
+        if (lexicalRefinements == null) {
+            return callerRefinements;
+        }
+
+        if (callerRefinements == null) {
+            return lexicalRefinements;
+        }
+
+        final DynamicObject[] array = new DynamicObject[lexicalRefinements.length + callerRefinements.length];
+        System.arraycopy(callerRefinements, 0, array, 0, callerRefinements.length);
+        System.arraycopy(lexicalRefinements, 0, array, callerRefinements.length, lexicalRefinements.length);
+
+        return array;
     }
 
     private static DynamicObject[] getRefinementsFor(DeclarationContext declarationContext, DynamicObject module) {

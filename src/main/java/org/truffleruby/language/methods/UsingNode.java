@@ -70,7 +70,7 @@ public abstract class UsingNode extends RubyContextNode {
         return newRefinements;
     }
 
-    public static void applyRefinements(DynamicObject refinedModule, DynamicObject refinementModule,
+    private static void applyRefinements(DynamicObject refinedModule, DynamicObject refinementModule,
             Map<DynamicObject, DynamicObject[]> newRefinements) {
         final DynamicObject[] refinements = newRefinements.get(refinedModule);
         if (refinements == null) {

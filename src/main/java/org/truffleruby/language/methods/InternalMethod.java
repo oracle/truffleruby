@@ -113,7 +113,7 @@ public class InternalMethod implements ObjectGraphNode {
                 undefined,
                 false,
                 !context.getCoreLibrary().isLoaded(),
-                DeclarationContext.NONE,
+                null,
                 proc,
                 callTarget,
                 capturedBlock);
@@ -248,6 +248,8 @@ public class InternalMethod implements ObjectGraphNode {
     }
 
     public InternalMethod withActiveRefinements(DeclarationContext context) {
+        assert context != null;
+
         if (context == activeRefinements) {
             return this;
         } else {
