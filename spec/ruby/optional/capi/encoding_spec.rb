@@ -139,6 +139,15 @@ describe "C-API Encoding function" do
     end
   end
 
+  describe "rb_enc_mbcput" do
+    it "writes the correct bytes to the buffer" do
+      @s.rb_enc_mbcput(0x24, Encoding::UTF_8).should == "$"
+      @s.rb_enc_mbcput(0xA2, Encoding::UTF_8).should == "¢"
+      @s.rb_enc_mbcput(0x20AC, Encoding::UTF_8).should == "€"
+      @s.rb_enc_mbcput(0x24B62, Encoding::UTF_8).should == "𤭢"
+    end
+  end
+
   describe "rb_usascii_encoding" do
     it "returns the encoding for Encoding::US_ASCII" do
       @s.rb_usascii_encoding.should == "US-ASCII"

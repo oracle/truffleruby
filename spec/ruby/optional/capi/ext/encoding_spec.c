@@ -127,6 +127,16 @@ static VALUE encoding_spec_rb_enc_mbc_to_codepoint(VALUE self, VALUE str, VALUE 
   return INT2FIX(rb_enc_mbc_to_codepoint(p, e, rb_enc_get(str)));
 }
 
+static VALUE encoding_spec_rb_enc_mbcput(VALUE self, VALUE code, VALUE encoding) {
+  unsigned int c = FIX2UINT(code);
+  rb_encoding *enc = rb_to_encoding(encoding);
+  char *buf = (char*) malloc(10);
+  int len = rb_enc_mbcput(c, buf, enc);
+  VALUE str = rb_enc_str_new(buf, len, enc);
+  free(buf);
+  return str;
+}
+
 static VALUE encoding_spec_rb_enc_from_encoding(VALUE self, VALUE name) {
   return rb_enc_from_encoding(rb_enc_find(RSTRING_PTR(name)));
 }
@@ -324,6 +334,7 @@ void Init_encoding_spec(void) {
   rb_define_method(cls, "rb_enc_isspace", encoding_spec_rb_enc_isspace, 2);
   rb_define_method(cls, "rb_enc_from_index", encoding_spec_rb_enc_from_index, 1);
   rb_define_method(cls, "rb_enc_mbc_to_codepoint", encoding_spec_rb_enc_mbc_to_codepoint, 2);
+  rb_define_method(cls, "rb_enc_mbcput", encoding_spec_rb_enc_mbcput, 2);
   rb_define_method(cls, "rb_enc_from_encoding", encoding_spec_rb_enc_from_encoding, 1);
   rb_define_method(cls, "rb_enc_get", encoding_spec_rb_enc_get, 1);
   rb_define_method(cls, "rb_enc_precise_mbclen", encoding_spec_rb_enc_precise_mbclen, 2);
