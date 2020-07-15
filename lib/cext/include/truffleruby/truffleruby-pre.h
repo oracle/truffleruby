@@ -37,6 +37,10 @@ extern "C" {
 // to catch rb_block_call_func_t* functions with incorrect arity faster.
 #define RB_BLOCK_CALL_FUNC_STRICT 1
 
+// To avoid extra write barrier code
+#define USE_RGENGC 0
+#define USE_RINCGC 0
+
 // Value types
 
 typedef unsigned long VALUE;
