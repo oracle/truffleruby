@@ -10,6 +10,7 @@
 package org.truffleruby.core.module;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -608,7 +609,7 @@ public abstract class ModuleOperations {
         System.arraycopy(callerRefinements, 0, array, 0, callerRefinements.length);
         System.arraycopy(lexicalRefinements, 0, array, callerRefinements.length, lexicalRefinements.length);
 
-        return array;
+        return Arrays.stream(array).distinct().toArray(DynamicObject[]::new);
     }
 
     private static DynamicObject[] getRefinementsFor(DeclarationContext declarationContext, DynamicObject module) {
