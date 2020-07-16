@@ -10,6 +10,7 @@
 package org.truffleruby.core.module;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,6 +19,7 @@ import java.util.function.Function;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -38,6 +40,7 @@ import com.oracle.truffle.api.utilities.NeverValidAssumption;
 public abstract class ModuleOperations {
 
     public static final Assumption[] EMPTY_ASSUMPTION_ARRAY = new Assumption[0];
+    public static final DynamicObject[] EMPTY_DYNAMIC_OBJECT_ARRAY = new DynamicObject[0];
 
     @TruffleBoundary
     public static boolean includesModule(DynamicObject module, DynamicObject other) {
@@ -497,11 +500,10 @@ public abstract class ModuleOperations {
         return method.getVisibility() == visibility ? method : null;
     }
 
-    public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass,
-            DeclarationContext declarationContext) {
-
+    public static MethodLookupResult lookupSuperMethod(InternalMethod currentMethod, DynamicObject objectMetaClass) {
         assert RubyGuards.isRubyModule(objectMetaClass);
         final String name = currentMethod.getSharedMethodInfo().getName(); // use the original name
+
         Memo<Boolean> foundDeclaringModule = new Memo<>(false);
         return lookupSuperMethod(
                 currentMethod.getDeclaringModule(),
@@ -509,14 +511,15 @@ public abstract class ModuleOperations {
                 name,
                 objectMetaClass,
                 foundDeclaringModule,
-                declarationContext);
+                currentMethod.getDeclarationContext(),
+                currentMethod.getActiveRefinements());
     }
 
 
     @TruffleBoundary
     private static MethodLookupResult lookupSuperMethod(DynamicObject declaringModule, DynamicObject lookupTo,
             String name, DynamicObject objectMetaClass, Memo<Boolean> foundDeclaringModule,
-            DeclarationContext declarationContext) {
+            DeclarationContext declarationContext, DeclarationContext callerDeclaringContext) {
         assert RubyGuards.isRubyModule(declaringModule);
         assert RubyGuards.isRubyModule(objectMetaClass);
 
@@ -528,7 +531,7 @@ public abstract class ModuleOperations {
                 return new MethodLookupResult(null, toArray(assumptions));
             }
 
-            final DynamicObject[] refinements = getRefinementsFor(declarationContext, ancestor);
+            final DynamicObject[] refinements = getRefinementsFor(declarationContext, callerDeclaringContext, ancestor);
 
             if (refinements != null) {
                 for (DynamicObject refinement : refinements) {
@@ -538,6 +541,7 @@ public abstract class ModuleOperations {
                             name,
                             refinement,
                             foundDeclaringModule,
+                            null,
                             null);
                     for (Assumption assumption : superMethodInRefinement.getAssumptions()) {
                         assumptions.add(assumption);
@@ -545,7 +549,7 @@ public abstract class ModuleOperations {
                     if (superMethodInRefinement.isDefined()) {
                         InternalMethod method = superMethodInRefinement.getMethod();
                         return new MethodLookupResult(
-                                rememberUsedRefinements(method, declarationContext),
+                                rememberUsedRefinements(method, declarationContext, refinements, ancestor),
                                 toArray(assumptions));
                     }
                     if (foundDeclaringModule.get() && isRefinedMethod) {
@@ -577,6 +581,39 @@ public abstract class ModuleOperations {
     private static InternalMethod rememberUsedRefinements(InternalMethod method,
             DeclarationContext declarationContext) {
         return method.withActiveRefinements(declarationContext);
+    }
+
+    private static InternalMethod rememberUsedRefinements(InternalMethod method,
+            DeclarationContext declarationContext, DynamicObject[] refinements, DynamicObject ancestor) {
+        assert refinements != null;
+
+        final Map<DynamicObject, DynamicObject[]> currentRefinements = new HashMap<>(
+                declarationContext.getRefinements());
+        currentRefinements.put(ancestor, refinements);
+
+        return method.withActiveRefinements(declarationContext.withRefinements(currentRefinements));
+    }
+
+    private static DynamicObject[] getRefinementsFor(DeclarationContext declarationContext,
+            DeclarationContext callerDeclaringContext, DynamicObject module) {
+        final DynamicObject[] lexicalRefinements = getRefinementsFor(declarationContext, module);
+        final DynamicObject[] callerRefinements = getRefinementsFor(callerDeclaringContext, module);
+
+        if (lexicalRefinements == null) {
+            return callerRefinements;
+        }
+
+        if (callerRefinements == null) {
+            return lexicalRefinements;
+        }
+
+        final ArrayList<DynamicObject> list = new ArrayList<>(Arrays.asList(callerRefinements));
+        for (DynamicObject refinement : lexicalRefinements) {
+            if (!ArrayUtils.contains(callerRefinements, refinement)) {
+                list.add(refinement);
+            }
+        }
+        return list.toArray(EMPTY_DYNAMIC_OBJECT_ARRAY);
     }
 
     private static DynamicObject[] getRefinementsFor(DeclarationContext declarationContext, DynamicObject module) {

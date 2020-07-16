@@ -736,7 +736,7 @@ describe "Module#refine" do
 
       a = Module.new do
         def foo
-           [:A] + super
+          [:A] + super
         end
       end
 
@@ -751,6 +751,32 @@ describe "Module#refine" do
         using refinement
 
         result = refined_class.new.foo
+      end
+
+      result.should == [:A, :C]
+    end
+
+    it "looks in the refined ancestors from included module" do
+      refined_class = ModuleSpecs.build_refined_class(for_super: true)
+      subclass = Class.new(refined_class)
+
+      a = Module.new do
+        def foo
+          [:A] + super
+        end
+      end
+
+      refinement = Module.new do
+        refine refined_class do
+          include a
+        end
+      end
+
+      result = nil
+      Module.new do
+        using refinement
+
+        result = subclass.new.foo
       end
 
       result.should == [:A, :C]

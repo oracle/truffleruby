@@ -14,9 +14,7 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.objects.MetaClassNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -25,9 +23,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /** Caches {@link ModuleOperations#lookupSuperMethod} on an actual instance. */
 public abstract class LookupSuperMethodNode extends RubyContextNode {
@@ -73,15 +68,10 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    protected MethodLookupResult doLookup(InternalMethod currentMethod,
-            DynamicObject selfMetaClass) {
+    protected MethodLookupResult doLookup(InternalMethod currentMethod, DynamicObject selfMetaClass) {
         assert RubyGuards.isRubyClass(selfMetaClass);
 
-        MethodLookupResult superMethod = ModuleOperations
-                .lookupSuperMethod(
-                        currentMethod,
-                        selfMetaClass,
-                        getDeclarationContext(currentMethod, selfMetaClass));
+        MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(currentMethod, selfMetaClass);
         // TODO (eregon, 12 June 2015): Is this correct?
         if (!superMethod.isDefined()) {
             return superMethod.withNoMethod();
@@ -91,31 +81,5 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
 
     protected int getCacheLimit() {
         return getContext().getOptions().METHOD_LOOKUP_CACHE;
-    }
-
-    private DeclarationContext getDeclarationContext(InternalMethod currentMethod,
-            DynamicObject selfMetaClass) {
-        final DeclarationContext context = currentMethod.getDeclarationContext();
-        final DeclarationContext callerContext = currentMethod.getActiveRefinements();
-
-        if (callerContext != null) {
-            // super from the refined method has access to the parent's active refinements for the selfMetaClass
-            final DynamicObject[] activeRefinements = callerContext.getRefinementsFor(selfMetaClass);
-
-            if (activeRefinements == null) {
-                return context;
-            } else {
-                final Map<DynamicObject, DynamicObject[]> newRefinements = new HashMap<>(context.getRefinements());
-
-                // add class refinements in reverse order to keep the original positions
-                for (int i = activeRefinements.length - 1; i >= 0; i--) {
-                    UsingNode.applyRefinements(selfMetaClass, activeRefinements[i], newRefinements);
-                }
-
-                return context.withRefinements(newRefinements);
-            }
-        } else {
-            return context;
-        }
     }
 }

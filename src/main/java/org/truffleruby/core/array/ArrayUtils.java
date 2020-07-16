@@ -100,8 +100,8 @@ public abstract class ArrayUtils {
     }
 
     public static boolean contains(int[] array, int value) {
-        for (int n = 0; n < array.length; n++) {
-            if (array[n] == value) {
+        for (int element : array) {
+            if (element == value) {
                 return true;
             }
         }
@@ -109,9 +109,10 @@ public abstract class ArrayUtils {
         return false;
     }
 
+    /** Compares by identity using Java {@code ==} */
     public static <T> boolean contains(T[] array, T value) {
-        for (int n = 0; n < array.length; n++) {
-            if (array[n] == value) {
+        for (T element : array) {
+            if (element == value) {
                 return true;
             }
         }

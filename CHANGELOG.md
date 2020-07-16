@@ -70,6 +70,7 @@ Compatibility:
 * Make the top-level exception handler more compatible with MRI (#2047).
 * Implemented `rb_enc_codelen`.
 * Implemented `Ripper` by using the C extension (#1585).
+* Fixed `refine + super` compatibility (#2039, #2048, @ssnickolay)
 
 Performance:
 

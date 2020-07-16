@@ -887,9 +887,8 @@ public class CExtNodes {
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
             final Object callingSelf = RubyArguments.getSelf(callingMethodFrame);
             final DynamicObject callingMetaclass = metaClassNode.executeMetaClass(callingSelf);
-            final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final MethodLookupResult superMethodLookup = ModuleOperations
-                    .lookupSuperMethod(callingMethod, callingMetaclass, declarationContext);
+                    .lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();
             return callSuperMethodNode.executeCallSuperMethod(frame, callingSelf, superMethod, args, null);
         }
