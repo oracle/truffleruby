@@ -97,13 +97,6 @@ They have priority over methods that the foreign object actually provides.
 a letter) will send `IS_BOXED` on `object` and based on that will possibly
 `UNBOX` it, convert to Ruby, and then call the method on the unboxed version.
 
-`object.equal?(other)` returns whether `object` is the same as `other` using
-reference equality, like `BasicObject#equal?`. For Java interop objects it
-looks at the underlying Java object.
-
-`object.object_id` or `object.__id__` returns identity hash code. Note: There
-might be collisions. Implementation may change.
-
 `java_object.is_a?(java_class)` does `java_object instanceof java_class`, using
 the host object instance, rather than any runtime interop wrapper.
 

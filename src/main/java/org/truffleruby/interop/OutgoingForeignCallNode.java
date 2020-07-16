@@ -72,9 +72,20 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "cachedName.equals(OBJECT_ID) || cachedName.equals(ID)",
                     "args.length == 0" },
             limit = "1")
-    protected Object objectId(Object receiver, String name, Object[] args,
-            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName) {
-        return System.identityHashCode(receiver);
+    protected int objectId(Object receiver, String name, Object[] args,
+            @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
+            @CachedLibrary("receiver") InteropLibrary interop,
+            @Cached ConditionProfile hasIdentityProfile,
+            @Cached TranslateInteropExceptionNode translateInteropException) {
+        if (hasIdentityProfile.profile(interop.hasIdentity(receiver))) {
+            try {
+                return interop.identityHashCode(receiver);
+            } catch (UnsupportedMessageException e) {
+                throw translateInteropException.execute(e);
+            }
+        } else {
+            return System.identityHashCode(receiver);
+        }
     }
 
     @Specialization(
@@ -167,16 +178,11 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
     }
 
     @Specialization(guards = { "name == cachedName", "cachedName.equals(EQUAL)", "args.length == 1" }, limit = "1")
-    protected Object isEqual(Object receiver, String name, Object[] args,
+    protected boolean isEqual(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        final Object a = receiver;
-        final Object b = args[0];
-        if (context.getEnv().isHostObject(a) && context.getEnv().isHostObject(b)) {
-            return context.getEnv().asHostObject(a) == context.getEnv().asHostObject(b);
-        } else {
-            return a == b;
-        }
+            @CachedLibrary("receiver") InteropLibrary lhsInterop,
+            @CachedLibrary("first(args)") InteropLibrary rhsInterop) {
+        return lhsInterop.isIdentical(receiver, first(args), rhsInterop);
     }
 
     @Specialization(

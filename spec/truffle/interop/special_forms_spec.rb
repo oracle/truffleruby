@@ -280,6 +280,44 @@ describe "Interop special forms" do
     l.log.should include(["fitsInLong"])
   end
 
+  it description['.equal?(other)', :isIdentical, [:other]] do
+    pfo, _, l = proxy[Object.new]
+    pfo.equal?(pfo).should == true
+    l.log.should include(["isIdentical", pfo, :InteropLibrary])
+
+    other = Object.new
+    pfo.equal?(other).should == false
+    l.log.should include(["isIdentical", other, :InteropLibrary])
+  end
+
+  it description['.object_id', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
+    pfo, obj, l = proxy[Object.new]
+    pfo.object_id.should == obj.object_id
+    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["identityHashCode"])
+  end
+
+  it doc['.object_id', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
+    pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
+    pfo.object_id.should be_kind_of(Integer)
+    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should_not include(["identityHashCode"])
+  end
+
+  it description['.__id__', :identityHashCode, [], 'when `hasIdentity()` is true (which might not be unique)'] do
+    pfo, obj, l = proxy[Object.new]
+    pfo.__id__.should == obj.__id__
+    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should include(["identityHashCode"])
+  end
+
+  it doc['.__id__', 'uses `System.identityHashCode()` otherwise (which might not be unique)'] do
+    pfo, _, l = proxy[42] # primitives have no identity in InteropLibrary
+    pfo.__id__.should be_kind_of(Integer)
+    l.log.should include(["isIdentical", pfo, :InteropLibrary]) # hasIdentity()
+    l.log.should_not include(["identityHashCode"])
+  end
+
   output << "\nUse `.respond_to?` for calling `InteropLibrary` predicates:\n"
 
   it doc['.respond_to?(:inspect)', "is always true"] do

@@ -10,7 +10,6 @@ require_relative '../../ruby/spec_helper'
 
 guard -> { Truffle::Interop.polyglot_bindings_access? } do
   describe "Truffle::Interop.export" do
-
     it "exports an object" do
       object = Object.new
       Truffle::Interop.export :exports_an_object, object
@@ -88,6 +87,5 @@ guard -> { Truffle::Interop.polyglot_bindings_access? } do
       string = 'hello'
       Truffle::Interop.export(:returns_original_value, string).equal?(string).should be_true
     end
-
   end
 end
