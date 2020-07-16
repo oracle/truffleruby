@@ -130,11 +130,13 @@ static VALUE encoding_spec_rb_enc_mbc_to_codepoint(VALUE self, VALUE str, VALUE 
 static VALUE encoding_spec_rb_enc_mbcput(VALUE self, VALUE code, VALUE encoding) {
   unsigned int c = FIX2UINT(code);
   rb_encoding *enc = rb_to_encoding(encoding);
-  char *buf = (char*) malloc(10);
+  char buf[ONIGENC_CODE_TO_MBC_MAXLEN];
+  memset(buf, '\1', sizeof(buf));
   int len = rb_enc_mbcput(c, buf, enc);
-  VALUE str = rb_enc_str_new(buf, len, enc);
-  free(buf);
-  return str;
+  if (buf[len] != '\1') {
+    rb_raise(rb_eRuntimeError, "should not change bytes after len");
+  }
+  return rb_enc_str_new(buf, len, enc);
 }
 
 static VALUE encoding_spec_rb_enc_from_encoding(VALUE self, VALUE name) {
@@ -281,8 +283,12 @@ static VALUE encoding_spec_ONIGENC_MBC_CASE_FOLD(VALUE self, VALUE str) {
   char *beg_initial = beg;
   char *end = beg + 2;
   OnigUChar fold[ONIGENC_GET_CASE_FOLD_CODES_MAX_NUM];
+  memset(fold, '\1', sizeof(fold));
   rb_encoding *enc = rb_enc_get(str);
   int r = ONIGENC_MBC_CASE_FOLD(enc, ONIGENC_CASE_FOLD, &beg, (const OnigUChar *)end, fold);
+  if (r > 0 && fold[r] != '\1') {
+    rb_raise(rb_eRuntimeError, "should not change bytes after len");
+  }
   VALUE str_result = r <= 0 ? Qnil : rb_enc_str_new((char *)fold, r, enc);
   long bytes_used = beg - beg_initial;
   return rb_ary_new3(2, str_result, INT2FIX(bytes_used));

@@ -145,6 +145,9 @@ describe "C-API Encoding function" do
       @s.rb_enc_mbcput(0xA2, Encoding::UTF_8).should == "¢"
       @s.rb_enc_mbcput(0x20AC, Encoding::UTF_8).should == "€"
       @s.rb_enc_mbcput(0x24B62, Encoding::UTF_8).should == "𤭢"
+
+      @s.rb_enc_mbcput(0x24, Encoding::UTF_16BE).bytes.should == [0, 0x24]
+      @s.rb_enc_mbcput(0x24B62, Encoding::UTF_16LE).bytes.should == [82, 216, 98, 223]
     end
   end
 
@@ -639,6 +642,10 @@ describe "C-API Encoding function" do
       @s.ONIGENC_MBC_CASE_FOLD("lower".force_encoding("binary")).should == ["l", 1]
       @s.ONIGENC_MBC_CASE_FOLD("Upper".force_encoding("binary")).should == ["u", 1]
       @s.ONIGENC_MBC_CASE_FOLD("É").should == ["é", 2]
+
+      str, length = @s.ONIGENC_MBC_CASE_FOLD('$'.encode(Encoding::UTF_16BE))
+      length.should == 2
+      str.bytes.should == [0, 0x24]
     end
   end
 end
