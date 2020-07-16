@@ -362,7 +362,17 @@ int rb_tr_enc_mbc_case_fold(rb_encoding *enc, int flag, const UChar** p, const U
           p));
    int result_len = RSTRING_LEN(result_str);
    if (result_len > 0) {
-     strncpy((char *)result, RSTRING_PTR(result_str), result_len);
+     memcpy(result, RSTRING_PTR(result_str), result_len);
+   }
+   return result_len;
+}
+
+int rb_tr_code_to_mbc(OnigCodePoint code, UChar *buf, OnigEncoding enc) {
+    VALUE result_str = rb_tr_wrap(polyglot_invoke(RUBY_CEXT, "rb_tr_code_to_mbc",
+            rb_tr_unwrap(rb_enc_from_encoding(enc)), code));
+   int result_len = RSTRING_LEN(result_str);
+   if (result_len > 0) {
+     memcpy(buf, RSTRING_PTR(result_str), result_len);
    }
    return result_len;
 }

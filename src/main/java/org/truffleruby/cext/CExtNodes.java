@@ -1310,6 +1310,25 @@ public class CExtNodes {
 
     }
 
+    @CoreMethod(names = "rb_tr_code_to_mbc", onSingleton = true, required = 2, lowerFixnum = 2)
+    public abstract static class RbTrMbcPutNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization(guards = "isRubyEncoding(enc)")
+        protected Object rbTrEncMbcPut(DynamicObject enc, int code) {
+            final Encoding encoding = EncodingOperations.getEncoding(enc);
+            final byte buf[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
+            final int resultLength = encoding.codeToMbc(code, buf, 0);
+            final byte result[] = new byte[resultLength];
+            if (resultLength > 0) {
+                System.arraycopy(buf, 0, result, 0, resultLength);
+            }
+            return StringOperations.createString(
+                    getContext(),
+                    RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
+        }
+
+    }
+
     @CoreMethod(names = "rb_enc_mbmaxlen", onSingleton = true, required = 1)
     public abstract static class RbEncMaxLenNode extends CoreMethodArrayArgumentsNode {
 
