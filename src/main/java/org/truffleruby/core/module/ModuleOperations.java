@@ -19,6 +19,7 @@ import java.util.function.Function;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -39,6 +40,7 @@ import com.oracle.truffle.api.utilities.NeverValidAssumption;
 public abstract class ModuleOperations {
 
     public static final Assumption[] EMPTY_ASSUMPTION_ARRAY = new Assumption[0];
+    public static final DynamicObject[] EMPTY_DYNAMIC_OBJECT_ARRAY = new DynamicObject[0];
 
     @TruffleBoundary
     public static boolean includesModule(DynamicObject module, DynamicObject other) {
@@ -605,11 +607,13 @@ public abstract class ModuleOperations {
             return lexicalRefinements;
         }
 
-        final DynamicObject[] array = new DynamicObject[lexicalRefinements.length + callerRefinements.length];
-        System.arraycopy(callerRefinements, 0, array, 0, callerRefinements.length);
-        System.arraycopy(lexicalRefinements, 0, array, callerRefinements.length, lexicalRefinements.length);
-
-        return Arrays.stream(array).distinct().toArray(DynamicObject[]::new);
+        final ArrayList<DynamicObject> list = new ArrayList<>(Arrays.asList(callerRefinements));
+        for (DynamicObject refinement : lexicalRefinements) {
+            if (!ArrayUtils.contains(callerRefinements, refinement)) {
+                list.add(refinement);
+            }
+        }
+        return list.toArray(EMPTY_DYNAMIC_OBJECT_ARRAY);
     }
 
     private static DynamicObject[] getRefinementsFor(DeclarationContext declarationContext, DynamicObject module) {
