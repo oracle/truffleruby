@@ -376,3 +376,57 @@ int rb_tr_code_to_mbc(OnigCodePoint code, UChar *buf, OnigEncoding enc) {
    }
    return result_len;
 }
+
+#define ARG_ENCODING_FIXED    16
+#define ARG_ENCODING_NONE     32
+
+static int char_to_option(int c) {
+  int val;
+
+  switch (c) {
+    case 'i':
+      val = ONIG_OPTION_IGNORECASE;
+      break;
+    case 'x':
+      val = ONIG_OPTION_EXTEND;
+      break;
+    case 'm':
+      val = ONIG_OPTION_MULTILINE;
+      break;
+    default:
+      val = 0;
+      break;
+  }
+  return val;
+}
+
+extern int rb_char_to_option_kcode(int c, int *option, int *kcode) {
+  *option = 0;
+
+  switch (c) {
+    case 'n':
+      *kcode = rb_ascii8bit_encindex();
+      return (*option = ARG_ENCODING_NONE);
+    case 'e':
+      *kcode = rb_enc_find_index("EUC-JP");
+      break;
+    case 's':
+      *kcode = rb_enc_find_index("Windows-31J");
+      break;
+    case 'u':
+      *kcode = rb_utf8_encindex();
+      break;
+    default:
+      *kcode = -1;
+      return (*option = char_to_option(c));
+  }
+  *option = ARG_ENCODING_FIXED;
+  return 1;
+}
+
+int enc_is_unicode(const OnigEncodingType *enc) {
+  const char *name = rb_enc_name(enc);
+  return !strncmp(name,"UTF", 3);
+}
+
+

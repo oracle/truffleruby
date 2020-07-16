@@ -49,6 +49,8 @@ cp -r ../ruby/ext/openssl/lib/* lib/mri
 cp ../ruby/ext/pty/lib/*.rb lib/mri
 cp ../ruby/ext/psych/lib/psych.rb lib/mri
 cp -r ../ruby/ext/psych/lib/psych lib/mri
+cp ../ruby/ext/ripper/lib/ripper.rb lib/mri
+cp -r ../ruby/ext/ripper/lib/ripper lib/mri
 cp -r ../ruby/ext/syslog/lib/syslog lib/mri
 
 # Copy C extensions in ext/, sorted alphabetically
@@ -65,7 +67,10 @@ cp ../ruby/ext/syslog/*.{c,rb} src/main/c/syslog
 cp ../ruby/ext/zlib/*.{c,rb} src/main/c/zlib
 
 # Ripper
-cp "$RUBY_BUILD_DIR"/id.h lib/cext/include/truffleruby/internal
+cp "$RUBY_BUILD_DIR"/{id.h,symbol.h} lib/cext/include/truffleruby/internal
+cp "$RUBY_BUILD_DIR"/{node.c,parse.c,lex.c} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/ext/ripper/*.{c,rb} src/main/c/ripper
+cp "$RUBY_BUILD_DIR"/{node.h,parse.h,probes.h,probes.dmyh,regenc.h} src/main/c/ripper
 
 # test/
 rm -rf test/mri/tests

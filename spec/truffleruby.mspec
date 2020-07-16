@@ -46,6 +46,7 @@ class MSpecScript
     spec/ruby/library/etc
     spec/ruby/library/openssl
     spec/ruby/library/rbconfig/sizeof
+    spec/ruby/library/ripper
     spec/ruby/library/syslog
     spec/ruby/library/yaml
     spec/ruby/library/zlib

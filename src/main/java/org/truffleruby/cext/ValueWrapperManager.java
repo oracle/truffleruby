@@ -165,7 +165,7 @@ public class ValueWrapperManager {
     private static final int BLOCK_BYTE_SIZE = BLOCK_SIZE << TAG_BITS;
     private static final long BLOCK_MASK = -1L << BLOCK_BITS;
     private static final long OFFSET_MASK = ~BLOCK_MASK;
-    private static final long ALLOCATION_BASE = 0x0badL << 48;
+    public static final long ALLOCATION_BASE = 0x0badL << 48;
 
     protected static class HandleBlockAllocator {
 
@@ -340,6 +340,10 @@ public class ValueWrapperManager {
         return handle != FALSE_HANDLE && (handle & TAG_MASK) == OBJECT_TAG;
     }
 
+    public static boolean isMallocAligned(long handle) {
+        return handle != FALSE_HANDLE && (handle & 0b111) == 0;
+    }
+
     public static boolean isWrapper(Object value) {
         return value instanceof ValueWrapper;
     }
@@ -412,4 +416,21 @@ public class ValueWrapperManager {
             return wrapNode.execute(arguments[0]);
         }
     }
+
+    @ExportLibrary(InteropLibrary.class)
+    @GenerateUncached
+    public static class IsNativeObjectFunction implements TruffleObject {
+
+        @ExportMessage
+        protected boolean isExecutable() {
+            return true;
+        }
+
+        @ExportMessage
+        protected Object execute(Object[] arguments,
+                @Cached IsNativeObjectNode isNativeObjectNode) {
+            return isNativeObjectNode.execute(arguments[0]);
+        }
+    }
+
 }
