@@ -45,7 +45,7 @@ public abstract class ModuleOperations {
     @TruffleBoundary
     public static boolean includesModule(DynamicObject module, DynamicObject other) {
         assert RubyGuards.isRubyModule(module);
-        //assert RubyGuards.isRubyModule(other);
+        assert RubyGuards.isRubyModule(other);
 
         for (DynamicObject ancestor : Layouts.MODULE.getFields(module).ancestors()) {
             if (ancestor == other) {
