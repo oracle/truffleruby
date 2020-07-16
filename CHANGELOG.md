@@ -69,6 +69,10 @@ Compatibility:
 * Make the top-level exception handler more compatible with MRI (#2047).
 * Implemented `rb_enc_codelen`.
 
+Changes:
+
+* RubyGems gem commands updated to use the `--no-document` option by default.
+
 Performance:
 
 * Enable lazy translation from the parser AST to the Truffle AST for user code by default. This should improve application startup time (#1992).
