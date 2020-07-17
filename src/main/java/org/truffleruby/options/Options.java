@@ -261,8 +261,6 @@ public class Options {
     public final boolean METHODMISSING_ALWAYS_CLONE;
     /** --method-missing-always-inline=INLINE_DEFAULT */
     public final boolean METHODMISSING_ALWAYS_INLINE;
-    /** --call-with-block-always-clone=CLONE_DEFAULT */
-    public final boolean CALL_WITH_BLOCK_ALWAYS_CLONE;
     /** --regexp-instrument-creation=false */
     public final boolean REGEXP_INSTRUMENT_CREATION;
     /** --regexp-instrument-match=false */
@@ -400,7 +398,6 @@ public class Options {
         YIELD_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.YIELD_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.YIELD_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
         METHODMISSING_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         METHODMISSING_ALWAYS_INLINE = options.hasBeenSet(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) ? options.get(OptionsCatalog.METHODMISSING_ALWAYS_INLINE_KEY) : INLINE_DEFAULT;
-        CALL_WITH_BLOCK_ALWAYS_CLONE = options.hasBeenSet(OptionsCatalog.CALL_WITH_BLOCK_ALWAYS_CLONE_KEY) ? options.get(OptionsCatalog.CALL_WITH_BLOCK_ALWAYS_CLONE_KEY) : CLONE_DEFAULT;
         REGEXP_INSTRUMENT_CREATION = options.get(OptionsCatalog.REGEXP_INSTRUMENT_CREATION_KEY);
         REGEXP_INSTRUMENT_MATCH = options.get(OptionsCatalog.REGEXP_INSTRUMENT_MATCH_KEY);
         METRICS_TIME_PARSING_FILE = options.get(OptionsCatalog.METRICS_TIME_PARSING_FILE_KEY);
@@ -651,8 +648,6 @@ public class Options {
                 return METHODMISSING_ALWAYS_CLONE;
             case "ruby.method-missing-always-inline":
                 return METHODMISSING_ALWAYS_INLINE;
-            case "ruby.call-with-block-always-clone":
-                return CALL_WITH_BLOCK_ALWAYS_CLONE;
             case "ruby.regexp-instrument-creation":
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp-instrument-match":
