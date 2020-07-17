@@ -61,4 +61,18 @@ EOS
     }
   end
 
+  it "AssertionError in another Thread is rethrown on the main Ruby Thread" do
+    code = <<-RUBY
+    Thread.new do
+      Truffle::Debug.throw_assertion_error('custom_assertion_error_message')
+    end
+    sleep
+    RUBY
+
+    out = ruby_exe(code, args: "2>&1")
+    $?.exitstatus.should == 1
+    out.should.include?('terminated with internal error')
+    out.should.include?('Caused by:')
+    out.should.include?('custom_assertion_error_message (AssertionError)')
+  end
 end
