@@ -328,20 +328,26 @@ public class ThreadManager {
             // Handlers in the same order as in FiberManager
         } catch (KillException e) {
             setThreadValue(context, thread, Nil.INSTANCE);
-        } catch (ExitException e) {
-            rethrowOnMainThread(currentNode, e);
-            setThreadValue(context, thread, Nil.INSTANCE);
         } catch (RaiseException e) {
             setException(context, thread, e.getException(), currentNode);
         } catch (DynamicReturnException e) {
             setException(context, thread, context.getCoreExceptions().unexpectedReturn(currentNode), currentNode);
+        } catch (ExitException e) {
+            rethrowOnMainThread(currentNode, e);
+            setThreadValue(context, thread, Nil.INSTANCE);
+        } catch (Throwable e) {
+            final String message = StringUtils
+                    .format("%s terminated with internal error:", Thread.currentThread().getName());
+            final RuntimeException runtimeException = new RuntimeException(message, e);
+            rethrowOnMainThread(currentNode, runtimeException);
+            setThreadValue(context, thread, Nil.INSTANCE);
         } finally {
             assert Layouts.THREAD.getValue(thread) != null || Layouts.THREAD.getException(thread) != null;
             cleanup(thread, Thread.currentThread());
         }
     }
 
-    private void rethrowOnMainThread(Node currentNode, ExitException e) {
+    private void rethrowOnMainThread(Node currentNode, RuntimeException e) {
         context.getSafepointManager().pauseRubyThreadAndExecute(
                 getRootThread(),
                 currentNode,
