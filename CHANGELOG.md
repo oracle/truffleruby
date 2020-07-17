@@ -1,3 +1,17 @@
+# 20.3.0
+
+New features:
+
+
+Bug fixes:
+
+
+Compatibility:
+
+
+Performance:
+
+
 # 20.2.0
 
 New features:
@@ -66,11 +80,10 @@ Compatibility:
 * Implemented `Digest::Instance#new` (#2040).
 * Implemented `ONIGENC_MBC_CASE_FOLD`.
 * Fixed `Thread#raise` to call the exception class' constructor with no arguments when given no message (#2045).
-* Fixed `refine + super` compatibility (#2039, @ssnickolay)
+* Fixed `refine + super` compatibility (#2039, #2048, @ssnickolay)
 * Make the top-level exception handler more compatible with MRI (#2047).
 * Implemented `rb_enc_codelen`.
 * Implemented `Ripper` by using the C extension (#1585).
-* Fixed `refine + super` compatibility (#2039, #2048, @ssnickolay)
 
 Changes:
 
