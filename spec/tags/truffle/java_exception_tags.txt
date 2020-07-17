@@ -1,0 +1,1 @@
+slow:Java exceptions AssertionError in another Thread is rethrown on the main Ruby Thread
