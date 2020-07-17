@@ -72,6 +72,10 @@ Compatibility:
 * Implemented `Ripper` by using the C extension (#1585).
 * Fixed `refine + super` compatibility (#2039, #2048, @ssnickolay)
 
+Changes:
+
+* RubyGems gem commands updated to use the `--no-document` option by default.
+
 Performance:
 
 * Enable lazy translation from the parser AST to the Truffle AST for user code by default. This should improve application startup time (#1992).

@@ -21,4 +21,11 @@ module Gem
   # TruffleRuby has a different ABI and cannot reuse gems precompiled for MRI.
   # See https://github.com/rubygems/rubygems/issues/2945
   Gem.platforms = [Gem::Platform::RUBY]
+
+  def self.platform_defaults
+    # disable documentation by default as it takes a significant amount of time for installing gems and is rarely used
+    {
+        'gem' => '--no-document'
+    }
+  end
 end
