@@ -1,1 +1,2 @@
 slow:The -r command line option requires the specified file
+slow:The -r command line option requires the file before parsing the main script
