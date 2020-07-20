@@ -42,13 +42,12 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
@@ -61,10 +60,13 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "BasicObject", isClass = true)
@@ -250,18 +252,29 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         protected long objectID(DynamicObject object,
-                @Cached ReadObjectFieldNode readObjectIdNode,
-                @Cached WriteObjectFieldNode writeObjectIdNode,
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
-            final long id = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+            final long id = readObjectID(object, objectLibrary);
 
             if (id == 0L) {
-                final long newId = context.getObjectSpaceManager().getNextObjectID();
-                // NOTE: this synchronizes if the object is shared
-                writeObjectIdNode.write(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
-                return newId;
+                if (objectLibrary.isShared(object)) {
+                    synchronized (object) {
+                        final long existingID = readObjectID(object, objectLibrary);
+                        if (existingID != 0L) {
+                            return existingID;
+                        } else {
+                            final long newId = context.getObjectSpaceManager().getNextObjectID();
+                            objectLibrary.put(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
+                            return newId;
+                        }
+                    }
+                } else {
+                    final long newId = context.getObjectSpaceManager().getNextObjectID();
+                    objectLibrary.put(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
+                    return newId;
+                }
             }
 
             return id;
@@ -275,6 +288,18 @@ public abstract class BasicObjectNodes {
         @TruffleBoundary
         private int hashCode(Object object) {
             return object.hashCode();
+        }
+
+        private long readObjectID(DynamicObject object, DynamicObjectLibrary objectLibrary) {
+            try {
+                return objectLibrary.getLongOrDefault(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+            } catch (UnexpectedResultException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
+
+        protected int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().INSTANCE_VARIABLE_CACHE;
         }
     }
 
