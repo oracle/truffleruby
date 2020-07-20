@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.graalvm.options.OptionDescriptor;
-import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -106,18 +105,25 @@ public abstract class TruffleBootNodes {
         @Child TopLevelRaiseHandler topLevelRaiseHandler = new TopLevelRaiseHandler();
         @Child CallDispatchHeadNode checkSyntax = CallDispatchHeadNode.createPrivate();
         @Child IndirectCallNode callNode = IndirectCallNode.create();
+        @Child CallDispatchHeadNode requireNode = CallDispatchHeadNode.createPrivate();
         @Child MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
         protected int main(DynamicObject kind, DynamicObject toExecute) {
             return topLevelRaiseHandler.execute(() -> {
-                setArgvGlobals(makeStringNode);
+                setArgvGlobals();
 
+                // Need to set $0 before loading required libraries
+                // Also, a non-existing main script file errors out before loading required libraries
                 final RubySource source = loadMainSourceSettingDollarZero(
-                        makeStringNode,
                         StringOperations.getString(kind),
                         StringOperations.getString(toExecute).intern()); //intern() to improve footprint
+
+                // Load libraries required from the command line (-r LIBRARY)
+                for (String requiredLibrary : getContext().getOptions().REQUIRED_LIBRARIES) {
+                    requireNode.call(coreLibrary().mainObject, "require", utf8(requiredLibrary));
+                }
 
                 if (getContext().getOptions().SYNTAX_CHECK) {
                     checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
@@ -142,7 +148,7 @@ public abstract class TruffleBootNodes {
             });
         }
 
-        private void setArgvGlobals(MakeStringNode makeStringNode) {
+        private void setArgvGlobals() {
             if (getContext().getOptions().ARGV_GLOBALS) {
                 String[] global_values = getContext().getOptions().ARGV_GLOBAL_VALUES;
                 assert global_values.length % 2 == 0;
@@ -150,9 +156,7 @@ public abstract class TruffleBootNodes {
                     String key = global_values[i];
                     String value = global_values[i + 1];
 
-                    getContext().getCoreLibrary().globalVariables.define(
-                            "$" + key,
-                            makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                    getContext().getCoreLibrary().globalVariables.define("$" + key, utf8(value));
                 }
 
                 String[] global_flags = getContext().getOptions().ARGV_GLOBAL_FLAGS;
@@ -162,8 +166,7 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private RubySource loadMainSourceSettingDollarZero(MakeStringNode makeStringNode, String kind,
-                String toExecute) {
+        private RubySource loadMainSourceSettingDollarZero(String kind, String toExecute) {
             final RubySource source;
             final Object dollarZeroValue;
             try {
@@ -171,22 +174,21 @@ public abstract class TruffleBootNodes {
                     case "FILE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
-                        dollarZeroValue = makeStringNode
-                                .executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        dollarZeroValue = utf8(toExecute);
                     }
                         break;
 
                     case "STDIN": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromStandardIn(this, "-");
-                        dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                        dollarZeroValue = utf8("-");
                     }
                         break;
 
                     case "INLINE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromCommandLineArgument(toExecute);
-                        dollarZeroValue = makeStringNode.executeMake("-e", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                        dollarZeroValue = utf8("-e");
                     }
                         break;
 
@@ -199,6 +201,10 @@ public abstract class TruffleBootNodes {
 
             getContext().getCoreLibrary().globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
             return source;
+        }
+
+        private DynamicObject utf8(String string) {
+            return makeStringNode.executeMake(string, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
     }
