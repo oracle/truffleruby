@@ -33,6 +33,7 @@ import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
@@ -52,9 +53,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.HiddenKey;
-import com.oracle.truffle.api.object.Property;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule("Truffle::Type")
@@ -125,18 +125,16 @@ public abstract class TypeNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject instanceVariables(DynamicObject object) {
-            Shape shape = object.getShape();
-            List<String> names = new ArrayList<>();
+            final List<String> names = new ArrayList<>();
 
-            for (Property property : shape.getProperties()) {
-                Object name = property.getKey();
+            for (Object name : DynamicObjectLibrary.getUncached().getKeyArray(object)) {
                 if (name instanceof String) {
                     names.add((String) name);
                 }
             }
 
             final int size = names.size();
-            final String[] sortedNames = names.toArray(new String[size]);
+            final String[] sortedNames = names.toArray(StringUtils.EMPTY_STRING_ARRAY);
             Arrays.sort(sortedNames);
 
             final Object[] nameSymbols = new Object[size];
