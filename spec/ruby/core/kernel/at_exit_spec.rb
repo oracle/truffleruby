@@ -54,6 +54,14 @@ describe "Kernel.at_exit" do
     result.should == "first\nlast\n"
     $?.exitstatus.should == 43
   end
+
+  it "runs at_exit handlers even if the main script fails to parse" do
+    script = fixture(__FILE__, "at_exit.rb")
+    result = ruby_exe('{', options: "-r#{script}", args: "2>&1")
+    $?.should_not.success?
+    result.should.include?("at_exit ran\n")
+    result.should.include?("syntax error")
+  end
 end
 
 describe "Kernel#at_exit" do
