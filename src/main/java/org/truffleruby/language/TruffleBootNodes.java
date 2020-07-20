@@ -14,9 +14,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.graalvm.options.OptionDescriptor;
-import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -25,12 +23,13 @@ import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
 import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.loader.MainLoader;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -39,6 +38,7 @@ import org.truffleruby.parser.RubySource;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.options.OptionsCatalog;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleFile;
@@ -57,7 +57,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "ruby_home", onSingleton = true)
     public abstract static class RubyHomeNode extends CoreMethodNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -102,67 +102,53 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "main", onSingleton = true, required = 2)
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
+        @Child TopLevelRaiseHandler topLevelRaiseHandler = new TopLevelRaiseHandler();
+        @Child CallDispatchHeadNode checkSyntax = CallDispatchHeadNode.createPrivate();
+        @Child IndirectCallNode callNode = IndirectCallNode.create();
+        @Child CallDispatchHeadNode requireNode = CallDispatchHeadNode.createPrivate();
+        @Child MakeStringNode makeStringNode = MakeStringNode.create();
+
         @TruffleBoundary
         @Specialization
-        protected int main(DynamicObject kind, DynamicObject toExecute,
-                @Cached IndirectCallNode callNode,
-                @Cached("createPrivate()") CallDispatchHeadNode checkSyntax,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+        protected int main(DynamicObject kind, DynamicObject toExecute) {
+            return topLevelRaiseHandler.execute(() -> {
+                setArgvGlobals();
 
-            setArgvGlobals(makeStringNode);
-
-            final RubySource source;
-
-            try {
-                //intern() to improve footprint
-                source = loadMainSourceSettingDollarZero(
-                        makeStringNode,
+                // Need to set $0 before loading required libraries
+                // Also, a non-existing main script file errors out before loading required libraries
+                final RubySource source = loadMainSourceSettingDollarZero(
                         StringOperations.getString(kind),
-                        StringOperations.getString(toExecute).intern());
-            } catch (RaiseException e) {
-                getContext().getDefaultBacktraceFormatter().printRubyExceptionMessageOnEnvStderr(e.getException());
-                return 1;
-            }
+                        StringOperations.getString(toExecute).intern()); //intern() to improve footprint
 
-            if (getContext().getOptions().SYNTAX_CHECK) {
-                try {
-                    return (int) checkSyntax.call(
-                            getContext().getCoreLibrary().truffleBootModule,
-                            "check_syntax",
-                            source);
-                } catch (RaiseException e) {
-                    getContext().getDefaultBacktraceFormatter().printRubyExceptionMessageOnEnvStderr(e.getException());
-                    return 1;
+                // Load libraries required from the command line (-r LIBRARY)
+                for (String requiredLibrary : getContext().getOptions().REQUIRED_LIBRARIES) {
+                    requireNode.call(coreLibrary().mainObject, "require", utf8(requiredLibrary));
                 }
-            } else {
-                final RubyRootNode rootNode;
 
-                try {
-                    rootNode = getContext().getCodeLoader().parse(
+                if (getContext().getOptions().SYNTAX_CHECK) {
+                    checkSyntax.call(coreLibrary().truffleBootModule, "check_syntax", source);
+                } else {
+                    final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                             source,
                             ParserContext.TOP_LEVEL_FIRST,
                             null,
                             null,
                             true,
                             null);
-                } catch (RaiseException e) {
-                    getContext().getDefaultBacktraceFormatter().printRubyExceptionMessageOnEnvStderr(e.getException());
-                    return 1;
+
+                    final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
+                            ParserContext.TOP_LEVEL_FIRST,
+                            DeclarationContext.topLevel(getContext()),
+                            rootNode,
+                            null,
+                            coreLibrary().mainObject);
+
+                    deferredCall.call(callNode);
                 }
-
-                final CodeLoader.DeferredCall deferredCall = getContext().getCodeLoader().prepareExecute(
-                        ParserContext.TOP_LEVEL_FIRST,
-                        DeclarationContext.topLevel(getContext()),
-                        rootNode,
-                        null,
-                        coreLibrary().mainObject);
-
-                // The TopLevelRaiseHandler returns an int
-                return (int) deferredCall.call(callNode);
-            }
+            });
         }
 
-        private void setArgvGlobals(StringNodes.MakeStringNode makeStringNode) {
+        private void setArgvGlobals() {
             if (getContext().getOptions().ARGV_GLOBALS) {
                 String[] global_values = getContext().getOptions().ARGV_GLOBAL_VALUES;
                 assert global_values.length % 2 == 0;
@@ -170,9 +156,7 @@ public abstract class TruffleBootNodes {
                     String key = global_values[i];
                     String value = global_values[i + 1];
 
-                    getContext().getCoreLibrary().globalVariables.define(
-                            "$" + key,
-                            makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN));
+                    getContext().getCoreLibrary().globalVariables.define("$" + key, utf8(value));
                 }
 
                 String[] global_flags = getContext().getOptions().ARGV_GLOBAL_FLAGS;
@@ -182,8 +166,7 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private RubySource loadMainSourceSettingDollarZero(StringNodes.MakeStringNode makeStringNode, String kind,
-                String toExecute) {
+        private RubySource loadMainSourceSettingDollarZero(String kind, String toExecute) {
             final RubySource source;
             final Object dollarZeroValue;
             try {
@@ -191,22 +174,21 @@ public abstract class TruffleBootNodes {
                     case "FILE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromFile(getContext().getEnv(), this, toExecute);
-                        dollarZeroValue = makeStringNode
-                                .executeMake(toExecute, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+                        dollarZeroValue = utf8(toExecute);
                     }
                         break;
 
                     case "STDIN": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromStandardIn(this, "-");
-                        dollarZeroValue = makeStringNode.executeMake("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                        dollarZeroValue = utf8("-");
                     }
                         break;
 
                     case "INLINE": {
                         final MainLoader mainLoader = new MainLoader(getContext());
                         source = mainLoader.loadFromCommandLineArgument(toExecute);
-                        dollarZeroValue = makeStringNode.executeMake("-e", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+                        dollarZeroValue = utf8("-e");
                     }
                         break;
 
@@ -221,12 +203,16 @@ public abstract class TruffleBootNodes {
             return source;
         }
 
+        private DynamicObject utf8(String string) {
+            return makeStringNode.executeMake(string, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
+        }
+
     }
 
     @CoreMethod(names = "original_argv", onSingleton = true)
     public abstract static class OriginalArgvNode extends CoreMethodNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -249,7 +235,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "extra_load_paths", onSingleton = true)
     public abstract static class ExtraLoadPathsNode extends CoreMethodNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -269,7 +255,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "source_of_caller", onSingleton = true)
     public abstract static class SourceOfCallerNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization
@@ -311,7 +297,7 @@ public abstract class TruffleBootNodes {
     @CoreMethod(names = "get_option", onSingleton = true, required = 1)
     public abstract static class GetOptionNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
+        @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(optionName)")
@@ -387,7 +373,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected Object toolchainExecutable(RubySymbol executable,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final String name = executable.getString();
             final Toolchain toolchain = getToolchain(getContext(), this);
             final TruffleFile path = toolchain.getToolPath(name);
@@ -408,7 +394,7 @@ public abstract class TruffleBootNodes {
         @TruffleBoundary
         @Specialization
         protected Object toolchainPaths(RubySymbol pathName,
-                @Cached StringNodes.MakeStringNode makeStringNode) {
+                @Cached MakeStringNode makeStringNode) {
             final String name = pathName.getString();
             final Toolchain toolchain = getToolchain(getContext(), this);
             final List<TruffleFile> paths = toolchain.getPaths(name);

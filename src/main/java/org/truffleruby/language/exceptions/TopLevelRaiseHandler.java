@@ -10,37 +10,28 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.core.kernel.AtExitManager;
-import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 
-public class TopLevelRaiseHandler extends RubyContextSourceNode {
+public class TopLevelRaiseHandler extends RubyContextNode {
 
-    @Child private RubyNode body;
-    @Child private IntegerCastNode integerCastNode;
     @Child private SetExceptionVariableNode setExceptionVariableNode;
 
-    public TopLevelRaiseHandler(RubyNode body) {
-        this.body = body;
-    }
-
-    @Override
-    public Object execute(VirtualFrame frame) {
+    public int execute(Runnable body) {
         int exitCode = 0;
         DynamicObject caughtException = null;
 
         // Execute the main script
         try {
-            body.execute(frame);
+            body.run();
         } catch (RaiseException e) {
             caughtException = e.getException();
             exitCode = statusFromException(caughtException);
@@ -60,7 +51,10 @@ public class TopLevelRaiseHandler extends RubyContextSourceNode {
 
             if (caughtException != null) {
                 // print the main script exception now
-                AtExitManager.handleAtExitException(getContext(), caughtException);
+                if (!AtExitManager.isSilentException(getContext(), caughtException)) {
+                    getContext().getDefaultBacktraceFormatter().printTopLevelRubyExceptionOnEnvStderr(caughtException);
+                }
+
                 handleSignalException(caughtException);
             }
         } catch (ExitException e) {
@@ -73,22 +67,14 @@ public class TopLevelRaiseHandler extends RubyContextSourceNode {
 
     private int statusFromException(DynamicObject exception) {
         if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().systemExitClass) {
-            return castToInt(ReadObjectFieldNodeGen.getUncached().execute(exception, "@status", null));
+            final Object status = ReadObjectFieldNodeGen.getUncached().execute(exception, "@status", null);
+            return IntegerCastNodeGen.getUncached().executeCastInt(status);
         } else {
             return 1;
         }
     }
 
-    private int castToInt(Object value) {
-        if (integerCastNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            integerCastNode = insert(IntegerCastNode.create());
-        }
-
-        return integerCastNode.executeCastInt(value);
-    }
-
-    public void setLastException(DynamicObject exception) {
+    private void setLastException(DynamicObject exception) {
         if (setExceptionVariableNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             setExceptionVariableNode = insert(new SetExceptionVariableNode());

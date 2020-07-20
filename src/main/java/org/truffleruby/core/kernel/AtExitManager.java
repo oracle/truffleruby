@@ -81,13 +81,14 @@ public class AtExitManager {
         return handlers;
     }
 
-    @TruffleBoundary
-    public static void handleAtExitException(RubyContext context, DynamicObject rubyException) {
-        DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
-        if (logicalClass == context.getCoreLibrary().systemExitClass ||
-                logicalClass == context.getCoreLibrary().signalExceptionClass) {
-            // Do not show the backtrace for these
-        } else {
+    public static boolean isSilentException(RubyContext context, DynamicObject rubyException) {
+        final DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
+        return logicalClass == context.getCoreLibrary().systemExitClass ||
+                logicalClass == context.getCoreLibrary().signalExceptionClass;
+    }
+
+    private static void handleAtExitException(RubyContext context, DynamicObject rubyException) {
+        if (!isSilentException(context, rubyException)) {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("", rubyException);
         }
     }

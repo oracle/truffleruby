@@ -189,8 +189,10 @@ module Utilities
     @ruby_name ||= ENV['RUBY_BIN'] || 'jvm'
     ruby_launcher = if @ruby_name == 'ruby'
                       ENV['RBENV_ROOT'] ? `rbenv which ruby`.chomp : which('ruby')
-                    elsif File.executable?(@ruby_name)
+                    elsif File.executable?(@ruby_name) and File.file?(@ruby_name)
                       @ruby_name
+                    elsif @ruby_name.start_with?('/') and File.directory?(@ruby_name)
+                      "#{@ruby_name}/bin/ruby"
                     else
                       graalvm = "#{TRUFFLERUBY_DIR}/mxbuild/truffleruby-#{@ruby_name}"
                       "#{graalvm}/#{language_dir(graalvm)}/ruby/bin/ruby"
@@ -576,7 +578,8 @@ module Commands
           --use|-u [RUBY_SELECTOR]  Specifies which Ruby interpreter should be used in a given command. jt will apply
                                     options based on the given Ruby interpreter. Allowed values are:
                                     * name given to the --name option during build
-                                    * absolute path of a Ruby interpreter
+                                    * absolute path to a Ruby interpreter executable
+                                    * prefix of a Ruby interpreter
                                     * 'ruby' which uses the current Ruby executable in the PATH
                                     Default value is --use jvm, therefore all commands run on truffleruby-jvm by default.
                                     The default can be changed with `export RUBY_BIN=RUBY_SELECTOR`

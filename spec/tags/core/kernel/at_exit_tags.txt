@@ -5,3 +5,4 @@ slow:Kernel.at_exit gives access to the last raised exception
 slow:Kernel.at_exit both exceptions in at_exit and in the main script are printed
 slow:Kernel.at_exit decides the exit status if both at_exit and the main script raise SystemExit
 slow:Kernel.at_exit runs all at_exit even if some raise exceptions
+slow:Kernel.at_exit runs at_exit handlers even if the main script fails to parse

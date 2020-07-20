@@ -44,7 +44,6 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.aot.ParserCache;
 import org.truffleruby.collections.Memo;
-import org.truffleruby.core.LoadRequiredLibrariesNode;
 import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
@@ -60,7 +59,6 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.WhileNode;
-import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CatchForMethodNode;
@@ -336,22 +334,19 @@ public class TranslatorDriver {
         // Top-level exception handling
 
         if (parserContext == ParserContext.TOP_LEVEL_FIRST) {
-            truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(
-                    new LoadRequiredLibrariesNode(),
-                    new SetTopLevelBindingNode(),
-                    truffleNode));
+            truffleNode = Translator
+                    .sequence(sourceIndexLength, Arrays.asList(
+                            new SetTopLevelBindingNode(),
+                            truffleNode));
 
             if (node.hasEndPosition()) {
                 truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(
                         new DataNode(node.getEndPosition()),
                         truffleNode));
             }
-
-            truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
-            truffleNode = new TopLevelRaiseHandler(truffleNode);
-        } else {
-            truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
         }
+
+        truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
 
         return new RubyRootNode(
                 context,

@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.thread;
 
-import java.io.File;
-
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -22,14 +20,15 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
+import org.truffleruby.language.backtrace.BacktraceFormatter;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
 
 @CoreModule(value = "Thread::Backtrace::Location", isClass = true)
 public class ThreadBacktraceLocationNodes {
@@ -56,8 +55,9 @@ public class ThreadBacktraceLocationNodes {
             if (sourceSection == null) {
                 return coreStrings().UNKNOWN.createInstance();
             } else {
-                final String path = RubyContext.getPath(sourceSection.getSource());
-                if (new File(path).isAbsolute()) { // A normal file
+                final Source source = sourceSection.getSource();
+                final String path = RubyContext.getPath(source);
+                if (source.getPath() != null) { // A normal file
                     final String canonicalPath = getContext().getFeatureLoader().canonicalize(path);
                     final Rope cachedRope = getContext()
                             .getRopeCache()
@@ -65,7 +65,7 @@ public class ThreadBacktraceLocationNodes {
                     return makeStringNode.fromRope(cachedRope);
                 } else { // eval()
                     return makeStringNode
-                            .fromRope(getContext().getPathToRopeCache().getCachedPath(sourceSection.getSource()));
+                            .fromRope(getContext().getPathToRopeCache().getCachedPath(source));
                 }
             }
         }
