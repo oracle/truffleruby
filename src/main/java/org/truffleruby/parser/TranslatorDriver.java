@@ -60,7 +60,6 @@ import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.WhileNode;
-import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
 import org.truffleruby.language.locals.WriteLocalVariableNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.CatchForMethodNode;
@@ -346,12 +345,9 @@ public class TranslatorDriver {
                         new DataNode(node.getEndPosition()),
                         truffleNode));
             }
-
-            truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
-            truffleNode = new TopLevelRaiseHandler(truffleNode);
-        } else {
-            truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
         }
+
+        truffleNode = new ExceptionTranslatingNode(truffleNode, UnsupportedOperationBehavior.TYPE_ERROR);
 
         return new RubyRootNode(
                 context,

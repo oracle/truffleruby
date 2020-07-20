@@ -88,20 +88,14 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printRubyExceptionMessageOnEnvStderr(DynamicObject rubyException) {
-        final PrintStream printer = new PrintStream(context.getEnv().err(), true);
-        final Object message = context.send(
-                context.getCoreLibrary().truffleExceptionOperationsModule,
-                "message_and_class",
-                rubyException,
-                false);
-        final Object messageString;
-        if (RubyGuards.isRubyString(message)) {
-            messageString = StringOperations.getString((DynamicObject) message);
+    public void printTopLevelRubyExceptionOnEnvStderr(DynamicObject rubyException) {
+        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
+        if (backtrace != null && backtrace.getStackTrace().length == 0) {
+            // An Exception with a non-null empty stacktrace, so an Exception from Truffle::Boot.main
+            printRubyExceptionOnEnvStderr("truffleruby: ", rubyException);
         } else {
-            messageString = message.toString();
+            printRubyExceptionOnEnvStderr("", rubyException);
         }
-        printer.println("truffleruby: " + messageString);
     }
 
     @TruffleBoundary

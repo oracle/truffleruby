@@ -20,10 +20,9 @@ module Truffle::Boot
   def self.check_syntax(source_or_file)
     inner_check_syntax source_or_file
     STDOUT.puts 'Syntax OK'
-    0
   rescue SyntaxError => e
     STDERR.puts "SyntaxError in #{e.message}"
-    1
+    raise e
   end
   private_class_method :check_syntax
 
