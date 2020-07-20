@@ -10,14 +10,15 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -134,7 +135,7 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
             final String name = StringUtils.format(
                     "#<Class:#<%s:0x%x>>",
                     Layouts.MODULE.getFields(logicalClass).getName(),
-                    ObjectIDOperations.verySlowGetObjectID(getContext(), object));
+                    ObjectIDNode.getUncached().execute(object));
 
             final DynamicObject singletonClass = ClassNodes.createSingletonClassOfObject(
                     getContext(),

@@ -186,7 +186,13 @@ public abstract class BasicObjectNodes {
             return BasicObjectNodesFactory.ObjectIDNodeFactory.create(null);
         }
 
-        public abstract Object executeObjectID(Object value);
+        public static ObjectIDNode getUncached() {
+            return BasicObjectNodesFactory.ObjectIDNodeFactory.getUncached();
+        }
+
+        public abstract Object execute(Object value);
+
+        public abstract long execute(DynamicObject value);
 
         @Specialization(guards = "isNil(nil)")
         protected long objectIDNil(Object nil) {
@@ -251,8 +257,9 @@ public abstract class BasicObjectNodes {
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             final long id = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
 
-            if (id == 0) {
+            if (id == 0L) {
                 final long newId = context.getObjectSpaceManager().getNextObjectID();
+                // NOTE: this synchronizes if the object is shared
                 writeObjectIdNode.write(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
                 return newId;
             }

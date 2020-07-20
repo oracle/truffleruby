@@ -1977,7 +1977,7 @@ public abstract class KernelNodes {
                 @Cached ToHexStringNode toHexStringNode,
                 @Cached PropagateTaintNode propagateTaintNode) {
             String className = Layouts.MODULE.getFields(classNode.executeLogicalClass(self)).getName();
-            Object id = objectIDNode.executeObjectID(self);
+            Object id = objectIDNode.execute(self);
             String hexID = toHexStringNode.executeToHexString(id);
 
             final DynamicObject string = makeStringNode.executeMake(

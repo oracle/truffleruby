@@ -18,7 +18,6 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
@@ -92,17 +91,11 @@ public class RubyObjectMessages {
 
     // region Identity
     /** Like {@link org.truffleruby.core.hash.HashNode} but simplified since
-     * {@link org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode} returns only long or Bignum. */
+     * {@link org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode} for DynamicObject can only return long. */
     @ExportMessage
     protected static int identityHashCode(DynamicObject receiver,
-            @Cached BasicObjectNodes.ObjectIDNode objectIDNode,
-            @Exclusive @Cached ConditionProfile longProfile) {
-        final Object hashValue = objectIDNode.executeObjectID(receiver);
-        if (longProfile.profile(hashValue instanceof Long)) {
-            return (int) (long) hashValue;
-        } else {
-            return BigIntegerOps.hashCode(hashValue);
-        }
+            @Cached BasicObjectNodes.ObjectIDNode objectIDNode) {
+        return (int) objectIDNode.execute(receiver);
     }
 
     @ExportMessage

@@ -79,7 +79,7 @@ public class HashNode extends RubyContextNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             objectIDNode = insert(ObjectIDNode.create());
         }
-        return objectIDNode.executeObjectID(object);
+        return objectIDNode.execute(object);
     }
 
 }
