@@ -36,157 +36,225 @@
 
 module Truffle
   class Splitter
-    def self.split_characters(string, pattern, limit, tail_empty)
-      if limit
-        string.chars.take(limit - 1) << (string.size > (limit - 1) ? string[(limit - 1)..-1] : '')
-      else
-        ret = string.chars.to_a
-        # Use #byteslice because it returns the right class and taints
-        # automatically. This is just appending a "", which is this
-        # strange protocol if a negative limit is passed in
-        ret << string.byteslice(0,0) if tail_empty
-        ret
-      end
-    end
+    DEFAULT_PATTERN = ' '
 
-    def self.valid_encoding?(string)
-      raise ArgumentError, "invalid byte sequence in #{string.encoding.name}" unless string.valid_encoding?
-    end
+    class << self
+      def split(string, pattern, limit, &block)
+        # Odd edge case
+        return result(string, [], &block) if string.empty?
 
-    def self.split(string, pattern, limit)
-      # Odd edge case
-      return [] if string.empty?
+        tail_empty = false
 
-      tail_empty = false
-
-      if Primitive.undefined?(limit)
-        limited = false
-      else
-        limit = Primitive.rb_to_int limit
-
-        if limit > 0
-          return [string.dup] if limit == 1
-          limited = true
-        else
-          if limit < 0
-            tail_empty = true
-          end
+        if Primitive.undefined?(limit)
           limited = false
-        end
-      end
-
-      pattern ||= ($; || ' ')
-
-      if pattern == ' '
-        if limited
-          lim = limit
-        elsif tail_empty
-          lim = -1
         else
-          lim = 0
-        end
+          limit = Primitive.rb_to_int limit
 
-        return Primitive.string_awk_split string, lim
-      elsif pattern.kind_of?(Regexp)
-      else
-        pattern = StringValue(pattern) unless pattern.kind_of?(String)
-
-        valid_encoding?(string)
-        valid_encoding?(pattern)
-
-        trim_end = !tail_empty || limit == 0
-
-        unless limited
-          if pattern.empty?
-            if trim_end
-              return string.chars.to_a
-            end
+          if limit > 0
+            return [string.dup] if limit == 1
+            limited = true
           else
-            return split_on_string(string, pattern, trim_end)
+            if limit < 0
+              tail_empty = true
+            end
+            limited = false
           end
         end
 
-        pattern = Regexp.new(Regexp.quote(pattern))
+        pattern ||= ($; || DEFAULT_PATTERN)
+
+        # SPLIT_TYPE_AWK
+        if pattern == DEFAULT_PATTERN
+          if limited
+            lim = limit
+          elsif tail_empty
+            lim = -1
+          else
+            lim = 0
+          end
+
+          return Primitive.string_awk_split string, lim, block
+        elsif pattern.kind_of?(Regexp)
+          # Handle SPLIT_TYPE_REGEXP below
+        else
+          pattern = StringValue(pattern) unless pattern.kind_of?(String)
+
+          valid_encoding?(string)
+          valid_encoding?(pattern)
+
+          unless limited
+            if pattern.empty?
+              unless tail_empty
+                return split_type_chars(string, false, false, &block)
+              end
+            else
+              return split_type_string(string, pattern, tail_empty, &block)
+            end
+          end
+
+          pattern = Regexp.new(Regexp.quote(pattern))
+        end
+
+        # Handle // as a special case.
+        if pattern.source.empty?
+          return split_type_chars(string, limited && limit, tail_empty, &block)
+        end
+
+        split_type_regexp(string, pattern, limited, limit, tail_empty, &block)
       end
 
-      # Handle // as a special case.
-      if pattern.source.empty?
-        return split_characters(string, pattern, limited && limit, tail_empty)
+      private
+
+      def valid_encoding?(string)
+        raise ArgumentError, "invalid byte sequence in #{string.encoding.name}" unless string.valid_encoding?
       end
 
-      start = 0
-      ret = []
+      def split_type_chars(string, limit, tail_empty, &block)
+        if limit
+          last = string.size > (limit - 1) ? string[(limit - 1)..-1] : empty_string(string)
 
-      last_match = nil
-      last_match_end = 0
+          if block_given?
+            string.each_char.each_with_index do |char, index|
+              break if index == limit - 1
+              block.call(char)
+            end
 
-      while match = pattern.match_from(string, start)
-        break if limited && limit - ret.size <= 1
+            block.call(last)
 
-        collapsed = match.collapsing?
+            string
+          else
+            string.chars.take(limit - 1) << last
+          end
+        else
+          if block_given?
+            string.each_char(&block)
 
-        unless collapsed && (match.byte_begin(0) == last_match_end)
-          ret << match.pre_match_from(last_match_end)
+            block.call(empty_string(string)) if tail_empty
 
-          # length > 1 means there are captures
-          if match.length > 1
-            ret.concat(match.captures.compact)
+            string
+          else
+            ret = string.chars.to_a
+
+            ret << empty_string(string) if tail_empty
+
+            ret
           end
         end
+      end
 
-        start = match.byte_end(0)
-        if collapsed
-          start += 1
+
+      def split_type_string(string, pattern, tail_empty, &block)
+        pos = 0
+        empty_count = 0
+
+        ret = []
+
+        pat_size = pattern.bytesize
+        str_size = string.bytesize
+
+        while pos < str_size
+          nxt = Primitive.find_string(string, pattern, pos)
+          break unless nxt
+
+          match_size = nxt - pos
+          empty_count = add_substring(string, ret, string.byteslice(pos, match_size), empty_count, &block)
+
+          pos = nxt + pat_size
         end
 
-        last_match = match
-        last_match_end = last_match.byte_end(0)
+        # No more separators, but we need to grab the last part still.
+        empty_count = add_substring(string, ret, string.byteslice(pos, str_size - pos), empty_count, &block)
+
+        if tail_empty
+          add_empty(string, ret, empty_count, &block)
+        end
+
+        result(string, ret, &block)
       end
 
-      if last_match
-        ret << last_match.post_match
-      elsif ret.empty?
-        ret << string.dup
+      def split_type_regexp(string, pattern, limited, limit, tail_empty, &block)
+        start = 0
+        ret = []
+        count = 0
+        empty_count = 0
+
+        last_match = nil
+        last_match_end = 0
+
+        while match = Truffle::RegexpOperations.match(pattern, string, start)
+          break if limited && limit - count <= 1
+
+          collapsed = Truffle::RegexpOperations.collapsing?(match)
+
+          unless collapsed && (match.byte_begin(0) == last_match_end)
+            substring = Truffle::RegexpOperations.pre_match_from(match, last_match_end)
+            empty_count = add_substring(string, ret, substring, empty_count, &block)
+
+            # length > 1 means there are captures
+            if match.length > 1
+              match.captures.compact.each do |capture|
+                empty_count = add_substring(string, ret, capture, empty_count, &block)
+              end
+            end
+
+            count += 1
+          end
+
+          start = match.byte_end(0)
+          if collapsed
+            start += 1
+          end
+
+          last_match = match
+          last_match_end = last_match.byte_end(0)
+        end
+
+        if last_match
+          empty_count = add_substring(string, ret, last_match.post_match, empty_count, &block)
+        elsif ret.empty?
+          empty_count = add_substring(string, ret, string.dup, empty_count, &block)
+        end
+
+        if tail_empty || (!Primitive.undefined?(limit) && limit > 0)
+          add_empty(string, ret, empty_count, &block)
+        end
+
+        result(string, ret, &block)
       end
 
-      # Trim from end
-      if Primitive.undefined?(limit) || limit == 0
-        while s = ret.at(-1) and s.empty?
-          ret.pop
+
+      def add_substring(string, array, substring, empty_count, &block)
+        return empty_count + 1 if substring.length == 0 # remember another one empty match
+
+        add_empty(string, array, empty_count, &block)
+
+        add_or_call(array, substring, &block)
+
+        0 # always release all empties
+      end
+
+      def add_empty(string, array, count, &block)
+        count.times { add_or_call(array, empty_string(string), &block) }
+      end
+
+      def add_or_call(array, element, &block)
+        if block_given?
+          block.call(element)
+        else
+          array << element
         end
       end
 
-      ret
-    end
-
-    def self.split_on_string(string, pattern, trim_end)
-      pos = 0
-
-      ret = []
-
-      pat_size = pattern.bytesize
-      str_size = string.bytesize
-
-      while pos < str_size
-        nxt = Primitive.find_string(string, pattern, pos)
-        break unless nxt
-
-        match_size = nxt - pos
-        ret << string.byteslice(pos, match_size)
-
-        pos = nxt + pat_size
+      def empty_string(original)
+        # Use #byteslice because it returns the right class and taints automatically.
+        original.byteslice(0,0)
       end
 
-      # No more separators, but we need to grab the last part still.
-      ret << string.byteslice(pos, str_size - pos)
+      def result(string, res, &block)
+        return string if block_given?
 
-      if trim_end
-        while s = ret.at(-1) and s.empty?
-          ret.pop
-        end
+        res
       end
-
-      ret
     end
   end
 end

@@ -278,8 +278,8 @@ class String
     ret
   end
 
-  def split(pattern=nil, limit=undefined)
-    Truffle::Splitter.split(self, pattern, limit)
+  def split(pattern=nil, limit=undefined, &block)
+    Truffle::Splitter.split(self, pattern, limit, &block)
   end
 
   def squeeze(*strings)
