@@ -89,7 +89,7 @@ module Truffle
       while match
         offset = match.byte_begin(0)
 
-        str = match.pre_match_from(last_end)
+        str = Truffle::RegexpOperations.pre_match_from(match, last_end)
         Primitive.string_append(ret, str) if str
 
         val = yield ret, match
@@ -98,7 +98,7 @@ module Truffle
         tainted ||= val.tainted?
         Primitive.string_append(ret, val)
 
-        if match.collapsing?
+        if Truffle::RegexpOperations.collapsing?(match)
           if (char = Primitive.string_find_character(orig, offset))
             offset += char.bytesize
           else
