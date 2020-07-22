@@ -139,7 +139,6 @@ public class OptionsCatalog {
     public static final OptionKey<Boolean> YIELD_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_CLONE_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> METHODMISSING_ALWAYS_INLINE_KEY = new OptionKey<>(INLINE_DEFAULT_KEY.getDefaultValue());
-    public static final OptionKey<Boolean> CALL_WITH_BLOCK_ALWAYS_CLONE_KEY = new OptionKey<>(CLONE_DEFAULT_KEY.getDefaultValue());
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_CREATION_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> REGEXP_INSTRUMENT_MATCH_KEY = new OptionKey<>(false);
     public static final OptionKey<Boolean> METRICS_TIME_PARSING_FILE_KEY = new OptionKey<>(false);
@@ -982,13 +981,6 @@ public class OptionsCatalog {
             .stability(OptionStability.EXPERIMENTAL)
             .build();
 
-    public static final OptionDescriptor CALL_WITH_BLOCK_ALWAYS_CLONE = OptionDescriptor
-            .newBuilder(CALL_WITH_BLOCK_ALWAYS_CLONE_KEY, "ruby.call-with-block-always-clone")
-            .help("Always clone calls with a literal block")
-            .category(OptionCategory.INTERNAL)
-            .stability(OptionStability.EXPERIMENTAL)
-            .build();
-
     public static final OptionDescriptor REGEXP_INSTRUMENT_CREATION = OptionDescriptor
             .newBuilder(REGEXP_INSTRUMENT_CREATION_KEY, "ruby.regexp-instrument-creation")
             .help("Enable instrumentation to gather stats on regexp creation")
@@ -1285,8 +1277,6 @@ public class OptionsCatalog {
                 return METHODMISSING_ALWAYS_CLONE;
             case "ruby.method-missing-always-inline":
                 return METHODMISSING_ALWAYS_INLINE;
-            case "ruby.call-with-block-always-clone":
-                return CALL_WITH_BLOCK_ALWAYS_CLONE;
             case "ruby.regexp-instrument-creation":
                 return REGEXP_INSTRUMENT_CREATION;
             case "ruby.regexp-instrument-match":
@@ -1429,7 +1419,6 @@ public class OptionsCatalog {
             YIELD_ALWAYS_INLINE,
             METHODMISSING_ALWAYS_CLONE,
             METHODMISSING_ALWAYS_INLINE,
-            CALL_WITH_BLOCK_ALWAYS_CLONE,
             REGEXP_INSTRUMENT_CREATION,
             REGEXP_INSTRUMENT_MATCH,
             METRICS_TIME_PARSING_FILE,

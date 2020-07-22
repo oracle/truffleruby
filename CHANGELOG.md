@@ -13,6 +13,7 @@ Compatibility:
 
 Performance:
 
+* Calls with a literal block are no longer always split but instead the decision is made by the Truffle splitting heuristic.
 
 # 20.2.0
 
