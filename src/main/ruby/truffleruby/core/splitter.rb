@@ -43,37 +43,26 @@ module Truffle
         # Odd edge case
         return result(string, [], &block) if string.empty?
 
-        tail_empty = false
-
         if Primitive.undefined?(limit)
-          limited = false
+          limit = 0
         else
           limit = Primitive.rb_to_int limit
+        end
 
-          if limit > 0
-            return [string.dup] if limit == 1
-            limited = true
-          else
-            if limit < 0
-              tail_empty = true
-            end
-            limited = false
-          end
+        if limit == 1
+          dup_string = string.dup
+
+          ret = add_or_call([], dup_string, &block)
+          return result(dup_string, ret, &block)
         end
 
         pattern ||= ($; || DEFAULT_PATTERN)
 
         # SPLIT_TYPE_AWK
         if pattern == DEFAULT_PATTERN
-          if limited
-            lim = limit
-          elsif tail_empty
-            lim = -1
-          else
-            lim = 0
-          end
+          awk_limit = limit < 0 ? -1 : limit
 
-          return Primitive.string_awk_split string, lim, block
+          return Primitive.string_awk_split string, awk_limit, block
         elsif pattern.kind_of?(Regexp)
           # Handle SPLIT_TYPE_REGEXP below
         else
@@ -82,13 +71,13 @@ module Truffle
           valid_encoding?(string)
           valid_encoding?(pattern)
 
-          unless limited
+          unless limit > 0 # limited
             if pattern.empty?
-              unless tail_empty
-                return split_type_chars(string, false, false, &block)
+              unless tail_empty?(limit)
+                return split_type_chars(string, limit, &block)
               end
             else
-              return split_type_string(string, pattern, tail_empty, &block)
+              return split_type_string(string, pattern, limit, &block)
             end
           end
 
@@ -97,10 +86,10 @@ module Truffle
 
         # Handle // as a special case.
         if pattern.source.empty?
-          return split_type_chars(string, limited && limit, tail_empty, &block)
+          return split_type_chars(string, limit, &block)
         end
 
-        split_type_regexp(string, pattern, limited, limit, tail_empty, &block)
+        split_type_regexp(string, pattern, limit, &block)
       end
 
       private
@@ -109,8 +98,8 @@ module Truffle
         raise ArgumentError, "invalid byte sequence in #{string.encoding.name}" unless string.valid_encoding?
       end
 
-      def split_type_chars(string, limit, tail_empty, &block)
-        if limit
+      def split_type_chars(string, limit, &block)
+        if limit > 0
           last = string.size > (limit - 1) ? string[(limit - 1)..-1] : empty_string(string)
 
           if block_given?
@@ -129,13 +118,13 @@ module Truffle
           if block_given?
             string.each_char(&block)
 
-            block.call(empty_string(string)) if tail_empty
+            block.call(empty_string(string)) if tail_empty?(limit)
 
             string
           else
             ret = string.chars.to_a
 
-            ret << empty_string(string) if tail_empty
+            ret << empty_string(string) if tail_empty?(limit)
 
             ret
           end
@@ -143,7 +132,7 @@ module Truffle
       end
 
 
-      def split_type_string(string, pattern, tail_empty, &block)
+      def split_type_string(string, pattern, limit, &block)
         pos = 0
         empty_count = 0
 
@@ -165,18 +154,19 @@ module Truffle
         # No more separators, but we need to grab the last part still.
         empty_count = add_substring(string, ret, string.byteslice(pos, str_size - pos), empty_count, &block)
 
-        if tail_empty
+        if tail_empty?(limit)
           add_empty(string, ret, empty_count, &block)
         end
 
         result(string, ret, &block)
       end
 
-      def split_type_regexp(string, pattern, limited, limit, tail_empty, &block)
+      def split_type_regexp(string, pattern, limit, &block)
         start = 0
         ret = []
         count = 0
         empty_count = 0
+        limited = limit > 0
 
         last_match = nil
         last_match_end = 0
@@ -215,7 +205,7 @@ module Truffle
           empty_count = add_substring(string, ret, string.dup, empty_count, &block)
         end
 
-        if tail_empty || (!Primitive.undefined?(limit) && limit > 0)
+        if tail_empty?(limit)
           add_empty(string, ret, empty_count, &block)
         end
 
@@ -230,7 +220,7 @@ module Truffle
 
         add_or_call(array, substring, &block)
 
-        0 # always release all empties
+        0 # always release all empties when we get non empty substring
       end
 
       def add_empty(string, array, count, &block)
@@ -248,6 +238,10 @@ module Truffle
       def empty_string(original)
         # Use #byteslice because it returns the right class and taints automatically.
         original.byteslice(0,0)
+      end
+
+      def tail_empty?(limit)
+        limit != 0
       end
 
       def result(string, res, &block)

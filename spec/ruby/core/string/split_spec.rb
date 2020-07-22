@@ -435,6 +435,14 @@ describe "String#split with Regexp" do
         a.should == ["Chunky", "Bacon"]
       end
 
+      it "yields the string when limit is 1" do
+        a = []
+        returned_object = "chunky bacon".split("", 1) { |str| a << str.capitalize }
+
+        returned_object.should == "chunky bacon"
+        a.should == ["Chunky bacon"]
+      end
+
       it "yields each split letter" do
         a = []
         returned_object = "chunky".split("", 0) { |str| a << str.capitalize }
