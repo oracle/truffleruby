@@ -77,7 +77,7 @@ module Truffle
         elsif pattern.kind_of?(Regexp)
           # Handle SPLIT_TYPE_REGEXP below
         else
-          pattern = StringValue(pattern) unless pattern.kind_of?(String)
+          pattern = StringValue(pattern)
 
           valid_encoding?(string)
           valid_encoding?(pattern)

@@ -427,7 +427,7 @@ describe "String#split with Regexp" do
 
   ruby_version_is "2.6" do
     context "when a block is given" do
-      it "yields each split substrings with default pattern" do
+      it "yields each split substring with default pattern" do
         a = []
         returned_object = "chunky bacon".split { |str| a << str.capitalize }
 
@@ -443,7 +443,7 @@ describe "String#split with Regexp" do
         a.should == %w(C H U N K Y)
       end
 
-      it "yields each split substrings with a pattern" do
+      it "yields each split substring with a pattern" do
         a = []
         returned_object = "chunky-bacon".split("-", 0) { |str| a << str.capitalize }
 
@@ -451,7 +451,7 @@ describe "String#split with Regexp" do
         a.should == ["Chunky", "Bacon"]
       end
 
-      it "yields each split substrings with empty regexp pattern" do
+      it "yields each split substring with empty regexp pattern" do
         a = []
         returned_object = "chunky".split(//) { |str| a << str.capitalize }
 
@@ -459,7 +459,7 @@ describe "String#split with Regexp" do
         a.should == %w(C H U N K Y)
       end
 
-      it "yields each split substrings with empty regexp pattern and limit" do
+      it "yields each split substring with empty regexp pattern and limit" do
         a = []
         returned_object = "chunky".split(//, 3) { |str| a << str.capitalize }
 
@@ -467,7 +467,7 @@ describe "String#split with Regexp" do
         a.should == %w(C H Unky)
       end
 
-      it "yields each split substrings with a regexp pattern" do
+      it "yields each split substring with a regexp pattern" do
         a = []
         returned_object = "chunky:bacon".split(/:/) { |str| a << str.capitalize }
 

@@ -3188,6 +3188,7 @@ public abstract class StringNodes {
 
         @Specialization(guards = "is7Bit(string, codeRangeNode)")
         protected DynamicObject stringAwkSplitSingleByte(DynamicObject string, int limit, Object block,
+                @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile,
                 @Cached ConditionProfile trailingEmptyStringProfile) {
@@ -3207,7 +3208,13 @@ public abstract class StringNodes {
 
                         final DynamicObject substring = substringNode
                                 .executeSubstring(string, substringStart, i - substringStart);
-                        ret = addSubstring(ret, storeIndex++, substring, calledBlock, growArrayProfile);
+                        ret = addSubstring(
+                                ret,
+                                storeIndex++,
+                                substring,
+                                calledBlock,
+                                executeBlockProfile,
+                                growArrayProfile);
                         substringStart = SUBSTRING_CREATED;
                     }
                 } else {
@@ -3225,12 +3232,12 @@ public abstract class StringNodes {
             if (trailingSubstringProfile.profile(substringStart != SUBSTRING_CREATED)) {
                 final DynamicObject substring = substringNode
                         .executeSubstring(string, substringStart, bytes.length - substringStart);
-                ret = addSubstring(ret, storeIndex++, substring, calledBlock, growArrayProfile);
+                ret = addSubstring(ret, storeIndex++, substring, calledBlock, executeBlockProfile, growArrayProfile);
             }
 
             if (trailingEmptyStringProfile.profile(limit < 0 && StringSupport.isAsciiSpace(bytes[bytes.length - 1]))) {
                 final DynamicObject substring = substringNode.executeSubstring(string, bytes.length - 1, 0);
-                ret = addSubstring(ret, storeIndex++, substring, calledBlock, growArrayProfile);
+                ret = addSubstring(ret, storeIndex++, substring, calledBlock, executeBlockProfile, growArrayProfile);
             }
 
             if (calledBlock == null) {
@@ -3243,6 +3250,7 @@ public abstract class StringNodes {
         @TruffleBoundary
         @Specialization(guards = "!is7Bit(string, codeRangeNode)")
         protected DynamicObject stringAwkSplit(DynamicObject string, int limit, Object block,
+                @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile) {
             Object[] ret = new Object[10];
@@ -3280,7 +3288,13 @@ public abstract class StringNodes {
                 } else {
                     if (StringSupport.isSpace(enc, c)) {
                         final DynamicObject substring = substringNode.executeSubstring(string, b, e - b);
-                        ret = addSubstring(ret, storeIndex++, substring, calledBlock, growArrayProfile);
+                        ret = addSubstring(
+                                ret,
+                                storeIndex++,
+                                substring,
+                                calledBlock,
+                                executeBlockProfile,
+                                growArrayProfile);
                         skip = true;
                         b = p - ptr;
                         if (limitPositive) {
@@ -3294,23 +3308,23 @@ public abstract class StringNodes {
 
             if (trailingSubstringProfile.profile(len > 0 && (limitPositive || len > b || limit < 0))) {
                 final DynamicObject substring = substringNode.executeSubstring(string, b, len - b);
-                ret = addSubstring(ret, storeIndex++, substring, calledBlock, growArrayProfile);
+                ret = addSubstring(ret, storeIndex++, substring, calledBlock, executeBlockProfile, growArrayProfile);
             }
 
             return createArray(ret, storeIndex);
         }
 
         private Object[] addSubstring(Object[] store, int index, DynamicObject substring,
-                DynamicObject block, ConditionProfile growArrayProfile) {
-            if (block == null) {
+                DynamicObject block, ConditionProfile executeBlockProfile, ConditionProfile growArrayProfile) {
+            if (executeBlockProfile.profile(block != null)) {
+                yield(block, substring);
+            } else {
                 if (growArrayProfile.profile(index < store.length)) {
                     store[index] = substring;
                 } else {
                     store = ArrayUtils.grow(store, store.length * 2);
                     store[index] = substring;
                 }
-            } else {
-                yield(block, substring);
             }
 
             return store;
