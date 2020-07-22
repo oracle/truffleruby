@@ -1,0 +1,1 @@
+slow:Thread::Backtrace::Location#absolute_path returns an absolute path when using a relative main script path

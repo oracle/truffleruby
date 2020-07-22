@@ -401,9 +401,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected Object throwJavaException(Object message) {
-            callingMethod(message.toString());
+        @Specialization(guards = "isRubyString(message)")
+        protected Object throwJavaException(DynamicObject message) {
+            callingMethod(StringOperations.getString(message));
             return nil;
         }
 
@@ -423,11 +423,22 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionWithCauseNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization
-        protected DynamicObject throwJavaExceptionWithCause(Object message) {
+        @Specialization(guards = "isRubyString(message)")
+        protected Object throwJavaExceptionWithCause(DynamicObject message) {
             throw new RuntimeException(
-                    message.toString(),
+                    StringOperations.getString(message),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
+        }
+
+    }
+
+    @CoreMethod(names = "throw_assertion_error", onSingleton = true, required = 1)
+    public abstract static class ThrowAssertionErrorNode extends CoreMethodArrayArgumentsNode {
+
+        @TruffleBoundary
+        @Specialization(guards = "isRubyString(message)")
+        protected Object throwAssertionError(DynamicObject message) {
+            throw new AssertionError(StringOperations.getString(message));
         }
 
     }
@@ -437,7 +448,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object throwJavaException(boolean condition) {
+        protected Object doAssert(boolean condition) {
             assert condition;
             return nil;
         }
@@ -805,7 +816,7 @@ public abstract class TruffleDebugNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyString(string)")
         protected Object foreignString(DynamicObject string) {
-            return new ForeignString(string.toString());
+            return new ForeignString(StringOperations.getString(string));
         }
 
     }
