@@ -18,7 +18,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -71,22 +70,22 @@ public class FindDeclarationVariableNodes {
         }
 
         @Specialization(
-                guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode != null" },
+                guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor", "readNode != null" },
                 assumptions = "cachedDescriptor.getVersion()")
         protected Object getVariable(MaterializedFrame frame, String name,
                 @Cached("name") String cachedName,
-                @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
+                @Cached("frame.getFrameDescriptor()") FrameDescriptor cachedDescriptor,
                 @Cached("findFrameSlotOrNull(name, frame)") FrameSlotAndDepth slotAndDepth,
                 @Cached("createReadNode(slotAndDepth)") ReadFrameSlotNode readNode) {
             return readNode.executeRead(RubyArguments.getDeclarationFrame(frame, slotAndDepth.depth));
         }
 
         @Specialization(
-                guards = { "name == cachedName", "getFrameDescriptor(frame) == cachedDescriptor", "readNode == null" },
+                guards = { "name == cachedName", "frame.getFrameDescriptor() == cachedDescriptor", "readNode == null" },
                 assumptions = "cachedDescriptor.getVersion()")
         protected Object getVariableDefaultValue(MaterializedFrame frame, String name,
                 @Cached("name") String cachedName,
-                @Cached("getFrameDescriptor(frame)") FrameDescriptor cachedDescriptor,
+                @Cached("frame.getFrameDescriptor()") FrameDescriptor cachedDescriptor,
                 @Cached("findFrameSlotOrNull(name, frame)") FrameSlotAndDepth slotAndDepth,
                 @Cached("createReadNode(slotAndDepth)") ReadFrameSlotNode readNode) {
             return defaultValue;
@@ -101,10 +100,6 @@ public class FindDeclarationVariableNodes {
             } else {
                 return RubyArguments.getDeclarationFrame(frame, slotAndDepth.depth).getValue(slotAndDepth.slot);
             }
-        }
-
-        protected static FrameDescriptor getFrameDescriptor(Frame frame) {
-            return frame.getFrameDescriptor();
         }
 
         protected ReadFrameSlotNode createReadNode(FrameSlotAndDepth frameSlot) {
