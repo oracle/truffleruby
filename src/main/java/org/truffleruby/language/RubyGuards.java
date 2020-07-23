@@ -123,10 +123,6 @@ public abstract class RubyGuards {
         return Layouts.ARRAY.isArray(value);
     }
 
-    public static boolean isRubyBinding(DynamicObject object) {
-        return Layouts.BINDING.isBinding(object);
-    }
-
     public static boolean isRubyClass(Object value) {
         return Layouts.CLASS.isClass(value);
     }

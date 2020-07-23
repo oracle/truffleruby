@@ -21,7 +21,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
-import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -29,6 +28,7 @@ import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -220,8 +220,8 @@ public abstract class TracePointNodes {
         @Specialization
         protected DynamicObject methodId(DynamicObject tracePoint,
                 @Cached MakeStringNode makeStringNode) {
-            final DynamicObject binding = getTracePointState().binding;
-            final InternalMethod method = RubyArguments.getMethod(BindingNodes.getFrame(binding));
+            final RubyBinding binding = getTracePointState().binding;
+            final InternalMethod method = RubyArguments.getMethod(binding.frame);
             return makeStringNode.executeMake(method.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
@@ -230,8 +230,8 @@ public abstract class TracePointNodes {
     public abstract static class SelfNode extends TracePointCoreNode {
         @Specialization
         protected Object self(DynamicObject tracePoint) {
-            final DynamicObject binding = getTracePointState().binding;
-            return RubyArguments.getSelf(BindingNodes.getFrame(binding));
+            final RubyBinding binding = getTracePointState().binding;
+            return RubyArguments.getSelf(binding.frame);
         }
     }
 

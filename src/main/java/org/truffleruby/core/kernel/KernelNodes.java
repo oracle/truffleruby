@@ -72,6 +72,7 @@ import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -343,7 +344,7 @@ public abstract class KernelNodes {
         @Child ReadCallerFrameNode callerFrameNode = new ReadCallerFrameNode();
 
         @Specialization
-        protected DynamicObject bindingUncached(VirtualFrame frame) {
+        protected RubyBinding binding(VirtualFrame frame) {
             final MaterializedFrame callerFrame = callerFrameNode.execute(frame);
             final SourceSection sourceSection = getCallerSourceSection();
 
@@ -677,7 +678,7 @@ public abstract class KernelNodes {
             }
         }
 
-        public abstract Object execute(VirtualFrame frame, Object target, DynamicObject source, DynamicObject binding,
+        public abstract Object execute(VirtualFrame frame, Object target, DynamicObject source, RubyBinding binding,
                 DynamicObject file, int line);
 
         // If the source defines new local variables, those should be set in the Binding.
@@ -694,7 +695,7 @@ public abstract class KernelNodes {
         protected Object evalBindingNoAddsVarsCached(
                 Object target,
                 DynamicObject source,
-                DynamicObject binding,
+                RubyBinding binding,
                 DynamicObject file,
                 int line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
@@ -705,7 +706,7 @@ public abstract class KernelNodes {
                 @Cached("createCallTarget(cachedRootNode)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = BindingNodes.getFrame(binding);
+            final MaterializedFrame parentFrame = binding.frame;
             return eval(target, cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
@@ -721,7 +722,7 @@ public abstract class KernelNodes {
         protected Object evalBindingAddsVarsCached(
                 Object target,
                 DynamicObject source,
-                DynamicObject binding,
+                RubyBinding binding,
                 DynamicObject file,
                 int line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
@@ -742,7 +743,7 @@ public abstract class KernelNodes {
         protected Object evalBindingUncached(
                 Object target,
                 DynamicObject source,
-                DynamicObject binding,
+                RubyBinding binding,
                 DynamicObject file,
                 int line,
                 @Cached IndirectCallNode callNode) {
@@ -751,8 +752,7 @@ public abstract class KernelNodes {
                     rope(source),
                     binding,
                     rope(file),
-                    line,
-                    false);
+                    line);
             return deferredCall.call(callNode);
         }
 
@@ -779,17 +779,13 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall doEvalX(Object target, Rope source,
-                DynamicObject binding,
-                Rope file,
-                int line,
-                boolean ownScopeForAssignments) {
-            final MaterializedFrame frame = BindingNodes.newFrame(BindingNodes.getFrame(binding));
+        private CodeLoader.DeferredCall doEvalX(Object target, Rope source, RubyBinding binding, Rope file, int line) {
+            final MaterializedFrame frame = BindingNodes.newFrame(binding.frame);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
             if (assignsNewUserVariables(descriptor)) {
-                Layouts.BINDING.setFrame(binding, frame);
+                binding.frame = frame;
             }
             return getContext().getCodeLoader().prepareExecute(
                     ParserContext.EVAL,
@@ -822,7 +818,7 @@ public abstract class KernelNodes {
             return Truffle.getRuntime().createCallTarget(rootNode.rootNode);
         }
 
-        protected FrameDescriptor getBindingDescriptor(DynamicObject binding) {
+        protected FrameDescriptor getBindingDescriptor(RubyBinding binding) {
             return BindingNodes.getFrameDescriptor(binding);
         }
 
@@ -830,8 +826,8 @@ public abstract class KernelNodes {
             return rootNode.getRootNode().getFrameDescriptor();
         }
 
-        protected MaterializedFrame getBindingFrame(DynamicObject binding) {
-            return BindingNodes.getFrame(binding);
+        protected MaterializedFrame getBindingFrame(RubyBinding binding) {
+            return binding.frame;
         }
 
         protected static boolean assignsNewUserVariables(FrameDescriptor descriptor) {
