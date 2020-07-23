@@ -794,11 +794,15 @@ module Commands
         core_load_path = false
       when '--reveal'
         vm_args += %w[--vm.ea --vm.esa] unless truffleruby_native?
+      when '--check-compilation'
+        add_experimental_options.call
+        vm_args << '--engine.CompilationFailureAction=ExitVM'
+        vm_args << '--engine.TreatPerformanceWarningsAsErrors=all'
       when '--stress'
         add_experimental_options.call
         vm_args << '--engine.CompileImmediately'
         vm_args << '--engine.BackgroundCompilation=false'
-        vm_args << '--engine.CompilationFailureAction=ExitVM'
+        args.unshift '--check-compilation'
       when '--asm'
         vm_args += %w[--vm.XX:+UnlockDiagnosticVMOptions --vm.XX:CompileCommand=print,*::callRoot]
       when '--jdebug'
@@ -1791,9 +1795,7 @@ EOS
     vm_args = []
     if truffleruby?
       if truffleruby_compiler?
-        vm_args << '--experimental-options'
-        vm_args << '--engine.CompilationFailureAction=ExitVM'
-        vm_args << '--engine.TreatPerformanceWarningsAsErrors=all'
+        vm_args << '--check-compilation'
       else
         STDERR.puts 'WARNING: benchmarking without the GraalVM compiler'
       end
