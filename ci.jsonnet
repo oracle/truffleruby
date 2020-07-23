@@ -438,7 +438,7 @@ local part_definitions = {
     psd: { benchmarks+:: ["psd"] },
     asciidoctor: { benchmarks+:: ["asciidoctor"] },
     other_extra: { benchmarks+:: ["savina", "micro"] },
-    other: { benchmarks+:: ["image-demo", "optcarrot", "synthetic"] },
+    other: { benchmarks+:: ["image-demo", "optcarrot", "synthetic", "rubykon"] },
 
     server: {
       local build = self,

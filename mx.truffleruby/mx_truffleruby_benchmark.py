@@ -616,6 +616,19 @@ class ServerBenchmarkSuite(RubyBenchmarkSuite):
                     'error': 'failed'
                 }]
 
+class RubykonBenchmarkSuite(AllBenchmarksBenchmarkSuite):
+    def name(self):
+        return 'rubykon'
+
+    def directory(self):
+        return 'rubykon'
+
+    def benchmarkList(self, bmSuiteArgs):
+        return ['rubykon']
+
+    def time(self):
+        return 120
+
 mx_benchmark.add_bm_suite(BuildStatsBenchmarkSuite())
 mx_benchmark.add_bm_suite(AllocationBenchmarkSuite())
 mx_benchmark.add_bm_suite(InstructionsBenchmarkSuite())
@@ -632,3 +645,4 @@ mx_benchmark.add_bm_suite(SyntheticBenchmarkSuite())
 mx_benchmark.add_bm_suite(MicroBenchmarkSuite())
 mx_benchmark.add_bm_suite(SavinaBenchmarkSuite())
 mx_benchmark.add_bm_suite(ServerBenchmarkSuite())
+mx_benchmark.add_bm_suite(RubykonBenchmarkSuite())
