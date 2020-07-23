@@ -21,6 +21,12 @@ module Truffle
       re.search_region(str, pos, str.bytesize, true)
     end
 
+    def self.match_from(re, str, pos)
+      return nil unless str
+
+      re.search_region(str, pos, str.bytesize, true)
+    end
+
     def self.last_match(a_binding)
       Truffle::KernelOperations.frame_local_variable_get(:'$~', a_binding)
     end

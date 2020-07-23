@@ -41,7 +41,7 @@ module Truffle
     class << self
       def split(string, pattern, limit, &block)
         # Odd edge case
-        return result(string, [], &block) if string.empty?
+        return (block ? string : []) if string.empty?
 
         if Primitive.undefined?(limit)
           limit = 0
@@ -53,7 +53,7 @@ module Truffle
           dup_string = string.dup
 
           ret = add_or_call([], dup_string, &block)
-          return result(dup_string, ret, &block)
+          return block ? dup_string : ret
         end
 
         pattern ||= ($; || DEFAULT_PATTERN)
@@ -102,7 +102,7 @@ module Truffle
         if limit > 0
           last = string.size > (limit - 1) ? string[(limit - 1)..-1] : empty_string(string)
 
-          if block_given?
+          if block
             string.each_char.each_with_index do |char, index|
               break if index == limit - 1
               block.call(char)
@@ -115,7 +115,7 @@ module Truffle
             string.chars.take(limit - 1) << last
           end
         else
-          if block_given?
+          if block
             string.each_char(&block)
 
             block.call(empty_string(string)) if tail_empty?(limit)
@@ -158,7 +158,7 @@ module Truffle
           add_empty(string, ret, empty_count, &block)
         end
 
-        result(string, ret, &block)
+        block ? string : ret
       end
 
       def split_type_regexp(string, pattern, limit, &block)
@@ -171,7 +171,7 @@ module Truffle
         last_match = nil
         last_match_end = 0
 
-        while match = Truffle::RegexpOperations.match(pattern, string, start)
+        while match = Truffle::RegexpOperations.match_from(pattern, string, start)
           break if limited && limit - count <= 1
 
           collapsed = Truffle::RegexpOperations.collapsing?(match)
@@ -209,7 +209,7 @@ module Truffle
           add_empty(string, ret, empty_count, &block)
         end
 
-        result(string, ret, &block)
+        block ? string : ret
       end
 
 
@@ -228,7 +228,7 @@ module Truffle
       end
 
       def add_or_call(array, element, &block)
-        if block_given?
+        if block
           block.call(element)
         else
           array << element
@@ -242,12 +242,6 @@ module Truffle
 
       def tail_empty?(limit)
         limit != 0
-      end
-
-      def result(string, res, &block)
-        return string if block_given?
-
-        res
       end
     end
   end
