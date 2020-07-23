@@ -24,6 +24,7 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -196,8 +197,8 @@ public abstract class BasicObjectNodes {
 
         public abstract long execute(DynamicObject value);
 
-        @Specialization(guards = "isNil(nil)")
-        protected long objectIDNil(Object nil) {
+        @Specialization
+        protected long objectIDNil(Nil nil) {
             return ObjectIDOperations.NIL;
         }
 
@@ -256,6 +257,26 @@ public abstract class BasicObjectNodes {
         protected long objectID(DynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
+            return objectIDDynamicObject(context, object, objectLibrary);
+        }
+
+        @Specialization(guards = "isForeignObject(object)")
+        protected long objectIDForeign(Object object) {
+            return Integer.toUnsignedLong(hashCode(object));
+        }
+
+        @TruffleBoundary
+        private int hashCode(Object object) {
+            return object.hashCode();
+        }
+
+        /** Needed instead of an uncached node when the Context is not entered */
+        public static long uncachedObjectID(RubyContext context, DynamicObject object) {
+            return objectIDDynamicObject(context, object, DynamicObjectLibrary.getUncached());
+        }
+
+        private static long objectIDDynamicObject(RubyContext context, DynamicObject object,
+                DynamicObjectLibrary objectLibrary) {
             final long id = readObjectID(object, objectLibrary);
 
             if (id == 0L) {
@@ -280,17 +301,7 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        @Specialization(guards = "isForeignObject(object)")
-        protected long objectIDForeign(Object object) {
-            return Integer.toUnsignedLong(hashCode(object));
-        }
-
-        @TruffleBoundary
-        private int hashCode(Object object) {
-            return object.hashCode();
-        }
-
-        private long readObjectID(DynamicObject object, DynamicObjectLibrary objectLibrary) {
+        private static long readObjectID(DynamicObject object, DynamicObjectLibrary objectLibrary) {
             try {
                 return objectLibrary.getLongOrDefault(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
             } catch (UnexpectedResultException e) {

@@ -26,7 +26,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.InterruptMode;
-import org.truffleruby.core.basicobject.BasicObjectNodes;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -735,7 +735,7 @@ public class ThreadManager {
 
         for (DynamicObject thread : runningRubyThreads) {
             builder.append("thread @");
-            builder.append(BasicObjectNodes.ObjectIDNode.getUncached().execute(thread));
+            builder.append(ObjectIDNode.getUncached().execute(thread));
 
             if (thread == rootThread) {
                 builder.append(" (root)");

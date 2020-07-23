@@ -581,7 +581,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return "#<cyclic>";
         } else {
             return "#<" + Layouts.MODULE.getFields(getLogicalClass()).getName() + ":0x" +
-                    Long.toHexString(ObjectIDNode.getUncached().execute(rubyModuleObject)) + ">";
+                    Long.toHexString(ObjectIDNode.uncachedObjectID(context, rubyModuleObject)) + ">";
         }
     }
 
