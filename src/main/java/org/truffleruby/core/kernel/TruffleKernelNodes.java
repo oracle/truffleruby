@@ -176,7 +176,7 @@ public abstract class TruffleKernelNodes {
         @Specialization
         protected Object executeGetValue(RubySymbol name, RubyBinding binding,
                 @Cached ConditionProfile sameThreadProfile) {
-            return threadLocalNode.execute(name, binding.frame).get(sameThreadProfile);
+            return threadLocalNode.execute(name, binding.getFrame()).get(sameThreadProfile);
         }
 
     }
@@ -189,7 +189,7 @@ public abstract class TruffleKernelNodes {
         @Specialization
         protected Object executeGetValue(RubySymbol name, RubyBinding binding, Object value,
                 @Cached ConditionProfile sameThreadProfile) {
-            threadLocalNode.execute(name, binding.frame).set(value, sameThreadProfile);
+            threadLocalNode.execute(name, binding.getFrame()).set(value, sameThreadProfile);
             return value;
         }
 

@@ -221,7 +221,7 @@ public abstract class TracePointNodes {
         protected DynamicObject methodId(DynamicObject tracePoint,
                 @Cached MakeStringNode makeStringNode) {
             final RubyBinding binding = getTracePointState().binding;
-            final InternalMethod method = RubyArguments.getMethod(binding.frame);
+            final InternalMethod method = RubyArguments.getMethod(binding.getFrame());
             return makeStringNode.executeMake(method.getName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
     }
@@ -231,7 +231,7 @@ public abstract class TracePointNodes {
         @Specialization
         protected Object self(DynamicObject tracePoint) {
             final RubyBinding binding = getTracePointState().binding;
-            return RubyArguments.getSelf(binding.frame);
+            return RubyArguments.getSelf(binding.getFrame());
         }
     }
 

@@ -706,7 +706,7 @@ public abstract class KernelNodes {
                 @Cached("createCallTarget(cachedRootNode)") RootCallTarget cachedCallTarget,
                 @Cached("create(cachedCallTarget)") DirectCallNode callNode,
                 @Cached RopeNodes.EqualNode equalNode) {
-            final MaterializedFrame parentFrame = binding.frame;
+            final MaterializedFrame parentFrame = binding.getFrame();
             return eval(target, cachedRootNode, cachedCallTarget, callNode, parentFrame);
         }
 
@@ -780,12 +780,12 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         private CodeLoader.DeferredCall doEvalX(Object target, Rope source, RubyBinding binding, Rope file, int line) {
-            final MaterializedFrame frame = BindingNodes.newFrame(binding.frame);
+            final MaterializedFrame frame = BindingNodes.newFrame(binding.getFrame());
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final FrameDescriptor descriptor = frame.getFrameDescriptor();
             RubyRootNode rootNode = buildRootNode(source, frame, file, line, false);
             if (assignsNewUserVariables(descriptor)) {
-                binding.frame = frame;
+                binding.setFrame(frame);
             }
             return getContext().getCodeLoader().prepareExecute(
                     ParserContext.EVAL,
@@ -827,7 +827,7 @@ public abstract class KernelNodes {
         }
 
         protected MaterializedFrame getBindingFrame(RubyBinding binding) {
-            return binding.frame;
+            return binding.getFrame();
         }
 
         protected static boolean assignsNewUserVariables(FrameDescriptor descriptor) {

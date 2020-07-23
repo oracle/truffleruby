@@ -21,7 +21,7 @@ import org.truffleruby.language.RubyDynamicObject;
  * frame, and when cloning a binding to stop variables from the clone leaking to the original or vice versa. */
 public final class RubyBinding extends RubyDynamicObject {
 
-    public MaterializedFrame frame;
+    private MaterializedFrame frame;
     public final SourceSection sourceSection;
 
     public RubyBinding(Shape shape, MaterializedFrame frame, SourceSection sourceSection) {
@@ -30,4 +30,11 @@ public final class RubyBinding extends RubyDynamicObject {
         this.sourceSection = sourceSection;
     }
 
+    public MaterializedFrame getFrame() {
+        return frame;
+    }
+
+    public void setFrame(MaterializedFrame frame) {
+        this.frame = frame;
+    }
 }
