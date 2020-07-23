@@ -17,16 +17,12 @@ import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 
 import java.math.BigInteger;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.numeric.BignumOperations;
-import org.truffleruby.language.objects.shared.SharedObjects;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
 
 /** <pre>
  * Object IDs distribution
@@ -119,29 +115,4 @@ public abstract class ObjectIDOperations {
         return big;
     }
 
-    @TruffleBoundary
-    public static long verySlowGetObjectID(RubyContext context, DynamicObject object) {
-        // TODO(CS): we should specialise on reading this in the #object_id method and anywhere else it's used
-        Property property = object.getShape().getProperty(Layouts.OBJECT_ID_IDENTIFIER);
-
-        if (property != null) {
-            long value = (long) property.get(object, false);
-            if (value != 0) {
-                return value;
-            }
-        }
-
-        final long objectID = context.getObjectSpaceManager().getNextObjectID();
-
-        if (SharedObjects.isShared(context, object)) {
-            synchronized (object) {
-                // no need for a write barrier here, objectID is a long.
-                DynamicObjectLibrary.getUncached().put(object, Layouts.OBJECT_ID_IDENTIFIER, objectID);
-            }
-        } else {
-            DynamicObjectLibrary.getUncached().put(object, Layouts.OBJECT_ID_IDENTIFIER, objectID);
-        }
-
-        return objectID;
-    }
 }

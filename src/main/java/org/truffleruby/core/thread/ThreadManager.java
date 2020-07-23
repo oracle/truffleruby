@@ -26,6 +26,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.InterruptMode;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -40,7 +41,6 @@ import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateObjectNode;
-import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
@@ -735,7 +735,7 @@ public class ThreadManager {
 
         for (DynamicObject thread : runningRubyThreads) {
             builder.append("thread @");
-            builder.append(ObjectIDOperations.verySlowGetObjectID(context, thread));
+            builder.append(ObjectIDNode.getUncached().execute(thread));
 
             if (thread == rootThread) {
                 builder.append(" (root)");

@@ -97,8 +97,7 @@ public class ObjectSpaceManager {
         final long id = nextObjectID.getAndAdd(ValueWrapperManager.TAG_MASK + 1);
 
         if (id == 0) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            throw new RuntimeException("Object IDs exhausted");
+            throw CompilerDirectives.shouldNotReachHere("Object IDs exhausted");
         }
 
         return id;

@@ -15,10 +15,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.ThreadManager;
@@ -30,9 +30,9 @@ import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
-import org.truffleruby.language.objects.ObjectIDOperations;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -328,7 +328,7 @@ public class FiberManager {
 
         for (DynamicObject fiber : runningFibers) {
             builder.append("  fiber @");
-            builder.append(ObjectIDOperations.verySlowGetObjectID(context, fiber));
+            builder.append(ObjectIDNode.getUncached().execute(fiber));
             builder.append(" #");
 
             final Thread thread = Layouts.FIBER.getThread(fiber);

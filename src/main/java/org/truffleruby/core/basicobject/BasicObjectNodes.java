@@ -24,6 +24,7 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -42,13 +43,12 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
-import org.truffleruby.language.objects.ReadObjectFieldNode;
-import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.CallBlockNode;
 import org.truffleruby.parser.ParserContext;
 import org.truffleruby.parser.RubySource;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.Cached;
@@ -61,10 +61,13 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "BasicObject", isClass = true)
@@ -186,10 +189,16 @@ public abstract class BasicObjectNodes {
             return BasicObjectNodesFactory.ObjectIDNodeFactory.create(null);
         }
 
-        public abstract Object executeObjectID(Object value);
+        public static ObjectIDNode getUncached() {
+            return BasicObjectNodesFactory.ObjectIDNodeFactory.getUncached();
+        }
 
-        @Specialization(guards = "isNil(nil)")
-        protected long objectIDNil(Object nil) {
+        public abstract Object execute(Object value);
+
+        public abstract long execute(DynamicObject value);
+
+        @Specialization
+        protected long objectIDNil(Nil nil) {
             return ObjectIDOperations.NIL;
         }
 
@@ -244,20 +253,11 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        @Specialization
+        @Specialization(limit = "getCacheLimit()")
         protected long objectID(DynamicObject object,
-                @Cached ReadObjectFieldNode readObjectIdNode,
-                @Cached WriteObjectFieldNode writeObjectIdNode,
+                @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
-            final long id = (long) readObjectIdNode.execute(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
-
-            if (id == 0) {
-                final long newId = context.getObjectSpaceManager().getNextObjectID();
-                writeObjectIdNode.write(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
-                return newId;
-            }
-
-            return id;
+            return objectIDDynamicObject(context, object, objectLibrary);
         }
 
         @Specialization(guards = "isForeignObject(object)")
@@ -268,6 +268,49 @@ public abstract class BasicObjectNodes {
         @TruffleBoundary
         private int hashCode(Object object) {
             return object.hashCode();
+        }
+
+        /** Needed instead of an uncached node when the Context is not entered */
+        public static long uncachedObjectID(RubyContext context, DynamicObject object) {
+            return objectIDDynamicObject(context, object, DynamicObjectLibrary.getUncached());
+        }
+
+        private static long objectIDDynamicObject(RubyContext context, DynamicObject object,
+                DynamicObjectLibrary objectLibrary) {
+            final long id = readObjectID(object, objectLibrary);
+
+            if (id == 0L) {
+                if (objectLibrary.isShared(object)) {
+                    synchronized (object) {
+                        final long existingID = readObjectID(object, objectLibrary);
+                        if (existingID != 0L) {
+                            return existingID;
+                        } else {
+                            final long newId = context.getObjectSpaceManager().getNextObjectID();
+                            objectLibrary.put(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
+                            return newId;
+                        }
+                    }
+                } else {
+                    final long newId = context.getObjectSpaceManager().getNextObjectID();
+                    objectLibrary.put(object, Layouts.OBJECT_ID_IDENTIFIER, newId);
+                    return newId;
+                }
+            }
+
+            return id;
+        }
+
+        private static long readObjectID(DynamicObject object, DynamicObjectLibrary objectLibrary) {
+            try {
+                return objectLibrary.getLongOrDefault(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+            } catch (UnexpectedResultException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
+
+        protected int getCacheLimit() {
+            return RubyLanguage.getCurrentContext().getOptions().INSTANCE_VARIABLE_CACHE;
         }
     }
 

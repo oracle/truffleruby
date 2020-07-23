@@ -24,17 +24,17 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
-import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.Assumption;
@@ -581,7 +581,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             return "#<cyclic>";
         } else {
             return "#<" + Layouts.MODULE.getFields(getLogicalClass()).getName() + ":0x" +
-                    Long.toHexString(ObjectIDOperations.verySlowGetObjectID(context, rubyModuleObject)) + ">";
+                    Long.toHexString(ObjectIDNode.uncachedObjectID(context, rubyModuleObject)) + ">";
         }
     }
 
