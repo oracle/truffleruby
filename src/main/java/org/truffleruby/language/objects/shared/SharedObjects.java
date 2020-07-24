@@ -11,8 +11,8 @@ package org.truffleruby.language.objects.shared;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Set;
 
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -23,6 +23,7 @@ import org.truffleruby.language.objects.ShapeCachingGuards;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -79,22 +80,24 @@ public class SharedObjects {
     }
 
     public static void shareDeclarationFrame(RubyContext context, DynamicObject block) {
-
         if (context.getOptions().SHARED_OBJECTS_DEBUG) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             RubyLanguage.LOGGER.info("sharing decl frame of " + RubyContext.fileLine(sourceSection));
         }
 
         final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(block);
-        final Deque<Object> stack = new ArrayDeque<>(ObjectGraph.getObjectsInFrame(declarationFrame));
 
+        final Set<Object> objects = ObjectGraph.newObjectSet();
+        ObjectGraph.getObjectsInFrame(declarationFrame, objects);
+
+        final Deque<Object> stack = new ArrayDeque<>(objects);
         shareObjects(context, stack);
     }
 
     private static void shareObjects(RubyContext context, Deque<Object> stack) {
         while (!stack.isEmpty()) {
             final Object object = stack.pop();
-            assert ObjectGraph.isSymbolOrDynamicObject(object);
+            assert ObjectGraph.isSymbolOrDynamicObject(object) : object;
 
             if (object instanceof DynamicObject) {
                 if (share(context, (DynamicObject) object)) {
@@ -159,9 +162,8 @@ public class SharedObjects {
     @TruffleBoundary
     public static void shareInternalFields(RubyContext context, DynamicObject object) {
         onShareHook(object);
-        final Deque<Object> stack = new ArrayDeque<>();
         // This will also share user fields, but that's OK
-        stack.addAll(ObjectGraph.getAdjacentObjects(object));
+        final Deque<Object> stack = new ArrayDeque<>(ObjectGraph.getAdjacentObjects(object));
         shareObjects(context, stack);
     }
 

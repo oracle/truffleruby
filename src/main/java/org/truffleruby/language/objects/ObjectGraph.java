@@ -48,23 +48,24 @@ public abstract class ObjectGraph {
 
         context.getSafepointManager().pauseAllThreadsAndExecute(currentNode, false, (thread, currentNode1) -> {
             synchronized (visited) {
-                final Deque<Object> stack = new ArrayDeque<>();
-
+                final Set<Object> reachable = newObjectSet();
                 // Thread.current
-                stack.add(thread);
+                reachable.add(thread);
                 // Fiber.current
-                stack.add(Layouts.THREAD.getFiberManager(thread).getCurrentFiber());
+                reachable.add(Layouts.THREAD.getFiberManager(thread).getCurrentFiber());
 
                 if (Thread.currentThread() == initiatingJavaThread) {
-                    visitContextRoots(context, stack);
+                    visitContextRoots(context, reachable);
                 }
 
                 Truffle.getRuntime().iterateFrames(frameInstance -> {
                     final Frame frame = frameInstance.getFrame(FrameAccess.READ_ONLY);
-                    stack.addAll(getObjectsInFrame(frame));
+                    getObjectsInFrame(frame, reachable);
                     return null;
                 });
 
+                // NOTE: similar to SharedObjects.shareObjects()
+                final Deque<Object> stack = new ArrayDeque<>(reachable);
                 while (!stack.isEmpty()) {
                     final Object object = stack.pop();
 
@@ -99,7 +100,7 @@ public abstract class ObjectGraph {
         return visited;
     }
 
-    public static void visitContextRoots(RubyContext context, Collection<Object> roots) {
+    public static void visitContextRoots(RubyContext context, Set<Object> roots) {
         // We do not want to expose the global object
         roots.addAll(context.getCoreLibrary().globalVariables.objectGraphValues());
         roots.addAll(context.getAtExitManager().getHandlers());
@@ -162,7 +163,7 @@ public abstract class ObjectGraph {
                     }
                 }
             } else if (value instanceof Frame) {
-                reachable.addAll(getObjectsInFrame((Frame) value));
+                getObjectsInFrame((Frame) value, reachable);
             } else if (value instanceof ObjectGraphNode) {
                 ((ObjectGraphNode) value).getAdjacentObjects(reachable);
             }
@@ -171,22 +172,20 @@ public abstract class ObjectGraph {
         return reachable;
     }
 
-    public static Set<Object> getObjectsInFrame(Frame frame) {
-        final Set<Object> objects = newObjectSet();
-
+    public static void getObjectsInFrame(Frame frame, Set<Object> reachable) {
         final Frame lexicalParentFrame = RubyArguments.tryGetDeclarationFrame(frame);
         if (lexicalParentFrame != null) {
-            objects.addAll(getObjectsInFrame(lexicalParentFrame));
+            getObjectsInFrame(lexicalParentFrame, reachable);
         }
 
         final Object self = RubyArguments.tryGetSelf(frame);
         if (isSymbolOrDynamicObject(self)) {
-            objects.add(self);
+            reachable.add(self);
         }
 
         final DynamicObject block = RubyArguments.tryGetBlock(frame);
         if (block != null) {
-            objects.add(block);
+            reachable.add(block);
         }
 
         // Other frame arguments are either only internal or user arguments which appear in slots.
@@ -195,11 +194,9 @@ public abstract class ObjectGraph {
             final Object slotValue = frame.getValue(slot);
 
             if (isSymbolOrDynamicObject(slotValue)) {
-                objects.add(slotValue);
+                reachable.add(slotValue);
             }
         }
-
-        return objects;
     }
 
 }
