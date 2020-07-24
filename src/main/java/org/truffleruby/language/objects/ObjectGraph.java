@@ -114,6 +114,10 @@ public abstract class ObjectGraph {
     public static Set<Object> getAdjacentObjects(DynamicObject object) {
         final Set<Object> reachable = newObjectSet();
 
+        if (object instanceof ObjectGraphNode) {
+            ((ObjectGraphNode) object).getAdjacentObjects(reachable);
+        }
+
         if (Layouts.BASIC_OBJECT.isBasicObject(object)) {
             reachable.add(Layouts.BASIC_OBJECT.getLogicalClass(object));
             reachable.add(Layouts.BASIC_OBJECT.getMetaClass(object));
