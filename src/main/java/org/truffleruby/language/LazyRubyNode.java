@@ -55,7 +55,7 @@ public class LazyRubyNode extends RubyContextSourceNode {
     @Override
     public InstrumentableNode materializeInstrumentableNodes(Set<Class<? extends Tag>> materializedTags) {
         for (Class<? extends Tag> tag : materializedTags) {
-            if (tag == StandardTags.StatementTag.class || tag == StandardTags.CallTag.class) {
+            if (tag == StandardTags.StatementTag.class) {
                 resolve();
                 return this;
             }

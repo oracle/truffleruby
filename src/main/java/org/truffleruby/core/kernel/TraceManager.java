@@ -14,12 +14,10 @@ import java.util.Collection;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.shared.TruffleRuby;
 
@@ -34,7 +32,6 @@ import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 public class TraceManager {
@@ -190,27 +187,13 @@ public class TraceManager {
                 return;
             }
 
-            final SourceSection sourceSection = context.getCallStack().getTopMostUserSourceSection();
-
-            final DynamicObject file;
-            final int line;
-
-            if (BacktraceFormatter.isAvailable(sourceSection)) {
-                file = StringOperations
-                        .createString(context, context.getPathToRopeCache().getCachedPath(sourceSection.getSource()));
-                line = getLine(sourceSection);
-            } else {
-                file = context.getCoreStrings().INTERNAL.createInstance();
-                line = -1;
-            }
-
             isInTraceFunc = true;
             try {
                 yield(
                         traceFunc,
                         event,
-                        file,
-                        line,
+                        getFile(),
+                        getLine(),
                         context.getSymbol(RubyArguments.getMethod(frame).getName()),
                         BindingNodes.createBinding(
                                 context,
@@ -220,11 +203,6 @@ public class TraceManager {
             } finally {
                 isInTraceFunc = false;
             }
-        }
-
-        @TruffleBoundary
-        private int getLine(SourceSection sourceSection) {
-            return sourceSection.getStartLine();
         }
 
         private DynamicObject getLogicalClass(Object object) {
