@@ -9,24 +9,22 @@
  */
 package org.truffleruby.language.threadlocal;
 
-import java.lang.ref.WeakReference;
-
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.Nil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.language.Nil;
+import com.oracle.truffle.api.utilities.TruffleWeakReference;
 
 public class ThreadAndFrameLocalStorage {
 
-    private final WeakReference<Thread> originalThread;
+    private final TruffleWeakReference<Thread> originalThread;
     private Object originalThreadValue;
     private volatile ThreadLocal<Object> otherThreadValues = null;
 
-    @TruffleBoundary // reference logic is svm-substituted
     public ThreadAndFrameLocalStorage(RubyContext context) {
         // Cannot store a Thread instance while pre-initializing
-        originalThread = new WeakReference<>(context.isPreInitializing() ? null : Thread.currentThread());
+        originalThread = new TruffleWeakReference<>(context.isPreInitializing() ? null : Thread.currentThread());
         originalThreadValue = initialValue();
     }
 
