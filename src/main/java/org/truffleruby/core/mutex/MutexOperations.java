@@ -101,6 +101,11 @@ public abstract class MutexOperations {
     }
 
     @TruffleBoundary
+    public static ReentrantLock newReentrantLock() {
+        return new ReentrantLock();
+    }
+
+    @TruffleBoundary
     public static Condition newCondition(ReentrantLock lock) {
         return lock.newCondition();
     }

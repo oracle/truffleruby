@@ -43,14 +43,9 @@ public abstract class MutexNodes {
 
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
-        @TruffleBoundary // SVM-subtituted
-        private ReentrantLock newReentrantLock() {
-            return new ReentrantLock();
-        }
-
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, newReentrantLock());
+            return allocateNode.allocate(rubyClass, MutexOperations.newReentrantLock());
         }
 
     }

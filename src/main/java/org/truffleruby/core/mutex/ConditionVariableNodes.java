@@ -24,12 +24,13 @@ import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadStatus;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "ConditionVariable", isClass = true)
@@ -38,26 +39,21 @@ public abstract class ConditionVariableNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected RubyConditionVariable allocate(DynamicObject rubyClass) {
             // condLock is only held for a short number of non-blocking instructions,
             // so there is no need to poll for safepoints while locking it.
             // It is an internal lock and so locking should be done with condLock.lock()
             // to avoid changing the Ruby Thread status and consume Java thread interrupts.
-            final ReentrantLock condLock = reentrantLock();
-            return allocateNode.allocate(
-                    rubyClass,
-                    condLock,
-                    MutexOperations.newCondition(condLock),
-                    0,
-                    0);
-        }
+            final ReentrantLock condLock = MutexOperations.newReentrantLock();
+            final Condition condition = MutexOperations.newCondition(condLock);
 
-        @TruffleBoundary
-        private ReentrantLock reentrantLock() {
-            return new ReentrantLock();
+            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final RubyConditionVariable instance = new RubyConditionVariable(shape, condLock, condition);
+            allocateNode.trace(instance, this);
+            return instance;
         }
     }
 
@@ -65,7 +61,10 @@ public abstract class ConditionVariableNodes {
     public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "isNil(timeout)")
-        protected DynamicObject waitTimeoutNil(DynamicObject conditionVariable, DynamicObject mutex, Object timeout,
+        protected RubyConditionVariable noTimeout(
+                RubyConditionVariable conditionVariable,
+                DynamicObject mutex,
+                Object timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.execute();
@@ -77,7 +76,10 @@ public abstract class ConditionVariableNodes {
         }
 
         @Specialization
-        protected DynamicObject waitTimeout(DynamicObject conditionVariable, DynamicObject mutex, long timeout,
+        protected RubyConditionVariable withTimeout(
+                RubyConditionVariable conditionVariable,
+                DynamicObject mutex,
+                long timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.execute();
@@ -89,10 +91,10 @@ public abstract class ConditionVariableNodes {
         }
 
         @TruffleBoundary
-        private void waitInternal(DynamicObject conditionVariable, ReentrantLock mutexLock, DynamicObject thread,
-                long durationInNanos) {
-            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(conditionVariable);
-            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(conditionVariable);
+        private void waitInternal(RubyConditionVariable conditionVariable, ReentrantLock mutexLock,
+                DynamicObject thread, long durationInNanos) {
+            final ReentrantLock condLock = conditionVariable.lock;
+            final Condition condition = conditionVariable.condition;
             final long endNanoTime;
             if (durationInNanos >= 0) {
                 endNanoTime = System.nanoTime() + durationInNanos;
@@ -112,9 +114,7 @@ public abstract class ConditionVariableNodes {
             try {
                 mutexLock.unlock();
 
-                Layouts.CONDITION_VARIABLE.setWaiters(
-                        conditionVariable,
-                        Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) + 1);
+                conditionVariable.waiters++;
                 try {
                     awaitSignal(conditionVariable, thread, durationInNanos, condLock, condition, endNanoTime);
                 } catch (Error | RuntimeException e) {
@@ -125,9 +125,7 @@ public abstract class ConditionVariableNodes {
                     consumeSignal(conditionVariable);
                     throw e;
                 } finally {
-                    Layouts.CONDITION_VARIABLE.setWaiters(
-                            conditionVariable,
-                            Layouts.CONDITION_VARIABLE.getWaiters(conditionVariable) - 1);
+                    conditionVariable.waiters--;
                 }
             } finally {
                 condLock.unlock();
@@ -138,8 +136,8 @@ public abstract class ConditionVariableNodes {
         /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for
          * safepoints. */
         @SuppressFBWarnings(value = "UL")
-        private void awaitSignal(DynamicObject self, DynamicObject thread, long durationInNanos, ReentrantLock condLock,
-                Condition condition, long endNanoTime) {
+        private void awaitSignal(RubyConditionVariable self, DynamicObject thread, long durationInNanos,
+                ReentrantLock condLock, Condition condition, long endNanoTime) {
             final ThreadStatus status = Layouts.THREAD.getStatus(thread);
             while (true) {
                 Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
@@ -195,9 +193,9 @@ public abstract class ConditionVariableNodes {
             }
         }
 
-        private boolean consumeSignal(DynamicObject self) {
-            if (Layouts.CONDITION_VARIABLE.getSignals(self) > 0) {
-                Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) - 1);
+        private boolean consumeSignal(RubyConditionVariable self) {
+            if (self.signals > 0) {
+                self.signals--;
                 return true;
             }
             return false;
@@ -210,14 +208,14 @@ public abstract class ConditionVariableNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject signal(DynamicObject self) {
-            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
-            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
+        protected RubyConditionVariable signal(RubyConditionVariable self) {
+            final ReentrantLock condLock = self.lock;
+            final Condition condition = self.condition;
 
             condLock.lock();
             try {
-                if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
-                    Layouts.CONDITION_VARIABLE.setSignals(self, Layouts.CONDITION_VARIABLE.getSignals(self) + 1);
+                if (self.waiters > 0) {
+                    self.signals++;
                     condition.signal();
                 }
             } finally {
@@ -233,16 +231,14 @@ public abstract class ConditionVariableNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject broadcast(DynamicObject self) {
-            final ReentrantLock condLock = Layouts.CONDITION_VARIABLE.getLock(self);
-            final Condition condition = Layouts.CONDITION_VARIABLE.getCondition(self);
+        protected RubyConditionVariable broadcast(RubyConditionVariable self) {
+            final ReentrantLock condLock = self.lock;
+            final Condition condition = self.condition;
 
             condLock.lock();
             try {
-                if (Layouts.CONDITION_VARIABLE.getWaiters(self) > 0) {
-                    Layouts.CONDITION_VARIABLE.setSignals(
-                            self,
-                            Layouts.CONDITION_VARIABLE.getSignals(self) + Layouts.CONDITION_VARIABLE.getWaiters(self));
+                if (self.waiters > 0) {
+                    self.signals += self.waiters;
                     condition.signalAll();
                 }
             } finally {
