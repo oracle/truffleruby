@@ -324,13 +324,6 @@ class MatchData
     names.collect { |name| [name, self[name]] }.to_h
   end
 
-  def pre_match_from(idx)
-    source = Primitive.match_data_get_source(self)
-    return source.byteslice(0, 0) if self.byte_begin(0) == 0
-    nd = self.byte_begin(0) - 1
-    source.byteslice(idx, nd-idx+1)
-  end
-
   def begin(index)
     backref = if String === index || Symbol === index
                 names_to_backref = Hash[Primitive.regexp_names(self.regexp)]
@@ -353,10 +346,6 @@ class MatchData
 
 
     Primitive.match_data_end(self, backref)
-  end
-
-  def collapsing?
-    self.byte_begin(0) == self.byte_end(0)
   end
 
   def inspect

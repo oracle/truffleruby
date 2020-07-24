@@ -252,7 +252,7 @@ class String
     while match = pattern.match_from(self, index)
       fin = match.byte_end(0)
 
-      if match.collapsing?
+      if Truffle::RegexpOperations.collapsing?(match)
         if char = Primitive.string_find_character(self, fin)
           index = fin + char.bytesize
         else
@@ -278,8 +278,8 @@ class String
     ret
   end
 
-  def split(pattern=nil, limit=undefined)
-    Truffle::Splitter.split(self, pattern, limit)
+  def split(pattern=nil, limit=undefined, &block)
+    Truffle::Splitter.split(self, pattern, limit, &block)
   end
 
   def squeeze(*strings)

@@ -1,2 +1,0 @@
-fails:String#split with Regexp yields each split substrings if a block is given
-fails:String#split with Regexp for a String subclass yields instances of the same subclass

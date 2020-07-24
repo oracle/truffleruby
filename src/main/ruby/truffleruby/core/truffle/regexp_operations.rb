@@ -21,6 +21,12 @@ module Truffle
       re.search_region(str, pos, str.bytesize, true)
     end
 
+    def self.match_from(re, str, pos)
+      return nil unless str
+
+      re.search_region(str, pos, str.bytesize, true)
+    end
+
     def self.last_match(a_binding)
       Truffle::KernelOperations.frame_local_variable_get(:'$~', a_binding)
     end
@@ -41,6 +47,18 @@ module Truffle
 
     def self.match_stats
       Hash[*match_stats_array]
+    end
+
+    def self.collapsing?(match)
+      match.byte_begin(0) == match.byte_end(0)
+    end
+
+    def self.pre_match_from(match, idx)
+      source = Primitive.match_data_get_source(match)
+      return source.byteslice(0, 0) if match.byte_begin(0) == 0
+
+      nd = match.byte_begin(0) - 1
+      source.byteslice(idx, nd-idx+1)
     end
   end
 end
