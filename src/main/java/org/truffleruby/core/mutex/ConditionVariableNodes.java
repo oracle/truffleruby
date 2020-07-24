@@ -23,6 +23,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadStatus;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
@@ -60,34 +61,28 @@ public abstract class ConditionVariableNodes {
     @Primitive(name = "condition_variable_wait")
     public static abstract class WaitNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isNil(timeout)")
-        protected RubyConditionVariable noTimeout(
-                RubyConditionVariable conditionVariable,
-                DynamicObject mutex,
-                Object timeout,
+        @Specialization
+        protected RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.execute();
-            final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
+            final ReentrantLock mutexLock = mutex.lock;
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
-            waitInternal(conditionVariable, mutexLock, thread, -1);
-            return conditionVariable;
+            waitInternal(condVar, mutexLock, thread, -1);
+            return condVar;
         }
 
         @Specialization
-        protected RubyConditionVariable withTimeout(
-                RubyConditionVariable conditionVariable,
-                DynamicObject mutex,
-                long timeout,
+        protected RubyConditionVariable withTimeout(RubyConditionVariable condVar, RubyMutex mutex, long timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final DynamicObject thread = getCurrentRubyThreadNode.execute();
-            final ReentrantLock mutexLock = Layouts.MUTEX.getLock(mutex);
+            final ReentrantLock mutexLock = mutex.lock;
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
-            waitInternal(conditionVariable, mutexLock, thread, timeout);
-            return conditionVariable;
+            waitInternal(condVar, mutexLock, thread, timeout);
+            return condVar;
         }
 
         @TruffleBoundary

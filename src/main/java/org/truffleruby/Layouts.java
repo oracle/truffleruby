@@ -39,8 +39,6 @@ import org.truffleruby.core.method.UnboundMethodLayout;
 import org.truffleruby.core.method.UnboundMethodLayoutImpl;
 import org.truffleruby.core.module.ModuleLayout;
 import org.truffleruby.core.module.ModuleLayoutImpl;
-import org.truffleruby.core.mutex.MutexLayout;
-import org.truffleruby.core.mutex.MutexLayoutImpl;
 import org.truffleruby.core.numeric.BignumLayout;
 import org.truffleruby.core.numeric.BignumLayoutImpl;
 import org.truffleruby.core.objectspace.WeakMapLayout;
@@ -121,7 +119,6 @@ public abstract class Layouts {
     public static final MatchDataLayout MATCH_DATA = MatchDataLayoutImpl.INSTANCE;
     public static final MethodLayout METHOD = MethodLayoutImpl.INSTANCE;
     public static final ModuleLayout MODULE = ModuleLayoutImpl.INSTANCE;
-    public static final MutexLayout MUTEX = MutexLayoutImpl.INSTANCE;
     public static final NameErrorLayout NAME_ERROR = NameErrorLayoutImpl.INSTANCE;
     public static final NoMethodErrorLayout NO_METHOD_ERROR = NoMethodErrorLayoutImpl.INSTANCE;
     public static final ObjectRangeLayout OBJECT_RANGE = ObjectRangeLayoutImpl.INSTANCE;
