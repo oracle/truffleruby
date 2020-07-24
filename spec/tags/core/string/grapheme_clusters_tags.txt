@@ -1,11 +1,1 @@
-fails:String#grapheme_clusters passes each char in self to the given block
-fails:String#grapheme_clusters returns self
-fails:String#grapheme_clusters is unicode aware
-fails:String#grapheme_clusters returns characters in the same encoding as self
-fails:String#grapheme_clusters works with multibyte characters
 fails:String#grapheme_clusters works if the String's contents is invalid for its encoding
-fails:String#grapheme_clusters returns a different character if the String is transcoded
-fails:String#grapheme_clusters uses the String's encoding to determine what characters it contains
-fails:String#grapheme_clusters taints resulting strings when self is tainted
-fails:String#grapheme_clusters passes each grapheme cluster in self to the given block
-fails:String#grapheme_clusters returns an array when no block given

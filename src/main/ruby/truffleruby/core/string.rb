@@ -159,6 +159,15 @@ class String
     end
   end
 
+  def grapheme_clusters(&block)
+    if block_given?
+      each_grapheme_cluster(&block)
+    else
+      regex = Regexp.new('\X'.encode(encoding))
+      scan(regex)
+    end
+  end
+
   def include?(needle)
     !!Primitive.find_string(self, StringValue(needle), 0)
   end
@@ -353,6 +362,15 @@ class String
     return to_enum(:each_codepoint) { size } unless block_given?
 
     each_char { |c| yield c.ord }
+    self
+  end
+
+  def each_grapheme_cluster
+    return to_enum(:each_grapheme_cluster) { size } unless block_given?
+
+    regex = Regexp.new('\X'.encode(encoding))
+    # scan(regex, &block) would leak the $ vars in the user block which is probably unwanted
+    scan(regex) { |e| yield e }
     self
   end
 
