@@ -790,4 +790,20 @@ public class RubyContext {
         }
     }
 
+    @TruffleBoundary
+    public static String filenameLine(SourceSection section) {
+        if (section == null) {
+            return "no source section";
+        } else {
+            final String path = getPath(section.getSource());
+            final String filename = new File(path).getName();
+
+            if (section.isAvailable()) {
+                return filename + ":" + section.getStartLine();
+            } else {
+                return filename;
+            }
+        }
+    }
+
 }

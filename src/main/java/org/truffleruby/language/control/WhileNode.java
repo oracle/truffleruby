@@ -56,7 +56,7 @@ public final class WhileNode extends RubyContextSourceNode {
 
         @Override
         public String toString() {
-            return "while loop at " + RubyContext.fileLine(getEncapsulatingSourceSection());
+            return "while loop at " + RubyContext.filenameLine(getEncapsulatingSourceSection());
         }
 
     }
