@@ -7,7 +7,7 @@ suite = {
             {
                 "name": "sulong",
                 "subdir": True,
-                "version": "bcf7656978138a1815044acd70ade9f70f43bfba",
+                "version": "8c86b0a81e1c2cd43938bb82f1645aaa7af3c184",
                 "urls": [
                     {"url": "https://github.com/oracle/graal.git", "kind": "git"},
                     {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind": "binary"},
