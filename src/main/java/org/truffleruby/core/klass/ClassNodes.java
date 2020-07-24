@@ -14,6 +14,8 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.CoreLibrary.ShapeDynamicObjectFactory;
+import org.truffleruby.core.basicobject.BasicObjectLayoutImpl.BasicObjectType;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
@@ -32,6 +34,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -186,10 +189,17 @@ public abstract class ClassNodes {
 
     public static void setInstanceFactory(DynamicObject rubyClass, DynamicObject baseClass) {
         assert !Layouts.CLASS.getIsSingleton(rubyClass) : "Singleton classes cannot be instantiated";
-        DynamicObjectFactory factory = Layouts.CLASS.getInstanceFactory(baseClass);
-        factory = Layouts.BASIC_OBJECT.setLogicalClass(factory, rubyClass);
-        factory = Layouts.BASIC_OBJECT.setMetaClass(factory, rubyClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(rubyClass, factory);
+        final DynamicObjectFactory factory = Layouts.CLASS.getInstanceFactory(baseClass);
+        final Shape parentShape = factory.getShape();
+        final BasicObjectType objectType = (BasicObjectType) parentShape.getObjectType();
+        final Shape newShape = parentShape.changeType(objectType.setLogicalClass(rubyClass).setMetaClass(rubyClass));
+        final DynamicObjectFactory newFactory;
+        if (factory instanceof ShapeDynamicObjectFactory) {
+            newFactory = new ShapeDynamicObjectFactory(newShape);
+        } else {
+            newFactory = newShape.createFactory();
+        }
+        Layouts.CLASS.setInstanceFactoryUnsafe(rubyClass, newFactory);
     }
 
     private static DynamicObject ensureItHasSingletonClassCreated(RubyContext context, DynamicObject rubyClass) {

@@ -12,6 +12,7 @@ package org.truffleruby;
 import java.util.Arrays;
 import java.util.Objects;
 
+import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import org.graalvm.options.OptionDescriptors;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.rope.Rope;
@@ -89,6 +90,8 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public final RopeCache ropeCache;
     public final SymbolTable symbolTable;
 
+    @CompilationFinal private AllocationReporter allocationReporter;
+
     public RubyLanguage() {
         ropeCache = new RopeCache();
         symbolTable = new SymbolTable(ropeCache);
@@ -124,6 +127,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
     public RubyContext createContext(Env env) {
         // We need to initialize the Metrics class of the language classloader
         Metrics.initializeOption();
+
+        if (allocationReporter == null) {
+            allocationReporter = env.lookup(AllocationReporter.class);
+        }
 
         LOGGER.fine("createContext()");
         Metrics.printTime("before-create-context");
@@ -278,6 +285,10 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
     public String getTruffleLanguageHome() {
         return getLanguageHome();
+    }
+
+    public AllocationReporter getAllocationReporter() {
+        return allocationReporter;
     }
 
 }
