@@ -21,6 +21,7 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.RaiseException;
@@ -172,10 +173,10 @@ public abstract class TruffleKernelNodes {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
-        @Specialization(guards = "isRubyBinding(binding)")
-        protected Object executeGetValue(RubySymbol name, DynamicObject binding,
+        @Specialization
+        protected Object executeGetValue(RubySymbol name, RubyBinding binding,
                 @Cached ConditionProfile sameThreadProfile) {
-            return threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).get(sameThreadProfile);
+            return threadLocalNode.execute(name, binding.getFrame()).get(sameThreadProfile);
         }
 
     }
@@ -185,10 +186,10 @@ public abstract class TruffleKernelNodes {
 
         @Child FindThreadAndFrameLocalStorageNode threadLocalNode = FindThreadAndFrameLocalStorageNodeGen.create();
 
-        @Specialization(guards = "isRubyBinding(binding)")
-        protected Object executeGetValue(RubySymbol name, DynamicObject binding, Object value,
+        @Specialization
+        protected Object executeGetValue(RubySymbol name, RubyBinding binding, Object value,
                 @Cached ConditionProfile sameThreadProfile) {
-            threadLocalNode.execute(name, Layouts.BINDING.getFrame(binding)).set(value, sameThreadProfile);
+            threadLocalNode.execute(name, binding.getFrame()).set(value, sameThreadProfile);
             return value;
         }
 

@@ -23,7 +23,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
 import org.truffleruby.Layouts;
@@ -35,6 +34,7 @@ import org.truffleruby.builtins.BuiltinsClasses;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.basicobject.BasicObjectLayoutImpl.BasicObjectType;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.numeric.BigIntegerOps;
@@ -45,7 +45,9 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.JavaException;
@@ -77,8 +79,10 @@ import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Property;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -120,6 +124,18 @@ public class CoreLibrary {
     private static final Property ALWAYS_FROZEN_PROPERTY = Property
             .create(Layouts.FROZEN_IDENTIFIER, Layout.createLayout().createAllocator().constantLocation(true), 0);
 
+    public static final DynamicObjectFactory NO_OBJECT_FACTORY = new DynamicObjectFactory() {
+        @Override
+        public DynamicObject newInstance(Object... initialValues) {
+            throw CompilerDirectives.shouldNotReachHere("DynamicObjectFactory should no longer be used for this class");
+        }
+
+        @Override
+        public Shape getShape() {
+            throw CompilerDirectives.shouldNotReachHere("DynamicObjectFactory should no longer be used for this class");
+        }
+    };
+
     private final RubyContext context;
 
     public final SourceSection sourceSection;
@@ -129,7 +145,7 @@ public class CoreLibrary {
     public final DynamicObjectFactory arrayFactory;
     public final DynamicObject basicObjectClass;
     public final DynamicObjectFactory bignumFactory;
-    public final DynamicObjectFactory bindingFactory;
+    public final Shape bindingShape;
     public final DynamicObject classClass;
     public final DynamicObject complexClass;
     public final DynamicObject dirClass;
@@ -462,8 +478,8 @@ public class CoreLibrary {
         arrayFactory = Layouts.ARRAY.createArrayShape(arrayClass, arrayClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(arrayClass, arrayFactory);
         DynamicObject bindingClass = defineClass("Binding");
-        bindingFactory = Layouts.BINDING.createBindingShape(bindingClass, bindingClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(bindingClass, bindingFactory);
+        bindingShape = createShape(RubyBinding.class, bindingClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(bindingClass, NO_OBJECT_FACTORY);
         defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
@@ -887,6 +903,11 @@ public class CoreLibrary {
     private DynamicObject defineModule(SourceSection sourceSection, DynamicObject lexicalParent, String name) {
         assert RubyGuards.isRubyModule(lexicalParent);
         return ModuleNodes.createModule(context, sourceSection, moduleClass, lexicalParent, name, node);
+    }
+
+    private Shape createShape(Class<? extends RubyDynamicObject> layoutClass, DynamicObject rubyClass) {
+        final BasicObjectType objectType = new BasicObjectType(rubyClass, rubyClass);
+        return Shape.newBuilder().allowImplicitCastIntToLong(true).layout(layoutClass).dynamicType(objectType).build();
     }
 
     @SuppressFBWarnings("ES")

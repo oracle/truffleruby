@@ -15,8 +15,6 @@ import org.truffleruby.core.array.ArrayLayout;
 import org.truffleruby.core.array.ArrayLayoutImpl;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
-import org.truffleruby.core.binding.BindingLayout;
-import org.truffleruby.core.binding.BindingLayoutImpl;
 import org.truffleruby.core.encoding.EncodingConverterLayout;
 import org.truffleruby.core.encoding.EncodingConverterLayoutImpl;
 import org.truffleruby.core.encoding.EncodingLayout;
@@ -112,7 +110,6 @@ public abstract class Layouts {
     public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
     public static final BigDecimalLayout BIG_DECIMAL = BigDecimalLayoutImpl.INSTANCE;
     public static final BignumLayout BIGNUM = BignumLayoutImpl.INSTANCE;
-    public static final BindingLayout BINDING = BindingLayoutImpl.INSTANCE;
     public static final ByteArrayLayout BYTE_ARRAY = ByteArrayLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
     public static final ConditionVariableLayout CONDITION_VARIABLE = ConditionVariableLayoutImpl.INSTANCE;

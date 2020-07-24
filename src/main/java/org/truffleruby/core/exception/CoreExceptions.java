@@ -27,6 +27,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -680,8 +681,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorLocalVariableNotDefined(String name, DynamicObject binding, Node currentNode) {
-        assert RubyGuards.isRubyBinding(binding);
+    public DynamicObject nameErrorLocalVariableNotDefined(String name, RubyBinding binding, Node currentNode) {
         return nameError(
                 StringUtils.format("local variable `%s' not defined for %s", name, binding.toString()),
                 binding,

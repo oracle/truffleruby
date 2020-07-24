@@ -11,12 +11,12 @@ package org.truffleruby.language;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.module.ModuleFields;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class SetTopLevelBindingNode extends RubyContextSourceNode {
 
@@ -30,7 +30,7 @@ public class SetTopLevelBindingNode extends RubyContextSourceNode {
     @TruffleBoundary
     private void updateTopLevelBindingFrame(MaterializedFrame mainScriptFrame) {
         final ModuleFields fields = Layouts.MODULE.getFields(coreLibrary().objectClass);
-        final DynamicObject toplevelBinding = (DynamicObject) fields.getConstant("TOPLEVEL_BINDING").getValue();
+        final RubyBinding toplevelBinding = (RubyBinding) fields.getConstant("TOPLEVEL_BINDING").getValue();
         BindingNodes.insertAncestorFrame(toplevelBinding, mainScriptFrame);
     }
 
