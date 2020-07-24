@@ -204,6 +204,8 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
     @Override
     public boolean hasTag(Class<? extends Tag> tag) {
         byte flags = getFlags();
+        // TraceManager.CallTag for set_trace_func 'call' event is in the callee like in MRI, but
+        // TODO (24 July 2020) StandardTags.CallTag should be at the call site.
         if (tag == TraceManager.CallTag.class || tag == StandardTags.CallTag.class) {
             return isTag(flags, FLAG_CALL);
         }
