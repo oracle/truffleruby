@@ -980,38 +980,77 @@ describe "Module#refine" do
       result.should == [:B, :A, :LAST, :C]
     end
 
-    it "looks in the lexical scope refinements before other active refinements" do
-      refined_class = ModuleSpecs.build_refined_class(for_super: true)
+    ruby_version_is ""..."2.8" do
+      it "looks in the lexical scope refinements before other active refinements" do
+        refined_class = ModuleSpecs.build_refined_class(for_super: true)
 
-      refinement_local = Module.new do
-        refine refined_class do
-          def foo
-            [:LOCAL] + super
+        refinement_local = Module.new do
+          refine refined_class do
+            def foo
+              [:LOCAL] + super
+            end
           end
         end
-      end
 
-      a = Module.new do
-        using refinement_local
+        a = Module.new do
+          using refinement_local
 
-        def foo
-          [:A] + super
+          def foo
+            [:A] + super
+          end
         end
-      end
 
-      refinement = Module.new do
-        refine refined_class do
-          include a
+        refinement = Module.new do
+          refine refined_class do
+            include a
+          end
         end
-      end
 
-      result = nil
-      Module.new do
-        using refinement
-        result = refined_class.new.foo
-      end
+        result = nil
+        Module.new do
+          using refinement
+          result = refined_class.new.foo
+        end
 
-      result.should == [:A, :LOCAL, :C]
+        result.should == [:A, :LOCAL, :C]
+      end
+    end
+
+    ruby_version_is "2.8" do
+      # https://bugs.ruby-lang.org/issues/17007
+      it "does not look in the lexical scope refinements before other active refinements" do
+        refined_class = ModuleSpecs.build_refined_class(for_super: true)
+
+        refinement_local = Module.new do
+          refine refined_class do
+            def foo
+              [:LOCAL] + super
+            end
+          end
+        end
+
+        a = Module.new do
+          using refinement_local
+
+          def foo
+            [:A] + super
+          end
+        end
+
+        refinement = Module.new do
+          refine refined_class do
+            include a
+          end
+        end
+
+        result = nil
+        Module.new do
+          using refinement
+          result = refined_class.new.foo
+        end
+
+        result.should == [:A, :C]
+      end
     end
   end
 
