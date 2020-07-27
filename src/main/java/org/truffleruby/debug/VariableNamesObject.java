@@ -26,7 +26,6 @@ public class VariableNamesObject implements TruffleObject {
         this.names = names;
     }
 
-    @SuppressWarnings("static-method")
     @ExportMessage
     protected boolean hasArrayElements() {
         return true;

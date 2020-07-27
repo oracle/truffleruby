@@ -119,6 +119,7 @@ import org.truffleruby.language.locals.FlipFlopNode;
 import org.truffleruby.language.locals.FlipFlopStateNode;
 import org.truffleruby.language.locals.InitFlipFlopSlotNode;
 import org.truffleruby.language.locals.LocalFlipFlopStateNode;
+import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.BlockDefinitionNode;
 import org.truffleruby.language.methods.CatchBreakNode;

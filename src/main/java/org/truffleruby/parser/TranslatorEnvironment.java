@@ -22,6 +22,7 @@ import org.truffleruby.language.control.ReturnID;
 import org.truffleruby.language.literal.NilLiteralNode;
 import org.truffleruby.language.locals.LocalVariableType;
 import org.truffleruby.language.locals.ReadDeclarationVariableNode;
+import org.truffleruby.language.locals.ReadLocalNode;
 import org.truffleruby.language.locals.ReadLocalVariableNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
 

@@ -7,17 +7,18 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.parser;
+package org.truffleruby.language.locals;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.debug.SingleMemberDescriptor;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.locals.LocalVariableType;
-import org.truffleruby.language.locals.ReadFrameSlotNode;
 import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
+import com.oracle.truffle.api.instrumentation.Tag;
 
 public abstract class ReadLocalNode extends RubyContextSourceNode {
 
@@ -51,6 +52,17 @@ public abstract class ReadLocalNode extends RubyContextSourceNode {
             default:
                 throw Utils.unsupportedOperation("didn't expect local type ", type);
         }
+    }
+
+
+    @Override
+    public boolean hasTag(Class<? extends Tag> tag) {
+        return tag == ReadVariableTag.class || super.hasTag(tag);
+    }
+
+    @Override
+    public Object getNodeObject() {
+        return new SingleMemberDescriptor(ReadVariableTag.NAME, frameSlot.getIdentifier().toString());
     }
 
 }
