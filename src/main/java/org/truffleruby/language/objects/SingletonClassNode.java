@@ -150,7 +150,7 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
 
             SharedObjects.propagate(getContext(), object, singletonClass);
 
-            Layouts.BASIC_OBJECT.setMetaClass(object, singletonClass);
+            ClassNodes.setMetaClass(object, singletonClass);
             return singletonClass;
         }
     }

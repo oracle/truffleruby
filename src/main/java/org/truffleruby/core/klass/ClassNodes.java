@@ -34,12 +34,27 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
+
+    @TruffleBoundary
+    public static void setMetaClass(DynamicObject object, DynamicObject singletonClass) {
+        final BasicObjectType objectType = (BasicObjectType) object.getShape().getObjectType();
+        final BasicObjectType newObjectType = objectType.setMetaClass(singletonClass);
+        DynamicObjectLibrary.getUncached().setDynamicType(object, newObjectType);
+    }
+
+    @TruffleBoundary
+    public static void setLogicalAndMetaClass(DynamicObject object, DynamicObject rubyClass) {
+        final BasicObjectType objectType = (BasicObjectType) object.getShape().getObjectType();
+        final BasicObjectType newObjectType = objectType.setLogicalClass(rubyClass).setMetaClass(rubyClass);
+        DynamicObjectLibrary.getUncached().setDynamicType(object, newObjectType);
+    }
 
     /** Special constructor for class Class */
     @TruffleBoundary
@@ -50,8 +65,7 @@ public abstract class ClassNodes {
         final DynamicObjectFactory tempFactory = Layouts.CLASS.createClassShape(null, null);
         final DynamicObject rubyClass = Layouts.CLASS.createClass(tempFactory, model, false, null, null, null);
 
-        Layouts.BASIC_OBJECT.setLogicalClass(rubyClass, rubyClass);
-        Layouts.BASIC_OBJECT.setMetaClass(rubyClass, rubyClass);
+        setLogicalAndMetaClass(rubyClass, rubyClass);
 
         assert RubyGuards.isRubyModule(rubyClass);
         assert RubyGuards.isRubyClass(rubyClass);
@@ -254,7 +268,7 @@ public abstract class ClassNodes {
                 rubyClass,
                 true);
         SharedObjects.propagate(context, rubyClass, metaClass);
-        Layouts.BASIC_OBJECT.setMetaClass(rubyClass, metaClass);
+        setMetaClass(rubyClass, metaClass);
 
         return Layouts.BASIC_OBJECT.getMetaClass(rubyClass);
     }
