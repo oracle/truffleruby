@@ -83,13 +83,13 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
         return BigDecimalOps.fromBigInteger(value);
     }
 
-    @Specialization(guards = "isNormalRubyBigDecimal(value)")
-    protected BigDecimal doBigDecimal(DynamicObject value, int digits, RoundingMode roundingMode) {
-        return Layouts.BIG_DECIMAL.getValue(value);
+    @Specialization(guards = "isNormal(value)")
+    protected BigDecimal doBigDecimal(RubyBigDecimal value, int digits, RoundingMode roundingMode) {
+        return value.value;
     }
 
-    @Specialization(guards = "isSpecialRubyBigDecimal(value)")
-    protected DynamicObject doSpecialBigDecimal(DynamicObject value, int digits, RoundingMode roundingMode) {
+    @Specialization(guards = "isSpecial(value)")
+    protected DynamicObject doSpecialBigDecimal(RubyBigDecimal value, int digits, RoundingMode roundingMode) {
         return value;
     }
 

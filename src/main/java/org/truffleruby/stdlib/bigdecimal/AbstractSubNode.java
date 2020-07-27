@@ -12,10 +12,7 @@ package org.truffleruby.stdlib.bigdecimal;
 import java.math.BigDecimal;
 import java.math.MathContext;
 
-import org.truffleruby.Layouts;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.numeric.BigDecimalOps;
 
@@ -26,16 +23,16 @@ public abstract class AbstractSubNode extends BigDecimalOpNode {
     private final ConditionProfile negInfinityProfile = ConditionProfile.create();
     private final ConditionProfile normalProfile = ConditionProfile.create();
 
-    protected Object sub(DynamicObject a, DynamicObject b, int precision) {
+    protected Object sub(RubyBigDecimal a, RubyBigDecimal b, int precision) {
         if (precision == 0) {
             precision = getLimit();
         }
         return createBigDecimal(subBigDecimal(a, b, BigDecimalOps.newMathContext(precision, getRoundMode())));
     }
 
-    protected Object subSpecial(DynamicObject a, DynamicObject b, int precision) {
-        final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
-        final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
+    protected Object subSpecial(RubyBigDecimal a, RubyBigDecimal b, int precision) {
+        final BigDecimalType aType = a.type;
+        final BigDecimalType bType = b.type;
 
         if (nanProfile.profile(aType == BigDecimalType.NAN || bType == BigDecimalType.NAN ||
                 (aType == BigDecimalType.POSITIVE_INFINITY && bType == BigDecimalType.POSITIVE_INFINITY) ||
@@ -58,13 +55,13 @@ public abstract class AbstractSubNode extends BigDecimalOpNode {
         if (normalProfile.profile(isNormal(a))) {
             return a;
         } else {
-            return createBigDecimal(BigDecimalOps.negate(Layouts.BIG_DECIMAL.getValue(b)));
+            return createBigDecimal(BigDecimalOps.negate(b.value));
         }
     }
 
     @TruffleBoundary
-    private BigDecimal subBigDecimal(DynamicObject a, DynamicObject b, MathContext mathContext) {
-        return Layouts.BIG_DECIMAL.getValue(a).subtract(Layouts.BIG_DECIMAL.getValue(b), mathContext);
+    private BigDecimal subBigDecimal(RubyBigDecimal a, RubyBigDecimal b, MathContext mathContext) {
+        return a.value.subtract(b.value, mathContext);
     }
 
 }

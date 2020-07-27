@@ -14,6 +14,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
 public abstract class RubyGuards {
 
@@ -76,11 +77,11 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyBigDecimal(Object value) {
-        return Layouts.BIG_DECIMAL.isBigDecimal(value);
+        return value instanceof RubyBigDecimal;
     }
 
     public static boolean isRubyBigDecimal(DynamicObject value) {
-        return Layouts.BIG_DECIMAL.isBigDecimal(value);
+        return value instanceof RubyBigDecimal;
     }
 
     public static boolean isIntRange(Object object) {

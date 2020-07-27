@@ -88,6 +88,7 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
 /** When adding a new class (MyClass) to the core library, you need to:
  * <ul>
@@ -225,6 +226,7 @@ public class CoreLibrary {
     public final DynamicObject truffleThreadOperationsModule;
     public final DynamicObject bigDecimalClass;
     public final DynamicObject bigDecimalOperationsModule;
+    public final Shape bigDecimalShape;
     public final DynamicObject encodingCompatibilityErrorClass;
     public final DynamicObject encodingUndefinedConversionErrorClass;
     public final DynamicObjectFactory methodFactory;
@@ -642,9 +644,8 @@ public class CoreLibrary {
         warningModule = defineModule("Warning");
 
         bigDecimalClass = defineClass(numericClass, "BigDecimal");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                bigDecimalClass,
-                Layouts.BIG_DECIMAL.createBigDecimalShape(bigDecimalClass, bigDecimalClass));
+        bigDecimalShape = createShape(RubyBigDecimal.class, bigDecimalClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, createFactory(bigDecimalShape));
         bigDecimalOperationsModule = defineModule(truffleModule, "BigDecimalOperations");
 
         truffleFFIModule = defineModule(truffleModule, "FFI");
