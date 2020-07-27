@@ -1976,14 +1976,15 @@ EOS
             'jvm'
           end
     raise 'Cannot use both --use and --env' if defined?(@ruby_name)
-    @ruby_name = env
 
-    name = 'truffleruby-' + if (i = options.index('--name') || options.index('-n'))
-                              options.delete_at i
-                              options.delete_at i
-                            else
-                              env
-                            end
+    @ruby_name = if (i = options.index('--name') || options.index('-n'))
+                   options.delete_at i
+                   options.delete_at i
+                 else
+                   env
+                 end
+
+    name = "truffleruby-#{@ruby_name}"
 
     cloned = env.include?('ee') && clone_enterprise
 
