@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -55,11 +57,11 @@ class BasicSocket < IO
   end
 
   def getsockopt(level, optname)
-    sockname = Truffle::Socket::Foreign.getsockname(@descriptor)
+    sockname = Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self))
     family   = Truffle::Socket.family_for_sockaddr_in(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
-    data     = Truffle::Socket::Foreign.getsockopt(@descriptor, level, optname)
+    data     = Truffle::Socket::Foreign.getsockopt(Primitive.io_fd(self), level, optname)
 
     Socket::Option.new(family, level, optname, data)
   end
@@ -76,7 +78,7 @@ class BasicSocket < IO
       Truffle::Type.check_arity(args.size, 3, 3)
     end
 
-    sockname = Truffle::Socket::Foreign.getsockname(@descriptor)
+    sockname = Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self))
     family   = Truffle::Socket.family_for_sockaddr_in(sockname)
     level    = Truffle::Socket::SocketOptions.socket_level(level, family)
     optname  = Truffle::Socket::SocketOptions.socket_option(level, optname)
@@ -92,14 +94,14 @@ class BasicSocket < IO
         pointer.write_int(optval)
 
         error = Truffle::Socket::Foreign
-          .setsockopt(@descriptor, level, optname, pointer, pointer.total)
+          .setsockopt(Primitive.io_fd(self), level, optname, pointer, pointer.total)
       end
     elsif optval.is_a?(String)
       Truffle::Socket::Foreign.memory_pointer(optval.bytesize) do |pointer|
         pointer.write_string(optval)
 
         error = Truffle::Socket::Foreign
-          .setsockopt(@descriptor, level, optname, pointer, optval.bytesize)
+          .setsockopt(Primitive.io_fd(self), level, optname, pointer, optval.bytesize)
       end
     else
       raise TypeError, 'socket option should be an Integer, String, true, or false'
@@ -111,11 +113,11 @@ class BasicSocket < IO
   end
 
   def getsockname
-    Truffle::Socket::Foreign.getsockname(@descriptor)
+    Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self))
   end
 
   def getpeername
-    Truffle::Socket::Foreign.getpeername(@descriptor)
+    Truffle::Socket::Foreign.getpeername(Primitive.io_fd(self))
   end
 
   def send(message, flags, dest_sockaddr = nil)
@@ -135,13 +137,13 @@ class BasicSocket < IO
 
         begin
           bytes_sent = Truffle::Socket::Foreign
-            .sendto(@descriptor, buffer, bytes, flags, addr, addr.size)
+            .sendto(Primitive.io_fd(self), buffer, bytes, flags, addr, addr.size)
         ensure
           addr.pointer.free
         end
       else
         bytes_sent = Truffle::Socket::Foreign
-          .send(@descriptor, buffer, bytes, flags)
+          .send(Primitive.io_fd(self), buffer, bytes, flags)
       end
     end
 
@@ -154,7 +156,7 @@ class BasicSocket < IO
     raise ArgumentError, 'buffer argument not yet supported' if buffer
 
     Truffle::Socket::Foreign.memory_pointer(bytes_to_read) do |buf|
-      n_bytes = Truffle::Socket::Foreign.recv(@descriptor, buf, bytes_to_read, flags)
+      n_bytes = Truffle::Socket::Foreign.recv(Primitive.io_fd(self), buf, bytes_to_read, flags)
 
       if n_bytes == -1
         if exception
@@ -203,7 +205,7 @@ class BasicSocket < IO
         need_more = false
 
         msg_size = Truffle::Socket::Foreign
-          .recvmsg(@descriptor, header.pointer, flags)
+          .recvmsg(Primitive.io_fd(self), header.pointer, flags)
 
         if msg_size < 0
           if exception
@@ -272,7 +274,7 @@ class BasicSocket < IO
       end
 
       num_bytes = Truffle::Socket::Foreign
-        .sendmsg(@descriptor, header.pointer, flags)
+        .sendmsg(Primitive.io_fd(self), header.pointer, flags)
 
       if num_bytes < 0
         if exception
@@ -308,7 +310,7 @@ class BasicSocket < IO
       return close
     end
 
-    Truffle::Socket::Foreign.shutdown(@descriptor, 0)
+    Truffle::Socket::Foreign.shutdown(Primitive.io_fd(self), 0)
 
     force_write_only
 
@@ -322,7 +324,7 @@ class BasicSocket < IO
       return close
     end
 
-    Truffle::Socket::Foreign.shutdown(@descriptor, 1)
+    Truffle::Socket::Foreign.shutdown(Primitive.io_fd(self), 1)
 
     force_read_only
 
@@ -331,7 +333,7 @@ class BasicSocket < IO
 
   def shutdown(how = Socket::SHUT_RDWR)
     how = Truffle::Socket.shutdown_option(how)
-    err = Truffle::Socket::Foreign.shutdown(@descriptor, how)
+    err = Truffle::Socket::Foreign.shutdown(Primitive.io_fd(self), how)
 
     Errno.handle('shutdown(2)') unless err == 0
 
@@ -353,6 +355,6 @@ class BasicSocket < IO
   end
 
   def getpeereid
-    Truffle::Socket::Foreign.getpeereid(@descriptor)
+    Truffle::Socket::Foreign.getpeereid(Primitive.io_fd(self))
   end
 end

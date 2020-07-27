@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -37,7 +39,7 @@ class UNIXServer < UNIXSocket
     binmode
 
     sockaddr = Socket.sockaddr_un(@path)
-    status   = Truffle::Socket::Foreign.bind(@descriptor, sockaddr)
+    status   = Truffle::Socket::Foreign.bind(Primitive.io_fd(self), sockaddr)
 
     Errno.handle('bind(2)') if status < 0
 

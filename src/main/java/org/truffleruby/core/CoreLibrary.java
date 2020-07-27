@@ -44,6 +44,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.language.Nil;
@@ -544,7 +545,8 @@ public class CoreLibrary {
         unboundMethodFactory = Layouts.UNBOUND_METHOD.createUnboundMethodShape(unboundMethodClass, unboundMethodClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(unboundMethodClass, unboundMethodFactory);
         ioClass = defineClass("IO");
-        Layouts.CLASS.setInstanceFactoryUnsafe(ioClass, Layouts.IO.createIOShape(ioClass, ioClass));
+        Shape ioShape = createShape(RubyIO.class, ioClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(ioClass, createFactory(ioShape));
         defineClass(ioClass, "File");
         structClass = defineClass("Struct");
 

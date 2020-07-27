@@ -1029,9 +1029,9 @@ class IO
     end
 
     # Close old descriptor if there was already one associated
-    io.close if io.instance_variable_get(:@descriptor) != -1
+    io.close if Primitive.io_fd(io) != -1
 
-    io.instance_variable_set :@descriptor, fd
+    Primitive.io_set_fd(io, fd)
     io.instance_variable_set :@mode, mode || cur_mode
     io.sync       = !!sync
     io.autoclose  = true
@@ -1104,7 +1104,7 @@ class IO
     # The 3rd argument is minimum acceptable descriptor value for the new FD.
     # We want to ensure newly allocated FDs never take the standard IO ones, even
     # if a STDIO stream is closed.
-    @descriptor = Truffle::POSIX.fcntl(fd, F_DUPFD_CLOEXEC, 3)
+    Primitive.io_set_fd(self, Truffle::POSIX.fcntl(fd, F_DUPFD_CLOEXEC, 3))
   end
 
   def advise(advice, offset = 0, len = 0)
@@ -1229,7 +1229,7 @@ class IO
   #  f.close_read    #=> nil
   #  f.closed?       #=> true
   def closed?
-    @descriptor == -1
+    Primitive.io_fd(self) == -1
   end
 
   # Argument matrix for IO#gets and IO#each:
@@ -1409,8 +1409,8 @@ class IO
   ##
   # Return a string describing this IO object.
   def inspect
-    if @descriptor != -1
-      "#<#{self.class}:fd #{@descriptor}>"
+    if Primitive.io_fd(self) != -1
+      "#<#{self.class}:fd #{Primitive.io_fd(self)}>"
     else
       "#<#{self.class}:(closed)>"
     end
@@ -1570,7 +1570,7 @@ class IO
     end
 
     command = Primitive.rb_to_int command
-    Truffle::POSIX.fcntl @descriptor, command, arg
+    Truffle::POSIX.fcntl Primitive.io_fd(self), command, arg
   end
 
   def internal_encoding
@@ -1607,7 +1607,7 @@ class IO
     end
 
     command = Primitive.rb_to_int(command)
-    ret = Truffle::POSIX.ioctl(@descriptor, command, real_arg)
+    ret = Truffle::POSIX.ioctl(Primitive.io_fd(self), command, real_arg)
     Errno.handle if ret < 0
 
     if arg.kind_of?(String)
@@ -1624,7 +1624,7 @@ class IO
   #  $stdout.fileno   #=> 1
   def fileno
     ensure_open
-    @descriptor
+    Primitive.io_fd(self)
   end
   alias_method :to_i, :fileno
 
@@ -1652,7 +1652,7 @@ class IO
   # that the underlying operating system actually writes it to disk.
   def fsync
     flush
-    err = Truffle::POSIX.fsync @descriptor
+    err = Truffle::POSIX.fsync Primitive.io_fd(self)
     Errno.handle(+'fsync(2)') if err < 0
     err
   end
@@ -1768,7 +1768,7 @@ class IO
   def pos
     flush
     reset_buffering
-    r = Truffle::POSIX.lseek(@descriptor, 0, SEEK_CUR)
+    r = Truffle::POSIX.lseek(Primitive.io_fd(self), 0, SEEK_CUR)
     Errno.handle if r == -1
     r
   end
@@ -2080,11 +2080,11 @@ class IO
         end
       end
 
-      if @descriptor != io.fileno
+      if Primitive.io_fd(self) != io.fileno
         io.__send__ :ensure_open
         io.__send__ :reset_buffering
 
-        Truffle::IOOperations.dup2_with_cloexec(io.fileno, @descriptor)
+        Truffle::IOOperations.dup2_with_cloexec(io.fileno, Primitive.io_fd(self))
 
         Primitive.vm_set_class self, io.class
 
@@ -2115,16 +2115,16 @@ class IO
       reset_buffering
 
       if closed?
-        @descriptor = IO.sysopen(path, mode)
+        Primitive.io_set_fd(self, IO.sysopen(path, mode))
       else
         File.open(path, mode) do |f|
-          Truffle::IOOperations.dup2_with_cloexec(f.fileno, @descriptor)
+          Truffle::IOOperations.dup2_with_cloexec(f.fileno, Primitive.io_fd(self))
         end
       end
 
       seek 0, SEEK_SET
 
-      mode = Truffle::POSIX.fcntl(@descriptor, F_GETFL, 0)
+      mode = Truffle::POSIX.fcntl(Primitive.io_fd(self), F_GETFL, 0)
       Errno.handle if mode < 0
 
       @mode = mode
@@ -2172,7 +2172,7 @@ class IO
     flush
     reset_buffering
 
-    r = Truffle::POSIX.lseek(@descriptor, Integer(amount), whence)
+    r = Truffle::POSIX.lseek(Primitive.io_fd(self), Integer(amount), whence)
     Errno.handle if r == -1
     0
   end
@@ -2240,7 +2240,7 @@ class IO
   end
 
   private def strip_bom
-    mode = Truffle::POSIX.truffleposix_fstat_mode(@descriptor)
+    mode = Truffle::POSIX.truffleposix_fstat_mode(Primitive.io_fd(self))
     return unless Truffle::StatOperations.file?(mode)
 
     case b1 = getbyte
@@ -2310,7 +2310,7 @@ class IO
   #  s.atime         #=> Wed Apr 09 08:53:54 CDT 2003
   def stat
     ensure_open
-    File::Stat.fstat @descriptor
+    File::Stat.fstat Primitive.io_fd(self)
   end
 
   ##
@@ -2377,7 +2377,7 @@ class IO
     end
 
     amount = Integer(amount)
-    r = Truffle::POSIX.lseek(@descriptor, amount, whence)
+    r = Truffle::POSIX.lseek(Primitive.io_fd(self), amount, whence)
     Errno.handle if r == -1
     r
   end
@@ -2393,7 +2393,7 @@ class IO
   #  File.new("/dev/tty").isatty   #=> true
   def tty?
     ensure_open
-    Truffle::POSIX.isatty(@descriptor) == 1
+    Truffle::POSIX.isatty(Primitive.io_fd(self)) == 1
   end
   alias_method :isatty, :tty?
 
@@ -2499,10 +2499,10 @@ class IO
     begin
       flush
     ensure
-      fd = @descriptor
+      fd = Primitive.io_fd(self)
       if fd >= 0
         # Need to set even if the instance is frozen
-        Primitive.object_ivar_set self, :@descriptor, -1
+        Primitive.io_set_fd(self, -1)
         if fd >= 3 && autoclose?
           ret = Truffle::POSIX.close(fd)
           Errno.handle if ret < 0

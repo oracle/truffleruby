@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -41,7 +43,7 @@ class UDPSocket < IPSocket
   def bind(host, port)
     addr = Truffle::Socket::Foreign.pack_sockaddr_in(
         host, port.to_i, @family, Socket::SOCK_DGRAM, 0)
-    status = Truffle::Socket::Foreign.bind(@descriptor, addr)
+    status = Truffle::Socket::Foreign.bind(Primitive.io_fd(self), addr)
 
     Errno.handle('bind(2)') if status < 0
 
@@ -52,7 +54,7 @@ class UDPSocket < IPSocket
     sockaddr = Truffle::Socket::Foreign.pack_sockaddr_in(
         host, port.to_i, @family, Socket::SOCK_DGRAM, 0)
 
-    status = Truffle::Socket::Foreign.connect(@descriptor, sockaddr)
+    status = Truffle::Socket::Foreign.connect(Primitive.io_fd(self), sockaddr)
 
     Truffle::Socket::Error.write_error('connect(2)', self) if status < 0
 

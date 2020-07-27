@@ -63,8 +63,6 @@ import org.truffleruby.core.string.StringLayout;
 import org.truffleruby.core.string.StringLayoutImpl;
 import org.truffleruby.core.support.ByteArrayLayout;
 import org.truffleruby.core.support.ByteArrayLayoutImpl;
-import org.truffleruby.core.support.IOLayout;
-import org.truffleruby.core.support.IOLayoutImpl;
 import org.truffleruby.core.support.RandomizerLayout;
 import org.truffleruby.core.support.RandomizerLayoutImpl;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayout;
@@ -114,7 +112,6 @@ public abstract class Layouts {
     public static final FiberLayout FIBER = FiberLayoutImpl.INSTANCE;
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;
     public static final IntRangeLayout INT_RANGE = IntRangeLayoutImpl.INSTANCE;
-    public static final IOLayout IO = IOLayoutImpl.INSTANCE;
     public static final LongRangeLayout LONG_RANGE = LongRangeLayoutImpl.INSTANCE;
     public static final MatchDataLayout MATCH_DATA = MatchDataLayoutImpl.INSTANCE;
     public static final MethodLayout METHOD = MethodLayoutImpl.INSTANCE;
