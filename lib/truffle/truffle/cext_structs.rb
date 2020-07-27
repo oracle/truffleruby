@@ -352,7 +352,7 @@ class Truffle::CExt::RbIO
   def polyglot_read_member(name)
     case name
     when 'fd'
-      @io.instance_variable_get(:@descriptor)
+      Primitive.io_fd(@io)
     when 'mode'
       @io.instance_variable_get(:@mode)
     else

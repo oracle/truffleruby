@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -50,21 +52,21 @@ class UNIXSocket < BasicSocket
     binmode
 
     sockaddr = Socket.sockaddr_un(Truffle::Type.check_null_safe(path))
-    status   = Truffle::Socket::Foreign.connect(@descriptor, sockaddr)
+    status   = Truffle::Socket::Foreign.connect(Primitive.io_fd(self), sockaddr)
 
     Errno.handle('connect(2)') if status < 0
   end
 
   def recvfrom(bytes_read, flags = 0)
     Truffle::Socket::Foreign.memory_pointer(bytes_read) do |buf|
-      n_bytes = Truffle::Socket::Foreign.recvfrom(@descriptor, buf, bytes_read, flags, nil, nil)
+      n_bytes = Truffle::Socket::Foreign.recvfrom(Primitive.io_fd(self), buf, bytes_read, flags, nil, nil)
       Errno.handle('recvfrom(2)') if n_bytes == -1
       return [buf.read_string(n_bytes), ['AF_UNIX', '']]
     end
   end
 
   def path
-    @path ||= Truffle::Socket::Foreign.getsockname(@descriptor).unpack('SZ*')[1]
+    @path ||= Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self)).unpack('SZ*')[1]
   end
 
   def addr
@@ -72,7 +74,7 @@ class UNIXSocket < BasicSocket
   end
 
   def peeraddr
-    path = Truffle::Socket::Foreign.getpeername(@descriptor).unpack('SZ*')[1]
+    path = Truffle::Socket::Foreign.getpeername(Primitive.io_fd(self)).unpack('SZ*')[1]
 
     ['AF_UNIX', path]
   end

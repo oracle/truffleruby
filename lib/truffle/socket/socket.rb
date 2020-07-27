@@ -1,3 +1,5 @@
+# truffleruby_primitives: true
+
 # Copyright (c) 2013, Brian Shirai
 # All rights reserved.
 #
@@ -324,7 +326,7 @@ class Socket < BasicSocket
       addr = addr.to_sockaddr
     end
 
-    err = Truffle::Socket::Foreign.bind(@descriptor, addr)
+    err = Truffle::Socket::Foreign.bind(Primitive.io_fd(self), addr)
 
     Errno.handle('bind(2)') unless err == 0
 
@@ -336,7 +338,7 @@ class Socket < BasicSocket
       sockaddr = sockaddr.to_sockaddr
     end
 
-    status = Truffle::Socket::Foreign.connect(@descriptor, sockaddr)
+    status = Truffle::Socket::Foreign.connect(Primitive.io_fd(self), sockaddr)
 
     Truffle::Socket::Error.write_error('connect(2)', self) if status < 0
 
@@ -350,7 +352,7 @@ class Socket < BasicSocket
       sockaddr = sockaddr.to_sockaddr
     end
 
-    status = Truffle::Socket::Foreign.connect(@descriptor, sockaddr)
+    status = Truffle::Socket::Foreign.connect(Primitive.io_fd(self), sockaddr)
 
     if status < 0
       if exception
@@ -371,13 +373,13 @@ class Socket < BasicSocket
   end
 
   def local_address
-    sockaddr = Truffle::Socket::Foreign.getsockname(@descriptor)
+    sockaddr = Truffle::Socket::Foreign.getsockname(Primitive.io_fd(self))
 
     Addrinfo.new(sockaddr, @family, @socket_type, 0)
   end
 
   def remote_address
-    sockaddr = Truffle::Socket::Foreign.getpeername(@descriptor)
+    sockaddr = Truffle::Socket::Foreign.getpeername(Primitive.io_fd(self))
 
     Addrinfo.new(sockaddr, @family, @socket_type, 0)
   end

@@ -68,7 +68,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
@@ -88,32 +87,54 @@ import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.Platform;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "IO", isClass = true)
 public abstract class IONodes {
 
-    private static final int CLOSED_FD = -1;
-
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(VirtualFrame frame, DynamicObject classToAllocate) {
-            return allocateNode.allocate(classToAllocate, CLOSED_FD);
+        protected DynamicObject allocate(DynamicObject rubyClass) {
+            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final RubyIO instance = new RubyIO(shape, RubyIO.CLOSED_FD);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
+    }
+
+    @Primitive(name = "io_fd")
+    public static abstract class IOFDNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected int fd(RubyIO io) {
+            return io.getDescriptor();
+        }
+    }
+
+    @Primitive(name = "io_set_fd", lowerFixnum = 1)
+    public static abstract class IOSetFDNode extends PrimitiveArrayArgumentsNode {
+
+        @Specialization
+        protected RubyIO fd(RubyIO io, int fd) {
+            io.setDescriptor(fd);
+            return io;
+        }
     }
 
     @Primitive(name = "file_fnmatch", lowerFixnum = 2)
@@ -397,10 +418,10 @@ public abstract class IONodes {
     public static abstract class IOEnsureOpenPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object ensureOpen(DynamicObject file,
+        protected Object ensureOpen(RubyIO io,
                 @Cached BranchProfile errorProfile) {
-            final int fd = Layouts.IO.getDescriptor(file);
-            if (fd == CLOSED_FD) {
+            final int fd = io.getDescriptor();
+            if (fd == RubyIO.CLOSED_FD) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().ioError("closed stream", this));
             } else {

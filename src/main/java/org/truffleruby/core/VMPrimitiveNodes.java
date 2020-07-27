@@ -52,6 +52,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
@@ -395,12 +396,12 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_set_class")
     public abstract static class VMSetClassNode extends PrimitiveArrayArgumentsNode {
 
+        @TruffleBoundary
         @Specialization(guards = "isRubyClass(newClass)")
         protected DynamicObject setClass(DynamicObject object, DynamicObject newClass) {
             SharedObjects.propagate(getContext(), object, newClass);
             synchronized (object) {
-                Layouts.BASIC_OBJECT.setLogicalClass(object, newClass);
-                Layouts.BASIC_OBJECT.setMetaClass(object, newClass);
+                ClassNodes.setLogicalAndMetaClass(object, newClass);
             }
             return object;
         }

@@ -301,7 +301,7 @@ class File < IO
 
   def chmod(mode)
     mode = Truffle::Type.coerce_to(mode, Integer, :to_int)
-    n = POSIX.fchmod @descriptor, File.clamp_short(mode)
+    n = POSIX.fchmod Primitive.io_fd(self), File.clamp_short(mode)
     Errno.handle if n == -1
     n
   end
@@ -319,7 +319,7 @@ class File < IO
       group = -1
     end
 
-    n = POSIX.fchown @descriptor, owner, group
+    n = POSIX.fchown Primitive.io_fd(self), owner, group
     Errno.handle if n == -1
     n
   end
@@ -1298,7 +1298,7 @@ class File < IO
   def flock(const)
     const = Truffle::Type.coerce_to const, Integer, :to_int
 
-    result = POSIX.truffleposix_flock @descriptor, const
+    result = POSIX.truffleposix_flock Primitive.io_fd(self), const
     if result == -1
       begin
         Errno.handle
@@ -1318,7 +1318,7 @@ class File < IO
   end
 
   def stat
-    Stat.fstat @descriptor
+    Stat.fstat Primitive.io_fd(self)
   end
 
   alias_method :to_path, :path
@@ -1332,7 +1332,7 @@ class File < IO
     flush
     reset_buffering
 
-    r = Truffle::POSIX.ftruncate(@descriptor, length)
+    r = Truffle::POSIX.ftruncate(Primitive.io_fd(self), length)
     Errno.handle(path) if r == -1
     r
   end
@@ -1346,12 +1346,12 @@ class File < IO
   def size
     raise IOError, 'closed stream' if closed?
     flush
-    s = Truffle::POSIX.truffleposix_fstat_size(@descriptor)
+    s = Truffle::POSIX.truffleposix_fstat_size(Primitive.io_fd(self))
 
     if s >= 0
       s
     else
-      Errno.handle "file descriptor #{@descriptor}"
+      Errno.handle "file descriptor #{Primitive.io_fd(self)}"
     end
   end
 end     # File
