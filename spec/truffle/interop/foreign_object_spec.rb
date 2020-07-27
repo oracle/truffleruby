@@ -22,5 +22,4 @@ describe "Foreign objects" do
       p foreign
     }.should output_to_fd("#{foreign.inspect}\n")
   end
-
 end

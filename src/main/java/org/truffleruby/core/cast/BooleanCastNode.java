@@ -67,7 +67,7 @@ public abstract class BooleanCastNode extends RubyBaseNode {
         return true;
     }
 
-    @Specialization
+    @Specialization(guards = "isRubyDynamicObject(object)")
     protected boolean doBasicObject(DynamicObject object) {
         return true;
     }
@@ -80,18 +80,24 @@ public abstract class BooleanCastNode extends RubyBaseNode {
     @Specialization(guards = "isForeignObject(object)", limit = "getCacheLimit()")
     protected boolean doForeignObject(Object object,
             @CachedLibrary("object") InteropLibrary objects,
-            @Cached ConditionProfile profile,
+            @Cached ConditionProfile isNullProfile,
+            @Cached ConditionProfile isBooleanProfile,
             @Cached BranchProfile failed) {
-        if (profile.profile(objects.isBoolean(object))) {
-            try {
-                return objects.asBoolean(object);
-            } catch (UnsupportedMessageException e) {
-                failed.enter();
-                // it concurrently stopped being boolean
+
+        if (isNullProfile.profile(objects.isNull(object))) {
+            return false;
+        } else {
+            if (isBooleanProfile.profile(objects.isBoolean(object))) {
+                try {
+                    return objects.asBoolean(object);
+                } catch (UnsupportedMessageException e) {
+                    failed.enter();
+                    // it concurrently stopped being boolean
+                    return true;
+                }
+            } else {
                 return true;
             }
-        } else {
-            return true;
         }
     }
 

@@ -37,6 +37,13 @@ describe "Interop coercion" do
       (Truffle::Debug.foreign_boxed_value(false) ? 1 : 2).should == 2
       (Truffle::Debug.foreign_boxed_value(:other) ? 1 : 2).should == 1
     end
+
+    it "coerce null as falsy value" do
+      foreign_null = Truffle::Debug.foreign_null ? true : false
+      foreign_null.should be_false
+
+      [Object.new, foreign_null].map { |x| x ? true : false }.should == [true, false]
+    end
   end
 
 end
