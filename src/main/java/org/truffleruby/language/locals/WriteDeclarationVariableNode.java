@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -19,18 +17,15 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class WriteDeclarationVariableNode extends RubyContextSourceNode {
+public class WriteDeclarationVariableNode extends WriteLocalNode {
 
     private final int frameDepth;
-    private final FrameSlot frameSlot;
 
-    @Child private RubyNode valueNode;
     @Child private WriteFrameSlotNode writeFrameSlotNode;
 
     public WriteDeclarationVariableNode(FrameSlot frameSlot, int frameDepth, RubyNode valueNode) {
+        super(frameSlot, valueNode);
         this.frameDepth = frameDepth;
-        this.frameSlot = frameSlot;
-        this.valueNode = valueNode;
     }
 
     @Override
@@ -43,11 +38,6 @@ public class WriteDeclarationVariableNode extends RubyContextSourceNode {
         final MaterializedFrame declarationFrame = RubyArguments.getDeclarationFrame(frame, frameDepth);
         final Object value = valueNode.execute(frame);
         return writeFrameSlotNode.executeWrite(declarationFrame, value);
-    }
-
-    @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        return coreStrings().ASSIGNMENT.createInstance();
     }
 
 }

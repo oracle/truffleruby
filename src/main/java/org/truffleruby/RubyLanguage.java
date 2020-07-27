@@ -68,6 +68,7 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
         StandardTags.RootTag.class,
         StandardTags.StatementTag.class,
         StandardTags.ReadVariableTag.class,
+        StandardTags.WriteVariableTag.class,
 })
 public class RubyLanguage extends TruffleLanguage<RubyContext> {
 
