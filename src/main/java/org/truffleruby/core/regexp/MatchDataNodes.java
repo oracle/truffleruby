@@ -45,6 +45,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -59,15 +60,15 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class MatchDataNodes {
 
     @TruffleBoundary
-    public static Object begin(DynamicObject matchData, int index) {
+    public static Object begin(RubyMatchData matchData, int index) {
         // Taken from org.jruby.RubyMatchData
-        int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
+        int b = matchData.region.beg[index];
 
         if (b < 0) {
             return Nil.INSTANCE;
         }
 
-        final Rope rope = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
+        final Rope rope = StringOperations.rope(matchData.source);
         if (!rope.isSingleByteOptimizable()) {
             b = getCharOffsets(matchData).beg[index];
         }
@@ -76,15 +77,15 @@ public abstract class MatchDataNodes {
     }
 
     @TruffleBoundary
-    public static Object end(DynamicObject matchData, int index) {
+    public static Object end(RubyMatchData matchData, int index) {
         // Taken from org.jruby.RubyMatchData
-        int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
+        int e = matchData.region.end[index];
 
         if (e < 0) {
             return Nil.INSTANCE;
         }
 
-        final Rope rope = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
+        final Rope rope = StringOperations.rope(matchData.source);
         if (!rope.isSingleByteOptimizable()) {
             e = getCharOffsets(matchData).end[index];
         }
@@ -111,9 +112,9 @@ public abstract class MatchDataNodes {
         }
     }
 
-    private static Region getCharOffsetsManyRegs(DynamicObject matchData, Rope source, Encoding encoding) {
+    private static Region getCharOffsetsManyRegs(RubyMatchData matchData, Rope source, Encoding encoding) {
         // Taken from org.jruby.RubyMatchData
-        final Region regs = Layouts.MATCH_DATA.getRegion(matchData);
+        final Region regs = matchData.region;
         int numRegs = regs.numRegs;
 
         final Region charOffsets = new Region(numRegs);
@@ -157,9 +158,9 @@ public abstract class MatchDataNodes {
         return charOffsets;
     }
 
-    public static Region getCharOffsets(DynamicObject matchData) {
+    public static Region getCharOffsets(RubyMatchData matchData) {
         // Taken from org.jruby.RubyMatchData
-        Region charOffsets = Layouts.MATCH_DATA.getCharOffsets(matchData);
+        Region charOffsets = matchData.charOffsets;
         if (charOffsets != null) {
             return charOffsets;
         } else {
@@ -168,11 +169,11 @@ public abstract class MatchDataNodes {
     }
 
     @TruffleBoundary
-    private static Region createCharOffsets(DynamicObject matchData) {
-        final Rope source = StringOperations.rope(Layouts.MATCH_DATA.getSource(matchData));
+    private static Region createCharOffsets(RubyMatchData matchData) {
+        final Rope source = StringOperations.rope(matchData.source);
         final Encoding enc = source.getEncoding();
         final Region charOffsets = getCharOffsetsManyRegs(matchData, source, enc);
-        Layouts.MATCH_DATA.setCharOffsets(matchData, charOffsets);
+        matchData.charOffsets = charOffsets;
         return charOffsets;
     }
 
@@ -181,11 +182,11 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object create(DynamicObject regexp, DynamicObject string, int start, int end,
-                @Cached AllocateObjectNode allocateNode) {
+                @Cached AllocateHelperNode allocateNode) {
             final Region region = new Region(start, end);
-            return allocateNode.allocate(
-                    coreLibrary().matchDataClass,
-                    Layouts.MATCH_DATA.build(string, regexp, region, null));
+            RubyMatchData matchData = new RubyMatchData(coreLibrary().matchDataShape, regexp, string, region, null);
+            allocateNode.trace(matchData, this);
+            return matchData;
         }
 
     }
@@ -195,18 +196,18 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected Object create(DynamicObject regexp, DynamicObject string, DynamicObject starts, DynamicObject ends,
-                @Cached AllocateObjectNode allocateNode,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
-                @Cached IntegerCastNode integerCastNode) {
+                @Cached IntegerCastNode integerCastNode,
+                @Cached AllocateHelperNode allocateNode) {
             final Region region = new Region(ArrayHelpers.getSize(starts));
             for (int i = 0; i < region.numRegs; i++) {
                 region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));
                 region.end[i] = integerCastNode.executeCastInt(readNode.executeRead(ends, i));
             }
 
-            return allocateNode.allocate(
-                    coreLibrary().matchDataClass,
-                    Layouts.MATCH_DATA.build(string, regexp, region, null));
+            RubyMatchData matchData = new RubyMatchData(coreLibrary().matchDataShape, regexp, string, region, null);
+            allocateNode.trace(matchData, this);
+            return matchData;
         }
 
     }
@@ -232,13 +233,13 @@ public abstract class MatchDataNodes {
         protected abstract Object executeGetIndex(Object matchData, int index, NotProvided length);
 
         @Specialization
-        protected Object getIndex(DynamicObject matchData, int index, NotProvided length,
+        protected Object getIndex(RubyMatchData matchData, int index, NotProvided length,
                 @Cached ConditionProfile normalizedIndexProfile,
                 @Cached ConditionProfile indexOutOfBoundsProfile,
                 @Cached ConditionProfile hasValueProfile) {
-            final DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
+            final DynamicObject source = matchData.source;
             final Rope sourceRope = StringOperations.rope(source);
-            final Region region = Layouts.MATCH_DATA.getRegion(matchData);
+            final Region region = matchData.region;
             final int normalizedIndex = ArrayOperations
                     .normalizeIndex(region.beg.length, index, normalizedIndexProfile);
 
@@ -259,7 +260,7 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization
-        protected Object getIndex(DynamicObject matchData, int index, int length) {
+        protected Object getIndex(RubyMatchData matchData, int index, int length) {
             // TODO BJF 15-May-2015 Need to handle negative indexes and lengths and out of bounds
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, index);
@@ -272,9 +273,9 @@ public abstract class MatchDataNodes {
                         "name != null",
                         "getRegexp(matchData) == regexp",
                         "cachedIndex == index" })
-        protected Object getIndexSymbolSingleMatch(DynamicObject matchData, RubySymbol index, NotProvided length,
+        protected Object getIndexSymbolSingleMatch(RubyMatchData matchData, RubySymbol index, NotProvided length,
                 @Cached("index") RubySymbol cachedIndex,
-                @Cached("getRegexp(matchData)") DynamicObject regexp,
+                @Cached("getRegexp(matchData)") RubyRegexp regexp,
                 @Cached("findNameEntry(regexp, index)") NameEntry name,
                 @Cached("numBackRefs(name)") int backRefs,
                 @Cached("backRefIndex(name)") int backRefIndex) {
@@ -287,25 +288,25 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization
-        protected Object getIndexSymbol(DynamicObject matchData, RubySymbol index, NotProvided length) {
+        protected Object getIndexSymbol(RubyMatchData matchData, RubySymbol index, NotProvided length) {
             return executeGetIndex(matchData, getBackRefFromSymbol(matchData, index), NotProvided.INSTANCE);
         }
 
         @Specialization(guards = "isRubyString(index)")
-        protected Object getIndexString(DynamicObject matchData, DynamicObject index, NotProvided length) {
+        protected Object getIndexString(RubyMatchData matchData, DynamicObject index, NotProvided length) {
             return executeGetIndex(matchData, getBackRefFromString(matchData, index), NotProvided.INSTANCE);
         }
 
         @Specialization(
                 guards = { "!isInteger(index)", "!isRubySymbol(index)", "!isRubyString(index)", "!isIntRange(index)" })
-        protected Object getIndex(DynamicObject matchData, Object index, NotProvided length,
+        protected Object getIndex(RubyMatchData matchData, Object index, NotProvided length,
                 @Cached ToIntNode toIntNode) {
             return executeGetIndex(matchData, toIntNode.execute(index), NotProvided.INSTANCE);
         }
 
         @TruffleBoundary
         @Specialization(guards = "isIntRange(range)")
-        protected Object getIndex(DynamicObject matchData, DynamicObject range, NotProvided len) {
+        protected Object getIndex(RubyMatchData matchData, DynamicObject range, NotProvided len) {
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations
                     .normalizeIndex(values.length, Layouts.INT_RANGE.getBegin(range));
@@ -318,8 +319,8 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        protected static NameEntry findNameEntry(DynamicObject regexp, RubySymbol symbol) {
-            Regex regex = Layouts.REGEXP.getRegex(regexp);
+        protected static NameEntry findNameEntry(RubyRegexp regexp, RubySymbol symbol) {
+            Regex regex = regexp.regex;
             Rope rope = symbol.getRope();
             if (regex.numberOfNames() > 0) {
                 for (Iterator<NameEntry> i = regex.namedBackrefIterator(); i.hasNext();) {
@@ -332,7 +333,7 @@ public abstract class MatchDataNodes {
             return null;
         }
 
-        protected DynamicObject getRegexp(DynamicObject matchData) {
+        protected RubyRegexp getRegexp(RubyMatchData matchData) {
             if (regexpNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 regexpNode = insert(RegexpNode.create());
@@ -341,24 +342,24 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        private int getBackRefFromString(DynamicObject matchData, DynamicObject index) {
+        private int getBackRefFromString(RubyMatchData matchData, DynamicObject index) {
             final Rope value = Layouts.STRING.getRope(index);
             return getBackRefFromRope(matchData, index, value);
         }
 
         @TruffleBoundary
-        private int getBackRefFromSymbol(DynamicObject matchData, RubySymbol index) {
+        private int getBackRefFromSymbol(RubyMatchData matchData, RubySymbol index) {
             final Rope value = index.getRope();
             return getBackRefFromRope(matchData, index, value);
         }
 
-        private int getBackRefFromRope(DynamicObject matchData, Object index, Rope value) {
+        private int getBackRefFromRope(RubyMatchData matchData, Object index, Rope value) {
             try {
-                return Layouts.REGEXP.getRegex(getRegexp(matchData)).nameToBackrefNumber(
+                return getRegexp(matchData).regex.nameToBackrefNumber(
                         value.getBytes(),
                         0,
                         value.byteLength(),
-                        Layouts.MATCH_DATA.getRegion(matchData));
+                        matchData.region);
             } catch (final ValueException e) {
                 throw new RaiseException(
                         getContext(),
@@ -369,12 +370,12 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        private int getBackRef(DynamicObject matchData, DynamicObject regexp, NameEntry name) {
-            return Layouts.REGEXP.getRegex(regexp).nameToBackrefNumber(
+        private int getBackRef(RubyMatchData matchData, RubyRegexp regexp, NameEntry name) {
+            return regexp.regex.nameToBackrefNumber(
                     name.name,
                     name.nameP,
                     name.nameEnd,
-                    Layouts.MATCH_DATA.getRegion(matchData));
+                    matchData.region);
         }
 
         @TruffleBoundary
@@ -403,20 +404,20 @@ public abstract class MatchDataNodes {
     public abstract static class BeginNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object begin(DynamicObject matchData, int index) {
+        protected Object begin(RubyMatchData matchData, int index) {
             return MatchDataNodes.begin(matchData, index);
         }
 
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
-        protected Object beginError(DynamicObject matchData, int index) {
+        protected Object beginError(RubyMatchData matchData, int index) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
-        protected boolean inBounds(DynamicObject matchData, int index) {
-            return index >= 0 && index < Layouts.MATCH_DATA.getRegion(matchData).numRegs;
+        protected boolean inBounds(RubyMatchData matchData, int index) {
+            return index >= 0 && index < matchData.region.numRegs;
         }
     }
 
@@ -430,15 +431,15 @@ public abstract class MatchDataNodes {
             return ValuesNodeFactory.create(null);
         }
 
-        public abstract Object[] execute(DynamicObject matchData);
+        public abstract Object[] execute(RubyMatchData matchData);
 
         @TruffleBoundary
         @Specialization
-        protected Object[] getValuesSlow(DynamicObject matchData,
+        protected Object[] getValuesSlow(RubyMatchData matchData,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
-            final DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
+            final DynamicObject source = matchData.source;
             final Rope sourceRope = StringOperations.rope(source);
-            final Region region = Layouts.MATCH_DATA.getRegion(matchData);
+            final Region region = matchData.region;
             final Object[] values = new Object[region.numRegs];
             boolean isTainted = rubyLibrary.isTainted(source);
 
@@ -468,7 +469,7 @@ public abstract class MatchDataNodes {
         @Child private ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
-        protected DynamicObject toA(DynamicObject matchData) {
+        protected DynamicObject toA(RubyMatchData matchData) {
             return createArray(getCaptures(valuesNode.execute(matchData)));
         }
 
@@ -481,20 +482,20 @@ public abstract class MatchDataNodes {
     public abstract static class EndNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object end(DynamicObject matchData, int index) {
+        protected Object end(RubyMatchData matchData, int index) {
             return MatchDataNodes.end(matchData, index);
         }
 
         @TruffleBoundary
         @Specialization(guards = "!inBounds(matchData, index)")
-        protected Object endError(DynamicObject matchData, int index) {
+        protected Object endError(RubyMatchData matchData, int index) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().indexError(StringUtils.format("index %d out of matches", index), this));
         }
 
-        protected boolean inBounds(DynamicObject matchData, int index) {
-            return index >= 0 && index < Layouts.MATCH_DATA.getRegion(matchData).numRegs;
+        protected boolean inBounds(RubyMatchData matchData, int index) {
+            return index >= 0 && index < matchData.region.numRegs;
         }
     }
 
@@ -503,8 +504,8 @@ public abstract class MatchDataNodes {
     public abstract static class ByteBeginNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object byteBegin(DynamicObject matchData, int index) {
-            int b = Layouts.MATCH_DATA.getRegion(matchData).beg[index];
+        protected Object byteBegin(RubyMatchData matchData, int index) {
+            int b = matchData.region.beg[index];
             if (b < 0) {
                 return nil;
             } else {
@@ -512,8 +513,8 @@ public abstract class MatchDataNodes {
             }
         }
 
-        protected boolean inBounds(DynamicObject matchData, int index) {
-            return index >= 0 && index < Layouts.MATCH_DATA.getRegion(matchData).numRegs;
+        protected boolean inBounds(RubyMatchData matchData, int index) {
+            return index >= 0 && index < matchData.region.numRegs;
         }
     }
 
@@ -522,8 +523,8 @@ public abstract class MatchDataNodes {
     public abstract static class ByteEndNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "inBounds(matchData, index)")
-        protected Object byteEnd(DynamicObject matchData, int index) {
-            int e = Layouts.MATCH_DATA.getRegion(matchData).end[index];
+        protected Object byteEnd(RubyMatchData matchData, int index) {
+            int e = matchData.region.end[index];
             if (e < 0) {
                 return nil;
             } else {
@@ -531,8 +532,8 @@ public abstract class MatchDataNodes {
             }
         }
 
-        protected boolean inBounds(DynamicObject matchData, int index) {
-            return index >= 0 && index < Layouts.MATCH_DATA.getRegion(matchData).numRegs;
+        protected boolean inBounds(RubyMatchData matchData, int index) {
+            return index >= 0 && index < matchData.region.numRegs;
         }
     }
 
@@ -542,7 +543,7 @@ public abstract class MatchDataNodes {
         @Child private ValuesNode getValues = ValuesNode.create();
 
         @Specialization
-        protected int length(DynamicObject matchData) {
+        protected int length(RubyMatchData matchData) {
             return getValues.execute(matchData).length;
         }
 
@@ -554,13 +555,13 @@ public abstract class MatchDataNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
-        public abstract DynamicObject execute(DynamicObject matchData);
+        public abstract DynamicObject execute(RubyMatchData matchData);
 
         @Specialization
-        protected Object preMatch(DynamicObject matchData) {
-            DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
+        protected Object preMatch(RubyMatchData matchData) {
+            DynamicObject source = matchData.source;
             Rope sourceRope = StringOperations.rope(source);
-            Region region = Layouts.MATCH_DATA.getRegion(matchData);
+            Region region = matchData.region;
             int start = 0;
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
@@ -576,13 +577,13 @@ public abstract class MatchDataNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
 
-        public abstract DynamicObject execute(DynamicObject matchData);
+        public abstract DynamicObject execute(RubyMatchData matchData);
 
         @Specialization
-        protected Object postMatch(DynamicObject matchData) {
-            DynamicObject source = Layouts.MATCH_DATA.getSource(matchData);
+        protected Object postMatch(RubyMatchData matchData) {
+            DynamicObject source = matchData.source;
             Rope sourceRope = StringOperations.rope(source);
-            Region region = Layouts.MATCH_DATA.getRegion(matchData);
+            Region region = matchData.region;
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
@@ -598,7 +599,7 @@ public abstract class MatchDataNodes {
         @Child ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
-        protected DynamicObject toA(DynamicObject matchData) {
+        protected DynamicObject toA(RubyMatchData matchData) {
             Object[] objects = ArrayUtils.copy(valuesNode.execute(matchData));
             return createArray(objects);
         }
@@ -611,22 +612,22 @@ public abstract class MatchDataNodes {
             return MatchDataNodesFactory.RegexpNodeFactory.create(null);
         }
 
-        public abstract DynamicObject executeGetRegexp(DynamicObject matchData);
+        public abstract RubyRegexp executeGetRegexp(RubyMatchData matchData);
 
         @Specialization
-        protected DynamicObject regexp(DynamicObject matchData,
+        protected RubyRegexp regexp(RubyMatchData matchData,
                 @Cached ConditionProfile profile,
                 @Cached("createPrivate()") CallDispatchHeadNode stringToRegexp) {
-            final DynamicObject value = Layouts.MATCH_DATA.getRegexp(matchData);
-            if (profile.profile(Layouts.REGEXP.isRegexp(value))) {
-                return value;
+            final DynamicObject value = matchData.regexp;
+            if (profile.profile(value instanceof RubyRegexp)) {
+                return (RubyRegexp) value;
             } else {
-                final DynamicObject regexp = (DynamicObject) stringToRegexp.call(
+                final RubyRegexp regexp = (RubyRegexp) stringToRegexp.call(
                         coreLibrary().truffleTypeModule,
                         "coerce_to_regexp",
                         value,
                         true);
-                Layouts.MATCH_DATA.setRegexp(matchData, regexp);
+                matchData.regexp = regexp;
                 return regexp;
             }
         }
@@ -640,8 +641,10 @@ public abstract class MatchDataNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass,
-                @Cached AllocateObjectNode allocateNode) {
-            return allocateNode.allocate(rubyClass, Layouts.MATCH_DATA.build(null, null, null, null));
+                @Cached AllocateHelperNode allocateNode) {
+            RubyMatchData matchData = new RubyMatchData(allocateNode.getCachedShape(rubyClass), null, null, null, null);
+            allocateNode.trace(matchData, this);
+            return matchData;
         }
 
     }
@@ -650,22 +653,23 @@ public abstract class MatchDataNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initializeCopy(DynamicObject self, DynamicObject from) {
+        protected DynamicObject initializeCopy(RubyMatchData self, DynamicObject from) {
             if (self == from) {
                 return self;
             }
 
-            if (!Layouts.MATCH_DATA.isMatchData(from)) {
+            if (!(from instanceof RubyMatchData)) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeError("initialize_copy should take same class object", this));
             }
 
 
-            Layouts.MATCH_DATA.setSource(self, Layouts.MATCH_DATA.getSource(from));
-            Layouts.MATCH_DATA.setRegexp(self, Layouts.MATCH_DATA.getRegexp(from));
-            Layouts.MATCH_DATA.setRegion(self, Layouts.MATCH_DATA.getRegion(from));
-            Layouts.MATCH_DATA.setCharOffsets(self, Layouts.MATCH_DATA.getCharOffsets(from));
+            final RubyMatchData frommd = (RubyMatchData) from;
+            self.source = frommd.source;
+            self.regexp = frommd.regexp;
+            self.region = frommd.region;
+            self.charOffsets = frommd.charOffsets;
             return self;
         }
     }
@@ -674,8 +678,8 @@ public abstract class MatchDataNodes {
     public abstract static class GetSourceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getSource(DynamicObject matchData) {
-            return Layouts.MATCH_DATA.getSource(matchData);
+        protected DynamicObject getSource(RubyMatchData matchData) {
+            return matchData.source;
         }
     }
 

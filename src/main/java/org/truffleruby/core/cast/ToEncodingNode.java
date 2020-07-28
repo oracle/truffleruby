@@ -10,8 +10,8 @@
 package org.truffleruby.core.cast;
 
 import org.jcodings.Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
@@ -39,9 +39,9 @@ public abstract class ToEncodingNode extends RubyContextNode {
         return value.getRope().getEncoding();
     }
 
-    @Specialization(guards = "isRubyRegexp(value)")
-    protected Encoding regexpToEncoding(DynamicObject value) {
-        return Layouts.REGEXP.getRegex(value).getEncoding();
+    @Specialization
+    protected Encoding regexpToEncoding(RubyRegexp value) {
+        return value.regex.getEncoding();
     }
 
     @Specialization

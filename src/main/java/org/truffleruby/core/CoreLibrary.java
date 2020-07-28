@@ -48,6 +48,8 @@ import org.truffleruby.core.mutex.RubyConditionVariable;
 import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.objectspace.RubyWeakMap;
+import org.truffleruby.core.regexp.RubyMatchData;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
@@ -168,7 +170,7 @@ public class CoreLibrary {
     public final DynamicObject ioErrorClass;
     public final DynamicObject loadErrorClass;
     public final DynamicObject localJumpErrorClass;
-    public final DynamicObject matchDataClass;
+    public final Shape matchDataShape;
     public final DynamicObject moduleClass;
     public final DynamicObject nameErrorClass;
     public final Shape nameErrorShape;
@@ -188,7 +190,7 @@ public class CoreLibrary {
     public final DynamicObjectFactory longRangeFactory;
     public final DynamicObject rangeErrorClass;
     public final DynamicObject rationalClass;
-    public final DynamicObjectFactory regexpFactory;
+    public final Shape regexpShape;
     public final DynamicObject regexpErrorClass;
     public final DynamicObject graalErrorClass;
     public final DynamicObject runtimeErrorClass;
@@ -501,9 +503,9 @@ public class CoreLibrary {
             hashFactory = originalHashFactory;
         }
         Layouts.CLASS.setInstanceFactoryUnsafe(hashClass, hashFactory);
-        matchDataClass = defineClass("MatchData");
-        DynamicObjectFactory matchDataFactory = Layouts.MATCH_DATA.createMatchDataShape(matchDataClass, matchDataClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(matchDataClass, matchDataFactory);
+        DynamicObject matchDataClass = defineClass("MatchData");
+        matchDataShape = createShape(RubyMatchData.class, matchDataClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(matchDataClass, createFactory(matchDataShape));
         DynamicObject methodClass = defineClass("Method");
         methodFactory = Layouts.METHOD.createMethodShape(methodClass, methodClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(methodClass, methodFactory);
@@ -528,8 +530,8 @@ public class CoreLibrary {
         intRangeFactory = Layouts.INT_RANGE.createIntRangeShape(rangeClass, rangeClass);
         longRangeFactory = Layouts.LONG_RANGE.createLongRangeShape(rangeClass, rangeClass);
         DynamicObject regexpClass = defineClass("Regexp");
-        regexpFactory = Layouts.REGEXP.createRegexpShape(regexpClass, regexpClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(regexpClass, regexpFactory);
+        regexpShape = createShape(RubyRegexp.class, regexpClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(regexpClass, createFactory(regexpShape));
         stringClass = defineClass("String");
         stringFactory = Layouts.STRING.createStringShape(stringClass, stringClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, stringFactory);

@@ -15,7 +15,6 @@ import java.util.Arrays;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.joni.Regex;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.regexp.InterpolatedRegexpNodeFactory.RegexpBuilderNodeGen;
 import org.truffleruby.core.rope.Rope;
@@ -112,21 +111,20 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
             // The RegexpNodes.compile operation may modify the encoding of the source rope. This modified copy is stored
             // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
             // constructing the final regexp.
-            final DynamicObject regexp = Layouts.REGEXP
-                    .createRegexp(
-                            coreLibrary().regexpFactory,
-                            regexp1,
-                            (Rope) regexp1.getUserObject(),
-                            options,
-                            new EncodingCache());
+            final RubyRegexp regexp = new RubyRegexp(
+                    coreLibrary().regexpShape,
+                    regexp1,
+                    (Rope) regexp1.getUserObject(),
+                    options,
+                    new EncodingCache());
 
             if (options.isEncodingNone()) {
-                final Rope source = Layouts.REGEXP.getSource(regexp);
+                final Rope source = regexp.source;
 
                 if (!all7Bit(preprocessed.getBytes())) {
-                    Layouts.REGEXP.setSource(regexp, RopeOperations.withEncoding(source, ASCIIEncoding.INSTANCE));
+                    regexp.source = RopeOperations.withEncoding(source, ASCIIEncoding.INSTANCE);
                 } else {
-                    Layouts.REGEXP.setSource(regexp, RopeOperations.withEncoding(source, USASCIIEncoding.INSTANCE));
+                    regexp.source = RopeOperations.withEncoding(source, USASCIIEncoding.INSTANCE);
                 }
             }
 

@@ -51,6 +51,7 @@ import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.range.RangeNodesFactory;
+import org.truffleruby.core.regexp.EncodingCache;
 import org.truffleruby.core.regexp.InterpolatedRegexpNode;
 import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexWarnCallback;
@@ -2741,7 +2742,12 @@ public class BodyTranslator extends Translator {
         // constructing the final regexp.
         final Rope updatedRope = (Rope) regex.getUserObject();
         final DynamicObject regexp = RegexpNodes
-                .createRubyRegexp(context.getCoreLibrary().regexpFactory, regex, updatedRope, options);
+                .createRubyRegexp(
+                        context.getCoreLibrary().regexpShape,
+                        regex,
+                        updatedRope,
+                        options,
+                        new EncodingCache());
 
         final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
         literalNode.unsafeSetSourceSection(node.getPosition());
