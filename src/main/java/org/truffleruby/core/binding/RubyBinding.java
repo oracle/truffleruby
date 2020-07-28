@@ -11,11 +11,13 @@ package org.truffleruby.core.binding;
 
 import java.util.Set;
 
+import org.truffleruby.interop.messages.BindingMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -47,6 +49,12 @@ public final class RubyBinding extends RubyDynamicObject implements ObjectGraphN
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.getObjectsInFrame(frame, reachable);
+    }
+
+    @Override
+    @ExportMessage
+    public Class<?> dispatch() {
+        return BindingMessages.class;
     }
 
 }

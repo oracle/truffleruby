@@ -9,10 +9,13 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import com.oracle.truffle.api.object.Shape;
+import java.math.BigDecimal;
+
+import org.truffleruby.interop.messages.BigDecimalMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
-import java.math.BigDecimal;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.Shape;
 
 public class RubyBigDecimal extends RubyDynamicObject {
 
@@ -24,4 +27,11 @@ public class RubyBigDecimal extends RubyDynamicObject {
         this.value = value;
         this.type = type;
     }
+
+    @Override
+    @ExportMessage
+    public Class<?> dispatch() {
+        return BigDecimalMessages.class;
+    }
+
 }

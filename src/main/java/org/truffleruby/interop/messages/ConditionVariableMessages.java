@@ -17,6 +17,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
 @ExportLibrary(value = RubyLibrary.class, receiverType = DynamicObject.class)
-public class RubyDynamicObjectMessages extends RubyObjectMessages {
+public class ConditionVariableMessages extends RubyObjectMessages {
 
 }
