@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.StringOperations;
@@ -27,25 +28,30 @@ public abstract class ToSymbolNode extends RubyBaseNode {
         return ToSymbolNodeGen.create();
     }
 
-    public abstract RubySymbol executeToSymbol(Object object);
-
-    // TODO(CS): cache the conversion to a symbol? Or should the user do that themselves?
+    public abstract RubySymbol execute(Object object);
 
     @Specialization
     protected RubySymbol toSymbolSymbol(RubySymbol symbol) {
         return symbol;
     }
 
+    @Specialization(guards = "str == cachedStr")
+    protected RubySymbol toSymbolJavaString(String str,
+            @Cached(value = "str") String cachedStr,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Cached(value = "context.getSymbol(cachedStr)") RubySymbol rubySymbol) {
+        return rubySymbol;
+    }
+
+    @Specialization(replaces = "toSymbolJavaString")
+    protected RubySymbol toSymbolJavaStringUncached(String str,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getSymbol(str);
+    }
+
     @Specialization(guards = "isRubyString(string)")
-    protected RubySymbol toSymbolString(DynamicObject string,
+    protected RubySymbol toSymbolRubyString(DynamicObject string,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getSymbol((StringOperations.rope(string)));
+        return context.getSymbol(StringOperations.rope(string));
     }
-
-    @Specialization
-    protected RubySymbol toSymbol(String string,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getSymbol(string);
-    }
-
 }
