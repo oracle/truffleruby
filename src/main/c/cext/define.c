@@ -50,7 +50,7 @@ void rb_define_protected_method(VALUE module, const char *name, VALUE (*function
 
 void rb_define_module_function(VALUE module, const char *name, VALUE (*function)(ANYARGS), int argc) {
   rb_define_method(module, name, function, argc);
-  RUBY_CEXT_INVOKE_NO_WRAP("cext_module_function", module, rb_intern(name));
+  polyglot_invoke(RUBY_CEXT, "cext_module_function", rb_tr_unwrap(module), rb_tr_id2sym(rb_intern(name)));
 }
 
 void rb_define_global_function(const char *name, VALUE (*function)(ANYARGS), int argc) {
