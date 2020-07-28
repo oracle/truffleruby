@@ -10,23 +10,18 @@
 package org.truffleruby.language.locals;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public class WriteLocalVariableNode extends RubyContextSourceNode {
+public class WriteLocalVariableNode extends WriteLocalNode {
 
-    private final FrameSlot frameSlot;
-
-    @Child private RubyNode valueNode;
     @Child private WriteFrameSlotNode writeFrameSlotNode;
 
     public WriteLocalVariableNode(FrameSlot frameSlot, RubyNode valueNode) {
-        this.frameSlot = frameSlot;
-        this.valueNode = valueNode;
+        super(frameSlot, valueNode);
     }
 
     @Override

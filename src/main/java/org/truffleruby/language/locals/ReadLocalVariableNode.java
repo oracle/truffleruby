@@ -9,58 +9,31 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.parser.ReadLocalNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.utils.Utils;
 
 public class ReadLocalVariableNode extends ReadLocalNode {
 
-    private final LocalVariableType type;
-    private final FrameSlot frameSlot;
-
-    @Child private ReadFrameSlotNode readFrameSlotNode;
-
     public ReadLocalVariableNode(LocalVariableType type, FrameSlot frameSlot) {
-        this.type = type;
-        this.frameSlot = frameSlot;
+        super(frameSlot, type);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        checkReadFrameSlotNode();
-        return readFrameSlotNode.executeRead(frame);
+        return readFrameSlot(frame);
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        switch (type) {
-            case FRAME_LOCAL:
-                return coreStrings().LOCAL_VARIABLE.createInstance();
-
-            case FRAME_LOCAL_GLOBAL:
-                checkReadFrameSlotNode();
-
-                if (readFrameSlotNode.executeRead(frame) != nil) {
-                    return coreStrings().GLOBAL_VARIABLE.createInstance();
-                } else {
-                    return nil;
-                }
-
-            default:
-                throw Utils.unsupportedOperation("didn't expect local type ", type);
-        }
-    }
-
-    private void checkReadFrameSlotNode() {
+    protected Object readFrameSlot(VirtualFrame frame) {
         if (readFrameSlotNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             readFrameSlotNode = insert(ReadFrameSlotNodeGen.create(frameSlot));
         }
+
+        return readFrameSlotNode.executeRead(frame);
     }
 
     @Override

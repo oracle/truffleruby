@@ -9,32 +9,21 @@
  */
 package org.truffleruby.language.locals;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.parser.ReadLocalNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import org.truffleruby.utils.Utils;
 
 public class ReadDeclarationVariableNode extends ReadLocalNode {
 
-    private final LocalVariableType type;
     private final int frameDepth;
-    private final FrameSlot frameSlot;
 
-    @Child private ReadFrameSlotNode readFrameSlotNode;
-
-    public ReadDeclarationVariableNode(
-            LocalVariableType type,
-            int frameDepth,
-            FrameSlot frameSlot) {
-        this.type = type;
+    public ReadDeclarationVariableNode(LocalVariableType type, int frameDepth, FrameSlot frameSlot) {
+        super(frameSlot, type);
         this.frameDepth = frameDepth;
-        this.frameSlot = frameSlot;
     }
 
     public int getFrameDepth() {
@@ -51,24 +40,7 @@ public class ReadDeclarationVariableNode extends ReadLocalNode {
     }
 
     @Override
-    public Object isDefined(VirtualFrame frame, RubyContext context) {
-        switch (type) {
-            case FRAME_LOCAL:
-                return coreStrings().LOCAL_VARIABLE.createInstance();
-
-            case FRAME_LOCAL_GLOBAL:
-                if (readFrameSlot(frame) != nil) {
-                    return coreStrings().GLOBAL_VARIABLE.createInstance();
-                } else {
-                    return nil;
-                }
-
-            default:
-                throw Utils.unsupportedOperation("didn't expect local type ", type);
-        }
-    }
-
-    private Object readFrameSlot(VirtualFrame frame) {
+    protected Object readFrameSlot(VirtualFrame frame) {
         if (readFrameSlotNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             readFrameSlotNode = insert(ReadFrameSlotNodeGen.create(frameSlot));
