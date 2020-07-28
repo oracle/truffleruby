@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, 2020 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -7,29 +7,31 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.core.mutex;
+package org.truffleruby.stdlib.bigdecimal;
 
-import java.util.concurrent.locks.ReentrantLock;
+import java.math.BigDecimal;
 
-import org.truffleruby.interop.messages.MutexMessages;
+import org.truffleruby.interop.messages.BigDecimalMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
-public final class RubyMutex extends RubyDynamicObject {
+public class RubyBigDecimal extends RubyDynamicObject {
 
-    final ReentrantLock lock;
+    public final BigDecimal value;
+    final BigDecimalType type;
 
-    public RubyMutex(Shape shape, ReentrantLock lock) {
+    public RubyBigDecimal(Shape shape, BigDecimal value, BigDecimalType type) {
         super(shape);
-        this.lock = lock;
+        this.value = value;
+        this.type = type;
     }
 
     @Override
     @ExportMessage
     public Class<?> dispatch() {
-        return MutexMessages.class;
+        return BigDecimalMessages.class;
     }
 
 }

@@ -9,6 +9,7 @@
  */
 package org.truffleruby;
 
+import com.oracle.truffle.api.object.HiddenKey;
 import org.truffleruby.core.HandleLayout;
 import org.truffleruby.core.HandleLayoutImpl;
 import org.truffleruby.core.array.ArrayLayout;
@@ -77,12 +78,8 @@ import org.truffleruby.extra.AtomicReferenceLayout;
 import org.truffleruby.extra.AtomicReferenceLayoutImpl;
 import org.truffleruby.extra.ffi.PointerLayout;
 import org.truffleruby.extra.ffi.PointerLayoutImpl;
-import org.truffleruby.stdlib.bigdecimal.BigDecimalLayout;
-import org.truffleruby.stdlib.bigdecimal.BigDecimalLayoutImpl;
 import org.truffleruby.stdlib.digest.DigestLayout;
 import org.truffleruby.stdlib.digest.DigestLayoutImpl;
-
-import com.oracle.truffle.api.object.HiddenKey;
 
 public abstract class Layouts {
 
@@ -102,7 +99,6 @@ public abstract class Layouts {
 
     public static final ArrayLayout ARRAY = ArrayLayoutImpl.INSTANCE;
     public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
-    public static final BigDecimalLayout BIG_DECIMAL = BigDecimalLayoutImpl.INSTANCE;
     public static final BignumLayout BIGNUM = BignumLayoutImpl.INSTANCE;
     public static final ByteArrayLayout BYTE_ARRAY = ByteArrayLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;

@@ -9,21 +9,18 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-
-import org.truffleruby.Layouts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.utils.Utils;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
 
@@ -33,35 +30,31 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     @Child private CallDispatchHeadNode roundModeCall;
     @Child private IntegerCastNode roundModeIntegerCast;
 
-    public static boolean isNormal(DynamicObject value) {
-        return Layouts.BIG_DECIMAL.getType(value) == BigDecimalType.NORMAL;
+    public static boolean isNormal(RubyBigDecimal value) {
+        return value.type == BigDecimalType.NORMAL;
     }
 
-    public static boolean isNormalRubyBigDecimal(DynamicObject value) {
-        return RubyGuards.isRubyBigDecimal(value) && Layouts.BIG_DECIMAL.getType(value) == BigDecimalType.NORMAL;
+    public static boolean isSpecial(RubyBigDecimal value) {
+        return !isNormal(value);
     }
 
-    public static boolean isSpecialRubyBigDecimal(DynamicObject value) {
-        return RubyGuards.isRubyBigDecimal(value) && Layouts.BIG_DECIMAL.getType(value) != BigDecimalType.NORMAL;
+    public static boolean isNormalZero(RubyBigDecimal value) {
+        return BigDecimalOps.compare(value.value, BigDecimal.ZERO) == 0;
     }
 
-    public static boolean isNormalZero(DynamicObject value) {
-        return BigDecimalOps.compare(Layouts.BIG_DECIMAL.getValue(value), BigDecimal.ZERO) == 0;
+    public static boolean isNan(RubyBigDecimal value) {
+        return value.type == BigDecimalType.NAN;
     }
 
-    public static boolean isNan(DynamicObject value) {
-        return Layouts.BIG_DECIMAL.getType(value) == BigDecimalType.NAN;
-    }
-
-    protected DynamicObject createBigDecimal(Object value) {
+    protected RubyBigDecimal createBigDecimal(Object value) {
         return createBigDecimal(value, true);
     }
 
-    protected DynamicObject createBigDecimal(Object value, boolean strict) {
+    protected RubyBigDecimal createBigDecimal(Object value, boolean strict) {
         return getCreateBigDecimal().executeCreate(value, NotProvided.INSTANCE, strict);
     }
 
-    protected DynamicObject createBigDecimal(Object value, int digits, boolean strict) {
+    protected RubyBigDecimal createBigDecimal(Object value, int digits, boolean strict) {
         return getCreateBigDecimal().executeCreate(value, digits, strict);
     }
 

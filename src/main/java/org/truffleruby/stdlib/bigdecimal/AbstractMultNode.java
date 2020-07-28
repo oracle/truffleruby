@@ -9,30 +9,27 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-
-import org.truffleruby.Layouts;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.utils.Utils;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 public abstract class AbstractMultNode extends BigDecimalOpNode {
 
     private final ConditionProfile zeroNormal = ConditionProfile.create();
 
-    private Object multBigDecimalConsideringSignum(DynamicObject a, DynamicObject b, MathContext mathContext) {
-        final BigDecimal bBigDecimal = Layouts.BIG_DECIMAL.getValue(b);
+    private Object multBigDecimalConsideringSignum(RubyBigDecimal a, RubyBigDecimal b, MathContext mathContext) {
+        final BigDecimal bBigDecimal = b.value;
 
         if (zeroNormal.profile(isNormalZero(a) && BigDecimalOps.signum(bBigDecimal) == -1)) {
             return BigDecimalType.NEGATIVE_ZERO;
         }
 
-        return multBigDecimal(Layouts.BIG_DECIMAL.getValue(a), bBigDecimal, mathContext);
+        return multBigDecimal(a.value, bBigDecimal, mathContext);
     }
 
     @TruffleBoundary
@@ -40,7 +37,7 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
         return a.multiply(b, mathContext);
     }
 
-    protected Object mult(DynamicObject a, DynamicObject b, int precision) {
+    protected RubyBigDecimal mult(RubyBigDecimal a, RubyBigDecimal b, int precision) {
         if (precision == 0) {
             precision = getLimit();
         }
@@ -49,14 +46,14 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
                 getRoundMode())));
     }
 
-    protected Object multNormalSpecial(DynamicObject a, DynamicObject b, int precision) {
+    protected Object multNormalSpecial(RubyBigDecimal a, RubyBigDecimal b, int precision) {
         return multSpecialNormal(b, a, precision);
     }
 
-    protected Object multSpecialNormal(DynamicObject a, DynamicObject b, int precision) {
+    protected RubyBigDecimal multSpecialNormal(RubyBigDecimal a, RubyBigDecimal b, int precision) {
         Object value = null;
 
-        switch (Layouts.BIG_DECIMAL.getType(a)) {
+        switch (a.type) {
             case NAN:
                 value = BigDecimalType.NAN;
                 break;
@@ -105,9 +102,9 @@ public abstract class AbstractMultNode extends BigDecimalOpNode {
         return createBigDecimal(value);
     }
 
-    protected Object multSpecial(DynamicObject a, DynamicObject b, int precision) {
-        final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
-        final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
+    protected Object multSpecial(RubyBigDecimal a, RubyBigDecimal b, int precision) {
+        final BigDecimalType aType = a.type;
+        final BigDecimalType bType = b.type;
 
         if (aType == BigDecimalType.NAN || bType == BigDecimalType.NAN) {
             return createBigDecimal(BigDecimalType.NAN);

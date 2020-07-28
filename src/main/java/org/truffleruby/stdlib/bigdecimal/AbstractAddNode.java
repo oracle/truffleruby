@@ -9,15 +9,12 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-
-import org.truffleruby.Layouts;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.numeric.BigDecimalOps;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 public abstract class AbstractAddNode extends BigDecimalOpNode {
 
@@ -26,16 +23,16 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
     private final ConditionProfile negInfinityProfile = ConditionProfile.create();
     private final ConditionProfile normalProfile = ConditionProfile.create();
 
-    protected Object add(DynamicObject a, DynamicObject b, int precision) {
+    protected Object add(RubyBigDecimal a, RubyBigDecimal b, int precision) {
         if (precision == 0) {
             precision = getLimit();
         }
         return createBigDecimal(addBigDecimal(a, b, BigDecimalOps.newMathContext(precision, getRoundMode())));
     }
 
-    protected Object addSpecial(DynamicObject a, DynamicObject b, int precision) {
-        final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
-        final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
+    protected Object addSpecial(RubyBigDecimal a, RubyBigDecimal b, int precision) {
+        final BigDecimalType aType = a.type;
+        final BigDecimalType bType = b.type;
 
         if (nanProfile.profile(aType == BigDecimalType.NAN || bType == BigDecimalType.NAN ||
                 (aType == BigDecimalType.POSITIVE_INFINITY && bType == BigDecimalType.NEGATIVE_INFINITY) ||
@@ -63,8 +60,8 @@ public abstract class AbstractAddNode extends BigDecimalOpNode {
     }
 
     @TruffleBoundary
-    private BigDecimal addBigDecimal(DynamicObject a, DynamicObject b, MathContext mathContext) {
-        return Layouts.BIG_DECIMAL.getValue(a).add(Layouts.BIG_DECIMAL.getValue(b), mathContext);
+    private BigDecimal addBigDecimal(RubyBigDecimal a, RubyBigDecimal b, MathContext mathContext) {
+        return a.value.add(b.value, mathContext);
     }
 
 }

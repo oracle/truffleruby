@@ -9,8 +9,6 @@
  */
 package org.truffleruby.language;
 
-import org.truffleruby.interop.messages.RubyDynamicObjectMessages;
-
 import com.oracle.truffle.api.library.DynamicDispatchLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -21,17 +19,14 @@ import com.oracle.truffle.api.object.Shape;
  *
  * {@link org.truffleruby.Layouts} still use DynamicObjectImpl until migrated. */
 @ExportLibrary(DynamicDispatchLibrary.class)
-public class RubyDynamicObject extends DynamicObject {
+public abstract class RubyDynamicObject extends DynamicObject {
 
     public RubyDynamicObject(Shape shape) {
         super(shape);
     }
 
-    // Same dispatch as in DynamicObjectImpl, until all Layouts are migrated
-
+    /** Each subclass should define its own Messages class, until all Layouts are migrated. */
     @ExportMessage
-    protected Class<?> dispatch() {
-        return RubyDynamicObjectMessages.class;
-    }
+    public abstract Class<?> dispatch();
 
 }

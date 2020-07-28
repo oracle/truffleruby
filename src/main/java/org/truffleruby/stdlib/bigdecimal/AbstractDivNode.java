@@ -9,24 +9,21 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-
-import org.truffleruby.Layouts;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.numeric.BigDecimalOps;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
 
 public abstract class AbstractDivNode extends BigDecimalOpNode {
 
     private final ConditionProfile normalZero = ConditionProfile.create();
 
-    private Object divBigDecimalConsideringSignum(DynamicObject a, DynamicObject b, MathContext mathContext) {
-        final BigDecimal aBigDecimal = Layouts.BIG_DECIMAL.getValue(a);
-        final BigDecimal bBigDecimal = Layouts.BIG_DECIMAL.getValue(b);
+    private Object divBigDecimalConsideringSignum(RubyBigDecimal a, RubyBigDecimal b, MathContext mathContext) {
+        final BigDecimal aBigDecimal = a.value;
+        final BigDecimal bBigDecimal = b.value;
 
         if (normalZero.profile(BigDecimalOps.signum(bBigDecimal) == 0)) {
             switch (BigDecimalOps.signum(aBigDecimal)) {
@@ -51,7 +48,7 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
         return a.divide(b, mathContext);
     }
 
-    protected Object div(DynamicObject a, DynamicObject b, int precision) {
+    protected Object div(RubyBigDecimal a, RubyBigDecimal b, int precision) {
         if (precision == 0) {
             precision = getLimit();
         }
@@ -59,10 +56,10 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
                 divBigDecimalConsideringSignum(a, b, BigDecimalOps.newMathContext(precision, getRoundMode())));
     }
 
-    protected Object divNormalSpecial(DynamicObject a, DynamicObject b, int precision) {
+    protected Object divNormalSpecial(RubyBigDecimal a, RubyBigDecimal b, int precision) {
         Object value = null;
 
-        switch (Layouts.BIG_DECIMAL.getType(b)) {
+        switch (b.type) {
             case NAN:
                 value = BigDecimalType.NAN;
                 break;
@@ -104,16 +101,16 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
             default:
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException(
-                        "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(b));
+                        "unreachable code branch for value: " + b.type);
         }
 
         return createBigDecimal(value);
     }
 
-    protected Object divSpecialNormal(DynamicObject a, DynamicObject b, int precision) {
+    protected Object divSpecialNormal(RubyBigDecimal a, RubyBigDecimal b, int precision) {
         Object value = null;
 
-        switch (Layouts.BIG_DECIMAL.getType(a)) {
+        switch (a.type) {
             case NAN:
                 value = BigDecimalType.NAN;
                 break;
@@ -155,15 +152,15 @@ public abstract class AbstractDivNode extends BigDecimalOpNode {
             default:
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 throw new UnsupportedOperationException(
-                        "unreachable code branch for value: " + Layouts.BIG_DECIMAL.getType(a));
+                        "unreachable code branch for value: " + a.type);
         }
 
         return createBigDecimal(value);
     }
 
-    protected Object divSpecialSpecial(DynamicObject a, DynamicObject b, int precision) {
-        final BigDecimalType aType = Layouts.BIG_DECIMAL.getType(a);
-        final BigDecimalType bType = Layouts.BIG_DECIMAL.getType(b);
+    protected Object divSpecialSpecial(RubyBigDecimal a, RubyBigDecimal b, int precision) {
+        final BigDecimalType aType = a.type;
+        final BigDecimalType bType = b.type;
 
         if (aType == BigDecimalType.NAN || bType == BigDecimalType.NAN ||
                 (aType == BigDecimalType.NEGATIVE_ZERO && bType == BigDecimalType.NEGATIVE_ZERO)) {
