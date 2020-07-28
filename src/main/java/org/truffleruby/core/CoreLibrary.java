@@ -44,6 +44,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
@@ -231,7 +232,7 @@ public class CoreLibrary {
     public final DynamicObject encodingUndefinedConversionErrorClass;
     public final DynamicObjectFactory methodFactory;
     public final DynamicObjectFactory unboundMethodFactory;
-    public final DynamicObjectFactory byteArrayFactory;
+    public final Shape byteArrayShape;
     public final DynamicObject fiberErrorClass;
     public final DynamicObject threadErrorClass;
     public final DynamicObject objectSpaceModule;
@@ -659,8 +660,8 @@ public class CoreLibrary {
         truffleTypeModule = defineModule(truffleModule, "Type");
 
         DynamicObject byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
-        byteArrayFactory = Layouts.BYTE_ARRAY.createByteArrayShape(byteArrayClass, byteArrayClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(byteArrayClass, byteArrayFactory);
+        byteArrayShape = createShape(RubyByteArray.class, byteArrayClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(byteArrayClass, createFactory(byteArrayShape));
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
         DynamicObject randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");

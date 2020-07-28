@@ -62,8 +62,6 @@ import org.truffleruby.core.regexp.RegexpLayout;
 import org.truffleruby.core.regexp.RegexpLayoutImpl;
 import org.truffleruby.core.string.StringLayout;
 import org.truffleruby.core.string.StringLayoutImpl;
-import org.truffleruby.core.support.ByteArrayLayout;
-import org.truffleruby.core.support.ByteArrayLayoutImpl;
 import org.truffleruby.core.support.RandomizerLayout;
 import org.truffleruby.core.support.RandomizerLayoutImpl;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayout;
@@ -100,7 +98,6 @@ public abstract class Layouts {
     public static final ArrayLayout ARRAY = ArrayLayoutImpl.INSTANCE;
     public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
     public static final BignumLayout BIGNUM = BignumLayoutImpl.INSTANCE;
-    public static final ByteArrayLayout BYTE_ARRAY = ByteArrayLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
     public static final EncodingConverterLayout ENCODING_CONVERTER = EncodingConverterLayoutImpl.INSTANCE;
     public static final EncodingLayout ENCODING = EncodingLayoutImpl.INSTANCE;

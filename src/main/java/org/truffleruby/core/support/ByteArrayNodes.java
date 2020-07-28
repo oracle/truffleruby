@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.support;
 
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -30,6 +31,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
 @CoreModule(value = "Truffle::ByteArray", isClass = true)
 public abstract class ByteArrayNodes {
@@ -37,9 +39,14 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
-            return Layouts.BYTE_ARRAY.createByteArray(coreLibrary().byteArrayFactory, RopeConstants.EMPTY_BYTES);
+        protected RubyByteArray allocate(DynamicObject rubyClass) {
+            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final RubyByteArray instance = new RubyByteArray(shape, RopeConstants.EMPTY_BYTES);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -48,9 +55,9 @@ public abstract class ByteArrayNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize(DynamicObject byteArray, int size) {
+        protected DynamicObject initialize(RubyByteArray byteArray, int size) {
             final byte[] bytes = new byte[size];
-            Layouts.BYTE_ARRAY.setBytes(byteArray, bytes);
+            byteArray.bytes = bytes;
             return byteArray;
         }
 
@@ -60,9 +67,8 @@ public abstract class ByteArrayNodes {
     public abstract static class GetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int getByte(DynamicObject byteArray, int index) {
-            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
-            return bytes[index] & 0xff;
+        protected int getByte(RubyByteArray byteArray, int index) {
+            return byteArray.bytes[index] & 0xff;
         }
 
     }
@@ -70,10 +76,12 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "prepend", required = 1)
     public abstract static class PrependNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject prepend(DynamicObject byteArray, DynamicObject string,
+        protected DynamicObject prepend(RubyByteArray byteArray, DynamicObject string,
                 @Cached RopeNodes.BytesNode bytesNode) {
-            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] bytes = byteArray.bytes;
 
             final Rope rope = StringOperations.rope(string);
             final int prependLength = rope.byteLength();
@@ -82,7 +90,11 @@ public abstract class ByteArrayNodes {
             final byte[] prependedBytes = new byte[newLength];
             System.arraycopy(bytesNode.execute(rope), 0, prependedBytes, 0, prependLength);
             System.arraycopy(bytes, 0, prependedBytes, prependLength, originalLength);
-            return Layouts.BYTE_ARRAY.createByteArray(coreLibrary().byteArrayFactory, prependedBytes);
+            final RubyByteArray instance = new RubyByteArray(
+                    coreLibrary().byteArrayShape,
+                    prependedBytes);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -91,9 +103,9 @@ public abstract class ByteArrayNodes {
     public abstract static class SetByteNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int setByte(DynamicObject byteArray, int index, int value,
+        protected int setByte(RubyByteArray byteArray, int index, int value,
                 @Cached BranchProfile errorProfile) {
-            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] bytes = byteArray.bytes;
             if (index < 0 || index >= bytes.length) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().indexError("index out of bounds", this));
@@ -110,14 +122,14 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = "isRubyString(source)")
         protected Object fillFromString(
-                DynamicObject byteArray,
+                RubyByteArray byteArray,
                 int dstStart,
                 DynamicObject source,
                 int srcStart,
                 int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Rope rope = StringOperations.rope(source);
-            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] bytes = byteArray.bytes;
 
             System.arraycopy(bytesNode.execute(rope), srcStart, bytes, dstStart, length);
             return source;
@@ -125,7 +137,7 @@ public abstract class ByteArrayNodes {
 
         @Specialization(guards = "isRubyPointer(source)")
         protected Object fillFromPointer(
-                DynamicObject byteArray,
+                RubyByteArray byteArray,
                 int dstStart,
                 DynamicObject source,
                 int srcStart,
@@ -134,7 +146,7 @@ public abstract class ByteArrayNodes {
             assert length > 0;
 
             final Pointer ptr = Layouts.POINTER.getPointer(source);
-            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] bytes = byteArray.bytes;
 
             PointerNodes.checkNull(ptr, getContext(), this, nullPointerProfile);
 
@@ -148,12 +160,12 @@ public abstract class ByteArrayNodes {
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyString(pattern)", "isSingleBytePattern(pattern)" })
-        protected Object getByteSingleByte(DynamicObject byteArray, DynamicObject pattern, int start, int length,
+        protected Object getByteSingleByte(RubyByteArray byteArray, DynamicObject pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile tooSmallStartProfile,
                 @Cached BranchProfile tooLargeStartProfile) {
 
-            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] bytes = byteArray.bytes;
             final Rope rope = StringOperations.rope(pattern);
             final byte searchByte = bytesNode.execute(rope)[0];
 
@@ -173,13 +185,13 @@ public abstract class ByteArrayNodes {
         }
 
         @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
-        protected Object getByte(DynamicObject byteArray, DynamicObject pattern, int start, int length,
+        protected Object getByte(RubyByteArray byteArray, DynamicObject pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached ConditionProfile notFoundProfile) {
             final Rope patternRope = StringOperations.rope(pattern);
             final int index = indexOf(
-                    Layouts.BYTE_ARRAY.getBytes(byteArray),
+                    byteArray.bytes,
                     start,
                     length,
                     bytesNode.execute(patternRope));
