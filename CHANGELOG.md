@@ -11,6 +11,7 @@ Compatibility:
 * Run `at_exit` handlers even if parsing the main script fails (#2047).
 * Load required libraries (`-r`) before parsing the main script (#2047).
 * `String#split` supports block (#2052, @ssnickolay)
+* Implemented `String#{grapheme_clusters, each_grapheme_cluster}`.
 
 Performance:
 
