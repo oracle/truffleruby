@@ -669,7 +669,10 @@ module Enumerable
 
   def first(n=undefined)
     return __take__(n) unless Primitive.undefined?(n)
-    each { |obj| return obj }
+    each do
+      o = Primitive.single_block_arg
+      return o
+    end
     nil
   end
 
