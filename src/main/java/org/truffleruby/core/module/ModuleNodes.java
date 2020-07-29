@@ -384,7 +384,7 @@ public abstract class ModuleNodes {
         protected Object generateAccessor(VirtualFrame frame, DynamicObject module, Object nameObject,
                 @Cached NameToJavaStringNode nameToJavaStringNode,
                 @Cached ReadCallerFrameNode readCallerFrame) {
-            final String name = nameToJavaStringNode.executeToJavaString(nameObject);
+            final String name = nameToJavaStringNode.execute(nameObject);
             createAccessor(module, name, readCallerFrame.execute(frame));
             return nil;
         }
@@ -1764,7 +1764,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected DynamicObject privateConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.executeToJavaString(arg);
+                String name = nameToJavaStringNode.execute(arg);
                 Layouts.MODULE.getFields(module).changeConstantVisibility(getContext(), this, name, true);
             }
             return module;
@@ -1779,7 +1779,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected DynamicObject deprecateConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.executeToJavaString(arg);
+                String name = nameToJavaStringNode.execute(arg);
                 Layouts.MODULE.getFields(module).deprecateConstant(getContext(), this, name);
             }
             return module;
@@ -1794,7 +1794,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected DynamicObject publicConstant(DynamicObject module, Object[] args) {
             for (Object arg : args) {
-                String name = nameToJavaStringNode.executeToJavaString(arg);
+                String name = nameToJavaStringNode.execute(arg);
                 Layouts.MODULE.getFields(module).changeConstantVisibility(getContext(), this, name, false);
             }
             return module;
@@ -1872,7 +1872,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected DynamicObject removeMethods(VirtualFrame frame, DynamicObject module, Object[] names) {
             for (Object name : names) {
-                removeMethod(frame, module, nameToJavaStringNode.executeToJavaString(name));
+                removeMethod(frame, module, nameToJavaStringNode.execute(name));
             }
             return module;
         }
@@ -1946,7 +1946,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected DynamicObject undefMethods(DynamicObject module, Object[] names) {
             for (Object name : names) {
-                undefMethod(module, nameToJavaStringNode.executeToJavaString(name));
+                undefMethod(module, nameToJavaStringNode.execute(name));
             }
             return module;
         }
@@ -2056,7 +2056,7 @@ public abstract class ModuleNodes {
         @Specialization
         protected void setMethodVisibility(DynamicObject module, Object name,
                 @Cached BranchProfile errorProfile) {
-            final String methodName = nameToJavaStringNode.executeToJavaString(name);
+            final String methodName = nameToJavaStringNode.execute(name);
 
             final InternalMethod method = Layouts.MODULE.getFields(module).deepMethodSearch(getContext(), methodName);
 

@@ -48,7 +48,11 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
         return NameToJavaStringNodeGen.create(name);
     }
 
-    public abstract String executeToJavaString(Object name);
+    public static NameToJavaStringNode getUncached() {
+        return NameToJavaStringNodeGen.getUncached();
+    }
+
+    public abstract String execute(Object name);
 
     @Specialization(guards = "isRubyString(value)")
     protected String stringNameToJavaString(DynamicObject value,

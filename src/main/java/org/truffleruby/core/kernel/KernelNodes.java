@@ -1241,7 +1241,7 @@ public abstract class KernelNodes {
         protected DynamicObject methods(VirtualFrame frame, Object self, Object name,
                 @Cached ConditionProfile notFoundProfile,
                 @Cached ConditionProfile respondToMissingProfile) {
-            final String normalizedName = nameToJavaStringNode.executeToJavaString(name);
+            final String normalizedName = nameToJavaStringNode.execute(name);
             InternalMethod method = lookupMethodNode
                     .lookup(frame, self, normalizedName, ignoreVisibility, !ignoreVisibility);
 
