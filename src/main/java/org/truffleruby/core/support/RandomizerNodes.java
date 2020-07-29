@@ -49,7 +49,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
-import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.Visibility;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -60,24 +60,24 @@ import com.oracle.truffle.api.object.DynamicObject;
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
 
-    public static DynamicObject newRandomizer(RubyContext context) {
+    public static RubyRandomizer newRandomizer(RubyContext context) {
         final DynamicObject seed = RandomizerGenSeedNode.randomSeedBignum(context);
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
-        return Layouts.RANDOMIZER.createRandomizer(context.getCoreLibrary().randomizerFactory, randomizer);
+        return new RubyRandomizer(context.getCoreLibrary().randomizerShape, randomizer);
     }
 
-    public static void resetSeed(RubyContext context, DynamicObject random) {
+    public static void resetSeed(RubyContext context, RubyRandomizer random) {
         final DynamicObject seed = RandomizerGenSeedNode.randomSeedBignum(context);
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
-        Layouts.RANDOMIZER.setRandomizer(random, randomizer);
+        random.randomizer = randomizer;
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject randomizerAllocate(DynamicObject randomizerClass) {
-            return Layouts.RANDOMIZER.createRandomizer(coreLibrary().randomizerFactory, new Randomizer());
+        protected RubyRandomizer randomizerAllocate(DynamicObject randomizerClass) {
+            return new RubyRandomizer(coreLibrary().randomizerShape, new Randomizer());
         }
 
     }
@@ -86,8 +86,8 @@ public abstract class RandomizerNodes {
     public static abstract class RandomizerSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object seed(DynamicObject randomizer) {
-            return Layouts.RANDOMIZER.getRandomizer(randomizer).getSeed();
+        protected Object seed(RubyRandomizer randomizer) {
+            return randomizer.randomizer.getSeed();
         }
 
     }
@@ -96,14 +96,14 @@ public abstract class RandomizerNodes {
     public static abstract class RandomizerSetSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setSeed(DynamicObject randomizer, long seed) {
-            Layouts.RANDOMIZER.setRandomizer(randomizer, randomFromLong(seed));
+        protected RubyRandomizer setSeed(RubyRandomizer randomizer, long seed) {
+            randomizer.randomizer = randomFromLong(seed);
             return randomizer;
         }
 
         @Specialization(guards = "isRubyBignum(seed)")
-        protected DynamicObject setSeed(DynamicObject randomizer, DynamicObject seed) {
-            Layouts.RANDOMIZER.setRandomizer(randomizer, randomFromBignum(seed));
+        protected RubyRandomizer setSeed(RubyRandomizer randomizer, DynamicObject seed) {
+            randomizer.randomizer = randomFromBignum(seed);
             return randomizer;
         }
 
@@ -175,9 +175,9 @@ public abstract class RandomizerNodes {
     public static abstract class RandomFloatNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected double randomFloat(DynamicObject randomizer) {
+        protected double randomFloat(RubyRandomizer randomizer) {
             // Logic copied from org.jruby.util.Random
-            final Randomizer r = Layouts.RANDOMIZER.getRandomizer(randomizer);
+            final Randomizer r = randomizer.randomizer;
             final int a = randomInt(r) >>> 5;
             final int b = randomInt(r) >>> 6;
             return (a * 67108864.0 + b) * (1.0 / 9007199254740992.0);
@@ -190,21 +190,21 @@ public abstract class RandomizerNodes {
     public static abstract class RandomIntNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int randomizerRandInt(DynamicObject randomizer, int limit) {
-            final Randomizer r = Layouts.RANDOMIZER.getRandomizer(randomizer);
+        protected int randomizerRandInt(RubyRandomizer randomizer, int limit) {
+            final Randomizer r = randomizer.randomizer;
             return (int) randInt(r, limit);
         }
 
         @Specialization
-        protected long randomizerRandInt(DynamicObject randomizer, long limit) {
-            final Randomizer r = Layouts.RANDOMIZER.getRandomizer(randomizer);
+        protected long randomizerRandInt(RubyRandomizer randomizer, long limit) {
+            final Randomizer r = randomizer.randomizer;
             return randInt(r, limit);
         }
 
         @Specialization(guards = "isRubyBignum(limit)")
-        protected Object randomizerRandInt(DynamicObject randomizer, DynamicObject limit,
+        protected Object randomizerRandInt(RubyRandomizer randomizer, DynamicObject limit,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
-            final Randomizer r = Layouts.RANDOMIZER.getRandomizer(randomizer);
+            final Randomizer r = randomizer.randomizer;
             return fixnumOrBignum.fixnumOrBignum(randLimitedBignum(r, Layouts.BIGNUM.getValue(limit)));
         }
 
@@ -337,12 +337,11 @@ public abstract class RandomizerNodes {
     @Primitive(name = "randomizer_bytes", lowerFixnum = 1)
     public static abstract class RandomizerBytesPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
-
         @TruffleBoundary
         @Specialization
-        protected DynamicObject genRandBytes(DynamicObject randomizer, int length) {
-            final Randomizer random = Layouts.RANDOMIZER.getRandomizer(randomizer);
+        protected DynamicObject genRandBytes(RubyRandomizer randomizer, int length,
+                @Cached MakeStringNode makeStringNode) {
+            final Randomizer random = randomizer.randomizer;
             final byte[] bytes = new byte[length];
             int idx = 0;
             for (; length >= 4; length -= 4) {

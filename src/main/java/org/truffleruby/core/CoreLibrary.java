@@ -46,6 +46,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
+import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.language.Nil;
@@ -74,6 +75,7 @@ import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.shared.BuildInformationImpl;
 import org.truffleruby.shared.TruffleRuby;
+import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -89,7 +91,6 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
 /** When adding a new class (MyClass) to the core library, you need to:
  * <ul>
@@ -236,7 +237,7 @@ public class CoreLibrary {
     public final DynamicObject fiberErrorClass;
     public final DynamicObject threadErrorClass;
     public final DynamicObject objectSpaceModule;
-    public final DynamicObjectFactory randomizerFactory;
+    public final Shape randomizerShape;
     public final DynamicObjectFactory handleFactory;
     public final DynamicObject ioClass;
     public final DynamicObject closedQueueErrorClass;
@@ -665,8 +666,8 @@ public class CoreLibrary {
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
         DynamicObject randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
-        randomizerFactory = Layouts.RANDOMIZER.createRandomizerShape(randomizerClass, randomizerClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(randomizerClass, randomizerFactory);
+        randomizerShape = createShape(RubyRandomizer.class, randomizerClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(randomizerClass, createFactory(randomizerShape));
 
         // Standard library
 
