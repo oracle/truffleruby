@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
@@ -165,11 +166,11 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyEncoding(Object object) {
-        return Layouts.ENCODING.isEncoding(object);
+        return object instanceof RubyEncoding;
     }
 
     public static boolean isRubyEncoding(DynamicObject object) {
-        return Layouts.ENCODING.isEncoding(object);
+        return object instanceof RubyEncoding;
     }
 
     public static boolean isRubySymbol(Object value) {

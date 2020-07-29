@@ -9,14 +9,13 @@
  */
 package org.truffleruby;
 
+import com.oracle.truffle.api.object.HiddenKey;
 import org.truffleruby.core.HandleLayout;
 import org.truffleruby.core.HandleLayoutImpl;
 import org.truffleruby.core.array.ArrayLayout;
 import org.truffleruby.core.array.ArrayLayoutImpl;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
-import org.truffleruby.core.encoding.EncodingLayout;
-import org.truffleruby.core.encoding.EncodingLayoutImpl;
 import org.truffleruby.core.fiber.FiberLayout;
 import org.truffleruby.core.fiber.FiberLayoutImpl;
 import org.truffleruby.core.hash.HashLayout;
@@ -64,8 +63,6 @@ import org.truffleruby.extra.ffi.PointerLayoutImpl;
 import org.truffleruby.stdlib.digest.DigestLayout;
 import org.truffleruby.stdlib.digest.DigestLayoutImpl;
 
-import com.oracle.truffle.api.object.HiddenKey;
-
 public abstract class Layouts {
 
     // Standard identifiers
@@ -86,7 +83,6 @@ public abstract class Layouts {
     public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
     public static final BignumLayout BIGNUM = BignumLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
-    public static final EncodingLayout ENCODING = EncodingLayoutImpl.INSTANCE;
     public static final FiberLayout FIBER = FiberLayoutImpl.INSTANCE;
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;
     public static final IntRangeLayout INT_RANGE = IntRangeLayoutImpl.INSTANCE;

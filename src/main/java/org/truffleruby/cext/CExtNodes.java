@@ -34,7 +34,7 @@ import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
-import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.hash.HashNode;
@@ -527,8 +527,8 @@ public class CExtNodes {
     public abstract static class CodeToMbcLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int codeToMbcLen(int code, DynamicObject encoding) {
-            return EncodingOperations.getEncoding(encoding).codeToMbcLength(code);
+        protected int codeToMbcLen(int code, RubyEncoding encoding) {
+            return encoding.encoding.codeToMbcLength(code);
         }
 
     }
@@ -537,7 +537,7 @@ public class CExtNodes {
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject rbEncCodePointLen(DynamicObject string, DynamicObject encoding,
+        protected DynamicObject rbEncCodePointLen(DynamicObject string, RubyEncoding encoding,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
@@ -546,7 +546,7 @@ public class CExtNodes {
             final Rope rope = rope(string);
             final byte[] bytes = bytesNode.execute(rope);
             final CodeRange ropeCodeRange = codeRangeNode.execute(rope);
-            final Encoding enc = Layouts.ENCODING.getEncoding(encoding);
+            final Encoding enc = encoding.encoding;
 
             final CodeRange cr;
             if (sameEncodingProfile.profile(enc == rope.getEncoding())) {
@@ -575,9 +575,9 @@ public class CExtNodes {
     public abstract static class RbEncIsAlNumNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyEncoding(value)")
-        protected boolean rbEncIsAlNum(int code, DynamicObject value) {
-            return EncodingOperations.getEncoding(value).isAlnum(code);
+        @Specialization
+        protected boolean rbEncIsAlNum(int code, RubyEncoding value) {
+            return value.encoding.isAlnum(code);
         }
 
     }
@@ -586,9 +586,9 @@ public class CExtNodes {
     public abstract static class RbEncIsSpaceNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyEncoding(value)")
-        protected boolean rbEncIsSpace(int code, DynamicObject value) {
-            return EncodingOperations.getEncoding(value).isSpace(code);
+        @Specialization
+        protected boolean rbEncIsSpace(int code, RubyEncoding value) {
+            return value.encoding.isSpace(code);
         }
 
     }
@@ -1268,21 +1268,15 @@ public class CExtNodes {
     @CoreMethod(names = "rb_tr_enc_mbc_case_fold", onSingleton = true, required = 5, lowerFixnum = 2)
     public abstract static class RbTrMbcCaseFoldNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyString(string)", "isRubyEncoding(enc)" }, limit = "getCacheLimit()")
-        protected Object rbTrEncMbcCaseFold(
-                DynamicObject enc,
-                int flags,
-                DynamicObject string,
-                Object write_p,
-                Object p,
+        @Specialization(guards = { "isRubyString(string)" }, limit = "getCacheLimit()")
+        protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, DynamicObject string, Object write_p, Object p,
                 @CachedLibrary("write_p") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile) {
             final byte[] bytes = StringOperations.rope(string).getBytes();
             final byte[] to = new byte[bytes.length];
             final IntHolder intHolder = new IntHolder();
             intHolder.value = 0;
-            final int resultLength = EncodingOperations
-                    .getEncoding(enc)
+            final int resultLength = enc.encoding
                     .mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
             execute(write_p, new Object[]{ p, intHolder.value }, receivers, exceptionProfile);
             final byte[] result = new byte[resultLength];
@@ -1313,9 +1307,9 @@ public class CExtNodes {
     @CoreMethod(names = "rb_tr_code_to_mbc", onSingleton = true, required = 2, lowerFixnum = 2)
     public abstract static class RbTrMbcPutNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyEncoding(enc)")
-        protected Object rbTrEncMbcPut(DynamicObject enc, int code) {
-            final Encoding encoding = EncodingOperations.getEncoding(enc);
+        @Specialization
+        protected Object rbTrEncMbcPut(RubyEncoding enc, int code) {
+            final Encoding encoding = enc.encoding;
             final byte buf[] = new byte[org.jcodings.Config.ENC_CODE_TO_MBC_MAXLEN];
             final int resultLength = encoding.codeToMbc(code, buf, 0);
             final byte result[] = new byte[resultLength];
@@ -1332,9 +1326,9 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_mbmaxlen", onSingleton = true, required = 1)
     public abstract static class RbEncMaxLenNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyEncoding(value)")
-        protected Object rbEncMaxLen(DynamicObject value) {
-            return EncodingOperations.getEncoding(value).maxLength();
+        @Specialization
+        protected Object rbEncMaxLen(RubyEncoding value) {
+            return value.encoding.maxLength();
         }
 
     }
@@ -1342,9 +1336,9 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_mbminlen", onSingleton = true, required = 1)
     public abstract static class RbEncMinLenNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyEncoding(value)")
-        protected Object rbEncMinLen(DynamicObject value) {
-            return EncodingOperations.getEncoding(value).minLength();
+        @Specialization
+        protected Object rbEncMinLen(RubyEncoding value) {
+            return value.encoding.minLength();
         }
 
     }
@@ -1352,11 +1346,11 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_mbclen", onSingleton = true, required = 4, lowerFixnum = { 3, 4 })
     public abstract static class RbEncMbLenNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        protected Object rbEncMbLen(DynamicObject enc, DynamicObject str, int p, int e,
+        @Specialization(guards = { "isRubyString(str)" })
+        protected Object rbEncMbLen(RubyEncoding enc, DynamicObject str, int p, int e,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached ConditionProfile sameEncodingProfile) {
-            final Encoding encoding = EncodingOperations.getEncoding(enc);
+            final Encoding encoding = enc.encoding;
             final Rope rope = StringOperations.rope(str);
             final Encoding ropeEncoding = rope.getEncoding();
 
@@ -1377,9 +1371,9 @@ public class CExtNodes {
     public abstract static class RbEncLeftCharHeadNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        protected Object rbEncLeftCharHead(DynamicObject enc, DynamicObject str, int start, int p, int end) {
-            return EncodingOperations.getEncoding(enc).leftAdjustCharHead(
+        @Specialization(guards = { "isRubyString(str)" })
+        protected Object rbEncLeftCharHead(RubyEncoding enc, DynamicObject str, int start, int p, int end) {
+            return enc.encoding.leftAdjustCharHead(
                     StringOperations.rope(str).getBytes(),
                     start,
                     p,
@@ -1391,10 +1385,10 @@ public class CExtNodes {
     @CoreMethod(names = "rb_enc_mbc_to_codepoint", onSingleton = true, required = 3, lowerFixnum = 3)
     public abstract static class RbEncMbcToCodepointNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        protected int rbEncMbcToCodepoint(DynamicObject enc, DynamicObject str, int end) {
+        @Specialization(guards = { "isRubyString(str)" })
+        protected int rbEncMbcToCodepoint(RubyEncoding enc, DynamicObject str, int end) {
             final Rope rope = StringOperations.rope(str);
-            return EncodingOperations.getEncoding(enc).mbcToCode(rope.getBytes(), 0, end);
+            return enc.encoding.mbcToCode(rope.getBytes(), 0, end);
         }
 
     }
@@ -1404,11 +1398,11 @@ public class CExtNodes {
 
         @Child private RopeNodes.CodeRangeNode codeRangeNode;
 
-        @Specialization(guards = { "isRubyEncoding(enc)", "isRubyString(str)" })
-        protected int rbEncPreciseMbclen(DynamicObject enc, DynamicObject str, int p, int end,
+        @Specialization(guards = { "isRubyString(str)" })
+        protected int rbEncPreciseMbclen(RubyEncoding enc, DynamicObject str, int p, int end,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached ConditionProfile sameEncodingProfile) {
-            final Encoding encoding = EncodingOperations.getEncoding(enc);
+            final Encoding encoding = enc.encoding;
             final Rope rope = StringOperations.rope(str);
             final CodeRange cr;
             if (sameEncodingProfile.profile(encoding == rope.getEncoding())) {

@@ -107,7 +107,7 @@ import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.encoding.EncodingNodes.CheckEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.CheckRopeEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodes.NegotiateCompatibleEncodingNode;
-import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.format.FormatExceptionTranslator;
 import org.truffleruby.core.format.exceptions.FormatException;
 import org.truffleruby.core.format.unpack.ArrayResult;
@@ -1309,7 +1309,7 @@ public abstract class StringNodes {
         protected DynamicObject forceEncodingString(DynamicObject string, DynamicObject encoding,
                 @Cached BranchProfile errorProfile) {
             final String stringName = StringOperations.getString(encoding);
-            final DynamicObject rubyEncoding = getContext().getEncodingManager().getRubyEncoding(stringName);
+            final RubyEncoding rubyEncoding = getContext().getEncodingManager().getRubyEncoding(stringName);
 
             if (rubyEncoding == null) {
                 errorProfile.enter();
@@ -1321,9 +1321,9 @@ public abstract class StringNodes {
             return forceEncodingEncoding(string, rubyEncoding);
         }
 
-        @Specialization(guards = "isRubyEncoding(encoding)")
-        protected DynamicObject forceEncodingEncoding(DynamicObject string, DynamicObject encoding) {
-            final Encoding javaEncoding = EncodingOperations.getEncoding(encoding);
+        @Specialization
+        protected DynamicObject forceEncodingEncoding(DynamicObject string, RubyEncoding encoding) {
+            final Encoding javaEncoding = encoding.encoding;
             final Rope rope = rope(string);
 
             if (differentEncodingProfile.profile(rope.getEncoding() != javaEncoding)) {
@@ -1381,10 +1381,10 @@ public abstract class StringNodes {
     @Primitive(name = "string_initialize")
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyEncoding(encoding)")
-        protected DynamicObject initializeJavaString(DynamicObject string, String from, DynamicObject encoding) {
+        @Specialization
+        protected DynamicObject initializeJavaString(DynamicObject string, String from, RubyEncoding encoding) {
             StringOperations
-                    .setRope(string, StringOperations.encodeRope(from, EncodingOperations.getEncoding(encoding)));
+                    .setRope(string, StringOperations.encodeRope(from, encoding.encoding));
             return string;
         }
 
@@ -3716,17 +3716,13 @@ public abstract class StringNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-        @Specialization(
-                guards = {
-                        "isRubyEncoding(rubyEncoding)",
-                        "isSimple(code, rubyEncoding)",
-                        "isCodepoint(code)" })
-        protected DynamicObject stringFromCodepointSimple(long code, DynamicObject rubyEncoding,
+        @Specialization(guards = { "isSimple(code, rubyEncoding)", "isCodepoint(code)" })
+        protected DynamicObject stringFromCodepointSimple(long code, RubyEncoding rubyEncoding,
                 @Cached ConditionProfile isUTF8Profile,
                 @Cached ConditionProfile isUSAsciiProfile,
                 @Cached ConditionProfile isAscii8BitProfile) {
             final int intCode = (int) code; // isSimple() guarantees this is OK
-            final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
+            final Encoding encoding = rubyEncoding.encoding;
             final Rope rope;
 
             if (isUTF8Profile.profile(encoding == UTF8Encoding.INSTANCE)) {
@@ -3743,11 +3739,10 @@ public abstract class StringNodes {
         }
 
         @TruffleBoundary
-        @Specialization(
-                guards = { "isRubyEncoding(rubyEncoding)", "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
-        protected DynamicObject stringFromCodepoint(long code, DynamicObject rubyEncoding,
+        @Specialization(guards = { "!isSimple(code, rubyEncoding)", "isCodepoint(code)" })
+        protected DynamicObject stringFromCodepoint(long code, RubyEncoding rubyEncoding,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode) {
-            final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
+            final Encoding encoding = rubyEncoding.encoding;
             final int length;
 
             try {
@@ -3779,8 +3774,8 @@ public abstract class StringNodes {
             return code >= 0 && code < (1L << 32);
         }
 
-        protected boolean isSimple(long code, DynamicObject encoding) {
-            final Encoding enc = EncodingOperations.getEncoding(encoding);
+        protected boolean isSimple(long code, RubyEncoding encoding) {
+            final Encoding enc = encoding.encoding;
 
             return (enc.isAsciiCompatible() && code >= 0x00 && code < 0x80) ||
                     (enc == ASCIIEncoding.INSTANCE && code >= 0x00 && code <= 0xFF);
@@ -4634,21 +4629,17 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public static abstract class StringSplicePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(
-                guards = {
-                        "indexAtStartBound(spliceByteIndex)",
-                        "isRubyString(other)",
-                        "isRubyEncoding(rubyEncoding)" })
+        @Specialization(guards = { "indexAtStartBound(spliceByteIndex)", "isRubyString(other)" })
         protected Object splicePrepend(
                 DynamicObject string,
                 DynamicObject other,
                 int spliceByteIndex,
                 int byteCountToReplace,
-                DynamicObject rubyEncoding,
+                RubyEncoding rubyEncoding,
                 @Cached RopeNodes.SubstringNode prependSubstringNode,
                 @Cached RopeNodes.ConcatNode prependConcatNode) {
 
-            final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
+            final Encoding encoding = rubyEncoding.encoding;
             final Rope original = rope(string);
             final Rope left = rope(other);
             final Rope right = prependSubstringNode
@@ -4659,19 +4650,15 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(
-                guards = {
-                        "indexAtEndBound(string, spliceByteIndex)",
-                        "isRubyString(other)",
-                        "isRubyEncoding(rubyEncoding)" })
+        @Specialization(guards = { "indexAtEndBound(string, spliceByteIndex)", "isRubyString(other)" })
         protected Object spliceAppend(
                 DynamicObject string,
                 DynamicObject other,
                 int spliceByteIndex,
                 int byteCountToReplace,
-                DynamicObject rubyEncoding,
+                RubyEncoding rubyEncoding,
                 @Cached RopeNodes.ConcatNode appendConcatNode) {
-            final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
+            final Encoding encoding = rubyEncoding.encoding;
             final Rope left = rope(string);
             final Rope right = rope(other);
 
@@ -4680,17 +4667,13 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(
-                guards = {
-                        "!indexAtEitherBounds(string, spliceByteIndex)",
-                        "isRubyString(other)",
-                        "isRubyEncoding(rubyEncoding)" })
+        @Specialization(guards = { "!indexAtEitherBounds(string, spliceByteIndex)", "isRubyString(other)" })
         protected DynamicObject splice(
                 DynamicObject string,
                 DynamicObject other,
                 int spliceByteIndex,
                 int byteCountToReplace,
-                DynamicObject rubyEncoding,
+                RubyEncoding rubyEncoding,
                 @Cached ConditionProfile insertStringIsEmptyProfile,
                 @Cached ConditionProfile splitRightIsEmptyProfile,
                 @Cached RopeNodes.SubstringNode leftSubstringNode,
@@ -4698,7 +4681,7 @@ public abstract class StringNodes {
                 @Cached RopeNodes.ConcatNode leftConcatNode,
                 @Cached RopeNodes.ConcatNode rightConcatNode) {
 
-            final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
+            final Encoding encoding = rubyEncoding.encoding;
             final Rope source = rope(string);
             final Rope insert = rope(other);
             final int rightSideStartingIndex = spliceByteIndex + byteCountToReplace;
@@ -5018,16 +5001,16 @@ public abstract class StringNodes {
     @CoreMethod(names = "from_bytearray", onSingleton = true, required = 4, lowerFixnum = { 2, 3 })
     public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyEncoding(rubyEncoding)" })
+        @Specialization
         protected DynamicObject stringFromByteArray(
                 RubyByteArray byteArray,
                 int start,
                 int count,
-                DynamicObject rubyEncoding,
+                RubyEncoding rubyEncoding,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final byte[] bytes = byteArray.bytes;
             final byte[] array = ArrayUtils.extractRange(bytes, start, start + count);
-            final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
+            final Encoding encoding = rubyEncoding.encoding;
 
             return makeStringNode.executeMake(array, encoding, CR_UNKNOWN);
         }
