@@ -206,38 +206,35 @@ We have flags in `jt` to set some options, such as `--trace` for
 
 ## Running with Polyglot
 
-We have special flags to build TruffleRuby with the interface for other Truffle languages (see [`jvm-*` env files](../../mx.truffleruby)).
+Under [mx.truffleruby](../../mx.truffleruby), there are build configurations to build a GraalVM with TruffleRuby and
+other Truffle languages, such as `jvm-js` and `jvm-py`.
+One can of course also make their own env file.
 
-Let's look at the example of [graaljs](https://github.com/graalvm/graaljs) how to get TruffleRuby with the ability to evaluate JavaScript code.
+Let's look at the example of building with [graaljs](https://github.com/graalvm/graaljs) to be able to evaluate JavaScript code from TruffleRuby.
 
-First of all, we need to build `graaljs`. All Truffle languages are built according to a similar principle and use the same set of artifacts. Therefore, TruffleRuby the working directory already contains (after the first successful build) the necessary tools:
-
+Building is as simple as cloning the repository and using the right env file:
 ```bash
-$ cd truffleruby-ws
-$ git clone git@github.com:graalvm/graaljs.git
-$ cd graaljs/graal-js
-$ export JAVA_HOME=(`jt install jvmci`)
-$ mx build
-```
-
-For more details check out [the official `graaljs` building documentation.](https://github.com/graalvm/graaljs/blob/master/docs/Building.md)
-
-Now we ready to build TruffleRuby:
-
-```bash
+$ cd truffleruby-ws/truffleruby
+$ git clone https://github.com/graalvm/graaljs.git ../graaljs
 $ jt build --env jvm-js
 ```
 
-Then, run TruffleRuby with polyglot support and evaluate some JavaScript:
+Similar for building with [graalpython](https://github.com/graalvm/graalpython):
+```
+$ cd truffleruby-ws/truffleruby
+$ git clone https://github.com/graalvm/graalpython.git ../graalpython
+$ jt build --env jvm-py
+```
+
+Then, run TruffleRuby with `--polyglot` support and evaluate some JavaScript:
 
 ```bash
 $ jt --use jvm-js ruby --polyglot
-
 > Polyglot.eval('js', 'var a = 1; a + 1')
-> 2
+=> 2
 ```
 
-[Here is](../user/polyglot.md) detailed documentation about TruffleRuby polyglot programming.
+See the [Polyglot](../user/polyglot.md) and [Truffle Interop](interop.md) documentation for details about polyglot programming.
 
 ## Testing with Graal
 
