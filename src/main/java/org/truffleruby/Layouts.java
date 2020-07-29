@@ -9,7 +9,6 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.object.HiddenKey;
 import org.truffleruby.core.HandleLayout;
 import org.truffleruby.core.HandleLayoutImpl;
 import org.truffleruby.core.array.ArrayLayout;
@@ -60,8 +59,6 @@ import org.truffleruby.core.regexp.RegexpLayout;
 import org.truffleruby.core.regexp.RegexpLayoutImpl;
 import org.truffleruby.core.string.StringLayout;
 import org.truffleruby.core.string.StringLayoutImpl;
-import org.truffleruby.core.support.RandomizerLayout;
-import org.truffleruby.core.support.RandomizerLayoutImpl;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayout;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.core.thread.ThreadLayout;
@@ -76,6 +73,8 @@ import org.truffleruby.extra.ffi.PointerLayout;
 import org.truffleruby.extra.ffi.PointerLayoutImpl;
 import org.truffleruby.stdlib.digest.DigestLayout;
 import org.truffleruby.stdlib.digest.DigestLayoutImpl;
+
+import com.oracle.truffle.api.object.HiddenKey;
 
 public abstract class Layouts {
 
@@ -120,7 +119,6 @@ public abstract class Layouts {
     public static final ThreadBacktraceLocationLayout THREAD_BACKTRACE_LOCATION = ThreadBacktraceLocationLayoutImpl.INSTANCE;
     public static final TimeLayout TIME = TimeLayoutImpl.INSTANCE;
     public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;
-    public static final RandomizerLayout RANDOMIZER = RandomizerLayoutImpl.INSTANCE;
     public static final AtomicReferenceLayout ATOMIC_REFERENCE = AtomicReferenceLayoutImpl.INSTANCE;
     public static final HandleLayout HANDLE = HandleLayoutImpl.INSTANCE;
     public static final TracePointLayout TRACE_POINT = TracePointLayoutImpl.INSTANCE;

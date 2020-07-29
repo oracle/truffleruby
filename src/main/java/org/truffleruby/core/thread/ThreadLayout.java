@@ -17,6 +17,7 @@ import java.util.concurrent.locks.Lock;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
@@ -49,7 +50,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             CountDownLatch finishedLatch,
             DynamicObject threadLocalVariables,
             DynamicObject recursiveObjects,
-            DynamicObject randomizer,
+            RubyRandomizer randomizer,
             TracePointState tracePointState,
             boolean reportOnException,
             boolean abortOnException,
@@ -79,7 +80,7 @@ public interface ThreadLayout extends BasicObjectLayout {
 
     List<Lock> getOwnedLocks(DynamicObject object);
 
-    DynamicObject getRandomizer(DynamicObject object);
+    RubyRandomizer getRandomizer(DynamicObject object);
 
     TracePointState getTracePointState(DynamicObject object);
 
