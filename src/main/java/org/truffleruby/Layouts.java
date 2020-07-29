@@ -15,8 +15,6 @@ import org.truffleruby.core.array.ArrayLayout;
 import org.truffleruby.core.array.ArrayLayoutImpl;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
-import org.truffleruby.core.encoding.EncodingConverterLayout;
-import org.truffleruby.core.encoding.EncodingConverterLayoutImpl;
 import org.truffleruby.core.encoding.EncodingLayout;
 import org.truffleruby.core.encoding.EncodingLayoutImpl;
 import org.truffleruby.core.fiber.FiberLayout;
@@ -88,7 +86,6 @@ public abstract class Layouts {
     public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
     public static final BignumLayout BIGNUM = BignumLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
-    public static final EncodingConverterLayout ENCODING_CONVERTER = EncodingConverterLayoutImpl.INSTANCE;
     public static final EncodingLayout ENCODING = EncodingLayoutImpl.INSTANCE;
     public static final FiberLayout FIBER = FiberLayoutImpl.INSTANCE;
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;

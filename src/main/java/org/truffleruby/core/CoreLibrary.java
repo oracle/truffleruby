@@ -40,6 +40,7 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubyNameError;
 import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySystemCallError;
+import org.truffleruby.core.encoding.RubyEncodingConverter;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.mutex.RubyConditionVariable;
@@ -584,11 +585,8 @@ public class CoreLibrary {
                 "UndefinedConversionError");
 
         encodingConverterClass = defineClass(encodingClass, objectClass, "Converter");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                encodingConverterClass,
-                Layouts.ENCODING_CONVERTER
-                        .createEncodingConverterShape(encodingConverterClass, encodingConverterClass));
-
+        Shape encodingConverterShape = createShape(RubyEncodingConverter.class, encodingConverterClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, createFactory(encodingConverterShape));
         final DynamicObject truffleRubyModule = defineModule("TruffleRuby");
         DynamicObject atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
         Layouts.CLASS.setInstanceFactoryUnsafe(
