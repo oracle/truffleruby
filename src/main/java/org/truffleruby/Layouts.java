@@ -42,8 +42,6 @@ import org.truffleruby.core.module.ModuleLayout;
 import org.truffleruby.core.module.ModuleLayoutImpl;
 import org.truffleruby.core.numeric.BignumLayout;
 import org.truffleruby.core.numeric.BignumLayoutImpl;
-import org.truffleruby.core.objectspace.WeakMapLayout;
-import org.truffleruby.core.objectspace.WeakMapLayoutImpl;
 import org.truffleruby.core.proc.ProcLayout;
 import org.truffleruby.core.proc.ProcLayoutImpl;
 import org.truffleruby.core.queue.QueueLayout;
@@ -128,6 +126,4 @@ public abstract class Layouts {
     public static final TracePointLayout TRACE_POINT = TracePointLayoutImpl.INSTANCE;
     public static final DigestLayout DIGEST = DigestLayoutImpl.INSTANCE;
     public static final SystemCallErrorLayout SYSTEM_CALL_ERROR = SystemCallErrorLayoutImpl.INSTANCE;
-    public static final WeakMapLayout WEAK_MAP = WeakMapLayoutImpl.INSTANCE;
-
 }
