@@ -149,6 +149,7 @@ import org.truffleruby.core.string.StringNodesFactory.StringEqualNodeGen;
 import org.truffleruby.core.string.StringNodesFactory.StringSubstringPrimitiveNodeFactory;
 import org.truffleruby.core.string.StringNodesFactory.SumNodeFactory;
 import org.truffleruby.core.string.StringSupport.TrTables;
+import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -5017,14 +5018,14 @@ public abstract class StringNodes {
     @CoreMethod(names = "from_bytearray", onSingleton = true, required = 4, lowerFixnum = { 2, 3 })
     public static abstract class StringFromByteArrayPrimitiveNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isByteArray(byteArray)", "isRubyEncoding(rubyEncoding)" })
+        @Specialization(guards = { "isRubyEncoding(rubyEncoding)" })
         protected DynamicObject stringFromByteArray(
-                DynamicObject byteArray,
+                RubyByteArray byteArray,
                 int start,
                 int count,
                 DynamicObject rubyEncoding,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final byte[] bytes = Layouts.BYTE_ARRAY.getBytes(byteArray);
+            final byte[] bytes = byteArray.bytes;
             final byte[] array = ArrayUtils.extractRange(bytes, start, start + count);
             final Encoding encoding = EncodingOperations.getEncoding(rubyEncoding);
 

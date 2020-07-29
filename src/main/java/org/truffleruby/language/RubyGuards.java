@@ -9,11 +9,10 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
-
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
 public abstract class RubyGuards {
@@ -198,10 +197,6 @@ public abstract class RubyGuards {
 
     public static boolean isRubyPointer(DynamicObject value) {
         return Layouts.POINTER.isPointer(value);
-    }
-
-    public static boolean isByteArray(DynamicObject value) {
-        return Layouts.BYTE_ARRAY.isByteArray(value);
     }
 
     public static boolean isRubyProc(Object object) {
