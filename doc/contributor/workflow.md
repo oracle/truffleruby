@@ -204,6 +204,38 @@ $ jt --use jvm-ce ruby ...
 We have flags in `jt` to set some options, such as `--trace` for
 `--engine.TraceCompilation`.
 
+## Running with Polyglot
+
+Under [mx.truffleruby](../../mx.truffleruby), there are build configurations to build a GraalVM with TruffleRuby and
+other Truffle languages, such as `jvm-js` and `jvm-py`.
+One can of course also make their own env file.
+
+Let's look at the example of building with [graaljs](https://github.com/graalvm/graaljs) to be able to evaluate JavaScript code from TruffleRuby.
+
+Building is as simple as cloning the repository and using the right env file:
+```bash
+$ cd truffleruby-ws/truffleruby
+$ git clone https://github.com/graalvm/graaljs.git ../graaljs
+$ jt build --env jvm-js
+```
+
+Similar for building with [graalpython](https://github.com/graalvm/graalpython):
+```
+$ cd truffleruby-ws/truffleruby
+$ git clone https://github.com/graalvm/graalpython.git ../graalpython
+$ jt build --env jvm-py
+```
+
+Then, run TruffleRuby with `--polyglot` support and evaluate some JavaScript:
+
+```bash
+$ jt --use jvm-js ruby --polyglot
+> Polyglot.eval('js', 'var a = 1; a + 1')
+=> 2
+```
+
+See the [Polyglot](../user/polyglot.md) and [Truffle Interop](interop.md) documentation for details about polyglot programming.
+
 ## Testing with Graal
 
 The basic test for Graal is to run our compiler tests. This includes tests that

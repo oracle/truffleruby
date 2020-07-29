@@ -5,6 +5,7 @@ New features:
 
 Bug fixes:
 
+* Handle foreign null object as falsy value (#1902, @ssnickolay)
 
 Compatibility:
 
