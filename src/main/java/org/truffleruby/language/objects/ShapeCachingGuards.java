@@ -10,16 +10,15 @@
 
 package org.truffleruby.language.objects;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.SharedObjects;
-
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.object.Shape;
 
 public abstract class ShapeCachingGuards {
 
@@ -35,10 +34,6 @@ public abstract class ShapeCachingGuards {
 
     public static boolean isArrayShape(Shape shape) {
         return Layouts.ARRAY.isArray(shape.getObjectType());
-    }
-
-    public static boolean isQueueShape(Shape shape) {
-        return Layouts.QUEUE.isQueue(shape.getObjectType());
     }
 
     public static boolean isBasicObjectShape(Shape shape) {

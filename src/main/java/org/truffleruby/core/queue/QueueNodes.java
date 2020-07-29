@@ -9,7 +9,14 @@
  */
 package org.truffleruby.core.queue;
 
-import org.truffleruby.Layouts;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -19,16 +26,8 @@ import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "Queue", isClass = true)
 public abstract class QueueNodes {
@@ -36,11 +35,14 @@ public abstract class QueueNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, new UnsizedQueue());
+            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final RubyQueue instance = new RubyQueue(shape, new UnsizedQueue());
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -51,8 +53,8 @@ public abstract class QueueNodes {
         @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
         @Specialization
-        protected DynamicObject push(DynamicObject self, final Object value) {
-            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+        protected DynamicObject push(RubyQueue self, final Object value) {
+            final UnsizedQueue queue = self.queue;
 
             propagateSharingNode.executePropagate(self, value);
 
@@ -76,9 +78,9 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        protected Object popBlocking(DynamicObject self, boolean nonBlocking,
+        protected Object popBlocking(RubyQueue self, boolean nonBlocking,
                 @Cached BranchProfile closedProfile) {
-            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = self.queue;
 
             final Object value = doPop(queue);
 
@@ -96,9 +98,9 @@ public abstract class QueueNodes {
         }
 
         @Specialization(guards = "nonBlocking")
-        protected Object popNonBlock(DynamicObject self, boolean nonBlocking,
+        protected Object popNonBlock(RubyQueue self, boolean nonBlocking,
                 @Cached BranchProfile errorProfile) {
-            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+            final UnsizedQueue queue = self.queue;
 
             final Object value = queue.poll();
 
@@ -117,14 +119,14 @@ public abstract class QueueNodes {
     public abstract static class ReceiveTimeoutNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object receiveTimeout(DynamicObject self, int duration) {
+        protected Object receiveTimeout(RubyQueue self, int duration) {
             return receiveTimeout(self, (double) duration);
         }
 
         @TruffleBoundary
         @Specialization
-        protected Object receiveTimeout(DynamicObject self, double duration) {
-            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+        protected Object receiveTimeout(RubyQueue self, double duration) {
+            final UnsizedQueue queue = self.queue;
 
             final long durationInMillis = (long) (duration * 1000.0);
             final long start = System.currentTimeMillis();
@@ -157,8 +159,8 @@ public abstract class QueueNodes {
     public abstract static class EmptyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean empty(DynamicObject self) {
-            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+        protected boolean empty(RubyQueue self) {
+            final UnsizedQueue queue = self.queue;
             return queue.isEmpty();
         }
 
@@ -168,8 +170,8 @@ public abstract class QueueNodes {
     public abstract static class SizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int size(DynamicObject self) {
-            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+        protected int size(RubyQueue self) {
+            final UnsizedQueue queue = self.queue;
             return queue.size();
         }
 
@@ -179,8 +181,8 @@ public abstract class QueueNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject clear(DynamicObject self) {
-            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+        protected DynamicObject clear(RubyQueue self) {
+            final UnsizedQueue queue = self.queue;
             queue.clear();
             return self;
         }
@@ -201,8 +203,8 @@ public abstract class QueueNodes {
     public abstract static class NumWaitingNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int num_waiting(DynamicObject self) {
-            final UnsizedQueue queue = Layouts.QUEUE.getQueue(self);
+        protected int num_waiting(RubyQueue self) {
+            final UnsizedQueue queue = self.queue;
             return queue.getNumberWaitingToTake();
         }
 
@@ -212,8 +214,8 @@ public abstract class QueueNodes {
     public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject close(DynamicObject self) {
-            Layouts.QUEUE.getQueue(self).close();
+        protected DynamicObject close(RubyQueue self) {
+            self.queue.close();
             return self;
         }
 
@@ -223,8 +225,8 @@ public abstract class QueueNodes {
     public abstract static class ClosedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean closed(DynamicObject self) {
-            return Layouts.QUEUE.getQueue(self).isClosed();
+        protected boolean closed(RubyQueue self) {
+            return self.queue.isClosed();
         }
 
     }

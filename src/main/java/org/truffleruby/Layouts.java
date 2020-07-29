@@ -32,8 +32,6 @@ import org.truffleruby.core.numeric.BignumLayout;
 import org.truffleruby.core.numeric.BignumLayoutImpl;
 import org.truffleruby.core.proc.ProcLayout;
 import org.truffleruby.core.proc.ProcLayoutImpl;
-import org.truffleruby.core.queue.QueueLayout;
-import org.truffleruby.core.queue.QueueLayoutImpl;
 import org.truffleruby.core.queue.SizedQueueLayout;
 import org.truffleruby.core.queue.SizedQueueLayoutImpl;
 import org.truffleruby.core.range.IntRangeLayout;
@@ -88,7 +86,6 @@ public abstract class Layouts {
     public static final ObjectRangeLayout OBJECT_RANGE = ObjectRangeLayoutImpl.INSTANCE;
     public static final PointerLayout POINTER = PointerLayoutImpl.INSTANCE;
     public static final ProcLayout PROC = ProcLayoutImpl.INSTANCE;
-    public static final QueueLayout QUEUE = QueueLayoutImpl.INSTANCE;
     public static final SizedQueueLayout SIZED_QUEUE = SizedQueueLayoutImpl.INSTANCE;
     public static final StringLayout STRING = StringLayoutImpl.INSTANCE;
     public static final ThreadLayout THREAD = ThreadLayoutImpl.INSTANCE;

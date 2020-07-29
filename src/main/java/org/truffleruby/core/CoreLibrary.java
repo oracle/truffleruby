@@ -55,6 +55,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
+import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
@@ -518,7 +519,8 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(procClass, procFactory);
         processModule = defineModule("Process");
         DynamicObject queueClass = defineClass("Queue");
-        Layouts.CLASS.setInstanceFactoryUnsafe(queueClass, Layouts.QUEUE.createQueueShape(queueClass, queueClass));
+        Shape queueShape = createShape(RubyQueue.class, queueClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(queueClass, createFactory(queueShape));
         DynamicObject sizedQueueClass = defineClass(queueClass, "SizedQueue");
         Layouts.CLASS.setInstanceFactoryUnsafe(
                 sizedQueueClass,
