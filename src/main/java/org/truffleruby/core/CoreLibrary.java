@@ -41,6 +41,7 @@ import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.mutex.RubyConditionVariable;
 import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.objectspace.RubyWeakMap;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
@@ -243,7 +244,7 @@ public class CoreLibrary {
     public final DynamicObjectFactory digestFactory;
     public final DynamicObject structClass;
     public final DynamicObject weakMapClass;
-    public final DynamicObjectFactory weakMapFactory;
+    public final Shape weakMapShape;
 
     public final DynamicObject argv;
     public final DynamicObject mainObject;
@@ -567,8 +568,8 @@ public class CoreLibrary {
         objectSpaceModule = defineModule("ObjectSpace");
 
         weakMapClass = defineClass(objectSpaceModule, objectClass, "WeakMap");
-        weakMapFactory = Layouts.WEAK_MAP.createWeakMapShape(weakMapClass, weakMapClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(weakMapClass, weakMapFactory);
+        weakMapShape = createShape(RubyWeakMap.class, weakMapClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(weakMapClass, createFactory(weakMapShape));
 
         // The rest
 
