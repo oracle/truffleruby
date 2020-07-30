@@ -208,10 +208,6 @@ public abstract class RubyGuards {
         return Layouts.PROC.isProc(object);
     }
 
-    public static boolean isRubyEncodingConverter(DynamicObject encodingConverter) {
-        return Layouts.ENCODING_CONVERTER.isEncodingConverter(encodingConverter);
-    }
-
     public static boolean isRubyTime(DynamicObject object) {
         return Layouts.TIME.isTime(object);
     }
