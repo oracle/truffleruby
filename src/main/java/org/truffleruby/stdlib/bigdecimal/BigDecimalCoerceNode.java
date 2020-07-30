@@ -9,6 +9,7 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -44,8 +45,8 @@ public abstract class BigDecimalCoerceNode extends RubyContextSourceNode {
                 value);
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected Object coerceBignum(DynamicObject value,
+    @Specialization
+    protected Object coerceBignum(RubyBignum value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(
                 getContext().getCoreLibrary().bigDecimalOperationsModule,

@@ -53,6 +53,7 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.queue.RubyQueue;
@@ -148,7 +149,7 @@ public class CoreLibrary {
     public final DynamicObject arrayClass;
     public final DynamicObjectFactory arrayFactory;
     public final DynamicObject basicObjectClass;
-    public final DynamicObjectFactory bignumFactory;
+    public final Shape bignumShape;
     public final Shape bindingShape;
     public final DynamicObject classClass;
     public final DynamicObject complexClass;
@@ -472,7 +473,7 @@ public class CoreLibrary {
         complexClass = defineClass(numericClass, "Complex");
         floatClass = defineClass(numericClass, "Float");
         integerClass = defineClass(numericClass, "Integer");
-        bignumFactory = alwaysFrozen(Layouts.BIGNUM.createBignumShape(integerClass, integerClass));
+        bignumShape = createShape(RubyBignum.class, integerClass).addProperty(ALWAYS_FROZEN_PROPERTY);
         rationalClass = defineClass(numericClass, "Rational");
 
         // Classes defined in Object
@@ -724,10 +725,6 @@ public class CoreLibrary {
             }
         }
         return patchFiles;
-    }
-
-    private static DynamicObjectFactory alwaysFrozen(DynamicObjectFactory factory) {
-        return factory.getShape().addProperty(ALWAYS_FROZEN_PROPERTY).createFactory();
     }
 
     private void includeModules(DynamicObject comparableModule) {
@@ -1070,7 +1067,7 @@ public class CoreLibrary {
         }
 
         if (RubyGuards.isRubyBignum(value)) {
-            return BigIntegerOps.doubleValue((DynamicObject) value);
+            return BigIntegerOps.doubleValue((RubyBignum) value);
         }
 
         if (value instanceof Double) {

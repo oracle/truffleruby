@@ -59,6 +59,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
@@ -439,8 +440,8 @@ public abstract class VMPrimitiveNodes {
             return getContext().getHashing(this).start(salt);
         }
 
-        @Specialization(guards = "isRubyBignum(salt)")
-        protected long startHashBigNum(DynamicObject salt) {
+        @Specialization
+        protected long startHashBigNum(RubyBignum salt) {
             return getContext().getHashing(this).start(BigIntegerOps.hashCode(salt));
         }
 
@@ -455,8 +456,8 @@ public abstract class VMPrimitiveNodes {
                 return getContext().getHashing(this).start((int) result);
             } else if (isLongProfile.profile(result instanceof Long)) {
                 return getContext().getHashing(this).start((long) result);
-            } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
-                return getContext().getHashing(this).start(BigIntegerOps.hashCode(result));
+            } else if (isBignumProfile.profile(result instanceof RubyBignum)) {
+                return getContext().getHashing(this).start(BigIntegerOps.hashCode((RubyBignum) result));
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }
@@ -472,8 +473,8 @@ public abstract class VMPrimitiveNodes {
             return Hashing.update(hash, value);
         }
 
-        @Specialization(guards = "isRubyBignum(value)")
-        protected long updateHash(long hash, DynamicObject value) {
+        @Specialization
+        protected long updateHash(long hash, RubyBignum value) {
             return Hashing.update(hash, BigIntegerOps.hashCode(value));
         }
 
@@ -488,8 +489,8 @@ public abstract class VMPrimitiveNodes {
                 return Hashing.update(hash, (int) result);
             } else if (isLongProfile.profile(result instanceof Long)) {
                 return Hashing.update(hash, (long) result);
-            } else if (isBignumProfile.profile(Layouts.BIGNUM.isBignum(result))) {
-                return Hashing.update(hash, BigIntegerOps.hashCode(result));
+            } else if (isBignumProfile.profile(result instanceof RubyBignum)) {
+                return Hashing.update(hash, BigIntegerOps.hashCode((RubyBignum) result));
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }

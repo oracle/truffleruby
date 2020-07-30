@@ -28,6 +28,7 @@ import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
@@ -866,8 +867,8 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = { "isNormal(a)", "isRubyBignum(b)" })
-        protected int compare(RubyBigDecimal a, RubyBigDecimal b) {
+        @Specialization(guards = { "isNormal(a)" })
+        protected int compare(RubyBigDecimal a, RubyBignum b) {
             return BigDecimalOps.compare(a, BigDecimalOps.fromBigInteger(b));
         }
 
@@ -897,8 +898,8 @@ public abstract class BigDecimalNodes {
             }
         }
 
-        @Specialization(guards = { "!isNormal(a)", "isRubyBignum(b)" })
-        protected Object compareSpecialBignum(RubyBigDecimal a, RubyBigDecimal b) {
+        @Specialization(guards = { "!isNormal(a)" })
+        protected Object compareSpecialBignum(RubyBigDecimal a, RubyBignum b) {
             return compareSpecial(a, createBigDecimal(BigDecimalOps.fromBigInteger(b)));
         }
 

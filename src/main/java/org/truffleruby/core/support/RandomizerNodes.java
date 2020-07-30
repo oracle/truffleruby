@@ -33,10 +33,11 @@
  */
 package org.truffleruby.core.support;
 
-import java.math.BigInteger;
-
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.algorithms.Randomizer;
 import org.truffleruby.builtins.CoreMethod;
@@ -48,26 +49,24 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.Visibility;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.math.BigInteger;
 
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
 
     public static RubyRandomizer newRandomizer(RubyContext context) {
-        final DynamicObject seed = RandomizerGenSeedNode.randomSeedBignum(context);
+        final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
         return new RubyRandomizer(context.getCoreLibrary().randomizerShape, randomizer);
     }
 
     public static void resetSeed(RubyContext context, RubyRandomizer random) {
-        final DynamicObject seed = RandomizerGenSeedNode.randomSeedBignum(context);
+        final RubyBignum seed = RandomizerGenSeedNode.randomSeedBignum(context);
         final Randomizer randomizer = RandomizerSetSeedNode.randomFromBignum(seed);
         random.randomizer = randomizer;
     }
@@ -101,8 +100,8 @@ public abstract class RandomizerNodes {
             return randomizer;
         }
 
-        @Specialization(guards = "isRubyBignum(seed)")
-        protected RubyRandomizer setSeed(RubyRandomizer randomizer, DynamicObject seed) {
+        @Specialization
+        protected RubyRandomizer setSeed(RubyRandomizer randomizer, RubyBignum seed) {
             randomizer.randomizer = randomFromBignum(seed);
             return randomizer;
         }
@@ -123,8 +122,8 @@ public abstract class RandomizerNodes {
         public static int N = 624;
 
         @TruffleBoundary
-        public static Randomizer randomFromBignum(DynamicObject seed) {
-            BigInteger big = Layouts.BIGNUM.getValue(seed);
+        public static Randomizer randomFromBignum(RubyBignum seed) {
+            BigInteger big = seed.value;
             if (big.signum() < 0) {
                 big = big.abs();
             }
@@ -201,11 +200,11 @@ public abstract class RandomizerNodes {
             return randInt(r, limit);
         }
 
-        @Specialization(guards = "isRubyBignum(limit)")
-        protected Object randomizerRandInt(RubyRandomizer randomizer, DynamicObject limit,
+        @Specialization
+        protected Object randomizerRandInt(RubyRandomizer randomizer, RubyBignum limit,
                 @Cached("new()") FixnumOrBignumNode fixnumOrBignum) {
             final Randomizer r = randomizer.randomizer;
-            return fixnumOrBignum.fixnumOrBignum(randLimitedBignum(r, Layouts.BIGNUM.getValue(limit)));
+            return fixnumOrBignum.fixnumOrBignum(randLimitedBignum(r, limit.value));
         }
 
         @TruffleBoundary
@@ -326,7 +325,7 @@ public abstract class RandomizerNodes {
         private static final int DEFAULT_SEED_CNT = 4;
 
         @TruffleBoundary
-        public static DynamicObject randomSeedBignum(RubyContext context) {
+        public static RubyBignum randomSeedBignum(RubyContext context) {
             byte[] seed = context.getRandomSeedBytes(DEFAULT_SEED_CNT * 4);
             final BigInteger bigInteger = new BigInteger(seed).abs();
             return BignumOperations.createBignum(context, bigInteger);

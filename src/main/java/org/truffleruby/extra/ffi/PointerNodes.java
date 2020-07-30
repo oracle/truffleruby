@@ -27,6 +27,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
@@ -600,8 +601,8 @@ public abstract class PointerNodes {
             return nil;
         }
 
-        @Specialization(guards = "isRubyBignum(value)")
-        protected Object writeUnsignedLong(long address, DynamicObject value) {
+        @Specialization
+        protected Object writeUnsignedLong(long address, RubyBignum value) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             writeUnsignedLong(ptr, 0, value);
@@ -609,8 +610,8 @@ public abstract class PointerNodes {
         }
 
         @TruffleBoundary
-        private static void writeUnsignedLong(Pointer ptr, int offset, DynamicObject value) {
-            BigInteger v = Layouts.BIGNUM.getValue(value);
+        private static void writeUnsignedLong(Pointer ptr, int offset, RubyBignum value) {
+            BigInteger v = value.value;
             assert v.signum() >= 0;
             assert v.compareTo(TWO_POW_64) < 0;
             BigInteger signed = v.subtract(TWO_POW_64);

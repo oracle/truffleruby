@@ -28,8 +28,6 @@ import org.truffleruby.core.method.UnboundMethodLayout;
 import org.truffleruby.core.method.UnboundMethodLayoutImpl;
 import org.truffleruby.core.module.ModuleLayout;
 import org.truffleruby.core.module.ModuleLayoutImpl;
-import org.truffleruby.core.numeric.BignumLayout;
-import org.truffleruby.core.numeric.BignumLayoutImpl;
 import org.truffleruby.core.proc.ProcLayout;
 import org.truffleruby.core.proc.ProcLayoutImpl;
 import org.truffleruby.core.queue.SizedQueueLayout;
@@ -75,7 +73,6 @@ public abstract class Layouts {
 
     public static final ArrayLayout ARRAY = ArrayLayoutImpl.INSTANCE;
     public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
-    public static final BignumLayout BIGNUM = BignumLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
     public static final FiberLayout FIBER = FiberLayoutImpl.INSTANCE;
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;

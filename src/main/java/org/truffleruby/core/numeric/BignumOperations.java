@@ -9,22 +9,21 @@
  */
 package org.truffleruby.core.numeric;
 
-import java.math.BigInteger;
-
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import java.math.BigInteger;
 
 public class BignumOperations {
 
     private static final BigInteger LONG_MIN_BIGINT = BigInteger.valueOf(Long.MIN_VALUE);
     private static final BigInteger LONG_MAX_BIGINT = BigInteger.valueOf(Long.MAX_VALUE);
 
-    public static DynamicObject createBignum(RubyContext context, BigInteger value) {
+    public static RubyBignum createBignum(RubyContext context, BigInteger value) {
         assert value.compareTo(LONG_MIN_BIGINT) < 0 ||
                 value.compareTo(LONG_MAX_BIGINT) > 0 : "Bignum in long range : " + value;
-        return Layouts.BIGNUM.createBignum(context.getCoreLibrary().bignumFactory, value);
+        final RubyBignum instance = new RubyBignum(context.getCoreLibrary().bignumShape, value);
+        // TODO BJF Jul-30-2020 Add allocation tracing
+        return instance;
     }
 
 }

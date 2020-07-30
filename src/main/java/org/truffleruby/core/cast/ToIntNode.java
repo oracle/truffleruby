@@ -9,19 +9,18 @@
  */
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.numeric.IntegerNodes.IntegerLowerNode;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.utils.Utils;
 
 /** Node used to convert a value into a 32-bits Java int, calling {@code to_int} if the value is not yet a Ruby integer.
@@ -77,8 +76,8 @@ public abstract class ToIntNode extends RubyContextSourceNode {
                 coreExceptions().rangeError("long too big to convert into `int'", this));
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected int coerceRubyBignum(DynamicObject value) {
+    @Specialization
+    protected int coerceRubyBignum(RubyBignum value) {
         // not `int' to stay as compatible as possible with MRI errors
         throw new RaiseException(
                 getContext(),

@@ -36,23 +36,22 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.Layouts;
-import org.truffleruby.core.numeric.BigDecimalOps;
-import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.IsANode;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.numeric.BigDecimalOps;
+import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.objects.IsANode;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 @ImportStatic(BigDecimalCoreMethodNode.class)
 public abstract class BigDecimalCastNode extends RubyContextNode {
@@ -78,8 +77,8 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
         return BigDecimal.valueOf(value);
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected BigDecimal doBignum(DynamicObject value, int digits, RoundingMode roundingMode) {
+    @Specialization
+    protected BigDecimal doBignum(RubyBignum value, int digits, RoundingMode roundingMode) {
         return BigDecimalOps.fromBigInteger(value);
     }
 
@@ -138,7 +137,7 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
         } else if (object instanceof Double) {
             return BigDecimal.valueOf((double) object);
         } else if (RubyGuards.isRubyBignum(object)) {
-            return new BigDecimal(Layouts.BIGNUM.getValue((DynamicObject) object));
+            return new BigDecimal(((RubyBignum) object).value);
         } else {
             throw CompilerDirectives.shouldNotReachHere();
         }

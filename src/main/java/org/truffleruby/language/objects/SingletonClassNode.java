@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
@@ -67,8 +68,8 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
         return noSingletonClass();
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected DynamicObject singletonClassBignum(DynamicObject value) {
+    @Specialization
+    protected DynamicObject singletonClassBignum(RubyBignum value) {
         return noSingletonClass();
     }
 

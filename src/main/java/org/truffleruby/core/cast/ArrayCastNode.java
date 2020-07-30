@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -73,8 +74,8 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
         return nil;
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected Object castBignum(DynamicObject value) {
+    @Specialization
+    protected Object castBignum(RubyBignum value) {
         return nil;
     }
 

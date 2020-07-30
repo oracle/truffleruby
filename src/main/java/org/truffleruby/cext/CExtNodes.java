@@ -55,6 +55,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -308,16 +309,16 @@ public class CExtNodes {
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
 
-        @Specialization(guards = "isRubyBignum(num)")
+        @Specialization
         @TruffleBoundary
         protected DynamicObject bytes(
-                DynamicObject num,
+                RubyBignum num,
                 int num_words,
                 int word_length,
                 boolean msw_first,
                 boolean twosComp,
                 boolean bigEndian) {
-            BigInteger bi = Layouts.BIGNUM.getValue(num);
+            BigInteger bi = num.value;
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
 
@@ -397,10 +398,10 @@ public class CExtNodes {
             return BigInteger.valueOf(num).abs().bitLength();
         }
 
-        @Specialization(guards = "isRubyBignum(num)")
+        @Specialization
         @TruffleBoundary
-        protected int bitLength(DynamicObject num) {
-            return Layouts.BIGNUM.getValue(num).abs().bitLength();
+        protected int bitLength(RubyBignum num) {
+            return num.value.abs().bitLength();
         }
     }
 
@@ -419,10 +420,10 @@ public class CExtNodes {
             return BigInteger.valueOf(num).bitLength();
         }
 
-        @Specialization(guards = "isRubyBignum(num)")
+        @Specialization
         @TruffleBoundary
-        protected int bitLength(DynamicObject num) {
-            return Layouts.BIGNUM.getValue(num).bitLength();
+        protected int bitLength(RubyBignum num) {
+            return num.value.bitLength();
         }
     }
 
@@ -441,11 +442,11 @@ public class CExtNodes {
             return Long.bitCount(num) == 1 ? 1 : 0;
         }
 
-        @Specialization(guards = "isRubyBignum(num)")
+        @Specialization
         @TruffleBoundary
-        protected int intSinglebitP(DynamicObject num) {
-            assert Layouts.BIGNUM.getValue(num).signum() >= 0;
-            return Layouts.BIGNUM.getValue(num).bitCount() == 1 ? 1 : 0;
+        protected int intSinglebitP(RubyBignum num) {
+            assert num.value.signum() >= 0;
+            return num.value.bitCount() == 1 ? 1 : 0;
         }
     }
 

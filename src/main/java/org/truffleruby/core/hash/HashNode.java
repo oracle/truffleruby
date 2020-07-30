@@ -9,15 +9,14 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.Layouts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class HashNode extends RubyContextNode {
 
@@ -44,8 +43,8 @@ public class HashNode extends RubyContextNode {
             return (int) hashedObject;
         } else if (isLongProfile1.profile(hashedObject instanceof Long)) {
             return (int) (long) hashedObject;
-        } else if (isBignumProfile1.profile(Layouts.BIGNUM.isBignum(hashedObject))) {
-            return BigIntegerOps.hashCode(hashedObject);
+        } else if (isBignumProfile1.profile(hashedObject instanceof RubyBignum)) {
+            return BigIntegerOps.hashCode((RubyBignum) hashedObject);
         } else {
             if (toRubyInteger == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -58,8 +57,8 @@ public class HashNode extends RubyContextNode {
                 return (int) coercedHashedObject;
             } else if (isLongProfile2.profile(coercedHashedObject instanceof Long)) {
                 return (int) (long) coercedHashedObject;
-            } else if (isBignumProfile2.profile(Layouts.BIGNUM.isBignum(coercedHashedObject))) {
-                return BigIntegerOps.hashCode(coercedHashedObject);
+            } else if (isBignumProfile2.profile(coercedHashedObject instanceof RubyBignum)) {
+                return BigIntegerOps.hashCode((RubyBignum) coercedHashedObject);
             } else {
                 throw CompilerDirectives.shouldNotReachHere();
             }

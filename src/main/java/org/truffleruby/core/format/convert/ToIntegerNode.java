@@ -10,6 +10,7 @@
 package org.truffleruby.core.format.convert;
 
 import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -35,8 +36,8 @@ public abstract class ToIntegerNode extends FormatNode {
         return value;
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected DynamicObject toInteger(DynamicObject value) {
+    @Specialization
+    protected DynamicObject toInteger(RubyBignum value) {
         return value;
     }
 

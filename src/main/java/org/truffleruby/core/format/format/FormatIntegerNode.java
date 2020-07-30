@@ -16,18 +16,16 @@
  */
 package org.truffleruby.core.format.format;
 
-import java.math.BigInteger;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
-import org.truffleruby.core.string.ConvertBytes;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.collections.ByteArrayBuilder;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.string.ConvertBytes;
+
+import java.math.BigInteger;
 
 @NodeChild("width")
 @NodeChild("precision")
@@ -96,9 +94,9 @@ public abstract class FormatIntegerNode extends FormatNode {
     }
 
     @TruffleBoundary
-    @Specialization(guards = "isRubyBignum(value)")
-    protected byte[] format(int width, int precision, DynamicObject value) {
-        final BigInteger bigInteger = Layouts.BIGNUM.getValue(value);
+    @Specialization
+    protected byte[] format(int width, int precision, RubyBignum value) {
+        final BigInteger bigInteger = value.value;
         final boolean negative = bigInteger.signum() < 0;
         final boolean zero = bigInteger.equals(BigInteger.ZERO);
         final char fchar = this.getFormatCharacter();

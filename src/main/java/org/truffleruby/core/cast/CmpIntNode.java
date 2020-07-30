@@ -20,17 +20,16 @@
 
 package org.truffleruby.core.cast;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** This is a port of MRI's rb_cmpint, as taken from RubyComparable and broken out into specialized nodes. */
 public abstract class CmpIntNode extends RubyContextNode {
@@ -59,9 +58,9 @@ public abstract class CmpIntNode extends RubyContextNode {
         return 0;
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected int cmpBignum(DynamicObject value, Object receiver, Object other) {
-        return BigIntegerOps.signum(Layouts.BIGNUM.getValue(value));
+    @Specialization
+    protected int cmpBignum(RubyBignum value, Object receiver, Object other) {
+        return BigIntegerOps.signum(value.value);
     }
 
     @Specialization(guards = "isNil(nil)")
