@@ -28,6 +28,7 @@ import org.truffleruby.language.arguments.ArgumentDescriptorUtils;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.CanBindMethodToModuleNode;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.utils.Utils;
@@ -73,6 +74,8 @@ public abstract class UnboundMethodNodes {
     @CoreMethod(names = "bind", required = 1)
     public abstract static class BindNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
         protected DynamicObject bind(DynamicObject unboundMethod, Object object,
                 @Cached MetaClassNode metaClassNode,
@@ -98,11 +101,12 @@ public abstract class UnboundMethodNodes {
                             this));
                 }
             }
-
-            return Layouts.METHOD.createMethod(
-                    coreLibrary().methodFactory,
+            final RubyMethod instance = new RubyMethod(
+                    coreLibrary().methodShape,
                     object,
                     Layouts.UNBOUND_METHOD.getMethod(unboundMethod));
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }

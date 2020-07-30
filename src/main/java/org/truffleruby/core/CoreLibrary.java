@@ -43,6 +43,7 @@ import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.encoding.RubyEncodingConverter;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.mutex.RubyConditionVariable;
 import org.truffleruby.core.mutex.RubyMutex;
@@ -241,7 +242,7 @@ public class CoreLibrary {
     public final Shape bigDecimalShape;
     public final DynamicObject encodingCompatibilityErrorClass;
     public final DynamicObject encodingUndefinedConversionErrorClass;
-    public final DynamicObjectFactory methodFactory;
+    public final Shape methodShape;
     public final DynamicObjectFactory unboundMethodFactory;
     public final Shape byteArrayShape;
     public final DynamicObject fiberErrorClass;
@@ -508,8 +509,8 @@ public class CoreLibrary {
         matchDataShape = createShape(RubyMatchData.class, matchDataClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(matchDataClass, createFactory(matchDataShape));
         DynamicObject methodClass = defineClass("Method");
-        methodFactory = Layouts.METHOD.createMethodShape(methodClass, methodClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(methodClass, methodFactory);
+        methodShape = createShape(RubyMethod.class, methodClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(methodClass, createFactory(methodShape));
         DynamicObject mutexClass = defineClass("Mutex");
         Shape mutexShape = createShape(RubyMutex.class, mutexClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(mutexClass, createFactory(mutexShape));

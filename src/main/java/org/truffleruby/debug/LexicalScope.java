@@ -9,20 +9,6 @@
  */
 package org.truffleruby.debug;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.binding.BindingNodes;
-import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.Nil;
-import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.methods.InternalMethod;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.dsl.Cached;
@@ -39,8 +25,20 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.arguments.RubyArguments;
+import org.truffleruby.language.methods.InternalMethod;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class LexicalScope {
 
@@ -67,8 +65,8 @@ public class LexicalScope {
         if (frame != null) {
             final Object self = RubyArguments.getSelf(frame);
             final InternalMethod method = RubyArguments.getMethod(frame);
-            final DynamicObject boundMethod = Layouts.METHOD
-                    .createMethod(context.getCoreLibrary().methodFactory, self, method);
+            // TODO BJF Jul-30-2020 Add trace allocation
+            final RubyMethod boundMethod = new RubyMethod(context.getCoreLibrary().methodShape, self, method);
             return Scope
                     .newBuilder(name, getVariables(root, frame))
                     .node(root)

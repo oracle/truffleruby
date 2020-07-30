@@ -28,6 +28,7 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -169,9 +170,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class ASTNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyMethod(method)")
-        protected Object astMethod(DynamicObject method, NotProvided block) {
-            ast(Layouts.METHOD.getMethod(method));
+        @Specialization
+        protected Object astMethod(RubyMethod method, NotProvided block) {
+            ast(method.method);
             return nil;
         }
 
@@ -231,9 +232,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class PrintASTNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyMethod(method)")
-        protected Object astMethod(DynamicObject method, NotProvided block) {
-            printAst(Layouts.METHOD.getMethod(method));
+        @Specialization
+        protected Object astMethod(RubyMethod method, NotProvided block) {
+            printAst(method.method);
             return nil;
         }
 

@@ -15,6 +15,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
@@ -44,10 +45,10 @@ public abstract class TruffleGraalNodes {
     public abstract static class AlwaysSplitNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyMethod(rubyMethod)")
-        protected DynamicObject splitMethod(DynamicObject rubyMethod) {
+        @Specialization
+        protected DynamicObject splitMethod(RubyMethod rubyMethod) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                InternalMethod internalMethod = Layouts.METHOD.getMethod(rubyMethod);
+                InternalMethod internalMethod = rubyMethod.method;
                 internalMethod.getSharedMethodInfo().setAlwaysClone(true);
             }
             return rubyMethod;

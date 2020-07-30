@@ -37,9 +37,15 @@
  */
 package org.truffleruby.core;
 
-import java.io.PrintStream;
-import java.util.Map.Entry;
-
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -54,6 +60,7 @@ import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
@@ -66,22 +73,15 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.ThrowException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
-
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleContext;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-
 import sun.misc.Signal;
+
+import java.io.PrintStream;
+import java.util.Map.Entry;
 
 @CoreModule(value = "VMPrimitives", isClass = true)
 public abstract class VMPrimitiveNodes {
@@ -144,14 +144,16 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMMethodIsBasicNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected boolean vmMethodIsBasic(DynamicObject method) {
-            return Layouts.METHOD.getMethod(method).isBuiltIn();
+        protected boolean vmMethodIsBasic(RubyMethod method) {
+            return method.method.isBuiltIn();
         }
 
     }
 
     @Primitive(name = "vm_method_lookup")
     public static abstract class VMMethodLookupNode extends PrimitiveArrayArgumentsNode {
+
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
         protected Object vmMethodLookup(VirtualFrame frame, Object receiver, Object name,
@@ -163,7 +165,9 @@ public abstract class VMPrimitiveNodes {
             if (method == null) {
                 return nil;
             }
-            return Layouts.METHOD.createMethod(coreLibrary().methodFactory, receiver, method);
+            final RubyMethod instance = new RubyMethod(coreLibrary().methodShape, receiver, method);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }

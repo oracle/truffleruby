@@ -14,6 +14,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
@@ -180,11 +181,11 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyMethod(Object value) {
-        return Layouts.METHOD.isMethod(value);
+        return value instanceof RubyMethod;
     }
 
     public static boolean isRubyMethod(DynamicObject value) {
-        return Layouts.METHOD.isMethod(value);
+        return value instanceof RubyMethod;
     }
 
     public static boolean isRubyUnboundMethod(Object value) {

@@ -9,15 +9,14 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.Layouts;
-import org.truffleruby.core.cast.ProcOrNullNode;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.arguments.RubyArguments;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.cast.ProcOrNullNode;
+import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.arguments.RubyArguments;
 
 @GenerateUncached
 public abstract class CallBoundMethodNode extends RubyBaseNode {
@@ -26,27 +25,27 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
         return CallBoundMethodNodeGen.create();
     }
 
-    public abstract Object executeCallBoundMethod(DynamicObject method, Object[] arguments, Object block);
+    public abstract Object executeCallBoundMethod(RubyMethod method, Object[] arguments, Object block);
 
     @Specialization
-    protected Object call(DynamicObject method, Object[] arguments, Object block,
+    protected Object call(RubyMethod method, Object[] arguments, Object block,
             @Cached ProcOrNullNode procOrNullNode,
             @Cached CallInternalMethodNode callInternalMethodNode) {
-        final InternalMethod internalMethod = Layouts.METHOD.getMethod(method);
+        final InternalMethod internalMethod = method.method;
         final DynamicObject typedBlock = procOrNullNode.executeProcOrNull(block);
         final Object[] frameArguments = packArguments(method, internalMethod, arguments, typedBlock);
 
         return callInternalMethodNode.executeCallMethod(internalMethod, frameArguments);
     }
 
-    private Object[] packArguments(DynamicObject method, InternalMethod internalMethod, Object[] arguments,
+    private Object[] packArguments(RubyMethod method, InternalMethod internalMethod, Object[] arguments,
             DynamicObject block) {
         return RubyArguments.pack(
                 null,
                 null,
                 internalMethod,
                 null,
-                Layouts.METHOD.getReceiver(method),
+                method.receiver,
                 block,
                 arguments);
     }
