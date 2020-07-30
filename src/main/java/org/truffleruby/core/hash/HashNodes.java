@@ -23,6 +23,7 @@ import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
@@ -77,11 +78,11 @@ public abstract class HashNodes {
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args)")
         protected Object construct(DynamicObject hashClass, Object[] args) {
-            final DynamicObject array = (DynamicObject) args[0];
+            final RubyArray array = (RubyArray) args[0];
 
-            final Object[] store = (Object[]) Layouts.ARRAY.getStore(array);
+            final Object[] store = (Object[]) array.store;
 
-            final int size = Layouts.ARRAY.getSize(array);
+            final int size = array.size;
             final Object[] newStore = PackedArrayStrategy.createStore(getContext());
 
             // written very carefully to allow PE
@@ -93,10 +94,10 @@ public abstract class HashNodes {
                         return fallbackNode.call(hashClass, "_constructor_fallback", args);
                     }
 
-                    final DynamicObject pairArray = (DynamicObject) pair;
-                    final Object pairStore = Layouts.ARRAY.getStore(pairArray);
+                    final RubyArray pairArray = (RubyArray) pair;
+                    final Object pairStore = pairArray.store;
 
-                    if (pairStore.getClass() != Object[].class || Layouts.ARRAY.getSize(pairArray) != 2) {
+                    if (pairStore.getClass() != Object[].class || pairArray.size != 2) {
                         return fallbackNode.call(hashClass, "_constructor_fallback", args);
                     }
 
@@ -131,8 +132,8 @@ public abstract class HashNodes {
                 return false;
             }
 
-            final DynamicObject array = (DynamicObject) arg;
-            final Object store = Layouts.ARRAY.getStore(array);
+            final RubyArray array = (RubyArray) arg;
+            final Object store = array.store;
 
             if (store == null || store.getClass() != Object[].class) {
                 return false;

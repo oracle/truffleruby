@@ -23,6 +23,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -252,20 +253,18 @@ public abstract class TypeNodes {
 
         @Specialization(
                 guards = {
-                        "isRubyArray(array)",
                         "stores.accepts(getStore(array))",
                         "stores.isPrimitive(getStore(array))" })
-        protected boolean primitiveArray(DynamicObject array,
+        protected boolean primitiveArray(RubyArray array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return false;
         }
 
         @Specialization(
                 guards = {
-                        "isRubyArray(array)",
                         "stores.accepts(getStore(array))",
                         "!stores.isPrimitive(getStore(array))" })
-        protected boolean objectArray(DynamicObject array,
+        protected boolean objectArray(RubyArray array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return true;
         }

@@ -10,7 +10,7 @@
 package org.truffleruby.interop.messages;
 
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.Layouts;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -26,6 +26,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
+@ExportLibrary(value = RubyLibrary.class, receiverType = DynamicObject.class)
 public class ArrayMessages extends RubyObjectMessages {
 
     @ExportMessage
@@ -35,7 +36,7 @@ public class ArrayMessages extends RubyObjectMessages {
 
     @ExportMessage
     protected static long getArraySize(DynamicObject array) {
-        return Layouts.ARRAY.getSize(array);
+        return ((RubyArray) array).size;
     }
 
     @ExportMessage
@@ -46,7 +47,7 @@ public class ArrayMessages extends RubyObjectMessages {
             // FIXME (pitr 11-Feb-2020): use ArrayReadNormalizedNode
             // @Cached ArrayReadNormalizedNode readNode)
             @Cached @Exclusive CallDispatchHeadNode dispatch) throws InvalidArrayIndexException {
-        if (inBounds(array, index)) {
+        if (inBounds((RubyArray) array, index)) {
             // return readNode.executeRead(array, (int) index);
             return dispatch.call(array, "[]", index);
         } else {
@@ -82,7 +83,7 @@ public class ArrayMessages extends RubyObjectMessages {
             @Cached @Exclusive CallDispatchHeadNode dispatch,
             @Cached @Shared("error") BranchProfile errorProfile) throws InvalidArrayIndexException {
 
-        if (inBounds(array, index)) {
+        if (inBounds((RubyArray) array, index)) {
             // deleteAtNode.executeDeleteAt(array, (int) index);
             dispatch.call(array, "delete_at", index);
         } else {
@@ -93,28 +94,29 @@ public class ArrayMessages extends RubyObjectMessages {
 
     @ExportMessage
     protected static boolean isArrayElementReadable(DynamicObject array, long index) {
-        return inBounds(array, index);
+        return inBounds((RubyArray) array, index);
     }
 
     @ExportMessage
     protected static boolean isArrayElementModifiable(DynamicObject array, long index,
             @CachedLibrary("array") RubyLibrary rubyLibrary) {
-        return !rubyLibrary.isFrozen(array) && inBounds(array, index);
+        return !rubyLibrary.isFrozen(array) && inBounds((RubyArray) array, index);
     }
 
     @ExportMessage
     protected static boolean isArrayElementRemovable(DynamicObject array, long index,
             @CachedLibrary("array") RubyLibrary rubyLibrary) {
-        return !rubyLibrary.isFrozen(array) && inBounds(array, index);
+        return !rubyLibrary.isFrozen(array) && inBounds((RubyArray) array, index);
     }
 
     @ExportMessage
     protected static boolean isArrayElementInsertable(DynamicObject array, long index,
             @CachedLibrary("array") RubyLibrary rubyLibrary) {
-        return !rubyLibrary.isFrozen(array) && RubyGuards.fitsInInteger(index) && index >= Layouts.ARRAY.getSize(array);
+        return !rubyLibrary.isFrozen(array) && RubyGuards.fitsInInteger(index) &&
+                index >= ((RubyArray) array).size;
     }
 
-    private static boolean inBounds(DynamicObject array, long index) {
-        return index >= 0 && index < Layouts.ARRAY.getSize(array);
+    private static boolean inBounds(RubyArray array, long index) {
+        return index >= 0 && index < array.size;
     }
 }

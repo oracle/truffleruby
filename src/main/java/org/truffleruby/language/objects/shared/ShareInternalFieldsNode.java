@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.core.queue.RubyQueue;
@@ -40,46 +41,28 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
 
     public abstract void executeShare(DynamicObject object);
 
-    @Specialization(
-            guards = { "array.getShape() == cachedShape", "isArrayShape(cachedShape)", "isObjectArray(array)" },
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "CACHE_LIMIT")
-    protected void shareCachedObjectArray(DynamicObject array,
-            @Cached("array.getShape()") Shape cachedShape,
+    @Specialization(guards = "isObjectArray(array)")
+    protected void shareCachedObjectArray(RubyArray array,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
-        final int size = Layouts.ARRAY.getSize(array);
-        final Object[] store = (Object[]) Layouts.ARRAY.getStore(array);
+        final int size = array.size;
+        final Object[] store = (Object[]) array.store;
         for (int i = 0; i < size; i++) {
             writeBarrierNode.executeWriteBarrier(store[i]);
         }
     }
 
-    @Specialization(
-            guards = {
-                    "array.getShape() == cachedShape",
-                    "isArrayShape(cachedShape)",
-                    "isDelegatedObjectArray(array)" },
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "CACHE_LIMIT")
-    protected void shareCachedDelegatedArray(DynamicObject array,
-            @Cached("array.getShape()") Shape cachedShape,
+    @Specialization(guards = "isDelegatedObjectArray(array)")
+    protected void shareCachedDelegatedArray(RubyArray array,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
-        final DelegatedArrayStorage delegated = (DelegatedArrayStorage) Layouts.ARRAY.getStore(array);
+        final DelegatedArrayStorage delegated = (DelegatedArrayStorage) array.store;
         final Object[] store = (Object[]) delegated.storage;
         for (int i = delegated.offset; i < delegated.offset + delegated.length; i++) {
             writeBarrierNode.executeWriteBarrier(store[i]);
         }
     }
 
-    @Specialization(
-            guards = {
-                    "array.getShape() == cachedShape",
-                    "isArrayShape(cachedShape)",
-                    "!isObjectArray(array)",
-                    "!isDelegatedObjectArray(array)" },
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "CACHE_LIMIT")
-    protected void shareCachedOtherArray(DynamicObject array,
+    @Specialization(guards = { "!isObjectArray(array)", "!isDelegatedObjectArray(array)" })
+    protected void shareCachedOtherArray(RubyArray array,
             @Cached("array.getShape()") Shape cachedShape) {
         /* null, int[], long[] or double[] storage */
         assert ArrayOperations.isPrimitiveStorage(array);
@@ -118,8 +101,8 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
         SharedObjects.shareInternalFields(getContext(), object);
     }
 
-    protected static boolean isDelegatedObjectArray(DynamicObject array) {
-        final Object store = Layouts.ARRAY.getStore(array);
+    protected static boolean isDelegatedObjectArray(RubyArray array) {
+        final Object store = array.store;
         return store instanceof DelegatedArrayStorage && ((DelegatedArrayStorage) store).hasObjectArrayStorage();
     }
 

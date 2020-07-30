@@ -9,11 +9,8 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.language.RubyGuards;
 
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class ArrayGuards {
 
@@ -26,25 +23,23 @@ public class ArrayGuards {
 
     // Storage strategies
 
-    public static boolean isObjectArray(DynamicObject array) {
-        assert RubyGuards.isRubyArray(array);
-        final Object store = Layouts.ARRAY.getStore(array);
+    public static boolean isObjectArray(RubyArray array) {
+        final Object store = array.store;
         return store.getClass() == Object[].class;
     }
 
     // Higher level properties
 
-    public static boolean isEmptyArray(DynamicObject array) {
-        assert RubyGuards.isRubyArray(array);
-        return Layouts.ARRAY.getSize(array) == 0;
+    public static boolean isEmptyArray(RubyArray array) {
+        return array.size == 0;
     }
 
-    public static Object getStore(DynamicObject array) {
-        return Layouts.ARRAY.getStore(array);
+    public static Object getStore(RubyArray array) {
+        return array.store;
     }
 
-    public static int getSize(DynamicObject array) {
-        return Layouts.ARRAY.getSize(array);
+    public static int getSize(RubyArray array) {
+        return array.size;
     }
 
     public static boolean basicStore(Object store) {

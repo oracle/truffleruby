@@ -9,12 +9,11 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.Layouts;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class ArrayIsAtLeastAsLargeAsNode extends RubyContextSourceNode {
 
@@ -29,7 +28,7 @@ public class ArrayIsAtLeastAsLargeAsNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final int actualSize = Layouts.ARRAY.getSize((DynamicObject) child.execute(frame));
+        final int actualSize = ((RubyArray) child.execute(frame)).size;
         return actualSize >= requiredSize;
     }
 

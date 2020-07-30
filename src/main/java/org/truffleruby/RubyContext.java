@@ -27,6 +27,7 @@ import org.truffleruby.core.Hashing;
 import org.truffleruby.core.MarkingService;
 import org.truffleruby.core.ReferenceProcessingService.ReferenceProcessor;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.hash.PreInitializationManager;
@@ -286,7 +287,7 @@ public class RubyContext {
                 .getFields(coreLibrary.truffleBootModule)
                 .getConstant("TO_RUN_AT_INIT")
                 .getValue();
-        for (Object proc : ArrayOperations.toIterable((DynamicObject) toRunAtInit)) {
+        for (Object proc : ArrayOperations.toIterable((RubyArray) toRunAtInit)) {
             final Source source = Layouts.PROC
                     .getMethod((DynamicObject) proc)
                     .getSharedMethodInfo()

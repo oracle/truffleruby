@@ -24,7 +24,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
 @CoreModule(value = "Truffle::ArrayIndex", isClass = false)
 public abstract class ArrayIndexNodes {
@@ -45,13 +45,13 @@ public abstract class ArrayIndexNodes {
         }
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object readInBounds(DynamicObject array,
+        protected Object readInBounds(RubyArray array,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
                 @Cached ConditionProfile isInBounds) {
-            final int size = Layouts.ARRAY.getSize(array);
+            final int size = array.size;
             final int normalizedIndex = index >= 0 ? index : size + index;
             if (isInBounds.profile(0 <= normalizedIndex && normalizedIndex < size)) {
-                return arrays.read(Layouts.ARRAY.getStore(array), normalizedIndex);
+                return arrays.read(array.store, normalizedIndex);
             } else {
                 return nil;
             }
@@ -71,23 +71,23 @@ public abstract class ArrayIndexNodes {
             return ArrayIndexNodesFactory.ReadNormalizedNodeFactory.create(new RubyNode[]{ array, index });
         }
 
-        public abstract Object executeRead(DynamicObject array, int index);
+        public abstract Object executeRead(RubyArray array, int index);
 
         @Specialization(
                 guards = "isInBounds(array, index)",
                 limit = "storageStrategyLimit()")
-        protected Object readInBounds(DynamicObject array, int index,
+        protected Object readInBounds(RubyArray array, int index,
                 @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
-            return arrays.read(Layouts.ARRAY.getStore(array), index);
+            return arrays.read(array.store, index);
         }
 
         @Specialization(guards = "!isInBounds(array, index)")
-        protected Object readOutOfBounds(DynamicObject array, int index) {
+        protected Object readOutOfBounds(RubyArray array, int index) {
             return nil;
         }
 
-        protected static boolean isInBounds(DynamicObject array, int index) {
-            return index >= 0 && index < Layouts.ARRAY.getSize(array);
+        protected static boolean isInBounds(RubyArray array, int index) {
+            return index >= 0 && index < array.size;
         }
     }
 
@@ -95,21 +95,21 @@ public abstract class ArrayIndexNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ReadSliceNormalizedNode extends PrimitiveArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         public static ReadSliceNormalizedNode create() {
             return ArrayIndexNodesFactory.ReadSliceNormalizedNodeFactory.create(null);
         }
 
-        public abstract Object executeReadSlice(DynamicObject array, int index, int length);
+        public abstract Object executeReadSlice(RubyArray array, int index, int length);
 
         @Specialization(guards = "!indexInBounds(array, index)")
-        protected Object readIndexOutOfBounds(DynamicObject array, int index, int length) {
+        protected Object readIndexOutOfBounds(RubyArray array, int index, int length) {
             return nil;
         }
 
         @Specialization(guards = "length < 0")
-        protected Object readNegativeLength(DynamicObject array, int index, int length) {
+        protected Object readNegativeLength(RubyArray array, int index, int length) {
             return nil;
         }
 
@@ -117,10 +117,10 @@ public abstract class ArrayIndexNodes {
                 guards = {
                         "indexInBounds(array, index)",
                         "length >= 0" })
-        protected DynamicObject readInBounds(DynamicObject array, int index, int length,
+        protected DynamicObject readInBounds(RubyArray array, int index, int length,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached ConditionProfile endsInBoundsProfile) {
-            final int size = Layouts.ARRAY.getSize(array);
+            final int size = array.size;
             final int end = endsInBoundsProfile.profile(index + length <= size)
                     ? length
                     : size - index;
@@ -128,12 +128,12 @@ public abstract class ArrayIndexNodes {
             return createArrayOfSameClass(array, slice, end);
         }
 
-        protected static boolean indexInBounds(DynamicObject array, int index) {
-            return index >= 0 && index <= Layouts.ARRAY.getSize(array);
+        protected static boolean indexInBounds(RubyArray array, int index) {
+            return index >= 0 && index <= array.size;
         }
 
-        protected DynamicObject createArrayOfSameClass(DynamicObject array, Object store, int size) {
-            return allocateObjectNode.allocate(Layouts.BASIC_OBJECT.getLogicalClass(array), store, size);
+        protected DynamicObject createArrayOfSameClass(RubyArray array, Object store, int size) {
+            return new RubyArray(helperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)), store, size);
         }
     }
 }

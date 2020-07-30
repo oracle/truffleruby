@@ -9,11 +9,11 @@
  */
 package org.truffleruby.core.thread;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
 
@@ -23,7 +23,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreModule("Truffle::ThreadOperations")
 public class TruffleThreadNodes {
@@ -34,10 +33,10 @@ public class TruffleThreadNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyArray(modules)", limit = "storageStrategyLimit()")
-        protected Object findRubyCaller(DynamicObject modules,
+        protected Object findRubyCaller(RubyArray modules,
                 @CachedLibrary("getStore(modules)") ArrayStoreLibrary stores) {
-            final int modulesSize = Layouts.ARRAY.getSize(modules);
-            Object[] moduleArray = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(modules), 0, modulesSize);
+            final int modulesSize = modules.size;
+            Object[] moduleArray = stores.boxedCopyOfRange(modules.store, 0, modulesSize);
             Frame rubyCaller = getContext()
                     .getCallStack()
                     .getCallerFrameNotInModules(FrameAccess.MATERIALIZE, moduleArray);

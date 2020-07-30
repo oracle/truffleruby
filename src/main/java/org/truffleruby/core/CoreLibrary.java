@@ -33,6 +33,7 @@ import org.truffleruby.aot.ParserCache;
 import org.truffleruby.builtins.BuiltinsClasses;
 import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl.BasicObjectType;
 import org.truffleruby.core.binding.RubyBinding;
@@ -149,7 +150,7 @@ public class CoreLibrary {
 
     public final DynamicObject argumentErrorClass;
     public final DynamicObject arrayClass;
-    public final DynamicObjectFactory arrayFactory;
+    public final Shape arrayShape;
     public final DynamicObject basicObjectClass;
     public final Shape bignumShape;
     public final Shape bindingShape;
@@ -482,8 +483,8 @@ public class CoreLibrary {
         // Classes defined in Object
 
         arrayClass = defineClass("Array");
-        arrayFactory = Layouts.ARRAY.createArrayShape(arrayClass, arrayClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(arrayClass, arrayFactory);
+        arrayShape = createShape(RubyArray.class, arrayClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(arrayClass, createFactory(arrayShape));
         DynamicObject bindingClass = defineClass("Binding");
         bindingShape = createShape(RubyBinding.class, bindingClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(bindingClass, createFactory(bindingShape));
@@ -692,7 +693,7 @@ public class CoreLibrary {
 
         mainObject = objectFactory.newInstance();
         emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
-        argv = Layouts.ARRAY.createArray(arrayFactory, ArrayStoreLibrary.INITIAL_STORE, 0);
+        argv = new RubyArray(arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables();
 
@@ -1087,8 +1088,8 @@ public class CoreLibrary {
         return value == (value & 0xffffffffL) || value < 0 && value >= Integer.MIN_VALUE;
     }
 
-    public DynamicObject getLoadPath() {
-        return (DynamicObject) loadPathReader.getValue(globalVariables);
+    public RubyArray getLoadPath() {
+        return (RubyArray) loadPathReader.getValue(globalVariables);
     }
 
     public Object getDebug() {

@@ -32,10 +32,6 @@ public abstract class ShapeCachingGuards {
         return updated;
     }
 
-    public static boolean isArrayShape(Shape shape) {
-        return Layouts.ARRAY.isArray(shape.getObjectType());
-    }
-
     public static boolean isBasicObjectShape(Shape shape) {
         return shape.getObjectType().getClass() == BasicObjectLayoutImpl.BasicObjectType.class &&
                 // TODO: when all layouts are migrated, this can accept all RubyDynamicObject subclasses with no internal fields

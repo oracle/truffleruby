@@ -12,7 +12,6 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -44,11 +43,11 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     @Specialization(
             guards = { "stores.acceptsValue(getStore(array), value)" },
             limit = "storageStrategyLimit()")
-    protected DynamicObject appendOneSameType(DynamicObject array, Object value,
+    protected DynamicObject appendOneSameType(RubyArray array, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final Object store = Layouts.ARRAY.getStore(array);
-        final int oldSize = Layouts.ARRAY.getSize(array);
+        final Object store = array.store;
+        final int oldSize = array.size;
         final int newSize = oldSize + 1;
         final int length = stores.capacity(store);
 
@@ -71,12 +70,12 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     @Specialization(
             guards = "!currentStores.acceptsValue(getStore(array), value)",
             limit = "storageStrategyLimit()")
-    protected DynamicObject appendOneGeneralizeNonMutable(DynamicObject array, Object value,
+    protected DynamicObject appendOneGeneralizeNonMutable(RubyArray array, Object value,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary currentStores,
             @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary newStores) {
-        final int oldSize = Layouts.ARRAY.getSize(array);
+        final int oldSize = array.size;
         final int newSize = oldSize + 1;
-        final Object currentStore = Layouts.ARRAY.getStore(array);
+        final Object currentStore = array.store;
         final int oldCapacity = currentStores.capacity(currentStore);
         final int newCapacity = newSize > oldCapacity
                 ? ArrayUtils.capacityForOneMore(getContext(), oldCapacity)

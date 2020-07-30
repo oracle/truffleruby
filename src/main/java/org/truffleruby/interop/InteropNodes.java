@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -23,6 +22,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -1217,11 +1217,11 @@ public abstract class InteropNodes {
     public abstract static class InteropToJavaArrayNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyArray(array)", "stores.accepts(getStore(array))" })
-        protected Object toJavaArray(DynamicObject array,
+        protected Object toJavaArray(RubyArray array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
             return getContext().getEnv().asGuestValue(stores.toJavaArrayCopy(
-                    Layouts.ARRAY.getStore(array),
-                    Layouts.ARRAY.getSize(array)));
+                    array.store,
+                    array.size));
         }
 
         @Specialization(guards = "!isRubyArray(array)")
@@ -1236,15 +1236,15 @@ public abstract class InteropNodes {
     public abstract static class InteropToJavaListNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = { "isRubyArray(array)", "stores.accepts(getStore(array))" })
-        protected Object toJavaList(DynamicObject array,
+        protected Object toJavaList(RubyArray array,
                 @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary stores) {
-            int size = Layouts.ARRAY.getSize(array);
-            Object[] copy = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(array), 0, size);
+            int size = array.size;
+            Object[] copy = stores.boxedCopyOfRange(array.store, 0, size);
             return getContext().getEnv().asGuestValue(ArrayUtils.asList(copy));
         }
 
         @Specialization(guards = "!isRubyArray(array)")
-        protected Object coerce(DynamicObject array) {
+        protected Object coerce(RubyArray array) {
             return FAILURE;
         }
 

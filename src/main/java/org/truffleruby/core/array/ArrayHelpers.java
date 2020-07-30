@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 
@@ -17,16 +16,16 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ArrayHelpers {
 
-    public static Object getStore(DynamicObject array) {
-        return Layouts.ARRAY.getStore(array);
+    public static Object getStore(RubyArray array) {
+        return array.store;
     }
 
-    public static int getSize(DynamicObject array) {
-        return Layouts.ARRAY.getSize(array);
+    public static int getSize(RubyArray array) {
+        return array.size;
     }
 
-    public static void setStoreAndSize(DynamicObject array, Object store, int size) {
-        Layouts.ARRAY.setStore(array, store);
+    public static void setStoreAndSize(RubyArray array, Object store, int size) {
+        array.store = store;
         setSize(array, size);
     }
 
@@ -37,14 +36,14 @@ public abstract class ArrayHelpers {
      * 
      * @param array
      * @param size */
-    public static void setSize(DynamicObject array, int size) {
+    public static void setSize(RubyArray array, int size) {
         assert ArrayOperations.getStoreCapacity(array) >= size;
-        Layouts.ARRAY.setSize(array, size);
+        array.size = size;
     }
 
-    public static DynamicObject createArray(RubyContext context, Object store, int size) {
+    public static RubyArray createArray(RubyContext context, Object store, int size) {
         assert !(store instanceof Object[]) || store.getClass() == Object[].class;
-        return Layouts.ARRAY.createArray(context.getCoreLibrary().arrayFactory, store, size);
+        return new RubyArray(context.getCoreLibrary().arrayShape, store, size);
     }
 
     public static DynamicObject createArray(RubyContext context, int[] store) {
@@ -61,7 +60,7 @@ public abstract class ArrayHelpers {
     }
 
     public static DynamicObject createEmptyArray(RubyContext context) {
-        return Layouts.ARRAY.createArray(context.getCoreLibrary().arrayFactory, ArrayStoreLibrary.INITIAL_STORE, 0);
+        return new RubyArray(context.getCoreLibrary().arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
     }
 
     /** Returns a Java array of the narrowest possible type holding {@code object}. */

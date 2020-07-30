@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -33,11 +32,11 @@ public abstract class ArrayGetTailNode extends RubyContextSourceNode {
     }
 
     @Specialization(limit = "storageStrategyLimit()")
-    protected DynamicObject getTail(DynamicObject array,
+    protected DynamicObject getTail(RubyArray array,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
             @Cached ArrayCopyOnWriteNode cowNode,
             @Cached ConditionProfile indexLargerThanSize) {
-        final int size = Layouts.ARRAY.getSize(array);
+        final int size = array.size;
         if (indexLargerThanSize.profile(index >= size)) {
             return ArrayHelpers.createEmptyArray(getContext());
         } else {

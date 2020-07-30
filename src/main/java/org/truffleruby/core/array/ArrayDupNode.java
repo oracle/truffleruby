@@ -9,12 +9,9 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -22,12 +19,11 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 
 /** Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class. */
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayDupNode extends RubyContextNode {
-
-    @Child private AllocateObjectNode allocateNode;
 
     public abstract DynamicObject executeDup(VirtualFrame frame, DynamicObject array);
 
@@ -36,7 +32,7 @@ public abstract class ArrayDupNode extends RubyContextNode {
                     "getSize(from) == cachedSize",
                     "cachedSize <= ARRAY_MAX_EXPLODE_SIZE" },
             limit = "getCacheLimit()")
-    protected DynamicObject dupProfiledSize(DynamicObject from,
+    protected DynamicObject dupProfiledSize(RubyArray from,
             @CachedLibrary("getStore(from)") ArrayStoreLibrary fromStores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary toStores,
             @Cached("getSize(from)") int cachedSize) {
@@ -45,29 +41,25 @@ public abstract class ArrayDupNode extends RubyContextNode {
 
     @ExplodeLoop
     private DynamicObject copyArraySmall(ArrayStoreLibrary fromStores, ArrayStoreLibrary toStores,
-            DynamicObject from, int cachedSize) {
-        final Object original = Layouts.ARRAY.getStore(from);
+            RubyArray from, int cachedSize) {
+        final Object original = from.store;
         final Object copy = fromStores.allocator(original).allocate(cachedSize);
         for (int i = 0; i < cachedSize; i++) {
             toStores.write(copy, i, fromStores.read(original, i));
         }
-        return allocateArray(coreLibrary().arrayClass, copy, cachedSize);
+        return allocateArray(coreLibrary().arrayShape, copy, cachedSize);
     }
 
     @Specialization(replaces = "dupProfiledSize")
-    protected DynamicObject dup(DynamicObject from,
+    protected DynamicObject dup(RubyArray from,
             @Cached ArrayCopyOnWriteNode cowNode) {
-        final int size = Layouts.ARRAY.getSize(from);
-        final Object copy = cowNode.execute(from, 0, Layouts.ARRAY.getSize(from));
-        return allocateArray(coreLibrary().arrayClass, copy, size);
+        final int size = from.size;
+        final Object copy = cowNode.execute(from, 0, from.size);
+        return allocateArray(coreLibrary().arrayShape, copy, size);
     }
 
-    private DynamicObject allocateArray(DynamicObject arrayClass, Object store, int size) {
-        if (allocateNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            allocateNode = insert(AllocateObjectNode.create());
-        }
-        return allocateNode.allocateArray(arrayClass, store, size);
+    private DynamicObject allocateArray(Shape arrayShape, Object store, int size) {
+        return new RubyArray(arrayShape, store, size);
     }
 
     protected int getCacheLimit() {

@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -31,20 +30,20 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
     public abstract Object execute(DynamicObject array, int start, int length);
 
     @Specialization(guards = "stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
-    protected Object extractFromMutableArray(DynamicObject array, int start, int length,
+    protected Object extractFromMutableArray(RubyArray array, int start, int length,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
-        Object store = Layouts.ARRAY.getStore(array);
-        int size = Layouts.ARRAY.getSize(array);
+        Object store = array.store;
+        int size = array.size;
         Object cowStore = stores.extractRange(store, 0, size);
         Object range = stores.extractRange(store, start, start + length);
-        Layouts.ARRAY.setStore(array, cowStore);
+        array.store = cowStore;
         return range;
     }
 
     @Specialization(guards = "!stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
-    protected Object extractFromNonMutableArray(DynamicObject array, int start, int length,
+    protected Object extractFromNonMutableArray(RubyArray array, int start, int length,
             @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
-        Object store = Layouts.ARRAY.getStore(array);
+        Object store = array.store;
         Object range = stores.extractRange(store, start, start + length);
         return range;
     }

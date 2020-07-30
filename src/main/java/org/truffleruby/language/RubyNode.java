@@ -15,6 +15,7 @@ import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.numeric.BignumOperations;
@@ -250,7 +251,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
             return getContext().getEncodingManager().getLocaleEncoding();
         }
 
-        default DynamicObject createArray(Object store, int size) {
+        default RubyArray createArray(Object store, int size) {
             return ArrayHelpers.createArray(getContext(), store, size);
         }
 

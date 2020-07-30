@@ -9,10 +9,8 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -53,9 +51,9 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
         final Object childObject = children[0].execute(frame);
 
         final int size;
-        if (isArrayProfile.profile(RubyGuards.isRubyArray(childObject))) {
-            final DynamicObject childArray = (DynamicObject) childObject;
-            size = Layouts.ARRAY.getSize(childArray);
+        if (isArrayProfile.profile(childObject instanceof RubyArray)) {
+            final RubyArray childArray = (RubyArray) childObject;
+            size = childArray.size;
             arrayBuilderNode.appendArray(state, 0, childArray);
         } else {
             size = 1;
@@ -72,9 +70,9 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
         for (int n = 0; n < children.length; n++) {
             final Object childObject = children[n].execute(frame);
 
-            if (isArrayProfile.profile(RubyGuards.isRubyArray(childObject))) {
-                final DynamicObject childArray = (DynamicObject) childObject;
-                final int size = Layouts.ARRAY.getSize(childArray);
+            if (isArrayProfile.profile(childObject instanceof RubyArray)) {
+                final RubyArray childArray = (RubyArray) childObject;
+                final int size = childArray.size;
                 arrayBuilderNode.appendArray(state, length, childArray);
                 length += size;
             } else {

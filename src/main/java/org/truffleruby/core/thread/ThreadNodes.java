@@ -59,6 +59,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayGuards;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
@@ -305,12 +306,12 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object initialize(DynamicObject thread, DynamicObject arguments, DynamicObject block,
+        protected Object initialize(DynamicObject thread, RubyArray arguments, DynamicObject block,
                 @CachedLibrary("getStore(arguments)") ArrayStoreLibrary stores) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             final String info = RubyContext.fileLine(sourceSection);
-            final int argSize = Layouts.ARRAY.getSize(arguments);
-            final Object[] args = stores.boxedCopyOfRange(Layouts.ARRAY.getStore(arguments), 0, argSize);
+            final int argSize = arguments.size;
+            final Object[] args = stores.boxedCopyOfRange(arguments.store, 0, argSize);
             final String sharingReason = "creating Ruby Thread " + info;
 
             if (getContext().getOptions().SHARED_OBJECTS_ENABLED) {

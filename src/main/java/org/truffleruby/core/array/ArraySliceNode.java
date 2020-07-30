@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
@@ -35,10 +34,10 @@ public abstract class ArraySliceNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected DynamicObject readInBounds(DynamicObject array,
+    protected DynamicObject readInBounds(RubyArray array,
             @Cached ArrayCopyOnWriteNode cowNode,
             @Cached ConditionProfile emptyArray) {
-        final int length = Layouts.ARRAY.getSize(array) + to - from;
+        final int length = array.size + to - from;
 
         if (emptyArray.profile(length <= 0)) {
             return ArrayHelpers.createEmptyArray(getContext());
