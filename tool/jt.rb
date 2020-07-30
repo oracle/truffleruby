@@ -1349,7 +1349,7 @@ EOS
       end
     ensure
       STDERR.puts 'Terminating gem server'
-      Process.kill :INT, gem_server
+      Process.kill :TERM, gem_server
       Process.wait gem_server
       STDERR.puts 'gem server terminated'
     end
