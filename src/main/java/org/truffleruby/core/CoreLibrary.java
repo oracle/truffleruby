@@ -41,6 +41,7 @@ import org.truffleruby.core.exception.RubyNameError;
 import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.encoding.RubyEncodingConverter;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.mutex.RubyConditionVariable;
@@ -150,7 +151,7 @@ public class CoreLibrary {
     public final DynamicObject complexClass;
     public final DynamicObject dirClass;
     public final DynamicObject encodingClass;
-    public final DynamicObjectFactory encodingFactory;
+    public final Shape encodingShape;
     public final DynamicObject encodingConverterClass;
     public final DynamicObject encodingErrorClass;
     public final DynamicObject exceptionClass;
@@ -485,8 +486,8 @@ public class CoreLibrary {
         defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
-        encodingFactory = Layouts.ENCODING.createEncodingShape(encodingClass, encodingClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(encodingClass, encodingFactory);
+        encodingShape = createShape(RubyEncoding.class, encodingClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(encodingClass, createFactory(encodingShape));
         falseClass = defineClass("FalseClass");
         DynamicObject fiberClass = defineClass("Fiber");
         fiberFactory = Layouts.FIBER.createFiberShape(fiberClass, fiberClass);

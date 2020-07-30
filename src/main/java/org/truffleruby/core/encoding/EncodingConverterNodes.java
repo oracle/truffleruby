@@ -27,7 +27,6 @@ import org.jcodings.transcode.EConvFlags;
 import org.jcodings.transcode.EConvResult;
 import org.jcodings.transcode.Transcoder;
 import org.jcodings.transcode.TranscoderDB;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -73,11 +72,11 @@ public abstract class EncodingConverterNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyEncoding(source)", "isRubyEncoding(destination)" })
+        @Specialization
         protected Object initialize(
                 RubyEncodingConverter self,
-                DynamicObject source,
-                DynamicObject destination,
+                RubyEncoding source,
+                RubyEncoding destination,
                 int options) {
             // Adapted from RubyConverter - see attribution there
             //
@@ -85,8 +84,8 @@ public abstract class EncodingConverterNodes {
             // by Rubinius.  Rubinius will do the heavy lifting of parsing the options hash and setting the `@options`
             // ivar to the resulting int for EConv flags.
 
-            Encoding sourceEncoding = Layouts.ENCODING.getEncoding(source);
-            Encoding destinationEncoding = Layouts.ENCODING.getEncoding(destination);
+            Encoding sourceEncoding = source.encoding;
+            Encoding destinationEncoding = destination.encoding;
 
             final EConv econv = TranscoderDB
                     .open(sourceEncoding.getName(), destinationEncoding.getName(), toJCodingFlags(options));
@@ -489,9 +488,9 @@ public abstract class EncodingConverterNodes {
 
             final byte[] bytes = ArrayUtils.extractRange(ec.replacementString, 0, ec.replacementLength);
             final String encodingName = new String(ec.replacementEncoding, StandardCharsets.US_ASCII);
-            final DynamicObject encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
+            final RubyEncoding encoding = getContext().getEncodingManager().getRubyEncoding(encodingName);
 
-            return makeStringNode.executeMake(bytes, Layouts.ENCODING.getEncoding(encoding), CodeRange.CR_UNKNOWN);
+            return makeStringNode.executeMake(bytes, encoding.encoding, CodeRange.CR_UNKNOWN);
         }
 
     }

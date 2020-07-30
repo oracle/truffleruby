@@ -19,7 +19,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.RubyBinding;
-import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
@@ -931,10 +931,9 @@ public class CoreExceptions {
     // RangeError
 
     @TruffleBoundary
-    public RubyException rangeError(long code, DynamicObject encoding, Node currentNode) {
-        assert RubyGuards.isRubyEncoding(encoding);
+    public RubyException rangeError(long code, RubyEncoding encoding, Node currentNode) {
         return rangeError(
-                StringUtils.format("invalid codepoint %x in %s", code, EncodingOperations.getEncoding(encoding)),
+                StringUtils.format("invalid codepoint %x in %s", code, encoding.encoding),
                 currentNode);
     }
 

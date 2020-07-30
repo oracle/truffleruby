@@ -12,14 +12,9 @@
  */
 package org.truffleruby.core.encoding;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
@@ -41,9 +36,13 @@ import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /** Always use {@link Encoding#getIndex()} for encoding indices. Never use
  * {@link org.jcodings.EncodingDB.Entry#getIndex()}. */
@@ -51,8 +50,8 @@ public class EncodingManager {
 
     private static final int INITIAL_NUMBER_OF_ENCODINGS = EncodingDB.getEncodings().size();
 
-    private final List<DynamicObject> ENCODING_LIST_BY_ENCODING_INDEX = new ArrayList<>(INITIAL_NUMBER_OF_ENCODINGS);
-    private final Map<String, DynamicObject> LOOKUP = new ConcurrentHashMap<>();
+    private final List<RubyEncoding> ENCODING_LIST_BY_ENCODING_INDEX = new ArrayList<>(INITIAL_NUMBER_OF_ENCODINGS);
+    private final Map<String, RubyEncoding> LOOKUP = new ConcurrentHashMap<>();
 
     private final RubyContext context;
 
@@ -113,14 +112,14 @@ public class EncodingManager {
         // External should always have a value, but Encoding.external_encoding{,=} will lazily setup
         final String externalEncodingName = context.getOptions().EXTERNAL_ENCODING;
         if (!externalEncodingName.isEmpty()) {
-            final DynamicObject loadedEncoding = getRubyEncoding(externalEncodingName);
+            final RubyEncoding loadedEncoding = getRubyEncoding(externalEncodingName);
             if (loadedEncoding == null) {
                 // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit
                 // with a status code of 1 -- it's essentially an input validation error -- no need
                 // to show the user a full trace.
                 throw new RuntimeException("unknown encoding name - " + externalEncodingName);
             } else {
-                setDefaultExternalEncoding(EncodingOperations.getEncoding(loadedEncoding));
+                setDefaultExternalEncoding(loadedEncoding.encoding);
             }
         } else {
             setDefaultExternalEncoding(getLocaleEncoding());
@@ -129,14 +128,14 @@ public class EncodingManager {
         // The internal encoding is nil by default
         final String internalEncodingName = context.getOptions().INTERNAL_ENCODING;
         if (!internalEncodingName.isEmpty()) {
-            final DynamicObject rubyEncoding = getRubyEncoding(internalEncodingName);
+            final RubyEncoding rubyEncoding = getRubyEncoding(internalEncodingName);
             if (rubyEncoding == null) {
                 // TODO (nirvdrum 28-Oct-16): This should just print a nice error message and exit
                 // with a status code of 1 -- it's essentially an input validation error -- no need
                 // to show the user a full trace.
                 throw new RuntimeException("unknown encoding name - " + internalEncodingName);
             } else {
-                setDefaultInternalEncoding(EncodingOperations.getEncoding(rubyEncoding));
+                setDefaultInternalEncoding(rubyEncoding.encoding);
             }
         }
     }
@@ -163,16 +162,16 @@ public class EncodingManager {
             localeEncodingName = Charset.defaultCharset().name();
         }
 
-        DynamicObject rubyEncoding = getRubyEncoding(localeEncodingName);
+        RubyEncoding rubyEncoding = getRubyEncoding(localeEncodingName);
         if (rubyEncoding == null) {
             rubyEncoding = getRubyEncoding("US-ASCII");
         }
 
-        localeEncoding = EncodingOperations.getEncoding(rubyEncoding);
+        localeEncoding = rubyEncoding.encoding;
     }
 
     @TruffleBoundary
-    private static DynamicObject newRubyEncoding(RubyContext context, Encoding encoding, byte[] name, int p, int end) {
+    private static RubyEncoding newRubyEncoding(RubyContext context, Encoding encoding, byte[] name, int p, int end) {
         assert p == 0 : "Ropes can't be created with non-zero offset: " + p;
         assert end == name.length : "Ropes must have the same exact length as the name array (len = " + end +
                 "; name.length = " + name.length + ")";
@@ -183,7 +182,9 @@ public class EncodingManager {
                 .getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
         final DynamicObject string = StringOperations.createFrozenString(context, cachedRope);
 
-        return Layouts.ENCODING.createEncoding(context.getCoreLibrary().encodingFactory, encoding, string);
+        final RubyEncoding instance = new RubyEncoding(context.getCoreLibrary().encodingShape, encoding, string);
+        // TODO BJF Jul-29-2020 Add allocation tracing
+        return instance;
     }
 
     public static Encoding getEncoding(String name) {
@@ -211,7 +212,7 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public DynamicObject getRubyEncoding(String name) {
+    public RubyEncoding getRubyEncoding(String name) {
         final String normalizedName = name.toLowerCase(Locale.ENGLISH);
         final Encoding encoding;
 
@@ -232,20 +233,20 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public DynamicObject getRubyEncoding(int encodingIndex) {
+    public RubyEncoding getRubyEncoding(int encodingIndex) {
         return ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex);
     }
 
     @TruffleBoundary
-    public DynamicObject getRubyEncoding(Encoding encoding) {
+    public RubyEncoding getRubyEncoding(Encoding encoding) {
         return ENCODING_LIST_BY_ENCODING_INDEX.get(encoding.getIndex());
     }
 
     @TruffleBoundary
-    public synchronized DynamicObject defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
+    public synchronized RubyEncoding defineEncoding(EncodingDB.Entry encodingEntry, byte[] name, int p, int end) {
         final Encoding encoding = encodingEntry.getEncoding();
         final int encodingIndex = encoding.getIndex();
-        final DynamicObject rubyEncoding = newRubyEncoding(context, encoding, name, p, end);
+        final RubyEncoding rubyEncoding = newRubyEncoding(context, encoding, name, p, end);
 
         assert encodingIndex >= ENCODING_LIST_BY_ENCODING_INDEX.size() ||
                 ENCODING_LIST_BY_ENCODING_INDEX.get(encodingIndex) == null;
@@ -255,19 +256,19 @@ public class EncodingManager {
         }
         ENCODING_LIST_BY_ENCODING_INDEX.set(encodingIndex, rubyEncoding);
 
-        LOOKUP.put(Layouts.ENCODING.getName(rubyEncoding).toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
+        LOOKUP.put(rubyEncoding.encoding.toString().toLowerCase(Locale.ENGLISH), rubyEncoding);
         return rubyEncoding;
     }
 
     @TruffleBoundary
     public DynamicObject defineAlias(Encoding encoding, String name) {
-        final DynamicObject rubyEncoding = getRubyEncoding(encoding);
+        final RubyEncoding rubyEncoding = getRubyEncoding(encoding);
         LOOKUP.put(name.toLowerCase(Locale.ENGLISH), rubyEncoding);
         return rubyEncoding;
     }
 
     @TruffleBoundary
-    public synchronized DynamicObject createDummyEncoding(String name) {
+    public synchronized RubyEncoding createDummyEncoding(String name) {
         if (getRubyEncoding(name) != null) {
             return null;
         }
@@ -279,7 +280,7 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public synchronized DynamicObject replicateEncoding(Encoding encoding, String name) {
+    public synchronized RubyEncoding replicateEncoding(Encoding encoding, String name) {
         if (getRubyEncoding(name) != null) {
             return null;
         }

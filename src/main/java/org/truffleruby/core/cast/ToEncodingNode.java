@@ -11,7 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.jcodings.Encoding;
 import org.truffleruby.Layouts;
-import org.truffleruby.core.encoding.EncodingOperations;
+import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
@@ -44,9 +44,9 @@ public abstract class ToEncodingNode extends RubyContextNode {
         return Layouts.REGEXP.getRegex(value).getEncoding();
     }
 
-    @Specialization(guards = "isRubyEncoding(value)")
-    protected Encoding rubyEncodingToEncoding(DynamicObject value) {
-        return EncodingOperations.getEncoding(value);
+    @Specialization
+    protected Encoding rubyEncodingToEncoding(RubyEncoding value) {
+        return value.encoding;
     }
 
     @Fallback
