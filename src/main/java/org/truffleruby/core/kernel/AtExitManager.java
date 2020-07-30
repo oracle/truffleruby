@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -81,13 +82,13 @@ public class AtExitManager {
         return handlers;
     }
 
-    public static boolean isSilentException(RubyContext context, DynamicObject rubyException) {
+    public static boolean isSilentException(RubyContext context, RubyException rubyException) {
         final DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
         return logicalClass == context.getCoreLibrary().systemExitClass ||
                 logicalClass == context.getCoreLibrary().signalExceptionClass;
     }
 
-    private static void handleAtExitException(RubyContext context, DynamicObject rubyException) {
+    private static void handleAtExitException(RubyContext context, RubyException rubyException) {
         if (!isSilentException(context, rubyException)) {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("", rubyException);
         }

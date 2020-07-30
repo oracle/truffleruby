@@ -10,6 +10,7 @@
 package org.truffleruby.interop;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
@@ -25,8 +26,8 @@ public class RubyObjectType extends ObjectType {
     public String toString(DynamicObject object) {
         if (RubyGuards.isRubyString(object)) {
             return StringOperations.rope(object).toString();
-        } else if (RubyGuards.isRubyException(object)) {
-            return Layouts.EXCEPTION.getMessage(object).toString();
+        } else if (object instanceof RubyException) {
+            return ((RubyException) object).message.toString();
         } else if (RubyGuards.isRubyModule(object)) {
             return Layouts.MODULE.getFields(object).getName();
         } else {

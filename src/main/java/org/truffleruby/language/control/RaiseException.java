@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
@@ -28,18 +29,18 @@ public class RaiseException extends RuntimeException implements TruffleException
 
     private static final long serialVersionUID = -4128190563044417424L;
 
-    private final DynamicObject exception;
+    private final RubyException exception;
     private final boolean internal;
 
-    public RaiseException(RubyContext context, DynamicObject exception) {
+    public RaiseException(RubyContext context, RubyException exception) {
         this(context, exception, false);
     }
 
-    public RaiseException(RubyContext context, DynamicObject exception, boolean internal) {
+    public RaiseException(RubyContext context, RubyException exception, boolean internal) {
         this.exception = exception;
         this.internal = internal;
 
-        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+        final Backtrace backtrace = exception.backtrace;
         if (backtrace != null) { // The backtrace could be null if for example a user backtrace was passed to Kernel#raise
             backtrace.setRaiseException(this);
         }
@@ -51,7 +52,7 @@ public class RaiseException extends RuntimeException implements TruffleException
         }
     }
 
-    public DynamicObject getException() {
+    public RubyException getException() {
         return exception;
     }
 
@@ -71,7 +72,7 @@ public class RaiseException extends RuntimeException implements TruffleException
 
     @Override
     public Node getLocation() {
-        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+        final Backtrace backtrace = exception.backtrace;
 
         if (backtrace == null) {
             // The backtrace could be null if for example a user backtrace was passed to Kernel#raise
@@ -94,8 +95,8 @@ public class RaiseException extends RuntimeException implements TruffleException
 
     @Override
     public SourceSection getSourceLocation() {
-        if (isSyntaxError() && Layouts.EXCEPTION.getBacktrace(exception) != null) {
-            return Layouts.EXCEPTION.getBacktrace(exception).getSourceLocation();
+        if (isSyntaxError() && exception.backtrace != null) {
+            return exception.backtrace.getSourceLocation();
         } else {
             return TruffleException.super.getSourceLocation();
         }

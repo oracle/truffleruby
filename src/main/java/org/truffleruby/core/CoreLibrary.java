@@ -36,6 +36,10 @@ import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl.BasicObjectType;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.exception.RubyNameError;
+import org.truffleruby.core.exception.RubyNoMethodError;
+import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.mutex.RubyConditionVariable;
@@ -165,11 +169,11 @@ public class CoreLibrary {
     public final DynamicObject matchDataClass;
     public final DynamicObject moduleClass;
     public final DynamicObject nameErrorClass;
-    public final DynamicObjectFactory nameErrorFactory;
+    public final Shape nameErrorShape;
     public final DynamicObject nilClass;
     public final DynamicObject noMemoryErrorClass;
     public final DynamicObject noMethodErrorClass;
-    public final DynamicObjectFactory noMethodErrorFactory;
+    public final Shape noMethodErrorShape;
     public final DynamicObject notImplementedErrorClass;
     public final DynamicObject numericClass;
     public final DynamicObject objectClass;
@@ -383,9 +387,8 @@ public class CoreLibrary {
 
         // Exception
         exceptionClass = defineClass("Exception");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                exceptionClass,
-                Layouts.EXCEPTION.createExceptionShape(exceptionClass, exceptionClass));
+        Shape exceptionShape = createShape(RubyException.class, exceptionClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(exceptionClass, createFactory(exceptionShape));
 
         // fatal
         defineClass(exceptionClass, "fatal");
@@ -426,17 +429,16 @@ public class CoreLibrary {
 
         // StandardError > NameError
         nameErrorClass = defineClass(standardErrorClass, "NameError");
-        nameErrorFactory = Layouts.NAME_ERROR.createNameErrorShape(nameErrorClass, nameErrorClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(nameErrorClass, nameErrorFactory);
+        nameErrorShape = createShape(RubyNameError.class, nameErrorClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(nameErrorClass, createFactory(nameErrorShape));
         noMethodErrorClass = defineClass(nameErrorClass, "NoMethodError");
-        noMethodErrorFactory = Layouts.NO_METHOD_ERROR.createNoMethodErrorShape(noMethodErrorClass, noMethodErrorClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(noMethodErrorClass, noMethodErrorFactory);
+        noMethodErrorShape = createShape(RubyNoMethodError.class, noMethodErrorClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(noMethodErrorClass, createFactory(noMethodErrorShape));
 
         // StandardError > SystemCallError
         systemCallErrorClass = defineClass(standardErrorClass, "SystemCallError");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                systemCallErrorClass,
-                Layouts.SYSTEM_CALL_ERROR.createSystemCallErrorShape(systemCallErrorClass, systemCallErrorClass));
+        Shape systemCallErrorShape = createShape(RubySystemCallError.class, systemCallErrorClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(systemCallErrorClass, createFactory(systemCallErrorShape));
 
         errnoModule = defineModule("Errno");
 

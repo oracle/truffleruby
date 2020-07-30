@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
+
+import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class RubyGuards {
 
@@ -213,10 +214,6 @@ public abstract class RubyGuards {
 
     public static boolean isRubyTime(DynamicObject object) {
         return Layouts.TIME.isTime(object);
-    }
-
-    public static boolean isRubyException(DynamicObject object) {
-        return Layouts.EXCEPTION.isException(object);
     }
 
     public static boolean isRubyFiber(DynamicObject object) {

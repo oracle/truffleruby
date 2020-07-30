@@ -20,6 +20,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.InstanceExecNode
 import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNodeFactory;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringOperations;
@@ -489,7 +490,7 @@ public abstract class BasicObjectNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject buildMethodMissingException(Object self, Object nameObject, Object[] args,
+        private RubyException buildMethodMissingException(Object self, Object nameObject, Object[] args,
                 DynamicObject block) {
             final String name;
             if (nameObject instanceof RubySymbol) {

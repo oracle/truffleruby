@@ -14,10 +14,11 @@ import java.math.BigInteger;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.numeric.BigIntegerOps;
-import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -66,7 +67,7 @@ public abstract class BigIntegerCastNode extends RubySourceNode {
     }
 
     @TruffleBoundary
-    private DynamicObject notAnInteger(RubyContext context, Object object) {
+    private RubyException notAnInteger(RubyContext context, Object object) {
         return context.getCoreExceptions().typeErrorIsNotA(
                 object.toString(),
                 "Integer",

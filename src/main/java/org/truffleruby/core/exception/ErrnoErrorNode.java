@@ -27,10 +27,10 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode formatMessageNode;
 
-    public abstract DynamicObject execute(int errno, Object extraMessage, Backtrace backtrace);
+    public abstract RubySystemCallError execute(int errno, Object extraMessage, Backtrace backtrace);
 
     @Specialization
-    protected DynamicObject errnoError(int errno, Object extraMessage, Backtrace backtrace) {
+    protected RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;

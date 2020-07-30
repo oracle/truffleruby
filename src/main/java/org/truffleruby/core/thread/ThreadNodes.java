@@ -61,6 +61,7 @@ import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.exception.GetBacktraceException;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -367,7 +368,7 @@ public abstract class ThreadNodes {
                 return ThreadManager.BlockingAction.SUCCESS;
             });
 
-            final DynamicObject exception = Layouts.THREAD.getException(thread);
+            final RubyException exception = Layouts.THREAD.getException(thread);
             if (exception != null) {
                 context.getCoreExceptions().showExceptionIfDebug(exception);
                 VMRaiseExceptionNode.reRaiseException(context, exception);
@@ -389,7 +390,7 @@ public abstract class ThreadNodes {
             });
 
             if (joined) {
-                final DynamicObject exception = Layouts.THREAD.getException(thread);
+                final RubyException exception = Layouts.THREAD.getException(thread);
                 if (exception != null) {
                     getContext().getCoreExceptions().showExceptionIfDebug(exception);
                     VMRaiseExceptionNode.reRaiseException(getContext(), exception);
@@ -548,14 +549,14 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_raise")
     public static abstract class ThreadRaisePrimitiveNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyThread(thread)", "isRubyException(exception)" })
-        protected Object raise(DynamicObject thread, DynamicObject exception) {
+        @Specialization(guards = "isRubyThread(thread)")
+        protected Object raise(DynamicObject thread, RubyException exception) {
             raiseInThread(getContext(), thread, exception, this);
             return nil;
         }
 
         @TruffleBoundary
-        public static void raiseInThread(RubyContext context, DynamicObject rubyThread, DynamicObject exception,
+        public static void raiseInThread(RubyContext context, DynamicObject rubyThread, RubyException exception,
                 Node currentNode) {
             // The exception will be shared with another thread
             SharedObjects.writeBarrier(context, exception);
@@ -564,9 +565,9 @@ public abstract class ThreadNodes {
                     rubyThread,
                     currentNode,
                     (currentThread, currentNode1) -> {
-                        if (Layouts.EXCEPTION.getBacktrace(exception) == null) {
+                        if (exception.backtrace == null) {
                             Backtrace backtrace = context.getCallStack().getBacktrace(currentNode1);
-                            Layouts.EXCEPTION.setBacktrace(exception, backtrace);
+                            exception.backtrace = backtrace;
                         }
 
                         VMRaiseExceptionNode.reRaiseException(context, exception);

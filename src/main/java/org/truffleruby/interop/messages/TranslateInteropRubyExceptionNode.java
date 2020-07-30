@@ -9,10 +9,10 @@
  */
 package org.truffleruby.interop.messages;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -31,7 +31,6 @@ import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
@@ -162,10 +161,10 @@ abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     protected AssertionError handleBadErrorType(InteropException e, RaiseException rubyException) {
         RubyContext context = RubyLanguage.getCurrentContext();
-        final DynamicObject exception = context.getCoreExceptions().runtimeError(
+        final RubyException exception = context.getCoreExceptions().runtimeError(
                 Utils.concat("Wrong exception raised from a Ruby method implementing polyglot behavior: ", e),
                 this);
-        Layouts.EXCEPTION.setCause(exception, rubyException);
+        exception.cause = rubyException;
         throw new RaiseException(context, exception);
     }
 

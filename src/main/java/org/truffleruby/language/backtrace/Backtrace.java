@@ -17,6 +17,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.GetBacktraceException;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
@@ -28,7 +29,6 @@ import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -183,7 +183,7 @@ public class Backtrace {
 
     /** Used to copy the backtrace when copying {@code exception}. */
     @TruffleBoundary
-    public Backtrace copy(RubyContext context, DynamicObject exception) {
+    public Backtrace copy(RubyContext context, RubyException exception) {
         Backtrace copy = new Backtrace(location, sourceLocation, omitted, javaThrowable);
         // A Backtrace is 1-1-1 with a RaiseException and a Ruby exception.
         RaiseException newRaiseException = new RaiseException(
