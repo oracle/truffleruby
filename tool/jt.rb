@@ -1342,13 +1342,16 @@ EOS
                 '-Sbundle', 'exec', '-V', 'rake')
             end
           ensure
+            STDERR.puts 'Removing temp dir'
             FileUtils.remove_entry_secure temp_dir
           end
         end
       end
     ensure
+      STDERR.puts 'Terminating gem server'
       Process.kill :INT, gem_server
       Process.wait gem_server
+      STDERR.puts 'gem server terminated'
     end
   end
 
