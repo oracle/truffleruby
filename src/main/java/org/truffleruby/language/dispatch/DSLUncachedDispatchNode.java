@@ -188,7 +188,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
         }
 
         if (cachedDispatchAction == DispatchAction.CALL_METHOD) {
-            final RubySymbol nameSymbol = toSymbolNode.executeToSymbol(name);
+            final RubySymbol nameSymbol = toSymbolNode.execute(name);
             final Object[] modifiedArgumentsObjects = ArrayUtils.unshift(arguments, nameSymbol);
 
             return call(indirectCallNode, callerFrame, methodMissing, receiver, block, modifiedArgumentsObjects);

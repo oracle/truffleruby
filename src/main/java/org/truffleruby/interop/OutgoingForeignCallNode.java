@@ -14,6 +14,7 @@ import java.util.Arrays;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -433,7 +434,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
             limit = "1")
     protected Object readOrInvoke(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
-            @Cached ToRubySymbolNode toSymbolNode,
+            @Cached ToSymbolNode toSymbolNode,
             @Cached InteropNodes.InvokeNode invokeNode,
             @Cached InteropNodes.ReadMemberNode readNode,
             @Cached ConditionProfile invocable,
