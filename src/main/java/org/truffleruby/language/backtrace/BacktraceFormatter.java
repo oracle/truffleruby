@@ -19,6 +19,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
@@ -88,8 +89,8 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printTopLevelRubyExceptionOnEnvStderr(DynamicObject rubyException) {
-        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
+    public void printTopLevelRubyExceptionOnEnvStderr(RubyException rubyException) {
+        final Backtrace backtrace = rubyException.backtrace;
         if (backtrace != null && backtrace.getStackTrace().length == 0) {
             // An Exception with a non-null empty stacktrace, so an Exception from Truffle::Boot.main
             printRubyExceptionOnEnvStderr("truffleruby: ", rubyException);
@@ -99,14 +100,14 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public void printRubyExceptionOnEnvStderr(String info, DynamicObject rubyException) {
+    public void printRubyExceptionOnEnvStderr(String info, RubyException rubyException) {
         final PrintStream printer = new PrintStream(context.getEnv().err(), true);
         if (!info.isEmpty()) {
             printer.print(info);
         }
 
         // can be null, if @custom_backtrace is used
-        final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(rubyException);
+        final Backtrace backtrace = rubyException.backtrace;
         final String formatted;
         if (backtrace != null) {
             formatted = formatBacktrace(rubyException, backtrace);
@@ -135,22 +136,22 @@ public class BacktraceFormatter {
     }
 
     /** Format the backtrace as a String with \n between each line, but no trailing \n. */
-    public String formatBacktrace(DynamicObject exception, Backtrace backtrace) {
+    public String formatBacktrace(RubyException exception, Backtrace backtrace) {
         return formatBacktrace(exception, backtrace, Integer.MAX_VALUE);
     }
 
     /** Formats at most {@code length} elements of the backtrace (starting from the top of the call stack) as a String
      * with \n between each line, but no trailing \n. */
     @TruffleBoundary
-    public String formatBacktrace(DynamicObject exception, Backtrace backtrace, int length) {
+    public String formatBacktrace(RubyException exception, Backtrace backtrace, int length) {
         return String.join("\n", formatBacktraceAsStringArray(exception, backtrace, length));
     }
 
-    public DynamicObject formatBacktraceAsRubyStringArray(DynamicObject exception, Backtrace backtrace) {
+    public DynamicObject formatBacktraceAsRubyStringArray(RubyException exception, Backtrace backtrace) {
         return formatBacktraceAsRubyStringArray(exception, backtrace, Integer.MAX_VALUE);
     }
 
-    public DynamicObject formatBacktraceAsRubyStringArray(DynamicObject exception, Backtrace backtrace, int length) {
+    public DynamicObject formatBacktraceAsRubyStringArray(RubyException exception, Backtrace backtrace, int length) {
         final String[] lines = formatBacktraceAsStringArray(exception, backtrace, length);
 
         final Object[] array = new Object[lines.length];
@@ -165,7 +166,7 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    private String[] formatBacktraceAsStringArray(DynamicObject exception, Backtrace backtrace, int length) {
+    private String[] formatBacktraceAsStringArray(RubyException exception, Backtrace backtrace, int length) {
         if (backtrace == null) {
             backtrace = context.getCallStack().getBacktrace(null);
         }
@@ -193,7 +194,7 @@ public class BacktraceFormatter {
     }
 
     @TruffleBoundary
-    public String formatLine(TruffleStackTraceElement[] stackTrace, int n, DynamicObject exception) {
+    public String formatLine(TruffleStackTraceElement[] stackTrace, int n, RubyException exception) {
         try {
             return formatLineInternal(stackTrace, n, exception);
         } catch (Exception e) {
@@ -204,7 +205,7 @@ public class BacktraceFormatter {
         }
     }
 
-    private String formatLineInternal(TruffleStackTraceElement[] stackTrace, int n, DynamicObject exception) {
+    private String formatLineInternal(TruffleStackTraceElement[] stackTrace, int n, RubyException exception) {
         final TruffleStackTraceElement element = stackTrace[n];
 
         final StringBuilder builder = new StringBuilder();
@@ -299,7 +300,7 @@ public class BacktraceFormatter {
         return builder.toString();
     }
 
-    private String formatException(DynamicObject exception) {
+    private String formatException(RubyException exception) {
         final StringBuilder builder = new StringBuilder();
 
         final String message = ExceptionOperations.messageToString(context, exception);

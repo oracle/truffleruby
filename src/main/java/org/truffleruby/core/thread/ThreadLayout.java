@@ -16,6 +16,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
@@ -55,7 +56,7 @@ public interface ThreadLayout extends BasicObjectLayout {
             boolean reportOnException,
             boolean abortOnException,
             @Nullable @Volatile Thread thread,
-            @Nullable @Volatile DynamicObject exception,
+            @Nullable @Volatile RubyException exception,
             @Nullable @Volatile Object value,
             AtomicBoolean wakeUp,
             @Volatile int priority,
@@ -102,9 +103,9 @@ public interface ThreadLayout extends BasicObjectLayout {
 
     void setStatus(DynamicObject object, ThreadStatus value);
 
-    DynamicObject getException(DynamicObject object);
+    RubyException getException(DynamicObject object);
 
-    void setException(DynamicObject object, DynamicObject value);
+    void setException(DynamicObject object, RubyException value);
 
     Object getValue(DynamicObject object);
 

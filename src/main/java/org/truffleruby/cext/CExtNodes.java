@@ -36,6 +36,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.exception.ErrnoErrorNode;
+import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
@@ -965,7 +966,7 @@ public class CExtNodes {
                     errnoError(errno, message, backtrace));
         }
 
-        private DynamicObject errnoError(int errno, Object extraMessage, Backtrace backtrace) {
+        private RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace) {
             return errnoErrorNode.execute(errno, extraMessage, backtrace);
         }
 

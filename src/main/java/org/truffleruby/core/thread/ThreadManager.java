@@ -27,6 +27,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -363,14 +364,14 @@ public class ThreadManager {
         Layouts.THREAD.setValue(thread, value);
     }
 
-    private static void setException(RubyContext context, DynamicObject thread, DynamicObject exception,
+    private static void setException(RubyContext context, DynamicObject thread, RubyException exception,
             Node currentNode) {
         // A Thread is always shared (Thread.list)
         SharedObjects.propagate(context, thread, exception);
 
         // We materialize the backtrace eagerly here, as the exception escapes the thread and needs
         // to capture the backtrace from this thread.
-        final TruffleException truffleException = Layouts.EXCEPTION.getBacktrace(exception).getRaiseException();
+        final TruffleException truffleException = exception.backtrace.getRaiseException();
         if (truffleException != null) {
             TruffleStackTrace.fillIn((Throwable) truffleException);
         }
@@ -703,7 +704,7 @@ public class ThreadManager {
                 });
                 break; // Successfully executed the safepoint and sent the exceptions.
             } catch (RaiseException e) {
-                final DynamicObject rubyException = e.getException();
+                final RubyException rubyException = e.getException();
                 context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(
                         "Exception while killing other threads:\n",
                         rubyException);

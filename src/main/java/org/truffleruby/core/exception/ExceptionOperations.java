@@ -23,6 +23,7 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class ExceptionOperations {
@@ -39,8 +40,8 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
-    private static String messageFieldToString(RubyContext context, DynamicObject exception) {
-        Object message = Layouts.EXCEPTION.getMessage(exception);
+    private static String messageFieldToString(RubyContext context, RubyException exception) {
+        Object message = exception.message;
         if (message == null || message == Nil.INSTANCE) {
             final ModuleFields exceptionClass = Layouts.MODULE
                     .getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
@@ -53,7 +54,7 @@ public abstract class ExceptionOperations {
     }
 
     @TruffleBoundary
-    public static String messageToString(RubyContext context, DynamicObject exception) {
+    public static String messageToString(RubyContext context, RubyException exception) {
         try {
             final Object messageObject = context.send(exception, "message");
             if (RubyGuards.isRubyString(messageObject)) {
@@ -65,37 +66,33 @@ public abstract class ExceptionOperations {
         return messageFieldToString(context, exception);
     }
 
-    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+    public static RubyException createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
             Node node, Throwable javaException) {
         return createRubyException(context, rubyClass, message, node, null, javaException);
     }
 
-    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+    public static RubyException createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
             Node node, SourceSection sourceLocation, Throwable javaException) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
         return createRubyException(context, rubyClass, message, backtrace);
     }
 
-    // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+    public static RubyException createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
             Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        return Layouts.CLASS
-                .getInstanceFactory(rubyClass)
-                .newInstance(Layouts.EXCEPTION.build(message, null, backtrace, cause, null, null));
+        final Shape shape = Layouts.CLASS.getInstanceFactory(rubyClass).getShape();
+        return new RubyException(shape, message, backtrace, cause);
     }
 
-    // because the factory is not constant
     @TruffleBoundary
-    public static DynamicObject createSystemCallError(RubyContext context, DynamicObject rubyClass,
-            Object message,
-            int errno, Backtrace backtrace) {
+    public static RubySystemCallError createSystemCallError(RubyContext context, DynamicObject rubyClass,
+            Object message, int errno, Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        return Layouts.CLASS.getInstanceFactory(rubyClass).newInstance(
-                Layouts.SYSTEM_CALL_ERROR.build(message, null, backtrace, cause, null, null, errno));
+        final Shape shape = Layouts.CLASS.getInstanceFactory(rubyClass).getShape();
+        return new RubySystemCallError(shape, message, backtrace, cause, errno);
     }
 
     @TruffleBoundary // Exception#initCause is blacklisted in TruffleFeature

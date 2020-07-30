@@ -19,14 +19,6 @@ import org.truffleruby.core.encoding.EncodingConverterLayout;
 import org.truffleruby.core.encoding.EncodingConverterLayoutImpl;
 import org.truffleruby.core.encoding.EncodingLayout;
 import org.truffleruby.core.encoding.EncodingLayoutImpl;
-import org.truffleruby.core.exception.ExceptionLayout;
-import org.truffleruby.core.exception.ExceptionLayoutImpl;
-import org.truffleruby.core.exception.NameErrorLayout;
-import org.truffleruby.core.exception.NameErrorLayoutImpl;
-import org.truffleruby.core.exception.NoMethodErrorLayout;
-import org.truffleruby.core.exception.NoMethodErrorLayoutImpl;
-import org.truffleruby.core.exception.SystemCallErrorLayout;
-import org.truffleruby.core.exception.SystemCallErrorLayoutImpl;
 import org.truffleruby.core.fiber.FiberLayout;
 import org.truffleruby.core.fiber.FiberLayoutImpl;
 import org.truffleruby.core.hash.HashLayout;
@@ -98,7 +90,6 @@ public abstract class Layouts {
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
     public static final EncodingConverterLayout ENCODING_CONVERTER = EncodingConverterLayoutImpl.INSTANCE;
     public static final EncodingLayout ENCODING = EncodingLayoutImpl.INSTANCE;
-    public static final ExceptionLayout EXCEPTION = ExceptionLayoutImpl.INSTANCE;
     public static final FiberLayout FIBER = FiberLayoutImpl.INSTANCE;
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;
     public static final IntRangeLayout INT_RANGE = IntRangeLayoutImpl.INSTANCE;
@@ -106,8 +97,6 @@ public abstract class Layouts {
     public static final MatchDataLayout MATCH_DATA = MatchDataLayoutImpl.INSTANCE;
     public static final MethodLayout METHOD = MethodLayoutImpl.INSTANCE;
     public static final ModuleLayout MODULE = ModuleLayoutImpl.INSTANCE;
-    public static final NameErrorLayout NAME_ERROR = NameErrorLayoutImpl.INSTANCE;
-    public static final NoMethodErrorLayout NO_METHOD_ERROR = NoMethodErrorLayoutImpl.INSTANCE;
     public static final ObjectRangeLayout OBJECT_RANGE = ObjectRangeLayoutImpl.INSTANCE;
     public static final PointerLayout POINTER = PointerLayoutImpl.INSTANCE;
     public static final ProcLayout PROC = ProcLayoutImpl.INSTANCE;
@@ -123,5 +112,5 @@ public abstract class Layouts {
     public static final HandleLayout HANDLE = HandleLayoutImpl.INSTANCE;
     public static final TracePointLayout TRACE_POINT = TracePointLayoutImpl.INSTANCE;
     public static final DigestLayout DIGEST = DigestLayoutImpl.INSTANCE;
-    public static final SystemCallErrorLayout SYSTEM_CALL_ERROR = SystemCallErrorLayoutImpl.INSTANCE;
+
 }

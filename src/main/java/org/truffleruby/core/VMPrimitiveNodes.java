@@ -51,6 +51,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToRubyIntegerNode;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.numeric.BigIntegerOps;
@@ -170,10 +171,10 @@ public abstract class VMPrimitiveNodes {
     @Primitive(name = "vm_raise_exception")
     public static abstract class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyException(exception)")
-        protected DynamicObject vmRaiseException(DynamicObject exception,
+        @Specialization
+        protected DynamicObject vmRaiseException(RubyException exception,
                 @Cached ConditionProfile reRaiseProfile) {
-            final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+            final Backtrace backtrace = exception.backtrace;
             if (reRaiseProfile.profile(backtrace != null && backtrace.getRaiseException() != null)) {
                 // We need to rethrow the existing RaiseException, otherwise we would lose the
                 // TruffleStackTrace stored in it.
@@ -188,8 +189,8 @@ public abstract class VMPrimitiveNodes {
             }
         }
 
-        public static void reRaiseException(RubyContext context, DynamicObject exception) {
-            final Backtrace backtrace = Layouts.EXCEPTION.getBacktrace(exception);
+        public static void reRaiseException(RubyContext context, RubyException exception) {
+            final Backtrace backtrace = exception.backtrace;
             if (backtrace != null && backtrace.getRaiseException() != null) {
                 // We need to rethrow the existing RaiseException, otherwise we would lose the
                 // TruffleStackTrace stored in it.

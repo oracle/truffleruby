@@ -11,6 +11,7 @@ package org.truffleruby.language.exceptions;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.IntegerCastNodeGen;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.kernel.AtExitManager;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.ExitException;
@@ -27,7 +28,7 @@ public class TopLevelRaiseHandler extends RubyContextNode {
 
     public int execute(Runnable body) {
         int exitCode = 0;
-        DynamicObject caughtException = null;
+        RubyException caughtException = null;
 
         // Execute the main script
         try {

@@ -18,6 +18,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.EncodingOperations;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.rope.Rope;
@@ -27,7 +28,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
-import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -53,15 +53,15 @@ public class CoreExceptions {
         this.debugBacktraceFormatter = new BacktraceFormatter(context, EnumSet.of(FormattingFlags.OMIT_EXCEPTION));
     }
 
-    public void showExceptionIfDebug(DynamicObject exception) {
+    public void showExceptionIfDebug(RubyException exception) {
         showExceptionIfDebug(
-                Layouts.EXCEPTION.getLogicalClass(exception),
-                Layouts.EXCEPTION.getMessage(exception),
-                Layouts.EXCEPTION.getBacktrace(exception));
+                Layouts.BASIC_OBJECT.getLogicalClass(exception),
+                exception.message,
+                exception.backtrace);
     }
 
     @TruffleBoundary
-    public void showExceptionIfDebug(DynamicObject rubyException, Backtrace backtrace) {
+    public void showExceptionIfDebug(RubyException rubyException, Backtrace backtrace) {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
             final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
             final Object message = context.send(rubyException, "to_s");
@@ -87,91 +87,91 @@ public class CoreExceptions {
 
     // ArgumentError
 
-    public DynamicObject argumentErrorOneHashRequired(Node currentNode) {
+    public RubyException argumentErrorOneHashRequired(Node currentNode) {
         return argumentError(coreStrings().ONE_HASH_REQUIRED.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentError(Rope message, Node currentNode) {
+    public RubyException argumentError(Rope message, Node currentNode) {
         return argumentError(message, currentNode, null);
     }
 
-    public DynamicObject argumentError(String message, Node currentNode) {
+    public RubyException argumentError(String message, Node currentNode) {
         return argumentError(message, currentNode, null);
     }
 
-    public DynamicObject argumentErrorProcWithoutBlock(Node currentNode) {
+    public RubyException argumentErrorProcWithoutBlock(Node currentNode) {
         return argumentError(coreStrings().PROC_WITHOUT_BLOCK.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentErrorTooFewArguments(Node currentNode) {
+    public RubyException argumentErrorTooFewArguments(Node currentNode) {
         return argumentError(coreStrings().TOO_FEW_ARGUMENTS.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentErrorTimeIntervalPositive(Node currentNode) {
+    public RubyException argumentErrorTimeIntervalPositive(Node currentNode) {
         return argumentError(coreStrings().TIME_INTERVAL_MUST_BE_POS.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentErrorXOutsideOfString(Node currentNode) {
+    public RubyException argumentErrorXOutsideOfString(Node currentNode) {
         return argumentError(coreStrings().X_OUTSIDE_OF_STRING.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentErrorCantCompressNegativeNumbers(Node currentNode) {
+    public RubyException argumentErrorCantCompressNegativeNumbers(Node currentNode) {
         return argumentError(coreStrings().CANT_COMPRESS_NEGATIVE.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentErrorOutOfRange(Node currentNode) {
+    public RubyException argumentErrorOutOfRange(Node currentNode) {
         return argumentError(coreStrings().ARGUMENT_OUT_OF_RANGE.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentErrorNegativeArraySize(Node currentNode) {
+    public RubyException argumentErrorNegativeArraySize(Node currentNode) {
         return argumentError(coreStrings().NEGATIVE_ARRAY_SIZE.getRope(), currentNode, null);
     }
 
-    public DynamicObject argumentErrorTooLargeString(Node currentNode) {
+    public RubyException argumentErrorTooLargeString(Node currentNode) {
         return argumentError(
                 "result of string concatenation exceeds the system maximum string length (2^31-1 bytes)",
                 currentNode);
     }
 
-    public DynamicObject argumentErrorCharacterRequired(Node currentNode) {
+    public RubyException argumentErrorCharacterRequired(Node currentNode) {
         return argumentError("%c requires a character", currentNode);
     }
 
-    public DynamicObject argumentErrorCantOmitPrecision(Node currentNode) {
+    public RubyException argumentErrorCantOmitPrecision(Node currentNode) {
         return argumentError("can't omit precision for a Float.", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorUnknownKeyword(RubySymbol name, Node currentNode) {
+    public RubyException argumentErrorUnknownKeyword(RubySymbol name, Node currentNode) {
         return argumentError("unknown keyword: " + name.getString(), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorInvalidRadix(int radix, Node currentNode) {
+    public RubyException argumentErrorInvalidRadix(int radix, Node currentNode) {
         return argumentError(StringUtils.format("invalid radix %d", radix), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorMissingKeyword(String name, Node currentNode) {
+    public RubyException argumentErrorMissingKeyword(String name, Node currentNode) {
         return argumentError(StringUtils.format("missing keyword: %s", name), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentError(int passed, int required, Node currentNode) {
+    public RubyException argumentError(int passed, int required, Node currentNode) {
         return argumentError(
                 StringUtils.format("wrong number of arguments (given %d, expected %d)", passed, required),
                 currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorPlus(int passed, int required, Node currentNode) {
+    public RubyException argumentErrorPlus(int passed, int required, Node currentNode) {
         return argumentError(
                 StringUtils.format("wrong number of arguments (given %d, expected %d+)", passed, required),
                 currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentError(int passed, int required, int optional, Node currentNode) {
+    public RubyException argumentError(int passed, int required, int optional, Node currentNode) {
         return argumentError(StringUtils.format(
                 "wrong number of arguments (given %d, expected %d..%d)",
                 passed,
@@ -179,12 +179,12 @@ public class CoreExceptions {
                 required + optional), currentNode);
     }
 
-    public DynamicObject argumentErrorEmptyVarargs(Node currentNode) {
+    public RubyException argumentErrorEmptyVarargs(Node currentNode) {
         return argumentError(coreStrings().WRONG_ARGS_ZERO_PLUS_ONE.getRope(), currentNode, null);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
+    public RubyException argumentErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
         String badClassName = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
         return argumentError(
                 StringUtils.format("wrong argument type %s (expected %s)", badClassName, expectedType),
@@ -192,7 +192,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
+    public RubyException argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
         assert RubyGuards.isRubyString(object);
 
         // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
@@ -201,21 +201,21 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorNoReceiver(Node currentNode) {
+    public RubyException argumentErrorNoReceiver(Node currentNode) {
         return argumentError("no receiver is available", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentErrorEncodingAlreadyRegistered(String nameString, Node currentNode) {
+    public RubyException argumentErrorEncodingAlreadyRegistered(String nameString, Node currentNode) {
         return argumentError(StringUtils.format("encoding %s is already registered", nameString), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject argumentError(String message, Node currentNode, Throwable javaThrowable) {
+    public RubyException argumentError(String message, Node currentNode, Throwable javaThrowable) {
         return argumentError(StringOperations.encodeRope(message, UTF8Encoding.INSTANCE), currentNode, javaThrowable);
     }
 
-    public DynamicObject argumentError(Rope message, Node currentNode, Throwable javaThrowable) {
+    public RubyException argumentError(Rope message, Node currentNode, Throwable javaThrowable) {
         DynamicObject exceptionClass = context.getCoreLibrary().argumentErrorClass;
         return ExceptionOperations.createRubyException(
                 context,
@@ -225,11 +225,11 @@ public class CoreExceptions {
                 javaThrowable);
     }
 
-    public DynamicObject argumentErrorInvalidBigDecimal(String string, Node currentNode) {
+    public RubyException argumentErrorInvalidBigDecimal(String string, Node currentNode) {
         return argumentError(StringUtils.format("invalid value for BigDecimal(): \"%s\"", string), currentNode);
     }
 
-    public DynamicObject argumentErrorCantUnfreeze(Object self, Node currentNode) {
+    public RubyException argumentErrorCantUnfreeze(Object self, Node currentNode) {
         String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(self)).getName();
         return argumentError(StringUtils.format("can't unfreeze %s", className), currentNode);
     }
@@ -237,13 +237,13 @@ public class CoreExceptions {
     // FrozenError
 
     @TruffleBoundary
-    public DynamicObject frozenError(Object object, Node currentNode) {
+    public RubyException frozenError(Object object, Node currentNode) {
         String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
         return frozenError(StringUtils.format("can't modify frozen %s", className), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject frozenError(String message, Node currentNode) {
+    public RubyException frozenError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().frozenErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -252,12 +252,12 @@ public class CoreExceptions {
 
     // RuntimeError
 
-    public DynamicObject runtimeErrorCoverageNotEnabled(Node currentNode) {
+    public RubyException runtimeErrorCoverageNotEnabled(Node currentNode) {
         return runtimeError("coverage measurement is not enabled", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject runtimeError(String message, Node currentNode) {
+    public RubyException runtimeError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().runtimeErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -265,7 +265,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject runtimeError(String message, Node currentNode, Throwable javaThrowable) {
+    public RubyException runtimeError(String message, Node currentNode, Throwable javaThrowable) {
         DynamicObject exceptionClass = context.getCoreLibrary().runtimeErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -274,7 +274,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject runtimeError(String message, Backtrace backtrace) {
+    public RubyException runtimeError(String message, Backtrace backtrace) {
         DynamicObject exceptionClass = context.getCoreLibrary().runtimeErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -284,7 +284,7 @@ public class CoreExceptions {
     // SystemStackError
 
     @TruffleBoundary
-    public DynamicObject systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
+    public RubyException systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
         DynamicObject exceptionClass = context.getCoreLibrary().systemStackErrorClass;
         StackTraceElement[] stackTrace = javaThrowable.getStackTrace();
         String topOfTheStack = stackTrace.length > 0
@@ -302,7 +302,7 @@ public class CoreExceptions {
     // NoMemoryError
 
     @TruffleBoundary
-    public DynamicObject noMemoryError(Node currentNode, OutOfMemoryError javaThrowable) {
+    public RubyException noMemoryError(Node currentNode, OutOfMemoryError javaThrowable) {
         DynamicObject exceptionClass = context.getCoreLibrary().noMemoryErrorClass;
         return ExceptionOperations.createRubyException(
                 context,
@@ -315,47 +315,47 @@ public class CoreExceptions {
     // Errno
 
     @TruffleBoundary
-    public DynamicObject mathDomainErrorAcos(Node currentNode) {
+    public RubyException mathDomainErrorAcos(Node currentNode) {
         return mathDomainError("acos", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject mathDomainErrorAcosh(Node currentNode) {
+    public RubyException mathDomainErrorAcosh(Node currentNode) {
         return mathDomainError("acosh", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject mathDomainErrorAsin(Node currentNode) {
+    public RubyException mathDomainErrorAsin(Node currentNode) {
         return mathDomainError("asin", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject mathDomainErrorAtanh(Node currentNode) {
+    public RubyException mathDomainErrorAtanh(Node currentNode) {
         return mathDomainError("atanh", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject mathDomainErrorGamma(Node currentNode) {
+    public RubyException mathDomainErrorGamma(Node currentNode) {
         return mathDomainError("gamma", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject mathDomainErrorLog2(Node currentNode) {
+    public RubyException mathDomainErrorLog2(Node currentNode) {
         return mathDomainError("log2", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject mathDomainErrorLog10(Node currentNode) {
+    public RubyException mathDomainErrorLog10(Node currentNode) {
         return mathDomainError("log10", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject mathDomainErrorLog(Node currentNode) {
+    public RubyException mathDomainErrorLog(Node currentNode) {
         return mathDomainError("log", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject mathDomainError(String method, Node currentNode) {
+    public RubyException mathDomainError(String method, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().getErrnoClass("EDOM");
         Rope rope = StringOperations.encodeRope(
                 StringUtils.format("Numerical argument is out of domain - \"%s\"", method),
@@ -374,12 +374,12 @@ public class CoreExceptions {
     // IndexError
 
     @TruffleBoundary
-    public DynamicObject indexErrorOutOfString(int index, Node currentNode) {
+    public RubyException indexErrorOutOfString(int index, Node currentNode) {
         return indexError(StringUtils.format("index %d out of string", index), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject indexError(String message, Node currentNode) {
+    public RubyException indexError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().indexErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -387,84 +387,84 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject indexTooSmallError(String type, int index, int length, Node currentNode) {
+    public RubyException indexTooSmallError(String type, int index, int length, Node currentNode) {
         return indexError(
                 StringUtils.format("index %d too small for %s; minimum: -%d", index, type, length),
                 currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject negativeLengthError(int length, Node currentNode) {
+    public RubyException negativeLengthError(int length, Node currentNode) {
         return indexError(StringUtils.format("negative length (%d)", length), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject indexErrorInvalidIndex(Node currentNode) {
+    public RubyException indexErrorInvalidIndex(Node currentNode) {
         return indexError("invalid index", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject indexErrorInvalidArrayIndexException(InvalidArrayIndexException exception, Node currentNode) {
+    public RubyException indexErrorInvalidArrayIndexException(InvalidArrayIndexException exception, Node currentNode) {
         return indexError("invalid array index " + exception.getInvalidIndex(), currentNode);
     }
 
     // LocalJumpError
 
     @TruffleBoundary
-    public DynamicObject localJumpError(String message, Node currentNode) {
+    public RubyException localJumpError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().localJumpErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
-    public DynamicObject noBlockGiven(Node currentNode) {
+    public RubyException noBlockGiven(Node currentNode) {
         return localJumpError("no block given", currentNode);
     }
 
-    public DynamicObject breakFromProcClosure(Node currentNode) {
+    public RubyException breakFromProcClosure(Node currentNode) {
         return localJumpError("break from proc-closure", currentNode);
     }
 
-    public DynamicObject unexpectedReturn(Node currentNode) {
+    public RubyException unexpectedReturn(Node currentNode) {
         return localJumpError("unexpected return", currentNode);
     }
 
-    public DynamicObject noBlockToYieldTo(Node currentNode) {
+    public RubyException noBlockToYieldTo(Node currentNode) {
         return localJumpError("no block given (yield)", currentNode);
     }
 
     // TypeError
 
-    public DynamicObject typeErrorCantCreateInstanceOfSingletonClass(Node currentNode) {
+    public RubyException typeErrorCantCreateInstanceOfSingletonClass(Node currentNode) {
         return typeError("can't create instance of singleton class", currentNode, null);
     }
 
     @TruffleBoundary
-    public DynamicObject superclassMismatch(String name, Node currentNode) {
+    public RubyException superclassMismatch(String name, Node currentNode) {
         return typeError("superclass mismatch for class " + name, currentNode);
     }
 
-    public DynamicObject typeError(String message, Node currentNode) {
+    public RubyException typeError(String message, Node currentNode) {
         return typeError(message, currentNode, null);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorAllocatorUndefinedFor(DynamicObject rubyClass, Node currentNode) {
+    public RubyException typeErrorAllocatorUndefinedFor(DynamicObject rubyClass, Node currentNode) {
         String className = Layouts.MODULE.getFields(rubyClass).getName();
         return typeError(StringUtils.format("allocator undefined for %s", className), currentNode);
     }
 
-    public DynamicObject typeErrorCantDefineSingleton(Node currentNode) {
+    public RubyException typeErrorCantDefineSingleton(Node currentNode) {
         return typeError("can't define singleton", currentNode);
     }
 
-    public DynamicObject typeErrorCantBeCastedToBigDecimal(Node currentNode) {
+    public RubyException typeErrorCantBeCastedToBigDecimal(Node currentNode) {
         return typeError("could not be casted to BigDecimal", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorCantConvertTo(Object from, String toClass, String methodUsed, Object result,
+    public RubyException typeErrorCantConvertTo(Object from, String toClass, String methodUsed, Object result,
             Node currentNode) {
         String fromClass = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName();
         return typeError(StringUtils.format(
@@ -477,7 +477,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorCantConvertInto(Object from, String toClass, Node currentNode) {
+    public RubyException typeErrorCantConvertInto(Object from, String toClass, Node currentNode) {
         return typeError(StringUtils.format(
                 "can't convert %s into %s",
                 Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName(),
@@ -485,22 +485,22 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorIsNotA(Object value, String expectedType, Node currentNode) {
+    public RubyException typeErrorIsNotA(Object value, String expectedType, Node currentNode) {
         return typeErrorIsNotA(value.toString(), expectedType, currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorIsNotA(String value, String expectedType, Node currentNode) {
+    public RubyException typeErrorIsNotA(String value, String expectedType, Node currentNode) {
         return typeError(StringUtils.format("%s is not a %s", value, expectedType), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorIsNotAClassModule(Object value, Node currentNode) {
+    public RubyException typeErrorIsNotAClassModule(Object value, Node currentNode) {
         return typeError(StringUtils.format("%s is not a class/module", value), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorNoImplicitConversion(Object from, String to, Node currentNode) {
+    public RubyException typeErrorNoImplicitConversion(Object from, String to, Node currentNode) {
         return typeError(StringUtils.format(
                 "no implicit conversion of %s into %s",
                 Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName(),
@@ -508,7 +508,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorBadCoercion(Object from, String to, String coercionMethod, Object coercedTo,
+    public RubyException typeErrorBadCoercion(Object from, String to, String coercionMethod, Object coercedTo,
             Node currentNode) {
         String badClassName = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName();
         return typeError(StringUtils.format(
@@ -521,13 +521,13 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorCantDump(Object object, Node currentNode) {
+    public RubyException typeErrorCantDump(Object object, Node currentNode) {
         String logicalClass = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
         return typeError(StringUtils.format("can't dump %s", logicalClass), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
+    public RubyException typeErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
         String badClassName = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
         return typeError(
                 StringUtils.format("wrong argument type %s (expected %s)", badClassName, expectedType),
@@ -535,37 +535,37 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorAlreadyInitializedClass(Node currentNode) {
+    public RubyException typeErrorAlreadyInitializedClass(Node currentNode) {
         return typeError("already initialized class", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorSubclassSingletonClass(Node currentNode) {
+    public RubyException typeErrorSubclassSingletonClass(Node currentNode) {
         return typeError("can't make subclass of singleton class", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorSubclassClass(Node currentNode) {
+    public RubyException typeErrorSubclassClass(Node currentNode) {
         return typeError("can't make subclass of Class", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorSuperclassMustBeClass(Node currentNode) {
+    public RubyException typeErrorSuperclassMustBeClass(Node currentNode) {
         return typeError("superclass must be a Class", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorInheritUninitializedClass(Node currentNode) {
+    public RubyException typeErrorInheritUninitializedClass(Node currentNode) {
         return typeError("can't inherit uninitialized class", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorRescueInvalidClause(Node currentNode) {
+    public RubyException typeErrorRescueInvalidClause(Node currentNode) {
         return typeError("class or module required for rescue clause", currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject typeError(String message, Node currentNode, Throwable javaThrowable) {
+    public RubyException typeError(String message, Node currentNode, Throwable javaThrowable) {
         DynamicObject exceptionClass = context.getCoreLibrary().typeErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -574,7 +574,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
+    public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
         DynamicObject rubyArray = createArray(context, exception.getSuppliedValues());
         String formattedValues = StringOperations.getString((DynamicObject) context.send(rubyArray, "inspect"));
         return typeError("unsupported type " + formattedValues, currentNode);
@@ -583,12 +583,12 @@ public class CoreExceptions {
     // NameError
 
     @TruffleBoundary
-    public DynamicObject nameErrorWrongConstantName(String name, Node currentNode) {
+    public RubyNameError nameErrorWrongConstantName(String name, Node currentNode) {
         return nameError(StringUtils.format("wrong constant name %s", name), null, name, currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorConstantNotDefined(DynamicObject module, String name, Node currentNode) {
+    public RubyException nameErrorConstantNotDefined(DynamicObject module, String name, Node currentNode) {
         return nameError(
                 StringUtils.format("constant %s not defined", ModuleOperations.constantName(context, module, name)),
                 null,
@@ -597,7 +597,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUninitializedConstant(DynamicObject module, String name, Node currentNode) {
+    public RubyNameError nameErrorUninitializedConstant(DynamicObject module, String name, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
         final String message = StringUtils.format(
                 "uninitialized constant %s",
@@ -606,7 +606,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorPrivateConstant(DynamicObject module, String name, Node currentNode) {
+    public RubyNameError nameErrorPrivateConstant(DynamicObject module, String name, Node currentNode) {
         return nameError(
                 StringUtils
                         .format("private constant %s referenced", ModuleOperations.constantName(context, module, name)),
@@ -616,7 +616,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUninitializedClassVariable(DynamicObject module, String name, Node currentNode) {
+    public RubyNameError nameErrorUninitializedClassVariable(DynamicObject module, String name, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
         return nameError(StringUtils.format(
                 "uninitialized class variable %s in %s",
@@ -625,7 +625,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorInstanceNameNotAllowable(String name, Object receiver, Node currentNode) {
+    public RubyNameError nameErrorInstanceNameNotAllowable(String name, Object receiver, Node currentNode) {
         return nameError(
                 StringUtils.format("`%s' is not allowable as an instance variable name", name),
                 receiver,
@@ -634,12 +634,12 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorInstanceVariableNotDefined(String name, Object receiver, Node currentNode) {
+    public RubyNameError nameErrorInstanceVariableNotDefined(String name, Object receiver, Node currentNode) {
         return nameError(StringUtils.format("instance variable %s not defined", name), receiver, name, currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUndefinedMethod(String name, DynamicObject module, Node currentNode) {
+    public RubyNameError nameErrorUndefinedMethod(String name, DynamicObject module, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
         return nameError(
                 StringUtils.format(
@@ -653,7 +653,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUndefinedSingletonMethod(String name, Object receiver, Node currentNode) {
+    public RubyNameError nameErrorUndefinedSingletonMethod(String name, Object receiver, Node currentNode) {
         String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(receiver)).getName();
         return nameError(
                 StringUtils.format("undefined singleton method `%s' for %s", name, className),
@@ -663,7 +663,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorMethodNotDefinedIn(DynamicObject module, String name, Node currentNode) {
+    public RubyNameError nameErrorMethodNotDefinedIn(DynamicObject module, String name, Node currentNode) {
         return nameError(
                 StringUtils.format("method `%s' not defined in %s", name, Layouts.MODULE.getFields(module).getName()),
                 module,
@@ -672,7 +672,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorPrivateMethod(String name, DynamicObject module, Node currentNode) {
+    public RubyNameError nameErrorPrivateMethod(String name, DynamicObject module, Node currentNode) {
         return nameError(
                 StringUtils.format("method `%s' for %s is private", name, Layouts.MODULE.getFields(module).getName()),
                 module,
@@ -681,7 +681,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorLocalVariableNotDefined(String name, RubyBinding binding, Node currentNode) {
+    public RubyNameError nameErrorLocalVariableNotDefined(String name, RubyBinding binding, Node currentNode) {
         return nameError(
                 StringUtils.format("local variable `%s' not defined for %s", name, binding.toString()),
                 binding,
@@ -690,7 +690,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorClassVariableNotDefined(String name, DynamicObject module, Node currentNode) {
+    public RubyNameError nameErrorClassVariableNotDefined(String name, DynamicObject module, Node currentNode) {
         assert RubyGuards.isRubyModule(module);
         return nameError(StringUtils.format(
                 "class variable `%s' not defined for %s",
@@ -699,30 +699,30 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorImportNotFound(String name, Node currentNode) {
+    public RubyNameError nameErrorImportNotFound(String name, Node currentNode) {
         return nameError(StringUtils.format("import '%s' not found", name), null, name, currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUnknownIdentifier(Object receiver, Object name, UnknownIdentifierException exception,
+    public RubyNameError nameErrorUnknownIdentifier(Object receiver, Object name, UnknownIdentifierException exception,
             Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUnknownIdentifier(Object receiver, Object name, InvalidArrayIndexException exception,
+    public RubyNameError nameErrorUnknownIdentifier(Object receiver, Object name, InvalidArrayIndexException exception,
             Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUnsuportedMessage(Object receiver, Object name, UnsupportedMessageException exception,
+    public RubyNameError nameErrorUnsuportedMessage(Object receiver, Object name, UnsupportedMessageException exception,
             Node currentNode) {
         return nameError(exception.getMessage(), receiver, name.toString(), currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject nameErrorUnknownIdentifierException(
+    public RubyNameError nameErrorUnknownIdentifierException(
             UnknownIdentifierException exception, Object receiver, Node currentNode) {
         return nameError(
                 "Unknown identifier: " + exception.getUnknownIdentifier(),
@@ -732,46 +732,43 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject nameError(String message, Object receiver, String name, Node currentNode) {
+    public RubyNameError nameError(String message, Object receiver, String name, Node currentNode) {
         final DynamicObject messageString = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
-        return context.getCoreLibrary().nameErrorFactory.newInstance(Layouts.NAME_ERROR.build(
+        return new RubyNameError(
+                context.getCoreLibrary().nameErrorShape,
                 messageString,
-                null,
                 backtrace,
                 cause,
-                null,
-                null,
                 receiver,
-                context.getSymbol(name)));
+                context.getSymbol(name));
     }
 
-    public DynamicObject nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
+    public RubyNameError nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
             Node currentNode) {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
-        final DynamicObject exception = context.getCoreLibrary().nameErrorFactory.newInstance(
-                Layouts.NAME_ERROR.build(
-                        null,
-                        formatter,
-                        backtrace,
-                        cause,
-                        null,
-                        null,
-                        receiver,
-                        context.getSymbol(name)));
+        final RubyNameError exception = new RubyNameError(
+                context.getCoreLibrary().nameErrorShape,
+                null,
+                backtrace,
+                cause,
+                receiver,
+                context.getSymbol(name));
+        exception.formatter = formatter;
         showExceptionIfDebug(exception, backtrace);
         return exception;
     }
 
     // NoMethodError
 
-    public DynamicObject noMethodError(String message, Object receiver, String name, Object[] args, Node currentNode) {
+    public RubyNoMethodError noMethodError(String message, Object receiver, String name, Object[] args,
+            Node currentNode) {
         final DynamicObject messageString = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final DynamicObject argsArray = createArray(context, args);
@@ -779,43 +776,38 @@ public class CoreExceptions {
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
-        return context.getCoreLibrary().noMethodErrorFactory.newInstance(
-                Layouts.NO_METHOD_ERROR.build(
-                        messageString,
-                        null,
-                        backtrace,
-                        cause,
-                        null,
-                        null,
-                        receiver,
-                        context.getSymbol(name),
-                        argsArray));
+        return new RubyNoMethodError(
+                context.getCoreLibrary().noMethodErrorShape,
+                messageString,
+                backtrace,
+                cause,
+                receiver,
+                context.getSymbol(name),
+                argsArray);
     }
 
-    public DynamicObject noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
+    public RubyNoMethodError noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
             Object[] args, Node currentNode) {
         final DynamicObject argsArray = createArray(context, args);
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
-        final DynamicObject exception = context.getCoreLibrary().noMethodErrorFactory.newInstance(
-                Layouts.NO_METHOD_ERROR.build(
-                        null,
-                        formatter,
-                        backtrace,
-                        cause,
-                        null,
-                        null,
-                        receiver,
-                        context.getSymbol(name),
-                        argsArray));
+        final RubyNoMethodError exception = new RubyNoMethodError(
+                context.getCoreLibrary().noMethodErrorShape,
+                null,
+                backtrace,
+                cause,
+                receiver,
+                context.getSymbol(name),
+                argsArray);
+        exception.formatter = formatter;
         showExceptionIfDebug(exception, backtrace);
         return exception;
     }
 
     @TruffleBoundary
-    public DynamicObject noSuperMethodOutsideMethodError(Node currentNode) {
+    public RubyNoMethodError noSuperMethodOutsideMethodError(Node currentNode) {
         final DynamicObject messageString = StringOperations.createString(
                 context,
                 StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
@@ -824,19 +816,18 @@ public class CoreExceptions {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
         // TODO BJF Jul 21, 2016 Review to add receiver
-        return context.getCoreLibrary().noMethodErrorFactory.newInstance(Layouts.NAME_ERROR.build(
+        return new RubyNoMethodError(
+                context.getCoreLibrary().noMethodErrorShape,
                 messageString,
-                null,
                 backtrace,
                 cause,
                 null,
-                null,
-                null,
                 // FIXME: the name of the method is not known in this case currently
-                context.getSymbol("<unknown>")));
+                context.getSymbol("<unknown>"),
+                Nil.INSTANCE);
     }
 
-    public DynamicObject noMethodErrorUnknownIdentifier(Object receiver, String name, Object[] args,
+    public RubyNoMethodError noMethodErrorUnknownIdentifier(Object receiver, String name, Object[] args,
             UnknownIdentifierException exception, Node currentNode) {
         return noMethodError(ExceptionOperations.getMessage(exception), receiver, name, args, currentNode);
     }
@@ -844,11 +835,11 @@ public class CoreExceptions {
     // LoadError
 
     @TruffleBoundary
-    public DynamicObject loadError(String message, String path, Node currentNode) {
+    public RubyException loadError(String message, String path, Node currentNode) {
         DynamicObject messageString = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         DynamicObject exceptionClass = context.getCoreLibrary().loadErrorClass;
-        DynamicObject loadError = ExceptionOperations
+        RubyException loadError = ExceptionOperations
                 .createRubyException(context, exceptionClass, messageString, currentNode, null);
         if ("openssl.so".equals(path)) {
             // This is a workaround for the rubygems/security.rb file expecting the error path to be openssl
@@ -862,18 +853,18 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject loadErrorCannotLoad(String name, Node currentNode) {
+    public RubyException loadErrorCannotLoad(String name, Node currentNode) {
         return loadError(StringUtils.format("cannot load such file -- %s", name), name, currentNode);
     }
 
     // ZeroDivisionError
 
-    public DynamicObject zeroDivisionError(Node currentNode) {
+    public RubyException zeroDivisionError(Node currentNode) {
         return zeroDivisionError(currentNode, null);
     }
 
     @TruffleBoundary
-    public DynamicObject zeroDivisionError(Node currentNode, ArithmeticException exception) {
+    public RubyException zeroDivisionError(Node currentNode, ArithmeticException exception) {
         DynamicObject exceptionClass = context.getCoreLibrary().zeroDivisionErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope("divided by 0", UTF8Encoding.INSTANCE));
@@ -883,12 +874,12 @@ public class CoreExceptions {
     // SyntaxError
 
     @TruffleBoundary
-    public DynamicObject syntaxErrorInvalidRetry(Node currentNode) {
+    public RubyException syntaxErrorInvalidRetry(Node currentNode) {
         return syntaxError("Invalid retry", currentNode, currentNode.getEncapsulatingSourceSection());
     }
 
     @TruffleBoundary
-    public DynamicObject syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
+    public RubyException syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
         DynamicObject exceptionClass = context.getCoreLibrary().syntaxErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -899,33 +890,33 @@ public class CoreExceptions {
     // FloatDomainError
 
     @TruffleBoundary
-    public DynamicObject floatDomainError(String value, Node currentNode) {
+    public RubyException floatDomainError(String value, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().floatDomainErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
-    public DynamicObject floatDomainErrorResultsToNaN(Node currentNode) {
+    public RubyException floatDomainErrorResultsToNaN(Node currentNode) {
         return floatDomainError("Computation results to 'NaN'(Not a Number)", currentNode);
     }
 
-    public DynamicObject floatDomainErrorResultsToInfinity(Node currentNode) {
+    public RubyException floatDomainErrorResultsToInfinity(Node currentNode) {
         return floatDomainError("Computation results to 'Infinity'", currentNode);
     }
 
-    public DynamicObject floatDomainErrorResultsToNegInfinity(Node currentNode) {
+    public RubyException floatDomainErrorResultsToNegInfinity(Node currentNode) {
         return floatDomainError("Computation results to '-Infinity'", currentNode);
     }
 
-    public DynamicObject floatDomainErrorSqrtNegative(Node currentNode) {
+    public RubyException floatDomainErrorSqrtNegative(Node currentNode) {
         return floatDomainError("(VpSqrt) SQRT(negative value)", currentNode);
     }
 
     // IOError
 
     @TruffleBoundary
-    public DynamicObject ioError(String message, Node currentNode) {
+    public RubyException ioError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().ioErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -933,14 +924,14 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject ioError(IOException exception, Node currentNode) {
+    public RubyException ioError(IOException exception, Node currentNode) {
         return ioError(BacktraceFormatter.formatJavaThrowableMessage(exception), currentNode);
     }
 
     // RangeError
 
     @TruffleBoundary
-    public DynamicObject rangeError(long code, DynamicObject encoding, Node currentNode) {
+    public RubyException rangeError(long code, DynamicObject encoding, Node currentNode) {
         assert RubyGuards.isRubyEncoding(encoding);
         return rangeError(
                 StringUtils.format("invalid codepoint %x in %s", code, EncodingOperations.getEncoding(encoding)),
@@ -948,7 +939,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject rangeError(DynamicObject range, Node currentNode) {
+    public RubyException rangeError(DynamicObject range, Node currentNode) {
         assert RubyGuards.isIntRange(range);
         return rangeError(StringUtils.format(
                 "%d..%s%d out of range",
@@ -958,7 +949,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject rangeErrorConvertToInt(long value, Node currentNode) {
+    public RubyException rangeErrorConvertToInt(long value, Node currentNode) {
         final String direction;
 
         if (value < Integer.MIN_VALUE) {
@@ -973,7 +964,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject rangeError(String message, Node currentNode) {
+    public RubyException rangeError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().rangeErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -982,16 +973,16 @@ public class CoreExceptions {
 
     // Truffle::GraalError
 
-    public DynamicObject graalErrorAssertConstantNotConstant(Node currentNode) {
+    public RubyException graalErrorAssertConstantNotConstant(Node currentNode) {
         return graalError("value in Primitive.assert_compilation_constant was not constant", currentNode);
     }
 
-    public DynamicObject graalErrorAssertNotCompiledCompiled(Node currentNode) {
+    public RubyException graalErrorAssertNotCompiledCompiled(Node currentNode) {
         return graalError("call to Primitive.assert_not_compiled was compiled", currentNode);
     }
 
     @TruffleBoundary
-    private DynamicObject graalError(String message, Node currentNode) {
+    private RubyException graalError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().graalErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -1001,7 +992,7 @@ public class CoreExceptions {
     // RegexpError
 
     @TruffleBoundary
-    public DynamicObject regexpError(String message, Node currentNode) {
+    public RubyException regexpError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().regexpErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -1011,7 +1002,7 @@ public class CoreExceptions {
     // Encoding conversion errors.
 
     @TruffleBoundary
-    public DynamicObject encodingError(String message, Node currentNode) {
+    public RubyException encodingError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().encodingErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -1019,21 +1010,21 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject encodingCompatibilityErrorIncompatible(Encoding a, Encoding b, Node currentNode) {
+    public RubyException encodingCompatibilityErrorIncompatible(Encoding a, Encoding b, Node currentNode) {
         return encodingCompatibilityError(
                 StringUtils.format("incompatible character encodings: %s and %s", a, b),
                 currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject encodingCompatibilityErrorIncompatibleWithOperation(Encoding encoding, Node currentNode) {
+    public RubyException encodingCompatibilityErrorIncompatibleWithOperation(Encoding encoding, Node currentNode) {
         return encodingCompatibilityError(
                 StringUtils.format("incompatible encoding with this operation: %s", encoding),
                 currentNode);
     }
 
     @TruffleBoundary
-    public DynamicObject encodingCompatibilityError(String message, Node currentNode) {
+    public RubyException encodingCompatibilityError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().encodingCompatibilityErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -1041,7 +1032,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public DynamicObject encodingUndefinedConversionError(Node currentNode) {
+    public RubyException encodingUndefinedConversionError(Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().encodingUndefinedConversionErrorClass;
         return ExceptionOperations.createRubyException(
                 context,
@@ -1054,55 +1045,55 @@ public class CoreExceptions {
     // FiberError
 
     @TruffleBoundary
-    public DynamicObject fiberError(String message, Node currentNode) {
+    public RubyException fiberError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().fiberErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
-    public DynamicObject deadFiberCalledError(Node currentNode) {
+    public RubyException deadFiberCalledError(Node currentNode) {
         return fiberError("dead fiber called", currentNode);
     }
 
-    public DynamicObject yieldFromRootFiberError(Node currentNode) {
+    public RubyException yieldFromRootFiberError(Node currentNode) {
         return fiberError("can't yield from root fiber", currentNode);
     }
 
     // ThreadError
 
     @TruffleBoundary
-    public DynamicObject threadError(String message, Node currentNode) {
+    public RubyException threadError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().threadErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
-    public DynamicObject threadErrorKilledThread(Node currentNode) {
+    public RubyException threadErrorKilledThread(Node currentNode) {
         return threadError("killed thread", currentNode);
     }
 
-    public DynamicObject threadErrorRecursiveLocking(Node currentNode) {
+    public RubyException threadErrorRecursiveLocking(Node currentNode) {
         return threadError("deadlock; recursive locking", currentNode);
     }
 
-    public DynamicObject threadErrorUnlockNotLocked(Node currentNode) {
+    public RubyException threadErrorUnlockNotLocked(Node currentNode) {
         return threadError("Attempt to unlock a mutex which is not locked", currentNode);
     }
 
-    public DynamicObject threadErrorAlreadyLocked(Node currentNode) {
+    public RubyException threadErrorAlreadyLocked(Node currentNode) {
         return threadError("Attempt to unlock a mutex which is locked by another thread", currentNode);
     }
 
-    public DynamicObject threadErrorQueueFull(Node currentNode) {
+    public RubyException threadErrorQueueFull(Node currentNode) {
         return threadError("queue full", currentNode);
     }
 
     // SecurityError
 
     @TruffleBoundary
-    public DynamicObject securityError(String message, Node currentNode) {
+    public RubyException securityError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().securityErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -1112,7 +1103,7 @@ public class CoreExceptions {
     // SystemCallError
 
     @TruffleBoundary
-    public DynamicObject systemCallError(String message, int errno, Backtrace backtrace) {
+    public RubySystemCallError systemCallError(String message, int errno, Backtrace backtrace) {
         DynamicObject exceptionClass = context.getCoreLibrary().systemCallErrorClass;
         Object errorMessage;
         if (message == null) {
@@ -1128,7 +1119,7 @@ public class CoreExceptions {
     // FFI::NullPointerError
 
     @TruffleBoundary
-    public DynamicObject ffiNullPointerError(String message, Node currentNode) {
+    public RubyException ffiNullPointerError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().truffleFFINullPointerErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
@@ -1138,11 +1129,11 @@ public class CoreExceptions {
     // SystemExit
 
     @TruffleBoundary
-    public DynamicObject systemExit(int exitStatus, Node currentNode) {
+    public RubyException systemExit(int exitStatus, Node currentNode) {
         final DynamicObject message = StringOperations
                 .createString(context, StringOperations.encodeRope("exit", UTF8Encoding.INSTANCE));
         DynamicObject exceptionClass = context.getCoreLibrary().systemExitClass;
-        final DynamicObject systemExit = ExceptionOperations
+        final RubyException systemExit = ExceptionOperations
                 .createRubyException(context, exceptionClass, message, currentNode, null);
         DynamicObjectLibrary.getUncached().put(systemExit, "@status", exitStatus);
         return systemExit;
@@ -1151,21 +1142,21 @@ public class CoreExceptions {
     // ClosedQueueError
 
     @TruffleBoundary
-    public DynamicObject closedQueueError(String message, Node currentNode) {
+    public RubyException closedQueueError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().closedQueueErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
-    public DynamicObject closedQueueError(Node currentNode) {
+    public RubyException closedQueueError(Node currentNode) {
         return closedQueueError("queue closed", currentNode);
     }
 
     // TruffleRuby specific
 
     @TruffleBoundary
-    public DynamicObject unsupportedMessageError(String message, Node currentNode) {
+    public RubyException unsupportedMessageError(String message, Node currentNode) {
         DynamicObject exceptionClass = context.getCoreLibrary().unsupportedMessageErrorClass;
         DynamicObject errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));

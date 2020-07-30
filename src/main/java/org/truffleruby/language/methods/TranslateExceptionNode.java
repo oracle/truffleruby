@@ -11,10 +11,10 @@ package org.truffleruby.language.methods;
 
 import java.util.EnumSet;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -25,6 +25,7 @@ import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TruffleFatalException;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTrace;
@@ -106,13 +107,13 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private DynamicObject translateArithmeticException(RubyContext context, ArithmeticException exception) {
+    private RubyException translateArithmeticException(RubyContext context, ArithmeticException exception) {
         logJavaException(context, this, exception);
         return context.getCoreExceptions().zeroDivisionError(this, exception);
     }
 
     @TruffleBoundary
-    private DynamicObject translateStackOverflow(RubyContext context, StackOverflowError error) {
+    private RubyException translateStackOverflow(RubyContext context, StackOverflowError error) {
         if (context.getOptions().EXCEPTIONS_WARN_STACKOVERFLOW) {
             // We cannot afford to initialize the Log class
             System.err.print("[ruby] WARNING StackOverflowError\n");
@@ -123,7 +124,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private DynamicObject translateOutOfMemory(RubyContext context, OutOfMemoryError error) {
+    private RubyException translateOutOfMemory(RubyContext context, OutOfMemoryError error) {
         if (context.getOptions().EXCEPTIONS_WARN_OUT_OF_MEMORY) {
             // We cannot afford to initialize the Log class
             System.err.print("[ruby] WARNING OutOfMemoryError\n");
@@ -134,7 +135,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private DynamicObject translateIllegalArgument(RubyContext context, IllegalArgumentException exception) {
+    private RubyException translateIllegalArgument(RubyContext context, IllegalArgumentException exception) {
         logJavaException(context, this, exception);
 
         String message = exception.getMessage();
@@ -147,7 +148,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private DynamicObject translateUnsupportedSpecialization(
+    private RubyException translateUnsupportedSpecialization(
             RubyContext context,
             UnsupportedSpecializationException exception,
             UnsupportedOperationBehavior unsupportedOperationBehavior) {
@@ -221,7 +222,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
     }
 
     @TruffleBoundary
-    private DynamicObject translateThrowable(RubyContext context, Throwable throwable) {
+    private RubyException translateThrowable(RubyContext context, Throwable throwable) {
         if (throwable instanceof AssertionError) {
             throw (AssertionError) throwable;
         }
@@ -267,7 +268,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
             if (t instanceof RaiseException) {
                 // A Ruby exception as a cause of a Java or C-ext exception
-                final DynamicObject rubyException = ((RaiseException) t).getException();
+                final RubyException rubyException = ((RaiseException) t).getException();
 
                 // Add the backtrace in the message as otherwise we would only see the
                 // internalError() backtrace.
@@ -275,7 +276,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                         context,
                         EnumSet.noneOf(FormattingFlags.class));
                 final String formattedBacktrace = formatter
-                        .formatBacktrace(rubyException, Layouts.EXCEPTION.getBacktrace(rubyException));
+                        .formatBacktrace(rubyException, rubyException.backtrace);
                 builder.append(formattedBacktrace).append('\n');
             } else {
                 // Java exception, print it formatted like a Ruby exception
