@@ -161,6 +161,7 @@ module Utilities
       Process.kill(signal, pid)
     rescue Errno::ESRCH
       # Already killed
+      STDERR.puts "Process #{pid} not found"
       nil
     end
   end
@@ -332,6 +333,19 @@ module Utilities
   def raw_sh_failed_status
     `false`
     $?
+  end
+
+  def terminate_process(pid, timeout = 10)
+    send_signal(:SIGTERM, pid)
+    begin
+      Timeout.timeout(timeout) do
+        Process.wait pid
+      end
+    rescue Timeout::Error
+      send_signal(:SIGKILL, pid)
+      Process.wait pid
+    end
+    STDERR.puts "Process #{pid} terminated"
   end
 
   def raw_sh_with_timeout(timeout, pid)
@@ -1349,8 +1363,7 @@ EOS
       end
     ensure
       STDERR.puts 'Terminating gem server'
-      Process.kill :TERM, gem_server
-      Process.wait gem_server
+      terminate_process(gem_server)
       STDERR.puts 'gem server terminated'
     end
   end
