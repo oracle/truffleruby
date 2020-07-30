@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2013, 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.range;
 
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -20,7 +19,6 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayHelpers;
@@ -34,7 +32,7 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -46,6 +44,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "Range", isClass = true)
@@ -54,14 +54,14 @@ public abstract class RangeNodes {
     @Primitive(name = "range_integer_map")
     public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isIntRange(range)")
-        protected DynamicObject map(DynamicObject range, DynamicObject block,
+        @Specialization
+        protected DynamicObject map(RubyIntRange range, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached YieldNode yieldNode,
                 @Cached ConditionProfile noopProfile) {
-            final int begin = Layouts.INT_RANGE.getBegin(range);
-            final int end = Layouts.INT_RANGE.getEnd(range);
-            final boolean excludedEnd = Layouts.INT_RANGE.getExcludedEnd(range);
+            final int begin = range.begin;
+            final int end = range.end;
+            final boolean excludedEnd = range.excludedEnd;
             int exclusiveEnd = excludedEnd ? end : end + 1;
             if (noopProfile.profile(begin >= exclusiveEnd)) {
                 return ArrayHelpers.createEmptyArray(getContext());
@@ -88,11 +88,10 @@ public abstract class RangeNodes {
             return createArray(arrayBuilder.finish(state, length), length);
         }
 
-        @Fallback
-        protected Object mapFallback(Object range, Object block) {
+        @Specialization(guards = "!isIntRange(range)")
+        protected Object mapFallback(RubyRange range, Object block) {
             return FAILURE;
         }
-
     }
 
     @CoreMethod(names = "each", needsBlock = true, enumeratorSize = "size")
@@ -100,20 +99,20 @@ public abstract class RangeNodes {
 
         @Child private CallDispatchHeadNode eachInternalCall;
 
-        @Specialization(guards = "isIntRange(range)")
-        protected Object eachInt(DynamicObject range, DynamicObject block) {
+        @Specialization
+        protected RubyIntRange eachInt(RubyIntRange range, DynamicObject block) {
             int result;
-            if (Layouts.INT_RANGE.getExcludedEnd(range)) {
-                result = Layouts.INT_RANGE.getEnd(range);
+            if (range.excludedEnd) {
+                result = range.end;
             } else {
-                result = Layouts.INT_RANGE.getEnd(range) + 1;
+                result = range.end + 1;
             }
             final int exclusiveEnd = result;
 
             int count = 0;
 
             try {
-                for (int n = Layouts.INT_RANGE.getBegin(range); n < exclusiveEnd; n++) {
+                for (int n = range.begin; n < exclusiveEnd; n++) {
                     if (CompilerDirectives.inInterpreter()) {
                         count++;
                     }
@@ -129,20 +128,20 @@ public abstract class RangeNodes {
             return range;
         }
 
-        @Specialization(guards = "isLongRange(range)")
-        protected Object eachLong(DynamicObject range, DynamicObject block) {
+        @Specialization
+        protected RubyLongRange eachLong(RubyLongRange range, DynamicObject block) {
             long result;
-            if (Layouts.LONG_RANGE.getExcludedEnd(range)) {
-                result = Layouts.LONG_RANGE.getEnd(range);
+            if (range.excludedEnd) {
+                result = range.end;
             } else {
-                result = Layouts.LONG_RANGE.getEnd(range) + 1;
+                result = range.end + 1;
             }
             final long exclusiveEnd = result;
 
             int count = 0;
 
             try {
-                for (long n = Layouts.LONG_RANGE.getBegin(range); n < exclusiveEnd; n++) {
+                for (long n = range.begin; n < exclusiveEnd; n++) {
                     if (CompilerDirectives.inInterpreter()) {
                         count++;
                     }
@@ -158,7 +157,7 @@ public abstract class RangeNodes {
             return range;
         }
 
-        private Object eachInternal(VirtualFrame frame, DynamicObject range, DynamicObject block) {
+        private Object eachInternal(VirtualFrame frame, RubyRange range, DynamicObject block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 eachInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -167,39 +166,28 @@ public abstract class RangeNodes {
             return eachInternalCall.callWithBlock(range, "each_internal", block);
         }
 
-        @Specialization(guards = "isLongRange(range)")
-        protected Object eachObject(VirtualFrame frame, DynamicObject range, NotProvided block) {
+        @Specialization
+        protected Object eachObject(VirtualFrame frame, RubyLongRange range, NotProvided block) {
             return eachInternal(frame, range, null);
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected Object each(VirtualFrame frame, DynamicObject range, NotProvided block) {
+        @Specialization
+        protected Object each(VirtualFrame frame, RubyObjectRange range, NotProvided block) {
             return eachInternal(frame, range, null);
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected Object each(VirtualFrame frame, DynamicObject range, DynamicObject block) {
+        @Specialization
+        protected Object each(VirtualFrame frame, RubyObjectRange range, DynamicObject block) {
             return eachInternal(frame, range, block);
         }
-
     }
 
     @CoreMethod(names = "exclude_end?")
     public abstract static class ExcludeEndNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isIntRange(range)")
-        protected boolean excludeEndInt(DynamicObject range) {
-            return Layouts.INT_RANGE.getExcludedEnd(range);
-        }
-
-        @Specialization(guards = "isLongRange(range)")
-        protected boolean excludeEndLong(DynamicObject range) {
-            return Layouts.LONG_RANGE.getExcludedEnd(range);
-        }
-
-        @Specialization(guards = "isObjectRange(range)")
-        protected boolean excludeEndObject(DynamicObject range) {
-            return Layouts.OBJECT_RANGE.getExcludedEnd(range);
+        @Specialization
+        protected boolean excludeEnd(RubyRange range) {
+            return range.excludedEnd;
         }
 
     }
@@ -207,19 +195,19 @@ public abstract class RangeNodes {
     @CoreMethod(names = "begin")
     public abstract static class BeginNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isIntRange(range)")
-        protected int eachInt(DynamicObject range) {
-            return Layouts.INT_RANGE.getBegin(range);
+        @Specialization
+        protected int eachInt(RubyIntRange range) {
+            return range.begin;
         }
 
-        @Specialization(guards = "isLongRange(range)")
-        protected long eachLong(DynamicObject range) {
-            return Layouts.LONG_RANGE.getBegin(range);
+        @Specialization
+        protected long eachLong(RubyLongRange range) {
+            return range.begin;
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected Object eachObject(DynamicObject range) {
-            return Layouts.OBJECT_RANGE.getBegin(range);
+        @Specialization
+        protected Object eachObject(RubyObjectRange range) {
+            return range.begin;
         }
 
     }
@@ -227,56 +215,55 @@ public abstract class RangeNodes {
     @CoreMethod(names = { "dup", "clone" })
     public abstract static class DupNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateHelper = AllocateHelperNode.create();
 
-        @Specialization(guards = "isIntRange(range)")
-        protected DynamicObject dupIntRange(DynamicObject range) {
-            return Layouts.INT_RANGE.createIntRange(
-                    coreLibrary().intRangeFactory,
-                    Layouts.INT_RANGE.getExcludedEnd(range),
-                    Layouts.INT_RANGE.getBegin(range),
-                    Layouts.INT_RANGE.getEnd(range));
-        }
+        // NOTE(norswap): This is a hack, as it doesn't copy the ivars.
+        //   We do copy the logical class (but not the singleton class, to be MRI compatible).
 
-        @Specialization(guards = "isLongRange(range)")
-        protected DynamicObject dupLongRange(DynamicObject range) {
-            return Layouts.LONG_RANGE.createLongRange(
-                    coreLibrary().intRangeFactory,
-                    Layouts.LONG_RANGE.getExcludedEnd(range),
-                    Layouts.LONG_RANGE.getBegin(range),
-                    Layouts.LONG_RANGE.getEnd(range));
-        }
-
-        @Specialization(guards = "isObjectRange(range)")
-        protected DynamicObject dup(DynamicObject range) {
-            DynamicObject copy = allocateObjectNode.allocate(
-                    Layouts.BASIC_OBJECT.getLogicalClass(range),
-                    Layouts.OBJECT_RANGE.getExcludedEnd(range),
-                    Layouts.OBJECT_RANGE.getBegin(range),
-                    Layouts.OBJECT_RANGE.getEnd(range));
+        @Specialization
+        protected RubyIntRange dupIntRange(RubyIntRange range) {
+            // RubyIntRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
+            final Shape shape = coreLibrary().intRangeShape;
+            final RubyIntRange copy = new RubyIntRange(shape, range.excludedEnd, range.begin, range.end);
+            allocateHelper.trace(copy, this);
             return copy;
         }
 
+        @Specialization
+        protected RubyLongRange dupLongRange(RubyLongRange range) {
+            // RubyLongRange means this isn't a Range subclass (cf. NewNode), we can use the shape directly.
+            final Shape shape = coreLibrary().longRangeShape;
+            final RubyLongRange copy = new RubyLongRange(shape, range.excludedEnd, range.begin, range.end);
+            allocateHelper.trace(copy, this);
+            return copy;
+        }
+
+        @Specialization
+        protected RubyObjectRange dup(RubyObjectRange range) {
+            final Shape shape = allocateHelper.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(range));
+            final RubyObjectRange copy = new RubyObjectRange(shape, range.excludedEnd, range.begin, range.end);
+            allocateHelper.trace(copy, this);
+            return copy;
+        }
     }
 
     @CoreMethod(names = "end")
     public abstract static class EndNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isIntRange(range)")
-        protected int lastInt(DynamicObject range) {
-            return Layouts.INT_RANGE.getEnd(range);
+        @Specialization
+        protected int lastInt(RubyIntRange range) {
+            return range.end;
         }
 
-        @Specialization(guards = "isLongRange(range)")
-        protected long lastLong(DynamicObject range) {
-            return Layouts.LONG_RANGE.getEnd(range);
+        @Specialization
+        protected long lastLong(RubyLongRange range) {
+            return range.end;
         }
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected Object lastObject(DynamicObject range) {
-            return Layouts.OBJECT_RANGE.getEnd(range);
+        @Specialization
+        protected Object lastObject(RubyObjectRange range) {
+            return range.end;
         }
-
     }
 
     @CoreMethod(names = "step", needsBlock = true, optional = 1, lowerFixnum = 1)
@@ -284,18 +271,18 @@ public abstract class RangeNodes {
 
         @Child private CallDispatchHeadNode stepInternalCall;
 
-        @Specialization(guards = { "isIntRange(range)", "step > 0" })
-        protected Object stepInt(DynamicObject range, int step, DynamicObject block) {
+        @Specialization(guards = "step > 0")
+        protected Object stepInt(RubyIntRange range, int step, DynamicObject block) {
             int count = 0;
 
             try {
                 int result;
-                if (Layouts.INT_RANGE.getExcludedEnd(range)) {
-                    result = Layouts.INT_RANGE.getEnd(range);
+                if (range.excludedEnd) {
+                    result = range.end;
                 } else {
-                    result = Layouts.INT_RANGE.getEnd(range) + 1;
+                    result = range.end + 1;
                 }
-                for (int n = Layouts.INT_RANGE.getBegin(range); n < result; n += step) {
+                for (int n = range.begin; n < result; n += step) {
                     if (CompilerDirectives.inInterpreter()) {
                         count++;
                     }
@@ -311,18 +298,18 @@ public abstract class RangeNodes {
             return range;
         }
 
-        @Specialization(guards = { "isLongRange(range)", "step > 0" })
-        protected Object stepLong(DynamicObject range, int step, DynamicObject block) {
+        @Specialization(guards = "step > 0")
+        protected Object stepLong(RubyLongRange range, int step, DynamicObject block) {
             int count = 0;
 
             try {
                 long result;
-                if (Layouts.LONG_RANGE.getExcludedEnd(range)) {
-                    result = Layouts.LONG_RANGE.getEnd(range);
+                if (range.excludedEnd) {
+                    result = range.end;
                 } else {
-                    result = Layouts.LONG_RANGE.getEnd(range) + 1;
+                    result = range.end + 1;
                 }
-                for (long n = Layouts.LONG_RANGE.getBegin(range); n < result; n += step) {
+                for (long n = range.begin; n < result; n += step) {
                     if (CompilerDirectives.inInterpreter()) {
                         count++;
                     }
@@ -345,7 +332,7 @@ public abstract class RangeNodes {
                 stepInternalCall = insert(CallDispatchHeadNode.createPrivate());
             }
 
-            if (step instanceof NotProvided) {
+            if (RubyGuards.wasNotProvided(step)) {
                 step = 1;
             }
 
@@ -358,7 +345,6 @@ public abstract class RangeNodes {
 
             return stepInternalCall.callWithBlock(range, "step_internal", blockProc, step);
         }
-
     }
 
     @CoreMethod(names = "to_a")
@@ -366,14 +352,14 @@ public abstract class RangeNodes {
 
         @Child private CallDispatchHeadNode toAInternalCall;
 
-        @Specialization(guards = "isIntRange(range)")
-        protected DynamicObject toA(DynamicObject range) {
-            final int begin = Layouts.INT_RANGE.getBegin(range);
+        @Specialization
+        protected DynamicObject toA(RubyIntRange range) {
+            final int begin = range.begin;
             int result;
-            if (Layouts.INT_RANGE.getExcludedEnd(range)) {
-                result = Layouts.INT_RANGE.getEnd(range);
+            if (range.excludedEnd) {
+                result = range.end;
             } else {
-                result = Layouts.INT_RANGE.getEnd(range) + 1;
+                result = range.end + 1;
             }
             final int length = result - begin;
 
@@ -391,7 +377,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isBoundedObjectRange(range)")
-        protected Object boundedToA(VirtualFrame frame, DynamicObject range) {
+        protected Object boundedToA(VirtualFrame frame, RubyObjectRange range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toAInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -401,12 +387,11 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isEndlessObjectRange(range)")
-        protected Object endlessToA(VirtualFrame frame, DynamicObject range) {
+        protected Object endlessToA(VirtualFrame frame, RubyObjectRange range) {
             throw new RaiseException(getContext(), coreExceptions().rangeError(
                     "cannot convert endless range to an array",
                     this));
         }
-
     }
 
     /** Returns a conversion of the range into an int range, with regard to the supplied array (the array is necessary
@@ -416,33 +401,29 @@ public abstract class RangeNodes {
 
         @Child private ToIntNode toIntNode;
 
-        @Specialization(guards = "isIntRange(range)")
-        protected DynamicObject intRange(DynamicObject range, RubyArray array) {
+        @Specialization
+        protected RubyIntRange intRange(RubyIntRange range, RubyArray array) {
             return range;
         }
 
-        @Specialization(guards = "isLongRange(range)")
-        protected DynamicObject longRange(DynamicObject range, RubyArray array) {
-            int begin = toInt(Layouts.LONG_RANGE.getBegin(range));
-            int end = toInt(Layouts.LONG_RANGE.getEnd(range));
-            boolean excludedEnd = Layouts.LONG_RANGE.getExcludedEnd(range);
-            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
+        @Specialization
+        protected RubyIntRange longRange(RubyLongRange range, RubyArray array) {
+            int begin = toInt(range.begin);
+            int end = toInt(range.end);
+            return new RubyIntRange(coreLibrary().intRangeShape, range.excludedEnd, begin, end);
         }
 
         @Specialization(guards = "isBoundedObjectRange(range)")
-        protected DynamicObject boundedObjectRange(DynamicObject range, RubyArray array) {
-            int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
-            int end = toInt(Layouts.OBJECT_RANGE.getEnd(range));
-            boolean excludedEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
-            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
+        protected RubyIntRange boundedObjectRange(RubyObjectRange range, RubyArray array) {
+            int begin = toInt(range.begin);
+            int end = toInt(range.end);
+            return new RubyIntRange(coreLibrary().intRangeShape, range.excludedEnd, begin, end);
         }
 
         @Specialization(guards = "isEndlessObjectRange(range)")
-        protected DynamicObject endlessObjectRange(DynamicObject range, RubyArray array) {
-            int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
+        protected RubyIntRange endlessObjectRange(RubyObjectRange range, RubyArray array) {
             int end = array.size;
-            boolean excludedEnd = true;
-            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
+            return new RubyIntRange(coreLibrary().intRangeShape, true, toInt(range.begin), end);
         }
 
         private int toInt(Object indexObject) {
@@ -452,20 +433,18 @@ public abstract class RangeNodes {
             }
             return toIntNode.execute(indexObject);
         }
-
     }
 
     @Primitive(name = "range_initialize")
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isObjectRange(range)")
-        protected boolean setExcludeEnd(DynamicObject range, Object begin, Object end, boolean excludeEnd) {
-            Layouts.OBJECT_RANGE.setBegin(range, begin);
-            Layouts.OBJECT_RANGE.setEnd(range, end);
-            Layouts.OBJECT_RANGE.setExcludedEnd(range, excludeEnd);
-            return excludeEnd;
+        @Specialization
+        protected RubyObjectRange initialize(RubyObjectRange range, Object begin, Object end, boolean excludeEnd) {
+            range.excludedEnd = excludeEnd;
+            range.begin = begin;
+            range.end = end;
+            return range;
         }
-
     }
 
     @CoreMethod(names = "new", constructor = true, required = 2, optional = 1)
@@ -475,8 +454,7 @@ public abstract class RangeNodes {
     @NodeChild(value = "excludeEnd", type = RubyNode.class)
     public abstract static class NewNode extends CoreMethodNode {
 
-        @Child private CallDispatchHeadNode cmpNode;
-        @Child private AllocateObjectNode allocateNode;
+        @Child private AllocateHelperNode allocateHelper = AllocateHelperNode.create();
 
         @CreateCast("excludeEnd")
         protected RubyNode coerceToBoolean(RubyNode excludeEnd) {
@@ -484,67 +462,65 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "rubyClass == getRangeClass()")
-        protected DynamicObject intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
-            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludeEnd, begin, end);
+        protected RubyIntRange intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
+            // Not a Range subclass, we can use the shape directly.
+            final RubyIntRange range = new RubyIntRange(coreLibrary().intRangeShape, excludeEnd, begin, end);
+            allocateHelper.trace(range, this);
+            return range;
         }
 
-        @Specialization(guards = { "rubyClass == getRangeClass()", "fitsIntoInteger(begin)", "fitsIntoInteger(end)" })
-        protected DynamicObject longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
-            return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludeEnd, (int) begin, (int) end);
+        @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
+        protected RubyIntRange longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
+            // Not a Range subclass, we can use the shape directly.
+            final Shape shape = coreLibrary().intRangeShape;
+            final RubyIntRange range = new RubyIntRange(shape, excludeEnd, (int) begin, (int) end);
+            allocateHelper.trace(range, this);
+            return range;
         }
 
-        @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsIntoInteger(begin) || !fitsIntoInteger(end)" })
-        protected DynamicObject longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
-            return Layouts.LONG_RANGE.createLongRange(coreLibrary().longRangeFactory, excludeEnd, begin, end);
+        @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
+        protected RubyLongRange longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
+            // Not a Range subclass, we can use the shape directly.
+            final RubyLongRange range = new RubyLongRange(coreLibrary().longRangeShape, excludeEnd, begin, end);
+            allocateHelper.trace(range, this);
+            return range;
         }
 
         @Specialization(guards = { "rubyClass != getRangeClass() || (!isIntOrLong(begin) || !isIntOrLong(end))" })
-        protected Object objectRange(
+        protected RubyObjectRange objectRange(
                 VirtualFrame frame,
                 DynamicObject rubyClass,
                 Object begin,
                 Object end,
-                boolean excludeEnd) {
-            if (cmpNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                cmpNode = insert(CallDispatchHeadNode.createPrivate());
-            }
-            if (allocateNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateNode = insert(AllocateObjectNode.create());
-            }
+                boolean excludeEnd,
+                @Cached("createPrivate()") CallDispatchHeadNode compare) {
 
-            if (cmpNode.call(begin, "<=>", end) == nil && end != nil) {
+            if (compare.call(begin, "<=>", end) == nil && end != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));
             }
 
-            return allocateNode.allocate(rubyClass, excludeEnd, begin, end);
+            final Shape shape = allocateHelper.getCachedShape(rubyClass);
+            final RubyObjectRange range = new RubyObjectRange(shape, excludeEnd, begin, end);
+            allocateHelper.trace(range, this);
+            return range;
         }
 
         protected DynamicObject getRangeClass() {
             return coreLibrary().rangeClass;
         }
-
-        protected boolean fitsIntoInteger(long value) {
-            return CoreLibrary.fitsIntoInteger(value);
-        }
-
-        protected boolean isIntOrLong(Object value) {
-            return RubyGuards.isInteger(value) || RubyGuards.isLong(value);
-        }
-
     }
 
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateHelper = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, false, nil, nil);
+        protected RubyObjectRange allocate(DynamicObject rubyClass) {
+            final RubyObjectRange range = new RubyObjectRange(coreLibrary().objectRangeShape, false, nil, nil);
+            allocateHelper.trace(range, this);
+            return range;
         }
-
     }
 
     /** Returns an array containing normalized int range parameters {@code [start, length]}, such that both are 32-bits
@@ -582,40 +558,28 @@ public abstract class RangeNodes {
         private final ConditionProfile negativeBegin = ConditionProfile.create();
         private final ConditionProfile negativeEnd = ConditionProfile.create();
 
-        @Specialization(guards = "isIntRange(range)")
-        protected int[] normalizeIntRange(DynamicObject range, int size) {
-            return normalize(
-                    Layouts.INT_RANGE.getBegin(range),
-                    Layouts.INT_RANGE.getEnd(range),
-                    Layouts.INT_RANGE.getExcludedEnd(range),
-                    size);
+        @Specialization
+        protected int[] normalizeIntRange(RubyIntRange range, int size) {
+            return normalize(range.begin, range.end, range.excludedEnd, size);
         }
 
-        @Specialization(guards = "isLongRange(range)")
-        protected int[] normalizeLongRange(DynamicObject range, int size,
+        @Specialization
+        protected int[] normalizeLongRange(RubyLongRange range, int size,
                 @Cached ToIntNode toInt) {
-            return normalize(
-                    toInt.execute(Layouts.LONG_RANGE.getBegin(range)),
-                    toInt.execute(Layouts.LONG_RANGE.getEnd(range)),
-                    Layouts.LONG_RANGE.getExcludedEnd(range),
-                    size);
+            return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
         @Specialization(guards = "isEndlessObjectRange(range)")
-        protected int[] normalizeEndlessRange(DynamicObject range, int size,
+        protected int[] normalizeEndlessRange(RubyObjectRange range, int size,
                 @Cached ToIntNode toInt) {
-            int begin = toInt.execute(Layouts.OBJECT_RANGE.getBegin(range));
+            int begin = toInt.execute(range.begin);
             return new int[]{ begin >= 0 ? begin : begin + size, size - begin };
         }
 
         @Specialization(guards = "isBoundedObjectRange(range)")
-        protected int[] normalizeObjectRange(DynamicObject range, int size,
+        protected int[] normalizeObjectRange(RubyObjectRange range, int size,
                 @Cached ToIntNode toInt) {
-            return normalize(
-                    toInt.execute(Layouts.OBJECT_RANGE.getBegin(range)),
-                    toInt.execute(Layouts.OBJECT_RANGE.getEnd(range)),
-                    Layouts.OBJECT_RANGE.getExcludedEnd(range),
-                    size);
+            return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
         private int[] normalize(int begin, int end, boolean excludedEnd, int size) {

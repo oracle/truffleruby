@@ -31,6 +31,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -305,14 +306,13 @@ public abstract class MatchDataNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isIntRange(range)")
-        protected Object getIndex(RubyMatchData matchData, DynamicObject range, NotProvided len) {
+        @Specialization
+        protected Object getIndex(RubyMatchData matchData, RubyIntRange range, NotProvided len) {
             final Object[] values = getValuesNode.execute(matchData);
-            final int normalizedIndex = ArrayOperations
-                    .normalizeIndex(values.length, Layouts.INT_RANGE.getBegin(range));
-            final int end = ArrayOperations.normalizeIndex(values.length, Layouts.INT_RANGE.getEnd(range));
+            final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, range.begin);
+            final int end = ArrayOperations.normalizeIndex(values.length, range.end);
             final int exclusiveEnd = ArrayOperations
-                    .clampExclusiveIndex(values.length, Layouts.INT_RANGE.getExcludedEnd(range) ? end : end + 1);
+                    .clampExclusiveIndex(values.length, range.excludedEnd ? end : end + 1);
             final int length = exclusiveEnd - normalizedIndex;
 
             return createArray(Arrays.copyOfRange(values, normalizedIndex, normalizedIndex + length));

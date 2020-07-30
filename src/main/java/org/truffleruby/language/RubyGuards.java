@@ -11,12 +11,16 @@ package org.truffleruby.language;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.range.RubyIntRange;
+import org.truffleruby.core.range.RubyLongRange;
+import org.truffleruby.core.range.RubyObjectRange;
+import org.truffleruby.core.range.RubyRange;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
-import org.truffleruby.core.method.RubyMethod;
-import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
@@ -50,6 +54,10 @@ public abstract class RubyGuards {
 
     public static boolean isString(Object value) {
         return value instanceof String;
+    }
+
+    public static boolean isIntOrLong(Object value) {
+        return value instanceof Integer || value instanceof Long;
     }
 
     public static boolean isBasicInteger(Object object) {
@@ -86,36 +94,28 @@ public abstract class RubyGuards {
         return value instanceof RubyBigDecimal;
     }
 
-    public static boolean isIntRange(Object object) {
-        return Layouts.INT_RANGE.isIntRange(object);
+    public static boolean isIntRange(Object value) {
+        return value instanceof RubyIntRange;
     }
 
-    public static boolean isIntRange(DynamicObject object) {
-        return Layouts.INT_RANGE.isIntRange(object);
+    public static boolean isLongRange(Object value) {
+        return value instanceof RubyLongRange;
     }
 
-    public static boolean isLongRange(Object object) {
-        return Layouts.LONG_RANGE.isLongRange(object);
+    public static boolean isObjectRange(Object value) {
+        return value instanceof RubyObjectRange;
     }
 
-    public static boolean isLongRange(DynamicObject object) {
-        return Layouts.LONG_RANGE.isLongRange(object);
+    public static boolean isEndlessObjectRange(DynamicObject value) {
+        return isObjectRange(value) && ((RubyObjectRange) value).end == Nil.INSTANCE;
     }
 
-    public static boolean isObjectRange(Object object) {
-        return Layouts.OBJECT_RANGE.isObjectRange(object);
-    }
-
-    public static boolean isEndlessObjectRange(DynamicObject object) {
-        return isObjectRange(object) && Layouts.OBJECT_RANGE.getEnd(object) == Nil.INSTANCE;
-    }
-
-    public static boolean isBoundedObjectRange(DynamicObject object) {
-        return isObjectRange(object) && Layouts.OBJECT_RANGE.getEnd(object) != Nil.INSTANCE;
+    public static boolean isBoundedObjectRange(DynamicObject value) {
+        return isObjectRange(value) && ((RubyObjectRange) value).end != Nil.INSTANCE;
     }
 
     public static boolean isRubyRange(Object value) {
-        return isIntRange(value) || isLongRange(value) || isObjectRange(value);
+        return value instanceof RubyRange;
     }
 
     public static boolean isRubyArray(Object value) {
