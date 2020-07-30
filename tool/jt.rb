@@ -1319,6 +1319,7 @@ EOS
     gems = %w[algebrick]
 
     gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
+    SUBPROCESSES << gem_server
     begin
       ports = find_ports_for_pid(gem_server)
       raise 'More than one port opened' if ports.lines.size > 1
@@ -1364,6 +1365,7 @@ EOS
     ensure
       STDERR.puts 'Terminating gem server'
       terminate_process(gem_server)
+      SUBPROCESSES.delete(gem_server)
       STDERR.puts 'gem server terminated'
     end
   end
