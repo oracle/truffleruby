@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Oracle and/or its affiliates. All rights reserved. This
+ * Copyright (c) 2020 Oracle and/or its affiliates. All rights reserved. This
  * code is released under a tri EPL/GPL/LGPL license. You can use it,
  * redistribute it and/or modify it under the terms of the:
  *
@@ -9,15 +9,16 @@
  */
 package org.truffleruby.interop.messages;
 
-import org.truffleruby.Layouts;
-
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.extra.ffi.RubyPointer;
+import org.truffleruby.language.library.RubyLibrary;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
-public class PointerMessages extends RubyObjectMessages {
+@ExportLibrary(value = RubyLibrary.class, receiverType = DynamicObject.class)
+public class RubyPointerMessages extends RubyObjectMessages {
 
     @ExportMessage
     protected static boolean isPointer(DynamicObject receiver) {
@@ -26,10 +27,11 @@ public class PointerMessages extends RubyObjectMessages {
 
     @ExportMessage
     protected static long asPointer(DynamicObject receiver) {
-        return Layouts.POINTER.getPointer(receiver).getAddress();
+        return ((RubyPointer) receiver).pointer.getAddress();
     }
 
     @ExportMessage
     protected static void toNative(DynamicObject receiver) {
     }
+
 }

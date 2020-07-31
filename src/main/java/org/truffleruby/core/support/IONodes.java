@@ -84,11 +84,11 @@ import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadLocalBuffer;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.platform.Platform;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -505,16 +505,18 @@ public abstract class IONodes {
     @Primitive(name = "io_thread_buffer_allocate")
     public static abstract class IOThreadBufferAllocateNode extends PrimitiveArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
-        protected DynamicObject getThreadBuffer(long size,
-                @Cached AllocateObjectNode allocateObjectNode,
+        protected RubyPointer getThreadBuffer(long size,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached ConditionProfile sizeProfile) {
             DynamicObject thread = currentThreadNode.execute();
-            return allocateObjectNode
-                    .allocate(
-                            getContext().getCoreLibrary().truffleFFIPointerClass,
-                            getBuffer(thread, size, sizeProfile));
+            final RubyPointer instance = new RubyPointer(
+                    coreLibrary().truffleFFIPointerShape,
+                    getBuffer(thread, size, sizeProfile));
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
         public static Pointer getBuffer(DynamicObject rubyThread, long size, ConditionProfile sizeProfile) {
@@ -530,12 +532,12 @@ public abstract class IONodes {
     public static abstract class IOThreadBufferFreeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getThreadBuffer(DynamicObject pointer,
+        protected Object getThreadBuffer(RubyPointer pointer,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached("createBinaryProfile()") ConditionProfile freeProfile) {
             DynamicObject thread = currentThreadNode.execute();
             final ThreadLocalBuffer threadBuffer = Layouts.THREAD.getIoBuffer(thread);
-            assert threadBuffer.start.getAddress() == Layouts.POINTER.getPointer(pointer).getAddress();
+            assert threadBuffer.start.getAddress() == pointer.pointer.getAddress();
             Layouts.THREAD.setIoBuffer(thread, threadBuffer.free(freeProfile));
             return nil;
         }

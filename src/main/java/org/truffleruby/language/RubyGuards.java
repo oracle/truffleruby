@@ -199,10 +199,6 @@ public abstract class RubyGuards {
         return value instanceof DynamicObject;
     }
 
-    public static boolean isRubyPointer(DynamicObject value) {
-        return Layouts.POINTER.isPointer(value);
-    }
-
     public static boolean isRubyProc(Object object) {
         return Layouts.PROC.isProc(object);
     }

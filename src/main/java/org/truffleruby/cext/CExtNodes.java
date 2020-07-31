@@ -57,6 +57,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -78,7 +79,7 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.InitializeClassNode;
 import org.truffleruby.language.objects.InitializeClassNodeGen;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -1058,13 +1059,16 @@ public class CExtNodes {
     public abstract static class StringToPointerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject toNative(DynamicObject string,
+        protected RubyPointer toNative(DynamicObject string,
                 @Cached StringToNativeNode stringToNativeNode,
-                @Cached AllocateObjectNode allocateObjectNode) {
+                @Cached AllocateHelperNode allocateNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
-            return allocateObjectNode
-                    .allocate(coreLibrary().truffleFFIPointerClass, nativeRope.getNativePointer());
+            final RubyPointer instance = new RubyPointer(
+                    coreLibrary().truffleFFIPointerShape,
+                    nativeRope.getNativePointer());
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }

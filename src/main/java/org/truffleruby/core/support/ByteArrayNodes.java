@@ -10,7 +10,6 @@
 package org.truffleruby.core.support;
 
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -22,6 +21,7 @@ import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.PointerNodes;
+import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 
@@ -135,17 +135,17 @@ public abstract class ByteArrayNodes {
             return source;
         }
 
-        @Specialization(guards = "isRubyPointer(source)")
+        @Specialization
         protected Object fillFromPointer(
                 RubyByteArray byteArray,
                 int dstStart,
-                DynamicObject source,
+                RubyPointer source,
                 int srcStart,
                 int length,
                 @Cached BranchProfile nullPointerProfile) {
             assert length > 0;
 
-            final Pointer ptr = Layouts.POINTER.getPointer(source);
+            final Pointer ptr = source.pointer;
             final byte[] bytes = byteArray.bytes;
 
             PointerNodes.checkNull(ptr, getContext(), this, nullPointerProfile);
