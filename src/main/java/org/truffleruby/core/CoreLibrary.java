@@ -248,7 +248,7 @@ public class CoreLibrary {
     public final DynamicObject threadErrorClass;
     public final DynamicObject objectSpaceModule;
     public final Shape randomizerShape;
-    public final DynamicObjectFactory handleFactory;
+    public final Shape handleShape;
     public final DynamicObject ioClass;
     public final DynamicObject closedQueueErrorClass;
     public final DynamicObject warningModule;
@@ -647,8 +647,8 @@ public class CoreLibrary {
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
         defineModule(truffleModule, "WeakRefOperations");
         DynamicObject handleClass = defineClass(truffleModule, objectClass, "Handle");
-        handleFactory = Layouts.HANDLE.createHandleShape(handleClass, handleClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, handleFactory);
+        handleShape = createShape(RubyHandle.class, handleClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, createFactory(handleShape));
         warningModule = defineModule("Warning");
 
         bigDecimalClass = defineClass(numericClass, "BigDecimal");

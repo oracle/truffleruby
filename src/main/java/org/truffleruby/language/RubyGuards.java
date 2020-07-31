@@ -227,10 +227,6 @@ public abstract class RubyGuards {
         return object instanceof RubyMatchData;
     }
 
-    public static boolean isHandle(DynamicObject object) {
-        return Layouts.HANDLE.isHandle(object);
-    }
-
     public static boolean isRubyInteger(Object object) {
         return isBasicInteger(object) || isRubyBignum(object);
     }
