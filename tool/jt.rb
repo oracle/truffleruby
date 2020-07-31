@@ -2245,7 +2245,31 @@ EOS
   end
 
   def checkstyle
-    mx 'checkstyle', '-f', '--primary'
+    output = mx 'checkstyle', '-f', '--primary', capture: :both, continue_on_failure: true
+    status = $?
+
+    unused_import = /: Unused import -/
+    if !status.success? and output =~ unused_import
+      puts 'Automatically removing unused imports'
+      output.lines.reverse.grep(unused_import) do |line|
+        path, lineno, _ = line.split(':', 3)
+        lineno = Integer(lineno)
+
+        puts "Removing unused import in #{path}:#{lineno}"
+        lines = File.readlines path
+        lines.delete_at(lineno-1)
+        File.write path, lines.join
+      end
+
+      # Still error out as the removed imports should be committed, but mark them as fixed
+      output = output.lines.map { |line| line =~ unused_import ? "[FIXED] #{line}" : line }.join
+      puts
+    end
+
+    STDERR.puts output
+    unless status.success?
+      exit status.exitstatus
+    end
   end
 
   module Formatting
