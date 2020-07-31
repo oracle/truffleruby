@@ -37,6 +37,7 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
@@ -1143,14 +1144,14 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyMethod(methodObject)")
+        @Specialization
         protected RubySymbol defineMethodMethod(
                 DynamicObject module,
                 String name,
-                DynamicObject methodObject,
+                RubyMethod methodObject,
                 NotProvided block,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode) {
-            final InternalMethod method = Layouts.METHOD.getMethod(methodObject);
+            final InternalMethod method = methodObject.method;
 
             if (!canBindMethodToModuleNode.executeCanBindMethodToModule(method, module)) {
                 final DynamicObject declaringModule = method.getDeclaringModule();

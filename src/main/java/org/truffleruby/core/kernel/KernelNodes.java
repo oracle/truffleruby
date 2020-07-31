@@ -52,6 +52,7 @@ import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
@@ -101,6 +102,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.SharedMethodInfo;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.IsImmutableObjectNode;
 import org.truffleruby.language.objects.LogicalClassNode;
@@ -1225,6 +1227,7 @@ public abstract class KernelNodes {
 
         private final boolean ignoreVisibility;
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodNode lookupMethodNode;
         @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createPrivate();
@@ -1261,8 +1264,9 @@ public abstract class KernelNodes {
                                     this));
                 }
             }
-
-            return Layouts.METHOD.createMethod(coreLibrary().methodFactory, self, method);
+            final RubyMethod instance = new RubyMethod(coreLibrary().methodShape, self, method);
+            allocateNode.trace(getContext().getLanguage(), getContext(), instance);
+            return instance;
         }
 
         @TruffleBoundary
@@ -1656,6 +1660,7 @@ public abstract class KernelNodes {
     @NodeChild(value = "name", type = RubyNode.class)
     public abstract static class SingletonMethodNode extends CoreMethodNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private MetaClassNode metaClassNode = MetaClassNode.create();
 
         @CreateCast("name")
@@ -1673,7 +1678,9 @@ public abstract class KernelNodes {
             if (singletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
                 final InternalMethod method = Layouts.MODULE.getFields(metaClass).getMethod(name);
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
-                    return Layouts.METHOD.createMethod(coreLibrary().methodFactory, self, method);
+                    final RubyMethod instance = new RubyMethod(coreLibrary().methodShape, self, method);
+                    allocateNode.trace(instance, this);
+                    return instance;
                 }
             }
 

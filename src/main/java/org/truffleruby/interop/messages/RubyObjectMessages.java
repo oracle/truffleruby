@@ -18,6 +18,7 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
@@ -174,7 +175,7 @@ public class RubyObjectMessages {
         if (RubyGuards.isRubyModule(receiver)) {
             return Layouts.CLASS.getFields(receiver).getSourceSection();
         } else if (RubyGuards.isRubyMethod(receiver)) {
-            return Layouts.METHOD.getMethod(receiver).getSharedMethodInfo().getSourceSection();
+            return ((RubyMethod) receiver).method.getSharedMethodInfo().getSourceSection();
         } else if (RubyGuards.isRubyUnboundMethod(receiver)) {
             return Layouts.UNBOUND_METHOD.getMethod(receiver).getSharedMethodInfo().getSourceSection();
         } else if (RubyGuards.isRubyProc(receiver)) {

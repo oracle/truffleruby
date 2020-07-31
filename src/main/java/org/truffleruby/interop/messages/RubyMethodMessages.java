@@ -9,21 +9,23 @@
  */
 package org.truffleruby.interop.messages;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.interop.ForeignToRubyArgumentsNode;
-import org.truffleruby.language.Nil;
-import org.truffleruby.language.methods.CallBoundMethodNode;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.interop.ForeignToRubyArgumentsNode;
+import org.truffleruby.language.Nil;
+import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.methods.CallBoundMethodNode;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
-public class MethodMessages extends RubyObjectMessages {
+@ExportLibrary(value = RubyLibrary.class, receiverType = DynamicObject.class)
+public class RubyMethodMessages extends RubyObjectMessages {
 
     @ExportMessage
     protected static boolean isExecutable(DynamicObject receiver) {
@@ -37,8 +39,9 @@ public class MethodMessages extends RubyObjectMessages {
             @CachedContext(RubyLanguage.class) RubyContext context) {
 
         return callBoundMethodNode.executeCallBoundMethod(
-                method,
+                (RubyMethod) method,
                 foreignToRubyArgumentsNode.executeConvert(arguments),
                 Nil.INSTANCE);
     }
+
 }

@@ -22,8 +22,6 @@ import org.truffleruby.core.hash.HashLayout;
 import org.truffleruby.core.hash.HashLayoutImpl;
 import org.truffleruby.core.klass.ClassLayout;
 import org.truffleruby.core.klass.ClassLayoutImpl;
-import org.truffleruby.core.method.MethodLayout;
-import org.truffleruby.core.method.MethodLayoutImpl;
 import org.truffleruby.core.method.UnboundMethodLayout;
 import org.truffleruby.core.method.UnboundMethodLayoutImpl;
 import org.truffleruby.core.module.ModuleLayout;
@@ -81,7 +79,6 @@ public abstract class Layouts {
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;
     public static final IntRangeLayout INT_RANGE = IntRangeLayoutImpl.INSTANCE;
     public static final LongRangeLayout LONG_RANGE = LongRangeLayoutImpl.INSTANCE;
-    public static final MethodLayout METHOD = MethodLayoutImpl.INSTANCE;
     public static final ModuleLayout MODULE = ModuleLayoutImpl.INSTANCE;
     public static final ObjectRangeLayout OBJECT_RANGE = ObjectRangeLayoutImpl.INSTANCE;
     public static final PointerLayout POINTER = PointerLayoutImpl.INSTANCE;
