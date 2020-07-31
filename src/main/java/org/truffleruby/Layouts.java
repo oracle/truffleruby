@@ -9,7 +9,6 @@
  */
 package org.truffleruby;
 
-import com.oracle.truffle.api.object.HiddenKey;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
 import org.truffleruby.core.fiber.FiberLayout;
@@ -24,8 +23,6 @@ import org.truffleruby.core.module.ModuleLayout;
 import org.truffleruby.core.module.ModuleLayoutImpl;
 import org.truffleruby.core.proc.ProcLayout;
 import org.truffleruby.core.proc.ProcLayoutImpl;
-import org.truffleruby.core.queue.SizedQueueLayout;
-import org.truffleruby.core.queue.SizedQueueLayoutImpl;
 import org.truffleruby.core.string.StringLayout;
 import org.truffleruby.core.string.StringLayoutImpl;
 import org.truffleruby.core.thread.ThreadLayout;
@@ -36,6 +33,8 @@ import org.truffleruby.extra.AtomicReferenceLayout;
 import org.truffleruby.extra.AtomicReferenceLayoutImpl;
 import org.truffleruby.stdlib.digest.DigestLayout;
 import org.truffleruby.stdlib.digest.DigestLayoutImpl;
+
+import com.oracle.truffle.api.object.HiddenKey;
 
 public abstract class Layouts {
 
@@ -59,7 +58,6 @@ public abstract class Layouts {
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;
     public static final ModuleLayout MODULE = ModuleLayoutImpl.INSTANCE;
     public static final ProcLayout PROC = ProcLayoutImpl.INSTANCE;
-    public static final SizedQueueLayout SIZED_QUEUE = SizedQueueLayoutImpl.INSTANCE;
     public static final StringLayout STRING = StringLayoutImpl.INSTANCE;
     public static final ThreadLayout THREAD = ThreadLayoutImpl.INSTANCE;
     public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;

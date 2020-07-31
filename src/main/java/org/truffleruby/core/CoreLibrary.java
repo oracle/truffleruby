@@ -52,6 +52,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.RubyWeakMap;
 import org.truffleruby.core.queue.RubyQueue;
+import org.truffleruby.core.queue.RubySizedQueue;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
@@ -532,10 +533,8 @@ public class CoreLibrary {
         Shape queueShape = createShape(RubyQueue.class, queueClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(queueClass, createFactory(queueShape));
         DynamicObject sizedQueueClass = defineClass(queueClass, "SizedQueue");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                sizedQueueClass,
-                Layouts.SIZED_QUEUE.createSizedQueueShape(sizedQueueClass, sizedQueueClass));
-
+        Shape sizedQueueShape = createShape(RubySizedQueue.class, sizedQueueClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(sizedQueueClass, createFactory(sizedQueueShape));
         rangeClass = defineClass("Range");
         intRangeShape = createShape(RubyIntRange.class, rangeClass);
         longRangeShape = createShape(RubyLongRange.class, rangeClass);
