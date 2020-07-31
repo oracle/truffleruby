@@ -6,6 +6,7 @@ New features:
 Bug fixes:
 
 * Handle foreign null object as falsy value (#1902, @ssnickolay)
+* Fixed return value of `Enumerable#first` (#2056, @LillianZ).
 
 Compatibility:
 
