@@ -35,6 +35,7 @@ import org.truffleruby.core.encoding.EncodingNodesFactory.CheckRopeEncodingNodeG
 import org.truffleruby.core.encoding.EncodingNodesFactory.GetRubyEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -654,10 +655,10 @@ public abstract class EncodingNodes {
             return object;
         }
 
-        @Specialization(guards = "isRubyRegexp(object)")
-        protected Object encodingGetObjectEncodingRegexp(DynamicObject object,
+        @Specialization
+        protected Object encodingGetObjectEncodingRegexp(RubyRegexp object,
                 @Cached ConditionProfile hasRegexpSource) {
-            final Rope regexpSource = Layouts.REGEXP.getSource(object);
+            final Rope regexpSource = object.source;
 
             if (hasRegexpSource.profile(regexpSource != null)) {
                 return getRubyEncodingNode.executeGetRubyEncoding(regexpSource.getEncoding());

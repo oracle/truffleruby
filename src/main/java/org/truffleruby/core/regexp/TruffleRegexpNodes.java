@@ -56,7 +56,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Truffle::RegexpOperations")
@@ -101,7 +100,7 @@ public class TruffleRegexpNodes {
                 final Rope rope = StringOperations.rope((DynamicObject) obj);
                 return makeStringNode.fromRope(ClassicRegexp.quote19(rope));
             } else {
-                return toSNode.execute((DynamicObject) obj);
+                return toSNode.execute((RubyRegexp) obj);
             }
         }
 
@@ -124,9 +123,12 @@ public class TruffleRegexpNodes {
             final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
             final Regex regex = compile(getContext(), pattern, regexpOptions, this);
 
-            final DynamicObjectFactory factory = getContext().getCoreLibrary().regexpFactory;
-            return Layouts.REGEXP
-                    .createRegexp(factory, regex, (Rope) regex.getUserObject(), regexpOptions, new EncodingCache());
+            return new RubyRegexp(
+                    getContext().getCoreLibrary().regexpShape,
+                    regex,
+                    (Rope) regex.getUserObject(),
+                    regexpOptions,
+                    new EncodingCache());
         }
     }
 
@@ -176,7 +178,7 @@ public class TruffleRegexpNodes {
             return MatchNodeGen.create();
         }
 
-        public abstract Object execute(DynamicObject regexp, DynamicObject string, Matcher matcher,
+        public abstract Object execute(RubyRegexp regexp, DynamicObject string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart);
 
         // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
@@ -192,14 +194,13 @@ public class TruffleRegexpNodes {
         // same as when the MatchData was created.
         @Specialization
         protected Object executeMatch(
-                DynamicObject regexp,
+                RubyRegexp regexp,
                 DynamicObject string,
                 Matcher matcher,
                 int startPos,
                 int range,
                 boolean onlyMatchAtStart,
                 @Cached ConditionProfile matchesProfile) {
-            assert RubyGuards.isRubyRegexp(regexp);
             assert RubyGuards.isRubyString(string);
 
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
@@ -216,11 +217,7 @@ public class TruffleRegexpNodes {
 
             final Region region = matcher.getEagerRegion();
             final DynamicObject dupedString = (DynamicObject) dupNode.call(string, "dup");
-            DynamicObject result = allocateNode.allocate(matchDataClass(), Layouts.MATCH_DATA.build(
-                    dupedString,
-                    regexp,
-                    region,
-                    null));
+            RubyMatchData result = new RubyMatchData(coreLibrary().matchDataShape, regexp, dupedString, region, null);
             return taintResultNode.maybeTaint(string, result);
         }
 
@@ -239,10 +236,10 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        protected void instrument(DynamicObject regexp, DynamicObject string, boolean fromStart) {
-            Rope source = Layouts.REGEXP.getSource(regexp);
+        protected void instrument(RubyRegexp regexp, DynamicObject string, boolean fromStart) {
+            Rope source = regexp.source;
             Encoding enc = Layouts.STRING.getRope(string).getEncoding();
-            RegexpOptions options = Layouts.REGEXP.getOptions(regexp);
+            RegexpOptions options = regexp.options;
             MatchInfo matchInfo = new MatchInfo(
                     new RegexpCacheKey(
                             source,
@@ -251,10 +248,6 @@ public class TruffleRegexpNodes {
                             getContext().getHashing(REHASH_MATCHED_REGEXPS)),
                     fromStart);
             ConcurrentOperations.getOrCompute(matchedRegexps, matchInfo, x -> new AtomicInteger()).incrementAndGet();
-        }
-
-        protected DynamicObject matchDataClass() {
-            return getContext().getCoreLibrary().matchDataClass;
         }
     }
 

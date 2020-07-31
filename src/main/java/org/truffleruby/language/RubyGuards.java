@@ -12,6 +12,8 @@ package org.truffleruby.language;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.regexp.RubyMatchData;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
@@ -150,11 +152,11 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyRegexp(Object value) {
-        return Layouts.REGEXP.isRegexp(value);
+        return value instanceof RubyRegexp;
     }
 
     public static boolean isRubyRegexp(DynamicObject value) {
-        return Layouts.REGEXP.isRegexp(value);
+        return value instanceof RubyRegexp;
     }
 
     public static boolean isRubyString(Object value) {
@@ -222,7 +224,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyMatchData(DynamicObject object) {
-        return Layouts.MATCH_DATA.isMatchData(object);
+        return object instanceof RubyMatchData;
     }
 
     public static boolean isHandle(DynamicObject object) {
