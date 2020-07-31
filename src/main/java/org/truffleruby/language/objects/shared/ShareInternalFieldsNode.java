@@ -15,6 +15,7 @@ import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
 import org.truffleruby.core.queue.UnsizedQueue;
+import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
@@ -84,15 +85,11 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
         assert ArrayOperations.isPrimitiveStorage(array);
     }
 
-    @Specialization(
-            guards = { "object.getShape() == cachedShape", "isQueueShape(cachedShape)" },
-            assumptions = "cachedShape.getValidAssumption()",
-            limit = "CACHE_LIMIT")
-    protected void shareCachedQueue(DynamicObject object,
-            @Cached("object.getShape()") Shape cachedShape,
+    @Specialization
+    protected void shareCachedQueue(RubyQueue object,
             @Cached ConditionProfile profileEmpty,
             @Cached("createWriteBarrierNode()") WriteBarrierNode writeBarrierNode) {
-        final UnsizedQueue queue = Layouts.QUEUE.getQueue(object);
+        final UnsizedQueue queue = object.queue;
         if (!profileEmpty.profile(queue.isEmpty())) {
             for (Object e : BoundaryIterable.wrap(queue.getContents())) {
                 writeBarrierNode.executeWriteBarrier(e);
