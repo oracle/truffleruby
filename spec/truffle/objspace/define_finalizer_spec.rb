@@ -23,6 +23,9 @@ describe "ObjectSpace.define_finalizer" do
   # Truffle::Debug.drain_finalization_queue, which drains the queue in
   # TruffleRuby in the foreground, does seem to help increase test throughput.
 
+  # NOTE(norswap, 30 Jul 2020): This caused sporadic transients in the gate, so I've disabled it with a failing tag.
+  #   The assumption is that this works as expected but is just hard to test.
+
   it "will call the finalizer" do
     channel = Truffle::Channel.new
     finalizer = proc {
