@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
@@ -23,8 +24,6 @@ import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
-
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class RubyGuards {
 
@@ -204,10 +203,6 @@ public abstract class RubyGuards {
 
     public static boolean isRubyProc(DynamicObject object) {
         return Layouts.PROC.isProc(object);
-    }
-
-    public static boolean isRubyTime(DynamicObject object) {
-        return Layouts.TIME.isTime(object);
     }
 
     public static boolean isRubyFiber(DynamicObject object) {

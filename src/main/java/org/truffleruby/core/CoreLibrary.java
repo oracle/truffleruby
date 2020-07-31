@@ -51,10 +51,10 @@ import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.RubyWeakMap;
+import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
-import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
@@ -64,8 +64,9 @@ import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.core.thread.RubyBacktraceLocation;
+import org.truffleruby.core.time.RubyTime;
+import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -558,11 +559,12 @@ public class CoreLibrary {
         DynamicObject threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
         DynamicObject threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
         threadBacktraceLocationShape = createShape(RubyBacktraceLocation.class, threadBacktraceLocationClass);
-        Layouts.CLASS
-                .setInstanceFactoryUnsafe(threadBacktraceLocationClass, createFactory(threadBacktraceLocationShape));
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                threadBacktraceLocationClass,
+                createFactory(threadBacktraceLocationShape));
         DynamicObject timeClass = defineClass("Time");
-        DynamicObjectFactory timeFactory = Layouts.TIME.createTimeShape(timeClass, timeClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, timeFactory);
+        Shape timeShape = createShape(RubyTime.class, timeClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, createFactory(timeShape));
         trueClass = defineClass("TrueClass");
         DynamicObject unboundMethodClass = defineClass("UnboundMethod");
         unboundMethodFactory = Layouts.UNBOUND_METHOD.createUnboundMethodShape(unboundMethodClass, unboundMethodClass);

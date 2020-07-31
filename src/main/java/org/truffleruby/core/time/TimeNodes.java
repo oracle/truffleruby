@@ -9,15 +9,15 @@
  */
 package org.truffleruby.core.time;
 
-import java.time.DateTimeException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.util.List;
-
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -35,15 +35,14 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.Token;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.time.DateTimeException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 @CoreModule(value = "Time", isClass = true)
 public abstract class TimeNodes {
@@ -59,11 +58,14 @@ public abstract class TimeNodes {
 
         private static final ZonedDateTime ZERO = ZonedDateTime.ofInstant(Instant.EPOCH, GetTimeZoneNode.UTC);
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass, Layouts.TIME.build(ZERO, nil, 0, false, false));
+            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final RubyTime instance = new RubyTime(shape, ZERO, nil, 0, false, false);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -71,13 +73,13 @@ public abstract class TimeNodes {
     @CoreMethod(names = "initialize_copy", required = 1)
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyTime(from)")
-        protected Object initializeCopy(DynamicObject self, DynamicObject from) {
-            Layouts.TIME.setDateTime(self, Layouts.TIME.getDateTime(from));
-            Layouts.TIME.setOffset(self, Layouts.TIME.getOffset(from));
-            Layouts.TIME.setZone(self, Layouts.TIME.getZone(from));
-            Layouts.TIME.setRelativeOffset(self, Layouts.TIME.getRelativeOffset(from));
-            Layouts.TIME.setIsUtc(self, Layouts.TIME.getIsUtc(from));
+        @Specialization
+        protected Object initializeCopy(RubyTime self, RubyTime from) {
+            self.dateTime = from.dateTime;
+            self.offset = from.offset;
+            self.zone = from.zone;
+            self.relativeOffset = from.relativeOffset;
+            self.isUtc = from.isUtc;
             return self;
         }
 
@@ -89,29 +91,29 @@ public abstract class TimeNodes {
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
 
         @Specialization(guards = "isNil(offset)")
-        protected DynamicObject localtime(DynamicObject time, Object offset,
+        protected DynamicObject localtime(RubyTime time, Object offset,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
-            final ZonedDateTime newDateTime = withZone(Layouts.TIME.getDateTime(time), timeZoneAndName.getZone());
+            final ZonedDateTime newDateTime = withZone(time.dateTime, timeZoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, newDateTime, timeZoneAndName);
 
-            Layouts.TIME.setIsUtc(time, false);
-            Layouts.TIME.setRelativeOffset(time, false);
-            Layouts.TIME.setZone(time, zone);
-            Layouts.TIME.setDateTime(time, newDateTime);
+            time.isUtc = false;
+            time.relativeOffset = false;
+            time.zone = zone;
+            time.dateTime = newDateTime;
 
             return time;
         }
 
         @Specialization
-        protected DynamicObject localtime(DynamicObject time, long offset) {
+        protected DynamicObject localtime(RubyTime time, long offset) {
             final ZoneId zone = getDateTimeZone((int) offset);
-            final ZonedDateTime dateTime = withZone(Layouts.TIME.getDateTime(time), zone);
+            final ZonedDateTime dateTime = withZone(time.dateTime, zone);
 
-            Layouts.TIME.setIsUtc(time, false);
-            Layouts.TIME.setRelativeOffset(time, true);
-            Layouts.TIME.setZone(time, nil);
-            Layouts.TIME.setDateTime(time, dateTime);
+            time.isUtc = false;
+            time.relativeOffset = true;
+            time.zone = nil;
+            time.dateTime = dateTime;
 
             return time;
         }
@@ -139,9 +141,9 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject add(DynamicObject time, long seconds, long nanoSeconds) {
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-            Layouts.TIME.setDateTime(time, dateTime.plusSeconds(seconds).plusNanos(nanoSeconds));
+        protected DynamicObject add(RubyTime time, long seconds, long nanoSeconds) {
+            final ZonedDateTime dateTime = time.dateTime;
+            time.dateTime = dateTime.plusSeconds(seconds).plusNanos(nanoSeconds);
             return time;
         }
     }
@@ -150,13 +152,13 @@ public abstract class TimeNodes {
     public abstract static class GmTimeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject gmtime(DynamicObject time) {
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
+        protected DynamicObject gmtime(RubyTime time) {
+            final ZonedDateTime dateTime = time.dateTime;
 
-            Layouts.TIME.setIsUtc(time, true);
-            Layouts.TIME.setRelativeOffset(time, false);
-            Layouts.TIME.setZone(time, coreStrings().UTC.createInstance());
-            Layouts.TIME.setDateTime(time, inUTC(dateTime));
+            time.isUtc = true;
+            time.relativeOffset = false;
+            time.zone = coreStrings().UTC.createInstance();
+            time.dateTime = inUTC(dateTime);
 
             return time;
         }
@@ -171,7 +173,7 @@ public abstract class TimeNodes {
     @CoreMethod(names = "now", constructor = true)
     public static abstract class TimeNowNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -180,7 +182,11 @@ public abstract class TimeNodes {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, dt, zoneAndName);
-            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(dt, zone, nil, false, false));
+            final Shape shape = allocateNode.getCachedShape(timeClass);
+            final RubyTime instance = new RubyTime(shape, dt, zone, nil, false, false);
+            allocateNode.trace(instance, this);
+            return instance;
+
         }
 
         @TruffleBoundary
@@ -194,7 +200,7 @@ public abstract class TimeNodes {
     public static abstract class TimeAtPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
@@ -202,12 +208,17 @@ public abstract class TimeNodes {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
-            return allocateObjectNode.allocate(timeClass, Layouts.TIME.build(
+
+            final Shape shape = allocateNode.getCachedShape(timeClass);
+            final RubyTime instance = new RubyTime(
+                    shape,
                     dateTime,
                     zone,
                     nil,
                     false,
-                    false));
+                    false);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
         @TruffleBoundary
@@ -228,8 +239,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected long timeSeconds(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).toInstant().getEpochSecond();
+        protected long timeSeconds(RubyTime time) {
+            return time.dateTime.toInstant().getEpochSecond();
         }
 
     }
@@ -239,8 +250,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeUSec(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getNano() / 1000;
+        protected int timeUSec(RubyTime time) {
+            return time.dateTime.getNano() / 1000;
         }
 
     }
@@ -250,8 +261,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeNSec(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getNano();
+        protected int timeNSec(RubyTime time) {
+            return time.dateTime.getNano();
         }
 
     }
@@ -261,9 +272,9 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected long timeSetNSeconds(DynamicObject time, int nanoseconds) {
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
-            Layouts.TIME.setDateTime(time, dateTime.plusNanos(nanoseconds - dateTime.getNano()));
+        protected long timeSetNSeconds(RubyTime time, int nanoseconds) {
+            final ZonedDateTime dateTime = time.dateTime;
+            time.dateTime = dateTime.plusNanos(nanoseconds - dateTime.getNano());
             return nanoseconds;
         }
 
@@ -274,8 +285,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeUTCOffset(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getOffset().getTotalSeconds();
+        protected int timeUTCOffset(RubyTime time) {
+            return time.dateTime.getOffset().getTotalSeconds();
         }
     }
 
@@ -284,8 +295,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeSec(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getSecond();
+        protected int timeSec(RubyTime time) {
+            return time.dateTime.getSecond();
         }
 
     }
@@ -295,8 +306,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeMin(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getMinute();
+        protected int timeMin(RubyTime time) {
+            return time.dateTime.getMinute();
         }
 
     }
@@ -306,8 +317,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeHour(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getHour();
+        protected int timeHour(RubyTime time) {
+            return time.dateTime.getHour();
         }
 
     }
@@ -317,8 +328,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeDay(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getDayOfMonth();
+        protected int timeDay(RubyTime time) {
+            return time.dateTime.getDayOfMonth();
         }
 
     }
@@ -328,8 +339,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeMonth(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getMonthValue();
+        protected int timeMonth(RubyTime time) {
+            return time.dateTime.getMonthValue();
         }
 
     }
@@ -339,8 +350,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeYear(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getYear();
+        protected int timeYear(RubyTime time) {
+            return time.dateTime.getYear();
         }
 
     }
@@ -350,8 +361,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeWeekDay(DynamicObject time) {
-            int wday = Layouts.TIME.getDateTime(time).getDayOfWeek().getValue();
+        protected int timeWeekDay(RubyTime time) {
+            int wday = time.dateTime.getDayOfWeek().getValue();
             if (wday == 7) {
                 wday = 0;
             }
@@ -365,8 +376,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int timeYeayDay(DynamicObject time) {
-            return Layouts.TIME.getDateTime(time).getDayOfYear();
+        protected int timeYeayDay(RubyTime time) {
+            return time.dateTime.getDayOfYear();
         }
 
     }
@@ -376,8 +387,8 @@ public abstract class TimeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean timeIsDST(DynamicObject time) {
-            final ZonedDateTime dateTime = Layouts.TIME.getDateTime(time);
+        protected boolean timeIsDST(RubyTime time) {
+            final ZonedDateTime dateTime = time.dateTime;
             return dateTime.getZone().getRules().isDaylightSavings(dateTime.toInstant());
         }
 
@@ -387,8 +398,8 @@ public abstract class TimeNodes {
     public abstract static class IsUTCNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isUTC(DynamicObject time) {
-            return Layouts.TIME.getIsUtc(time);
+        protected boolean isUTC(RubyTime time) {
+            return time.isUtc;
         }
 
     }
@@ -397,8 +408,8 @@ public abstract class TimeNodes {
     public static abstract class TimeZoneNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object timeZone(DynamicObject time) {
-            return Layouts.TIME.getZone(time);
+        protected Object timeZone(RubyTime time) {
+            return time.zone;
         }
 
     }
@@ -413,7 +424,7 @@ public abstract class TimeNodes {
         @Specialization(
                 guards = { "isRubyString(format)", "equalNode.execute(rope(format), cachedFormat)" },
                 limit = "getContext().getOptions().TIME_FORMAT_CACHE")
-        protected DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format,
+        protected DynamicObject timeStrftime(VirtualFrame frame, RubyTime time, DynamicObject format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
                 @Cached RopeNodes.EqualNode equalNode) {
@@ -421,7 +432,7 @@ public abstract class TimeNodes {
         }
 
         @Specialization(guards = "isRubyString(format)")
-        protected DynamicObject timeStrftime(VirtualFrame frame, DynamicObject time, DynamicObject format) {
+        protected DynamicObject timeStrftime(VirtualFrame frame, RubyTime time, DynamicObject format) {
             final List<Token> pattern = compilePattern(StringOperations.rope(format));
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
@@ -431,11 +442,11 @@ public abstract class TimeNodes {
             return RubyDateFormatter.compilePattern(format, false, getContext(), this);
         }
 
-        private RopeBuilder formatTime(DynamicObject time, List<Token> pattern) {
+        private RopeBuilder formatTime(RubyTime time, List<Token> pattern) {
             return RubyDateFormatter.formatToRopeBuilder(
                     pattern,
-                    Layouts.TIME.getDateTime(time),
-                    Layouts.TIME.getZone(time),
+                    time.dateTime,
+                    time.zone,
                     getContext(),
                     this,
                     errnoErrorNode);
@@ -457,11 +468,11 @@ public abstract class TimeNodes {
     public static abstract class TimeSFromArrayPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode;
 
         @Specialization(guards = "(isutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
-        protected DynamicObject timeSFromArray(
+        protected RubyTime timeSFromArray(
                 DynamicObject timeClass,
                 int sec,
                 int min,
@@ -493,7 +504,7 @@ public abstract class TimeNodes {
         }
 
         @TruffleBoundary
-        private DynamicObject buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month,
+        private RubyTime buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month,
                 int year, int nsec, int isdst, boolean isutc, Object utcoffset) {
             if (sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||
@@ -568,10 +579,16 @@ public abstract class TimeNodes {
             if (envZone != null) {
                 zoneToStore = getShortZoneName(makeStringNode, dt, envZone);
             }
-
-            return allocateObjectNode.allocate(
-                    timeClass,
-                    Layouts.TIME.build(dt, zoneToStore, utcoffset, relativeOffset, isutc));
+            final Shape shape = allocateNode.getCachedShape(timeClass);
+            final RubyTime instance = new RubyTime(
+                    shape,
+                    dt,
+                    zoneToStore,
+                    utcoffset,
+                    relativeOffset,
+                    isutc);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
         private ZoneOffset getZoneOffset(int offset) {
