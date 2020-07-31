@@ -67,6 +67,7 @@ import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyBacktraceLocation;
 import org.truffleruby.core.time.RubyTime;
+import org.truffleruby.extra.RubyAtomicReference;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -605,9 +606,8 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, createFactory(encodingConverterShape));
         final DynamicObject truffleRubyModule = defineModule("TruffleRuby");
         DynamicObject atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                atomicReferenceClass,
-                Layouts.ATOMIC_REFERENCE.createAtomicReferenceShape(atomicReferenceClass, atomicReferenceClass));
+        Shape atomicReferenceShape = createShape(RubyAtomicReference.class, atomicReferenceClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass, createFactory(atomicReferenceShape));
         truffleModule = defineModule("Truffle");
         truffleInternalModule = defineModule(truffleModule, "Internal");
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");

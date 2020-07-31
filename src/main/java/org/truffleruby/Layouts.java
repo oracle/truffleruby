@@ -29,8 +29,6 @@ import org.truffleruby.core.thread.ThreadLayout;
 import org.truffleruby.core.thread.ThreadLayoutImpl;
 import org.truffleruby.core.tracepoint.TracePointLayout;
 import org.truffleruby.core.tracepoint.TracePointLayoutImpl;
-import org.truffleruby.extra.AtomicReferenceLayout;
-import org.truffleruby.extra.AtomicReferenceLayoutImpl;
 import org.truffleruby.stdlib.digest.DigestLayout;
 import org.truffleruby.stdlib.digest.DigestLayoutImpl;
 
@@ -61,7 +59,6 @@ public abstract class Layouts {
     public static final StringLayout STRING = StringLayoutImpl.INSTANCE;
     public static final ThreadLayout THREAD = ThreadLayoutImpl.INSTANCE;
     public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;
-    public static final AtomicReferenceLayout ATOMIC_REFERENCE = AtomicReferenceLayoutImpl.INSTANCE;
     public static final TracePointLayout TRACE_POINT = TracePointLayoutImpl.INSTANCE;
     public static final DigestLayout DIGEST = DigestLayoutImpl.INSTANCE;
 

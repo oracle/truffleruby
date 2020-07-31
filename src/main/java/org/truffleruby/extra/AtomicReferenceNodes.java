@@ -9,21 +9,21 @@
  */
 package org.truffleruby.extra;
 
-import java.util.concurrent.atomic.AtomicReference;
-
-import org.truffleruby.Layouts;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.concurrent.atomic.AtomicReference;
 
 @CoreModule(value = "TruffleRuby::AtomicReference", isClass = true)
 public abstract class AtomicReferenceNodes {
@@ -31,11 +31,14 @@ public abstract class AtomicReferenceNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateNode.allocate(rubyClass, new AtomicReference<>(nil));
+        protected RubyAtomicReference allocate(DynamicObject rubyClass) {
+            final Shape shape = allocateNode.getCachedShape(rubyClass);
+            final RubyAtomicReference instance = new RubyAtomicReference(shape, new AtomicReference<>(nil));
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -44,18 +47,18 @@ public abstract class AtomicReferenceNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initializeNoValue(DynamicObject self, NotProvided value) {
+        protected RubyAtomicReference initializeNoValue(RubyAtomicReference self, NotProvided value) {
             return self;
         }
 
-        @Specialization(guards = "isNil(value)")
-        protected DynamicObject initializeNil(DynamicObject self, Object value) {
+        @Specialization
+        protected RubyAtomicReference initializeNil(RubyAtomicReference self, Nil value) {
             return self;
         }
 
         @Specialization(guards = { "!isNil(value)", "wasProvided(value)" })
-        protected DynamicObject initializeWithValue(DynamicObject self, Object value) {
-            Layouts.ATOMIC_REFERENCE.setValue(self, value);
+        protected RubyAtomicReference initializeWithValue(RubyAtomicReference self, Object value) {
+            self.value.set(value);
             return self;
         }
 
@@ -65,8 +68,8 @@ public abstract class AtomicReferenceNodes {
     public abstract static class GetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object get(DynamicObject self) {
-            return Layouts.ATOMIC_REFERENCE.getValue(self);
+        protected Object get(RubyAtomicReference self) {
+            return self.value.get();
         }
     }
 
@@ -74,8 +77,8 @@ public abstract class AtomicReferenceNodes {
     public abstract static class SetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object set(DynamicObject self, Object value) {
-            Layouts.ATOMIC_REFERENCE.setValue(self, value);
+        protected Object set(RubyAtomicReference self, Object value) {
+            self.value.set(value);
             return value;
         }
     }
@@ -84,8 +87,8 @@ public abstract class AtomicReferenceNodes {
     public abstract static class GetAndSetNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object getAndSet(DynamicObject self, Object value) {
-            return Layouts.ATOMIC_REFERENCE.getAndSetValue(self, value);
+        protected Object getAndSet(RubyAtomicReference self, Object value) {
+            return self.value.getAndSet(value);
         }
     }
 
@@ -93,14 +96,14 @@ public abstract class AtomicReferenceNodes {
     public abstract static class CompareAndSetReferenceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isPrimitive(expectedValue)")
-        protected boolean compareAndSetPrimitive(DynamicObject self, Object expectedValue, Object newValue,
+        protected boolean compareAndSetPrimitive(RubyAtomicReference self, Object expectedValue, Object newValue,
                 @Cached ReferenceEqualNode equalNode) {
             while (true) {
-                final Object currentValue = Layouts.ATOMIC_REFERENCE.getValue(self);
+                final Object currentValue = self.value.get();
 
                 if (RubyGuards.isPrimitive(currentValue) &&
                         equalNode.executeReferenceEqual(expectedValue, currentValue)) {
-                    if (Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, currentValue, newValue)) {
+                    if (self.value.compareAndSet(currentValue, newValue)) {
                         return true;
                     }
                 } else {
@@ -110,8 +113,8 @@ public abstract class AtomicReferenceNodes {
         }
 
         @Specialization(guards = "!isPrimitive(expectedValue)")
-        protected boolean compareAndSetReference(DynamicObject self, Object expectedValue, Object newValue) {
-            return Layouts.ATOMIC_REFERENCE.compareAndSetValue(self, expectedValue, newValue);
+        protected boolean compareAndSetReference(RubyAtomicReference self, Object expectedValue, Object newValue) {
+            return self.value.compareAndSet(expectedValue, newValue);
         }
 
     }
