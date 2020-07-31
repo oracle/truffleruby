@@ -161,6 +161,7 @@ module Utilities
       Process.kill(signal, pid)
     rescue Errno::ESRCH
       # Already killed
+      STDERR.puts "Process #{pid} not found"
       nil
     end
   end
@@ -332,6 +333,19 @@ module Utilities
   def raw_sh_failed_status
     `false`
     $?
+  end
+
+  def terminate_process(pid, timeout = 10)
+    send_signal(:SIGTERM, pid)
+    begin
+      Timeout.timeout(timeout) do
+        Process.wait pid
+      end
+    rescue Timeout::Error
+      send_signal(:SIGKILL, pid)
+      Process.wait pid
+    end
+    STDERR.puts "Process #{pid} terminated"
   end
 
   def raw_sh_with_timeout(timeout, pid)
@@ -1305,6 +1319,7 @@ EOS
     gems = %w[algebrick]
 
     gem_server = spawn('gem', 'server', '-b', '127.0.0.1', '-p', '0', '-d', "#{gem_test_pack}/gems")
+    SUBPROCESSES << gem_server
     begin
       ports = find_ports_for_pid(gem_server)
       raise 'More than one port opened' if ports.lines.size > 1
@@ -1342,13 +1357,16 @@ EOS
                 '-Sbundle', 'exec', '-V', 'rake')
             end
           ensure
+            STDERR.puts 'Removing temp dir'
             FileUtils.remove_entry_secure temp_dir
           end
         end
       end
     ensure
-      Process.kill :INT, gem_server
-      Process.wait gem_server
+      STDERR.puts 'Terminating gem server'
+      terminate_process(gem_server)
+      SUBPROCESSES.delete(gem_server)
+      STDERR.puts 'gem server terminated'
     end
   end
 
