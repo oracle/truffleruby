@@ -28,8 +28,6 @@ import org.truffleruby.core.queue.SizedQueueLayout;
 import org.truffleruby.core.queue.SizedQueueLayoutImpl;
 import org.truffleruby.core.string.StringLayout;
 import org.truffleruby.core.string.StringLayoutImpl;
-import org.truffleruby.core.thread.ThreadBacktraceLocationLayout;
-import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.core.thread.ThreadLayout;
 import org.truffleruby.core.thread.ThreadLayoutImpl;
 import org.truffleruby.core.time.TimeLayout;
@@ -66,7 +64,6 @@ public abstract class Layouts {
     public static final SizedQueueLayout SIZED_QUEUE = SizedQueueLayoutImpl.INSTANCE;
     public static final StringLayout STRING = StringLayoutImpl.INSTANCE;
     public static final ThreadLayout THREAD = ThreadLayoutImpl.INSTANCE;
-    public static final ThreadBacktraceLocationLayout THREAD_BACKTRACE_LOCATION = ThreadBacktraceLocationLayoutImpl.INSTANCE;
     public static final TimeLayout TIME = TimeLayoutImpl.INSTANCE;
     public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;
     public static final AtomicReferenceLayout ATOMIC_REFERENCE = AtomicReferenceLayoutImpl.INSTANCE;

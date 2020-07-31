@@ -389,6 +389,8 @@ public abstract class KernelNodes {
     @Primitive(name = "kernel_caller_locations", lowerFixnum = { 0, 1 })
     public abstract static class CallerLocationsNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
         protected Object callerLocations(int omit, NotProvided length) {
             return innerCallerLocations(omit, GetBacktraceException.UNLIMITED);
@@ -403,7 +405,7 @@ public abstract class KernelNodes {
             // Always skip #caller_locations.
             final int omitted = omit + 1;
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, omitted);
-            return backtrace.getBacktraceLocations(getContext(), length, this);
+            return backtrace.getBacktraceLocations(getContext(), allocateNode, length, this);
         }
     }
 

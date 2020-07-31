@@ -64,8 +64,8 @@ import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
 import org.truffleruby.extra.ffi.RubyPointer;
+import org.truffleruby.core.thread.RubyBacktraceLocation;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -217,7 +217,7 @@ public class CoreLibrary {
     public final DynamicObject systemExitClass;
     public final DynamicObject threadClass;
     public final DynamicObjectFactory threadFactory;
-    public final DynamicObjectFactory threadBacktraceLocationFactory;
+    public final Shape threadBacktraceLocationShape;
     public final DynamicObject trueClass;
     public final DynamicObject typeErrorClass;
     public final DynamicObject zeroDivisionErrorClass;
@@ -557,9 +557,9 @@ public class CoreLibrary {
 
         DynamicObject threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
         DynamicObject threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
-        threadBacktraceLocationFactory = ThreadBacktraceLocationLayoutImpl.INSTANCE
-                .createThreadBacktraceLocationShape(threadBacktraceLocationClass, threadBacktraceLocationClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(threadBacktraceLocationClass, threadBacktraceLocationFactory);
+        threadBacktraceLocationShape = createShape(RubyBacktraceLocation.class, threadBacktraceLocationClass);
+        Layouts.CLASS
+                .setInstanceFactoryUnsafe(threadBacktraceLocationClass, createFactory(threadBacktraceLocationShape));
         DynamicObject timeClass = defineClass("Time");
         DynamicObjectFactory timeFactory = Layouts.TIME.createTimeShape(timeClass, timeClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, timeFactory);

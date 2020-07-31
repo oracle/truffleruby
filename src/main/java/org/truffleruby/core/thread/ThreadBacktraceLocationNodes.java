@@ -10,7 +10,6 @@
 package org.truffleruby.core.thread;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
@@ -34,9 +33,10 @@ import com.oracle.truffle.api.source.SourceSection;
 public class ThreadBacktraceLocationNodes {
 
     @TruffleBoundary
-    private static SourceSection getAvailableSourceSection(RubyContext context, DynamicObject threadBacktraceLocation) {
-        final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
-        final int activationIndex = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
+    private static SourceSection getAvailableSourceSection(RubyContext context,
+            RubyBacktraceLocation threadBacktraceLocation) {
+        final Backtrace backtrace = threadBacktraceLocation.backtrace;
+        final int activationIndex = threadBacktraceLocation.activationIndex;
 
         return context
                 .getUserBacktraceFormatter()
@@ -48,7 +48,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject absolutePath(DynamicObject threadBacktraceLocation,
+        protected DynamicObject absolutePath(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
@@ -77,7 +77,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject path(DynamicObject threadBacktraceLocation,
+        protected DynamicObject path(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
@@ -103,10 +103,10 @@ public class ThreadBacktraceLocationNodes {
     public abstract static class LabelNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject label(DynamicObject threadBacktraceLocation,
+        protected DynamicObject label(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
-            final int index = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
+            final Backtrace backtrace = threadBacktraceLocation.backtrace;
+            final int index = threadBacktraceLocation.activationIndex;
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
 
             final String label = Backtrace.labelFor(element);
@@ -117,10 +117,10 @@ public class ThreadBacktraceLocationNodes {
     @CoreMethod(names = "base_label")
     public abstract static class BaseLabelNode extends UnaryCoreMethodNode {
         @Specialization
-        protected DynamicObject label(DynamicObject threadBacktraceLocation,
+        protected DynamicObject label(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
-            final int index = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
+            final Backtrace backtrace = threadBacktraceLocation.backtrace;
+            final int index = threadBacktraceLocation.activationIndex;
             final TruffleStackTraceElement element = backtrace.getStackTrace()[index];
 
             final String baseLabel = Backtrace.baseLabelFor(element);
@@ -133,7 +133,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int lineno(DynamicObject threadBacktraceLocation) {
+        protected int lineno(RubyBacktraceLocation threadBacktraceLocation) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
             return sourceSection.getStartLine();
@@ -147,9 +147,9 @@ public class ThreadBacktraceLocationNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject toS(DynamicObject threadBacktraceLocation) {
-            final Backtrace backtrace = Layouts.THREAD_BACKTRACE_LOCATION.getBacktrace(threadBacktraceLocation);
-            final int index = Layouts.THREAD_BACKTRACE_LOCATION.getActivationIndex(threadBacktraceLocation);
+        protected DynamicObject toS(RubyBacktraceLocation threadBacktraceLocation) {
+            final Backtrace backtrace = threadBacktraceLocation.backtrace;
+            final int index = threadBacktraceLocation.activationIndex;
 
             final String description = getContext()
                     .getUserBacktraceFormatter()
