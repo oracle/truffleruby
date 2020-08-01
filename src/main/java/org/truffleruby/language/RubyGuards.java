@@ -12,6 +12,7 @@ package org.truffleruby.language;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.method.RubyMethod;
@@ -72,12 +73,8 @@ public abstract class RubyGuards {
 
     // Ruby types
 
-    public static boolean isRubyBignum(Object value) {
-        return Layouts.BIGNUM.isBignum(value);
-    }
-
     public static boolean isRubyBignum(DynamicObject value) {
-        return Layouts.BIGNUM.isBignum(value);
+        return value instanceof RubyBignum;
     }
 
     public static boolean isRubyBigDecimal(Object value) {
@@ -225,12 +222,12 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyInteger(Object object) {
-        return isBasicInteger(object) || isRubyBignum(object);
+        return isBasicInteger(object) || object instanceof RubyBignum;
     }
 
     public static boolean isRubyNumber(Object object) {
         // Doesn't include classes like BigDecimal
-        return isBasicNumber(object) || isRubyBignum(object);
+        return isBasicNumber(object) || object instanceof RubyBignum;
     }
 
     public static boolean isNil(Object object) {

@@ -47,19 +47,17 @@ package org.truffleruby.core.format.write.bytes;
 
 import java.math.BigInteger;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.format.FormatGuards;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantCompressNegativeException;
+import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.numeric.BigIntegerOps;
 
 @NodeChild("value")
 public abstract class WriteBERNode extends FormatNode {
@@ -88,9 +86,9 @@ public abstract class WriteBERNode extends FormatNode {
         return null;
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected Object doWrite(VirtualFrame frame, DynamicObject value) {
-        if (cantCompressProfile.profile(BigIntegerOps.signum(Layouts.BIGNUM.getValue(value)) < 0)) {
+    @Specialization
+    protected Object doWrite(VirtualFrame frame, RubyBignum value) {
+        if (cantCompressProfile.profile(BigIntegerOps.signum(value.value) < 0)) {
             throw new CantCompressNegativeException();
         }
 
@@ -106,8 +104,8 @@ public abstract class WriteBERNode extends FormatNode {
 
         long l;
 
-        if (FormatGuards.isRubyBignum(from)) {
-            from = Layouts.BIGNUM.getValue((DynamicObject) from);
+        if (from instanceof RubyBignum) {
+            from = ((RubyBignum) from).value;
             while (true) {
                 BigInteger bignum = (BigInteger) from;
                 BigInteger[] ary = bignum.divideAndRemainder(BIG_128);

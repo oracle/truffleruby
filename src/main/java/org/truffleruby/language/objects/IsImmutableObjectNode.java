@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
@@ -48,8 +49,8 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
         return true;
     }
 
-    @Specialization(guards = "isRubyBignum(object)")
-    protected boolean isImmutableBignumObject(DynamicObject object) {
+    @Specialization
+    protected boolean isImmutableBignumObject(RubyBignum object) {
         return true;
     }
 

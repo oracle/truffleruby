@@ -9,17 +9,15 @@
  */
 package org.truffleruby.core.format.format;
 
-import java.math.BigInteger;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
-import org.truffleruby.core.rope.RopeOperations;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.format.FormatNode;
+import org.truffleruby.core.format.printf.PrintfSimpleTreeBuilder;
+import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.rope.RopeOperations;
+
+import java.math.BigInteger;
 
 @NodeChild("width")
 @NodeChild("precision")
@@ -85,9 +83,9 @@ public abstract class FormatIntegerBinaryNode extends FormatNode {
     }
 
     @TruffleBoundary
-    @Specialization(guards = "isRubyBignum(value)")
-    protected byte[] format(int width, int precision, DynamicObject value) {
-        final BigInteger bigInteger = Layouts.BIGNUM.getValue(value);
+    @Specialization
+    protected byte[] format(int width, int precision, RubyBignum value) {
+        final BigInteger bigInteger = value.value;
         final boolean isNegative = bigInteger.signum() == -1;
         final boolean negativeAndPadded = isNegative && (this.hasSpaceFlag || this.hasPlusFlag);
 

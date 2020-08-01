@@ -64,6 +64,7 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
@@ -605,8 +606,8 @@ public abstract class KernelNodes {
             return nil;
         }
 
-        @Specialization(guards = "isRubyBignum(object)")
-        protected Object cloneBignum(DynamicObject object, boolean freeze,
+        @Specialization
+        protected Object cloneBignum(RubyBignum object, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(object);
@@ -894,8 +895,8 @@ public abstract class KernelNodes {
             return getContext().getHashing(this).hash(CLASS_SALT, Boolean.valueOf(value).hashCode());
         }
 
-        @Specialization(guards = "isRubyBignum(value)")
-        protected long hashBignum(DynamicObject value) {
+        @Specialization
+        protected long hashBignum(RubyBignum value) {
             return getContext().getHashing(this).hash(CLASS_SALT, BigIntegerOps.hashCode(value));
         }
 
@@ -1953,9 +1954,9 @@ public abstract class KernelNodes {
             return Long.toHexString(value);
         }
 
-        @Specialization(guards = "isRubyBignum(value)")
-        protected String toHexString(DynamicObject value) {
-            return BigIntegerOps.toString(Layouts.BIGNUM.getValue(value), 16);
+        @Specialization
+        protected String toHexString(RubyBignum value) {
+            return BigIntegerOps.toString(value.value, 16);
         }
 
     }

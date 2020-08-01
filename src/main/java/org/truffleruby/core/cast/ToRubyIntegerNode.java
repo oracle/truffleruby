@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -42,8 +43,8 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
         return value;
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected DynamicObject coerceRubyBignum(DynamicObject value) {
+    @Specialization
+    protected DynamicObject coerceRubyBignum(RubyBignum value) {
         return value;
     }
 

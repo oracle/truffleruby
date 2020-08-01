@@ -9,25 +9,23 @@
  */
 package org.truffleruby.core.cast;
 
-import java.math.BigInteger;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.RubyContext;
-import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.numeric.BigIntegerOps;
-import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.RubySourceNode;
-import org.truffleruby.language.control.RaiseException;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.RubySourceNode;
+import org.truffleruby.language.control.RaiseException;
+
+import java.math.BigInteger;
 
 /** Casts a value into a BigInteger. */
 @GenerateUncached
@@ -55,9 +53,9 @@ public abstract class BigIntegerCastNode extends RubySourceNode {
         return BigIntegerOps.valueOf(value);
     }
 
-    @Specialization(guards = "isRubyBignum(value)")
-    protected BigInteger doBignum(DynamicObject value) {
-        return Layouts.BIGNUM.getValue(value);
+    @Specialization
+    protected BigInteger doBignum(RubyBignum value) {
+        return value.value;
     }
 
     @Specialization(guards = "!isRubyInteger(value)")
