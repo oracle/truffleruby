@@ -13,6 +13,12 @@ describe "Float#negative?" do
     end
   end
 
+  describe "on negative zero" do
+    it "returns true" do
+      -0.0.negative?.should be_true
+    end
+  end
+
   describe "on negative numbers" do
     it "returns true" do
       -0.1.negative?.should be_true
