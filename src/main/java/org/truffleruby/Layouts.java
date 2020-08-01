@@ -50,8 +50,6 @@ import org.truffleruby.core.tracepoint.TracePointLayout;
 import org.truffleruby.core.tracepoint.TracePointLayoutImpl;
 import org.truffleruby.extra.AtomicReferenceLayout;
 import org.truffleruby.extra.AtomicReferenceLayoutImpl;
-import org.truffleruby.extra.ffi.PointerLayout;
-import org.truffleruby.extra.ffi.PointerLayoutImpl;
 import org.truffleruby.stdlib.digest.DigestLayout;
 import org.truffleruby.stdlib.digest.DigestLayoutImpl;
 
@@ -81,7 +79,6 @@ public abstract class Layouts {
     public static final LongRangeLayout LONG_RANGE = LongRangeLayoutImpl.INSTANCE;
     public static final ModuleLayout MODULE = ModuleLayoutImpl.INSTANCE;
     public static final ObjectRangeLayout OBJECT_RANGE = ObjectRangeLayoutImpl.INSTANCE;
-    public static final PointerLayout POINTER = PointerLayoutImpl.INSTANCE;
     public static final ProcLayout PROC = ProcLayoutImpl.INSTANCE;
     public static final SizedQueueLayout SIZED_QUEUE = SizedQueueLayoutImpl.INSTANCE;
     public static final StringLayout STRING = StringLayoutImpl.INSTANCE;

@@ -60,6 +60,7 @@ import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
+import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -219,6 +220,7 @@ public class CoreLibrary {
     public final DynamicObject kernelModule;
     public final DynamicObject truffleFFIModule;
     public final DynamicObject truffleFFIPointerClass;
+    public final Shape truffleFFIPointerShape;
     public final DynamicObject truffleFFINullPointerErrorClass;
     public final DynamicObject truffleTypeModule;
     public final DynamicObject truffleModule;
@@ -660,9 +662,8 @@ public class CoreLibrary {
         truffleFFIModule = defineModule(truffleModule, "FFI");
         DynamicObject truffleFFIAbstractMemoryClass = defineClass(truffleFFIModule, objectClass, "AbstractMemory");
         truffleFFIPointerClass = defineClass(truffleFFIModule, truffleFFIAbstractMemoryClass, "Pointer");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                truffleFFIPointerClass,
-                Layouts.POINTER.createPointerShape(truffleFFIPointerClass, truffleFFIPointerClass));
+        truffleFFIPointerShape = createShape(RubyPointer.class, truffleFFIPointerClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(truffleFFIPointerClass, createFactory(truffleFFIPointerShape));
         truffleFFINullPointerErrorClass = defineClass(truffleFFIModule, runtimeErrorClass, "NullPointerError");
 
         truffleTypeModule = defineModule(truffleModule, "Type");

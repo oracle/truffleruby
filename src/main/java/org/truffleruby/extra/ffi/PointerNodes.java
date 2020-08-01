@@ -12,6 +12,7 @@ package org.truffleruby.extra.ffi;
 import java.math.BigInteger;
 
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -31,6 +32,7 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.AllocateObjectNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -73,11 +75,14 @@ public abstract class PointerNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
         protected DynamicObject allocate(DynamicObject pointerClass) {
-            return allocateObjectNode.allocate(pointerClass, Pointer.NULL);
+            final Shape shape = allocateNode.getCachedShape(pointerClass);
+            final RubyPointer instance = new RubyPointer(shape, Pointer.NULL);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -136,8 +141,8 @@ public abstract class PointerNodes {
     public static abstract class PointerSetAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected long setAddress(DynamicObject pointer, long address) {
-            Layouts.POINTER.setPointer(pointer, new Pointer(address));
+        protected long setAddress(RubyPointer pointer, long address) {
+            pointer.pointer = new Pointer(address);
             return address;
         }
 
@@ -147,8 +152,8 @@ public abstract class PointerNodes {
     public static abstract class PointerAddressNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected long address(DynamicObject pointer) {
-            return Layouts.POINTER.getPointer(pointer).getAddress();
+        protected long address(RubyPointer pointer) {
+            return pointer.pointer.getAddress();
         }
 
     }
@@ -157,8 +162,8 @@ public abstract class PointerNodes {
     public static abstract class PointerIsAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isAutorelease(DynamicObject pointer) {
-            return Layouts.POINTER.getPointer(pointer).isAutorelease();
+        protected boolean isAutorelease(RubyPointer pointer) {
+            return pointer.pointer.isAutorelease();
         }
 
     }
@@ -167,14 +172,14 @@ public abstract class PointerNodes {
     public static abstract class PointerSetAutoreleaseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "autorelease")
-        protected boolean enableAutorelease(DynamicObject pointer, boolean autorelease) {
-            Layouts.POINTER.getPointer(pointer).enableAutorelease(getContext().getFinalizationService());
+        protected boolean enableAutorelease(RubyPointer pointer, boolean autorelease) {
+            pointer.pointer.enableAutorelease(getContext().getFinalizationService());
             return autorelease;
         }
 
         @Specialization(guards = "!autorelease")
-        protected boolean disableAutorelease(DynamicObject pointer, boolean autorelease) {
-            Layouts.POINTER.getPointer(pointer).disableAutorelease(getContext().getFinalizationService());
+        protected boolean disableAutorelease(RubyPointer pointer, boolean autorelease) {
+            pointer.pointer.disableAutorelease(getContext().getFinalizationService());
             return autorelease;
         }
 
@@ -184,8 +189,8 @@ public abstract class PointerNodes {
     public static abstract class PointerMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject malloc(DynamicObject pointer, long size) {
-            Layouts.POINTER.setPointer(pointer, Pointer.malloc(size));
+        protected DynamicObject malloc(RubyPointer pointer, long size) {
+            pointer.pointer = Pointer.malloc(size);
             return pointer;
         }
 
@@ -195,8 +200,8 @@ public abstract class PointerNodes {
     public static abstract class PointerFreeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject free(DynamicObject pointer) {
-            Layouts.POINTER.getPointer(pointer).free(getContext().getFinalizationService());
+        protected DynamicObject free(RubyPointer pointer) {
+            pointer.pointer.free(getContext().getFinalizationService());
             return pointer;
         }
 
@@ -205,9 +210,9 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_clear", lowerFixnum = 1)
     public abstract static class PointerClearNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyPointer(pointer)")
-        protected DynamicObject clear(DynamicObject pointer, long length) {
-            Layouts.POINTER.getPointer(pointer).writeBytes(0, length, (byte) 0);
+        @Specialization
+        protected DynamicObject clear(RubyPointer pointer, long length) {
+            pointer.pointer.writeBytes(0, length, (byte) 0);
             return pointer;
         }
 
@@ -448,14 +453,16 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_read_pointer")
     public static abstract class PointerReadPointerNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject readPointer(long address) {
+        protected RubyPointer readPointer(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
             final Pointer readPointer = ptr.readPointer(0);
-            return allocateObjectNode.allocate(coreLibrary().truffleFFIPointerClass, readPointer);
+            final RubyPointer instance = new RubyPointer(coreLibrary().truffleFFIPointerShape, readPointer);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
