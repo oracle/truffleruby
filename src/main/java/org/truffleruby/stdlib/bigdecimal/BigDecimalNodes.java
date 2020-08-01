@@ -9,15 +9,13 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.math.MathContext;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
@@ -26,9 +24,9 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
@@ -39,12 +37,15 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.parser.SafeDoubleParser;
 import org.truffleruby.utils.Utils;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.MathContext;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "BigDecimal", isClass = true)
 public abstract class BigDecimalNodes {
@@ -263,10 +264,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(a)", "isNormal(b)" })
         protected Object div(RubyBigDecimal a, RubyBigDecimal b) {
-            final int precision = defaultDivisionPrecision(
-                    a.value,
-                    b.value,
-                    getLimit());
+            final int precision = defaultDivisionPrecision(a.value, b.value, getLimit());
             return div(a, b, precision);
         }
 
@@ -416,9 +414,7 @@ public abstract class BigDecimalNodes {
 
         @Specialization(guards = { "isNormal(a)", "isNormal(b)", "!isNormalZero(a)", "!isNormalZero(b)" })
         protected Object divmod(RubyBigDecimal a, RubyBigDecimal b) {
-            final BigDecimal[] result = divmodBigDecimal(
-                    a.value,
-                    b.value);
+            final BigDecimal[] result = divmodBigDecimal(a.value, b.value);
             return createArray(new Object[]{ createBigDecimal(result[0]), createBigDecimal(result[1]) });
         }
 
@@ -650,10 +646,8 @@ public abstract class BigDecimalNodes {
                     newPrecision = (-exponent + 4) * (getDigits(aBigDecimal) + 4);
                 }
 
-                return createBigDecimal(power(
-                        a.value,
-                        exponent,
-                        BigDecimalOps.newMathContext(newPrecision, getRoundMode())));
+                return createBigDecimal(
+                        power(a.value, exponent, BigDecimalOps.newMathContext(newPrecision, getRoundMode())));
             }
         }
 

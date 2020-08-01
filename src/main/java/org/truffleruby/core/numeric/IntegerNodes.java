@@ -213,9 +213,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object sub(RubyBignum a, RubyBignum b) {
-            return fixnumOrBignum(BigIntegerOps.subtract(
-                    a.value,
-                    b.value));
+            return fixnumOrBignum(BigIntegerOps.subtract(a.value, b.value));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
@@ -277,9 +275,7 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object mul(RubyBignum a, RubyBignum b) {
-            return fixnumOrBignum(BigIntegerOps.multiply(
-                    a.value,
-                    b.value));
+            return fixnumOrBignum(BigIntegerOps.multiply(a.value, b.value));
         }
 
         @Specialization(guards = "!isRubyNumber(b)")
