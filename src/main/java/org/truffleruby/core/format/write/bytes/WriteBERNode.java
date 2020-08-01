@@ -45,19 +45,19 @@
  */
 package org.truffleruby.core.format.write.bytes;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.math.BigInteger;
+
 import org.truffleruby.collections.ByteArrayBuilder;
-import org.truffleruby.core.format.FormatGuards;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.CantCompressNegativeException;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 
-import java.math.BigInteger;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild("value")
 public abstract class WriteBERNode extends FormatNode {
@@ -104,7 +104,7 @@ public abstract class WriteBERNode extends FormatNode {
 
         long l;
 
-        if (FormatGuards.isRubyBignum(from)) {
+        if (from instanceof RubyBignum) {
             from = ((RubyBignum) from).value;
             while (true) {
                 BigInteger bignum = (BigInteger) from;

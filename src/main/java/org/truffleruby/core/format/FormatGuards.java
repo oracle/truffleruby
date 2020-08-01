@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.format;
 
-import java.math.BigInteger;
-
 import org.truffleruby.language.RubyGuards;
 
 public class FormatGuards {
@@ -29,14 +27,6 @@ public class FormatGuards {
 
     public static boolean isLong(Object object) {
         return object instanceof Long;
-    }
-
-    public static boolean isBigInteger(Object object) {
-        return object instanceof BigInteger;
-    }
-
-    public static boolean isRubyBignum(Object object) {
-        return RubyGuards.isRubyBignum(object);
     }
 
     public static boolean isRubyString(Object object) {

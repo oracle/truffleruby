@@ -72,10 +72,6 @@ public abstract class RubyGuards {
 
     // Ruby types
 
-    public static boolean isRubyBignum(Object value) {
-        return value instanceof RubyBignum;
-    }
-
     public static boolean isRubyBignum(DynamicObject value) {
         return value instanceof RubyBignum;
     }
@@ -233,12 +229,12 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyInteger(Object object) {
-        return isBasicInteger(object) || isRubyBignum(object);
+        return isBasicInteger(object) || object instanceof RubyBignum;
     }
 
     public static boolean isRubyNumber(Object object) {
         // Doesn't include classes like BigDecimal
-        return isBasicNumber(object) || isRubyBignum(object);
+        return isBasicNumber(object) || object instanceof RubyBignum;
     }
 
     public static boolean isNil(Object object) {

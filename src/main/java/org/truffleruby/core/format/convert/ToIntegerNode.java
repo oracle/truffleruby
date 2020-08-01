@@ -46,7 +46,7 @@ public abstract class ToIntegerNode extends FormatNode {
         return (long) value;
     }
 
-    @Specialization(guards = { "!isInteger(value)", "!isLong(value)", "!isRubyBignum(value)" })
+    @Specialization(guards = "!isRubyNumber(value)")
     protected Object toInteger(VirtualFrame frame, Object value) {
         if (integerNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

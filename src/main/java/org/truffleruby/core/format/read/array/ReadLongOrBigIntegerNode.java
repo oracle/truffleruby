@@ -11,11 +11,11 @@ package org.truffleruby.core.format.read.array;
 
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.format.FormatGuards;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.convert.ToLongNode;
 import org.truffleruby.core.format.convert.ToLongNodeGen;
 import org.truffleruby.core.format.read.SourceNode;
+import org.truffleruby.core.numeric.RubyBignum;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -38,7 +38,7 @@ public abstract class ReadLongOrBigIntegerNode extends FormatNode {
             @CachedLibrary("source") ArrayStoreLibrary sources) {
         final Object value = sources.read(source, advanceSourcePosition(frame));
 
-        if (bignumProfile.profile(FormatGuards.isRubyBignum(value))) {
+        if (bignumProfile.profile(value instanceof RubyBignum)) {
             return value;
         } else {
             if (toLongNode == null) {

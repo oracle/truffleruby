@@ -36,27 +36,27 @@ import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl.BasicObjectType;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.encoding.RubyEncodingConverter;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubyNameError;
 import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySystemCallError;
-import org.truffleruby.core.encoding.RubyEncodingConverter;
-import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.mutex.RubyConditionVariable;
 import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.RubyWeakMap;
+import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
-import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
@@ -1066,7 +1066,7 @@ public class CoreLibrary {
             return (long) value;
         }
 
-        if (RubyGuards.isRubyBignum(value)) {
+        if (value instanceof RubyBignum) {
             return BigIntegerOps.doubleValue((RubyBignum) value);
         }
 
