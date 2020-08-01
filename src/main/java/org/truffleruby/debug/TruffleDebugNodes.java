@@ -24,6 +24,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
@@ -40,6 +41,7 @@ import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
@@ -87,6 +89,8 @@ public abstract class TruffleDebugNodes {
     @CoreMethod(names = "break_handle", onSingleton = true, required = 2, needsBlock = true, lowerFixnum = 2)
     public abstract static class BreakNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @TruffleBoundary
         @Specialization(guards = "isRubyString(file)")
         protected DynamicObject setBreak(DynamicObject file, int line, DynamicObject block) {
@@ -118,7 +122,9 @@ public abstract class TruffleDebugNodes {
 
                     });
 
-            return Layouts.HANDLE.createHandle(coreLibrary().handleFactory, breakpoint);
+            final RubyHandle instance = new RubyHandle(coreLibrary().handleShape, breakpoint);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -127,9 +133,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class RemoveNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isHandle(handle)")
-        protected Object remove(DynamicObject handle) {
-            EventBinding.class.cast(Layouts.HANDLE.getObject(handle)).dispose();
+        @Specialization
+        protected Object remove(RubyHandle handle) {
+            EventBinding.class.cast(handle.object).dispose();
             return nil;
         }
 

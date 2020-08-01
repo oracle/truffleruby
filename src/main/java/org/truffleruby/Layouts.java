@@ -10,8 +10,6 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.object.HiddenKey;
-import org.truffleruby.core.HandleLayout;
-import org.truffleruby.core.HandleLayoutImpl;
 import org.truffleruby.core.array.ArrayLayout;
 import org.truffleruby.core.array.ArrayLayoutImpl;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
@@ -87,7 +85,6 @@ public abstract class Layouts {
     public static final TimeLayout TIME = TimeLayoutImpl.INSTANCE;
     public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;
     public static final AtomicReferenceLayout ATOMIC_REFERENCE = AtomicReferenceLayoutImpl.INSTANCE;
-    public static final HandleLayout HANDLE = HandleLayoutImpl.INSTANCE;
     public static final TracePointLayout TRACE_POINT = TracePointLayoutImpl.INSTANCE;
     public static final DigestLayout DIGEST = DigestLayoutImpl.INSTANCE;
 
