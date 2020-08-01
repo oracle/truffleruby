@@ -79,37 +79,60 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
+    /** During the require operation we need to load constants marked as autoloaded for the expandedPath (see
+     * {@link FeatureLoader#registeredAutoloads}) and mark them as started loading (via locks). After require we
+     * re-select autoload constants (because their list can be supplemented with constants that are loaded themselves
+     * (i.e. Object.autoload(:C, __FILE__))) and remove them from autoload registry. More details here:
+     * https://github.com/oracle/truffleruby/pull/2060#issuecomment-668627142 **/
     private boolean requireConsideringAutoload(String feature, String expandedPath, RubyString pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final List<RubyConstant> autoloadConstants = featureLoader.getAutoloadConstants(expandedPath);
-        if (autoloadConstants != null) {
-            if (getContext().getOptions().LOG_AUTOLOAD) {
-                String info = autoloadConstants
-                        .stream()
-                        .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
-                        .collect(Collectors.joining(" and "));
-                RubyLanguage.LOGGER
-                        .info(() -> String.format(
-                                "%s: requiring %s which is registered as an autoload for %s",
-                                RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                                feature,
-                                info));
-            }
+        try {
+            if (autoloadConstants != null) {
+                if (getContext().getOptions().LOG_AUTOLOAD) {
+                    String info = autoloadConstants
+                            .stream()
+                            .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
+                            .collect(Collectors.joining(" and "));
+                    RubyLanguage.LOGGER
+                            .info(() -> String.format(
+                                    "%s: requiring %s which is registered as an autoload for %s",
+                                    RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                                    feature,
+                                    info));
+                }
 
-            for (RubyConstant autoloadConstant : autoloadConstants) {
-                GetConstantNode.autoloadConstantStart(autoloadConstant);
-            }
-            try {
-                return doRequire(feature, expandedPath, pathString);
-            } finally {
                 for (RubyConstant autoloadConstant : autoloadConstants) {
-                    GetConstantNode.autoloadUndefineConstantIfStillAutoload(autoloadConstant);
-                    GetConstantNode.autoloadConstantStop(autoloadConstant);
-                    featureLoader.removeAutoload(autoloadConstant);
+                    GetConstantNode.autoloadConstantStart(autoloadConstant);
                 }
             }
-        } else {
+
             return doRequire(feature, expandedPath, pathString);
+        } finally {
+            final List<RubyConstant> releasedConstants = featureLoader.getAutoloadConstants(expandedPath);
+            if (releasedConstants != null) {
+                if (getContext().getOptions().LOG_AUTOLOAD) {
+                    String info = autoloadConstants
+                            .stream()
+                            .filter(c -> c.getAutoloadConstant().isAutoloading())
+                            .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
+                            .collect(Collectors.joining(" and "));
+                    RubyLanguage.LOGGER
+                            .info(() -> String.format(
+                                    "%s: during requiring %s was successfully autoloaded %s",
+                                    RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                                    feature,
+                                    info));
+                }
+
+                for (RubyConstant autoloadConstant : releasedConstants) {
+                    if (autoloadConstant.getAutoloadConstant().isAutoloading()) {
+                        GetConstantNode.autoloadUndefineConstantIfStillAutoload(autoloadConstant);
+                        GetConstantNode.autoloadConstantStop(autoloadConstant);
+                        featureLoader.removeAutoload(autoloadConstant);
+                    }
+                }
+            }
         }
     }
 
