@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
@@ -50,7 +51,7 @@ public class RubyConstant implements ObjectGraphNode {
                 name,
                 value,
                 isPrivate,
-                autoload ? new AutoloadConstant(value) : null,
+                autoload ? new AutoloadConstant((RubyString) value) : null,
                 false,
                 isDeprecated,
                 sourceSection);

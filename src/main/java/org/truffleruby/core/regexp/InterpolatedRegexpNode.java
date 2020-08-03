@@ -21,7 +21,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NotOptimizedWarningNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -54,7 +54,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         Rope[] values = new Rope[children.length];
         for (int i = 0; i < children.length; i++) {
             final Object value = children[i].execute(frame);
-            values[i] = StringOperations.rope((DynamicObject) value);
+            values[i] = ((RubyString) value).rope;
         }
         return values;
     }

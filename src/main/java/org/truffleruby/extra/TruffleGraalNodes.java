@@ -17,6 +17,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -182,8 +183,8 @@ public abstract class TruffleGraalNodes {
     @NodeChild(value = "value", type = RubyNode.class)
     public abstract static class BailoutNode extends PrimitiveNode {
 
-        @Specialization(guards = "isRubyString(message)")
-        protected Object bailout(DynamicObject message,
+        @Specialization
+        protected Object bailout(RubyString message,
                 @Cached ToJavaStringNode toJavaStringNode) {
             CompilerDirectives.bailout(toJavaStringNode.executeToJavaString(message));
             return nil;

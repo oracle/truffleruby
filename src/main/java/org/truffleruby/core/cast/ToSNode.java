@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
@@ -27,8 +28,8 @@ public abstract class ToSNode extends RubyContextSourceNode {
 
     @Child private KernelNodes.ToSNode kernelToSNode;
 
-    @Specialization(guards = "isRubyString(string)")
-    protected DynamicObject toS(DynamicObject string) {
+    @Specialization
+    protected DynamicObject toS(RubyString string) {
         return string;
     }
 

@@ -12,6 +12,7 @@ package org.truffleruby.core.exception;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
@@ -47,7 +48,7 @@ public abstract class ExceptionOperations {
                     .getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
             return exceptionClass.getName(); // What Exception#message would return if no message is set
         } else if (RubyGuards.isRubyString(message)) {
-            return StringOperations.getString((DynamicObject) message);
+            return StringOperations.getString((RubyString) message);
         } else {
             return message.toString();
         }
@@ -58,7 +59,7 @@ public abstract class ExceptionOperations {
         try {
             final Object messageObject = context.send(exception, "message");
             if (RubyGuards.isRubyString(messageObject)) {
-                return StringOperations.getString((DynamicObject) messageObject);
+                return StringOperations.getString((RubyString) messageObject);
             }
         } catch (Throwable e) {
             // Fall back to the internal message field

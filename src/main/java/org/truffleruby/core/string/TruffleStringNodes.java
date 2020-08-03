@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.string;
 
-import static org.truffleruby.core.string.StringOperations.rope;
-
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -39,33 +37,32 @@ public class TruffleStringNodes {
         }
 
         @Specialization(
-                guards = { "newByteLength >= 0", "isRubyString(string)", "isNewLengthTooLarge(string, newByteLength)" })
+                guards = { "newByteLength >= 0", "isNewLengthTooLarge(string, newByteLength)" })
         @TruffleBoundary
-        protected DynamicObject truncateLengthTooLong(DynamicObject string, int newByteLength) {
+        protected DynamicObject truncateLengthTooLong(RubyString string, int newByteLength) {
             throw new RaiseException(
                     getContext(),
                     getContext()
                             .getCoreExceptions()
-                            .argumentError(formatTooLongError(newByteLength, rope(string)), this));
+                            .argumentError(formatTooLongError(newByteLength, string.rope), this));
         }
 
         @Specialization(
                 guards = {
                         "newByteLength >= 0",
-                        "isRubyString(string)",
                         "!isNewLengthTooLarge(string, newByteLength)" })
-        protected DynamicObject stealStorage(DynamicObject string, int newByteLength,
+        protected DynamicObject stealStorage(RubyString string, int newByteLength,
                 @Cached RopeNodes.SubstringNode substringNode) {
 
-            StringOperations.setRope(string, substringNode.executeSubstring(rope(string), 0, newByteLength));
+            StringOperations.setRope(string, substringNode.executeSubstring(string.rope, 0, newByteLength));
 
             return string;
         }
 
-        protected static boolean isNewLengthTooLarge(DynamicObject string, int newByteLength) {
+        protected static boolean isNewLengthTooLarge(RubyString string, int newByteLength) {
             assert RubyGuards.isRubyString(string);
 
-            return newByteLength > rope(string).byteLength();
+            return newByteLength > string.rope.byteLength();
         }
 
         @TruffleBoundary

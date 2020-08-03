@@ -18,7 +18,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeGuards;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.PointerNodes;
 import org.truffleruby.extra.ffi.RubyPointer;
@@ -78,12 +78,12 @@ public abstract class ByteArrayNodes {
 
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
-        @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject prepend(RubyByteArray byteArray, DynamicObject string,
+        @Specialization
+        protected DynamicObject prepend(RubyByteArray byteArray, RubyString string,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final byte[] bytes = byteArray.bytes;
 
-            final Rope rope = StringOperations.rope(string);
+            final Rope rope = string.rope;
             final int prependLength = rope.byteLength();
             final int originalLength = bytes.length;
             final int newLength = prependLength + originalLength;
@@ -120,15 +120,15 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "fill", required = 4, lowerFixnum = { 1, 3, 4 })
     public abstract static class FillNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(source)")
+        @Specialization
         protected Object fillFromString(
                 RubyByteArray byteArray,
                 int dstStart,
-                DynamicObject source,
+                RubyString source,
                 int srcStart,
                 int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
-            final Rope rope = StringOperations.rope(source);
+            final Rope rope = source.rope;
             final byte[] bytes = byteArray.bytes;
 
             System.arraycopy(bytesNode.execute(rope), srcStart, bytes, dstStart, length);
@@ -159,14 +159,14 @@ public abstract class ByteArrayNodes {
     @CoreMethod(names = "locate", required = 3, lowerFixnum = { 2, 3 })
     public abstract static class LocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyString(pattern)", "isSingleBytePattern(pattern)" })
-        protected Object getByteSingleByte(RubyByteArray byteArray, DynamicObject pattern, int start, int length,
+        @Specialization(guards = { "isSingleBytePattern(pattern)" })
+        protected Object getByteSingleByte(RubyByteArray byteArray, RubyString pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached BranchProfile tooSmallStartProfile,
                 @Cached BranchProfile tooLargeStartProfile) {
 
             final byte[] bytes = byteArray.bytes;
-            final Rope rope = StringOperations.rope(pattern);
+            final Rope rope = pattern.rope;
             final byte searchByte = bytesNode.execute(rope)[0];
 
             if (start >= length) {
@@ -184,12 +184,12 @@ public abstract class ByteArrayNodes {
             return index == -1 ? nil : index + 1;
         }
 
-        @Specialization(guards = { "isRubyString(pattern)", "!isSingleBytePattern(pattern)" })
-        protected Object getByte(RubyByteArray byteArray, DynamicObject pattern, int start, int length,
+        @Specialization(guards = { "!isSingleBytePattern(pattern)" })
+        protected Object getByte(RubyByteArray byteArray, RubyString pattern, int start, int length,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CharacterLengthNode characterLengthNode,
                 @Cached ConditionProfile notFoundProfile) {
-            final Rope patternRope = StringOperations.rope(pattern);
+            final Rope patternRope = pattern.rope;
             final int index = indexOf(
                     byteArray.bytes,
                     start,
@@ -203,8 +203,8 @@ public abstract class ByteArrayNodes {
             }
         }
 
-        protected boolean isSingleBytePattern(DynamicObject pattern) {
-            final Rope rope = StringOperations.rope(pattern);
+        protected boolean isSingleBytePattern(RubyString pattern) {
+            final Rope rope = pattern.rope;
             return RopeGuards.isSingleByteString(rope);
         }
 

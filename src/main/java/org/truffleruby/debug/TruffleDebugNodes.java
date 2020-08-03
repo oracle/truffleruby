@@ -33,6 +33,7 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -94,8 +95,8 @@ public abstract class TruffleDebugNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(file)")
-        protected DynamicObject setBreak(DynamicObject file, int line, DynamicObject block) {
+        @Specialization
+        protected DynamicObject setBreak(RubyString file, int line, DynamicObject block) {
             final String fileString = StringOperations.getString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
@@ -410,8 +411,8 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(message)")
-        protected Object throwJavaException(DynamicObject message) {
+        @Specialization
+        protected Object throwJavaException(RubyString message) {
             callingMethod(StringOperations.getString(message));
             return nil;
         }
@@ -432,8 +433,8 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowJavaExceptionWithCauseNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(message)")
-        protected Object throwJavaExceptionWithCause(DynamicObject message) {
+        @Specialization
+        protected Object throwJavaExceptionWithCause(RubyString message) {
             throw new RuntimeException(
                     StringOperations.getString(message),
                     new RuntimeException("cause 1", new RuntimeException("cause 2")));
@@ -445,8 +446,8 @@ public abstract class TruffleDebugNodes {
     public abstract static class ThrowAssertionErrorNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(message)")
-        protected Object throwAssertionError(DynamicObject message) {
+        @Specialization
+        protected Object throwAssertionError(RubyString message) {
             throw new AssertionError(StringOperations.getString(message));
         }
 
@@ -823,8 +824,8 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        protected Object foreignString(DynamicObject string) {
+        @Specialization
+        protected Object foreignString(RubyString string) {
             return new ForeignString(StringOperations.getString(string));
         }
 

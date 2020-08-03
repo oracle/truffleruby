@@ -12,7 +12,6 @@
 package org.truffleruby.core.encoding;
 
 import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.string.StringOperations.rope;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Set;
@@ -42,6 +41,7 @@ import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -194,33 +194,33 @@ public abstract class EncodingConverterNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(source)", "isRubyString(target)", "isRubyHash(options)" })
+        @Specialization(guards = { "isRubyHash(options)" })
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
-                DynamicObject source,
-                DynamicObject target,
+                RubyString source,
+                RubyString target,
                 int offset,
                 int size,
                 DynamicObject options) {
             throw new UnsupportedOperationException("not implemented");
         }
 
-        @Specialization(guards = { "isNil(source)", "isRubyString(target)" })
+        @Specialization(guards = { "isNil(source)" })
         protected Object primitiveConvertNilSource(
                 RubyEncodingConverter encodingConverter,
                 Object source,
-                DynamicObject target,
+                RubyString target,
                 int offset,
                 int size,
                 int options) {
             return primitiveConvertHelper(encodingConverter, source, target, offset, size, options);
         }
 
-        @Specialization(guards = { "isRubyString(source)", "isRubyString(target)" })
+        @Specialization
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
-                DynamicObject source,
-                DynamicObject target,
+                RubyString source,
+                RubyString target,
                 int offset,
                 int size,
                 int options) {
@@ -232,12 +232,12 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         private Object primitiveConvertHelper(RubyEncodingConverter encodingConverter, Object source,
-                DynamicObject target, int offset, int size, int options) {
+                RubyString target, int offset, int size, int options) {
             // Taken from org.jruby.RubyConverter#primitive_convert.
 
             final boolean nonNullSource = source != nil;
-            Rope sourceRope = nonNullSource ? rope((DynamicObject) source) : RopeConstants.EMPTY_UTF8_ROPE;
-            final Rope targetRope = rope(target);
+            Rope sourceRope = nonNullSource ? ((RubyString) source).rope : RopeConstants.EMPTY_UTF8_ROPE;
+            final Rope targetRope = target.rope;
             final RopeBuilder outBytes = RopeOperations.toRopeBuilderCopy(targetRope);
 
             final Ptr inPtr = new Ptr();
@@ -298,7 +298,7 @@ public abstract class EncodingConverterNodes {
 
                 if (nonNullSource) {
                     sourceRope = substringNode.executeSubstring(sourceRope, inPtr.p, sourceRope.byteLength() - inPtr.p);
-                    StringOperations.setRope((DynamicObject) source, sourceRope);
+                    StringOperations.setRope((RubyString) source, sourceRope);
                 }
 
                 if (growOutputBuffer && res == EConvResult.DestinationBufferFull) {
@@ -508,11 +508,11 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization
-        protected DynamicObject setReplacement(RubyEncodingConverter encodingConverter, DynamicObject replacement,
+        protected DynamicObject setReplacement(RubyEncodingConverter encodingConverter, RubyString replacement,
                 @Cached BranchProfile errorProfile,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final EConv ec = encodingConverter.econv;
-            final Rope rope = StringOperations.rope(replacement);
+            final Rope rope = replacement.rope;
             final Encoding encoding = rope.getEncoding();
 
             final int ret = setReplacement(ec, bytesNode.execute(rope), rope.byteLength(), encoding.getName());

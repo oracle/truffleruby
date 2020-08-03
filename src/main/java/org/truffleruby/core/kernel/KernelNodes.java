@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.kernel;
 
-import static org.truffleruby.core.string.StringOperations.rope;
-
 import java.io.File;
 import java.io.PrintStream;
 import java.nio.file.Paths;
@@ -62,6 +60,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
@@ -250,7 +249,7 @@ public abstract class KernelNodes {
     public abstract static class FindFileNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object findFile(DynamicObject featureString,
+        protected Object findFile(RubyString featureString,
                 @Cached BranchProfile notFoundProfile,
                 @Cached MakeStringNode makeStringNode) {
             String feature = StringOperations.getString(featureString);
@@ -277,7 +276,7 @@ public abstract class KernelNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject getCallerPath(DynamicObject feature,
+        protected DynamicObject getCallerPath(RubyString feature,
                 @Cached MakeStringNode makeStringNode) {
             final String featureString = StringOperations.getString(feature);
             final String featurePath;
@@ -320,7 +319,7 @@ public abstract class KernelNodes {
         @Child private RequireNode requireNode = RequireNodeGen.create();
 
         @Specialization
-        protected boolean loadFeature(DynamicObject featureString, DynamicObject expandedPathString) {
+        protected boolean loadFeature(RubyString featureString, DynamicObject expandedPathString) {
             return requireNode.executeRequire(StringOperations.getString(featureString), expandedPathString);
         }
 
@@ -692,17 +691,17 @@ public abstract class KernelNodes {
 
         @Specialization(
                 guards = {
-                        "equalNode.execute(rope(source), cachedSource)",
-                        "equalNode.execute(rope(file), cachedFile)",
+                        "equalNode.execute(source.rope, cachedSource)",
+                        "equalNode.execute(file.rope, cachedFile)",
                         "line == cachedLine",
                         "!assignsNewUserVariables(getDescriptor(cachedRootNode))",
                         "bindingDescriptor == getBindingDescriptor(binding)" },
                 limit = "getCacheLimit()")
         protected Object evalBindingNoAddsVarsCached(
                 Object target,
-                DynamicObject source,
+                RubyString source,
                 RubyBinding binding,
-                DynamicObject file,
+                RubyString file,
                 int line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("privatizeRope(file)") Rope cachedFile,
@@ -718,8 +717,8 @@ public abstract class KernelNodes {
 
         @Specialization(
                 guards = {
-                        "equalNode.execute(rope(source), cachedSource)",
-                        "equalNode.execute(rope(file), cachedFile)",
+                        "equalNode.execute(source.rope, cachedSource)",
+                        "equalNode.execute(file.rope, cachedFile)",
                         "line == cachedLine",
                         "assignsNewUserVariables(getDescriptor(cachedRootNode))",
                         "!assignsNewUserVariables(getDescriptor(rootNodeToEval))",
@@ -727,9 +726,9 @@ public abstract class KernelNodes {
                 limit = "getCacheLimit()")
         protected Object evalBindingAddsVarsCached(
                 Object target,
-                DynamicObject source,
+                RubyString source,
                 RubyBinding binding,
-                DynamicObject file,
+                RubyString file,
                 int line,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("privatizeRope(file)") Rope cachedFile,
@@ -748,16 +747,16 @@ public abstract class KernelNodes {
         @Specialization
         protected Object evalBindingUncached(
                 Object target,
-                DynamicObject source,
+                RubyString source,
                 RubyBinding binding,
-                DynamicObject file,
+                RubyString file,
                 int line,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = doEvalX(
                     target,
-                    rope(source),
+                    source.rope,
                     binding,
-                    rope(file),
+                    file.rope,
                     line);
             return deferredCall.call(callNode);
         }
@@ -862,6 +861,7 @@ public abstract class KernelNodes {
 
     }
 
+    @ReportPolymorphism
     @CoreMethod(names = "frozen?")
     public abstract static class KernelFrozenNode extends CoreMethodArrayArgumentsNode {
 
@@ -1545,11 +1545,11 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(false, includeProtectedAndPrivate);
         }
 
-        @Specialization(guards = "isRubyString(name)")
+        @Specialization
         protected boolean doesRespondToString(
                 VirtualFrame frame,
                 Object object,
-                DynamicObject name,
+                RubyString name,
                 boolean includeProtectedAndPrivate) {
             final boolean ret;
 
@@ -1566,7 +1566,7 @@ public abstract class KernelNodes {
                 return respondToMissing(
                         frame,
                         object,
-                        getSymbol(StringOperations.rope(name)),
+                        getSymbol(name.rope),
                         includeProtectedAndPrivate);
             } else {
                 return false;
@@ -1617,8 +1617,8 @@ public abstract class KernelNodes {
     @CoreMethod(names = "respond_to_missing?", required = 2)
     public abstract static class RespondToMissingNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(name)")
-        protected boolean doesRespondToMissingString(Object object, DynamicObject name, Object unusedIncludeAll) {
+        @Specialization
+        protected boolean doesRespondToMissingString(Object object, RubyString name, Object unusedIncludeAll) {
             return false;
         }
 
@@ -1803,11 +1803,10 @@ public abstract class KernelNodes {
 
         @Specialization(
                 guards = {
-                        "isRubyString(format)",
-                        "equalNode.execute(rope(format), cachedFormat)",
+                        "equalNode.execute(format.rope, cachedFormat)",
                         "isDebug(frame) == cachedIsDebug" },
                 limit = "getRubyLibraryCacheLimit()")
-        protected DynamicObject formatCached(VirtualFrame frame, DynamicObject format, Object[] arguments,
+        protected DynamicObject formatCached(VirtualFrame frame, RubyString format, Object[] arguments,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
@@ -1827,11 +1826,8 @@ public abstract class KernelNodes {
             return finishFormat(cachedFormatLength, result);
         }
 
-        @Specialization(
-                guards = "isRubyString(format)",
-                replaces = "formatCached",
-                limit = "getRubyLibraryCacheLimit()")
-        protected DynamicObject formatUncached(VirtualFrame frame, DynamicObject format, Object[] arguments,
+        @Specialization(replaces = "formatCached", limit = "getRubyLibraryCacheLimit()")
+        protected DynamicObject formatUncached(VirtualFrame frame, RubyString format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
                 @CachedLibrary("format") RubyLibrary rubyLibrary) {
             final BytesResult result;
@@ -1847,7 +1843,7 @@ public abstract class KernelNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishFormat(Layouts.STRING.getRope(format).byteLength(), result);
+            return finishFormat(format.rope.byteLength(), result);
         }
 
         private DynamicObject finishFormat(int formatLength, BytesResult result) {
@@ -1880,10 +1876,10 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(DynamicObject format, Object[] arguments, boolean isDebug) {
+        protected RootCallTarget compileFormat(RubyString format, Object[] arguments, boolean isDebug) {
             try {
                 return new PrintfCompiler(getContext(), this)
-                        .compile(StringOperations.rope(format), arguments, isDebug);
+                        .compile(format.rope, arguments, isDebug);
             } catch (InvalidFormatException e) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError(e.getMessage(), this));
             }
@@ -1974,10 +1970,10 @@ public abstract class KernelNodes {
             return KernelNodesFactory.ToSNodeFactory.create(null);
         }
 
-        public abstract DynamicObject executeToS(Object self);
+        public abstract RubyString executeToS(Object self);
 
         @Specialization
-        protected DynamicObject toS(Object self,
+        protected RubyString toS(Object self,
                 @Cached LogicalClassNode classNode,
                 @Cached MakeStringNode makeStringNode,
                 @Cached ObjectIDNode objectIDNode,
@@ -1987,7 +1983,7 @@ public abstract class KernelNodes {
             Object id = objectIDNode.execute(self);
             String hexID = toHexStringNode.executeToHexString(id);
 
-            final DynamicObject string = makeStringNode.executeMake(
+            final RubyString string = makeStringNode.executeMake(
                     Utils.concat("#<", className, ":0x", hexID, ">"),
                     UTF8Encoding.INSTANCE,
                     CodeRange.CR_UNKNOWN);

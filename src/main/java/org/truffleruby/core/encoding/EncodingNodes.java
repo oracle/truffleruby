@@ -22,7 +22,6 @@ import org.jcodings.specific.UTF32LEEncoding;
 import org.jcodings.unicode.UnicodeEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.Hash;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -40,6 +39,7 @@ import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -229,24 +229,23 @@ public abstract class EncodingNodes {
             return getEncoding(first);
         }
 
-        @Specialization(guards = { "isRubyString(first)", "isRubyString(second)" })
-        protected Encoding negotiateStringStringEncoding(DynamicObject first, DynamicObject second,
+        @Specialization
+        protected Encoding negotiateStringStringEncoding(RubyString first, RubyString second,
                 @Cached NegotiateCompatibleRopeEncodingNode ropeNode) {
             return ropeNode.executeNegotiate(
-                    StringOperations.rope(first),
-                    StringOperations.rope(second));
+                    first.rope,
+                    second.rope);
         }
 
         @Specialization(
                 guards = {
-                        "isRubyString(first)",
                         "!isRubyString(second)",
                         "getCodeRange(first) == codeRange",
                         "getEncoding(first) == firstEncoding",
                         "getEncoding(second) == secondEncoding",
                         "firstEncoding != secondEncoding" },
                 limit = "getCacheLimit()")
-        protected Encoding negotiateStringObjectCached(DynamicObject first, Object second,
+        protected Encoding negotiateStringObjectCached(RubyString first, Object second,
                 @Cached("getEncoding(first)") Encoding firstEncoding,
                 @Cached("getEncoding(second)") Encoding secondEncoding,
                 @Cached("getCodeRange(first)") CodeRange codeRange,
@@ -257,10 +256,9 @@ public abstract class EncodingNodes {
         @Specialization(
                 guards = {
                         "getEncoding(first) != getEncoding(second)",
-                        "isRubyString(first)",
                         "!isRubyString(second)" },
                 replaces = "negotiateStringObjectCached")
-        protected Encoding negotiateStringObjectUncached(DynamicObject first, Object second) {
+        protected Encoding negotiateStringObjectUncached(RubyString first, Object second) {
             final Encoding firstEncoding = getEncoding(first);
             final Encoding secondEncoding = getEncoding(second);
 
@@ -286,9 +284,8 @@ public abstract class EncodingNodes {
         @Specialization(
                 guards = {
                         "getEncoding(first) != getEncoding(second)",
-                        "!isRubyString(first)",
-                        "isRubyString(second)" })
-        protected Encoding negotiateObjectString(Object first, DynamicObject second) {
+                        "!isRubyString(first)" })
+        protected Encoding negotiateObjectString(Object first, RubyString second) {
             return negotiateStringObjectUncached(second, first);
         }
 
@@ -355,7 +352,7 @@ public abstract class EncodingNodes {
                     codeRangeNode = insert(RopeNodes.CodeRangeNode.create());
                 }
 
-                return codeRangeNode.execute(StringOperations.rope((DynamicObject) string));
+                return codeRangeNode.execute(((RubyString) string).rope);
             }
 
             return CodeRange.CR_UNKNOWN;
@@ -493,10 +490,10 @@ public abstract class EncodingNodes {
     public abstract static class GetActualEncodingPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getActualEncoding(DynamicObject string,
+        protected DynamicObject getActualEncoding(RubyString string,
                 @Cached GetActualEncodingNode getActualEncodingNode,
                 @Cached GetRubyEncodingNode getRubyEncodingNode) {
-            final Rope rope = StringOperations.rope(string);
+            final Rope rope = string.rope;
             final Encoding actualEncoding = getActualEncodingNode.execute(rope);
 
             return getRubyEncodingNode.executeGetRubyEncoding(actualEncoding);
@@ -563,8 +560,8 @@ public abstract class EncodingNodes {
     public abstract static class GetDefaultEncodingNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(name)")
-        protected Object getDefaultEncoding(DynamicObject name) {
+        @Specialization
+        protected Object getDefaultEncoding(RubyString name) {
             final Encoding encoding = getEncoding(StringOperations.getString(name));
             if (encoding == null) {
                 return nil;
@@ -627,8 +624,8 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_enc_find_index")
     public static abstract class EncodingFindIndexNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(nameObject)")
-        protected int encodingFindIndex(DynamicObject nameObject) {
+        @Specialization
+        protected int encodingFindIndex(RubyString nameObject) {
             final String name = StringOperations.getString(nameObject);
             final RubyEncoding encodingObject = getContext().getEncodingManager().getRubyEncoding(name);
             return encodingObject != null ? encodingObject.encoding.getIndex() : -1;
@@ -641,9 +638,9 @@ public abstract class EncodingNodes {
 
         @Child private GetRubyEncodingNode getRubyEncodingNode = EncodingNodesFactory.GetRubyEncodingNodeGen.create();
 
-        @Specialization(guards = "isRubyString(object)")
-        protected DynamicObject encodingGetObjectEncodingString(DynamicObject object) {
-            return getRubyEncodingNode.executeGetRubyEncoding(Layouts.STRING.getRope(object).getEncoding());
+        @Specialization
+        protected DynamicObject encodingGetObjectEncodingString(RubyString object) {
+            return getRubyEncodingNode.executeGetRubyEncoding(object.rope.getEncoding());
         }
 
         @Specialization
@@ -698,8 +695,8 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_replicate")
     public static abstract class EncodingReplicateNode extends EncodingCreationNode {
 
-        @Specialization(guards = "isRubyString(nameObject)")
-        protected DynamicObject encodingReplicate(RubyEncoding object, DynamicObject nameObject) {
+        @Specialization
+        protected DynamicObject encodingReplicate(RubyEncoding object, RubyString nameObject) {
             final String name = StringOperations.getString(nameObject);
             final Encoding encoding = object.encoding;
 
@@ -717,8 +714,8 @@ public abstract class EncodingNodes {
     @Primitive(name = "encoding_create_dummy")
     public static abstract class DummyEncodingeNode extends EncodingCreationNode {
 
-        @Specialization(guards = "isRubyString(nameObject)")
-        protected DynamicObject createDummyEncoding(DynamicObject nameObject) {
+        @Specialization
+        protected DynamicObject createDummyEncoding(RubyString nameObject) {
             final String name = StringOperations.getString(nameObject);
 
             final RubyEncoding newEncoding = createDummy(name);

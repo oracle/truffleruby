@@ -57,6 +57,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -102,8 +103,8 @@ public abstract class TruffleSystemNodes {
     @Primitive(name = "java_get_env")
     public abstract static class JavaGetEnv extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(name)")
-        protected Object javaGetEnv(DynamicObject name,
+        @Specialization
+        protected Object javaGetEnv(RubyString name,
                 @Cached ToJavaStringNode toJavaStringNode,
                 @Cached FromJavaStringNode fromJavaStringNode,
                 @Cached ConditionProfile nullValueProfile) {
@@ -128,8 +129,8 @@ public abstract class TruffleSystemNodes {
     public abstract static class SetTruffleWorkingDirNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(dir)")
-        protected Object setTruffleWorkingDir(DynamicObject dir) {
+        @Specialization
+        protected Object setTruffleWorkingDir(RubyString dir) {
             TruffleFile truffleFile = getContext().getEnv().getPublicTruffleFile(StringOperations.getString(dir));
             final TruffleFile canonicalFile;
             try {
@@ -151,8 +152,8 @@ public abstract class TruffleSystemNodes {
 
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
-        @Specialization(guards = "isRubyString(property)")
-        protected Object getJavaProperty(DynamicObject property) {
+        @Specialization
+        protected Object getJavaProperty(RubyString property) {
             String value = getProperty(StringOperations.getString(property));
             if (value == null) {
                 return nil;
@@ -206,16 +207,16 @@ public abstract class TruffleSystemNodes {
     @CoreMethod(names = "log", onSingleton = true, required = 2)
     public abstract static class LogNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = { "isRubyString(message)", "level == cachedLevel" })
-        protected Object logCached(RubySymbol level, DynamicObject message,
+        @Specialization(guards = { "level == cachedLevel" })
+        protected Object logCached(RubySymbol level, RubyString message,
                 @Cached("level") RubySymbol cachedLevel,
                 @Cached("getLevel(cachedLevel)") Level javaLevel) {
             log(javaLevel, StringOperations.getString(message));
             return nil;
         }
 
-        @Specialization(guards = { "isRubyString(message)" }, replaces = "logCached")
-        protected Object log(RubySymbol level, DynamicObject message) {
+        @Specialization(replaces = "logCached")
+        protected Object log(RubySymbol level, RubyString message) {
             log(getLevel(level), StringOperations.getString(message));
             return nil;
         }
@@ -242,8 +243,8 @@ public abstract class TruffleSystemNodes {
     public abstract static class SetProcessTitleNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(name)")
-        protected DynamicObject setProcessTitle(DynamicObject name) {
+        @Specialization
+        protected DynamicObject setProcessTitle(RubyString name) {
             if (TruffleOptions.AOT) {
                 ProcessProperties.setArgumentVectorProgramName(StringOperations.getString(name));
             } else {

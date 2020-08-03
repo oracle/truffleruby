@@ -21,8 +21,8 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.ByteArrayBuilder;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -116,10 +116,10 @@ public abstract class DigestNodes {
     public abstract static class UpdateNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(message)")
-        protected DynamicObject update(RubyDigest digestObject, DynamicObject message) {
+        @Specialization
+        protected DynamicObject update(RubyDigest digestObject, RubyString message) {
             final MessageDigest digest = digestObject.digest;
-            final Rope rope = StringOperations.rope(message);
+            final Rope rope = message.rope;
 
             digest.update(rope.getBytes());
             return digestObject;
@@ -184,9 +184,9 @@ public abstract class DigestNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(message)")
-        protected DynamicObject bubblebabble(DynamicObject message) {
-            final Rope rope = StringOperations.rope(message);
+        @Specialization
+        protected DynamicObject bubblebabble(RubyString message) {
+            final Rope rope = message.rope;
             final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
 
             return makeStringNode.executeMake(bubblebabbleBytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);

@@ -11,7 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -81,8 +81,8 @@ public abstract class CachedDispatchNode extends DispatchNode {
             return ((String) cachedName).equals(methodName);
         } else if (ropeEqualsNode != null) { // cachedName is a Ruby String
             return RubyGuards.isRubyString(methodName) && ropeEqualsNode.execute(
-                    StringOperations.rope((DynamicObject) cachedName),
-                    StringOperations.rope((DynamicObject) methodName));
+                    ((RubyString) cachedName).rope,
+                    ((RubyString) methodName).rope);
         } else { // cachedName is a Symbol
             // cachedName == methodName was checked above and was not true,
             // and since Symbols are compared by identity we know they don't match.

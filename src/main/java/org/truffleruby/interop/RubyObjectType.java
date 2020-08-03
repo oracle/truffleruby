@@ -11,7 +11,7 @@ package org.truffleruby.interop;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 
@@ -25,7 +25,7 @@ public class RubyObjectType extends ObjectType {
     @TruffleBoundary
     public String toString(DynamicObject object) {
         if (RubyGuards.isRubyString(object)) {
-            return StringOperations.rope(object).toString();
+            return ((RubyString) object).rope.toString();
         } else if (object instanceof RubyException) {
             return ((RubyException) object).message.toString();
         } else if (RubyGuards.isRubyModule(object)) {

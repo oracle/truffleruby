@@ -64,6 +64,7 @@ import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -618,7 +619,7 @@ public abstract class RubyDateFormatter {
 
     private static String getRubyTimeZoneName(ZonedDateTime dt, Object zone) {
         if (RubyGuards.isRubyString(zone)) {
-            return StringOperations.getString((DynamicObject) zone);
+            return StringOperations.getString((RubyString) zone);
         } else {
             return "";
         }

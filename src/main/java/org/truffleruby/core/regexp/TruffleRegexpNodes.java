@@ -24,7 +24,6 @@ import org.joni.Region;
 import org.joni.Syntax;
 import org.joni.exception.SyntaxException;
 import org.joni.exception.ValueException;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -41,6 +40,7 @@ import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
@@ -72,19 +72,19 @@ public class TruffleRegexpNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getDefaultCacheLimit()")
-        protected Object executeFastUnion(VirtualFrame frame, DynamicObject str, DynamicObject sep, Object[] args,
+        protected Object executeFastUnion(VirtualFrame frame, RubyString str, RubyString sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
                 @Cached("buildUnion(str, sep, args)") DynamicObject union) {
             return copyNode.call(union, "clone");
         }
 
         @Specialization(replaces = "executeFastUnion")
-        protected Object executeSlowUnion(DynamicObject str, DynamicObject sep, Object[] args) {
+        protected Object executeSlowUnion(RubyString str, RubyString sep, Object[] args) {
             return buildUnion(str, sep, args);
         }
 
-        public DynamicObject buildUnion(DynamicObject str, DynamicObject sep, Object[] args) {
-            DynamicObject regexpString = null;
+        public DynamicObject buildUnion(RubyString str, RubyString sep, Object[] args) {
+            RubyString regexpString = null;
             for (int i = 0; i < args.length; i++) {
                 if (regexpString == null) {
                     regexpString = appendNode.executeStringAppend(str, string(args[i]));
@@ -93,15 +93,15 @@ public class TruffleRegexpNodes {
                     regexpString = appendNode.executeStringAppend(regexpString, string(args[i]));
                 }
             }
-            return createRegexp(StringOperations.rope(regexpString));
+            return createRegexp(regexpString.rope);
         }
 
-        public DynamicObject string(Object obj) {
+        public RubyString string(Object obj) {
             if (RubyGuards.isRubyString(obj)) {
-                final Rope rope = StringOperations.rope((DynamicObject) obj);
+                final Rope rope = ((RubyString) obj).rope;
                 return makeStringNode.fromRope(ClassicRegexp.quote19(rope));
             } else {
-                return toSNode.execute((RubyRegexp) obj);
+                return (RubyString) toSNode.execute((RubyRegexp) obj);
             }
         }
 
@@ -196,7 +196,7 @@ public class TruffleRegexpNodes {
         @Specialization
         protected Object executeMatch(
                 RubyRegexp regexp,
-                DynamicObject string,
+                RubyString string,
                 Matcher matcher,
                 int startPos,
                 int range,
@@ -217,7 +217,7 @@ public class TruffleRegexpNodes {
             assert match >= 0;
 
             final Region region = matcher.getEagerRegion();
-            final DynamicObject dupedString = (DynamicObject) dupNode.call(string, "dup");
+            final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
             RubyMatchData result = new RubyMatchData(coreLibrary().matchDataShape, regexp, dupedString, region, null);
             return taintResultNode.maybeTaint(string, result);
         }
@@ -237,9 +237,9 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        protected void instrument(RubyRegexp regexp, DynamicObject string, boolean fromStart) {
+        protected void instrument(RubyRegexp regexp, RubyString string, boolean fromStart) {
             Rope source = regexp.source;
-            Encoding enc = Layouts.STRING.getRope(string).getEncoding();
+            Encoding enc = string.rope.getEncoding();
             RegexpOptions options = regexp.options;
             MatchInfo matchInfo = new MatchInfo(
                     new RegexpCacheKey(

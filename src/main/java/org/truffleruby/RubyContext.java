@@ -44,6 +44,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.FrozenStringLiterals;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.ThreadManager;
@@ -611,7 +612,7 @@ public class RubyContext {
         return frozenStringLiterals.getFrozenStringLiteral(rope);
     }
 
-    public DynamicObject getInternedString(DynamicObject string) {
+    public RubyString getInternedString(RubyString string) {
         return frozenStringLiterals.getFrozenStringLiteral(string);
     }
 

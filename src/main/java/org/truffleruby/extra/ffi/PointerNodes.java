@@ -14,7 +14,6 @@ import java.math.BigInteger;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -27,6 +26,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -34,9 +34,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -102,7 +100,7 @@ public abstract class PointerNodes {
                 final Object typedef = getContext()
                         .getTruffleNFI()
                         .resolveTypeRaw(getContext().getNativeConfiguration(), typeString);
-                final int typedefSize = typeSize(StringOperations.getString((DynamicObject) typedef));
+                final int typedefSize = typeSize(StringOperations.getString((RubyString) typedef));
                 assert typedefSize > 0 : typedef;
                 return typedefSize;
             }
@@ -237,13 +235,17 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_read_string_to_null")
     public static abstract class PointerReadStringToNullNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode;
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization(guards = "limit == 0")
         protected DynamicObject readNullPointer(long address, long limit) {
-            return allocate(
-                    coreLibrary().stringClass,
-                    Layouts.STRING.build(false, true, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+            final RubyString instance = new RubyString(
+                    coreLibrary().stringShape,
+                    false,
+                    true,
+                    RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
         @Specialization(guards = "limit != 0")
@@ -254,7 +256,10 @@ public abstract class PointerNodes {
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0, limit);
             final Rope rope = makeLeafRopeNode
                     .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-            return allocate(coreLibrary().stringClass, Layouts.STRING.build(false, true, rope));
+
+            final RubyString instance = new RubyString(coreLibrary().stringShape, false, true, rope);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
         @Specialization(guards = "isNil(limit)")
@@ -265,15 +270,10 @@ public abstract class PointerNodes {
             final byte[] bytes = ptr.readZeroTerminatedByteArray(getContext(), 0);
             final Rope rope = makeLeafRopeNode
                     .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-            return allocate(coreLibrary().stringClass, Layouts.STRING.build(false, true, rope));
-        }
 
-        private DynamicObject allocate(DynamicObject object, Object[] values) {
-            if (allocateObjectNode == null) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                allocateObjectNode = insert(AllocateObjectNode.create());
-            }
-            return allocateObjectNode.allocate(object, values);
+            final RubyString instance = new RubyString(coreLibrary().stringShape, false, true, rope);
+            allocateNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -285,21 +285,26 @@ public abstract class PointerNodes {
         protected DynamicObject readBytes(long address, int length,
                 @Cached ConditionProfile zeroProfile,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
-                @Cached AllocateObjectNode allocateObjectNode) {
+                @Cached AllocateHelperNode allocateNode) {
             final Pointer ptr = new Pointer(address);
             if (zeroProfile.profile(length == 0)) {
                 // No need to check the pointer address if we read nothing
-                return allocateObjectNode.allocate(
-                        coreLibrary().stringClass,
-                        Layouts.STRING.build(false, false, RopeConstants.EMPTY_ASCII_8BIT_ROPE));
+                final RubyString instance = new RubyString(
+                        coreLibrary().stringShape,
+                        false,
+                        false,
+                        RopeConstants.EMPTY_ASCII_8BIT_ROPE);
+                allocateNode.trace(instance, this);
+                return instance;
             } else {
                 checkNull(ptr);
                 final byte[] bytes = new byte[length];
                 ptr.readBytes(0, bytes, 0, length);
                 final Rope rope = makeLeafRopeNode
                         .executeMake(bytes, ASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN, NotProvided.INSTANCE);
-                return allocateObjectNode
-                        .allocate(coreLibrary().stringClass, Layouts.STRING.build(false, true, rope));
+                final RubyString instance = new RubyString(coreLibrary().stringShape, false, true, rope);
+                allocateNode.trace(instance, this);
+                return instance;
             }
         }
 
@@ -308,11 +313,11 @@ public abstract class PointerNodes {
     @Primitive(name = "pointer_write_bytes", lowerFixnum = { 2, 3 })
     public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject writeBytes(long address, DynamicObject string, int index, int length,
+        @Specialization
+        protected DynamicObject writeBytes(long address, RubyString string, int index, int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Pointer ptr = new Pointer(address);
-            final Rope rope = StringOperations.rope(string);
+            final Rope rope = string.rope;
             assert index + length <= rope.byteLength();
             if (length != 0) {
                 // No need to check the pointer address if we write nothing

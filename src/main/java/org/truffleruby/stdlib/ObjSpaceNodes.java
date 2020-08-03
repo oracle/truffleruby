@@ -18,7 +18,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -43,9 +43,9 @@ public abstract class ObjSpaceNodes {
             return memsizeOfObject(object) + Layouts.HASH.getSize(object);
         }
 
-        @Specialization(guards = "isRubyString(object)")
-        protected int memsizeOfString(DynamicObject object) {
-            return memsizeOfObject(object) + StringOperations.rope(object).byteLength();
+        @Specialization
+        protected int memsizeOfString(RubyString object) {
+            return memsizeOfObject(object) + object.rope.byteLength();
         }
 
         @Specialization

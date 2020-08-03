@@ -12,6 +12,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -30,7 +31,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Converts a method name to a Java String. The exception message below assumes this conversion is done for a method
@@ -54,8 +54,8 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
 
     public abstract String execute(Object name);
 
-    @Specialization(guards = "isRubyString(value)")
-    protected String stringNameToJavaString(DynamicObject value,
+    @Specialization
+    protected String stringNameToJavaString(RubyString value,
             @Cached @Shared("toJavaStringNode") ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);
     }
@@ -92,7 +92,7 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
         }
 
         if (RubyGuards.isRubyString(coerced)) {
-            return StringOperations.getString((DynamicObject) coerced);
+            return StringOperations.getString((RubyString) coerced);
         } else {
             errorProfile.enter();
             throw new RaiseException(context, context.getCoreExceptions().typeErrorBadCoercion(

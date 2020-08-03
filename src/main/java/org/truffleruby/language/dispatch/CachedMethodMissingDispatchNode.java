@@ -12,7 +12,7 @@ package org.truffleruby.language.dispatch;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.module.MethodLookupResult;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.methods.InternalMethod;
@@ -59,7 +59,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
         if (cachedName instanceof RubySymbol) {
             cachedNameAsSymbol = (RubySymbol) cachedName;
         } else if (RubyGuards.isRubyString(cachedName)) {
-            cachedNameAsSymbol = context.getSymbol(StringOperations.rope((DynamicObject) cachedName));
+            cachedNameAsSymbol = context.getSymbol(((RubyString) cachedName).rope);
         } else if (cachedName instanceof String) {
             cachedNameAsSymbol = context.getSymbol((String) cachedName);
         } else {

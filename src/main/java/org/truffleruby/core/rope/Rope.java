@@ -23,7 +23,7 @@ public abstract class Rope implements Comparable<Rope> {
     // Useful for debugging. Setting to false allow to catch wrong usages.
     protected static final boolean ALLOW_TO_STRING = true;
 
-    private final Encoding encoding;
+    public final Encoding encoding;
     private final int byteLength;
     private final int ropeDepth;
     private int hashCode = 0;

@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
@@ -58,7 +59,7 @@ public abstract class RequireNode extends RubyContextNode {
     public abstract boolean executeRequire(String feature, DynamicObject expandedPath);
 
     @Specialization
-    protected boolean require(String feature, DynamicObject expandedPathString) {
+    protected boolean require(String feature, RubyString expandedPathString) {
         final String expandedPath = StringOperations.getString(expandedPathString);
         return requireWithMetrics(feature, expandedPath, expandedPathString);
     }

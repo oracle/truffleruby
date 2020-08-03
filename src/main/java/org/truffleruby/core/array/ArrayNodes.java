@@ -52,6 +52,7 @@ import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -1447,8 +1448,8 @@ public abstract class ArrayNodes {
             return ToStrNodeGen.create(format);
         }
 
-        @Specialization(guards = "equalNode.execute(rope(format), cachedFormat)", limit = "getCacheLimit()")
-        protected DynamicObject packCached(RubyArray array, DynamicObject format,
+        @Specialization(guards = "equalNode.execute(format.rope, cachedFormat)", limit = "getCacheLimit()")
+        protected DynamicObject packCached(RubyArray array, RubyString format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
                 @Cached("create(compileFormat(format))") DirectCallNode callPackNode,
@@ -1467,7 +1468,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(replaces = "packCached")
-        protected DynamicObject packUncached(RubyArray array, DynamicObject format,
+        protected DynamicObject packUncached(RubyArray array, RubyString format,
                 @Cached IndirectCallNode callPackNode) {
             final BytesResult result;
 
@@ -1480,7 +1481,7 @@ public abstract class ArrayNodes {
                 throw FormatExceptionTranslator.translate(getContext(), this, e);
             }
 
-            return finishPack(Layouts.STRING.getRope(format).byteLength(), result);
+            return finishPack(format.rope.byteLength(), result);
         }
 
         private DynamicObject finishPack(int formatLength, BytesResult result) {
