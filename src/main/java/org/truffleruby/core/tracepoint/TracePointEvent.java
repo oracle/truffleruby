@@ -9,16 +9,14 @@
  */
 package org.truffleruby.core.tracepoint;
 
-import org.truffleruby.RubyContext;
-import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.shared.TruffleRuby;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNodeFactory;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.RubyContext;
+import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.shared.TruffleRuby;
 
 public final class TracePointEvent {
 
@@ -38,7 +36,7 @@ public final class TracePointEvent {
 
     /** Returns whether the event was setup */
     @TruffleBoundary
-    public synchronized boolean setupEventBinding(RubyContext context, DynamicObject tracePoint) {
+    public synchronized boolean setupEventBinding(RubyContext context, RubyTracePoint tracePoint) {
         if (eventBinding != null) {
             return false;
         }

@@ -67,6 +67,7 @@ import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyBacktraceLocation;
 import org.truffleruby.core.time.RubyTime;
+import org.truffleruby.core.tracepoint.RubyTracePoint;
 import org.truffleruby.extra.RubyAtomicReference;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Nil;
@@ -576,9 +577,8 @@ public class CoreLibrary {
         structClass = defineClass("Struct");
 
         final DynamicObject tracePointClass = defineClass("TracePoint");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                tracePointClass,
-                Layouts.TRACE_POINT.createTracePointShape(tracePointClass, tracePointClass));
+        Shape tracePointShape = createShape(RubyTracePoint.class, tracePointClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(tracePointClass, createFactory(tracePointShape));
 
         // Modules
 
