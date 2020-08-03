@@ -14,15 +14,17 @@ import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
-import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.core.queue.RubyQueue;
+import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -61,10 +63,9 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
         }
     }
 
-    @Specialization(guards = { "!isObjectArray(array)", "!isDelegatedObjectArray(array)" })
-    protected void shareCachedOtherArray(RubyArray array,
-            @Cached("array.getShape()") Shape cachedShape) {
-        /* null, int[], long[] or double[] storage */
+    @Specialization(guards = "stores.isPrimitive(array.store)", limit = "storageStrategyLimit()")
+    protected void shareCachedPrimitiveArray(RubyArray array,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
         assert ArrayOperations.isPrimitiveStorage(array);
     }
 
@@ -94,7 +95,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
             replaces = {
                     "shareCachedObjectArray",
                     "shareCachedDelegatedArray",
-                    "shareCachedOtherArray",
+                    "shareCachedPrimitiveArray",
                     "shareCachedQueue",
                     "shareCachedBasicObject" })
     protected void shareUncached(DynamicObject object) {
