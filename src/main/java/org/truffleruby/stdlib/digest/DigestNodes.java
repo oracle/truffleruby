@@ -9,12 +9,11 @@
  */
 package org.truffleruby.stdlib.digest;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -24,11 +23,12 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 @CoreModule(value = "Truffle::Digest", isClass = true)
 public abstract class DigestNodes {
@@ -42,19 +42,24 @@ public abstract class DigestNodes {
         }
     }
 
-    private static DynamicObject createDigest(RubyContext context, DigestAlgorithm algorithm) {
-        return Layouts.DIGEST.createDigest(
-                context.getCoreLibrary().digestFactory,
+    private static RubyDigest createDigest(RubyContext context, AllocateHelperNode allocateNode,
+            RubyContextSourceNode rubyContextSourceNode, DigestAlgorithm algorithm) {
+        final RubyDigest instance = new RubyDigest(
+                context.getCoreLibrary().digestShape,
                 algorithm,
                 getMessageDigestInstance(algorithm.getName()));
+        allocateNode.trace(instance, rubyContextSourceNode);
+        return instance;
     }
 
     @CoreMethod(names = "md5", onSingleton = true)
     public abstract static class MD5Node extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
-        protected DynamicObject md5() {
-            return createDigest(getContext(), DigestAlgorithm.MD5);
+        protected RubyDigest md5() {
+            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.MD5);
         }
 
     }
@@ -62,9 +67,11 @@ public abstract class DigestNodes {
     @CoreMethod(names = "sha1", onSingleton = true)
     public abstract static class SHA1Node extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
-        protected DynamicObject sha1() {
-            return createDigest(getContext(), DigestAlgorithm.SHA1);
+        protected RubyDigest sha1() {
+            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.SHA1);
         }
 
     }
@@ -72,9 +79,11 @@ public abstract class DigestNodes {
     @CoreMethod(names = "sha256", onSingleton = true)
     public abstract static class SHA256Node extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
-        protected DynamicObject sha256() {
-            return createDigest(getContext(), DigestAlgorithm.SHA256);
+        protected RubyDigest sha256() {
+            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.SHA256);
         }
 
     }
@@ -82,9 +91,11 @@ public abstract class DigestNodes {
     @CoreMethod(names = "sha384", onSingleton = true)
     public abstract static class SHA384Node extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
-        protected DynamicObject sha384() {
-            return createDigest(getContext(), DigestAlgorithm.SHA384);
+        protected RubyDigest sha384() {
+            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.SHA384);
         }
 
     }
@@ -92,9 +103,11 @@ public abstract class DigestNodes {
     @CoreMethod(names = "sha512", onSingleton = true)
     public abstract static class SHA512Node extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
-        protected DynamicObject sha512() {
-            return createDigest(getContext(), DigestAlgorithm.SHA512);
+        protected RubyDigest sha512() {
+            return createDigest(getContext(), allocateNode, this, DigestAlgorithm.SHA512);
         }
 
     }
@@ -104,8 +117,8 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyString(message)")
-        protected DynamicObject update(DynamicObject digestObject, DynamicObject message) {
-            final MessageDigest digest = Layouts.DIGEST.getDigest(digestObject);
+        protected DynamicObject update(RubyDigest digestObject, DynamicObject message) {
+            final MessageDigest digest = digestObject.digest;
             final Rope rope = StringOperations.rope(message);
 
             digest.update(rope.getBytes());
@@ -119,8 +132,8 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject reset(DynamicObject digestObject) {
-            Layouts.DIGEST.getDigest(digestObject).reset();
+        protected DynamicObject reset(RubyDigest digestObject) {
+            digestObject.digest.reset();
             return digestObject;
         }
 
@@ -132,8 +145,8 @@ public abstract class DigestNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject digest(DynamicObject digestObject) {
-            final MessageDigest digest = Layouts.DIGEST.getDigest(digestObject);
+        protected DynamicObject digest(RubyDigest digestObject) {
+            final MessageDigest digest = digestObject.digest;
 
             return makeStringNode.executeMake(cloneAndDigest(digest), ASCIIEncoding.INSTANCE, CodeRange.CR_VALID);
         }
@@ -159,8 +172,8 @@ public abstract class DigestNodes {
     public abstract static class DigestLengthNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int digestLength(DynamicObject digestObject) {
-            return Layouts.DIGEST.getAlgorithm(digestObject).getLength();
+        protected int digestLength(RubyDigest digestObject) {
+            return digestObject.algorithm.getLength();
         }
 
     }

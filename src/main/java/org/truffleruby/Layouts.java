@@ -27,8 +27,6 @@ import org.truffleruby.core.string.StringLayout;
 import org.truffleruby.core.string.StringLayoutImpl;
 import org.truffleruby.core.thread.ThreadLayout;
 import org.truffleruby.core.thread.ThreadLayoutImpl;
-import org.truffleruby.stdlib.digest.DigestLayout;
-import org.truffleruby.stdlib.digest.DigestLayoutImpl;
 
 import com.oracle.truffle.api.object.HiddenKey;
 
@@ -57,6 +55,5 @@ public abstract class Layouts {
     public static final StringLayout STRING = StringLayoutImpl.INSTANCE;
     public static final ThreadLayout THREAD = ThreadLayoutImpl.INSTANCE;
     public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;
-    public static final DigestLayout DIGEST = DigestLayoutImpl.INSTANCE;
 
 }

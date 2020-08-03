@@ -97,6 +97,7 @@ import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.shared.BuildInformationImpl;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
+import org.truffleruby.stdlib.digest.RubyDigest;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -265,7 +266,7 @@ public class CoreLibrary {
     public final DynamicObject ioClass;
     public final DynamicObject closedQueueErrorClass;
     public final DynamicObject warningModule;
-    public final DynamicObjectFactory digestFactory;
+    public final Shape digestShape;
     public final DynamicObject structClass;
     public final DynamicObject weakMapClass;
     public final Shape weakMapShape;
@@ -688,8 +689,8 @@ public class CoreLibrary {
         // Standard library
 
         DynamicObject digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
-        digestFactory = Layouts.DIGEST.createDigestShape(digestClass, digestClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(digestClass, digestFactory);
+        digestShape = createShape(RubyDigest.class, digestClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(digestClass, createFactory(digestShape));
 
         // Include the core modules
 
