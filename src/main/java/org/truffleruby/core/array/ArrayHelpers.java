@@ -16,14 +16,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ArrayHelpers {
 
-    public static Object getStore(RubyArray array) {
-        return array.store;
-    }
-
-    public static int getSize(RubyArray array) {
-        return array.size;
-    }
-
     public static void setStoreAndSize(RubyArray array, Object store, int size) {
         array.store = store;
         setSize(array, size);

@@ -40,15 +40,15 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
     public abstract void execute(RubyArray dst, RubyArray src, int dstStart, int length);
 
     @ReportPolymorphism.Exclude
-    @Specialization(guards = { "length == 0", "start <= getSize(dst)" })
+    @Specialization(guards = { "length == 0", "start <= dst.size" })
     protected void noChange(RubyArray dst, RubyArray src, int start, int length) {
     }
 
     @Specialization(
-            guards = "start > getSize(dst)",
+            guards = "start > dst.size",
             limit = "storageStrategyLimit()")
     protected void nilPad(RubyArray dst, RubyArray src, int start, int length,
-            @CachedLibrary("getStore(dst)") ArrayStoreLibrary dstStores) {
+            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
 
         final int oldSize = dst.size;
         final Object oldStore = dst.store;
@@ -60,11 +60,11 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
     }
 
     @Specialization(
-            guards = { "length > 0", "start <= getSize(dst)", "compatible(dstStores, dst, src)" },
+            guards = { "length > 0", "start <= dst.size", "compatible(dstStores, dst, src)" },
             limit = "storageStrategyLimit()")
     protected void resizeCompatible(RubyArray dst, RubyArray src, int start, int length,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
-            @CachedLibrary("getStore(dst)") ArrayStoreLibrary dstStores) {
+            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
 
         // Necessary even if under capacity to ensure that the destination gets a mutable store.
         ensureCapacityNode.executeEnsureCapacity(dst, start + length);
@@ -74,10 +74,10 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
     }
 
     @Specialization(
-            guards = { "length > 0", "start <= getSize(dst)", "!compatible(dstStores, dst, src)" },
+            guards = { "length > 0", "start <= dst.size", "!compatible(dstStores, dst, src)" },
             limit = "storageStrategyLimit()")
     protected void resizeGeneralize(RubyArray dst, RubyArray src, int start, int length,
-            @CachedLibrary("getStore(dst)") ArrayStoreLibrary dstStores) {
+            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
 
         final int oldDstSize = dst.size;
         final int newDstSize = Math.max(oldDstSize, start + length);

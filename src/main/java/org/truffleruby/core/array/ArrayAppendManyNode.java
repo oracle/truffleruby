@@ -40,11 +40,11 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
     }
 
     @Specialization(
-            guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(getStore(array), getStore(other))" },
+            guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(array.store, other.store)" },
             limit = "storageStrategyLimit()")
     protected DynamicObject appendManySameType(RubyArray array, RubyArray other,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-            @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores,
+            @CachedLibrary("other.store") ArrayStoreLibrary otherStores,
             @Cached ConditionProfile extendProfile) {
         final int oldSize = array.size;
         final int otherSize = other.size;
@@ -69,11 +69,11 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
     // Generalizations
 
     @Specialization(
-            guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(getStore(array), getStore(other))" },
+            guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(array.store, other.store)" },
             limit = "storageStrategyLimit()")
     protected DynamicObject appendManyGeneralize(RubyArray array, RubyArray other,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-            @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores) {
+            @CachedLibrary("array.store") ArrayStoreLibrary stores,
+            @CachedLibrary("other.store") ArrayStoreLibrary otherStores) {
         final int oldSize = array.size;
         final int otherSize = other.size;
         final int newSize = oldSize + otherSize;

@@ -29,13 +29,13 @@ public abstract class ArrayDupNode extends RubyContextNode {
 
     @Specialization(
             guards = {
-                    "getSize(from) == cachedSize",
+                    "from.size == cachedSize",
                     "cachedSize <= ARRAY_MAX_EXPLODE_SIZE" },
             limit = "getCacheLimit()")
     protected DynamicObject dupProfiledSize(RubyArray from,
-            @CachedLibrary("getStore(from)") ArrayStoreLibrary fromStores,
+            @CachedLibrary("from.store") ArrayStoreLibrary fromStores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary toStores,
-            @Cached("getSize(from)") int cachedSize) {
+            @Cached("from.size") int cachedSize) {
         return copyArraySmall(fromStores, toStores, from, cachedSize);
     }
 

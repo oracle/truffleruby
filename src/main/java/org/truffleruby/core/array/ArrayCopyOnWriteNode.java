@@ -29,9 +29,9 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
 
     public abstract Object execute(DynamicObject array, int start, int length);
 
-    @Specialization(guards = "stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
+    @Specialization(guards = "stores.isMutable(array.store)", limit = "storageStrategyLimit()")
     protected Object extractFromMutableArray(RubyArray array, int start, int length,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
         Object store = array.store;
         int size = array.size;
         Object cowStore = stores.extractRange(store, 0, size);
@@ -40,9 +40,9 @@ public abstract class ArrayCopyOnWriteNode extends RubyBaseNode {
         return range;
     }
 
-    @Specialization(guards = "!stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
+    @Specialization(guards = "!stores.isMutable(array.store)", limit = "storageStrategyLimit()")
     protected Object extractFromNonMutableArray(RubyArray array, int start, int length,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
         Object store = array.store;
         Object range = stores.extractRange(store, start, start + length);
         return range;

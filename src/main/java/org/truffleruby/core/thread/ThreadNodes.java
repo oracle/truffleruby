@@ -307,7 +307,7 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
         protected Object initialize(DynamicObject thread, RubyArray arguments, DynamicObject block,
-                @CachedLibrary("getStore(arguments)") ArrayStoreLibrary stores) {
+                @CachedLibrary("arguments.store") ArrayStoreLibrary stores) {
             final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
             final String info = RubyContext.fileLine(sourceSection);
             final int argSize = arguments.size;

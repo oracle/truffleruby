@@ -200,7 +200,7 @@ public abstract class MatchDataNodes {
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode,
                 @Cached AllocateHelperNode allocateNode) {
-            final Region region = new Region(ArrayHelpers.getSize(starts));
+            final Region region = new Region(starts.size);
             for (int i = 0; i < region.numRegs; i++) {
                 region.beg[i] = integerCastNode.executeCastInt(readNode.executeRead(starts, i));
                 region.end[i] = integerCastNode.executeCastInt(readNode.executeRead(ends, i));

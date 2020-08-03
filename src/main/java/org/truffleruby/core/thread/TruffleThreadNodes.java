@@ -34,7 +34,7 @@ public class TruffleThreadNodes {
         @TruffleBoundary
         @Specialization(guards = "isRubyArray(modules)", limit = "storageStrategyLimit()")
         protected Object findRubyCaller(RubyArray modules,
-                @CachedLibrary("getStore(modules)") ArrayStoreLibrary stores) {
+                @CachedLibrary("modules.store") ArrayStoreLibrary stores) {
             final int modulesSize = modules.size;
             Object[] moduleArray = stores.boxedCopyOfRange(modules.store, 0, modulesSize);
             Frame rubyCaller = getContext()

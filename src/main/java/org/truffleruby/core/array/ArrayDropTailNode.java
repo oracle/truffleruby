@@ -33,7 +33,7 @@ public abstract class ArrayDropTailNode extends RubyContextSourceNode {
 
     @Specialization(limit = "storageStrategyLimit()")
     protected DynamicObject dropTail(RubyArray array,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @Cached ArrayCopyOnWriteNode cowNode,
             @Cached ConditionProfile indexLargerThanSize) {
         final int size = array.size;

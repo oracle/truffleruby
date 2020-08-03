@@ -34,14 +34,6 @@ public class ArrayGuards {
         return array.size == 0;
     }
 
-    public static Object getStore(RubyArray array) {
-        return array.store;
-    }
-
-    public static int getSize(RubyArray array) {
-        return array.size;
-    }
-
     public static boolean basicStore(Object store) {
         assert !(store instanceof Object[]) ||
                 store.getClass() == Object[].class : "Must be Object[], not a subclass: " + store;

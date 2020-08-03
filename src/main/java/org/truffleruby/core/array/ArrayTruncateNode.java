@@ -28,10 +28,10 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     public abstract void execute(RubyArray array, int size);
 
     @Specialization(
-            guards = { "getSize(array) > size", "stores.isMutable(getStore(array))" },
+            guards = { "array.size > size", "stores.isMutable(array.store)" },
             limit = "storageStrategyLimit()")
     protected void truncate(RubyArray array, int size,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
 
         final int oldSize = array.size;
         array.size = size;
@@ -39,10 +39,10 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     }
 
     @Specialization(
-            guards = { "getSize(array) > size", "!stores.isMutable(array)" },
+            guards = { "array.size > size", "!stores.isMutable(array)" },
             limit = "storageStrategyLimit()")
     protected void truncateCopy(RubyArray array, int size,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
 
         final Object store = array.store;
         final Object newStore = stores.allocateForNewStore(store, store, size);
@@ -52,7 +52,7 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
     }
 
     @ReportPolymorphism.Exclude
-    @Specialization(guards = "getSize(array) <= size")
+    @Specialization(guards = "array.size <= size")
     protected void doNothing(RubyArray array, int size) {
     }
 }

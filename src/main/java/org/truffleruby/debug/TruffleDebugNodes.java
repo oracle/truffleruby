@@ -321,7 +321,7 @@ public abstract class TruffleDebugNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected long arrayStorage(RubyArray array,
-                @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+                @CachedLibrary("array.store") ArrayStoreLibrary stores) {
             return stores.capacity(array.store);
         }
 

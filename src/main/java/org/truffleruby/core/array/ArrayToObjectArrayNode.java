@@ -35,7 +35,7 @@ public abstract class ArrayToObjectArrayNode extends RubyContextNode {
 
     @Specialization(limit = "storageStrategyLimit()")
     protected Object[] toObjectArrayOther(RubyArray array,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
         final int size = array.size;
         final Object store = array.store;
         return stores.boxedCopyOfRange(store, 0, size);

@@ -265,11 +265,11 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         public abstract void executeAppend(BuilderState state, int index, DynamicObject value);
 
         @Specialization(
-                guards = { "arrays.acceptsAllValues(state.store, getStore(other))" },
+                guards = { "arrays.acceptsAllValues(state.store, other.store)" },
                 limit = "storageStrategyLimit()")
         protected void appendCompatibleStrategy(BuilderState state, int index, RubyArray other,
                 @CachedLibrary("state.store") ArrayStoreLibrary arrays,
-                @CachedLibrary("getStore(other)") ArrayStoreLibrary others) {
+                @CachedLibrary("other.store") ArrayStoreLibrary others) {
             assert state.nextIndex == index;
             final int otherSize = other.size;
             final int neededSize = index + otherSize;
@@ -289,7 +289,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         }
 
         @Specialization(
-                guards = { "!arrayLibrary.acceptsAllValues(state.store, getStore(other))" },
+                guards = { "!arrayLibrary.acceptsAllValues(state.store, other.store)" },
                 limit = "1")
         protected void appendNewStrategy(BuilderState state, int index, RubyArray other,
                 @CachedLibrary("state.store") ArrayStoreLibrary arrayLibrary) {
@@ -324,10 +324,6 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 state.capacity = neededCapacity;
                 state.nextIndex = state.nextIndex + otherSize;
             }
-        }
-
-        protected static Object getStore(RubyArray array) {
-            return array.store;
         }
     }
 

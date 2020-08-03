@@ -46,7 +46,7 @@ public abstract class ArrayIndexNodes {
 
         @Specialization(limit = "storageStrategyLimit()")
         protected Object readInBounds(RubyArray array,
-                @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+                @CachedLibrary("array.store") ArrayStoreLibrary arrays,
                 @Cached ConditionProfile isInBounds) {
             final int size = array.size;
             final int normalizedIndex = index >= 0 ? index : size + index;
@@ -77,7 +77,7 @@ public abstract class ArrayIndexNodes {
                 guards = "isInBounds(array, index)",
                 limit = "storageStrategyLimit()")
         protected Object readInBounds(RubyArray array, int index,
-                @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
+                @CachedLibrary("array.store") ArrayStoreLibrary arrays) {
             return arrays.read(array.store, index);
         }
 
