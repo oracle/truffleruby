@@ -24,6 +24,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.language.NotProvided;
@@ -416,12 +417,12 @@ public abstract class RangeNodes {
         @Child private ToIntNode toIntNode;
 
         @Specialization(guards = "isIntRange(range)")
-        protected DynamicObject intRange(DynamicObject range, DynamicObject array) {
+        protected DynamicObject intRange(DynamicObject range, RubyArray array) {
             return range;
         }
 
         @Specialization(guards = "isLongRange(range)")
-        protected DynamicObject longRange(DynamicObject range, DynamicObject array) {
+        protected DynamicObject longRange(DynamicObject range, RubyArray array) {
             int begin = toInt(Layouts.LONG_RANGE.getBegin(range));
             int end = toInt(Layouts.LONG_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.LONG_RANGE.getExcludedEnd(range);
@@ -429,7 +430,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isBoundedObjectRange(range)")
-        protected DynamicObject boundedObjectRange(DynamicObject range, DynamicObject array) {
+        protected DynamicObject boundedObjectRange(DynamicObject range, RubyArray array) {
             int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
             int end = toInt(Layouts.OBJECT_RANGE.getEnd(range));
             boolean excludedEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
@@ -437,9 +438,9 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "isEndlessObjectRange(range)")
-        protected DynamicObject endlessObjectRange(DynamicObject range, DynamicObject array) {
+        protected DynamicObject endlessObjectRange(DynamicObject range, RubyArray array) {
             int begin = toInt(Layouts.OBJECT_RANGE.getBegin(range));
-            int end = Layouts.ARRAY.getSize(array);
+            int end = array.size;
             boolean excludedEnd = true;
             return Layouts.INT_RANGE.createIntRange(coreLibrary().intRangeFactory, excludedEnd, begin, end);
         }

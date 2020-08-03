@@ -9,13 +9,12 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -29,7 +28,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     }
 
     @Children protected final RubyNode[] values;
-    @Child private AllocateObjectNode allocateObjectNode;
+    @Child private AllocateHelperNode allocateHelperNode;
 
     public ArrayLiteralNode(RubyNode[] values) {
         this.values = values;
@@ -53,12 +52,14 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         return cachedCreateArray(executedValues, executedValues.length);
     }
 
-    protected DynamicObject cachedCreateArray(Object store, int size) {
-        if (allocateObjectNode == null) {
+    protected RubyArray cachedCreateArray(Object store, int size) {
+        if (allocateHelperNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            allocateObjectNode = insert(AllocateObjectNode.create());
+            allocateHelperNode = insert(AllocateHelperNode.create());
         }
-        return allocateObjectNode.allocate(coreLibrary().arrayClass, store, size);
+        final RubyArray array = new RubyArray(coreLibrary().arrayShape, store, size);
+        allocateHelperNode.trace(array, this);
+        return array;
     }
 
     @Override
@@ -255,10 +256,10 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
                 executedValues[n] = values[n].execute(frame);
             }
 
-            final DynamicObject array = cachedCreateArray(
+            final RubyArray array = cachedCreateArray(
                     storeSpecialisedFromObjects(executedValues),
                     executedValues.length);
-            final Object store = Layouts.ARRAY.getStore(array);
+            final Object store = array.store;
 
             final RubyNode newNode;
 

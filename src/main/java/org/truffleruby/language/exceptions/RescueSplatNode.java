@@ -12,6 +12,7 @@ package org.truffleruby.language.exceptions;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.language.RubyNode;
@@ -33,7 +34,7 @@ public class RescueSplatNode extends RescueNode {
 
     @Override
     public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
-        final DynamicObject handlingClasses = (DynamicObject) splatCastNode.execute(frame);
+        final RubyArray handlingClasses = (RubyArray) splatCastNode.execute(frame);
 
         // TODO (norswap, eregon, 02 Mar 2020)
         //  This should use a node to iterate or we should move the logic to Ruby.

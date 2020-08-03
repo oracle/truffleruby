@@ -12,7 +12,6 @@ package org.truffleruby.core.array;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -29,29 +28,29 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
 
     @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
-    public abstract DynamicObject executeAppendMany(DynamicObject array, DynamicObject other);
+    public abstract DynamicObject executeAppendMany(RubyArray array, RubyArray other);
 
     // Append of a compatible type
 
     /** Appending an empty array is a no-op, and shouldn't cause an immutable array store to be converted into a mutable
      * one unnecessarily. */
     @Specialization(guards = "isEmptyArray(other)")
-    protected DynamicObject appendZero(DynamicObject array, DynamicObject other) {
+    protected DynamicObject appendZero(RubyArray array, RubyArray other) {
         return array;
     }
 
     @Specialization(
-            guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(getStore(array), getStore(other))" },
+            guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(array.store, other.store)" },
             limit = "storageStrategyLimit()")
-    protected DynamicObject appendManySameType(DynamicObject array, DynamicObject other,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-            @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores,
+    protected DynamicObject appendManySameType(RubyArray array, RubyArray other,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores,
+            @CachedLibrary("other.store") ArrayStoreLibrary otherStores,
             @Cached ConditionProfile extendProfile) {
-        final int oldSize = Layouts.ARRAY.getSize(array);
-        final int otherSize = Layouts.ARRAY.getSize(other);
+        final int oldSize = array.size;
+        final int otherSize = other.size;
         final int newSize = oldSize + otherSize;
-        final Object store = Layouts.ARRAY.getStore(array);
-        final Object otherStore = Layouts.ARRAY.getStore(other);
+        final Object store = array.store;
+        final Object otherStore = other.store;
         final int length = stores.capacity(store);
 
         propagateSharingNode.executePropagate(array, other);
@@ -70,16 +69,16 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
     // Generalizations
 
     @Specialization(
-            guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(getStore(array), getStore(other))" },
+            guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(array.store, other.store)" },
             limit = "storageStrategyLimit()")
-    protected DynamicObject appendManyGeneralize(DynamicObject array, DynamicObject other,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
-            @CachedLibrary("getStore(other)") ArrayStoreLibrary otherStores) {
-        final int oldSize = Layouts.ARRAY.getSize(array);
-        final int otherSize = Layouts.ARRAY.getSize(other);
+    protected DynamicObject appendManyGeneralize(RubyArray array, RubyArray other,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores,
+            @CachedLibrary("other.store") ArrayStoreLibrary otherStores) {
+        final int oldSize = array.size;
+        final int otherSize = other.size;
         final int newSize = oldSize + otherSize;
-        final Object store = Layouts.ARRAY.getStore(array);
-        final Object otherStore = Layouts.ARRAY.getStore(other);
+        final Object store = array.store;
+        final Object otherStore = other.store;
         final Object newStore = stores.allocateForNewStore(store, otherStore, newSize);
 
         propagateSharingNode.executePropagate(array, other);

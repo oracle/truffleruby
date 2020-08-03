@@ -96,6 +96,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.TaintResultNode;
@@ -696,7 +697,7 @@ public abstract class StringNodes {
                 return nil;
             }
 
-            final Object[] array = (Object[]) Layouts.ARRAY.getStore((DynamicObject) matchStrPair);
+            final Object[] array = (Object[]) ((RubyArray) matchStrPair).store;
 
             setLastMatchNode
                     .call(coreLibrary().truffleRegexpOperationsModule, "set_last_match", array[0], binding);

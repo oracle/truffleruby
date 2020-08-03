@@ -57,6 +57,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
@@ -396,7 +397,7 @@ public abstract class ReadlineNodes {
 
             DynamicObject string = StringOperations
                     .createString(context, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
-            DynamicObject completions = (DynamicObject) context.send(proc, "call", string);
+            RubyArray completions = (RubyArray) context.send(proc, "call", string);
             assert RubyGuards.isRubyArray(completions);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 assert RubyGuards.isRubyString(element);

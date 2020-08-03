@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
@@ -17,7 +16,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
@@ -27,13 +25,13 @@ public abstract class ArrayEnsureCapacityNode extends RubyContextNode {
         return ArrayEnsureCapacityNodeGen.create();
     }
 
-    public abstract boolean executeEnsureCapacity(DynamicObject array, int requiredCapacity);
+    public abstract boolean executeEnsureCapacity(RubyArray array, int requiredCapacity);
 
-    @Specialization(guards = "!stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
-    protected boolean ensureCapacityAndMakeMutable(DynamicObject array, int requiredCapacity,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
+    @Specialization(guards = "!stores.isMutable(array.store)", limit = "storageStrategyLimit()")
+    protected boolean ensureCapacityAndMakeMutable(RubyArray array, int requiredCapacity,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final Object store = Layouts.ARRAY.getStore(array);
+        final Object store = array.store;
 
         final int currentCapacity = stores.capacity(store);
         final int capacity;
@@ -45,20 +43,20 @@ public abstract class ArrayEnsureCapacityNode extends RubyContextNode {
 
         final Object newStore = stores.allocator(store).allocate(capacity);
         stores.copyContents(store, 0, newStore, 0, currentCapacity);
-        Layouts.ARRAY.setStore(array, newStore);
+        array.store = newStore;
         return true;
     }
 
-    @Specialization(guards = "stores.isMutable(getStore(array))", limit = "storageStrategyLimit()")
-    protected boolean ensureCapacity(DynamicObject array, int requiredCapacity,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores,
+    @Specialization(guards = "stores.isMutable(array.store)", limit = "storageStrategyLimit()")
+    protected boolean ensureCapacity(RubyArray array, int requiredCapacity,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
-        final Object store = Layouts.ARRAY.getStore(array);
+        final Object store = array.store;
 
         final int length = stores.capacity(store);
         if (extendProfile.profile(length < requiredCapacity)) {
             final int capacity = ArrayUtils.capacity(getContext(), length, requiredCapacity);
-            Layouts.ARRAY.setStore(array, stores.expand(store, capacity));
+            array.store = stores.expand(store, capacity);
             return true;
         } else {
             return false;

@@ -13,11 +13,9 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
-import static org.truffleruby.Layouts.ARRAY;
 
 /** Truncates an array by setting its size and clearing the remainder of the store with default values. */
 @ImportStatic(ArrayGuards.class)
@@ -27,34 +25,34 @@ public abstract class ArrayTruncateNode extends RubyBaseNode {
         return ArrayTruncateNodeGen.create();
     }
 
-    public abstract void execute(DynamicObject array, int size);
+    public abstract void execute(RubyArray array, int size);
 
     @Specialization(
-            guards = { "getSize(array) > size", "stores.isMutable(getStore(array))" },
+            guards = { "array.size > size", "stores.isMutable(array.store)" },
             limit = "storageStrategyLimit()")
-    protected void truncate(DynamicObject array, int size,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+    protected void truncate(RubyArray array, int size,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
 
-        final int oldSize = ARRAY.getSize(array);
-        ARRAY.setSize(array, size);
-        stores.clear(ARRAY.getStore(array), size, oldSize - size);
+        final int oldSize = array.size;
+        array.size = size;
+        stores.clear(array.store, size, oldSize - size);
     }
 
     @Specialization(
-            guards = { "getSize(array) > size", "!stores.isMutable(array)" },
+            guards = { "array.size > size", "!stores.isMutable(array)" },
             limit = "storageStrategyLimit()")
-    protected void truncateCopy(DynamicObject array, int size,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
+    protected void truncateCopy(RubyArray array, int size,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
 
-        final Object store = ARRAY.getStore(array);
+        final Object store = array.store;
         final Object newStore = stores.allocateForNewStore(store, store, size);
         stores.copyContents(store, 0, newStore, 0, size);
-        ARRAY.setStore(array, newStore);
-        ARRAY.setSize(array, size);
+        array.store = newStore;
+        array.size = size;
     }
 
     @ReportPolymorphism.Exclude
-    @Specialization(guards = "getSize(array) <= size")
-    protected void doNothing(DynamicObject array, int size) {
+    @Specialization(guards = "array.size <= size")
+    protected void doNothing(RubyArray array, int size) {
     }
 }

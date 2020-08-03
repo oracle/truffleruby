@@ -11,7 +11,6 @@ package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
@@ -28,17 +27,17 @@ public abstract class ArrayPopOneNode extends RubyContextNode {
     // Pop from an empty array
 
     @Specialization(guards = "isEmptyArray(array)")
-    protected Object popOneEmpty(DynamicObject array) {
+    protected Object popOneEmpty(RubyArray array) {
         return nil;
     }
 
     // Pop from a non-empty array
 
     @Specialization(guards = "!isEmptyArray(array)", limit = "storageStrategyLimit()")
-    protected Object popOne(DynamicObject array,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
-        final int size = Layouts.ARRAY.getSize(array);
-        final Object value = stores.read(Layouts.ARRAY.getStore(array), size - 1);
+    protected Object popOne(RubyArray array,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+        final int size = array.size;
+        final Object value = stores.read(array.store, size - 1);
         setSize(array, size - 1);
         return value;
     }

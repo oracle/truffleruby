@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
@@ -35,10 +34,10 @@ public abstract class ArrayToObjectArrayNode extends RubyContextNode {
     public abstract Object[] executeToObjectArray(DynamicObject array);
 
     @Specialization(limit = "storageStrategyLimit()")
-    protected Object[] toObjectArrayOther(DynamicObject array,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
-        final int size = Layouts.ARRAY.getSize(array);
-        final Object store = Layouts.ARRAY.getStore(array);
+    protected Object[] toObjectArrayOther(RubyArray array,
+            @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+        final int size = array.size;
+        final Object store = array.store;
         return stores.boxedCopyOfRange(store, 0, size);
     }
 

@@ -14,13 +14,10 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
 import java.util.Arrays;
-
-import static org.truffleruby.Layouts.ARRAY;
 
 /** This node prepares an array to receive content copied from another array. In particular:
  * <ul>
@@ -40,52 +37,52 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
         return ArrayPrepareForCopyNodeGen.create();
     }
 
-    public abstract void execute(DynamicObject dst, DynamicObject src, int dstStart, int length);
+    public abstract void execute(RubyArray dst, RubyArray src, int dstStart, int length);
 
     @ReportPolymorphism.Exclude
-    @Specialization(guards = { "length == 0", "start <= getSize(dst)" })
-    protected void noChange(DynamicObject dst, DynamicObject src, int start, int length) {
+    @Specialization(guards = { "length == 0", "start <= dst.size" })
+    protected void noChange(RubyArray dst, RubyArray src, int start, int length) {
     }
 
     @Specialization(
-            guards = "start > getSize(dst)",
+            guards = "start > dst.size",
             limit = "storageStrategyLimit()")
-    protected void nilPad(DynamicObject dst, DynamicObject src, int start, int length,
-            @CachedLibrary("getStore(dst)") ArrayStoreLibrary dstStores) {
+    protected void nilPad(RubyArray dst, RubyArray src, int start, int length,
+            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
 
-        final int oldSize = ARRAY.getSize(dst);
-        final Object oldStore = ARRAY.getStore(dst);
+        final int oldSize = dst.size;
+        final Object oldStore = dst.store;
         final Object[] newStore = new Object[ArrayUtils.capacity(getContext(), oldSize, start + length)];
         dstStores.copyContents(oldStore, 0, newStore, 0, oldSize); // copy the original store
         Arrays.fill(newStore, oldSize, start, nil); // nil-pad the new empty part
-        ARRAY.setStore(dst, newStore);
-        ARRAY.setSize(dst, start + length);
+        dst.store = newStore;
+        dst.size = start + length;
     }
 
     @Specialization(
-            guards = { "length > 0", "start <= getSize(dst)", "compatible(dstStores, dst, src)" },
+            guards = { "length > 0", "start <= dst.size", "compatible(dstStores, dst, src)" },
             limit = "storageStrategyLimit()")
-    protected void resizeCompatible(DynamicObject dst, DynamicObject src, int start, int length,
+    protected void resizeCompatible(RubyArray dst, RubyArray src, int start, int length,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode,
-            @CachedLibrary("getStore(dst)") ArrayStoreLibrary dstStores) {
+            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
 
         // Necessary even if under capacity to ensure that the destination gets a mutable store.
         ensureCapacityNode.executeEnsureCapacity(dst, start + length);
-        if (start + length > ARRAY.getSize(dst)) {
-            ARRAY.setSize(dst, start + length);
+        if (start + length > dst.size) {
+            dst.size = start + length;
         }
     }
 
     @Specialization(
-            guards = { "length > 0", "start <= getSize(dst)", "!compatible(dstStores, dst, src)" },
+            guards = { "length > 0", "start <= dst.size", "!compatible(dstStores, dst, src)" },
             limit = "storageStrategyLimit()")
-    protected void resizeGeneralize(DynamicObject dst, DynamicObject src, int start, int length,
-            @CachedLibrary("getStore(dst)") ArrayStoreLibrary dstStores) {
+    protected void resizeGeneralize(RubyArray dst, RubyArray src, int start, int length,
+            @CachedLibrary("dst.store") ArrayStoreLibrary dstStores) {
 
-        final int oldDstSize = ARRAY.getSize(dst);
+        final int oldDstSize = dst.size;
         final int newDstSize = Math.max(oldDstSize, start + length);
-        final Object dstStore = ARRAY.getStore(dst);
-        final Object srcStore = ARRAY.getStore(src);
+        final Object dstStore = dst.store;
+        final Object srcStore = src.store;
         final Object newDstStore = dstStores.allocateForNewStore(dstStore, srcStore, newDstSize);
 
         // NOTE(norswap, 10 Jun 2020)
@@ -95,13 +92,13 @@ public abstract class ArrayPrepareForCopyNode extends RubyContextNode {
         //  It's not clear that even in that case much would be gained by splitting the copy in two parts, unless
         //  `length` is truly big.
         dstStores.copyContents(dstStore, 0, newDstStore, 0, oldDstSize);
-        ARRAY.setStore(dst, newDstStore);
+        dst.store = newDstStore;
         if (newDstSize > oldDstSize) {
-            ARRAY.setSize(dst, newDstSize);
+            dst.size = newDstSize;
         }
     }
 
-    protected static boolean compatible(ArrayStoreLibrary stores, DynamicObject dst, DynamicObject src) {
-        return stores.acceptsAllValues(ARRAY.getStore(dst), ARRAY.getStore(src));
+    protected static boolean compatible(ArrayStoreLibrary stores, RubyArray dst, RubyArray src) {
+        return stores.acceptsAllValues(dst.store, src.store);
     }
 }

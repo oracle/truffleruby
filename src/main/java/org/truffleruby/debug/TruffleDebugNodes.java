@@ -27,6 +27,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.RubyHandle;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.method.RubyMethod;
@@ -306,9 +307,9 @@ public abstract class TruffleDebugNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyArray(array)")
-        protected DynamicObject arrayStorage(DynamicObject array) {
-            String storage = ArrayStoreLibrary.getFactory().getUncached().toString(Layouts.ARRAY.getStore(array));
+        @Specialization
+        protected DynamicObject arrayStorage(RubyArray array) {
+            String storage = ArrayStoreLibrary.getFactory().getUncached().toString(array.store);
             return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -318,10 +319,10 @@ public abstract class TruffleDebugNodes {
     @ImportStatic(ArrayGuards.class)
     public abstract static class ArrayCapacityNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyArray(array)", limit = "storageStrategyLimit()")
-        protected long arrayStorage(DynamicObject array,
-                @CachedLibrary("getStore(array)") ArrayStoreLibrary stores) {
-            return stores.capacity(Layouts.ARRAY.getStore(array));
+        @Specialization(limit = "storageStrategyLimit()")
+        protected long arrayStorage(RubyArray array,
+                @CachedLibrary("array.store") ArrayStoreLibrary stores) {
+            return stores.capacity(array.store);
         }
 
     }

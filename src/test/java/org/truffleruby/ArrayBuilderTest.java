@@ -28,6 +28,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.truffleruby.core.array.ArrayBuilderNode;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.shared.TruffleRuby;
@@ -111,11 +112,10 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = Layouts.ARRAY
-                    .createArray(
-                            RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory,
-                            ArrayStoreLibrary.INITIAL_STORE,
-                            0);
+            DynamicObject otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    ArrayStoreLibrary.INITIAL_STORE,
+                    0);
             builder.appendArray(state, 0, otherStore);
             assertEquals(ArrayStoreLibrary.INITIAL_STORE, builder.finish(state, 0));
         });
@@ -126,8 +126,10 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = Layouts.ARRAY
-                    .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new int[10], 10);
+            DynamicObject otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    new int[10],
+                    10);
             builder.appendArray(state, 0, otherStore);
             assertEquals(int[].class, builder.finish(state, 10).getClass());
         });
@@ -138,8 +140,10 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = Layouts.ARRAY
-                    .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new long[10], 10);
+            DynamicObject otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    new long[10],
+                    10);
             builder.appendArray(state, 0, otherStore);
             assertEquals(long[].class, builder.finish(state, 10).getClass());
         });
@@ -150,8 +154,10 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = Layouts.ARRAY
-                    .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new double[10], 10);
+            DynamicObject otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    new double[10],
+                    10);
             builder.appendArray(state, 0, otherStore);
             assertEquals(double[].class, builder.finish(state, 10).getClass());
         });
@@ -162,8 +168,10 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = Layouts.ARRAY
-                    .createArray(RubyLanguage.getCurrentContext().getCoreLibrary().arrayFactory, new Object[10], 10);
+            DynamicObject otherStore = new RubyArray(
+                    RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
+                    new Object[10],
+                    10);
             builder.appendArray(state, 0, otherStore);
             assertEquals(Object[].class, builder.finish(state, 10).getClass());
         });

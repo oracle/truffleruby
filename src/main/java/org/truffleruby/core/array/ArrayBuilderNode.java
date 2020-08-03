@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary.ArrayAllocator;
@@ -266,13 +265,13 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         public abstract void executeAppend(BuilderState state, int index, DynamicObject value);
 
         @Specialization(
-                guards = { "arrays.acceptsAllValues(state.store, getStore(other))" },
+                guards = { "arrays.acceptsAllValues(state.store, other.store)" },
                 limit = "storageStrategyLimit()")
-        protected void appendCompatibleStrategy(BuilderState state, int index, DynamicObject other,
+        protected void appendCompatibleStrategy(BuilderState state, int index, RubyArray other,
                 @CachedLibrary("state.store") ArrayStoreLibrary arrays,
-                @CachedLibrary("getStore(other)") ArrayStoreLibrary others) {
+                @CachedLibrary("other.store") ArrayStoreLibrary others) {
             assert state.nextIndex == index;
-            final int otherSize = Layouts.ARRAY.getSize(other);
+            final int otherSize = other.size;
             final int neededSize = index + otherSize;
 
             int length = arrays.capacity(state.store);
@@ -284,18 +283,18 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 state.capacity = capacity;
             }
 
-            final Object otherStore = Layouts.ARRAY.getStore(other);
+            final Object otherStore = other.store;
             others.copyContents(otherStore, 0, state.store, index, otherSize);
             state.nextIndex = state.nextIndex + otherSize;
         }
 
         @Specialization(
-                guards = { "!arrayLibrary.acceptsAllValues(state.store, getStore(other))" },
+                guards = { "!arrayLibrary.acceptsAllValues(state.store, other.store)" },
                 limit = "1")
-        protected void appendNewStrategy(BuilderState state, int index, DynamicObject other,
+        protected void appendNewStrategy(BuilderState state, int index, RubyArray other,
                 @CachedLibrary("state.store") ArrayStoreLibrary arrayLibrary) {
             assert state.nextIndex == index;
-            final int otherSize = Layouts.ARRAY.getSize(other);
+            final int otherSize = other.size;
             if (otherSize != 0) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 final ArrayStoreLibrary newArrayLibrary = ArrayStoreLibrary.getFactory().getUncached();
@@ -312,23 +311,19 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
                 }
 
                 ArrayAllocator allocator = replaceNodes(
-                        newArrayLibrary.generalizeForStore(state.store, Layouts.ARRAY.getStore(other)),
+                        newArrayLibrary.generalizeForStore(state.store, other.store),
                         neededCapacity);
                 newStore = allocator.allocate(neededCapacity);
 
                 newArrayLibrary.copyContents(state.store, 0, newStore, 0, index);
 
-                final Object otherStore = Layouts.ARRAY.getStore(other);
+                final Object otherStore = other.store;
                 newArrayLibrary.copyContents(otherStore, 0, newStore, index, otherSize);
 
                 state.store = newStore;
                 state.capacity = neededCapacity;
                 state.nextIndex = state.nextIndex + otherSize;
             }
-        }
-
-        protected static Object getStore(DynamicObject array) {
-            return Layouts.ARRAY.getStore(array);
         }
     }
 

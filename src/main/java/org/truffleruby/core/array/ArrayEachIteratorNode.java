@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
@@ -29,7 +28,7 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 public abstract class ArrayEachIteratorNode extends RubyContextNode {
 
     public static interface ArrayElementConsumerNode extends NodeInterface {
-        public abstract void accept(DynamicObject array, DynamicObject block, Object element, int index);
+        public abstract void accept(RubyArray array, DynamicObject block, Object element, int index);
     }
 
     @Child private ArrayEachIteratorNode recurseNode;
@@ -38,23 +37,23 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
         return ArrayEachIteratorNodeGen.create();
     }
 
-    public abstract DynamicObject execute(DynamicObject array, DynamicObject block, int startAt,
+    public abstract DynamicObject execute(RubyArray array, DynamicObject block, int startAt,
             ArrayElementConsumerNode consumerNode);
 
     @Specialization(
-            guards = { "getSize(array) == 1", "startAt == 0" },
+            guards = { "array.size == 1", "startAt == 0" },
             limit = "storageStrategyLimit()")
     protected DynamicObject iterateOne(
-            DynamicObject array,
+            RubyArray array,
             DynamicObject block,
             int startAt,
             ArrayElementConsumerNode consumerNode,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
-        final Object store = Layouts.ARRAY.getStore(array);
+            @CachedLibrary("array.store") ArrayStoreLibrary arrays) {
+        final Object store = array.store;
 
         consumerNode.accept(array, block, arrays.read(store, 0), 0);
 
-        if (Layouts.ARRAY.getSize(array) > 1) {
+        if (array.size > 1) {
             // Implicitly profiles through lazy node creation
             return getRecurseNode().execute(array, block, 1, consumerNode);
         }
@@ -63,20 +62,20 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
     }
 
     @Specialization(
-            guards = { "getSize(array) != 1" },
+            guards = { "array.size != 1" },
             limit = "storageStrategyLimit()")
     protected DynamicObject iterateMany(
-            DynamicObject array,
+            RubyArray array,
             DynamicObject block,
             int startAt,
             ArrayElementConsumerNode consumerNode,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;
         try {
-            for (; i < Layouts.ARRAY.getSize(array); i++) {
-                if (strategyMatchProfile.profile(arrays.accepts(Layouts.ARRAY.getStore(array)))) {
-                    final Object store = Layouts.ARRAY.getStore(array);
+            for (; i < array.size; i++) {
+                if (strategyMatchProfile.profile(arrays.accepts(array.store))) {
+                    final Object store = array.store;
                     consumerNode.accept(array, block, arrays.read(store, i), i);
                 } else {
                     return getRecurseNode().execute(array, block, i, consumerNode);

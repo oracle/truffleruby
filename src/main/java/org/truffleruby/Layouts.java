@@ -10,8 +10,6 @@
 package org.truffleruby;
 
 import com.oracle.truffle.api.object.HiddenKey;
-import org.truffleruby.core.array.ArrayLayout;
-import org.truffleruby.core.array.ArrayLayoutImpl;
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
 import org.truffleruby.core.fiber.FiberLayout;
@@ -65,7 +63,6 @@ public abstract class Layouts {
 
     // Generated layouts
 
-    public static final ArrayLayout ARRAY = ArrayLayoutImpl.INSTANCE;
     public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
     public static final FiberLayout FIBER = FiberLayoutImpl.INSTANCE;

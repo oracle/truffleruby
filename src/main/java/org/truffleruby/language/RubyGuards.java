@@ -16,6 +16,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
@@ -118,11 +119,11 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyArray(Object value) {
-        return Layouts.ARRAY.isArray(value);
+        return value instanceof RubyArray;
     }
 
     public static boolean isRubyArray(DynamicObject value) {
-        return Layouts.ARRAY.isArray(value);
+        return value instanceof RubyArray;
     }
 
     public static boolean isRubyClass(Object value) {

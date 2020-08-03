@@ -9,12 +9,9 @@
  */
 package org.truffleruby.core.array;
 
-import static org.truffleruby.core.array.ArrayHelpers.getSize;
-import static org.truffleruby.core.array.ArrayHelpers.getStore;
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
@@ -37,12 +34,12 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
     // Writing within an existing array with a compatible type
 
     @Specialization(
-            guards = { "isInBounds(array, index)", "arrays.acceptsValue(getStore(array), value)" },
+            guards = { "isInBounds(array, index)", "arrays.acceptsValue(array.store, value)" },
             limit = "storageStrategyLimit()")
-    protected Object writeWithin(DynamicObject array, int index, Object value,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays) {
+    protected Object writeWithin(RubyArray array, int index, Object value,
+            @CachedLibrary("array.store") ArrayStoreLibrary arrays) {
         propagateSharingNode.executePropagate(array, value);
-        arrays.write(getStore(array), index, value);
+        arrays.write(array.store, index, value);
         return value;
     }
 
@@ -51,26 +48,26 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
     @Specialization(
             guards = {
                     "isInBounds(array, index)",
-                    "!arrays.acceptsValue(getStore(array), value)"
+                    "!arrays.acceptsValue(array.store, value)"
             },
             limit = "storageStrategyLimit()")
-    protected Object writeWithinGeneralizeNonMutable(DynamicObject array, int index, Object value,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+    protected Object writeWithinGeneralizeNonMutable(RubyArray array, int index, Object value,
+            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
-        final int size = getSize(array);
-        final Object store = getStore(array);
+        final int size = array.size;
+        final Object store = array.store;
         final Object newStore = arrays.allocateForNewValue(store, value, size);
         arrays.copyContents(store, 0, newStore, 0, size);
         propagateSharingNode.executePropagate(array, value);
         newArrays.write(newStore, index, value);
-        Layouts.ARRAY.setStore(array, newStore);
+        array.store = newStore;
         return value;
     }
 
     // Extending an array of compatible type by just one
 
     @Specialization(guards = "isExtendingByOne(array, index)")
-    protected Object writeExtendByOne(DynamicObject array, int index, Object value,
+    protected Object writeExtendByOne(RubyArray array, int index, Object value,
             @Cached ArrayAppendOneNode appendNode) {
         appendNode.executeAppendOne(array, value);
         return value;
@@ -81,15 +78,15 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             guards = {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
-                    "arrays.isPrimitive(getStore(array))" },
+                    "arrays.isPrimitive(array.store)" },
             limit = "storageStrategyLimit()")
-    protected Object writeBeyondPrimitive(DynamicObject array, int index, Object value,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+    protected Object writeBeyondPrimitive(RubyArray array, int index, Object value,
+            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays) {
         final int newSize = index + 1;
-        Object store = getStore(array);
+        Object store = array.store;
         final Object objectStore = arrays.allocateForNewValue(store, nil, newSize);
-        int oldSize = getSize(array);
+        int oldSize = array.size;
         arrays.copyContents(store, 0, objectStore, 0, oldSize);
         for (int n = oldSize; n < index; n++) {
             newArrays.write(objectStore, n, nil);
@@ -104,15 +101,15 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
             guards = {
                     "!isInBounds(array, index)",
                     "!isExtendingByOne(array, index)",
-                    "!arrays.isPrimitive(getStore(array))" },
+                    "!arrays.isPrimitive(array.store)" },
             limit = "storageStrategyLimit()")
-    protected Object writeBeyondObject(DynamicObject array, int index, Object value,
-            @CachedLibrary("getStore(array)") ArrayStoreLibrary arrays,
+    protected Object writeBeyondObject(RubyArray array, int index, Object value,
+            @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @CachedLibrary(limit = "1") ArrayStoreLibrary newArrays,
             @Cached ArrayEnsureCapacityNode ensureCapacityNode) {
         ensureCapacityNode.executeEnsureCapacity(array, index + 1);
-        final Object store = getStore(array);
-        for (int n = getSize(array); n < index; n++) {
+        final Object store = array.store;
+        for (int n = array.size; n < index; n++) {
             newArrays.write(store, n, nil);
         }
         propagateSharingNode.executePropagate(array, value);
@@ -123,12 +120,12 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
 
     // Guards
 
-    protected static boolean isInBounds(DynamicObject array, int index) {
-        return index >= 0 && index < getSize(array);
+    protected static boolean isInBounds(RubyArray array, int index) {
+        return index >= 0 && index < array.size;
     }
 
-    protected static boolean isExtendingByOne(DynamicObject array, int index) {
-        return index == getSize(array);
+    protected static boolean isExtendingByOne(RubyArray array, int index) {
+        return index == array.size;
     }
 
 }

@@ -16,6 +16,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.regexp.RubyMatchData;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -32,9 +33,9 @@ public abstract class ObjSpaceNodes {
     @CoreMethod(names = "memsize_of", onSingleton = true, required = 1)
     public abstract static class MemsizeOfNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyArray(object)")
-        protected int memsizeOfArray(DynamicObject object) {
-            return memsizeOfObject(object) + Layouts.ARRAY.getSize(object);
+        @Specialization
+        protected int memsizeOfArray(RubyArray object) {
+            return memsizeOfObject(object) + object.size;
         }
 
         @Specialization(guards = "isRubyHash(object)")
