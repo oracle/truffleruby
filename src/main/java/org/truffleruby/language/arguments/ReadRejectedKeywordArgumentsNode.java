@@ -12,12 +12,12 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.SetNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements BiConsumerNode {
@@ -28,8 +28,8 @@ public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements
 
     private final ConditionProfile isSymbolProfile = ConditionProfile.create();
 
-    public DynamicObject extractRejectedKwargs(VirtualFrame frame, DynamicObject kwargsHash) {
-        final DynamicObject rejectedKwargs = HashOperations.newEmptyHash(getContext());
+    public RubyHash extractRejectedKwargs(VirtualFrame frame, RubyHash kwargsHash) {
+        final RubyHash rejectedKwargs = HashOperations.newEmptyHash(getContext());
         eachKeyNode.executeEachKeyValue(frame, kwargsHash, this, rejectedKwargs);
         return rejectedKwargs;
     }
@@ -37,7 +37,7 @@ public class ReadRejectedKeywordArgumentsNode extends RubyContextNode implements
     @Override
     public void accept(VirtualFrame frame, Object key, Object value, Object rejectedKwargs) {
         if (!isSymbolProfile.profile(key instanceof RubySymbol)) {
-            setNode.executeSet((DynamicObject) rejectedKwargs, key, value, false);
+            setNode.executeSet((RubyHash) rejectedKwargs, key, value, false);
         }
     }
 

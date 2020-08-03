@@ -9,13 +9,12 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.Layouts;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -72,7 +71,7 @@ public class ReadOptionalArgumentNode extends RubyContextSourceNode {
         defaultValueProfile.enter();
 
         if (considerRejectedKWArgs) {
-            final DynamicObject kwargsHash = readUserKeywordsHashNode.execute(frame);
+            final RubyHash kwargsHash = readUserKeywordsHashNode.execute(frame);
 
             if (hasKeywordsProfile.profile(kwargsHash != null)) {
                 if (readRejectedKeywordArgumentsNode == null) {
@@ -80,9 +79,9 @@ public class ReadOptionalArgumentNode extends RubyContextSourceNode {
                     readRejectedKeywordArgumentsNode = insert(new ReadRejectedKeywordArgumentsNode());
                 }
 
-                final DynamicObject rejectedKwargs = readRejectedKeywordArgumentsNode
+                final RubyHash rejectedKwargs = readRejectedKeywordArgumentsNode
                         .extractRejectedKwargs(frame, kwargsHash);
-                if (hasRejectedKwargs.profile(Layouts.HASH.getSize(rejectedKwargs) > 0)) {
+                if (hasRejectedKwargs.profile(rejectedKwargs.size > 0)) {
                     return rejectedKwargs;
                 }
             }

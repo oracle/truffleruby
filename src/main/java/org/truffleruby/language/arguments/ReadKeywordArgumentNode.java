@@ -10,6 +10,7 @@
 package org.truffleruby.language.arguments;
 
 import org.truffleruby.collections.BiFunctionNode;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.HashNodes.HashLookupOrExecuteDefaultNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -52,7 +53,7 @@ public class ReadKeywordArgumentNode extends RubyContextSourceNode implements Bi
             hashLookupNode = insert(HashLookupOrExecuteDefaultNode.create());
         }
 
-        return hashLookupNode.executeGet(frame, hash, name, this);
+        return hashLookupNode.executeGet(frame, (RubyHash) hash, name, this);
     }
 
     @Override

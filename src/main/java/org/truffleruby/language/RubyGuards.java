@@ -16,6 +16,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
@@ -137,11 +138,11 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyHash(Object value) {
-        return Layouts.HASH.isHash(value);
+        return value instanceof RubyHash;
     }
 
     public static boolean isRubyHash(DynamicObject value) {
-        return Layouts.HASH.isHash(value);
+        return value instanceof RubyHash;
     }
 
     public static boolean isRubyModule(Object value) {

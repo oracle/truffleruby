@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -63,8 +64,8 @@ public abstract class HashCastNode extends RubyContextSourceNode {
         return nil;
     }
 
-    @Specialization(guards = "isRubyHash(hash)")
-    protected Object castHash(DynamicObject hash) {
+    @Specialization
+    protected Object castHash(RubyHash hash) {
         return hash;
     }
 

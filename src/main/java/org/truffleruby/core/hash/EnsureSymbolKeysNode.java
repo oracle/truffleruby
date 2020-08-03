@@ -15,7 +15,6 @@ import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class EnsureSymbolKeysNode extends RubyContextSourceNode {
@@ -31,7 +30,7 @@ public class EnsureSymbolKeysNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object hash = child.execute(frame);
-        for (KeyValue keyValue : HashOperations.iterableKeyValues((DynamicObject) hash)) {
+        for (KeyValue keyValue : HashOperations.iterableKeyValues((RubyHash) hash)) {
             if (!(keyValue.getKey() instanceof RubySymbol)) {
                 errorProfile.enter();
                 throw new RaiseException(
