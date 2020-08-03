@@ -11,8 +11,6 @@ package org.truffleruby;
 
 import org.truffleruby.core.basicobject.BasicObjectLayout;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
-import org.truffleruby.core.fiber.FiberLayout;
-import org.truffleruby.core.fiber.FiberLayoutImpl;
 import org.truffleruby.core.hash.HashLayout;
 import org.truffleruby.core.hash.HashLayoutImpl;
 import org.truffleruby.core.klass.ClassLayout;
@@ -48,7 +46,6 @@ public abstract class Layouts {
 
     public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
-    public static final FiberLayout FIBER = FiberLayoutImpl.INSTANCE;
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;
     public static final ModuleLayout MODULE = ModuleLayoutImpl.INSTANCE;
     public static final ProcLayout PROC = ProcLayoutImpl.INSTANCE;

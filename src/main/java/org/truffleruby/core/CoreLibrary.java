@@ -43,6 +43,7 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubyNameError;
 import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySystemCallError;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.module.ModuleNodes;
@@ -171,7 +172,7 @@ public class CoreLibrary {
     public final DynamicObject encodingErrorClass;
     public final DynamicObject exceptionClass;
     public final DynamicObject falseClass;
-    public final DynamicObjectFactory fiberFactory;
+    public final Shape fiberShape;
     public final DynamicObject floatClass;
     public final DynamicObject floatDomainErrorClass;
     public final DynamicObject frozenErrorClass;
@@ -507,8 +508,8 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingClass, createFactory(encodingShape));
         falseClass = defineClass("FalseClass");
         DynamicObject fiberClass = defineClass("Fiber");
-        fiberFactory = Layouts.FIBER.createFiberShape(fiberClass, fiberClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, fiberFactory);
+        fiberShape = createShape(RubyFiber.class, fiberClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, createFactory(fiberShape));
         defineModule("FileTest");
         hashClass = defineClass("Hash");
         final DynamicObjectFactory originalHashFactory = Layouts.HASH.createHashShape(hashClass, hashClass);

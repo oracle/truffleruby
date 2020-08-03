@@ -40,7 +40,6 @@
  */
 package org.truffleruby.core.thread;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.USASCIIEncoding;
@@ -63,6 +62,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -296,9 +296,8 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         @Specialization
         protected boolean isInitialized(DynamicObject thread) {
-            final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
-            final CountDownLatch initializedLatch = Layouts.FIBER.getInitializedLatch(rootFiber);
-            return initializedLatch.getCount() == 0;
+            final RubyFiber rootFiber = Layouts.THREAD.getFiberManager(thread).getRootFiber();
+            return rootFiber.initializedLatch.getCount() == 0;
         }
 
     }
@@ -480,9 +479,9 @@ public abstract class ThreadNodes {
         @TruffleBoundary
         @Specialization
         protected DynamicObject wakeup(DynamicObject rubyThread) {
-            final DynamicObject currentFiber = Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiberRacy();
-            final Thread thread = Layouts.FIBER.getThread(currentFiber);
-            if (!Layouts.FIBER.getAlive(currentFiber) || thread == null) {
+            final RubyFiber currentFiber = Layouts.THREAD.getFiberManager(rubyThread).getCurrentFiberRacy();
+            final Thread thread = currentFiber.thread;
+            if (!currentFiber.alive || thread == null) {
                 throw new RaiseException(getContext(), coreExceptions().threadErrorKilledThread(this));
             }
 
@@ -707,8 +706,8 @@ public abstract class ThreadNodes {
 
         @Specialization(guards = "isRubyThread(thread)")
         protected DynamicObject getFiberLocals(DynamicObject thread) {
-            final DynamicObject fiber = Layouts.THREAD.getFiberManager(thread).getCurrentFiberRacy();
-            return Layouts.FIBER.getFiberLocals(fiber);
+            final RubyFiber fiber = Layouts.THREAD.getFiberManager(thread).getCurrentFiberRacy();
+            return fiber.fiberLocals;
         }
     }
 
