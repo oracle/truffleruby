@@ -39,12 +39,6 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
 
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
-        if (store instanceof Object[]) {
-            for (Object element : (Object[]) store) {
-                if (ObjectGraph.isSymbolOrDynamicObject(element)) {
-                    reachable.add(element);
-                }
-            }
-        }
+        ObjectGraph.addProperty(reachable, store);
     }
 }

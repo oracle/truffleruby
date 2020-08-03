@@ -124,48 +124,52 @@ public abstract class ObjectGraph {
         for (Property property : object.getShape().getPropertyListInternal(false)) {
             final Object value = property.get(object, object.getShape());
 
-            if (isSymbolOrDynamicObject(value)) {
-                reachable.add(value);
-            } else if (value instanceof Entry[]) {
-                for (Entry bucket : (Entry[]) value) {
-                    while (bucket != null) {
-                        if (isSymbolOrDynamicObject(bucket.getKey())) {
-                            reachable.add(bucket.getKey());
-                        }
-
-                        if (isSymbolOrDynamicObject(bucket.getValue())) {
-                            reachable.add(bucket.getValue());
-                        }
-
-                        bucket = bucket.getNextInLookup();
-                    }
-                }
-            } else if (value instanceof Object[]) {
-                for (Object element : (Object[]) value) {
-                    if (isSymbolOrDynamicObject(element)) {
-                        reachable.add(element);
-                    }
-                }
-            } else if (value instanceof Collection<?>) {
-                for (Object element : ((Collection<?>) value)) {
-                    if (isSymbolOrDynamicObject(element)) {
-                        reachable.add(element);
-                    }
-                }
-            } else if (value instanceof SizedQueue) {
-                for (Object element : ((SizedQueue) value).getContents()) {
-                    if (isSymbolOrDynamicObject(element)) {
-                        reachable.add(element);
-                    }
-                }
-            } else if (value instanceof Frame) {
-                getObjectsInFrame((Frame) value, reachable);
-            } else if (value instanceof ObjectGraphNode) {
-                ((ObjectGraphNode) value).getAdjacentObjects(reachable);
-            }
+            addProperty(reachable, value);
         }
 
         return reachable;
+    }
+
+    public static void addProperty(final Set<Object> reachable, final Object value) {
+        if (isSymbolOrDynamicObject(value)) {
+            reachable.add(value);
+        } else if (value instanceof Entry[]) {
+            for (Entry bucket : (Entry[]) value) {
+                while (bucket != null) {
+                    if (isSymbolOrDynamicObject(bucket.getKey())) {
+                        reachable.add(bucket.getKey());
+                    }
+
+                    if (isSymbolOrDynamicObject(bucket.getValue())) {
+                        reachable.add(bucket.getValue());
+                    }
+
+                    bucket = bucket.getNextInLookup();
+                }
+            }
+        } else if (value instanceof Object[]) {
+            for (Object element : (Object[]) value) {
+                if (isSymbolOrDynamicObject(element)) {
+                    reachable.add(element);
+                }
+            }
+        } else if (value instanceof Collection<?>) {
+            for (Object element : ((Collection<?>) value)) {
+                if (isSymbolOrDynamicObject(element)) {
+                    reachable.add(element);
+                }
+            }
+        } else if (value instanceof SizedQueue) {
+            for (Object element : ((SizedQueue) value).getContents()) {
+                if (isSymbolOrDynamicObject(element)) {
+                    reachable.add(element);
+                }
+            }
+        } else if (value instanceof Frame) {
+            getObjectsInFrame((Frame) value, reachable);
+        } else if (value instanceof ObjectGraphNode) {
+            ((ObjectGraphNode) value).getAdjacentObjects(reachable);
+        }
     }
 
     public static void getObjectsInFrame(Frame frame, Set<Object> reachable) {
