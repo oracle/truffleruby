@@ -12,6 +12,9 @@ package org.truffleruby.core.array;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
 
+import org.truffleruby.language.objects.AllocateHelperNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -24,6 +27,8 @@ import com.oracle.truffle.api.object.Shape;
 /** Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class. */
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayDupNode extends RubyContextNode {
+
+    @Child private AllocateHelperNode helperNode;
 
     public abstract DynamicObject executeDup(VirtualFrame frame, DynamicObject array);
 
@@ -59,7 +64,13 @@ public abstract class ArrayDupNode extends RubyContextNode {
     }
 
     private DynamicObject allocateArray(Shape arrayShape, Object store, int size) {
-        return new RubyArray(arrayShape, store, size);
+        if (helperNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            helperNode = insert(AllocateHelperNode.create());
+        }
+        RubyArray array = new RubyArray(arrayShape, store, size);
+        helperNode.trace(array, this);
+        return array;
     }
 
     protected int getCacheLimit() {

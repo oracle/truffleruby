@@ -102,7 +102,9 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected DynamicObject allocate(DynamicObject rubyClass) {
-            return new RubyArray(helperNode.getCachedShape(rubyClass), ArrayStoreLibrary.INITIAL_STORE, 0);
+            RubyArray array = new RubyArray(helperNode.getCachedShape(rubyClass), ArrayStoreLibrary.INITIAL_STORE, 0);
+            helperNode.trace(array, this);
+            return array;
         }
 
     }
@@ -1164,11 +1166,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isInteger(object)", "!isLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
-        protected DynamicObject initialize(
-                RubyArray array,
-                Object object,
-                NotProvided unusedValue,
-                NotProvided block) {
+        protected DynamicObject initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block) {
             DynamicObject copy = null;
             if (respondToToAry(object)) {
                 Object toAryResult = callToAry(object);

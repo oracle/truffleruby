@@ -13,8 +13,8 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -23,6 +23,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
@@ -41,10 +42,10 @@ public abstract class AllocateHelperNode extends RubyBaseNode {
     protected abstract Shape execute(DynamicObject classToAllocate);
 
     // Convenience method when the context is guaranteed PE constant
-    public void trace(RubyDynamicObject instance, RubyContextSourceNode contextNode) {
+    public void trace(RubyDynamicObject instance, RubyNode.WithContext contextNode) {
         final RubyContext context = contextNode.getContext();
         CompilerAsserts.partialEvaluationConstant(context);
-        AllocationTracing.trace(context.getLanguage(), context, instance, contextNode);
+        AllocationTracing.trace(context.getLanguage(), context, instance, (Node) contextNode);
     }
 
     public void trace(RubyLanguage language, RubyContext context, RubyDynamicObject instance) {

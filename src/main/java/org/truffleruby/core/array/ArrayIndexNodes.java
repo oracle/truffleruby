@@ -133,7 +133,12 @@ public abstract class ArrayIndexNodes {
         }
 
         protected DynamicObject createArrayOfSameClass(RubyArray array, Object store, int size) {
-            return new RubyArray(helperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)), store, size);
+            RubyArray newArray = new RubyArray(
+                    helperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)),
+                    store,
+                    size);
+            helperNode.trace(newArray, this);
+            return newArray;
         }
     }
 }

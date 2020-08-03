@@ -14,6 +14,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -27,6 +28,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     }
 
     @Children protected final RubyNode[] values;
+    @Child private AllocateHelperNode allocateHelperNode;
 
     public ArrayLiteralNode(RubyNode[] values) {
         this.values = values;
@@ -51,7 +53,13 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
     }
 
     protected RubyArray cachedCreateArray(Object store, int size) {
-        return new RubyArray(coreLibrary().arrayShape, store, size);
+        if (allocateHelperNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            allocateHelperNode = insert(AllocateHelperNode.create());
+        }
+        final RubyArray array = new RubyArray(coreLibrary().arrayShape, store, size);
+        allocateHelperNode.trace(array, this);
+        return array;
     }
 
     @Override
