@@ -12,11 +12,11 @@ package org.truffleruby.core.numeric;
 import java.math.BigInteger;
 
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class GeneralDivModNode extends RubyContextNode {
@@ -31,46 +31,46 @@ public class GeneralDivModNode extends RubyContextNode {
     private final BranchProfile useFixnumPairProfile = BranchProfile.create();
     private final BranchProfile useObjectPairProfile = BranchProfile.create();
 
-    public DynamicObject execute(long a, long b) {
+    public RubyArray execute(long a, long b) {
         return divMod(a, b);
     }
 
-    public DynamicObject execute(long a, BigInteger b) {
+    public RubyArray execute(long a, BigInteger b) {
         return divMod(BigIntegerOps.valueOf(a), b);
     }
 
-    public DynamicObject execute(long a, double b) {
+    public RubyArray execute(long a, double b) {
         return divMod(a, b);
     }
 
-    public DynamicObject execute(BigInteger a, long b) {
+    public RubyArray execute(BigInteger a, long b) {
         return divMod(a, BigIntegerOps.valueOf(b));
     }
 
-    public DynamicObject execute(BigInteger a, BigInteger b) {
+    public RubyArray execute(BigInteger a, BigInteger b) {
         return divMod(a, b);
     }
 
-    public DynamicObject execute(BigInteger a, double b) {
+    public RubyArray execute(BigInteger a, double b) {
         return divMod(BigIntegerOps.doubleValue(a), b);
     }
 
-    public DynamicObject execute(double a, long b) {
+    public RubyArray execute(double a, long b) {
         return divMod(a, b);
     }
 
-    public DynamicObject execute(double a, BigInteger b) {
+    public RubyArray execute(double a, BigInteger b) {
         return divMod(a, BigIntegerOps.doubleValue(b));
     }
 
-    public DynamicObject execute(double a, double b) {
+    public RubyArray execute(double a, double b) {
         return divMod(a, b);
     }
 
     /* div-mod algorithms copied from org.jruby.RubyFixnum, org.jruby.RubyBignum and org.jrubyRubyFloat. See license and
      * contributors there. */
 
-    private DynamicObject divMod(long a, long b) {
+    private RubyArray divMod(long a, long b) {
         if (b == 0) {
             bZeroProfile.enter();
             throw new ArithmeticException("divide by zero");
@@ -115,7 +115,7 @@ public class GeneralDivModNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    private DynamicObject divMod(double a, double b) {
+    private RubyArray divMod(double a, double b) {
         if (b == 0) {
             bZeroProfile.enter();
             throw new ArithmeticException("divide by zero");
@@ -140,7 +140,7 @@ public class GeneralDivModNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    private DynamicObject divMod(BigInteger a, BigInteger b) {
+    private RubyArray divMod(BigInteger a, BigInteger b) {
         if (b.signum() == 0) {
             bZeroProfile.enter();
             throw new ArithmeticException("divide by zero");

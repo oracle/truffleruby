@@ -545,7 +545,7 @@ public abstract class ThreadNodes {
     public abstract static class ListNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject list() {
+        protected RubyArray list() {
             return createArray(getContext().getThreadManager().getThreadList());
         }
     }

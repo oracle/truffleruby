@@ -32,6 +32,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.binding.BindingNodes;
@@ -1336,7 +1337,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization(guards = "regular")
-        protected DynamicObject methodsRegular(Object self, boolean regular,
+        protected RubyArray methodsRegular(Object self, boolean regular,
                 @Cached MetaClassNode metaClassNode) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
@@ -1399,7 +1400,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject privateMethods(Object self, boolean includeAncestors) {
+        protected RubyArray privateMethods(Object self, boolean includeAncestors) {
             DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE
@@ -1437,7 +1438,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject protectedMethods(Object self, boolean includeAncestors) {
+        protected RubyArray protectedMethods(Object self, boolean includeAncestors) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE
@@ -1482,7 +1483,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject publicMethods(Object self, boolean includeAncestors) {
+        protected RubyArray publicMethods(Object self, boolean includeAncestors) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             Object[] objects = Layouts.MODULE
@@ -1716,7 +1717,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject singletonMethods(Object self, boolean includeAncestors) {
+        protected RubyArray singletonMethods(Object self, boolean includeAncestors) {
             final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
 
             if (!Layouts.CLASS.getIsSingleton(metaClass)) {
@@ -1899,7 +1900,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject globalVariables() {
+        protected RubyArray globalVariables() {
             final String[] keys = coreLibrary().globalVariables.keys();
             final Object[] store = new Object[keys.length];
             for (int i = 0; i < keys.length; i++) {

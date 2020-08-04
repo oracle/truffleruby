@@ -18,6 +18,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.WeakValueCache;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -87,7 +88,7 @@ public abstract class WeakMapNodes {
     public abstract static class KeysNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject getKeys(RubyWeakMap map) {
+        protected RubyArray getKeys(RubyWeakMap map) {
             return createArray(keys(map.storage));
         }
     }
@@ -96,7 +97,7 @@ public abstract class WeakMapNodes {
     public abstract static class ValuesNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject getValues(RubyWeakMap map) {
+        protected RubyArray getValues(RubyWeakMap map) {
             return createArray(values(map.storage));
         }
     }

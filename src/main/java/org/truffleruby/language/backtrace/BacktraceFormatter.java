@@ -18,6 +18,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.string.StringOperations;
@@ -147,11 +148,11 @@ public class BacktraceFormatter {
         return String.join("\n", formatBacktraceAsStringArray(exception, backtrace, length));
     }
 
-    public DynamicObject formatBacktraceAsRubyStringArray(RubyException exception, Backtrace backtrace) {
+    public RubyArray formatBacktraceAsRubyStringArray(RubyException exception, Backtrace backtrace) {
         return formatBacktraceAsRubyStringArray(exception, backtrace, Integer.MAX_VALUE);
     }
 
-    public DynamicObject formatBacktraceAsRubyStringArray(RubyException exception, Backtrace backtrace, int length) {
+    public RubyArray formatBacktraceAsRubyStringArray(RubyException exception, Backtrace backtrace, int length) {
         final String[] lines = formatBacktraceAsStringArray(exception, backtrace, length);
 
         final Object[] array = new Object[lines.length];

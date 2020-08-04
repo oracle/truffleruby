@@ -12,8 +12,6 @@ package org.truffleruby.core.array;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 public abstract class ArrayHelpers {
 
     public static void setStoreAndSize(RubyArray array, Object store, int size) {
@@ -38,20 +36,20 @@ public abstract class ArrayHelpers {
         return new RubyArray(context.getCoreLibrary().arrayShape, store, size);
     }
 
-    public static DynamicObject createArray(RubyContext context, int[] store) {
+    public static RubyArray createArray(RubyContext context, int[] store) {
         return createArray(context, store, store.length);
     }
 
-    public static DynamicObject createArray(RubyContext context, long[] store) {
+    public static RubyArray createArray(RubyContext context, long[] store) {
         return createArray(context, store, store.length);
     }
 
-    public static DynamicObject createArray(RubyContext context, Object[] store) {
+    public static RubyArray createArray(RubyContext context, Object[] store) {
         assert store.getClass() == Object[].class;
         return createArray(context, store, store.length);
     }
 
-    public static DynamicObject createEmptyArray(RubyContext context) {
+    public static RubyArray createEmptyArray(RubyContext context) {
         return new RubyArray(context.getCoreLibrary().arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
     }
 
@@ -72,12 +70,12 @@ public abstract class ArrayHelpers {
     }
 
     /** Returns a Ruby array backed by a store of the narrowest possible type, holding {@code object}. */
-    public static DynamicObject specializedRubyArrayOf(RubyContext context, ArrayBuilderNode builder, Object object) {
+    public static RubyArray specializedRubyArrayOf(RubyContext context, ArrayBuilderNode builder, Object object) {
         return createArray(context, specializedJavaArrayOf(builder, object), 1);
     }
 
     /** Returns a Ruby array backed by a store of the narrowest possible type, holding the {@code objects}. */
-    public static DynamicObject specializedRubyArrayOf(RubyContext context, ArrayBuilderNode builder,
+    public static RubyArray specializedRubyArrayOf(RubyContext context, ArrayBuilderNode builder,
             Object... objects) {
         return createArray(context, specializedJavaArrayOf(builder, objects), objects.length);
     }

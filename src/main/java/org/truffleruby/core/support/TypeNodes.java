@@ -125,7 +125,7 @@ public abstract class TypeNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject instanceVariables(DynamicObject object) {
+        protected RubyArray instanceVariables(DynamicObject object) {
             final List<String> names = new ArrayList<>();
 
             for (Object name : DynamicObjectLibrary.getUncached().getKeyArray(object)) {

@@ -14,6 +14,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.string.StringNodes;
@@ -48,7 +49,7 @@ public abstract class SymbolNodes {
     public abstract static class AllSymbolsNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject allSymbols() {
+        protected RubyArray allSymbols() {
             return createArray(getContext().getSymbolTable().allSymbols());
         }
 

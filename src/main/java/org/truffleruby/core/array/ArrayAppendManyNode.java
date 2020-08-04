@@ -20,7 +20,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
@@ -28,21 +27,21 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
 
     @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
-    public abstract DynamicObject executeAppendMany(RubyArray array, RubyArray other);
+    public abstract RubyArray executeAppendMany(RubyArray array, RubyArray other);
 
     // Append of a compatible type
 
     /** Appending an empty array is a no-op, and shouldn't cause an immutable array store to be converted into a mutable
      * one unnecessarily. */
     @Specialization(guards = "isEmptyArray(other)")
-    protected DynamicObject appendZero(RubyArray array, RubyArray other) {
+    protected RubyArray appendZero(RubyArray array, RubyArray other) {
         return array;
     }
 
     @Specialization(
             guards = { "!isEmptyArray(other)", "stores.acceptsAllValues(array.store, other.store)" },
             limit = "storageStrategyLimit()")
-    protected DynamicObject appendManySameType(RubyArray array, RubyArray other,
+    protected RubyArray appendManySameType(RubyArray array, RubyArray other,
             @CachedLibrary("array.store") ArrayStoreLibrary stores,
             @CachedLibrary("other.store") ArrayStoreLibrary otherStores,
             @Cached ConditionProfile extendProfile) {
@@ -71,7 +70,7 @@ public abstract class ArrayAppendManyNode extends RubyContextNode {
     @Specialization(
             guards = { "!isEmptyArray(other)", "!stores.acceptsAllValues(array.store, other.store)" },
             limit = "storageStrategyLimit()")
-    protected DynamicObject appendManyGeneralize(RubyArray array, RubyArray other,
+    protected RubyArray appendManyGeneralize(RubyArray array, RubyArray other,
             @CachedLibrary("array.store") ArrayStoreLibrary stores,
             @CachedLibrary("other.store") ArrayStoreLibrary otherStores) {
         final int oldSize = array.size;

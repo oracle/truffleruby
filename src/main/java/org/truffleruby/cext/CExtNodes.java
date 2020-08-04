@@ -34,6 +34,7 @@ import org.truffleruby.core.MarkingService.ExtensionCallStack;
 import org.truffleruby.core.MarkingServiceNodes;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.exception.RubySystemCallError;
@@ -47,6 +48,7 @@ import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
@@ -55,7 +57,6 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringSupport;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.RubyPointer;
@@ -286,7 +287,7 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject bytes(
+        protected RubyArray bytes(
                 int num,
                 int num_words,
                 int word_length,
@@ -299,7 +300,7 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject bytes(
+        protected RubyArray bytes(
                 long num,
                 int num_words,
                 int word_length,
@@ -312,7 +313,7 @@ public class CExtNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject bytes(
+        protected RubyArray bytes(
                 RubyBignum num,
                 int num_words,
                 int word_length,
@@ -323,7 +324,7 @@ public class CExtNodes {
             return bytes(bi, num_words, word_length, msw_first, twosComp, bigEndian);
         }
 
-        private DynamicObject bytes(BigInteger bi, int num_words, int word_length, boolean msw_first, boolean twosComp,
+        private RubyArray bytes(BigInteger bi, int num_words, int word_length, boolean msw_first, boolean twosComp,
                 boolean bigEndian) {
             if (!twosComp) {
                 bi = bi.abs();
@@ -539,7 +540,7 @@ public class CExtNodes {
     public abstract static class RbEncCodePointLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject rbEncCodePointLen(DynamicObject string, RubyEncoding encoding,
+        protected RubyArray rbEncCodePointLen(DynamicObject string, RubyEncoding encoding,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,

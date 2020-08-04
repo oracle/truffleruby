@@ -16,6 +16,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.FinalizerReference;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
@@ -196,7 +197,7 @@ public abstract class ObjectSpaceNodes {
         @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();
 
         @Specialization
-        protected DynamicObject defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
+        protected RubyArray defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
                 @Cached BranchProfile errorProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {
             if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {

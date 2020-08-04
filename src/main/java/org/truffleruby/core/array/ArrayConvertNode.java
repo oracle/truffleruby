@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.cast.ArrayCastNode;
 import org.truffleruby.language.RubyContextNode;
@@ -26,11 +25,11 @@ public final class ArrayConvertNode extends RubyContextNode {
         return new ArrayConvertNode();
     }
 
-    public DynamicObject execute(Object object) {
+    public RubyArray execute(Object object) {
         Object converted = arrayCast.execute(object);
         if (cantCast.profile(converted == nil)) {
             return ArrayHelpers.specializedRubyArrayOf(getContext(), arrayBuilder, object);
         }
-        return (DynamicObject) converted;
+        return (RubyArray) converted;
     }
 }

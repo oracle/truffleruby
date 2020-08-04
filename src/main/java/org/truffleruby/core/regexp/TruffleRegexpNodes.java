@@ -32,6 +32,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
@@ -135,7 +136,7 @@ public class TruffleRegexpNodes {
     public static abstract class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        protected <T> DynamicObject fillinInstrumentData(Map<T, AtomicInteger> map, ArrayBuilderNode arrayBuilderNode,
+        protected <T> RubyArray fillinInstrumentData(Map<T, AtomicInteger> map, ArrayBuilderNode arrayBuilderNode,
                 RubyContext context) {
             BuilderState state = arrayBuilderNode.start(compiledRegexps.size() * 2);
             int n = 0;

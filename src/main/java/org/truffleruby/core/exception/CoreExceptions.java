@@ -18,6 +18,7 @@ import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.module.ModuleOperations;
@@ -576,7 +577,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
-        DynamicObject rubyArray = createArray(context, exception.getSuppliedValues());
+        RubyArray rubyArray = createArray(context, exception.getSuppliedValues());
         String formattedValues = StringOperations.getString((DynamicObject) context.send(rubyArray, "inspect"));
         return typeError("unsupported type " + formattedValues, currentNode);
     }
@@ -772,7 +773,7 @@ public class CoreExceptions {
             Node currentNode) {
         final DynamicObject messageString = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        final DynamicObject argsArray = createArray(context, args);
+        final RubyArray argsArray = createArray(context, args);
         final DynamicObject exceptionClass = context.getCoreLibrary().noMethodErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
@@ -789,7 +790,7 @@ public class CoreExceptions {
 
     public RubyNoMethodError noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
             Object[] args, Node currentNode) {
-        final DynamicObject argsArray = createArray(context, args);
+        final RubyArray argsArray = createArray(context, args);
 
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);

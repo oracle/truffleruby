@@ -28,6 +28,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -889,7 +890,7 @@ public abstract class FloatNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject dToA(double value) {
+        protected RubyArray dToA(double value) {
             // Large enough to print all digits of Float::MIN.
             String string = StringUtils.format(Locale.ENGLISH, "%.1022f", value);
 

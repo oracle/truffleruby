@@ -55,6 +55,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -84,7 +85,7 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject envVars() {
+        protected RubyArray envVars() {
             final Set<String> variables = System.getenv().keySet();
             final int size = variables.size();
             final Encoding localeEncoding = getContext().getEncodingManager().getLocaleEncoding();

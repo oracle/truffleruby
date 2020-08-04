@@ -55,7 +55,7 @@ public abstract class RangeNodes {
     public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject map(RubyIntRange range, DynamicObject block,
+        protected RubyArray map(RubyIntRange range, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached YieldNode yieldNode,
                 @Cached ConditionProfile noopProfile) {
@@ -353,7 +353,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode toAInternalCall;
 
         @Specialization
-        protected DynamicObject toA(RubyIntRange range) {
+        protected RubyArray toA(RubyIntRange range) {
             final int begin = range.begin;
             int result;
             if (range.excludedEnd) {
@@ -539,7 +539,7 @@ public abstract class RangeNodes {
         @Child NormalizedStartLengthNode startLengthNode = NormalizedStartLengthNode.create();
 
         @Specialization
-        protected DynamicObject normalize(DynamicObject range, int size) {
+        protected RubyArray normalize(DynamicObject range, int size) {
             return ArrayHelpers.createArray(getContext(), startLengthNode.execute(range, size));
         }
     }

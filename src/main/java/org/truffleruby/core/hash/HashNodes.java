@@ -654,7 +654,7 @@ public abstract class HashNodes {
         private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
 
         @Specialization(guards = "isNullHash(hash)")
-        protected DynamicObject mapNull(DynamicObject hash, DynamicObject block) {
+        protected RubyArray mapNull(DynamicObject hash, DynamicObject block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             return ArrayHelpers.createEmptyArray(getContext());
@@ -662,7 +662,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        protected DynamicObject mapPackedArray(DynamicObject hash, DynamicObject block,
+        protected RubyArray mapPackedArray(DynamicObject hash, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -689,7 +689,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected DynamicObject mapBuckets(DynamicObject hash, DynamicObject block,
+        protected RubyArray mapBuckets(DynamicObject hash, DynamicObject block,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -774,7 +774,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = { "!isEmptyHash(hash)", "isPackedHash(hash)" })
-        protected DynamicObject shiftPackedArray(DynamicObject hash) {
+        protected RubyArray shiftPackedArray(DynamicObject hash) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
@@ -791,7 +791,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = { "!isEmptyHash(hash)", "isBucketHash(hash)" })
-        protected DynamicObject shiftBuckets(DynamicObject hash) {
+        protected RubyArray shiftBuckets(DynamicObject hash) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             final Entry first = Layouts.HASH.getFirstInSequence(hash);

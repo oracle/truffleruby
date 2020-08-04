@@ -13,8 +13,8 @@ import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -22,7 +22,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "array", type = RubyNode.class)
@@ -36,14 +35,14 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
         return ArrayAppendOneNodeGen.create(null, null);
     }
 
-    public abstract DynamicObject executeAppendOne(DynamicObject array, Object value);
+    public abstract RubyArray executeAppendOne(RubyArray array, Object value);
 
     // Append of the correct type
 
     @Specialization(
             guards = { "stores.acceptsValue(array.store, value)" },
             limit = "storageStrategyLimit()")
-    protected DynamicObject appendOneSameType(RubyArray array, Object value,
+    protected RubyArray appendOneSameType(RubyArray array, Object value,
             @CachedLibrary("array.store") ArrayStoreLibrary stores,
             @Cached("createCountingProfile()") ConditionProfile extendProfile) {
         final Object store = array.store;
@@ -70,7 +69,7 @@ public abstract class ArrayAppendOneNode extends RubyContextSourceNode {
     @Specialization(
             guards = "!currentStores.acceptsValue(array.store, value)",
             limit = "storageStrategyLimit()")
-    protected DynamicObject appendOneGeneralizeNonMutable(RubyArray array, Object value,
+    protected RubyArray appendOneGeneralizeNonMutable(RubyArray array, Object value,
             @CachedLibrary("array.store") ArrayStoreLibrary currentStores,
             @CachedLibrary(limit = "storageStrategyLimit()") ArrayStoreLibrary newStores) {
         final int oldSize = array.size;

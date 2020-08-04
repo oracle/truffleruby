@@ -59,7 +59,6 @@ import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -101,7 +100,7 @@ public abstract class ArrayNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected RubyArray allocate(DynamicObject rubyClass) {
             RubyArray array = new RubyArray(helperNode.getCachedShape(rubyClass), ArrayStoreLibrary.INITIAL_STORE, 0);
             helperNode.trace(array, this);
             return array;
@@ -123,7 +122,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 limit = "storageStrategyLimit()")
-        protected DynamicObject addGeneralize(RubyArray a, RubyArray b,
+        protected RubyArray addGeneralize(RubyArray a, RubyArray b,
                 @CachedLibrary("a.store") ArrayStoreLibrary as,
                 @CachedLibrary("b.store") ArrayStoreLibrary bs) {
             final int aSize = a.size;
@@ -146,8 +145,8 @@ public abstract class ArrayNodes {
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
 
         @Specialization(guards = "count == 0")
-        protected DynamicObject mulZero(RubyArray array, int count) {
-            final DynamicObject result = new RubyArray(
+        protected RubyArray mulZero(RubyArray array, int count) {
+            final RubyArray result = new RubyArray(
                     helperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
@@ -158,7 +157,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)", "count > 0" },
                 limit = "storageStrategyLimit()")
-        protected DynamicObject mulOther(RubyArray array, int count,
+        protected RubyArray mulOther(RubyArray array, int count,
                 @CachedLibrary("array.store") ArrayStoreLibrary arrays) {
 
             final int size = array.size;
@@ -174,25 +173,25 @@ public abstract class ArrayNodes {
                 arrays.copyContents(store, 0, newStore, n * size, size);
             }
 
-            final DynamicObject result = new RubyArray(helperNode
+            final RubyArray result = new RubyArray(helperNode
                     .getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)), newStore, newSize);
             propagateTaintNode.executePropagate(array, result);
             return result;
         }
 
         @Specialization(guards = "count < 0")
-        protected DynamicObject mulNeg(RubyArray array, long count) {
+        protected RubyArray mulNeg(RubyArray array, long count) {
             throw new RaiseException(getContext(), coreExceptions().argumentError("negative argument", this));
         }
 
         @Specialization(guards = { "!isEmptyArray(array)", "count >= 0", "!fitsInInteger(count)" })
-        protected DynamicObject mulLong(RubyArray array, long count) {
+        protected RubyArray mulLong(RubyArray array, long count) {
             throw new RaiseException(getContext(), coreExceptions().rangeError("array size too big", this));
         }
 
         @Specialization(guards = { "isEmptyArray(array)" })
-        protected DynamicObject mulEmpty(RubyArray array, long count) {
-            final DynamicObject result = new RubyArray(helperNode
+        protected RubyArray mulEmpty(RubyArray array, long count) {
+            final RubyArray result = new RubyArray(helperNode
                     .getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)), ArrayStoreLibrary.INITIAL_STORE, 0);
             propagateTaintNode.executePropagate(array, result);
             return result;
@@ -434,7 +433,7 @@ public abstract class ArrayNodes {
     public abstract static class ClearNode extends ArrayCoreMethodNode {
 
         @Specialization
-        protected DynamicObject clear(RubyArray array) {
+        protected RubyArray clear(RubyArray array) {
             setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
             return array;
         }
@@ -447,7 +446,7 @@ public abstract class ArrayNodes {
     public abstract static class CompactNode extends ArrayCoreMethodNode {
 
         @Specialization(guards = "stores.isPrimitive(array.store)", limit = "storageStrategyLimit()")
-        protected DynamicObject compactPrimitive(RubyArray array,
+        protected RubyArray compactPrimitive(RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ArrayCopyOnWriteNode cowNode) {
             final int size = array.size;
@@ -531,12 +530,12 @@ public abstract class ArrayNodes {
     public abstract static class ConcatNode extends CoreMethodNode {
 
         @Specialization(guards = "rest.length == 0")
-        protected DynamicObject concatZero(RubyArray array, NotProvided first, Object[] rest) {
+        protected RubyArray concatZero(RubyArray array, NotProvided first, Object[] rest) {
             return array;
         }
 
         @Specialization(guards = "rest.length == 0")
-        protected DynamicObject concatOne(RubyArray array, DynamicObject first, Object[] rest,
+        protected RubyArray concatOne(RubyArray array, DynamicObject first, Object[] rest,
                 @Cached("createInternal()") ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode) {
             appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
@@ -550,18 +549,18 @@ public abstract class ArrayNodes {
                         "rest.length > 0",
                         "rest.length == cachedLength",
                         "cachedLength <= 8" })
-        protected Object concatMany(RubyArray array, DynamicObject first, Object[] rest,
+        protected RubyArray concatMany(RubyArray array, DynamicObject first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached("createInternal()") ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached ConditionProfile selfArgProfile) {
             int size = array.size;
-            DynamicObject copy = createArray(cowNode.execute(array, 0, size), size);
-            DynamicObject result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            RubyArray copy = createArray(cowNode.execute(array, 0, size), size);
+            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
             for (int i = 0; i < cachedLength; ++i) {
                 final RubyArray argOrCopy = selfArgProfile.profile(rest[i] == array)
-                        ? (RubyArray) copy
+                        ? copy
                         : toAryNode.executeToAry(rest[i]);
                 result = appendManyNode.executeAppendMany(array, argOrCopy);
             }
@@ -572,7 +571,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "wasProvided(first)", "rest.length > 0" },
                 replaces = "concatMany")
-        protected Object concatManyGeneral(RubyArray array, DynamicObject first, Object[] rest,
+        protected RubyArray concatManyGeneral(RubyArray array, DynamicObject first, Object[] rest,
                 @Cached("createInternal()") ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
@@ -580,7 +579,7 @@ public abstract class ArrayNodes {
             final int size = array.size;
             Object store = cowNode.execute(array, 0, size);
 
-            DynamicObject result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
+            RubyArray result = appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
             for (Object arg : rest) {
                 if (selfArgProfile.profile(arg == array)) {
                     result = appendManyNode.executeAppendMany(array, createArray(store, size));
@@ -852,7 +851,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!isRubyArray(b)")
-        protected Object equalNotArray(DynamicObject a, Object b) {
+        protected Object equalNotArray(RubyArray a, Object b) {
             return FAILURE;
         }
 
@@ -917,7 +916,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!isRubyArray(b)")
-        protected Object eqlNotArray(DynamicObject a, Object b) {
+        protected Object eqlNotArray(RubyArray a, Object b) {
             return FAILURE;
         }
 
@@ -930,7 +929,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "args.length == 1", "stores.acceptsValue(array.store, value(args))" },
                 limit = "storageStrategyLimit()")
-        protected DynamicObject fill(RubyArray array, Object[] args, NotProvided block,
+        protected RubyArray fill(RubyArray array, Object[] args, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached PropagateSharingNode propagateSharingNode) {
             final Object value = args[0];
@@ -1027,11 +1026,11 @@ public abstract class ArrayNodes {
         @Child private CallDispatchHeadNode toAryNode;
         @Child private KernelNodes.RespondToNode respondToToAryNode;
 
-        protected abstract DynamicObject executeInitialize(RubyArray array, Object size, Object fillingValue,
+        protected abstract RubyArray executeInitialize(RubyArray array, Object size, Object fillingValue,
                 NotProvided block);
 
         @Specialization
-        protected DynamicObject initializeNoArgs(
+        protected RubyArray initializeNoArgs(
                 RubyArray array,
                 NotProvided size,
                 NotProvided fillingValue,
@@ -1041,7 +1040,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected DynamicObject initializeOnlyBlock(
+        protected RubyArray initializeOnlyBlock(
                 RubyArray array,
                 NotProvided size,
                 NotProvided fillingValue,
@@ -1052,7 +1051,7 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
-        protected DynamicObject initializeNegativeIntSize(
+        protected RubyArray initializeNegativeIntSize(
                 RubyArray array,
                 int size,
                 Object unusedFillingValue,
@@ -1062,7 +1061,7 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size < 0")
-        protected DynamicObject initializeNegativeLongSize(
+        protected RubyArray initializeNegativeLongSize(
                 RubyArray array,
                 long size,
                 Object unusedFillingValue,
@@ -1074,7 +1073,7 @@ public abstract class ArrayNodes {
 
         @TruffleBoundary
         @Specialization(guards = "size >= MAX_INT")
-        protected DynamicObject initializeSizeTooBig(
+        protected RubyArray initializeSizeTooBig(
                 RubyArray array,
                 long size,
                 NotProvided fillingValue,
@@ -1083,7 +1082,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "size >= 0")
-        protected DynamicObject initializeWithSizeNoValue(
+        protected RubyArray initializeWithSizeNoValue(
                 RubyArray array,
                 int size,
                 NotProvided fillingValue,
@@ -1097,7 +1096,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "size >= 0", "wasProvided(fillingValue)" },
                 limit = "storageStrategyLimit()")
-        protected DynamicObject initializeWithSizeAndValue(
+        protected RubyArray initializeWithSizeAndValue(
                 RubyArray array,
                 int size,
                 Object fillingValue,
@@ -1119,11 +1118,7 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "wasProvided(size)", "!isInteger(size)", "!isLong(size)", "wasProvided(fillingValue)" })
-        protected DynamicObject initializeSizeOther(
-                RubyArray array,
-                Object size,
-                Object fillingValue,
-                NotProvided block) {
+        protected RubyArray initializeSizeOther(RubyArray array, Object size, Object fillingValue, NotProvided block) {
             int intSize = toInt(size);
             return executeInitialize(array, intSize, fillingValue, block);
         }
@@ -1154,7 +1149,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected DynamicObject initializeFromArray(
+        protected RubyArray initializeFromArray(
                 RubyArray array,
                 RubyArray copy,
                 NotProvided unusedValue,
@@ -1166,12 +1161,12 @@ public abstract class ArrayNodes {
 
         @Specialization(
                 guards = { "!isInteger(object)", "!isLong(object)", "wasProvided(object)", "!isRubyArray(object)" })
-        protected DynamicObject initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block) {
-            DynamicObject copy = null;
+        protected RubyArray initialize(RubyArray array, Object object, NotProvided unusedValue, NotProvided block) {
+            RubyArray copy = null;
             if (respondToToAry(object)) {
                 Object toAryResult = callToAry(object);
-                if (RubyGuards.isRubyArray(toAryResult)) {
-                    copy = (DynamicObject) toAryResult;
+                if (toAryResult instanceof RubyArray) {
+                    copy = (RubyArray) toAryResult;
                 }
             }
 
@@ -1221,7 +1216,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected DynamicObject initializeCopy(RubyArray self, RubyArray from,
+        protected RubyArray initializeCopy(RubyArray self, RubyArray from,
                 @Cached ReplaceNode replaceNode) {
             if (self == from) {
                 return self;
@@ -1563,20 +1558,20 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "n >= 0", "isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
-        protected Object popEmpty(RubyArray array, int n) {
+        protected RubyArray popEmpty(RubyArray array, int n) {
             return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @Specialization(guards = { "n == 0", "!isEmptyArray(array)" })
         @ReportPolymorphism.Exclude
-        protected Object popZeroNotEmpty(RubyArray array, int n) {
+        protected RubyArray popZeroNotEmpty(RubyArray array, int n) {
             return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @Specialization(
                 guards = { "n > 0", "!isEmptyArray(array)", "!stores.isMutable(array.store)" },
                 limit = "storageStrategyLimit()")
-        protected Object popNotEmptySharedStorage(RubyArray array, int n,
+        protected RubyArray popNotEmptySharedStorage(RubyArray array, int n,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ConditionProfile minProfile) {
             final int size = array.size;
@@ -1595,7 +1590,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "n > 0", "!isEmptyArray(array)", "stores.isMutable(array.store)" },
                 limit = "storageStrategyLimit()")
-        protected Object popNotEmptyUnsharedStorage(RubyArray array, int n,
+        protected RubyArray popNotEmptyUnsharedStorage(RubyArray array, int n,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ConditionProfile minProfile) {
             final int size = array.size;
@@ -1628,7 +1623,7 @@ public abstract class ArrayNodes {
         @Child private ArrayAppendOneNode appendOneNode = ArrayAppendOneNode.create();
 
         @Specialization
-        protected DynamicObject append(RubyArray array, Object value) {
+        protected RubyArray append(RubyArray array, Object value) {
             return appendOneNode.executeAppendOne(array, value);
         }
 
@@ -1640,17 +1635,17 @@ public abstract class ArrayNodes {
         @Child private ArrayAppendOneNode appendOneNode = ArrayAppendOneNode.create();
 
         @Specialization(guards = "rest.length == 0")
-        protected DynamicObject pushZero(RubyArray array, NotProvided value, Object[] rest) {
+        protected RubyArray pushZero(RubyArray array, NotProvided value, Object[] rest) {
             return array;
         }
 
         @Specialization(guards = { "rest.length == 0", "wasProvided(value)" })
-        protected DynamicObject pushOne(RubyArray array, Object value, Object[] rest) {
+        protected RubyArray pushOne(RubyArray array, Object value, Object[] rest) {
             return appendOneNode.executeAppendOne(array, value);
         }
 
         @Specialization(guards = { "rest.length > 0", "wasProvided(value)" })
-        protected DynamicObject pushMany(VirtualFrame frame, RubyArray array, Object value, Object[] rest) {
+        protected RubyArray pushMany(VirtualFrame frame, RubyArray array, Object value, Object[] rest) {
             // NOTE (eregon): Appending one by one here to avoid useless generalization to Object[]
             // if the arguments all fit in the current storage
             appendOneNode.executeAppendOne(array, value);
@@ -1781,7 +1776,7 @@ public abstract class ArrayNodes {
 
         @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
-        public abstract DynamicObject executeReplace(RubyArray array, RubyArray other);
+        public abstract RubyArray executeReplace(RubyArray array, RubyArray other);
 
         @CreateCast("other")
         protected RubyNode coerceOtherToAry(RubyNode index) {
@@ -1789,7 +1784,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected DynamicObject replace(RubyArray array, RubyArray other,
+        protected RubyArray replace(RubyArray array, RubyArray other,
                 @Cached ArrayCopyOnWriteNode cowNode) {
             propagateSharingNode.executePropagate(array, other);
 
@@ -1808,7 +1803,7 @@ public abstract class ArrayNodes {
     public abstract static class RotateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected DynamicObject rotate(RubyArray array, int rotation,
+        protected RubyArray rotate(RubyArray array, int rotation,
                 @CachedLibrary("array.store") ArrayStoreLibrary arrays,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
@@ -1837,7 +1832,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = "arrays.isMutable(array.store)",
                 limit = "storageStrategyLimit()")
-        protected DynamicObject rotate(RubyArray array, int rotation,
+        protected RubyArray rotate(RubyArray array, int rotation,
                 @CachedLibrary("array.store") ArrayStoreLibrary arrays,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
@@ -1860,7 +1855,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!arrays.isMutable(array.store)" },
                 limit = "storageStrategyLimit()")
-        protected DynamicObject rotateStorageNotMutable(RubyArray array, int rotation,
+        protected RubyArray rotateStorageNotMutable(RubyArray array, int rotation,
                 @CachedLibrary("array.store") ArrayStoreLibrary arrays,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
                 @Cached("createIdentityProfile()") IntValueProfile rotationProfile) {
@@ -2046,7 +2041,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = "isEmptyArray(array)")
         @ReportPolymorphism.Exclude
-        protected DynamicObject sortEmpty(RubyArray array, Object unusedBlock) {
+        protected RubyArray sortEmpty(RubyArray array, Object unusedBlock) {
             return ArrayHelpers.createEmptyArray(getContext());
         }
 
@@ -2054,7 +2049,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "!isEmptyArray(array)", "isSmall(array)" },
                 limit = "storageStrategyLimit()")
-        protected DynamicObject sortVeryShort(VirtualFrame frame, RubyArray array, NotProvided block,
+        protected RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary originalStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary stores,
                 @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
@@ -2140,12 +2135,12 @@ public abstract class ArrayNodes {
     public abstract static class StealArrayStorageNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "array == other")
-        protected DynamicObject stealStorageNoOp(RubyArray array, RubyArray other) {
+        protected RubyArray stealStorageNoOp(RubyArray array, RubyArray other) {
             return array;
         }
 
         @Specialization(guards = "array != other")
-        protected DynamicObject stealStorage(RubyArray array, RubyArray other,
+        protected RubyArray stealStorage(RubyArray array, RubyArray other,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.executePropagate(array, other);
 
@@ -2180,7 +2175,7 @@ public abstract class ArrayNodes {
     public abstract static class ZipNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected DynamicObject zipToPairs(RubyArray array, RubyArray other,
+        protected RubyArray zipToPairs(RubyArray array, RubyArray other,
                 @CachedLibrary("array.store") ArrayStoreLibrary aStores,
                 @CachedLibrary("other.store") ArrayStoreLibrary bStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary pairs,
@@ -2214,7 +2209,7 @@ public abstract class ArrayNodes {
     public abstract static class StoreToNativeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "!oldStores.isNative(array.store)", limit = "storageStrategyLimit()")
-        protected DynamicObject storeToNative(RubyArray array,
+        protected RubyArray storeToNative(RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary oldStores) {
             int size = array.size;
             Object oldStore = array.store;
@@ -2230,7 +2225,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "oldStores.isNative(array.store)", limit = "storageStrategyLimit()")
-        protected DynamicObject storeIsNative(RubyArray array,
+        protected RubyArray storeIsNative(RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary oldStores) {
             return array;
         }

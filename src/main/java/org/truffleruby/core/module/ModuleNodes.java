@@ -29,6 +29,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.TaintResultNode;
@@ -341,7 +342,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject ancestors(DynamicObject self) {
+        protected RubyArray ancestors(DynamicObject self) {
             final List<DynamicObject> ancestors = new ArrayList<>();
             for (DynamicObject module : Layouts.MODULE.getFields(self).ancestors()) {
                 ancestors.add(module);
@@ -858,7 +859,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject getClassVariables(DynamicObject module) {
+        protected RubyArray getClassVariables(DynamicObject module) {
             final Map<String, Object> allClassVariables = ModuleOperations.getAllClassVariables(module);
             final int size = allClassVariables.size();
             final Object[] store = new Object[size];
@@ -883,7 +884,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject constants(DynamicObject module, boolean inherit) {
+        protected RubyArray constants(DynamicObject module, boolean inherit) {
             final List<RubySymbol> constantsArray = new ArrayList<>();
 
             final Iterable<Entry<String, RubyConstant>> constants;
@@ -1383,7 +1384,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject includedModules(DynamicObject module) {
+        protected RubyArray includedModules(DynamicObject module) {
             final List<DynamicObject> modules = new ArrayList<>();
 
             for (DynamicObject included : Layouts.MODULE.getFields(module).ancestors()) {
@@ -1470,7 +1471,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject nesting() {
+        protected RubyArray nesting() {
             final List<DynamicObject> modules = new ArrayList<>();
 
             InternalMethod method = getContext().getCallStack().getCallingMethodIgnoringSend();
@@ -1622,7 +1623,7 @@ public abstract class ModuleNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject getInstanceMethods(DynamicObject module, boolean includeAncestors) {
+        protected RubyArray getInstanceMethods(DynamicObject module, boolean includeAncestors) {
             Object[] objects = Layouts.MODULE
                     .getFields(module)
                     .filterMethods(getContext(), includeAncestors, MethodFilter.by(visibility))
@@ -1722,7 +1723,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject instanceMethods(DynamicObject module, boolean includeAncestors) {
+        protected RubyArray instanceMethods(DynamicObject module, boolean includeAncestors) {
             Object[] objects = Layouts.MODULE
                     .getFields(module)
                     .filterMethods(getContext(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
@@ -1978,7 +1979,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject usedModules() {
+        protected RubyArray usedModules() {
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<DynamicObject> refinementNamespaces = new HashSet<>();
@@ -1998,7 +1999,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject usedRefinements() {
+        protected RubyArray usedRefinements() {
             final Frame frame = getContext().getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
             final DeclarationContext declarationContext = RubyArguments.getDeclarationContext(frame);
             final Set<DynamicObject> refinements = new HashSet<>();

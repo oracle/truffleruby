@@ -1042,7 +1042,7 @@ public abstract class InteropNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject languages() {
+        protected RubyArray languages() {
             final Map<String, LanguageInfo> languages = getContext().getEnv().getPublicLanguages();
             final String[] languagesArray = languages.keySet().toArray(StringUtils.EMPTY_STRING_ARRAY);
             final Object[] rubyStringArray = new Object[languagesArray.length];

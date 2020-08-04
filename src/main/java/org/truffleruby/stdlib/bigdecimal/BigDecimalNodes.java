@@ -21,6 +21,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
@@ -413,24 +414,24 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = { "isNormal(a)", "isNormal(b)", "!isNormalZero(a)", "!isNormalZero(b)" })
-        protected Object divmod(RubyBigDecimal a, RubyBigDecimal b) {
+        protected RubyArray divmod(RubyBigDecimal a, RubyBigDecimal b) {
             final BigDecimal[] result = divmodBigDecimal(a.value, b.value);
             return createArray(new Object[]{ createBigDecimal(result[0]), createBigDecimal(result[1]) });
         }
 
         @Specialization(guards = { "isNormal(a)", "isNormal(b)", "isNormalZero(a)", "!isNormalZero(b)" })
-        protected Object divmodZeroDividend(RubyBigDecimal a, RubyBigDecimal b) {
+        protected RubyArray divmodZeroDividend(RubyBigDecimal a, RubyBigDecimal b) {
             final Object[] store = new Object[]{ createBigDecimal(BigDecimal.ZERO), createBigDecimal(BigDecimal.ZERO) };
             return createArray(store);
         }
 
         @Specialization(guards = { "isNormal(a)", "isNormal(b)", "isNormalZero(b)" })
-        protected Object divmodZeroDivisor(RubyBigDecimal a, RubyBigDecimal b) {
+        protected RubyArray divmodZeroDivisor(RubyBigDecimal a, RubyBigDecimal b) {
             throw new RaiseException(getContext(), coreExceptions().zeroDivisionError(this));
         }
 
         @Specialization(guards = { "!isNormal(a) || !isNormal(b)" })
-        protected Object divmodSpecial(RubyBigDecimal a, RubyBigDecimal b,
+        protected RubyArray divmodSpecial(RubyBigDecimal a, RubyBigDecimal b,
                 @Cached("createPrivate()") CallDispatchHeadNode signCall,
                 @Cached IntegerCastNode signIntegerCast,
                 @Cached ConditionProfile nanProfile,
@@ -1247,7 +1248,7 @@ public abstract class BigDecimalNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isNormal(value)")
-        protected Object precsNormal(RubyBigDecimal value) {
+        protected RubyArray precsNormal(RubyBigDecimal value) {
             final BigDecimal bigDecimalValue = value.value.abs();
             final int precs = nearestBiggerMultipleOf9(
                     bigDecimalValue.stripTrailingZeros().unscaledValue().toString().length());
@@ -1255,7 +1256,7 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = "!isNormal(value)")
-        protected Object precsSpecial(RubyBigDecimal value) {
+        protected RubyArray precsSpecial(RubyBigDecimal value) {
             return createArray(new int[]{ 9, 9 });
         }
 

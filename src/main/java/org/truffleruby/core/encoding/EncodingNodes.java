@@ -30,6 +30,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToEncodingNode;
 import org.truffleruby.core.encoding.EncodingNodesFactory.CheckRopeEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.GetRubyEncodingNodeGen;
@@ -400,7 +401,7 @@ public abstract class EncodingNodes {
     public abstract static class ListNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject list() {
+        protected RubyArray list() {
             return createArray(getContext().getEncodingManager().getEncodingList());
         }
     }
@@ -681,7 +682,7 @@ public abstract class EncodingNodes {
 
     public static abstract class EncodingCreationNode extends PrimitiveArrayArgumentsNode {
 
-        public DynamicObject setIndexOrRaiseError(String name, RubyEncoding newEncoding) {
+        public RubyArray setIndexOrRaiseError(String name, RubyEncoding newEncoding) {
             if (newEncoding == null) {
                 throw new RaiseException(
                         getContext(),
