@@ -3,7 +3,7 @@
 TruffleRuby allows you to interface with any other Truffle language to create
 polyglot programs -- programs written in more than one language.
 
-This document describes how to load code written in foreign languages, how to
+This guide describes how to load code written in foreign languages, how to
 export and import objects between languages, how to use Ruby objects from
 a foreign language, how to use foreign objects from Ruby, how to load
 Java types to interface with Java, and how to embed in Java.
@@ -146,12 +146,13 @@ converted to boolean if possible or considered to be true.
 
 ## Accessing Java Objects
 
-TruffleRuby's Java interop interface is similar to the interface from the
-Nashorn JavaScript implementation, as also implemented by Graal.js.
+TruffleRuby's Java interoperability interface is similar to the interface from the
+Nashorn JavaScript implementation, as also implemented by GraalVM JavaScript.
 
-It is easier to use Java interop in JVM mode (`--jvm`).
-Java interop is also supported in native mode but requires more setup.
-See https://www.graalvm.org/docs/reference-manual/embed/#build-native-images-from-polyglot-applications for details.
+It is easier to use Java interoperability in JVM mode (`--jvm`).
+Java interoperability is also supported in native mode but requires more setup.
+See [here](https://www.graalvm.org/docs/reference-manual/embed-languages/#build-native-images-from-polyglot-applications)
+for more details.
 
 `Java.type('name')` returns a Java class object, given a name such as
 `java.lang.Integer` or `int[]`. With the class object, `.new` will create an

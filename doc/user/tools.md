@@ -3,7 +3,7 @@
 TruffleRuby gets tools automatically provided by GraalVM. Run `--help:tools`
 to see a full list of options.
 
-We're using this example program in this document for illustration.
+The following program is used for illustration:
 
 ```ruby
 require 'chunky_png'
@@ -19,7 +19,7 @@ c.save('c.png')
 ### CPU Tracer
 
 The CPU tracer records the number of times methods, blocks, or statements are
-run, and prints a histogram. Enable it with `--cputracer`.
+run and prints a histogram. Enable it with `--cputracer`.
 
 ```
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -76,37 +76,37 @@ Sampling Histogram. Recorded 3895 samples with period 1ms.
  Thread: Thread[main,5,main]
  Name                                                                                |      Total Time     |  Opt % ||       Self Time     |  Opt % | Location             
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- <main>                                                                              |       3635ms  93.3% |   0.0% ||       1086ms  27.9% |   0.0% | test.rb~1-6:0-140 
- <top (required)>                                                                    |       1068ms  27.4% |   0.0% ||        708ms  18.2% |   0.0% | chunky_png.rb~1-179:0-5528 
- block in ChunkyPNG::Canvas::PNGEncoding#encode_png_str_scanline_up                  |        643ms  16.5% |   0.0% ||        643ms  16.5% |   0.0% | chunky_png/canvas/png_encoding.rb~404:20111-20145 
- __sulong_dispose_context                                                            |        260ms   6.7% |   0.0% ||        257ms   6.6% |   0.0% | sulong_dispose_context.c~33:0 
- block in ChunkyPNG::Canvas::PNGDecoding#decode_png_str_scanline_paeth               |         58ms   1.5% |   0.0% ||         58ms   1.5% |   0.0% | chunky_png/canvas/png_decoding.rb~476:25098-25131 
- do_checksum                                                                         |         77ms   2.0% |   0.0% ||         47ms   1.2% |   0.0% | src/main/c/zlib/zlib.c~389:12721-12796 
- ChunkyPNG::Palette#initialize                                                       |         52ms   1.3% |   0.0% ||         41ms   1.1% |   0.0% | chunky_png/palette.rb~21-24:954-1074 
- block in Gem::Specification.load                                                    |         39ms   1.0% |   0.0% ||         39ms   1.0% |   0.0% | bigdecimal-1.4.1.gemspec~5:126-154 
- rb_define_method                                                                    |         50ms   1.3% |   0.0% ||         36ms   0.9% |   0.0% | src/main/c/cext/ruby.c~2185:61849-61941 
- rb_tr_init                                                                          |         44ms   1.1% |   0.0% ||         34ms   0.9% |   0.0% | src/main/c/cext/ruby.c~93:2351-2384 
- <top (required)>                                                                    |         42ms   1.1% |   0.0% ||         33ms   0.8% |   0.0% | chunky_png/canvas.rb~1-372:0-13593 
- __sulong_byte_array_to_native                                                       |         30ms   0.8% |   0.0% ||         30ms   0.8% |   0.0% | crt0.c~59:0 
- rb_str_new                                                                          |         33ms   0.8% |   0.0% ||         29ms   0.7% |   0.0% | src/main/c/cext/ruby.c~837:23634-23684 
- __sulong_init_context                                                               |         68ms   1.7% |   0.0% ||         26ms   0.7% |   0.0% | crt0.c~80:0 
- Init_zlib                                                                           |        145ms   3.7% |   0.0% ||         24ms   0.6% |   0.0% | src/main/c/zlib/zlib.c~4465:112360-112374 
- rb_zlib_crc32                                                                       |        101ms   2.6% |   0.0% ||         24ms   0.6% |   0.0% | src/main/c/zlib/zlib.c~473:14760-14808 
- rb_data_typed_object_wrap                                                           |         21ms   0.5% |   0.0% ||         21ms   0.5% |   0.0% | src/main/c/cext/ruby.c~2834:79544-79639 
- rb_tr_load_library                                                                  |         22ms   0.6% |   0.0% ||         20ms   0.5% |   0.0% | src/main/c/cext/ruby.c~2906:81858-81897 
- ChunkyPNG::Canvas::PNGEncoding#encode_png_str_scanline_up                           |        662ms  17.0% |   0.0% ||         19ms   0.5% |   0.0% | chunky_png/canvas/png_encoding.rb~403-409:20027-20347 
- rb_define_class_id_under                                                            |         18ms   0.5% |   0.0% ||         18ms   0.5% |   0.0% | src/main/c/cext/ruby.c~2165:61106-61178 
- ChunkyPNG::Chunk.read                                                               |        137ms   3.5% |   0.0% ||         17ms   0.4% |   0.0% | chunky_png/chunk.rb~18-26:783-1054 
- Datastream                                                                          |         15ms   0.4% |   0.0% ||         15ms   0.4% |   0.0% | chunky_png/datastream.rb~11:364-381 
- ChunkyPNG::Color#compose_quick                                                      |         37ms   0.9% |   0.0% ||         14ms   0.4% |   0.0% | chunky_png/color.rb~358-368:14300-14740 
- rb_deflate_s_deflate                                                                |         27ms   0.7% |   0.0% ||         13ms   0.3% |   0.0% | src/main/c/zlib/zlib.c~1622:44042-44097 
- ChunkyPNG::Canvas::PNGDecoding#decode_png_str_scanline_paeth                        |         71ms   1.8% |   0.0% ||         13ms   0.3% |   0.0% | chunky_png/canvas/png_decoding.rb~475-488:25010-25650 
- ChunkyPNG::Palette.from_canvas                                                      |         64ms   1.6% |   0.0% ||         12ms   0.3% |   0.0% | chunky_png/palette.rb~63-68:2377-2629 
- __sulong_byte_arrays_to_native                                                      |         42ms   1.1% |   0.0% ||         12ms   0.3% |   0.0% | crt0.c~69:0 
- ChunkyPNG::Chunk::ImageData.combine_chunks                                          |        167ms   4.3% |   0.0% ||         12ms   0.3% |   0.0% | chunky_png/chunk.rb~247-253:9766-9980 
- rb_inflate_initialize                                                               |         19ms   0.5% |   0.0% ||         12ms   0.3% |   0.0% | src/main/c/zlib/zlib.c~1887:51522-51576 
- strlen                                                                              |         12ms   0.3% |   0.0% ||         12ms   0.3% |   0.0% | string.c~56:0 
- zstream_run                                                                         |         76ms   2.0% |   0.0% ||         12ms   0.3% |   0.0% | src/main/c/zlib/zlib.c~1024:27867-27929 
+ <main>                                                                              |       3635ms  93.3% |   0.0% ||       1086ms  27.9% |   0.0% | test.rb~1-6:0-140
+ <top (required)>                                                                    |       1068ms  27.4% |   0.0% ||        708ms  18.2% |   0.0% | chunky_png.rb~1-179:0-5528
+ block in ChunkyPNG::Canvas::PNGEncoding#encode_png_str_scanline_up                  |        643ms  16.5% |   0.0% ||        643ms  16.5% |   0.0% | chunky_png/canvas/png_encoding.rb~404:20111-20145
+ __sulong_dispose_context                                                            |        260ms   6.7% |   0.0% ||        257ms   6.6% |   0.0% | sulong_dispose_context.c~33:0
+ block in ChunkyPNG::Canvas::PNGDecoding#decode_png_str_scanline_paeth               |         58ms   1.5% |   0.0% ||         58ms   1.5% |   0.0% | chunky_png/canvas/png_decoding.rb~476:25098-25131
+ do_checksum                                                                         |         77ms   2.0% |   0.0% ||         47ms   1.2% |   0.0% | src/main/c/zlib/zlib.c~389:12721-12796
+ ChunkyPNG::Palette#initialize                                                       |         52ms   1.3% |   0.0% ||         41ms   1.1% |   0.0% | chunky_png/palette.rb~21-24:954-1074
+ block in Gem::Specification.load                                                    |         39ms   1.0% |   0.0% ||         39ms   1.0% |   0.0% | bigdecimal-1.4.1.gemspec~5:126-154
+ rb_define_method                                                                    |         50ms   1.3% |   0.0% ||         36ms   0.9% |   0.0% | src/main/c/cext/ruby.c~2185:61849-61941
+ rb_tr_init                                                                          |         44ms   1.1% |   0.0% ||         34ms   0.9% |   0.0% | src/main/c/cext/ruby.c~93:2351-2384
+ <top (required)>                                                                    |         42ms   1.1% |   0.0% ||         33ms   0.8% |   0.0% | chunky_png/canvas.rb~1-372:0-13593
+ __sulong_byte_array_to_native                                                       |         30ms   0.8% |   0.0% ||         30ms   0.8% |   0.0% | crt0.c~59:0
+ rb_str_new                                                                          |         33ms   0.8% |   0.0% ||         29ms   0.7% |   0.0% | src/main/c/cext/ruby.c~837:23634-23684
+ __sulong_init_context                                                               |         68ms   1.7% |   0.0% ||         26ms   0.7% |   0.0% | crt0.c~80:0
+ Init_zlib                                                                           |        145ms   3.7% |   0.0% ||         24ms   0.6% |   0.0% | src/main/c/zlib/zlib.c~4465:112360-112374
+ rb_zlib_crc32                                                                       |        101ms   2.6% |   0.0% ||         24ms   0.6% |   0.0% | src/main/c/zlib/zlib.c~473:14760-14808
+ rb_data_typed_object_wrap                                                           |         21ms   0.5% |   0.0% ||         21ms   0.5% |   0.0% | src/main/c/cext/ruby.c~2834:79544-79639
+ rb_tr_load_library                                                                  |         22ms   0.6% |   0.0% ||         20ms   0.5% |   0.0% | src/main/c/cext/ruby.c~2906:81858-81897
+ ChunkyPNG::Canvas::PNGEncoding#encode_png_str_scanline_up                           |        662ms  17.0% |   0.0% ||         19ms   0.5% |   0.0% | chunky_png/canvas/png_encoding.rb~403-409:20027-20347
+ rb_define_class_id_under                                                            |         18ms   0.5% |   0.0% ||         18ms   0.5% |   0.0% | src/main/c/cext/ruby.c~2165:61106-61178
+ ChunkyPNG::Chunk.read                                                               |        137ms   3.5% |   0.0% ||         17ms   0.4% |   0.0% | chunky_png/chunk.rb~18-26:783-1054
+ Datastream                                                                          |         15ms   0.4% |   0.0% ||         15ms   0.4% |   0.0% | chunky_png/datastream.rb~11:364-381
+ ChunkyPNG::Color#compose_quick                                                      |         37ms   0.9% |   0.0% ||         14ms   0.4% |   0.0% | chunky_png/color.rb~358-368:14300-14740
+ rb_deflate_s_deflate                                                                |         27ms   0.7% |   0.0% ||         13ms   0.3% |   0.0% | src/main/c/zlib/zlib.c~1622:44042-44097
+ ChunkyPNG::Canvas::PNGDecoding#decode_png_str_scanline_paeth                        |         71ms   1.8% |   0.0% ||         13ms   0.3% |   0.0% | chunky_png/canvas/png_decoding.rb~475-488:25010-25650
+ ChunkyPNG::Palette.from_canvas                                                      |         64ms   1.6% |   0.0% ||         12ms   0.3% |   0.0% | chunky_png/palette.rb~63-68:2377-2629
+ __sulong_byte_arrays_to_native                                                      |         42ms   1.1% |   0.0% ||         12ms   0.3% |   0.0% | crt0.c~69:0
+ ChunkyPNG::Chunk::ImageData.combine_chunks                                          |        167ms   4.3% |   0.0% ||         12ms   0.3% |   0.0% | chunky_png/chunk.rb~247-253:9766-9980
+ rb_inflate_initialize                                                               |         19ms   0.5% |   0.0% ||         12ms   0.3% |   0.0% | src/main/c/zlib/zlib.c~1887:51522-51576
+ strlen                                                                              |         12ms   0.3% |   0.0% ||         12ms   0.3% |   0.0% | string.c~56:0
+ zstream_run                                                                         |         76ms   2.0% |   0.0% ||         12ms   0.3% |   0.0% | src/main/c/zlib/zlib.c~1024:27867-27929
 ```
 
 By default you see this histogram, but you can also see a call tree with `--cpusampler.Output=calltree`.
@@ -121,46 +121,46 @@ Sampling CallTree. Recorded 3102 samples with period 1ms.
  Thread: Thread[main,5,main]
  Name                                                                                        |      Total Time     |  Opt % ||       Self Time     |  Opt % | Location             
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-  ChunkyPNG::Canvas::PNGEncoding#save                                                        |        582ms  18.8% |   0.0% ||          5ms   0.2% |   0.0% | chunky_png/canvas/png_encoding.rb~42-44:1754-1871 
-   block in ChunkyPNG::Canvas::PNGEncoding#save                                              |        577ms  18.6% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~43:1797-1861 
-    ChunkyPNG::Canvas::PNGEncoding#write                                                     |        577ms  18.6% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~34-36:1430-1521 
-     ChunkyPNG::Image#to_datastream                                                          |        571ms  18.4% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/image.rb~61-65:2314-2447 
-      ChunkyPNG::Canvas::PNGEncoding#to_datastream                                           |        569ms  18.3% |   0.0% ||          1ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~74-89:3715-4561 
-       ChunkyPNG::Canvas::PNGEncoding#encode_png_pixelstream                                 |        489ms  15.8% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~153-165:7702-8570 
-        ChunkyPNG::Canvas::PNGEncoding#encode_png_image_without_interlacing                  |        489ms  15.8% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~172-176:8925-9195 
-         ChunkyPNG::Canvas::PNGEncoding#encode_png_image_pass_to_stream                      |        489ms  15.8% |   0.0% ||          3ms   0.1% |   0.0% | chunky_png/canvas/png_encoding.rb~203-231:10502-11685 
-          block in ChunkyPNG::Canvas::PNGEncoding#encode_png_image_pass_to_stream            |        481ms  15.5% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~225:11418-11456 
-           ChunkyPNG::Canvas::PNGEncoding#encode_png_str_scanline_up                         |        481ms  15.5% |   0.0% ||         11ms   0.4% |   0.0% | chunky_png/canvas/png_encoding.rb~403-409:20027-20347 
-            block in ChunkyPNG::Canvas::PNGEncoding#encode_png_str_scanline_up               |        470ms  15.2% |   0.0% ||        470ms  15.2% |   0.0% | chunky_png/canvas/png_encoding.rb~404:20111-20145 
-          block in ChunkyPNG::Canvas::PNGEncoding#encode_png_image_pass_to_stream            |          5ms   0.2% |   0.0% ||          1ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~219:11252-11284 
-           ChunkyPNG::Canvas::PNGEncoding#encode_png_pixels_to_scanline_truecolor_8bit       |          4ms   0.1% |   0.0% ||          4ms   0.1% |   0.0% | chunky_png/canvas/png_encoding.rb~236-238:11896-12009 
-       ChunkyPNG::Canvas::PNGEncoding#determine_png_encoding                                 |         60ms   1.9% |   0.0% ||          2ms   0.1% |   0.0% | chunky_png/canvas/png_encoding.rb~102-145:5085-7303 
-        ChunkyPNG::Canvas#palette                                                            |         51ms   1.6% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas.rb~268-270:10089-10154 
-         ChunkyPNG::Palette.from_canvas                                                      |         51ms   1.6% |   0.0% ||          9ms   0.3% |   0.0% | chunky_png/palette.rb~63-68:2377-2629 
-          ChunkyPNG::Palette#initialize                                                      |         42ms   1.4% |   0.0% ||         30ms   1.0% |   0.0% | chunky_png/palette.rb~21-24:954-1074 
-           SortedSet#initialize                                                              |         12ms   0.4% |   0.0% ||          0ms   0.0% |   0.0% | lib/mri/set.rb~726-729:725-819 
-            SortedSet#merge                                                                  |         12ms   0.4% |   0.0% ||          6ms   0.2% |   0.0% | lib/mri/set.rb~770-773:1759-1847 
-             SortedSet#add                                                                   |          6ms   0.2% |   0.0% ||          6ms   0.2% |   0.0% | lib/mri/set.rb~741-745:1000-1169 
-        ChunkyPNG::Palette#best_color_settings                                               |          7ms   0.2% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/palette.rb~195-211:7150-7613 
-         ChunkyPNG::Palette#opaque?                                                          |          3ms   0.1% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/palette.rb~88-90:3303-3369 
-          SortedSet#each                                                                     |          3ms   0.1% |   0.0% ||          2ms   0.1% |   0.0% | lib/mri/set.rb~775-779:1850-2004 
-           block in ChunkyPNG::Palette#opaque?                                               |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/palette.rb~89:3319-3361 
-            ChunkyPNG::Color#opaque?                                                         |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/color.rb~304-306:12410-12468 
-             ChunkyPNG::Color#a                                                              |          1ms   0.0% |   0.0% ||          1ms   0.0% |   0.0% | chunky_png/color.rb~296-298:12189-12237 
-         ChunkyPNG::Palette#black_and_white?                                                 |          3ms   0.1% |   0.0% ||          1ms   0.0% |   0.0% | chunky_png/palette.rb~104-106:3841-3940 
-          SortedSet#each                                                                     |          2ms   0.1% |   0.0% ||          1ms   0.0% |   0.0% | lib/mri/set.rb~775-779:1850-2004 
-           SortedSet#to_a                                                                    |          1ms   0.0% |   0.0% ||          1ms   0.0% |   0.0% | lib/mri/set.rb~781-784:2007-2116 
-         ChunkyPNG::Palette#grayscale?                                                       |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/palette.rb~96-98:3570-3642 
-          SortedSet#each                                                                     |          1ms   0.0% |   0.0% ||          1ms   0.0% |   0.0% | lib/mri/set.rb~775-779:1850-2004 
-       ChunkyPNG::Chunk::ImageData.split_in_chunks                                           |         19ms   0.6% |   0.0% ||          7ms   0.2% |   0.0% | chunky_png/chunk.rb~255-259:9983-10267 
-        rb_deflate_s_deflate                                                                 |         12ms   0.4% |   0.0% ||          4ms   0.1% |   0.0% | src/main/c/zlib/zlib.c~1622:44042-44097 
-         rb_ensure                                                                           |          5ms   0.2% |   0.0% ||          1ms   0.0% |   0.0% | src/main/c/cext/ruby.c~2107:59266-59360 
-          deflate_run                                                                        |          4ms   0.1% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/zlib/zlib.c~1589:43218-43240 
-           zstream_run                                                                       |          4ms   0.1% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/zlib/zlib.c~1024:27867-27929 
-            zstream_append_input                                                             |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/zlib/zlib.c~827:23738-23804 
-             rb_str_buf_cat                                                                  |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/cext/ruby.c~981:27520-27591 
-              rb_str_cat                                                                     |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/cext/ruby.c~882:24901-24968 
-               rb_enc_str_new                                                                |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/cext/ruby.c~1301:37035-37101 
+  ChunkyPNG::Canvas::PNGEncoding#save                                                        |        582ms  18.8% |   0.0% ||          5ms   0.2% |   0.0% | chunky_png/canvas/png_encoding.rb~42-44:1754-1871
+   block in ChunkyPNG::Canvas::PNGEncoding#save                                              |        577ms  18.6% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~43:1797-1861
+    ChunkyPNG::Canvas::PNGEncoding#write                                                     |        577ms  18.6% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~34-36:1430-1521
+     ChunkyPNG::Image#to_datastream                                                          |        571ms  18.4% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/image.rb~61-65:2314-2447
+      ChunkyPNG::Canvas::PNGEncoding#to_datastream                                           |        569ms  18.3% |   0.0% ||          1ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~74-89:3715-4561
+       ChunkyPNG::Canvas::PNGEncoding#encode_png_pixelstream                                 |        489ms  15.8% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~153-165:7702-8570
+        ChunkyPNG::Canvas::PNGEncoding#encode_png_image_without_interlacing                  |        489ms  15.8% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~172-176:8925-9195
+         ChunkyPNG::Canvas::PNGEncoding#encode_png_image_pass_to_stream                      |        489ms  15.8% |   0.0% ||          3ms   0.1% |   0.0% | chunky_png/canvas/png_encoding.rb~203-231:10502-11685
+          block in ChunkyPNG::Canvas::PNGEncoding#encode_png_image_pass_to_stream            |        481ms  15.5% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~225:11418-11456
+           ChunkyPNG::Canvas::PNGEncoding#encode_png_str_scanline_up                         |        481ms  15.5% |   0.0% ||         11ms   0.4% |   0.0% | chunky_png/canvas/png_encoding.rb~403-409:20027-20347
+            block in ChunkyPNG::Canvas::PNGEncoding#encode_png_str_scanline_up               |        470ms  15.2% |   0.0% ||        470ms  15.2% |   0.0% | chunky_png/canvas/png_encoding.rb~404:20111-20145
+          block in ChunkyPNG::Canvas::PNGEncoding#encode_png_image_pass_to_stream            |          5ms   0.2% |   0.0% ||          1ms   0.0% |   0.0% | chunky_png/canvas/png_encoding.rb~219:11252-11284
+           ChunkyPNG::Canvas::PNGEncoding#encode_png_pixels_to_scanline_truecolor_8bit       |          4ms   0.1% |   0.0% ||          4ms   0.1% |   0.0% | chunky_png/canvas/png_encoding.rb~236-238:11896-12009
+       ChunkyPNG::Canvas::PNGEncoding#determine_png_encoding                                 |         60ms   1.9% |   0.0% ||          2ms   0.1% |   0.0% | chunky_png/canvas/png_encoding.rb~102-145:5085-7303
+        ChunkyPNG::Canvas#palette                                                            |         51ms   1.6% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/canvas.rb~268-270:10089-10154
+         ChunkyPNG::Palette.from_canvas                                                      |         51ms   1.6% |   0.0% ||          9ms   0.3% |   0.0% | chunky_png/palette.rb~63-68:2377-2629
+          ChunkyPNG::Palette#initialize                                                      |         42ms   1.4% |   0.0% ||         30ms   1.0% |   0.0% | chunky_png/palette.rb~21-24:954-1074
+           SortedSet#initialize                                                              |         12ms   0.4% |   0.0% ||          0ms   0.0% |   0.0% | lib/mri/set.rb~726-729:725-819
+            SortedSet#merge                                                                  |         12ms   0.4% |   0.0% ||          6ms   0.2% |   0.0% | lib/mri/set.rb~770-773:1759-1847
+             SortedSet#add                                                                   |          6ms   0.2% |   0.0% ||          6ms   0.2% |   0.0% | lib/mri/set.rb~741-745:1000-1169
+        ChunkyPNG::Palette#best_color_settings                                               |          7ms   0.2% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/palette.rb~195-211:7150-7613
+         ChunkyPNG::Palette#opaque?                                                          |          3ms   0.1% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/palette.rb~88-90:3303-3369
+          SortedSet#each                                                                     |          3ms   0.1% |   0.0% ||          2ms   0.1% |   0.0% | lib/mri/set.rb~775-779:1850-2004
+           block in ChunkyPNG::Palette#opaque?                                               |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/palette.rb~89:3319-3361
+            ChunkyPNG::Color#opaque?                                                         |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/color.rb~304-306:12410-12468
+             ChunkyPNG::Color#a                                                              |          1ms   0.0% |   0.0% ||          1ms   0.0% |   0.0% | chunky_png/color.rb~296-298:12189-12237
+         ChunkyPNG::Palette#black_and_white?                                                 |          3ms   0.1% |   0.0% ||          1ms   0.0% |   0.0% | chunky_png/palette.rb~104-106:3841-3940
+          SortedSet#each                                                                     |          2ms   0.1% |   0.0% ||          1ms   0.0% |   0.0% | lib/mri/set.rb~775-779:1850-2004
+           SortedSet#to_a                                                                    |          1ms   0.0% |   0.0% ||          1ms   0.0% |   0.0% | lib/mri/set.rb~781-784:2007-2116
+         ChunkyPNG::Palette#grayscale?                                                       |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | chunky_png/palette.rb~96-98:3570-3642
+          SortedSet#each                                                                     |          1ms   0.0% |   0.0% ||          1ms   0.0% |   0.0% | lib/mri/set.rb~775-779:1850-2004
+       ChunkyPNG::Chunk::ImageData.split_in_chunks                                           |         19ms   0.6% |   0.0% ||          7ms   0.2% |   0.0% | chunky_png/chunk.rb~255-259:9983-10267
+        rb_deflate_s_deflate                                                                 |         12ms   0.4% |   0.0% ||          4ms   0.1% |   0.0% | src/main/c/zlib/zlib.c~1622:44042-44097
+         rb_ensure                                                                           |          5ms   0.2% |   0.0% ||          1ms   0.0% |   0.0% | src/main/c/cext/ruby.c~2107:59266-59360
+          deflate_run                                                                        |          4ms   0.1% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/zlib/zlib.c~1589:43218-43240
+           zstream_run                                                                       |          4ms   0.1% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/zlib/zlib.c~1024:27867-27929
+            zstream_append_input                                                             |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/zlib/zlib.c~827:23738-23804
+             rb_str_buf_cat                                                                  |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/cext/ruby.c~981:27520-27591
+              rb_str_cat                                                                     |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/cext/ruby.c~882:24901-24968
+               rb_enc_str_new                                                                |          1ms   0.0% |   0.0% ||          0ms   0.0% |   0.0% | src/main/c/cext/ruby.c~1301:37035-37101
 ```
 
 ### Coverage
@@ -207,10 +207,8 @@ Code coverage histogram.
 ### Chrome Inspector
 
 GraalVM lets you debug Ruby programs, and any other language supported by
-GraalVM, using the [Chrome DevTools
-Protocol](https://chromedevtools.github.io/devtools-protocol/) to attach to
-debuggers such as [Chrome Developer
-Tools](https://developers.google.com/web/tools/chrome-devtools/).
+GraalVM, using the [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) to attach to
+debuggers such as [Chrome Developer Tools](https://developers.google.com/web/tools/chrome-devtools/).
 
 Run with `--inspect`, open the given URL in Chrome, drag your file system into
 the sources list, and then set a breakpoint and resume execution. Having the

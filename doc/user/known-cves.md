@@ -1,10 +1,6 @@
 # Security
 
-Please report security vulnerabilities via the process outlined at [reporting
-vulnerabilities
-guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html),
-rather than by something public such as a GitHub issue or a Gitter
-conversation.
+Report security vulnerabilities via the process outlined at [reporting vulnerabilities guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html).
 Specific guidelines for reporting security issues of the GraalVM project including TruffleRuby can be found in the [SECURITY.md file](../../SECURITY.md).
 
 ## Unimplemented Security Features
@@ -29,12 +25,11 @@ Other levels will raise `ArgumentError` as in standard Ruby.
 Vulnerabilities reported against MRI may apply to the design of Ruby or to
 code that we share with MRI. We list reported MRI vulnerabilities here and
 document how MRI has mitigated the vulnerability, if the mitigation is tested
-by anything, and how TruffleRuby has mitigated. We haven't investigated all
-legacy vulnerabilities, as it's often very hard to work out the details from
+by anything, and how TruffleRuby has mitigated. We have not investigated all
+legacy vulnerabilities, as it is often very hard to work out the details from
 older reports.
 
-Cross-reference with the details on the MRI website
-https://www.ruby-lang.org/en/security/.
+Cross-reference with the details on [the MRI website](https://www.ruby-lang.org/en/security/).
 
 Number | Description | Their Mitigation | Test | Our Mitigation
 --- | --- | --- | --- | ---
@@ -125,7 +120,7 @@ CVE-2012-5372 | Rubinius computes hash values without properly restricting the a
 
 ### JONI
 
-We are not aware of any known vulnerabilities.
+No vulnerabilities are known.
 
 ### JCodings
 
@@ -137,7 +132,7 @@ CVE-2010-1330 | The regular expression engine in JRuby before 1.4.1, when `$KCOD
 
 ### zlib
 
-We are not aware of any known vulnerabilities, but consider potential
+No vulnerabilities are known, but consider potential
 vulnerabilities in your system `zlib`.
 
 ### libssl
@@ -153,5 +148,5 @@ CVE-2018-1000201 | A DLL loading issue can be hijacked on Windows when a `Symbol
 ## Notes on Hashing
 
 TruffleRuby uses `MurmurHash2` hashing with a seed from `/dev/urandom` - it
-cannot be configured to use any other hashing algorithm. For hashing strings we
+cannot be configured to use any other hashing algorithm. For hashing strings,
 use Java's hash algorithm (and then `MurmurHash2` on top).

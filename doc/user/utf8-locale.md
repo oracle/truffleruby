@@ -1,4 +1,4 @@
-# Setting up a UTF-8 locale
+# Setting up a UTF-8 Locale
 
 You may need a UTF-8 locale to run some Ruby applications. For example we've
 found that Ruby Spec needs such a locale.

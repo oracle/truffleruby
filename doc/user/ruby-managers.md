@@ -1,6 +1,6 @@
 # Ruby Managers and Installers
 
-If you [installed GraalVM](installing-graalvm.md), it is recommended to add
+If you have [installed GraalVM](installing-graalvm.md), it is recommended to add
 TruffleRuby to a Ruby manager. See
 [Configuring Ruby managers for the full GraalVM distribution](#configuring-ruby-managers-for-the-full-graalvm-distribution)
 below.
@@ -97,15 +97,12 @@ if you prefer to install TruffleRuby manually.
 
 ## Configuring Ruby Managers for the Full GraalVM Distribution
 
-When [installing GraalVM](installing-graalvm.md), it is recommended to add
-TruffleRuby to a Ruby manager for ease of use.
-
-First, [install GraalVM and Ruby](installing-graalvm.md).
-Make sure you ran the post-install script *before* adding GraalVM to Ruby managers.
+When [installing GraalVM and Ruby](installing-graalvm.md), it is recommended to add
+TruffleRuby to a Ruby manager for ease of use. Make sure you ran the post-install script *before* adding GraalVM to Ruby managers.
 
 Then follow these steps to integrate GraalVM with your Ruby manager.
 
-First, we must find the TruffleRuby home.
+First, find the TruffleRuby home.
 On macOS, run:
 ```bash
 $ ruby_home=$(path/to/graalvm/Contents/Home/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')

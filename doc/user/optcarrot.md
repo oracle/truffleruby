@@ -1,4 +1,4 @@
-# Playing Optcarrot
+# Optcarrot Example
 
 First, clone the optcarrot repository:
 
@@ -7,8 +7,8 @@ $ git clone https://github.com/mame/optcarrot.git
 $ cd optcarrot
 ```
 
-You will need `SDL2` to be installed, then you can play Lan Master  with the
-following command.
+You will need `SDL2` to be installed. Then you can play Lan Master with the
+following command:
 
 ```bash
 $ path/to/graalvm/bin/ruby --jvm bin/optcarrot --sdl2 --audio=none examples/Lan_Master.nes
@@ -23,5 +23,4 @@ $ path/to/graalvm/bin/ruby --jvm --vm.XstartOnFirstThread bin/optcarrot --sdl2 -
 If you have a local checkout of TruffleRuby, you can also use the version of
 OptCarrot under `bench/optcarrot`. See `bench/optcarrot/README.md` for details.
 
-More information can be found in Benoit's [blog
-post](https://eregon.me/blog/2016/11/28/optcarrot.html).
+More information can be found in this [blog post](https://eregon.me/blog/2016/11/28/optcarrot.html).
