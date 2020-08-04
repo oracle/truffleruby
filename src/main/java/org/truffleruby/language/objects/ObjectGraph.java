@@ -49,7 +49,7 @@ public abstract class ObjectGraph {
                 // Thread.current
                 reachable.add(thread);
                 // Fiber.current
-                reachable.add(Layouts.THREAD.getFiberManager(thread).getCurrentFiber());
+                reachable.add(thread.fiberManager.getCurrentFiber());
 
                 if (Thread.currentThread() == initiatingJavaThread) {
                     visitContextRoots(context, reachable);

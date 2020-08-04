@@ -21,9 +21,9 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.ExitException;
@@ -50,7 +50,7 @@ public class FiberManager {
     private RubyFiber currentFiber;
     private final Set<RubyFiber> runningFibers = newFiberSet();
 
-    public FiberManager(RubyContext context, DynamicObject rubyThread) {
+    public FiberManager(RubyContext context, RubyThread rubyThread) {
         this.context = context;
         this.rootFiber = createRootFiber(context, rubyThread);
         this.currentFiber = rootFiber;
@@ -66,9 +66,9 @@ public class FiberManager {
     }
 
     public RubyFiber getCurrentFiber() {
-        assert Layouts.THREAD.getFiberManager(context
+        assert context
                 .getThreadManager()
-                .getCurrentThread()) == this : "Trying to read the current Fiber of another Thread which is inherently racy";
+                .getCurrentThread().fiberManager == this : "Trying to read the current Fiber of another Thread which is inherently racy";
         return currentFiber;
     }
 
@@ -83,12 +83,11 @@ public class FiberManager {
         currentFiber = fiber;
     }
 
-    private RubyFiber createRootFiber(RubyContext context, DynamicObject thread) {
+    private RubyFiber createRootFiber(RubyContext context, RubyThread thread) {
         return createFiber(context, thread, context.getCoreLibrary().fiberShape);
     }
 
-    public RubyFiber createFiber(RubyContext context, DynamicObject thread, Shape shape) {
-        assert RubyGuards.isRubyThread(thread);
+    public RubyFiber createFiber(RubyContext context, RubyThread thread, Shape shape) {
         CompilerAsserts.partialEvaluationConstant(context);
         final DynamicObject fiberLocals = Layouts.BASIC_OBJECT
                 .createBasicObject(context.getCoreLibrary().objectFactory);
@@ -241,7 +240,7 @@ public class FiberManager {
 
         fiber.thread = javaThread;
 
-        final DynamicObject rubyThread = fiber.rubyThread;
+        final RubyThread rubyThread = fiber.rubyThread;
         threadManager.initializeValuesForJavaThread(rubyThread, javaThread);
 
         runningFibers.add(fiber);

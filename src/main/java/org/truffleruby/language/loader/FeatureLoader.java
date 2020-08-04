@@ -28,6 +28,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.IONodes.IOThreadBufferAllocateNode;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyConstant;
@@ -187,7 +188,7 @@ public class FeatureLoader {
             return context.getEnv().getCurrentWorkingDirectory().getPath();
         }
         final int bufferSize = PATH_MAX;
-        final DynamicObject rubyThread = context.getThreadManager().getCurrentThread();
+        final RubyThread rubyThread = context.getThreadManager().getCurrentThread();
         final Pointer buffer = IOThreadBufferAllocateNode
                 .getBuffer(rubyThread, bufferSize, ConditionProfile.getUncached());
         try {
@@ -199,9 +200,7 @@ public class FeatureLoader {
             final Encoding localeEncoding = context.getEncodingManager().getLocaleEncoding();
             return new String(bytes, EncodingManager.charsetForEncoding(localeEncoding));
         } finally {
-            Layouts.THREAD.setIoBuffer(
-                    rubyThread,
-                    Layouts.THREAD.getIoBuffer(rubyThread).free(ConditionProfile.getUncached()));
+            rubyThread.ioBuffer = rubyThread.ioBuffer.free(ConditionProfile.getUncached());
         }
     }
 

@@ -16,12 +16,12 @@ import java.util.function.Consumer;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.control.TerminationException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ReferenceProcessingService<R extends ReferenceProcessingService.ProcessingReference<R>> {
 
@@ -137,7 +137,7 @@ public abstract class ReferenceProcessingService<R extends ReferenceProcessingSe
     public static class ReferenceProcessor {
         protected final ReferenceQueue<Object> processingQueue = new ReferenceQueue<>();
 
-        protected DynamicObject processingThread;
+        protected RubyThread processingThread;
         protected final RubyContext context;
 
         public ReferenceProcessor(RubyContext context) {

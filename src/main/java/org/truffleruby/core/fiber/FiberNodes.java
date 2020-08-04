@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.fiber;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -22,6 +21,7 @@ import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
@@ -56,7 +56,7 @@ public abstract class FiberNodes {
 
         @Specialization
         protected Object transfer(
-                DynamicObject currentThread,
+                RubyThread currentThread,
                 RubyFiber currentFiber,
                 RubyFiber fiber,
                 FiberOperation operation,
@@ -75,7 +75,7 @@ public abstract class FiberNodes {
                         coreExceptions().fiberError("fiber called across threads", this));
             }
 
-            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final FiberManager fiberManager = currentThread.fiberManager;
             return singleValue(fiberManager.transferControlTo(currentFiber, fiber, operation, args));
         }
 
@@ -87,9 +87,9 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyFiber allocate(DynamicObject rubyClass,
                 @Cached AllocateHelperNode helperNode) {
-            final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
+            final RubyThread thread = getContext().getThreadManager().getCurrentThread();
             final Shape shape = helperNode.getCachedShape(rubyClass);
-            final RubyFiber fiber = Layouts.THREAD.getFiberManager(thread).createFiber(getContext(), thread, shape);
+            final RubyFiber fiber = thread.fiberManager.createFiber(getContext(), thread, shape);
             helperNode.trace(fiber, this);
             return fiber;
         }
@@ -105,8 +105,8 @@ public abstract class FiberNodes {
         @TruffleBoundary
         @Specialization
         protected Object initialize(RubyFiber fiber, DynamicObject block) {
-            final DynamicObject thread = getContext().getThreadManager().getCurrentThread();
-            Layouts.THREAD.getFiberManager(thread).initialize(fiber, block, this);
+            final RubyThread thread = getContext().getThreadManager().getCurrentThread();
+            thread.fiberManager.initialize(fiber, block, this);
             return nil;
         }
 
@@ -124,8 +124,8 @@ public abstract class FiberNodes {
 
             fiber.transferred = true;
 
-            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
-            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+            final FiberManager fiberManager = currentThread.fiberManager;
             final RubyFiber currentFiber = fiberManager.getCurrentFiber();
 
             if (sameFiberProfile.profile(currentFiber == fiber)) {
@@ -151,8 +151,7 @@ public abstract class FiberNodes {
                 @Cached ConditionProfile transferredProfile) {
 
             final RubyFiber parentFiber = fiber.lastResumedByFiber;
-            final FiberManager fiberToResumeManager = Layouts.THREAD
-                    .getFiberManager(fiber.rubyThread);
+            final FiberManager fiberToResumeManager = fiber.rubyThread.fiberManager;
 
             if (doubleResumeProfile.profile(parentFiber != null || fiber == fiberToResumeManager.getRootFiber())) {
                 throw new RaiseException(getContext(), coreExceptions().fiberError("double resume", this));
@@ -164,8 +163,8 @@ public abstract class FiberNodes {
                         coreExceptions().fiberError("cannot resume transferred Fiber", this));
             }
 
-            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
-            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+            final FiberManager fiberManager = currentThread.fiberManager;
             final RubyFiber currentFiber = fiberManager.getCurrentFiber();
 
             return fiberTransferNode
@@ -184,8 +183,8 @@ public abstract class FiberNodes {
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
 
-            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
-            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(currentThread);
+            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+            final FiberManager fiberManager = currentThread.fiberManager;
             final RubyFiber currentFiber = fiberManager.getCurrentFiber();
 
             final RubyFiber fiberYieldedTo = fiberManager.getReturnFiber(currentFiber, this, errorProfile);
@@ -216,8 +215,8 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyFiber current(
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
-            return Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
+            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+            return currentThread.fiberManager.getCurrentFiber();
         }
 
     }
@@ -228,8 +227,8 @@ public abstract class FiberNodes {
         @Specialization
         protected RubyArray getCatchTags(
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
-            final DynamicObject currentThread = getCurrentRubyThreadNode.execute();
-            final RubyFiber currentFiber = Layouts.THREAD.getFiberManager(currentThread).getCurrentFiber();
+            final RubyThread currentThread = getCurrentRubyThreadNode.execute();
+            final RubyFiber currentFiber = currentThread.fiberManager.getCurrentFiber();
             return currentFiber.catchTags;
         }
     }

@@ -16,7 +16,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -176,7 +175,7 @@ public abstract class TracePointNodes {
         private final BranchProfile errorProfile = BranchProfile.create();
 
         protected TracePointState getTracePointState() {
-            final TracePointState state = Layouts.THREAD.getTracePointState(getCurrentRubyThreadNode.execute());
+            final TracePointState state = getCurrentRubyThreadNode.execute().tracePointState;
             if (!state.insideProc) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().runtimeError("access from outside", this));

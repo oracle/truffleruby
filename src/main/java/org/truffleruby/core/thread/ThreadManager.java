@@ -9,18 +9,13 @@
  */
 package org.truffleruby.core.thread;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.function.Supplier;
-
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTrace;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -36,13 +31,11 @@ import org.truffleruby.core.support.RandomizerNodes;
 import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.control.DynamicReturnException;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
@@ -50,12 +43,17 @@ import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleException;
-import com.oracle.truffle.api.TruffleStackTrace;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
 
 public class ThreadManager {
 
@@ -63,14 +61,14 @@ public class ThreadManager {
 
     private final RubyContext context;
 
-    private final DynamicObject rootThread;
+    private final RubyThread rootThread;
     @CompilationFinal private Thread rootJavaThread;
 
-    private final Map<Thread, DynamicObject> foreignThreadMap = new ConcurrentHashMap<>();
-    private final ThreadLocal<DynamicObject> currentThread = ThreadLocal
+    private final Map<Thread, RubyThread> foreignThreadMap = new ConcurrentHashMap<>();
+    private final ThreadLocal<RubyThread> currentThread = ThreadLocal
             .withInitial(() -> foreignThreadMap.get(Thread.currentThread()));
 
-    private final Set<DynamicObject> runningRubyThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    private final Set<RubyThread> runningRubyThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
@@ -147,14 +145,14 @@ public class ThreadManager {
     public void restartMainThread(Thread mainJavaThread) {
         initializeMainThread(mainJavaThread);
 
-        Layouts.THREAD.setStatus(rootThread, ThreadStatus.RUN);
-        Layouts.THREAD.setFinishedLatch(rootThread, new CountDownLatch(1));
+        rootThread.status = ThreadStatus.RUN;
+        rootThread.finishedLatch = new CountDownLatch(1);
 
-        final RubyFiber rootFiber = Layouts.THREAD.getFiberManager(rootThread).getRootFiber();
+        final RubyFiber rootFiber = rootThread.fiberManager.getRootFiber();
         rootFiber.alive = true;
         rootFiber.finishedLatch = new CountDownLatch(1);
 
-        RandomizerNodes.resetSeed(context, Layouts.THREAD.getRandomizer(rootThread));
+        RandomizerNodes.resetSeed(context, rootThread.randomizer);
     }
 
     // spawning Thread => Fiber object
@@ -203,41 +201,41 @@ public class ThreadManager {
         return rubyManagedThreads.contains(thread);
     }
 
-    public DynamicObject createBootThread(String info) {
-        final DynamicObject thread = context.getCoreLibrary().threadFactory
-                .newInstance(packThreadFields(Nil.INSTANCE, info));
+    public RubyThread createBootThread(String info) {
+        final RubyThread thread = packThreadFields(context.getCoreLibrary().threadShape, Nil.INSTANCE, info);
         return initializeThreadFields(thread);
     }
 
-    public DynamicObject createThread(DynamicObject rubyClass, AllocateObjectNode allocateObjectNode) {
-        final Object currentGroup = Layouts.THREAD.getThreadGroup(getCurrentThread());
+    public RubyThread createThread(Shape shape) {
+        final Object currentGroup = getCurrentThread().threadGroup;
         assert currentGroup != null;
-        final DynamicObject thread = allocateObjectNode.allocate(
-                rubyClass,
-                packThreadFields(currentGroup, "<uninitialized>"));
+        final RubyThread thread = packThreadFields(shape, currentGroup, "<uninitialized>");
         return initializeThreadFields(thread);
     }
 
-    public DynamicObject createForeignThread() {
-        final Object currentGroup = Layouts.THREAD.getThreadGroup(rootThread);
+    public RubyThread createForeignThread() {
+        final Object currentGroup = rootThread.threadGroup;
         assert currentGroup != null;
-        final DynamicObject thread = context.getCoreLibrary().threadFactory.newInstance(
-                packThreadFields(currentGroup, "<foreign thread>"));
+        final RubyThread thread = packThreadFields(
+                context.getCoreLibrary().threadShape,
+                currentGroup,
+                "<foreign thread>");
         return initializeThreadFields(thread);
     }
 
-    private DynamicObject initializeThreadFields(DynamicObject thread) {
+    private RubyThread initializeThreadFields(RubyThread thread) {
         setFiberManager(thread);
         return thread;
     }
 
-    private void setFiberManager(DynamicObject thread) {
+    private void setFiberManager(RubyThread thread) {
         // Because it is cyclic
-        Layouts.THREAD.setFiberManagerUnsafe(thread, new FiberManager(context, thread));
+        thread.fiberManager = new FiberManager(context, thread);
     }
 
-    private Object[] packThreadFields(Object currentGroup, String info) {
-        return Layouts.THREAD.build(
+    private RubyThread packThreadFields(Shape shape, Object currentGroup, String info) {
+        RubyThread thread = new RubyThread(
+                shape,
                 createThreadLocals(),
                 InterruptMode.IMMEDIATE,
                 ThreadStatus.RUN,
@@ -259,6 +257,7 @@ public class ThreadManager {
                 currentGroup,
                 info,
                 Nil.INSTANCE);
+        return thread;
     }
 
     private boolean getGlobalReportOnException() {
@@ -306,12 +305,12 @@ public class ThreadManager {
         pthread_kill = nfi.getFunction("pthread_kill", "(" + pthread_t + ",sint32):sint32");
     }
 
-    public void initialize(DynamicObject rubyThread, Node currentNode, String info, String sharingReason,
+    public void initialize(RubyThread rubyThread, Node currentNode, String info, String sharingReason,
             Supplier<Object> task) {
         startSharing(rubyThread, sharingReason);
 
-        Layouts.THREAD.setSourceLocation(rubyThread, info);
-        final RubyFiber rootFiber = Layouts.THREAD.getFiberManager(rubyThread).getRootFiber();
+        rubyThread.sourceLocation = info;
+        final RubyFiber rootFiber = rubyThread.fiberManager.getRootFiber();
 
         final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rootFiber);
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
@@ -320,7 +319,7 @@ public class ThreadManager {
         FiberManager.waitForInitialization(context, rootFiber, currentNode);
     }
 
-    private void threadMain(DynamicObject thread, Node currentNode, Supplier<Object> task) {
+    private void threadMain(RubyThread thread, Node currentNode, Supplier<Object> task) {
         assert task != null;
 
         start(thread, Thread.currentThread());
@@ -344,7 +343,7 @@ public class ThreadManager {
             rethrowOnMainThread(currentNode, runtimeException);
             setThreadValue(context, thread, Nil.INSTANCE);
         } finally {
-            assert Layouts.THREAD.getValue(thread) != null || Layouts.THREAD.getException(thread) != null;
+            assert thread.value != null || thread.exception != null;
             cleanup(thread, Thread.currentThread());
         }
     }
@@ -358,14 +357,14 @@ public class ThreadManager {
                 });
     }
 
-    private static void setThreadValue(RubyContext context, DynamicObject thread, Object value) {
+    private static void setThreadValue(RubyContext context, RubyThread thread, Object value) {
         // A Thread is always shared (Thread.list)
         assert value != null;
         SharedObjects.propagate(context, thread, value);
-        Layouts.THREAD.setValue(thread, value);
+        thread.value = value;
     }
 
-    private static void setException(RubyContext context, DynamicObject thread, RubyException exception,
+    private static void setException(RubyContext context, RubyThread thread, RubyException exception,
             Node currentNode) {
         // A Thread is always shared (Thread.list)
         SharedObjects.propagate(context, thread, exception);
@@ -377,13 +376,13 @@ public class ThreadManager {
             TruffleStackTrace.fillIn((Throwable) truffleException);
         }
 
-        final DynamicObject mainThread = context.getThreadManager().getRootThread();
+        final RubyThread mainThread = context.getThreadManager().getRootThread();
 
         if (thread != mainThread) {
             final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context
                     .getCoreLibrary().systemExitClass;
 
-            if (!isSystemExit && Layouts.THREAD.getReportOnException(thread)) {
+            if (!isSystemExit && thread.reportOnException) {
                 context.send(
                         context.getCoreLibrary().truffleThreadOperationsModule,
                         "report_exception",
@@ -391,12 +390,11 @@ public class ThreadManager {
                         exception);
             }
 
-            if (isSystemExit || Layouts.THREAD.getAbortOnException(thread)) {
+            if (isSystemExit || thread.abortOnException) {
                 ThreadNodes.ThreadRaisePrimitiveNode.raiseInThread(context, mainThread, exception, currentNode);
             }
         }
-
-        Layouts.THREAD.setException(thread, exception);
+        thread.exception = exception;
     }
 
     // Share the Ruby Thread before it can be accessed concurrently, and before it is added to Thread.list
@@ -408,44 +406,44 @@ public class ThreadManager {
         }
     }
 
-    public void startForeignThread(DynamicObject rubyThread, Thread javaThread) {
+    public void startForeignThread(RubyThread rubyThread, Thread javaThread) {
         startSharing(rubyThread, "creating a foreign thread");
         start(rubyThread, javaThread);
     }
 
-    private void start(DynamicObject thread, Thread javaThread) {
-        Layouts.THREAD.setThread(thread, javaThread);
+    private void start(RubyThread thread, Thread javaThread) {
+        thread.thread = javaThread;
         registerThread(thread);
 
-        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+        final FiberManager fiberManager = thread.fiberManager;
         fiberManager.start(fiberManager.getRootFiber(), javaThread);
     }
 
-    public void cleanup(DynamicObject thread, Thread javaThread) {
+    public void cleanup(RubyThread thread, Thread javaThread) {
         // First mark as dead for Thread#status
-        Layouts.THREAD.setStatus(thread, ThreadStatus.DEAD);
+        thread.status = ThreadStatus.DEAD;
 
-        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+        final FiberManager fiberManager = thread.fiberManager;
         fiberManager.shutdown(javaThread);
 
-        Layouts.THREAD.getIoBuffer(thread).freeAll();
-        Layouts.THREAD.setIoBuffer(thread, ThreadLocalBuffer.NULL_BUFFER);
+        thread.ioBuffer.freeAll();
+        thread.ioBuffer = ThreadLocalBuffer.NULL_BUFFER;
 
         unregisterThread(thread);
-        Layouts.THREAD.setThread(thread, null);
+        thread.thread = null;
 
         if (Thread.currentThread() == javaThread) {
-            for (Lock lock : Layouts.THREAD.getOwnedLocks(thread)) {
+            for (Lock lock : thread.ownedLocks) {
                 lock.unlock();
             }
         } else {
-            if (!Layouts.THREAD.getOwnedLocks(thread).isEmpty()) {
+            if (!thread.ownedLocks.isEmpty()) {
                 RubyLanguage.LOGGER.warning(
                         "could not release locks of " + javaThread + " as its cleanup happened on another Java Thread");
             }
         }
 
-        Layouts.THREAD.getFinishedLatch(thread).countDown();
+        thread.finishedLatch.countDown();
     }
 
     public Thread getRootJavaThread() {
@@ -461,7 +459,7 @@ public class ThreadManager {
         return rootJavaThread;
     }
 
-    public DynamicObject getRootThread() {
+    public RubyThread getRootThread() {
         return rootThread;
     }
 
@@ -521,18 +519,18 @@ public class ThreadManager {
      * @return the first non-null return value from {@code action} */
     @TruffleBoundary
     public <T> T runUntilResult(Node currentNode, BlockingAction<T> action) {
-        final DynamicObject runningThread = getCurrentThread();
+        final RubyThread runningThread = getCurrentThread();
         T result = null;
 
         do {
-            final ThreadStatus status = Layouts.THREAD.getStatus(runningThread);
-            Layouts.THREAD.setStatus(runningThread, ThreadStatus.SLEEP);
+            final ThreadStatus status = runningThread.status;
+            runningThread.status = ThreadStatus.SLEEP;
 
             try {
                 try {
                     result = action.block();
                 } finally {
-                    Layouts.THREAD.setStatus(runningThread, status);
+                    runningThread.status = status;
                 }
             } catch (InterruptedException e) {
                 // We were interrupted, possibly by the SafepointManager.
@@ -576,8 +574,7 @@ public class ThreadManager {
         return blockingNativeCallUnblockingAction.get();
     }
 
-    public void initializeValuesForJavaThread(DynamicObject rubyThread, Thread thread) {
-        assert RubyGuards.isRubyThread(rubyThread);
+    public void initializeValuesForJavaThread(RubyThread rubyThread, Thread thread) {
 
         if (Thread.currentThread() == thread) {
             currentThread.set(rubyThread);
@@ -605,8 +602,8 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public DynamicObject getCurrentThread() {
-        final DynamicObject rubyThread = currentThread.get();
+    public RubyThread getCurrentThread() {
+        final RubyThread rubyThread = currentThread.get();
         if (rubyThread == null) {
             throw new UnsupportedOperationException(
                     "No Ruby Thread is associated with this Java Thread: " + Thread.currentThread());
@@ -620,26 +617,24 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public DynamicObject getForeignRubyThread(Thread javaThread) {
+    public RubyThread getForeignRubyThread(Thread javaThread) {
         return foreignThreadMap.get(javaThread);
     }
 
-    public void registerThread(DynamicObject thread) {
-        assert RubyGuards.isRubyThread(thread);
+    public void registerThread(RubyThread thread) {
         if (!runningRubyThreads.add(thread)) {
             throw new UnsupportedOperationException(thread + " was already registered");
         }
     }
 
-    public void unregisterThread(DynamicObject thread) {
-        assert RubyGuards.isRubyThread(thread);
+    public void unregisterThread(RubyThread thread) {
         if (!runningRubyThreads.remove(thread)) {
             throw new UnsupportedOperationException(thread + " was not registered");
         }
     }
 
     private void checkCalledInMainThreadRootFiber() {
-        final DynamicObject currentThread = getCurrentThread();
+        final RubyThread currentThread = getCurrentThread();
         if (currentThread != rootThread) {
             throw new UnsupportedOperationException(StringUtils.format(
                     "ThreadManager.shutdown() must be called on the root Ruby Thread (%s) but was called on %s",
@@ -647,7 +642,7 @@ public class ThreadManager {
                     currentThread));
         }
 
-        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
+        final FiberManager fiberManager = rootThread.fiberManager;
 
         if (getRubyFiberFromCurrentJavaThread() != fiberManager.getRootFiber()) {
             throw new UnsupportedOperationException(
@@ -666,7 +661,7 @@ public class ThreadManager {
         if (runningRubyThreads.size() > 1) {
             doKillOtherThreads();
         }
-        Layouts.THREAD.getFiberManager(rootThread).killOtherFibers();
+        rootThread.fiberManager.killOtherFibers();
 
         // Wait and join all Java threads we created
         for (Thread thread : rubyManagedThreads) {
@@ -694,11 +689,11 @@ public class ThreadManager {
             try {
                 context.getSafepointManager().pauseAllThreadsAndExecute(null, false, (thread, currentNode) -> {
                     if (Thread.currentThread() != initiatingJavaThread) {
-                        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+                        final FiberManager fiberManager = thread.fiberManager;
                         final RubyFiber fiber = getRubyFiberFromCurrentJavaThread();
 
                         if (fiberManager.getCurrentFiber() == fiber) {
-                            Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
+                            thread.status = ThreadStatus.ABORTING;
                             throw new KillException();
                         }
                     }
@@ -720,7 +715,7 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public Iterable<DynamicObject> iterateThreads() {
+    public Iterable<RubyThread> iterateThreads() {
         return runningRubyThreads;
     }
 
@@ -735,7 +730,7 @@ public class ThreadManager {
     public String getThreadDebugInfo() {
         final StringBuilder builder = new StringBuilder();
 
-        for (DynamicObject thread : runningRubyThreads) {
+        for (RubyThread thread : runningRubyThreads) {
             builder.append("thread @");
             builder.append(ObjectIDNode.getUncached().execute(thread));
 
@@ -749,7 +744,7 @@ public class ThreadManager {
 
             builder.append("\n");
 
-            final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
+            final FiberManager fiberManager = thread.fiberManager;
             builder.append(fiberManager.getFiberDebugInfo());
         }
 

@@ -9,9 +9,9 @@
  */
 package org.truffleruby.language.exceptions;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNodeGen;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -26,8 +26,8 @@ public class SetExceptionVariableNode extends RubyBaseNode {
     @Child private GetCurrentRubyThreadNode getCurrentThreadNode;
 
     public Object setLastExceptionAndRun(VirtualFrame frame, RaiseException exception, RubyNode node) {
-        final DynamicObject thread = getCurrentThreadNode().execute();
-        final ThreadLocalGlobals threadLocalGlobals = Layouts.THREAD.getThreadLocalGlobals(thread);
+        final RubyThread thread = getCurrentThreadNode().execute();
+        final ThreadLocalGlobals threadLocalGlobals = thread.threadLocalGlobals;
         final Object lastException = threadLocalGlobals.exception;
         threadLocalGlobals.exception = exception.getException();
 
@@ -40,8 +40,8 @@ public class SetExceptionVariableNode extends RubyBaseNode {
 
 
     public void setLastException(DynamicObject exception) {
-        final DynamicObject thread = getCurrentThreadNode().execute();
-        final ThreadLocalGlobals threadLocalGlobals = Layouts.THREAD.getThreadLocalGlobals(thread);
+        final RubyThread thread = getCurrentThreadNode().execute();
+        final ThreadLocalGlobals threadLocalGlobals = thread.threadLocalGlobals;
         threadLocalGlobals.exception = exception;
     }
 

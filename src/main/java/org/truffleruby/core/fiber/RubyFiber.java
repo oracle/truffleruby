@@ -15,6 +15,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.interop.messages.RubyFiberMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -31,14 +32,14 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
     public final CountDownLatch initializedLatch = new CountDownLatch(1);
     public CountDownLatch finishedLatch = new CountDownLatch(1);
     final BlockingQueue<FiberManager.FiberMessage> messageQueue = newMessageQueue();
-    final DynamicObject rubyThread;
+    final RubyThread rubyThread;
     volatile RubyFiber lastResumedByFiber = null;
     public volatile boolean alive = true;
     public Thread thread = null;
     volatile boolean transferred = false;
     public volatile Throwable uncaughtException = null;
 
-    public RubyFiber(Shape shape, DynamicObject fiberLocals, RubyArray catchTags, DynamicObject rubyThread) {
+    public RubyFiber(Shape shape, DynamicObject fiberLocals, RubyArray catchTags, RubyThread rubyThread) {
         super(shape);
         this.fiberLocals = fiberLocals;
         this.catchTags = catchTags;

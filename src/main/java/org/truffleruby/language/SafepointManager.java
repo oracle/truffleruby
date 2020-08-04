@@ -19,11 +19,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.platform.Signals;
 
@@ -33,7 +33,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class SafepointManager {
 
@@ -105,8 +104,8 @@ public class SafepointManager {
 
     @TruffleBoundary
     private void assumptionInvalidated(Node currentNode, boolean fromBlockingCall) {
-        final DynamicObject thread = context.getThreadManager().getCurrentThread();
-        final InterruptMode interruptMode = Layouts.THREAD.getInterruptMode(thread);
+        final RubyThread thread = context.getThreadManager().getCurrentThread();
+        final InterruptMode interruptMode = thread.interruptMode;
 
         final boolean interruptible = (interruptMode == InterruptMode.IMMEDIATE) ||
                 (fromBlockingCall && interruptMode == InterruptMode.ON_BLOCKING);
@@ -126,7 +125,7 @@ public class SafepointManager {
 
     @TruffleBoundary
     private SafepointAction step(Node currentNode, boolean isDrivingThread) {
-        final DynamicObject thread = context.getThreadManager().getCurrentThread();
+        final RubyThread thread = context.getThreadManager().getCurrentThread();
 
         // Wait for other threads to reach their safepoint
         if (isDrivingThread) {
@@ -285,10 +284,10 @@ public class SafepointManager {
     // Variant for a single thread
 
     @TruffleBoundary
-    public void pauseRubyThreadAndExecute(DynamicObject rubyThread, Node currentNode, SafepointAction action) {
+    public void pauseRubyThreadAndExecute(RubyThread rubyThread, Node currentNode, SafepointAction action) {
         final ThreadManager threadManager = context.getThreadManager();
-        final DynamicObject currentThread = threadManager.getCurrentThread();
-        final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rubyThread);
+        final RubyThread currentThread = threadManager.getCurrentThread();
+        final FiberManager fiberManager = rubyThread.fiberManager;
 
         if (currentThread == rubyThread) {
             if (threadManager.getRubyFiberFromCurrentJavaThread() != fiberManager.getCurrentFiber()) {

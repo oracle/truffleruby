@@ -72,7 +72,7 @@ class Thread
   # the tables independent.
   def self.recursion_guard(obj)
     id = obj.object_id
-    objects = current.recursive_objects
+    objects = Primitive.thread_recursive_objects(current)
 
     objects[id] = true
     begin
@@ -83,7 +83,7 @@ class Thread
   end
 
   def self.guarding?(obj)
-    current.recursive_objects[obj.object_id]
+    Primitive.thread_recursive_objects(current)[obj.object_id]
   end
 
   # detect_recursion will return if there's a recursion
@@ -98,7 +98,7 @@ class Thread
 
     id = obj.object_id
     pair_id = paired_obj.object_id
-    objects = current.recursive_objects
+    objects = Primitive.thread_recursive_objects(current)
 
     case objects[id]
 
@@ -148,7 +148,7 @@ class Thread
 
   # Similar to detect_recursion, but will short circuit all inner recursion levels
   def self.detect_outermost_recursion(obj, paired_obj=nil, &block)
-    rec = current.recursive_objects
+    rec = Primitive.thread_recursive_objects(current)
 
     if rec[:__detect_outermost_recursion__]
       if detect_recursion(obj, paired_obj, &block)
@@ -227,9 +227,6 @@ class Thread
 
   # Instance methods
 
-  attr_reader :recursive_objects, :randomizer
-  attr_accessor :abort_on_exception, :report_on_exception
-
   def initialize(*args, &block)
     Kernel.raise ThreadError, 'must be called with a block' unless block
     if Primitive.thread_initialized?(self)
@@ -239,7 +236,7 @@ class Thread
   end
 
   def freeze
-    Truffle::System.synchronized(self) { @thread_local_variables.freeze }
+    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self).freeze }
     super
   end
 
@@ -297,6 +294,22 @@ class Thread
     else
       Primitive.thread_raise self, exc
     end
+  end
+
+  def abort_on_exception
+    Primitive.thread_get_abort_on_exception(self)
+  end
+
+  def abort_on_exception=(val)
+    Primitive.thread_set_abort_on_exception(self, !!val)
+  end
+
+  def report_on_exception
+    Primitive.thread_get_report_on_exception(self)
+  end
+
+  def report_on_exception=(val)
+    Primitive.thread_set_report_on_exception(self, !!val)
   end
 
   def safe_level
@@ -370,21 +383,21 @@ class Thread
 
   def thread_variable_get(name)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) { @thread_local_variables[var] }
+    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self)[var] }
   end
 
   def thread_variable_set(name, value)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) { @thread_local_variables[var] = value }
+    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self)[var] = value }
   end
 
   def thread_variable?(name)
     var = convert_to_local_name(name)
-    Truffle::System.synchronized(self) { @thread_local_variables.key? var }
+    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self).key? var }
   end
 
   def thread_variables
-    Truffle::System.synchronized(self) { @thread_local_variables.keys }
+    Truffle::System.synchronized(self) { Primitive.thread_local_variables(self).keys }
   end
 
   def backtrace(omit = 0, length = undefined)
