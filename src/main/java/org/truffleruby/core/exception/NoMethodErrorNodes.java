@@ -14,6 +14,8 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
@@ -54,6 +56,7 @@ public abstract class NoMethodErrorNodes {
 
         @Specialization
         protected Object setArgs(RubyNoMethodError error, Object args) {
+            assert args == Nil.INSTANCE || args instanceof RubyArray;
             error.args = args;
             return args;
         }

@@ -776,7 +776,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization
-        protected DynamicObject bytes(VirtualFrame frame, DynamicObject string, NotProvided block) {
+        protected RubyArray bytes(VirtualFrame frame, DynamicObject string, NotProvided block) {
             final Rope rope = rope(string);
             final byte[] bytes = bytesNode.execute(rope);
 
@@ -2713,8 +2713,8 @@ public abstract class StringNodes {
             return finishUnpack(result);
         }
 
-        private DynamicObject finishUnpack(ArrayResult result) {
-            final DynamicObject array = createArray(result.getOutput(), result.getOutputLength());
+        private RubyArray finishUnpack(ArrayResult result) {
+            final RubyArray array = createArray(result.getOutput(), result.getOutputLength());
 
             if (result.isTainted()) {
                 if (rubyLibrary == null) {
@@ -3237,7 +3237,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!is7Bit(string, codeRangeNode)")
-        protected DynamicObject stringAwkSplit(DynamicObject string, int limit, Object block,
+        protected RubyArray stringAwkSplit(DynamicObject string, int limit, Object block,
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile) {

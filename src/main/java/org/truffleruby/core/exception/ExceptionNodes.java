@@ -183,6 +183,8 @@ public abstract class ExceptionNodes {
     @CoreMethod(names = "backtrace_locations")
     public abstract static class BacktraceLocationsNode extends CoreMethodArrayArgumentsNode {
 
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
+
         @Specialization
         protected Object backtraceLocations(RubyException exception,
                 @Cached ConditionProfile hasBacktraceProfile,
@@ -192,7 +194,7 @@ public abstract class ExceptionNodes {
                 if (hasLocationsProfile.profile(backtraceLocations == null)) {
                     Backtrace backtrace = exception.backtrace;
                     backtraceLocations = backtrace
-                            .getBacktraceLocations(getContext(), GetBacktraceException.UNLIMITED, null);
+                            .getBacktraceLocations(getContext(), allocateNode, GetBacktraceException.UNLIMITED, null);
                     exception.backtraceLocations = backtraceLocations;
                 }
                 return backtraceLocations;

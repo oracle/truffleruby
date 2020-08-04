@@ -11,6 +11,7 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.core.array.ArrayAppendOneNode;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -89,7 +90,7 @@ public class ReadRestArgumentNode extends RubyContextSourceNode {
             }
         }
 
-        final DynamicObject rest = createArray(resultStore, resultLength);
+        final RubyArray rest = createArray(resultStore, resultLength);
 
         if (keywordArguments) {
             final DynamicObject kwargsHash = readUserKeywordsHashNode.execute(frame);

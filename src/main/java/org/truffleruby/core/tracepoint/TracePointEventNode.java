@@ -26,18 +26,18 @@ class TracePointEventNode extends TraceBaseEventNode {
 
     private final ConditionProfile inTracePointProfile = ConditionProfile.create();
 
-    private final DynamicObject tracePoint;
+    private final RubyTracePoint tracePoint;
     private final DynamicObject proc;
     private final RubySymbol event;
 
     public TracePointEventNode(
             RubyContext context,
             EventContext eventContext,
-            DynamicObject tracePoint,
+            RubyTracePoint tracePoint,
             RubySymbol event) {
         super(context, eventContext);
         this.tracePoint = tracePoint;
-        this.proc = Layouts.TRACE_POINT.getProc(tracePoint);
+        this.proc = tracePoint.proc;
         this.event = event;
     }
 

@@ -12,12 +12,12 @@ package org.truffleruby.language.backtrace;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.thread.RubyBacktraceLocation;
 import org.truffleruby.language.CallStackManager;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyRootNode;
@@ -29,8 +29,8 @@ import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.source.SourceSection;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
 /** Represents a backtrace: a list of activations (~ call sites).
  *
@@ -56,7 +56,7 @@ import com.oracle.truffle.api.source.SourceSection;
  *
  * <p>
  * In general, there isn't any guarantee that the getters will return non-null values, excepted {@link #getStackTrace()}
- * and {@link #getBacktraceLocations(RubyContext, int, Node)}.
+ * and {@link #getBacktraceLocations(RubyContext, AllocateHelperNode, int, Node)}.
  *
  * <p>
  * NOTE(norswap): And this is somewhat unfortunate, as it's difficult to track the assumptions on the backtrace object
@@ -277,7 +277,9 @@ public class Backtrace {
      *            at the end. You can use {@link GetBacktraceException#UNLIMITED} to signal that you want all locations.
      * @param node the node at which we're requiring the backtrace. Can be null if the backtrace is associated with a
      *            ruby exception or if we are sure the activations have already been computed. */
-    public Object getBacktraceLocations(RubyContext context, int length, Node node) {
+    @TruffleBoundary
+    public Object getBacktraceLocations(RubyContext context, AllocateHelperNode allocateHelperNode, int length,
+            Node node) {
         final int stackTraceLength;
         if (this.raiseException != null) {
             // When dealing with the backtrace of a Ruby exception, we use the wrapping
@@ -306,9 +308,13 @@ public class Backtrace {
                 : Math.min(stackTraceLength, length);
 
         final Object[] locations = new Object[locationsLength];
-        final DynamicObjectFactory factory = context.getCoreLibrary().threadBacktraceLocationFactory;
         for (int i = 0; i < locationsLength; i++) {
-            locations[i] = Layouts.THREAD_BACKTRACE_LOCATION.createThreadBacktraceLocation(factory, this, i);
+            final RubyBacktraceLocation instance = new RubyBacktraceLocation(
+                    context.getCoreLibrary().threadBacktraceLocationShape,
+                    this,
+                    i);
+            allocateHelperNode.trace(context.getLanguage(), context, instance);
+            locations[i] = instance;
         }
         return ArrayHelpers.createArray(context, locations);
     }

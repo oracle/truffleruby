@@ -206,14 +206,6 @@ public abstract class RubyGuards {
         return Layouts.PROC.isProc(object);
     }
 
-    public static boolean isRubyTime(DynamicObject object) {
-        return Layouts.TIME.isTime(object);
-    }
-
-    public static boolean isRubyFiber(DynamicObject object) {
-        return Layouts.FIBER.isFiber(object);
-    }
-
     public static boolean isRubyThread(DynamicObject object) {
         return Layouts.THREAD.isThread(object);
     }

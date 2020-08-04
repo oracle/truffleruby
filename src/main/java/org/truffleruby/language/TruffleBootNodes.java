@@ -22,6 +22,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.Memo;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
@@ -216,7 +217,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject originalArgv() {
+        protected RubyArray originalArgv() {
             final String[] argv = getContext().getEnv().getApplicationArguments();
             final Object[] array = new Object[argv.length];
 
@@ -239,7 +240,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject extraLoadPaths() {
+        protected RubyArray extraLoadPaths() {
             final String[] paths = getContext().getOptions().LOAD_PATHS;
             final Object[] array = new Object[paths.length];
 
@@ -335,7 +336,7 @@ public abstract class TruffleBootNodes {
             }
         }
 
-        private DynamicObject toRubyArray(String[] strings) {
+        private RubyArray toRubyArray(String[] strings) {
             final Object[] objects = new Object[strings.length];
             for (int n = 0; n < strings.length; n++) {
                 objects[n] = makeStringNode.executeMake(strings[n], UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);

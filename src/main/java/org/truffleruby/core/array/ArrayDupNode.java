@@ -11,7 +11,6 @@ package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextNode;
-
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -21,7 +20,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 /** Dup an array, without using any method lookup. This isn't a call - it's an operation on a core class. */
@@ -30,14 +28,14 @@ public abstract class ArrayDupNode extends RubyContextNode {
 
     @Child private AllocateHelperNode helperNode;
 
-    public abstract DynamicObject executeDup(VirtualFrame frame, DynamicObject array);
+    public abstract RubyArray executeDup(VirtualFrame frame, RubyArray array);
 
     @Specialization(
             guards = {
                     "from.size == cachedSize",
                     "cachedSize <= ARRAY_MAX_EXPLODE_SIZE" },
             limit = "getCacheLimit()")
-    protected DynamicObject dupProfiledSize(RubyArray from,
+    protected RubyArray dupProfiledSize(RubyArray from,
             @CachedLibrary("from.store") ArrayStoreLibrary fromStores,
             @CachedLibrary(limit = "1") ArrayStoreLibrary toStores,
             @Cached("from.size") int cachedSize) {
@@ -45,7 +43,7 @@ public abstract class ArrayDupNode extends RubyContextNode {
     }
 
     @ExplodeLoop
-    private DynamicObject copyArraySmall(ArrayStoreLibrary fromStores, ArrayStoreLibrary toStores,
+    private RubyArray copyArraySmall(ArrayStoreLibrary fromStores, ArrayStoreLibrary toStores,
             RubyArray from, int cachedSize) {
         final Object original = from.store;
         final Object copy = fromStores.allocator(original).allocate(cachedSize);
@@ -56,14 +54,14 @@ public abstract class ArrayDupNode extends RubyContextNode {
     }
 
     @Specialization(replaces = "dupProfiledSize")
-    protected DynamicObject dup(RubyArray from,
+    protected RubyArray dup(RubyArray from,
             @Cached ArrayCopyOnWriteNode cowNode) {
         final int size = from.size;
         final Object copy = cowNode.execute(from, 0, from.size);
         return allocateArray(coreLibrary().arrayShape, copy, size);
     }
 
-    private DynamicObject allocateArray(Shape arrayShape, Object store, int size) {
+    private RubyArray allocateArray(Shape arrayShape, Object store, int size) {
         if (helperNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             helperNode = insert(AllocateHelperNode.create());

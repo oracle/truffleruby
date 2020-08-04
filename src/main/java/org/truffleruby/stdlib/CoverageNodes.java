@@ -18,13 +18,13 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
 @CoreModule("Truffle::Coverage")
@@ -59,8 +59,8 @@ public abstract class CoverageNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object resultArray() {
-            final List<DynamicObject> results = new ArrayList<>();
+        protected RubyArray resultArray() {
+            final List<RubyArray> results = new ArrayList<>();
 
             final Map<Source, long[]> counts = getContext().getCoverageManager().getCounts();
 

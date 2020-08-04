@@ -907,7 +907,7 @@ public abstract class TruffleDebugNodes {
     public abstract static class AssociatedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject associated(DynamicObject value,
+        protected RubyArray associated(DynamicObject value,
                 @Cached ReadObjectFieldNode readAssociatedNode) {
             Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value, Layouts.ASSOCIATED_IDENTIFIER, null);
 

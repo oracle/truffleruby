@@ -45,7 +45,6 @@ import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -69,14 +68,15 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 
 import jline.console.ConsoleReader;
@@ -136,7 +136,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject getScreenSize() {
+        protected RubyArray getScreenSize() {
             final ConsoleReader readline = getContext().getConsoleHolder().getReadline();
             final int[] store = {
                     readline.getTerminal().getHeight(),

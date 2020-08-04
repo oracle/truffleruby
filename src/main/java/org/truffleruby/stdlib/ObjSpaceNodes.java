@@ -75,7 +75,7 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject adjacentObjects(DynamicObject object) {
+        protected RubyArray adjacentObjects(DynamicObject object) {
             final Set<Object> objects = ObjectGraph.getAdjacentObjects(object);
             return createArray(objects.toArray());
         }
@@ -92,7 +92,7 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject rootObjects() {
+        protected RubyArray rootObjects() {
             final Set<Object> objects = ObjectGraph.stopAndGetRootObjects(this, getContext());
             return createArray(objects.toArray());
         }

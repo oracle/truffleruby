@@ -10,6 +10,7 @@
 package org.truffleruby.core.thread;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -44,7 +45,7 @@ public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
             @Cached("isPreInitializing()") boolean preInitializing,
             @Cached("getCurrentJavaThread(dynamicParameter)") Thread cachedJavaThread,
             @Cached("getCurrentRubyThread(dynamicParameter)") DynamicObject cachedRubyThread,
-            @Cached("getCurrentFiber(cachedRubyThread)") DynamicObject cachedFiber) {
+            @Cached("getCurrentFiber(cachedRubyThread)") RubyFiber cachedFiber) {
         return cachedRubyThread;
     }
 
@@ -61,12 +62,12 @@ public abstract class GetCurrentRubyThreadNode extends RubyContextNode {
         return getContext().getThreadManager().getCurrentThread();
     }
 
-    protected DynamicObject getCurrentFiber(DynamicObject currentRubyThread) {
+    protected RubyFiber getCurrentFiber(DynamicObject currentRubyThread) {
         return Layouts.THREAD.getFiberManager(currentRubyThread).getCurrentFiber();
     }
 
-    protected boolean hasThread(Object dynamicParameter, DynamicObject fiber) {
-        return Layouts.FIBER.getThread(fiber) != null;
+    protected boolean hasThread(Object dynamicParameter, RubyFiber fiber) {
+        return fiber.thread != null;
     }
 
     protected boolean isPreInitializing() {

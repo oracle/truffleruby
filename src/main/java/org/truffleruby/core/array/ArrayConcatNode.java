@@ -16,7 +16,6 @@ import org.truffleruby.language.RubyNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Concatenate argument arrays (translating a org.jruby.ast.ArgsCatParseNode). */
@@ -34,7 +33,7 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
     }
 
     @Override
-    public DynamicObject execute(VirtualFrame frame) {
+    public RubyArray execute(VirtualFrame frame) {
         if (arrayBuilderNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             arrayBuilderNode = insert(ArrayBuilderNode.create());
@@ -46,7 +45,7 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
         }
     }
 
-    private DynamicObject executeSingle(VirtualFrame frame) {
+    private RubyArray executeSingle(VirtualFrame frame) {
         BuilderState state = arrayBuilderNode.start();
         final Object childObject = children[0].execute(frame);
 
@@ -63,7 +62,7 @@ public final class ArrayConcatNode extends RubyContextSourceNode {
     }
 
     @ExplodeLoop
-    private DynamicObject executeMultiple(VirtualFrame frame) {
+    private RubyArray executeMultiple(VirtualFrame frame) {
         BuilderState state = arrayBuilderNode.start();
         int length = 0;
 

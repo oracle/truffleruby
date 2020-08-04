@@ -261,7 +261,7 @@ public abstract class MatchDataNodes {
         }
 
         @Specialization
-        protected Object getIndex(RubyMatchData matchData, int index, int length) {
+        protected RubyArray getIndex(RubyMatchData matchData, int index, int length) {
             // TODO BJF 15-May-2015 Need to handle negative indexes and lengths and out of bounds
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, index);
@@ -307,7 +307,7 @@ public abstract class MatchDataNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object getIndex(RubyMatchData matchData, RubyIntRange range, NotProvided len) {
+        protected RubyArray getIndex(RubyMatchData matchData, RubyIntRange range, NotProvided len) {
             final Object[] values = getValuesNode.execute(matchData);
             final int normalizedIndex = ArrayOperations.normalizeIndex(values.length, range.begin);
             final int end = ArrayOperations.normalizeIndex(values.length, range.end);
@@ -469,7 +469,7 @@ public abstract class MatchDataNodes {
         @Child private ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
-        protected DynamicObject toA(RubyMatchData matchData) {
+        protected RubyArray toA(RubyMatchData matchData) {
             return createArray(getCaptures(valuesNode.execute(matchData)));
         }
 
@@ -599,7 +599,7 @@ public abstract class MatchDataNodes {
         @Child ValuesNode valuesNode = ValuesNode.create();
 
         @Specialization
-        protected DynamicObject toA(RubyMatchData matchData) {
+        protected RubyArray toA(RubyMatchData matchData) {
             Object[] objects = ArrayUtils.copy(valuesNode.execute(matchData));
             return createArray(objects);
         }

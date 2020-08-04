@@ -13,14 +13,13 @@ package org.truffleruby.language.arguments;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.parser.ArgumentDescriptor;
 import org.truffleruby.parser.ArgumentType;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 public class ArgumentDescriptorUtils {
 
-    public static DynamicObject argumentDescriptorsToParameters(RubyContext context,
+    public static RubyArray argumentDescriptorsToParameters(RubyContext context,
             ArgumentDescriptor[] argsDesc,
             boolean isLambda) {
         final Object[] params = new Object[argsDesc.length];
@@ -32,7 +31,7 @@ public class ArgumentDescriptorUtils {
         return ArrayHelpers.createArray(context, params);
     }
 
-    public static DynamicObject toArray(RubyContext context,
+    public static RubyArray toArray(RubyContext context,
             ArgumentDescriptor argDesc,
             boolean isLambda) {
         if ((argDesc.type == ArgumentType.req) && !isLambda) {
@@ -42,9 +41,7 @@ public class ArgumentDescriptorUtils {
         return toArray(context, argDesc.type, argDesc.name);
     }
 
-    public static DynamicObject toArray(RubyContext context,
-            ArgumentType argType,
-            String name) {
+    public static RubyArray toArray(RubyContext context, ArgumentType argType, String name) {
         final Object[] store;
 
         if (argType.anonymous || name == null) {

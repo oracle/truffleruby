@@ -43,6 +43,7 @@ import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.exception.RubyNameError;
 import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySystemCallError;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.module.ModuleNodes;
@@ -51,10 +52,11 @@ import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.RubyWeakMap;
+import org.truffleruby.core.queue.RubyQueue;
+import org.truffleruby.core.queue.RubySizedQueue;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
-import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
@@ -64,7 +66,10 @@ import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.core.thread.ThreadBacktraceLocationLayoutImpl;
+import org.truffleruby.core.thread.RubyBacktraceLocation;
+import org.truffleruby.core.time.RubyTime;
+import org.truffleruby.core.tracepoint.RubyTracePoint;
+import org.truffleruby.extra.RubyAtomicReference;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -93,6 +98,7 @@ import org.truffleruby.platform.NativeTypes;
 import org.truffleruby.shared.BuildInformationImpl;
 import org.truffleruby.shared.TruffleRuby;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
+import org.truffleruby.stdlib.digest.RubyDigest;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -166,7 +172,7 @@ public class CoreLibrary {
     public final DynamicObject encodingErrorClass;
     public final DynamicObject exceptionClass;
     public final DynamicObject falseClass;
-    public final DynamicObjectFactory fiberFactory;
+    public final Shape fiberShape;
     public final DynamicObject floatClass;
     public final DynamicObject floatDomainErrorClass;
     public final DynamicObject frozenErrorClass;
@@ -217,7 +223,7 @@ public class CoreLibrary {
     public final DynamicObject systemExitClass;
     public final DynamicObject threadClass;
     public final DynamicObjectFactory threadFactory;
-    public final DynamicObjectFactory threadBacktraceLocationFactory;
+    public final Shape threadBacktraceLocationShape;
     public final DynamicObject trueClass;
     public final DynamicObject typeErrorClass;
     public final DynamicObject zeroDivisionErrorClass;
@@ -261,7 +267,7 @@ public class CoreLibrary {
     public final DynamicObject ioClass;
     public final DynamicObject closedQueueErrorClass;
     public final DynamicObject warningModule;
-    public final DynamicObjectFactory digestFactory;
+    public final Shape digestShape;
     public final DynamicObject structClass;
     public final DynamicObject weakMapClass;
     public final Shape weakMapShape;
@@ -502,8 +508,8 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingClass, createFactory(encodingShape));
         falseClass = defineClass("FalseClass");
         DynamicObject fiberClass = defineClass("Fiber");
-        fiberFactory = Layouts.FIBER.createFiberShape(fiberClass, fiberClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, fiberFactory);
+        fiberShape = createShape(RubyFiber.class, fiberClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, createFactory(fiberShape));
         defineModule("FileTest");
         hashClass = defineClass("Hash");
         final DynamicObjectFactory originalHashFactory = Layouts.HASH.createHashShape(hashClass, hashClass);
@@ -531,10 +537,8 @@ public class CoreLibrary {
         Shape queueShape = createShape(RubyQueue.class, queueClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(queueClass, createFactory(queueShape));
         DynamicObject sizedQueueClass = defineClass(queueClass, "SizedQueue");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                sizedQueueClass,
-                Layouts.SIZED_QUEUE.createSizedQueueShape(sizedQueueClass, sizedQueueClass));
-
+        Shape sizedQueueShape = createShape(RubySizedQueue.class, sizedQueueClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(sizedQueueClass, createFactory(sizedQueueShape));
         rangeClass = defineClass("Range");
         intRangeShape = createShape(RubyIntRange.class, rangeClass);
         longRangeShape = createShape(RubyLongRange.class, rangeClass);
@@ -557,12 +561,13 @@ public class CoreLibrary {
 
         DynamicObject threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
         DynamicObject threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
-        threadBacktraceLocationFactory = ThreadBacktraceLocationLayoutImpl.INSTANCE
-                .createThreadBacktraceLocationShape(threadBacktraceLocationClass, threadBacktraceLocationClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(threadBacktraceLocationClass, threadBacktraceLocationFactory);
+        threadBacktraceLocationShape = createShape(RubyBacktraceLocation.class, threadBacktraceLocationClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(
+                threadBacktraceLocationClass,
+                createFactory(threadBacktraceLocationShape));
         DynamicObject timeClass = defineClass("Time");
-        DynamicObjectFactory timeFactory = Layouts.TIME.createTimeShape(timeClass, timeClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, timeFactory);
+        Shape timeShape = createShape(RubyTime.class, timeClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, createFactory(timeShape));
         trueClass = defineClass("TrueClass");
         DynamicObject unboundMethodClass = defineClass("UnboundMethod");
         unboundMethodFactory = Layouts.UNBOUND_METHOD.createUnboundMethodShape(unboundMethodClass, unboundMethodClass);
@@ -574,9 +579,8 @@ public class CoreLibrary {
         structClass = defineClass("Struct");
 
         final DynamicObject tracePointClass = defineClass("TracePoint");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                tracePointClass,
-                Layouts.TRACE_POINT.createTracePointShape(tracePointClass, tracePointClass));
+        Shape tracePointShape = createShape(RubyTracePoint.class, tracePointClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(tracePointClass, createFactory(tracePointShape));
 
         // Modules
 
@@ -604,9 +608,8 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, createFactory(encodingConverterShape));
         final DynamicObject truffleRubyModule = defineModule("TruffleRuby");
         DynamicObject atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                atomicReferenceClass,
-                Layouts.ATOMIC_REFERENCE.createAtomicReferenceShape(atomicReferenceClass, atomicReferenceClass));
+        Shape atomicReferenceShape = createShape(RubyAtomicReference.class, atomicReferenceClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass, createFactory(atomicReferenceShape));
         truffleModule = defineModule("Truffle");
         truffleInternalModule = defineModule(truffleModule, "Internal");
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
@@ -687,8 +690,8 @@ public class CoreLibrary {
         // Standard library
 
         DynamicObject digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
-        digestFactory = Layouts.DIGEST.createDigestShape(digestClass, digestClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(digestClass, digestFactory);
+        digestShape = createShape(RubyDigest.class, digestClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(digestClass, createFactory(digestShape));
 
         // Include the core modules
 

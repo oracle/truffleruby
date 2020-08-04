@@ -21,6 +21,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -315,19 +316,19 @@ public abstract class BindingNodes {
                 guards = "getFrameDescriptor(binding) == cachedFrameDescriptor",
                 assumptions = "cachedFrameDescriptor.getVersion()",
                 limit = "getCacheLimit()")
-        protected DynamicObject localVariablesCached(RubyBinding binding,
+        protected RubyArray localVariablesCached(RubyBinding binding,
                 @Cached("getFrameDescriptor(binding)") FrameDescriptor cachedFrameDescriptor,
-                @Cached("listLocalVariables(getContext(), binding.getFrame())") DynamicObject names) {
+                @Cached("listLocalVariables(getContext(), binding.getFrame())") RubyArray names) {
             return names;
         }
 
         @Specialization(replaces = "localVariablesCached")
-        protected DynamicObject localVariables(RubyBinding binding) {
+        protected RubyArray localVariables(RubyBinding binding) {
             return listLocalVariables(getContext(), binding.getFrame());
         }
 
         @TruffleBoundary
-        public static DynamicObject listLocalVariables(RubyContext context, MaterializedFrame frame) {
+        public static RubyArray listLocalVariables(RubyContext context, MaterializedFrame frame) {
             final Set<Object> names = new LinkedHashSet<>();
             while (frame != null) {
                 addNamesFromFrame(context, frame, names);

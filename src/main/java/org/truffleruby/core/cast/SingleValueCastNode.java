@@ -9,12 +9,12 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(value = { RubyGuards.class })
 public abstract class SingleValueCastNode extends RubyContextNode {
@@ -32,7 +32,7 @@ public abstract class SingleValueCastNode extends RubyContextNode {
     }
 
     @Specialization(guards = { "!noArguments(args)", "!singleArgument(args)" })
-    protected DynamicObject castMany(Object[] args) {
+    protected RubyArray castMany(Object[] args) {
         return createArray(args);
     }
 

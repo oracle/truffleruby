@@ -12,10 +12,10 @@ package org.truffleruby.core.cast;
 import org.truffleruby.core.array.ArrayDupNode;
 import org.truffleruby.core.array.ArrayDupNodeGen;
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
@@ -77,8 +77,8 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
         }
     }
 
-    @Specialization(guards = "isRubyArray(array)")
-    protected DynamicObject splat(VirtualFrame frame, DynamicObject array) {
+    @Specialization
+    protected DynamicObject splat(VirtualFrame frame, RubyArray array) {
         // TODO(cs): is it necessary to dup here in all cases?
         // It is needed at least for [*ary] (parsed as just a SplatParseNode) and b = *ary.
         if (copy) {
@@ -89,7 +89,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = { "!isNil(object)", "!isRubyArray(object)" })
-    protected DynamicObject splat(VirtualFrame frame, Object object,
+    protected RubyArray splat(VirtualFrame frame, Object object,
             @Cached("createPrivate()") CallDispatchHeadNode toArrayNode) {
         final Object array = toArrayNode.call(
                 coreLibrary().truffleTypeModule,
@@ -100,11 +100,10 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
         if (array == nil) {
             return createArray(new Object[]{ object });
         } else {
-            assert RubyGuards.isRubyArray(array);
             if (copy) {
-                return executeDup(frame, (DynamicObject) array);
+                return executeDup(frame, (RubyArray) array);
             } else {
-                return (DynamicObject) array;
+                return (RubyArray) array;
             }
         }
     }
@@ -117,7 +116,7 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
         return toA.call(nil, "to_a");
     }
 
-    private DynamicObject executeDup(VirtualFrame frame, DynamicObject array) {
+    private RubyArray executeDup(VirtualFrame frame, RubyArray array) {
         if (dup == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             dup = insert(ArrayDupNodeGen.create());

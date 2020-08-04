@@ -11,14 +11,12 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
+import static org.truffleruby.core.string.StringOperations.rope;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+
 import org.jcodings.Encoding;
 import org.jcodings.Ptr;
 import org.jcodings.specific.ASCIIEncoding;
@@ -35,6 +33,7 @@ import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -53,11 +52,14 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-
-import static org.truffleruby.core.rope.CodeRange.CR_UNKNOWN;
-import static org.truffleruby.core.string.StringOperations.rope;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "Encoding::Converter", isClass = true)
 public abstract class EncodingConverterNodes {
@@ -434,7 +436,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object encodingConverterLastError(RubyEncodingConverter encodingConverter,
+        protected RubyArray encodingConverterLastError(RubyEncodingConverter encodingConverter,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final EConv ec = encodingConverter.econv;
 

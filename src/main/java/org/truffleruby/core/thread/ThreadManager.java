@@ -29,6 +29,7 @@ import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
+import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RandomizerNodes;
@@ -73,8 +74,8 @@ public class ThreadManager {
 
     private final Set<Thread> rubyManagedThreads = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
-    public final Map<Thread, DynamicObject> rubyFiberForeignMap = new ConcurrentHashMap<>();
-    public final ThreadLocal<DynamicObject> rubyFiber = ThreadLocal
+    public final Map<Thread, RubyFiber> rubyFiberForeignMap = new ConcurrentHashMap<>();
+    public final ThreadLocal<RubyFiber> rubyFiber = ThreadLocal
             .withInitial(() -> rubyFiberForeignMap.get(Thread.currentThread()));
 
     public static class UnblockingActionHolder {
@@ -149,23 +150,23 @@ public class ThreadManager {
         Layouts.THREAD.setStatus(rootThread, ThreadStatus.RUN);
         Layouts.THREAD.setFinishedLatch(rootThread, new CountDownLatch(1));
 
-        final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(rootThread).getRootFiber();
-        Layouts.FIBER.setAlive(rootFiber, true);
-        Layouts.FIBER.setFinishedLatch(rootFiber, new CountDownLatch(1));
+        final RubyFiber rootFiber = Layouts.THREAD.getFiberManager(rootThread).getRootFiber();
+        rootFiber.alive = true;
+        rootFiber.finishedLatch = new CountDownLatch(1);
 
         RandomizerNodes.resetSeed(context, Layouts.THREAD.getRandomizer(rootThread));
     }
 
     // spawning Thread => Fiber object
-    public static final ThreadLocal<DynamicObject> FIBER_BEING_SPAWNED = new ThreadLocal<>();
+    public static final ThreadLocal<RubyFiber> FIBER_BEING_SPAWNED = new ThreadLocal<>();
 
     private Thread createFiberJavaThread(Runnable runnable) {
-        DynamicObject fiber = FIBER_BEING_SPAWNED.get();
+        RubyFiber fiber = FIBER_BEING_SPAWNED.get();
         assert fiber != null;
         return createJavaThread(runnable, fiber);
     }
 
-    private Thread createJavaThread(Runnable runnable, DynamicObject fiber) {
+    private Thread createJavaThread(Runnable runnable, RubyFiber fiber) {
         if (context.getOptions().SINGLE_THREADED) {
             throw new RaiseException(
                     context,
@@ -181,8 +182,8 @@ public class ThreadManager {
         assert fiber != null;
         thread.setUncaughtExceptionHandler((javaThread, throwable) -> {
             try {
-                Layouts.FIBER.setUncaughtException(fiber, throwable);
-                Layouts.FIBER.getInitializedLatch(fiber).countDown();
+                fiber.uncaughtException = throwable;
+                fiber.initializedLatch.countDown();
             } catch (Throwable t) {
                 t.initCause(throwable);
                 t.printStackTrace();
@@ -310,7 +311,7 @@ public class ThreadManager {
         startSharing(rubyThread, sharingReason);
 
         Layouts.THREAD.setSourceLocation(rubyThread, info);
-        final DynamicObject rootFiber = Layouts.THREAD.getFiberManager(rubyThread).getRootFiber();
+        final RubyFiber rootFiber = Layouts.THREAD.getFiberManager(rubyThread).getRootFiber();
 
         final Thread thread = createJavaThread(() -> threadMain(rubyThread, currentNode, task), rootFiber);
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + info);
@@ -614,7 +615,7 @@ public class ThreadManager {
     }
 
     @TruffleBoundary
-    public DynamicObject getRubyFiberFromCurrentJavaThread() {
+    public RubyFiber getRubyFiberFromCurrentJavaThread() {
         return rubyFiber.get();
     }
 
@@ -694,7 +695,7 @@ public class ThreadManager {
                 context.getSafepointManager().pauseAllThreadsAndExecute(null, false, (thread, currentNode) -> {
                     if (Thread.currentThread() != initiatingJavaThread) {
                         final FiberManager fiberManager = Layouts.THREAD.getFiberManager(thread);
-                        final DynamicObject fiber = getRubyFiberFromCurrentJavaThread();
+                        final RubyFiber fiber = getRubyFiberFromCurrentJavaThread();
 
                         if (fiberManager.getCurrentFiber() == fiber) {
                             Layouts.THREAD.setStatus(thread, ThreadStatus.ABORTING);
