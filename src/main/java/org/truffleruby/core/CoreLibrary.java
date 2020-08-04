@@ -51,6 +51,9 @@ import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.RubyWeakMap;
+import org.truffleruby.core.range.RubyIntRange;
+import org.truffleruby.core.range.RubyLongRange;
+import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -191,8 +194,9 @@ public class CoreLibrary {
     public final DynamicObjectFactory procFactory;
     public final DynamicObject processModule;
     public final DynamicObject rangeClass;
-    public final DynamicObjectFactory intRangeFactory;
-    public final DynamicObjectFactory longRangeFactory;
+    public final Shape intRangeShape;
+    public final Shape longRangeShape;
+    public final Shape objectRangeShape;
     public final DynamicObject rangeErrorClass;
     public final DynamicObject rationalClass;
     public final Shape regexpShape;
@@ -530,12 +534,13 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(
                 sizedQueueClass,
                 Layouts.SIZED_QUEUE.createSizedQueueShape(sizedQueueClass, sizedQueueClass));
+
         rangeClass = defineClass("Range");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                rangeClass,
-                Layouts.OBJECT_RANGE.createObjectRangeShape(rangeClass, rangeClass));
-        intRangeFactory = Layouts.INT_RANGE.createIntRangeShape(rangeClass, rangeClass);
-        longRangeFactory = Layouts.LONG_RANGE.createLongRangeShape(rangeClass, rangeClass);
+        intRangeShape = createShape(RubyIntRange.class, rangeClass);
+        longRangeShape = createShape(RubyLongRange.class, rangeClass);
+        objectRangeShape = createShape(RubyObjectRange.class, rangeClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(rangeClass, createFactory(objectRangeShape));
+
         DynamicObject regexpClass = defineClass("Regexp");
         regexpShape = createShape(RubyRegexp.class, regexpClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(regexpClass, createFactory(regexpShape));

@@ -21,6 +21,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.string.StringOperations;
@@ -938,13 +939,12 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException rangeError(DynamicObject range, Node currentNode) {
-        assert RubyGuards.isIntRange(range);
+    public RubyException rangeError(RubyIntRange range, Node currentNode) {
         return rangeError(StringUtils.format(
                 "%d..%s%d out of range",
-                Layouts.INT_RANGE.getBegin(range),
-                Layouts.INT_RANGE.getExcludedEnd(range) ? "." : "",
-                Layouts.INT_RANGE.getEnd(range)), currentNode);
+                range.begin,
+                range.excludedEnd ? "." : "",
+                range.end), currentNode);
     }
 
     @TruffleBoundary

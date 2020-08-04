@@ -117,6 +117,9 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.range.RubyIntRange;
+import org.truffleruby.core.range.RubyLongRange;
+import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.ConcatRope;
 import org.truffleruby.core.rope.LeafRope;
@@ -605,42 +608,25 @@ public abstract class StringNodes {
         // endregion
         // region Range Slice Specializations
 
-        @Specialization(guards = "isIntRange(range)")
-        protected Object sliceIntegerRange(DynamicObject string, DynamicObject range, NotProvided length) {
-            return sliceRange(
-                    string,
-                    Layouts.INT_RANGE.getBegin(range),
-                    Layouts.INT_RANGE.getEnd(range),
-                    Layouts.INT_RANGE.getExcludedEnd(range));
+        @Specialization
+        protected Object sliceIntegerRange(DynamicObject string, RubyIntRange range, NotProvided length) {
+            return sliceRange(string, range.begin, range.end, range.excludedEnd);
         }
 
-        @Specialization(guards = "isLongRange(range)")
-        protected Object sliceLongRange(DynamicObject string, DynamicObject range, NotProvided length) {
-            return sliceRange(
-                    string,
-                    Layouts.LONG_RANGE.getBegin(range),
-                    Layouts.LONG_RANGE.getEnd(range),
-                    Layouts.LONG_RANGE.getExcludedEnd(range));
+        @Specialization
+        protected Object sliceLongRange(DynamicObject string, RubyLongRange range, NotProvided length) {
+            return sliceRange(string, range.begin, range.end, range.excludedEnd);
         }
 
         @Specialization(guards = "isEndlessObjectRange(range)")
-        protected Object sliceEndlessRange(DynamicObject string, DynamicObject range, NotProvided length) {
-            boolean excludesEnd = Layouts.OBJECT_RANGE.getExcludedEnd(range);
-            return sliceRange(
-                    string,
-                    toLong(Layouts.OBJECT_RANGE.getBegin(range)),
-                    // Get until the end of the string.
-                    excludesEnd ? Integer.MAX_VALUE : Integer.MAX_VALUE - 1,
-                    excludesEnd);
+        protected Object sliceEndlessRange(DynamicObject string, RubyObjectRange range, NotProvided length) {
+            final int stringEnd = range.excludedEnd ? Integer.MAX_VALUE : Integer.MAX_VALUE - 1;
+            return sliceRange(string, toLong(range.begin), stringEnd, range.excludedEnd);
         }
 
         @Specialization(guards = "isBoundedObjectRange(range)")
-        protected Object sliceObjectRange(DynamicObject string, DynamicObject range, NotProvided length) {
-            return sliceRange(
-                    string,
-                    toLong(Layouts.OBJECT_RANGE.getBegin(range)),
-                    toLong(Layouts.OBJECT_RANGE.getEnd(range)),
-                    Layouts.OBJECT_RANGE.getExcludedEnd(range));
+        protected Object sliceObjectRange(DynamicObject string, RubyObjectRange range, NotProvided length) {
+            return sliceRange(string, toLong(range.begin), toLong(range.end), range.excludedEnd);
         }
 
         // endregion
