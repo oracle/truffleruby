@@ -18,6 +18,12 @@ be useful to someone working on TruffleRuby.
 
 https://github.com/oracle/truffleruby/tree/master/doc/contributor
 
+## Slack
+
+You are welcome to join the channel `#truffleruby` of the
+[GraalVM Slack](https://www.graalvm.org/community/#community-support)
+for any help related to contributing to TruffleRuby.
+
 ## Style
 
 We use various lint tools to keep the style consistent.
