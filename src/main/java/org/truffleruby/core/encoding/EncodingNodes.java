@@ -35,6 +35,7 @@ import org.truffleruby.core.encoding.EncodingNodesFactory.CheckRopeEncodingNodeG
 import org.truffleruby.core.encoding.EncodingNodesFactory.GetRubyEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -463,7 +464,7 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object eachAlias(DynamicObject block) {
+        protected Object eachAlias(RubyProc block) {
             for (Hash.HashEntry<EncodingDB.Entry> entry : EncodingDB.getAliases().entryIterator()) {
                 final CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = (CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry<EncodingDB.Entry>) entry;
                 final DynamicObject aliasName = makeStringNode.executeMake(

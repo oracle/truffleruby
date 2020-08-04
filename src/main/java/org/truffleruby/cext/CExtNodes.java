@@ -47,6 +47,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.NativeRope;
 import org.truffleruby.core.rope.Rope;
@@ -893,7 +894,7 @@ public class CExtNodes {
             final MethodLookupResult superMethodLookup = ModuleOperations
                     .lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();
-            return callSuperMethodNode.executeCallSuperMethod(frame, callingSelf, superMethod, args, null);
+            return callSuperMethodNode.execute(frame, callingSelf, superMethod, args, null);
         }
 
         @TruffleBoundary
@@ -1198,7 +1199,7 @@ public class CExtNodes {
     public abstract static class CaptureExceptionNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object executeWithProtect(DynamicObject block,
+        protected Object executeWithProtect(RubyProc block,
                 @Cached BranchProfile exceptionProfile,
                 @Cached BranchProfile noExceptionProfile) {
             try {
@@ -1569,7 +1570,7 @@ public class CExtNodes {
     public abstract static class PushPreservingFrame extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object pushFrame(DynamicObject block,
+        protected Object pushFrame(RubyProc block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             getDataNode.execute().getExtensionCallStack().push(block);
             return nil;

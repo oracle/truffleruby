@@ -25,6 +25,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
@@ -55,7 +56,7 @@ public abstract class RangeNodes {
     public abstract static class IntegerMapNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray map(RubyIntRange range, DynamicObject block,
+        protected RubyArray map(RubyIntRange range, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached YieldNode yieldNode,
                 @Cached ConditionProfile noopProfile) {
@@ -100,7 +101,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode eachInternalCall;
 
         @Specialization
-        protected RubyIntRange eachInt(RubyIntRange range, DynamicObject block) {
+        protected RubyIntRange eachInt(RubyIntRange range, RubyProc block) {
             int result;
             if (range.excludedEnd) {
                 result = range.end;
@@ -129,7 +130,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected RubyLongRange eachLong(RubyLongRange range, DynamicObject block) {
+        protected RubyLongRange eachLong(RubyLongRange range, RubyProc block) {
             long result;
             if (range.excludedEnd) {
                 result = range.end;
@@ -157,7 +158,7 @@ public abstract class RangeNodes {
             return range;
         }
 
-        private Object eachInternal(VirtualFrame frame, RubyRange range, DynamicObject block) {
+        private Object eachInternal(VirtualFrame frame, RubyRange range, RubyProc block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 eachInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -177,7 +178,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization
-        protected Object each(VirtualFrame frame, RubyObjectRange range, DynamicObject block) {
+        protected Object each(VirtualFrame frame, RubyObjectRange range, RubyProc block) {
             return eachInternal(frame, range, block);
         }
     }
@@ -272,7 +273,7 @@ public abstract class RangeNodes {
         @Child private CallDispatchHeadNode stepInternalCall;
 
         @Specialization(guards = "step > 0")
-        protected Object stepInt(RubyIntRange range, int step, DynamicObject block) {
+        protected Object stepInt(RubyIntRange range, int step, RubyProc block) {
             int count = 0;
 
             try {
@@ -299,7 +300,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "step > 0")
-        protected Object stepLong(RubyLongRange range, int step, DynamicObject block) {
+        protected Object stepLong(RubyLongRange range, int step, RubyProc block) {
             int count = 0;
 
             try {
@@ -336,13 +337,7 @@ public abstract class RangeNodes {
                 step = 1;
             }
 
-            final DynamicObject blockProc;
-            if (RubyGuards.wasProvided(block)) {
-                blockProc = (DynamicObject) block;
-            } else {
-                blockProc = null;
-            }
-
+            final RubyProc blockProc = RubyGuards.wasProvided(block) ? (RubyProc) block : null;
             return stepInternalCall.callWithBlock(range, "step_internal", blockProc, step);
         }
     }

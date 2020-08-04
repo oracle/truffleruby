@@ -22,6 +22,7 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -392,7 +393,7 @@ public abstract class BasicObjectNodes {
                 NotProvided string,
                 NotProvided fileName,
                 NotProvided line,
-                DynamicObject block,
+                RubyProc block,
                 @Cached InstanceExecNode instanceExecNode) {
             return instanceExecNode.executeInstanceExec(receiver, new Object[]{ receiver }, block);
         }
@@ -438,16 +439,16 @@ public abstract class BasicObjectNodes {
 
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
-        abstract Object executeInstanceExec(Object self, Object[] args, DynamicObject block);
+        abstract Object executeInstanceExec(Object self, Object[] args, RubyProc block);
 
         @Specialization
-        protected Object instanceExec(Object receiver, Object[] arguments, DynamicObject block) {
+        protected Object instanceExec(Object receiver, Object[] arguments, RubyProc block) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new SingletonClassOfSelfDefaultDefinee(receiver),
-                    Layouts.PROC.getDeclarationContext(block).getRefinements());
+                    block.declarationContext.getRefinements());
             return callBlockNode
-                    .executeCallBlock(declarationContext, block, receiver, Layouts.PROC.getBlock(block), arguments);
+                    .executeCallBlock(declarationContext, block, receiver, block.block, arguments);
         }
 
         @Specialization
@@ -471,11 +472,11 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(guards = "wasProvided(name)")
-        protected Object methodMissingBlock(Object self, Object name, Object[] args, DynamicObject block) {
+        protected Object methodMissingBlock(Object self, Object name, Object[] args, RubyProc block) {
             return methodMissing(self, name, args, block);
         }
 
-        private Object methodMissing(Object self, Object nameObject, Object[] args, DynamicObject block) {
+        private Object methodMissing(Object self, Object nameObject, Object[] args, RubyProc block) {
             throw new RaiseException(getContext(), buildMethodMissingException(self, nameObject, args, block));
         }
 
@@ -491,7 +492,7 @@ public abstract class BasicObjectNodes {
 
         @TruffleBoundary
         private RubyException buildMethodMissingException(Object self, Object nameObject, Object[] args,
-                DynamicObject block) {
+                RubyProc block) {
             final String name;
             if (nameObject instanceof RubySymbol) {
                 name = ((RubySymbol) nameObject).getString();
@@ -592,11 +593,11 @@ public abstract class BasicObjectNodes {
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
-            return send(frame, self, name, args, (DynamicObject) null);
+            return send(frame, self, name, args, (RubyProc) null);
         }
 
         @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, DynamicObject block) {
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, RubyProc block) {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 

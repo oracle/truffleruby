@@ -18,6 +18,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 
@@ -28,14 +29,14 @@ public class AtExitManager {
 
     private final RubyContext context;
 
-    private final Deque<DynamicObject> atExitHooks = new ConcurrentLinkedDeque<>();
-    private final Deque<DynamicObject> systemExitHooks = new ConcurrentLinkedDeque<>();
+    private final Deque<RubyProc> atExitHooks = new ConcurrentLinkedDeque<>();
+    private final Deque<RubyProc> systemExitHooks = new ConcurrentLinkedDeque<>();
 
     public AtExitManager(RubyContext context) {
         this.context = context;
     }
 
-    public void add(DynamicObject block, boolean always) {
+    public void add(RubyProc block, boolean always) {
         if (always) {
             systemExitHooks.push(block);
         } else {
@@ -52,11 +53,11 @@ public class AtExitManager {
     }
 
     @TruffleBoundary
-    private DynamicObject runExitHooks(Deque<DynamicObject> stack, String name) {
+    private DynamicObject runExitHooks(Deque<RubyProc> stack, String name) {
         DynamicObject lastException = null;
 
         while (true) {
-            DynamicObject block = stack.poll();
+            RubyProc block = stack.poll();
             if (block == null) {
                 return lastException;
             }
@@ -75,8 +76,8 @@ public class AtExitManager {
         }
     }
 
-    public List<DynamicObject> getHandlers() {
-        final List<DynamicObject> handlers = new ArrayList<>();
+    public List<RubyProc> getHandlers() {
+        final List<RubyProc> handlers = new ArrayList<>();
         handlers.addAll(atExitHooks);
         handlers.addAll(systemExitHooks);
         return handlers;
@@ -93,5 +94,4 @@ public class AtExitManager {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr("", rubyException);
         }
     }
-
 }

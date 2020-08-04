@@ -59,6 +59,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -123,8 +124,8 @@ public abstract class ReadlineNodes {
     public abstract static class CompletionProcSetNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyProc(proc)")
-        protected DynamicObject setCompletionProc(DynamicObject proc) {
+        @Specialization
+        protected RubyProc setCompletionProc(RubyProc proc) {
             final ProcCompleter completer = new ProcCompleter(getContext(), proc);
             getContext().getConsoleHolder().setCurrentCompleter(completer);
             return proc;
@@ -351,9 +352,9 @@ public abstract class ReadlineNodes {
                 "(" };
 
         private final RubyContext context;
-        private final DynamicObject proc;
+        private final RubyProc proc;
 
-        public ProcCompleter(RubyContext context, DynamicObject proc) {
+        public ProcCompleter(RubyContext context, RubyProc proc) {
             this.context = context;
             this.proc = proc;
         }

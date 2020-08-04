@@ -19,6 +19,7 @@ import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
@@ -122,7 +123,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary // for the iterator
         @Specialization
-        protected int eachObject(NotProvided ofClass, DynamicObject block) {
+        protected int eachObject(NotProvided ofClass, RubyProc block) {
             int count = 0;
 
             for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
@@ -137,7 +138,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary // for the iterator
         @Specialization(guards = "isRubyModule(ofClass)")
-        protected int eachObject(DynamicObject ofClass, DynamicObject block,
+        protected int eachObject(DynamicObject ofClass, RubyProc block,
                 @Cached IsANode isANode) {
             int count = 0;
 

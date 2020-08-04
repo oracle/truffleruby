@@ -11,6 +11,7 @@ package org.truffleruby.language.methods;
 
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.BreakID;
@@ -67,7 +68,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
     }
 
     @Override
-    public Object execute(VirtualFrame frame) {
+    public RubyProc execute(VirtualFrame frame) {
         final FrameOnStackMarker frameOnStackMarker;
 
         if (readFrameOnStackMarkerNode == null) {
@@ -83,7 +84,7 @@ public class BlockDefinitionNode extends RubyContextSourceNode {
         }
 
         return ProcOperations.createRubyProc(
-                coreLibrary().procFactory,
+                getContext().getCoreLibrary().procShape,
                 type,
                 sharedMethodInfo,
                 callTargetForProcs,

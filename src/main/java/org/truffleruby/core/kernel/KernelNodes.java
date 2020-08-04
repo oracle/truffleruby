@@ -56,6 +56,7 @@ import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -1128,7 +1129,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject lambda(NotProvided block,
+        protected RubyProc lambda(NotProvided block,
                 @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode) {
             final MaterializedFrame parentFrame = getContext()
                     .getCallStack()
@@ -1147,24 +1148,24 @@ public abstract class KernelNodes {
 
             Node callNode = getContext().getCallStack().getCallerNode(2, true);
             if (isLiteralBlock(callNode)) {
-                return lambdaFromBlock((DynamicObject) parentBlock);
+                return lambdaFromBlock((RubyProc) parentBlock);
             } else {
-                return (DynamicObject) parentBlock;
+                return (RubyProc) parentBlock;
             }
         }
 
         @Specialization(guards = "isLiteralBlock(block)")
-        protected DynamicObject lambdaFromBlock(DynamicObject block) {
+        protected RubyProc lambdaFromBlock(RubyProc block) {
             return ProcOperations.createLambdaFromBlock(getContext(), block);
         }
 
         @Specialization(guards = "!isLiteralBlock(block)")
-        protected DynamicObject lambdaFromExistingProc(DynamicObject block) {
+        protected RubyProc lambdaFromExistingProc(RubyProc block) {
             return block;
         }
 
         @TruffleBoundary
-        protected boolean isLiteralBlock(DynamicObject block) {
+        protected boolean isLiteralBlock(RubyProc block) {
             Node callNode = getContext().getCallStack().getCallerNodeIgnoringSend();
             return isLiteralBlock(callNode);
         }
@@ -1419,7 +1420,7 @@ public abstract class KernelNodes {
         @Child private ProcNewNode procNewNode = ProcNewNodeFactory.create(null);
 
         @Specialization
-        protected DynamicObject proc(VirtualFrame frame, Object maybeBlock) {
+        protected RubyProc proc(VirtualFrame frame, Object maybeBlock) {
             return procNewNode.executeProcNew(frame, coreLibrary().procClass, ArrayUtils.EMPTY_ARRAY, maybeBlock);
         }
 
@@ -1504,11 +1505,11 @@ public abstract class KernelNodes {
 
         @Specialization
         protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, NotProvided block) {
-            return send(frame, self, name, args, (DynamicObject) null);
+            return send(frame, self, name, args, (RubyProc) null);
         }
 
         @Specialization
-        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, DynamicObject block) {
+        protected Object send(VirtualFrame frame, Object self, Object name, Object[] args, RubyProc block) {
             DeclarationContext context = RubyArguments.getDeclarationContext(readCallerFrame.execute(frame));
             RubyArguments.setDeclarationContext(frame, context);
 
@@ -1633,14 +1634,14 @@ public abstract class KernelNodes {
     @CoreMethod(names = "set_trace_func", isModuleFunction = true, required = 1)
     public abstract static class SetTraceFuncNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isNil(traceFunc)")
-        protected Object setTraceFunc(Object traceFunc) {
+        @Specialization
+        protected Object setTraceFunc(Nil traceFunc) {
             getContext().getTraceManager().setTraceFunc(null);
             return nil;
         }
 
-        @Specialization(guards = "isRubyProc(traceFunc)")
-        protected DynamicObject setTraceFunc(DynamicObject traceFunc) {
+        @Specialization
+        protected DynamicObject setTraceFunc(RubyProc traceFunc) {
             getContext().getTraceManager().setTraceFunc(traceFunc);
             return traceFunc;
         }

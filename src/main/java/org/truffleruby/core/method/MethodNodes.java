@@ -19,11 +19,13 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -151,7 +153,7 @@ public abstract class MethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject parameters(RubyMethod method) {
+        protected RubyArray parameters(RubyMethod method) {
             final ArgumentDescriptor[] argsDesc = method.method
                     .getSharedMethodInfo()
                     .getArgumentDescriptors();
@@ -243,9 +245,9 @@ public abstract class MethodNodes {
     public abstract static class ToProcNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "methodObject == cachedMethodObject", limit = "getCacheLimit()")
-        protected DynamicObject toProcCached(RubyMethod methodObject,
+        protected RubyProc toProcCached(RubyMethod methodObject,
                 @Cached("methodObject") RubyMethod cachedMethodObject,
-                @Cached("toProcUncached(cachedMethodObject)") DynamicObject proc) {
+                @Cached("toProcUncached(cachedMethodObject)") RubyProc proc) {
             return proc;
         }
 
@@ -253,27 +255,27 @@ public abstract class MethodNodes {
                 guards = "cachedMethod == methodObject.method",
                 limit = "getCacheLimit()",
                 replaces = "toProcCached")
-        protected DynamicObject toProcCachedTarget(RubyMethod methodObject,
+        protected RubyProc toProcCachedTarget(RubyMethod methodObject,
                 @Cached("methodObject.method") InternalMethod cachedMethod,
                 @Cached("methodCallTarget(cachedMethod)") RootCallTarget callTarget) {
             return createProc(callTarget, cachedMethod, methodObject.receiver);
         }
 
         @Specialization
-        protected DynamicObject toProcUncached(RubyMethod methodObject) {
+        protected RubyProc toProcUncached(RubyMethod methodObject) {
             final InternalMethod method = methodObject.method;
             final RootCallTarget callTarget = methodCallTarget(method);
             final Object receiver = methodObject.receiver;
             return createProc(callTarget, method, receiver);
         }
 
-        private DynamicObject createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
+        private RubyProc createProc(RootCallTarget callTarget, InternalMethod method, Object receiver) {
             final Object[] packedArgs = RubyArguments.pack(null, null, method, null, receiver, null, EMPTY_ARGUMENTS);
             final MaterializedFrame declarationFrame = Truffle
                     .getRuntime()
                     .createMaterializedFrame(packedArgs, coreLibrary().emptyDescriptor);
             return ProcOperations.createRubyProc(
-                    coreLibrary().procFactory,
+                    getContext().getCoreLibrary().procShape,
                     ProcType.LAMBDA,
                     method.getSharedMethodInfo(),
                     callTarget,
@@ -308,7 +310,6 @@ public abstract class MethodNodes {
         protected int getCacheLimit() {
             return getContext().getOptions().METHOD_TO_PROC_CACHE;
         }
-
     }
 
     @Primitive(name = "method_unimplement")

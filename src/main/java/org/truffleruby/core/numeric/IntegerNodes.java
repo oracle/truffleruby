@@ -30,6 +30,7 @@ import org.truffleruby.core.numeric.IntegerNodesFactory.LeftShiftNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.MulNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.PowNodeFactory;
 import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
 import org.truffleruby.core.string.StringNodes;
@@ -1849,7 +1850,7 @@ public abstract class IntegerNodes {
         @Child private CallDispatchHeadNode downtoInternalCall;
 
         @Specialization
-        protected Object downto(int from, int to, DynamicObject block) {
+        protected Object downto(int from, int to, RubyProc block) {
             int count = 0;
 
             try {
@@ -1870,12 +1871,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object downto(int from, double to, DynamicObject block) {
+        protected Object downto(int from, double to, RubyProc block) {
             return downto(from, (int) Math.ceil(to), block);
         }
 
         @Specialization
-        protected Object downto(long from, long to, DynamicObject block) {
+        protected Object downto(long from, long to, RubyProc block) {
             // TODO BJF 22-Apr-2015 how to handle reportLoopCount(long)
             int count = 0;
 
@@ -1897,12 +1898,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object downto(long from, double to, DynamicObject block) {
+        protected Object downto(long from, double to, RubyProc block) {
             return downto(from, (long) Math.ceil(to), block);
         }
 
         @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")
-        protected Object downto(Object from, Object to, DynamicObject block) {
+        protected Object downto(Object from, Object to, RubyProc block) {
             if (downtoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 downtoInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -1944,7 +1945,7 @@ public abstract class IntegerNodes {
         @Child private CallDispatchHeadNode uptoInternalCall;
 
         @Specialization
-        protected Object upto(int from, int to, DynamicObject block) {
+        protected Object upto(int from, int to, RubyProc block) {
             int count = 0;
 
             try {
@@ -1965,12 +1966,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object upto(int from, double to, DynamicObject block) {
+        protected Object upto(int from, double to, RubyProc block) {
             return upto(from, (int) Math.floor(to), block);
         }
 
         @Specialization
-        protected Object upto(long from, long to, DynamicObject block) {
+        protected Object upto(long from, long to, RubyProc block) {
             int count = 0;
 
             try {
@@ -1991,12 +1992,12 @@ public abstract class IntegerNodes {
         }
 
         @Specialization
-        protected Object upto(long from, double to, DynamicObject block) {
+        protected Object upto(long from, double to, RubyProc block) {
             return upto(from, (long) Math.ceil(to), block);
         }
 
         @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")
-        protected Object upto(Object from, Object to, DynamicObject block) {
+        protected Object upto(Object from, Object to, RubyProc block) {
             if (uptoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 uptoInternalCall = insert(CallDispatchHeadNode.createPrivate());

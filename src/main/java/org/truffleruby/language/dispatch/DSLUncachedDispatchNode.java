@@ -15,6 +15,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.NameToJavaStringNode;
 import org.truffleruby.core.cast.ToSymbolNode;
 import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
 import org.truffleruby.language.RubyBaseNode;
@@ -52,7 +53,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
             Object receiver,
             Object name,
             MaterializedFrame callerFrame,
-            DynamicObject block,
+            RubyProc block,
             Object[] arguments,
             DispatchAction dispatchAction,
             MissingBehavior missingBehavior,
@@ -76,7 +77,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
             Object receiver,
             Object name,
             MaterializedFrame callerFrame,
-            DynamicObject block,
+            RubyProc block,
             Object[] arguments,
             DispatchAction dispatchAction,
             MissingBehavior missingBehavior,
@@ -94,7 +95,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
             Object receiver,
             Object name,
             MaterializedFrame callerFrame,
-            DynamicObject block,
+            RubyProc block,
             Object[] arguments,
             DispatchAction dispatchAction,
             MissingBehavior missingBehavior,
@@ -204,7 +205,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
             MaterializedFrame callerFrame,
             InternalMethod method,
             Object receiverObject,
-            DynamicObject blockObject,
+            RubyProc blockObject,
             Object[] argumentsObjects) {
         return indirectCallNode.call(
                 method.getCallTarget(),

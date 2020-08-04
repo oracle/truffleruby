@@ -9,6 +9,7 @@
  */
 package org.truffleruby.builtins;
 
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -17,7 +18,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class EnumeratorSizeNode extends RubyContextSourceNode {
@@ -38,7 +38,7 @@ public class EnumeratorSizeNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject block = RubyArguments.getBlock(frame);
+        final RubyProc block = RubyArguments.getBlock(frame);
 
         if (noBlockProfile.profile(block == null)) {
             if (toEnumWithSize == null) {

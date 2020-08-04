@@ -19,6 +19,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -111,7 +112,7 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected DynamicObject eachKey(RubyWeakMap map, DynamicObject block) {
+        protected DynamicObject eachKey(RubyWeakMap map, RubyProc block) {
             for (Object key : keys(map.storage)) {
                 yield(block, key);
             }
@@ -128,7 +129,7 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected DynamicObject eachValue(RubyWeakMap map, DynamicObject block) {
+        protected DynamicObject eachValue(RubyWeakMap map, RubyProc block) {
             for (Object value : values(map.storage)) {
                 yield(block, value);
             }
@@ -145,7 +146,7 @@ public abstract class WeakMapNodes {
         }
 
         @Specialization
-        protected DynamicObject each(RubyWeakMap map, DynamicObject block) {
+        protected DynamicObject each(RubyWeakMap map, RubyProc block) {
 
             for (WeakValueCache.WeakMapEntry<?, ?> e : entries(map.storage)) {
                 yield(block, e.getKey(), e.getValue());

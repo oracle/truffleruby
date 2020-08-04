@@ -22,6 +22,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.control.BreakException;
@@ -96,7 +97,7 @@ public class FiberManager {
         return new RubyFiber(shape, fiberLocals, catchTags, thread);
     }
 
-    public void initialize(RubyFiber fiber, DynamicObject block, Node currentNode) {
+    public void initialize(RubyFiber fiber, RubyProc block, Node currentNode) {
         ThreadManager.FIBER_BEING_SPAWNED.set(fiber);
         try {
             context.getThreadManager().spawnFiber(() -> fiberMain(context, fiber, block, currentNode));
@@ -123,11 +124,11 @@ public class FiberManager {
 
     private static final BranchProfile UNPROFILED = BranchProfile.create();
 
-    private void fiberMain(RubyContext context, RubyFiber fiber, DynamicObject block, Node currentNode) {
+    private void fiberMain(RubyContext context, RubyFiber fiber, RubyProc block, Node currentNode) {
         assert fiber != rootFiber : "Root Fibers execute threadMain() and not fiberMain()";
 
         final Thread thread = Thread.currentThread();
-        final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
+        final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
         final String oldName = thread.getName();
         thread.setName(NAME_PREFIX + " id=" + thread.getId() + " from " + RubyContext.fileLine(sourceSection));
 

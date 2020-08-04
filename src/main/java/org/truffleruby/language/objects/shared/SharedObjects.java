@@ -13,15 +13,14 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Set;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
@@ -79,16 +78,14 @@ public class SharedObjects {
         }
     }
 
-    public static void shareDeclarationFrame(RubyContext context, DynamicObject block) {
+    public static void shareDeclarationFrame(RubyContext context, RubyProc block) {
         if (context.getOptions().SHARED_OBJECTS_DEBUG) {
-            final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
+            final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
             RubyLanguage.LOGGER.info("sharing decl frame of " + RubyContext.fileLine(sourceSection));
         }
 
-        final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(block);
-
         final Set<Object> objects = ObjectGraph.newObjectSet();
-        ObjectGraph.getObjectsInFrame(declarationFrame, objects);
+        ObjectGraph.getObjectsInFrame(block.declarationFrame, objects);
 
         final Deque<Object> stack = new ArrayDeque<>(objects);
         shareObjects(context, stack);

@@ -12,7 +12,7 @@ package org.truffleruby.language.dispatch;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.proc.RubyProc;
 
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
@@ -69,7 +69,7 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
         }
 
         @Override
-        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject,
+        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, RubyProc blockObject,
                 Object[] argumentsObjects) {
             throw CompilerDirectives.shouldNotReachHere();
         }

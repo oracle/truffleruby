@@ -10,8 +10,9 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -20,25 +21,24 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Casts an object to a Ruby Proc object. */
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToProcNode extends RubyContextSourceNode {
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object doNil(Object nil) {
+    @Specialization
+    protected Nil doNil(Nil nil) {
         return nil;
     }
 
-    @Specialization(guards = "isRubyProc(proc)")
-    protected DynamicObject doRubyProc(DynamicObject proc) {
+    @Specialization
+    protected RubyProc doRubyProc(RubyProc proc) {
         return proc;
     }
 
-    @Specialization(guards = "!isRubyProc(object)")
-    protected DynamicObject doObject(VirtualFrame frame, Object object,
+    @Specialization(guards = { "!isNil(object)", "!isRubyProc(object)" })
+    protected RubyProc doObject(VirtualFrame frame, Object object,
             @Cached("createPrivate()") CallDispatchHeadNode toProc,
             @Cached BranchProfile errorProfile) {
         final Object coerced;
@@ -55,8 +55,8 @@ public abstract class ToProcNode extends RubyContextSourceNode {
             }
         }
 
-        if (RubyGuards.isRubyProc(coerced)) {
-            return (DynamicObject) coerced;
+        if (coerced instanceof RubyProc) {
+            return (RubyProc) coerced;
         } else {
             errorProfile.enter();
             throw new RaiseException(

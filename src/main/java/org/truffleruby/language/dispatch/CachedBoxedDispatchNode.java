@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -67,7 +68,7 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
             VirtualFrame frame,
             Object receiverObject,
             Object methodName,
-            DynamicObject blockObject,
+            RubyProc blockObject,
             Object[] argumentsObjects) {
         try {
             validShape.check();

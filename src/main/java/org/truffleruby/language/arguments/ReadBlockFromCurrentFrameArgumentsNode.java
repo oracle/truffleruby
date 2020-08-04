@@ -9,12 +9,10 @@
  */
 package org.truffleruby.language.arguments;
 
-import org.truffleruby.Layouts;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNode {
@@ -29,18 +27,8 @@ public class ReadBlockFromCurrentFrameArgumentsNode extends RubyContextSourceNod
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject block = RubyArguments.getBlock(frame);
-
-        if (nullProfile.profile(block == null)) {
-            return valueIfAbsent;
-        } else {
-            if (!Layouts.PROC.isProc(block)) {
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                throw new UnsupportedOperationException("Method passed something that isn't a Proc as a block");
-            }
-
-            return block;
-        }
+        final RubyProc block = RubyArguments.getBlock(frame);
+        return nullProfile.profile(block == null) ? valueIfAbsent : block;
     }
 
 }

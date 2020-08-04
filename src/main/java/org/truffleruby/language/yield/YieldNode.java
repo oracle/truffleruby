@@ -9,14 +9,13 @@
  */
 package org.truffleruby.language.yield;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 public abstract class YieldNode extends RubyBaseNode {
@@ -25,17 +24,17 @@ public abstract class YieldNode extends RubyBaseNode {
         return YieldNodeGen.create();
     }
 
-    public final Object executeDispatch(DynamicObject block, Object... args) {
+    public final Object executeDispatch(RubyProc block, Object... args) {
         return executeDispatchWithArrayArguments(block, args);
     }
 
-    public abstract Object executeDispatchWithArrayArguments(DynamicObject block, Object[] argumentsObjects);
+    public abstract Object executeDispatchWithArrayArguments(RubyProc block, Object[] argumentsObjects);
 
     @Specialization
-    protected Object dispatch(DynamicObject block, Object[] argumentsObjects,
+    protected Object dispatch(RubyProc block, Object[] argumentsObjects,
             @Cached CallBlockNode callBlockNode) {
         return callBlockNode.executeCallBlock(
-                Layouts.PROC.getDeclarationContext(block),
+                block.declarationContext,
                 block,
                 ProcOperations.getSelf(block),
                 null,

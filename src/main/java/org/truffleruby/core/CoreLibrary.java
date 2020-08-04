@@ -55,6 +55,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.RubyWeakMap;
 import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.queue.RubySizedQueue;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
@@ -200,7 +201,7 @@ public class CoreLibrary {
     public final DynamicObject objectClass;
     public final DynamicObjectFactory objectFactory;
     public final DynamicObject procClass;
-    public final DynamicObjectFactory procFactory;
+    public final Shape procShape;
     public final DynamicObject processModule;
     public final DynamicObject rangeClass;
     public final Shape intRangeShape;
@@ -533,8 +534,9 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(mutexClass, createFactory(mutexShape));
         nilClass = defineClass("NilClass");
         procClass = defineClass("Proc");
-        procFactory = Layouts.PROC.createProcShape(procClass, procClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(procClass, procFactory);
+        procShape = createShape(RubyProc.class, procClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(procClass, createFactory(procShape));
+
         processModule = defineModule("Process");
         DynamicObject queueClass = defineClass("Queue");
         Shape queueShape = createShape(RubyQueue.class, queueClass);

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.extra;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -19,6 +18,7 @@ import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -67,10 +67,10 @@ public abstract class TruffleGraalNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyProc(rubyProc)")
-        protected DynamicObject splitProc(DynamicObject rubyProc) {
+        @Specialization
+        protected RubyProc splitProc(RubyProc rubyProc) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                Layouts.PROC.getSharedMethodInfo(rubyProc).setAlwaysClone(true);
+                rubyProc.sharedMethodInfo.setAlwaysClone(true);
             }
             return rubyProc;
         }
@@ -87,13 +87,9 @@ public abstract class TruffleGraalNodes {
     public abstract static class CopyCapturedLocalsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyProc(proc)")
-        protected DynamicObject copyCapturedLocals(DynamicObject proc) {
-            final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
-
-            final RootCallTarget callTarget = Layouts.PROC.getCallTargetForType(proc);
-            final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
-
+        @Specialization
+        protected DynamicObject copyCapturedLocals(RubyProc proc) {
+            final RubyRootNode rootNode = (RubyRootNode) proc.callTargetForType.getRootNode();
             final RubyNode newBody = NodeUtil.cloneNode(rootNode.getBody());
 
             assert NodeUtil.findAllNodeInstances(newBody, WriteDeclarationVariableNode.class).isEmpty();
@@ -101,7 +97,7 @@ public abstract class TruffleGraalNodes {
             for (ReadDeclarationVariableNode readNode : NodeUtil
                     .findAllNodeInstances(newBody, ReadDeclarationVariableNode.class)) {
                 MaterializedFrame frame = RubyArguments
-                        .getDeclarationFrame(declarationFrame, readNode.getFrameDepth() - 1);
+                        .getDeclarationFrame(proc.declarationFrame, readNode.getFrameDepth() - 1);
                 Object value = frame.getValue(readNode.getFrameSlot());
                 readNode.replace(new ObjectLiteralNode(value));
             }
@@ -114,31 +110,32 @@ public abstract class TruffleGraalNodes {
                     true);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            final RootCallTarget callTargetForLambdas;
-            if (Layouts.PROC.getType(proc) == ProcType.LAMBDA) {
-                callTargetForLambdas = newCallTarget;
-            } else {
-                callTargetForLambdas = Layouts.PROC.getCallTargetForLambdas(proc);
-            }
+            final RootCallTarget callTargetForLambdas = proc.type == ProcType.LAMBDA
+                    ? newCallTarget
+                    : proc.callTargetForLambdas;
 
             final Object[] args = RubyArguments
-                    .pack(null, null, RubyArguments.getMethod(declarationFrame), null, nil, null, EMPTY_ARGUMENTS);
+                    .pack(null, null, RubyArguments.getMethod(proc.declarationFrame), null, nil, null, EMPTY_ARGUMENTS);
+
             // The Proc no longer needs the original declaration frame. However, all procs must have a
             // declaration frame (to allow Proc#binding) so we shall create an empty one.
             final MaterializedFrame newDeclarationFrame = Truffle
                     .getRuntime()
                     .createMaterializedFrame(args, coreLibrary().emptyDescriptor);
 
-            return coreLibrary().procFactory.newInstance(Layouts.PROC.build(
-                    Layouts.PROC.getType(proc),
-                    Layouts.PROC.getSharedMethodInfo(proc),
+            return new RubyProc(
+                    coreLibrary().procShape,
+                    proc.type,
+                    proc.sharedMethodInfo,
                     newCallTarget,
                     callTargetForLambdas,
                     newDeclarationFrame,
-                    Layouts.PROC.getMethod(proc),
-                    Layouts.PROC.getBlock(proc),
-                    Layouts.PROC.getFrameOnStackMarker(proc),
-                    Layouts.PROC.getDeclarationContext(proc)));
+                    proc.method,
+                    proc.block,
+                    proc.frameOnStackMarker,
+                    proc.declarationContext);
+
+            // TODO(norswap): trace allocation?
         }
 
     }

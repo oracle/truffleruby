@@ -28,7 +28,9 @@ import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.CoreSymbols;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
@@ -337,7 +339,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isNullHash(hash)")
-        protected Object deleteNull(DynamicObject hash, Object key, DynamicObject block) {
+        protected Object deleteNull(DynamicObject hash, Object key, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             return yieldNode.executeDispatch(block, key);
@@ -373,7 +375,7 @@ public abstract class HashNodes {
             if (maybeBlock == NotProvided.INSTANCE) {
                 return nil;
             } else {
-                return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
+                return yieldNode.executeDispatch((RubyProc) maybeBlock, key);
             }
         }
 
@@ -387,7 +389,7 @@ public abstract class HashNodes {
                 if (maybeBlock == NotProvided.INSTANCE) {
                     return nil;
                 } else {
-                    return yieldNode.executeDispatch((DynamicObject) maybeBlock, key);
+                    return yieldNode.executeDispatch((RubyProc) maybeBlock, key);
                 }
             }
 
@@ -438,13 +440,13 @@ public abstract class HashNodes {
         private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
 
         @Specialization(guards = "isNullHash(hash)")
-        protected DynamicObject eachNull(DynamicObject hash, DynamicObject block) {
+        protected DynamicObject eachNull(DynamicObject hash, RubyProc block) {
             return hash;
         }
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        protected DynamicObject eachPackedArray(DynamicObject hash, DynamicObject block) {
+        protected DynamicObject eachPackedArray(DynamicObject hash, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] originalStore = (Object[]) Layouts.HASH.getStore(hash);
 
@@ -477,7 +479,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected DynamicObject eachBuckets(DynamicObject hash, DynamicObject block) {
+        protected DynamicObject eachBuckets(DynamicObject hash, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             Entry entry = Layouts.HASH.getFirstInSequence(hash);
@@ -489,9 +491,9 @@ public abstract class HashNodes {
             return hash;
         }
 
-        private Object yieldPair(DynamicObject block, Object key, Object value) {
+        private Object yieldPair(RubyProc block, Object key, Object value) {
             // MRI behavior, see rb_hash_each_pair()
-            if (arityMoreThanOne.profile(Layouts.PROC.getSharedMethodInfo(block).getArity().getArityNumber() > 1)) {
+            if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getArityNumber() > 1)) {
                 return yield(block, key, value);
             } else {
                 return yield(block, createArray(new Object[]{ key, value }));
@@ -529,7 +531,7 @@ public abstract class HashNodes {
         }
 
         @Specialization
-        protected DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, DynamicObject block,
+        protected DynamicObject initialize(DynamicObject hash, NotProvided defaultValue, RubyProc block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             Layouts.HASH.setDefaultValue(hash, nil);
@@ -549,7 +551,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "wasProvided(defaultValue)")
-        protected Object initialize(DynamicObject hash, Object defaultValue, DynamicObject block) {
+        protected Object initialize(DynamicObject hash, Object defaultValue, RubyProc block) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError("wrong number of arguments (1 for 0)", this));
@@ -654,15 +656,14 @@ public abstract class HashNodes {
         private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
 
         @Specialization(guards = "isNullHash(hash)")
-        protected RubyArray mapNull(DynamicObject hash, DynamicObject block) {
+        protected RubyArray mapNull(DynamicObject hash, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
-
             return ArrayHelpers.createEmptyArray(getContext());
         }
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        protected RubyArray mapPackedArray(DynamicObject hash, DynamicObject block,
+        protected RubyArray mapPackedArray(DynamicObject hash, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -689,7 +690,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected RubyArray mapBuckets(DynamicObject hash, DynamicObject block,
+        protected RubyArray mapBuckets(DynamicObject hash, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -715,9 +716,9 @@ public abstract class HashNodes {
             return createArray(arrayBuilderNode.finish(state, length), length);
         }
 
-        private Object yieldPair(DynamicObject block, Object key, Object value) {
+        private Object yieldPair(RubyProc block, Object key, Object value) {
             // MRI behavior, see rb_hash_each_pair()
-            if (arityMoreThanOne.profile(Layouts.PROC.getSharedMethodInfo(block).getArity().getArityNumber() > 1)) {
+            if (arityMoreThanOne.profile(block.sharedMethodInfo.getArity().getArityNumber() > 1)) {
                 return yield(block, key, value);
             } else {
                 return yield(block, createArray(new Object[]{ key, value }));
@@ -729,8 +730,8 @@ public abstract class HashNodes {
     @Primitive(name = "hash_set_default_proc")
     public abstract static class SetDefaultProcNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyProc(defaultProc)")
-        protected DynamicObject setDefaultProc(DynamicObject hash, DynamicObject defaultProc,
+        @Specialization
+        protected DynamicObject setDefaultProc(DynamicObject hash, RubyProc defaultProc,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.executePropagate(hash, defaultProc);
 
@@ -739,8 +740,8 @@ public abstract class HashNodes {
             return defaultProc;
         }
 
-        @Specialization(guards = "isNil(defaultProc)")
-        protected Object setDefaultProc(DynamicObject hash, Object defaultProc) {
+        @Specialization
+        protected Object setDefaultProc(DynamicObject hash, Nil defaultProc) {
             Layouts.HASH.setDefaultValue(hash, nil);
             Layouts.HASH.setDefaultBlock(hash, nil);
             return nil;

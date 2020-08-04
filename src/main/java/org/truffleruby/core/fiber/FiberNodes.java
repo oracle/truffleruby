@@ -20,6 +20,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.Visibility;
@@ -104,7 +105,7 @@ public abstract class FiberNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object initialize(RubyFiber fiber, DynamicObject block) {
+        protected Object initialize(RubyFiber fiber, RubyProc block) {
             final RubyThread thread = getContext().getThreadManager().getCurrentThread();
             thread.fiberManager.initialize(fiber, block, this);
             return nil;

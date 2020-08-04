@@ -9,16 +9,19 @@
  */
 package org.truffleruby.interop.messages;
 
+import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.yield.YieldNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ExportLibrary(value = InteropLibrary.class, receiverType = DynamicObject.class)
+@ExportLibrary(value = RubyLibrary.class, receiverType = DynamicObject.class)
 public class ProcMessages extends RubyObjectMessages {
 
     @ExportMessage
@@ -27,9 +30,9 @@ public class ProcMessages extends RubyObjectMessages {
     }
 
     @ExportMessage
-    protected static Object execute(DynamicObject proc, Object[] arguments,
+    protected static Object execute(DynamicObject receiver, Object[] arguments,
             @Cached YieldNode yieldNode,
             @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
-        return yieldNode.executeDispatch(proc, foreignToRubyArgumentsNode.executeConvert(arguments));
+        return yieldNode.executeDispatch((RubyProc) receiver, foreignToRubyArgumentsNode.executeConvert(arguments));
     }
 }

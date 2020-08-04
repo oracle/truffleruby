@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
@@ -51,7 +52,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
             final VirtualFrame frame,
             final Object receiverObject,
             final Object methodName,
-            DynamicObject blockObject,
+            RubyProc blockObject,
             final Object[] argumentsObjects) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         // Useful debug aid to catch a running-away NotProvided or undefined

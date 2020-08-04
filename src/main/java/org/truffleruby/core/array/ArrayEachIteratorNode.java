@@ -10,6 +10,7 @@
 package org.truffleruby.core.array;
 
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -27,8 +28,8 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 @ReportPolymorphism
 public abstract class ArrayEachIteratorNode extends RubyContextNode {
 
-    public static interface ArrayElementConsumerNode extends NodeInterface {
-        public abstract void accept(RubyArray array, DynamicObject block, Object element, int index);
+    public interface ArrayElementConsumerNode extends NodeInterface {
+        void accept(RubyArray array, RubyProc block, Object element, int index);
     }
 
     @Child private ArrayEachIteratorNode recurseNode;
@@ -37,7 +38,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
         return ArrayEachIteratorNodeGen.create();
     }
 
-    public abstract DynamicObject execute(RubyArray array, DynamicObject block, int startAt,
+    public abstract DynamicObject execute(RubyArray array, RubyProc block, int startAt,
             ArrayElementConsumerNode consumerNode);
 
     @Specialization(
@@ -45,7 +46,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
             limit = "storageStrategyLimit()")
     protected DynamicObject iterateOne(
             RubyArray array,
-            DynamicObject block,
+            RubyProc block,
             int startAt,
             ArrayElementConsumerNode consumerNode,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays) {
@@ -66,7 +67,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
             limit = "storageStrategyLimit()")
     protected DynamicObject iterateMany(
             RubyArray array,
-            DynamicObject block,
+            RubyProc block,
             int startAt,
             ArrayElementConsumerNode consumerNode,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays,

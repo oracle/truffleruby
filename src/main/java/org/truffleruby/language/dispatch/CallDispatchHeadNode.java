@@ -13,7 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeCost;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.proc.RubyProc;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 
@@ -64,7 +64,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         return dispatch(null, receiver, method, null, arguments);
     }
 
-    public Object callWithBlock(Object receiver, String method, DynamicObject block, Object... arguments) {
+    public Object callWithBlock(Object receiver, String method, RubyProc block, Object... arguments) {
         return dispatch(null, receiver, method, block, arguments);
     }
 
@@ -80,7 +80,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
 
         @Override
         @TruffleBoundary
-        public Object callWithBlock(Object receiver, String methodName, DynamicObject block, Object... arguments) {
+        public Object callWithBlock(Object receiver, String methodName, RubyProc block, Object... arguments) {
             return DSLUncachedDispatchNodeGen.getUncached().dispatch(
                     null,
                     receiver,
@@ -95,7 +95,7 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         }
 
         @Override
-        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, DynamicObject blockObject,
+        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, RubyProc blockObject,
                 Object[] argumentsObjects) {
             throw CompilerDirectives.shouldNotReachHere();
 

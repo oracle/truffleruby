@@ -11,12 +11,12 @@ package org.truffleruby.core.tracepoint;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.thread.RubyThread;
 
@@ -27,7 +27,7 @@ class TracePointEventNode extends TraceBaseEventNode {
     private final ConditionProfile inTracePointProfile = ConditionProfile.create();
 
     private final RubyTracePoint tracePoint;
-    private final DynamicObject proc;
+    private final RubyProc proc;
     private final RubySymbol event;
 
     public TracePointEventNode(

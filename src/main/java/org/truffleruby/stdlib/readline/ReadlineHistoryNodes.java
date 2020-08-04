@@ -48,6 +48,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.interop.ToJavaStringNode;
@@ -167,7 +168,7 @@ public abstract class ReadlineHistoryNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject each(DynamicObject history, DynamicObject block,
+        protected DynamicObject each(DynamicObject history, RubyProc block,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 

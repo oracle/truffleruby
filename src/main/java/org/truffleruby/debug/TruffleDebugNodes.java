@@ -33,6 +33,7 @@ import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
@@ -97,7 +98,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject setBreak(RubyString file, int line, DynamicObject block) {
+        protected DynamicObject setBreak(RubyString file, int line, RubyProc block) {
             final String fileString = StringOperations.getString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
@@ -194,16 +195,16 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyProc(proc)")
-        protected Object astProc(DynamicObject proc, NotProvided block) {
-            ast(Layouts.PROC.getCallTargetForType(proc));
+        @Specialization
+        protected Object astProc(RubyProc proc, NotProvided block) {
+            ast(proc.callTargetForType);
             return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected Object astBlock(NotProvided proc, DynamicObject block) {
-            ast(Layouts.PROC.getCallTargetForType(block));
+        protected Object astBlock(NotProvided proc, RubyProc block) {
+            ast(block.callTargetForType);
             return nil;
         }
 
@@ -256,16 +257,16 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyProc(proc)")
-        protected Object astProc(DynamicObject proc, NotProvided block) {
-            printAst(Layouts.PROC.getCallTargetForType(proc));
+        @Specialization
+        protected Object astProc(RubyProc proc, NotProvided block) {
+            printAst(proc.callTargetForType);
             return nil;
         }
 
         @TruffleBoundary
         @Specialization
-        protected Object astBlock(NotProvided proc, DynamicObject block) {
-            printAst(Layouts.PROC.getCallTargetForType(block));
+        protected Object astBlock(NotProvided proc, RubyProc block) {
+            printAst(block.callTargetForType);
             return nil;
         }
 

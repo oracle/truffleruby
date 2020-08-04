@@ -10,6 +10,7 @@
 package org.truffleruby.language.globals;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 
@@ -17,7 +18,6 @@ import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 public class GlobalVariableStorage {
@@ -33,15 +33,15 @@ public class GlobalVariableStorage {
 
     private volatile Object value;
 
-    private final DynamicObject getter;
-    private final DynamicObject setter;
-    private final DynamicObject isDefined;
+    private final RubyProc getter;
+    private final RubyProc setter;
+    private final RubyProc isDefined;
 
-    GlobalVariableStorage(DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+    GlobalVariableStorage(RubyProc getter, RubyProc setter, RubyProc isDefined) {
         this(UNSET_VALUE, getter, setter, isDefined);
     }
 
-    GlobalVariableStorage(Object value, DynamicObject getter, DynamicObject setter, DynamicObject isDefined) {
+    GlobalVariableStorage(Object value, RubyProc getter, RubyProc setter, RubyProc isDefined) {
         assert ((getter == null) == (setter == null)) & ((getter == null) == (isDefined == null));
 
         this.value = value;
@@ -67,15 +67,15 @@ public class GlobalVariableStorage {
         return (getter != null) && (setter != null) && (isDefined != null);
     }
 
-    public DynamicObject getGetter() {
+    public RubyProc getGetter() {
         return getter;
     }
 
-    public DynamicObject getSetter() {
+    public RubyProc getSetter() {
         return setter;
     }
 
-    public DynamicObject getIsDefined() {
+    public RubyProc getIsDefined() {
         return isDefined;
     }
 
