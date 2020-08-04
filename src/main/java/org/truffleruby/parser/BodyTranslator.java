@@ -19,7 +19,6 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
@@ -258,6 +257,7 @@ import org.truffleruby.parser.parser.ParseNodeTuple;
 import org.truffleruby.parser.parser.ParserSupport;
 import org.truffleruby.parser.scope.StaticScope;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -821,26 +821,27 @@ public class BodyTranslator extends Translator {
         return addNewlineIfNeeded(node, ret);
     }
 
-    private RubyNode openModule(SourceIndexLength sourceSection, RubyNode defineOrGetNode, String name,
-            ParseNode bodyNode, boolean sclass) {
+    private RubyNode openModule(SourceIndexLength sourceSection, RubyNode defineOrGetNode, String moduleName,
+            ParseNode bodyNode, OpenModule type) {
         final SourceSection fullSourceSection = sourceSection.toSourceSection(source);
+        final String methodName = type.format(moduleName);
 
-        LexicalScope newLexicalScope = environment.pushLexicalScope();
+        final LexicalScope newLexicalScope = environment.pushLexicalScope();
         try {
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
                     fullSourceSection,
                     newLexicalScope,
                     Arity.NO_ARGUMENTS,
                     null,
-                    name,
+                    methodName,
                     0,
-                    sclass ? "class body" : "module body",
+                    null,
                     null,
                     false);
 
             final ReturnID returnId;
 
-            if (sclass) {
+            if (type == OpenModule.SINGLETON_CLASS) {
                 returnId = environment.getReturnID();
             } else {
                 returnId = environment.getParseEnvironment().allocateReturnID();
@@ -854,7 +855,7 @@ public class BodyTranslator extends Translator {
                     true,
                     true,
                     sharedMethodInfo,
-                    name,
+                    methodName,
                     0,
                     null,
                     TranslatorEnvironment.newFrameDescriptor());
@@ -868,7 +869,7 @@ public class BodyTranslator extends Translator {
                     currentNode);
 
             final ModuleBodyDefinitionNode definition = moduleTranslator
-                    .compileClassNode(sourceSection, name, bodyNode, sclass);
+                    .compileClassNode(sourceSection, bodyNode, type);
 
             return Translator.withSourceSection(
                     sourceSection,
@@ -885,8 +886,8 @@ public class BodyTranslator extends Translator {
      * a special method. We run that method with self set to be the newly allocated module or class.
      * </p>
     */
-    private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, String name, ParseNode bodyNode,
-            boolean sclass) {
+    private ModuleBodyDefinitionNode compileClassNode(SourceIndexLength sourceSection, ParseNode bodyNode,
+            OpenModule type) {
         RubyNode body = translateNodeOrNil(sourceSection, bodyNode);
 
         body = new InsideModuleDefinitionNode(body);
@@ -913,7 +914,7 @@ public class BodyTranslator extends Translator {
                 environment.getSharedMethodInfo().getName(),
                 environment.getSharedMethodInfo(),
                 Truffle.getRuntime().createCallTarget(rootNode),
-                sclass,
+                type == OpenModule.SINGLETON_CLASS,
                 environment.isDynamicConstantLookup());
 
         return definitionNode;
@@ -930,7 +931,7 @@ public class BodyTranslator extends Translator {
         final RubyNode superClass = node.getSuperNode() != null ? node.getSuperNode().accept(this) : null;
         final DefineClassNode defineOrGetClass = new DefineClassNode(name, lexicalParent, superClass);
 
-        final RubyNode ret = openModule(sourceSection, defineOrGetClass, name, node.getBodyNode(), false);
+        final RubyNode ret = openModule(sourceSection, defineOrGetClass, name, node.getBodyNode(), OpenModule.CLASS);
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -1962,7 +1963,7 @@ public class BodyTranslator extends Translator {
 
         final DefineModuleNode defineModuleNode = DefineModuleNodeGen.create(name, lexicalParent);
 
-        final RubyNode ret = openModule(sourceSection, defineModuleNode, name, node.getBodyNode(), false);
+        final RubyNode ret = openModule(sourceSection, defineModuleNode, name, node.getBodyNode(), OpenModule.MODULE);
         return addNewlineIfNeeded(node, ret);
     }
 
@@ -2894,7 +2895,7 @@ public class BodyTranslator extends Translator {
 
         final RubyNode ret;
         try {
-            ret = openModule(sourceSection, singletonClassNode, "(singleton-def)", node.getBodyNode(), true);
+            ret = openModule(sourceSection, singletonClassNode, "", node.getBodyNode(), OpenModule.SINGLETON_CLASS);
         } finally {
             environment.getParseEnvironment().setDynamicConstantLookup(dynamicConstantLookup);
         }
