@@ -4,7 +4,7 @@ TruffleRuby is the [GraalVM](http://graalvm.org/) high-performance implementatio
 of the [Ruby programming language](https://www.ruby-lang.org/en/) built by
 [Oracle Labs](https://labs.oracle.com).
 
-## Getting started
+## Getting Started
 
 There are three ways to install TruffleRuby releases and nightly builds:
 
@@ -80,7 +80,7 @@ To find out which runtime configuration is used, run `ruby --version` on the com
 or check the value of `RUBY_DESCRIPTION` or `TruffleRuby.native?` in Ruby code.
 Runtime configurations are further detailed in [Deploying TruffleRuby](doc/user/deploying.md).
 
-## System compatibility
+## System Compatibility
 
 TruffleRuby is actively tested on these systems:
 
@@ -115,7 +115,7 @@ See the [contributor workflow] document if you wish to build TruffleRuby from so
 
 [contributor workflow]: doc/contributor/workflow.md
 
-## Current status
+## Current Status
 
 We recommend that people trying TruffleRuby on their gems and applications
 [get in touch with us](#contact) for help.
@@ -164,7 +164,7 @@ guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerabili
 rather than by something public such as a GitHub issue or a Gitter
 conversation.
 
-## Mailing list
+## Mailing List
 
 Announcements about GraalVM, including TruffleRuby, are made on the
 [graal-dev](http://mail.openjdk.java.net/mailman/listinfo/graal-dev) mailing list.
