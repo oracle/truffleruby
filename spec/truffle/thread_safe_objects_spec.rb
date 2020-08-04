@@ -258,16 +258,23 @@ describe "Sharing is correctly propagated for" do
   end
 
   it "Fiber local variables which do not share the value" do
-    thread = Thread.current
-    shared?(thread).should == true
+    require 'fiber'
+    # This spec relies on the Fiber not being shared,
+    # so create a new Thread to ensure the root Fiber is not shared.
+    Thread.new do
+      thread = Thread.current
+      shared?(thread).should == true
 
-    obj = Object.new
-    thread[:sharing_spec] = obj
-    begin
-      shared?(obj).should == false
-    ensure
-      thread[:sharing_spec] = nil
-    end
+      shared?(Fiber.current).should == false
+
+      obj = Object.new
+      thread[:sharing_spec] = obj
+      begin
+        shared?(obj).should == false
+      ensure
+        thread[:sharing_spec] = nil
+      end
+    end.join
   end
 
   it "Thread local variables which share the value (probably they should not)" do
