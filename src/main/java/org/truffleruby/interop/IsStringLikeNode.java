@@ -9,12 +9,12 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 public abstract class IsStringLikeNode extends RubyBaseNode {
@@ -25,8 +25,8 @@ public abstract class IsStringLikeNode extends RubyBaseNode {
 
     public abstract boolean executeIsStringLike(Object value);
 
-    @Specialization(guards = "isRubyString(value)")
-    protected boolean isRubyStringStringLike(DynamicObject value) {
+    @Specialization
+    protected boolean isRubyStringStringLike(RubyString value) {
         return true;
     }
 

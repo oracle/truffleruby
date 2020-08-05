@@ -790,7 +790,7 @@ public class RubyObjectMessages {
     }
     // endregion
 
-    private static Node getNode(RubyLibrary node) {
+    public static Node getNode(RubyLibrary node) {
         if (!node.isAdoptable()) {
             return EncapsulatingNodeReference.getCurrent().get();
         }

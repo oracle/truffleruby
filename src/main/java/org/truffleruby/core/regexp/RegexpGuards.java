@@ -12,9 +12,8 @@ package org.truffleruby.core.regexp;
 
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.RubyString;
 
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class RegexpGuards {
 
@@ -26,8 +25,8 @@ public class RegexpGuards {
         return regexp.options.isLiteral();
     }
 
-    public static boolean isValidEncoding(DynamicObject string, RopeNodes.CodeRangeNode rangeNode) {
-        return rangeNode.execute(StringOperations.rope(string)) != CodeRange.CR_BROKEN;
+    public static boolean isValidEncoding(RubyString string, RopeNodes.CodeRangeNode rangeNode) {
+        return rangeNode.execute(string.rope) != CodeRange.CR_BROKEN;
     }
 
     public static boolean isSameRegexp(RubyRegexp a, RubyRegexp b) {

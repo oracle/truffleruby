@@ -61,6 +61,7 @@ import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.RubyByteArray;
 import org.truffleruby.core.support.RubyIO;
@@ -216,7 +217,7 @@ public class CoreLibrary {
     public final DynamicObject polyglotModule;
     public final DynamicObject unsupportedMessageErrorClass;
     public final DynamicObject stringClass;
-    public final DynamicObjectFactory stringFactory;
+    public final Shape stringShape;
     public final DynamicObject symbolClass;
     public final DynamicObject syntaxErrorClass;
     public final DynamicObject systemCallErrorClass;
@@ -549,8 +550,8 @@ public class CoreLibrary {
         regexpShape = createShape(RubyRegexp.class, regexpClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(regexpClass, createFactory(regexpShape));
         stringClass = defineClass("String");
-        stringFactory = Layouts.STRING.createStringShape(stringClass, stringClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, stringFactory);
+        stringShape = createShape(RubyString.class, stringClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, createFactory(stringShape));
         symbolClass = defineClass("Symbol");
 
         threadClass = defineClass("Thread");

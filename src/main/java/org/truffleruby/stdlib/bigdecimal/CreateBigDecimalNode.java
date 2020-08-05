@@ -19,6 +19,7 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.numeric.BigDecimalOps;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.NotProvided;
@@ -190,14 +191,14 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
                 round(value.value, BigDecimalOps.newMathContext(digits, getRoundMode())));
     }
 
-    @Specialization(guards = "isRubyString(value)")
-    protected DynamicObject createString(DynamicObject value, NotProvided digits, boolean strict) {
+    @Specialization
+    protected DynamicObject createString(RubyString value, NotProvided digits, boolean strict) {
         return createString(value, 0, strict);
     }
 
     @TruffleBoundary
-    @Specialization(guards = "isRubyString(value)")
-    protected DynamicObject createString(DynamicObject value, int digits, boolean strict) {
+    @Specialization
+    protected DynamicObject createString(RubyString value, int digits, boolean strict) {
         return executeCreate(getValueFromString(StringOperations.getString(value), digits, strict), digits, strict);
     }
 

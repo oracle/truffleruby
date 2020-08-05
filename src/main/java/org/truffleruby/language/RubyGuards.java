@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language;
 
+import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
@@ -21,10 +22,9 @@ import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.range.RubyRange;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
-
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class RubyGuards {
 
@@ -159,11 +159,11 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyString(Object value) {
-        return Layouts.STRING.isString(value);
+        return value instanceof RubyString;
     }
 
     public static boolean isRubyString(DynamicObject value) {
-        return Layouts.STRING.isString(value);
+        return value instanceof RubyString;
     }
 
     public static boolean isRubyEncoding(Object object) {

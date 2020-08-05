@@ -19,6 +19,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.binding.RubyBinding;
@@ -71,8 +72,8 @@ public abstract class TruffleKernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(file)")
-        protected boolean load(DynamicObject file, boolean wrap,
+        @Specialization
+        protected boolean load(RubyString file, boolean wrap,
                 @Cached IndirectCallNode callNode) {
             final String feature = StringOperations.getString(file);
             final RubySource source;

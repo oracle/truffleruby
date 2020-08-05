@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.backtrace;
 
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleStackTraceElement;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -21,19 +22,17 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleStackTraceElement;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
 
 public class BacktraceFormatter {
 
@@ -116,7 +115,7 @@ public class BacktraceFormatter {
             // formatBacktrace() uses top order, so use the same order here to be consistent
             final Object fullMessage = context.send(rubyException, "full_message_order_top");
             if (RubyGuards.isRubyString(fullMessage)) {
-                formatted = StringOperations.getString((DynamicObject) fullMessage);
+                formatted = StringOperations.getString((RubyString) fullMessage);
             } else {
                 formatted = fullMessage.toString();
             }

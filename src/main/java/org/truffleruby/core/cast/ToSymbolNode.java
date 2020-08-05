@@ -12,14 +12,13 @@ package org.truffleruby.core.cast;
 import com.oracle.truffle.api.dsl.Cached;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 public abstract class ToSymbolNode extends RubyBaseNode {
@@ -49,9 +48,9 @@ public abstract class ToSymbolNode extends RubyBaseNode {
         return context.getSymbol(str);
     }
 
-    @Specialization(guards = "isRubyString(string)")
-    protected RubySymbol toSymbolRubyString(DynamicObject string,
+    @Specialization
+    protected RubySymbol toSymbolRubyString(RubyString string,
             @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getSymbol(StringOperations.rope(string));
+        return context.getSymbol(string.rope);
     }
 }

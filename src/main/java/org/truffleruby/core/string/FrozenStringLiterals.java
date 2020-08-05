@@ -10,24 +10,21 @@
 package org.truffleruby.core.string;
 
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.rope.Rope;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 public class FrozenStringLiterals {
 
     private final RubyContext context;
-    private final WeakValueCache<Rope, DynamicObject> values = new WeakValueCache<>();
+    private final WeakValueCache<Rope, RubyString> values = new WeakValueCache<>();
 
     public FrozenStringLiterals(RubyContext context) {
         this.context = context;
     }
 
-    public DynamicObject getFrozenStringLiteral(Rope rope) {
-        final DynamicObject string = values.get(rope);
+    public RubyString getFrozenStringLiteral(Rope rope) {
+        final RubyString string = values.get(rope);
         if (string != null) {
             return string;
         } else {
@@ -35,12 +32,12 @@ public class FrozenStringLiterals {
         }
     }
 
-    public DynamicObject getFrozenStringLiteral(DynamicObject string) {
-        assert Layouts.STRING.getFrozen(string) == true;
+    public RubyString getFrozenStringLiteral(RubyString string) {
+        assert string.frozen == true;
 
-        final Rope rope = Layouts.STRING.getRope(string);
+        final Rope rope = string.rope;
 
-        final DynamicObject stringCached = values.get(rope);
+        final RubyString stringCached = values.get(rope);
         if (stringCached != null) {
             return stringCached;
         } else {

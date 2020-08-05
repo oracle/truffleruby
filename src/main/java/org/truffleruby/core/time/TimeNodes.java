@@ -28,6 +28,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -422,18 +423,18 @@ public abstract class TimeNodes {
         @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization(
-                guards = { "isRubyString(format)", "equalNode.execute(rope(format), cachedFormat)" },
+                guards = { "equalNode.execute(format.rope, cachedFormat)" },
                 limit = "getContext().getOptions().TIME_FORMAT_CACHE")
-        protected DynamicObject timeStrftime(VirtualFrame frame, RubyTime time, DynamicObject format,
+        protected DynamicObject timeStrftime(VirtualFrame frame, RubyTime time, RubyString format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
                 @Cached("compilePattern(cachedFormat)") List<Token> pattern,
                 @Cached RopeNodes.EqualNode equalNode) {
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 
-        @Specialization(guards = "isRubyString(format)")
-        protected DynamicObject timeStrftime(VirtualFrame frame, RubyTime time, DynamicObject format) {
-            final List<Token> pattern = compilePattern(StringOperations.rope(format));
+        @Specialization
+        protected DynamicObject timeStrftime(VirtualFrame frame, RubyTime time, RubyString format) {
+            final List<Token> pattern = compilePattern(format.rope);
             return makeStringNode.fromBuilderUnsafe(formatTime(time, pattern), CodeRange.CR_UNKNOWN);
         }
 

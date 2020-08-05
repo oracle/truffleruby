@@ -13,8 +13,8 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
-import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 
@@ -32,11 +32,11 @@ public abstract class TruffleRopesNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject dumpString(DynamicObject string) {
+        @Specialization
+        protected DynamicObject dumpString(RubyString string) {
             final StringBuilder builder = new StringBuilder();
 
-            final Rope rope = StringOperations.rope(string);
+            final Rope rope = string.rope;
 
             for (int i = 0; i < rope.byteLength(); i++) {
                 builder.append(StringUtils.format("\\x%02x", rope.get(i)));
@@ -54,14 +54,14 @@ public abstract class TruffleRopesNodes {
                 .create();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        protected Object debugPrintDefault(DynamicObject string, NotProvided printString) {
+        @Specialization
+        protected Object debugPrintDefault(RubyString string, NotProvided printString) {
             return debugPrint(string, true);
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        protected Object debugPrint(DynamicObject string, boolean printString) {
+        @Specialization
+        protected Object debugPrint(RubyString string, boolean printString) {
             System.err.println("Legend: ");
             System.err.println("BN = Bytes Null? (byte[] not yet populated)");
             System.err.println("BL = Byte Length");
@@ -74,7 +74,7 @@ public abstract class TruffleRopesNodes {
             System.err.println("RD = Right Depth (ConcatRope only)");
             System.err.println("E = Encoding");
 
-            return debugPrintRopeNode.executeDebugPrint(StringOperations.rope(string), 0, printString);
+            return debugPrintRopeNode.executeDebugPrint(string.rope, 0, printString);
         }
     }
 
@@ -86,9 +86,9 @@ public abstract class TruffleRopesNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject getStructure(DynamicObject string) {
-            Rope rope = StringOperations.rope(string);
+        @Specialization
+        protected DynamicObject getStructure(RubyString string) {
+            Rope rope = string.rope;
             String result = getStructure(rope);
             return makeStringNode.executeMake(result.getBytes(), rope.getEncoding(), CodeRange.CR_7BIT);
         }
@@ -131,9 +131,9 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "bytes?", onSingleton = true, required = 1)
     public abstract static class HasBytesNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(string)")
-        protected boolean hasBytes(DynamicObject string) {
-            return StringOperations.rope(string).getRawBytes() != null;
+        @Specialization
+        protected boolean hasBytes(RubyString string) {
+            return string.rope.getRawBytes() != null;
         }
 
     }
@@ -141,11 +141,11 @@ public abstract class TruffleRopesNodes {
     @CoreMethod(names = "flatten_rope", onSingleton = true, required = 1)
     public abstract static class FlattenRopeNode extends CoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(string)")
-        protected DynamicObject flattenRope(DynamicObject string,
+        @Specialization
+        protected DynamicObject flattenRope(RubyString string,
                 @Cached RopeNodes.FlattenNode flattenNode,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
-            final LeafRope flattened = flattenNode.executeFlatten(StringOperations.rope(string));
+            final LeafRope flattened = flattenNode.executeFlatten(string.rope);
             return makeStringNode.fromRope(flattened);
         }
 

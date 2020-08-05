@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.hash;
 
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -16,7 +17,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
 
@@ -25,17 +25,17 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
     public abstract Object executeFreezeIfNeeded(Object key, boolean compareByIdentity);
 
     @Specialization(
-            guards = { "isRubyString(string)", "rubyLibrary.isFrozen(string)" },
+            guards = { "rubyLibrary.isFrozen(string)" },
             limit = "getRubyLibraryCacheLimit()")
-    protected Object alreadyFrozen(DynamicObject string, boolean compareByIdentity,
+    protected Object alreadyFrozen(RubyString string, boolean compareByIdentity,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
         return string;
     }
 
     @Specialization(
-            guards = { "isRubyString(string)", "!rubyLibrary.isFrozen(string)", "!compareByIdentity" },
+            guards = { "!rubyLibrary.isFrozen(string)", "!compareByIdentity" },
             limit = "getRubyLibraryCacheLimit()")
-    protected Object dupAndFreeze(DynamicObject string, boolean compareByIdentity,
+    protected Object dupAndFreeze(RubyString string, boolean compareByIdentity,
             @CachedLibrary("string") RubyLibrary rubyLibrary,
             @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryObject) {
         final Object object = dup(string);
@@ -44,9 +44,9 @@ public abstract class FreezeHashKeyIfNeededNode extends RubyContextNode {
     }
 
     @Specialization(
-            guards = { "isRubyString(string)", "!rubyLibrary.isFrozen(string)", "compareByIdentity" },
+            guards = { "!rubyLibrary.isFrozen(string)", "compareByIdentity" },
             limit = "getRubyLibraryCacheLimit()")
-    protected Object compareByIdentity(DynamicObject string, boolean compareByIdentity,
+    protected Object compareByIdentity(RubyString string, boolean compareByIdentity,
             @CachedLibrary("string") RubyLibrary rubyLibrary) {
         return string;
     }

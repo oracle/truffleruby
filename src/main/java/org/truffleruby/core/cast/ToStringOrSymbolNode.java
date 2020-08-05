@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.Layouts;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
@@ -36,8 +37,8 @@ public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
         return symbol;
     }
 
-    @Specialization(guards = "isRubyString(string)")
-    protected DynamicObject coerceRubyString(DynamicObject string) {
+    @Specialization
+    protected DynamicObject coerceRubyString(RubyString string) {
         return string;
     }
 

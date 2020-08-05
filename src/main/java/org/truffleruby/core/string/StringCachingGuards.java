@@ -16,10 +16,14 @@ import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class StringCachingGuards {
 
+    public static Rope privatizeRope(RubyString string) {
+        return string.rope;
+    }
+
     public static Rope privatizeRope(DynamicObject string) {
         if (RubyGuards.isRubyString(string)) {
             // TODO (nirvdrum 25-Jan-16) Should we flatten the rope to avoid caching a potentially deep rope tree?
-            return StringOperations.rope(string);
+            return ((RubyString) string).rope;
         } else {
             return null;
         }

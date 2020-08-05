@@ -61,8 +61,6 @@
  */
 package org.truffleruby.core.support;
 
-import static org.truffleruby.core.string.StringOperations.rope;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -79,6 +77,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.ThreadLocalBuffer;
@@ -141,10 +140,10 @@ public abstract class IONodes {
     public static abstract class FileFNMatchPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(pattern)", "isRubyString(path)" })
-        protected boolean fnmatch(DynamicObject pattern, DynamicObject path, int flags) {
-            final Rope patternRope = rope(pattern);
-            final Rope pathRope = rope(path);
+        @Specialization
+        protected boolean fnmatch(RubyString pattern, RubyString path, int flags) {
+            final Rope patternRope = pattern.rope;
+            final Rope pathRope = path.rope;
 
             return fnmatch(
                     patternRope.getBytes(),
@@ -469,8 +468,8 @@ public abstract class IONodes {
     public static abstract class IOWritePolyglotNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(string)")
-        protected int write(int fd, DynamicObject string) {
+        @Specialization
+        protected int write(int fd, RubyString string) {
             final OutputStream stream;
 
             switch (fd) {
@@ -485,7 +484,7 @@ public abstract class IONodes {
                     throw CompilerDirectives.shouldNotReachHere();
             }
 
-            final Rope rope = rope(string);
+            final Rope rope = string.rope;
             final byte[] bytes = rope.getBytes();
 
             getContext().getThreadManager().runUntilResult(this, () -> {

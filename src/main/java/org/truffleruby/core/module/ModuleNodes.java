@@ -48,6 +48,7 @@ import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -553,8 +554,8 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(filename)")
-        protected Object autoload(DynamicObject module, String name, DynamicObject filename) {
+        @Specialization
+        protected Object autoload(DynamicObject module, String name, RubyString filename) {
             if (!Identifiers.isValidConstantName(name)) {
                 throw new RaiseException(
                         getContext(),
@@ -565,7 +566,7 @@ public abstract class ModuleNodes {
                                 this));
             }
 
-            if (StringOperations.rope(filename).isEmpty()) {
+            if (filename.rope.isEmpty()) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("empty file name", this));
             }
 
@@ -586,8 +587,8 @@ public abstract class ModuleNodes {
             return isAutoload(module, name.getString());
         }
 
-        @Specialization(guards = "isRubyString(name)")
-        protected Object isAutoloadString(DynamicObject module, DynamicObject name) {
+        @Specialization
+        protected Object isAutoloadString(DynamicObject module, RubyString name) {
             return isAutoload(module, StringOperations.getString(name));
         }
 
@@ -609,7 +610,7 @@ public abstract class ModuleNodes {
         @Child private ToStrNode toStrNode;
         @Child private ReadCallerFrameNode readCallerFrameNode = ReadCallerFrameNode.create();
 
-        protected DynamicObject toStr(VirtualFrame frame, Object object) {
+        protected RubyString toStr(VirtualFrame frame, Object object) {
             if (toStrNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNode.create());
@@ -617,11 +618,11 @@ public abstract class ModuleNodes {
             return toStrNode.executeToStr(frame, object);
         }
 
-        @Specialization(guards = "isRubyString(code)")
+        @Specialization
         protected Object classEval(
                 VirtualFrame frame,
                 DynamicObject module,
-                DynamicObject code,
+                RubyString code,
                 NotProvided file,
                 NotProvided line,
                 NotProvided block,
@@ -629,24 +630,24 @@ public abstract class ModuleNodes {
             return classEvalSource(frame, module, code, "(eval)", callNode);
         }
 
-        @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
+        @Specialization
         protected Object classEval(
                 VirtualFrame frame,
                 DynamicObject module,
-                DynamicObject code,
-                DynamicObject file,
+                RubyString code,
+                RubyString file,
                 NotProvided line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
             return classEvalSource(frame, module, code, StringOperations.getString(file), callNode);
         }
 
-        @Specialization(guards = { "isRubyString(code)", "isRubyString(file)" })
+        @Specialization
         protected Object classEval(
                 VirtualFrame frame,
                 DynamicObject module,
-                DynamicObject code,
-                DynamicObject file,
+                RubyString code,
+                RubyString file,
                 int line,
                 NotProvided block,
                 @Cached IndirectCallNode callNode) {
@@ -671,11 +672,11 @@ public abstract class ModuleNodes {
             return classEvalSource(frame, module, toStr(frame, code), "(eval)", callNode);
         }
 
-        @Specialization(guards = { "isRubyString(code)", "wasProvided(file)" })
+        @Specialization(guards = { "wasProvided(file)" })
         protected Object classEval(
                 VirtualFrame frame,
                 DynamicObject module,
-                DynamicObject code,
+                RubyString code,
                 Object file,
                 NotProvided line,
                 NotProvided block,
@@ -683,15 +684,14 @@ public abstract class ModuleNodes {
             return classEvalSource(frame, module, code, StringOperations.getString(toStr(frame, file)), callNode);
         }
 
-        private Object classEvalSource(VirtualFrame frame, DynamicObject module, DynamicObject code, String file,
+        private Object classEvalSource(VirtualFrame frame, DynamicObject module, RubyString code, String file,
                 @Cached IndirectCallNode callNode) {
             final CodeLoader.DeferredCall deferredCall = classEvalSource(frame, module, code, file, 1);
             return deferredCall.call(callNode);
         }
 
         private CodeLoader.DeferredCall classEvalSource(VirtualFrame frame, DynamicObject module,
-                DynamicObject rubySource, String file, int line) {
-            assert RubyGuards.isRubyString(rubySource);
+                RubyString rubySource, String file, int line) {
 
             final MaterializedFrame callerFrame = readCallerFrameNode.execute(frame);
 
@@ -699,10 +699,10 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private CodeLoader.DeferredCall classEvalSourceInternal(DynamicObject module, DynamicObject rubySource,
+        private CodeLoader.DeferredCall classEvalSourceInternal(DynamicObject module, RubyString rubySource,
                 String file, int line, MaterializedFrame callerFrame) {
             final RubySource source = createEvalSourceNode
-                    .createEvalSource(StringOperations.rope(rubySource), "class/module_eval", file, line);
+                    .createEvalSource(rubySource.rope, "class/module_eval", file, line);
 
             final RubyRootNode rootNode = getContext().getCodeLoader().parse(
                     source,
@@ -967,9 +967,9 @@ public abstract class ModuleNodes {
         // String
 
         @Specialization(
-                guards = { "inherit", "isRubyString(name)", "equalNode.execute(rope(name), cachedRope)", "!scoped" },
+                guards = { "inherit", "equalNode.execute(name.rope, cachedRope)", "!scoped" },
                 limit = "getLimit()")
-        protected Object getConstantStringCached(DynamicObject module, DynamicObject name, boolean inherit,
+        protected Object getConstantStringCached(DynamicObject module, RubyString name, boolean inherit,
                 @Cached("privatizeRope(name)") Rope cachedRope,
                 @Cached("getString(name)") String cachedString,
                 @Cached RopeNodes.EqualNode equalNode,
@@ -978,20 +978,20 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(
-                guards = { "inherit", "isRubyString(name)", "!isScoped(name)" },
+                guards = { "inherit", "!isScoped(name)" },
                 replaces = "getConstantStringCached")
-        protected Object getConstantString(DynamicObject module, DynamicObject name, boolean inherit) {
+        protected Object getConstantString(DynamicObject module, RubyString name, boolean inherit) {
             return getConstant(module, StringOperations.getString(name));
         }
 
-        @Specialization(guards = { "!inherit", "isRubyString(name)", "!isScoped(name)" })
-        protected Object getConstantNoInheritString(DynamicObject module, DynamicObject name, boolean inherit) {
+        @Specialization(guards = { "!inherit", "!isScoped(name)" })
+        protected Object getConstantNoInheritString(DynamicObject module, RubyString name, boolean inherit) {
             return getConstantNoInherit(module, StringOperations.getString(name));
         }
 
         // Scoped String
-        @Specialization(guards = { "isRubyString(name)", "isScoped(name)" })
-        protected Object getConstantScoped(DynamicObject module, DynamicObject name, boolean inherit) {
+        @Specialization(guards = { "isScoped(name)" })
+        protected Object getConstantScoped(DynamicObject module, RubyString name, boolean inherit) {
             return FAILURE;
         }
 
@@ -1011,7 +1011,7 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        boolean isScoped(DynamicObject name) {
+        boolean isScoped(RubyString name) {
             // TODO (eregon, 27 May 2015): Any way to make this efficient?
             return StringOperations.getString(name).contains("::");
         }
@@ -1922,7 +1922,7 @@ public abstract class ModuleNodes {
                     }
                     final Object inspectResult = callRbInspect
                             .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
-                    attachedName = StringOperations.getString((DynamicObject) inspectResult);
+                    attachedName = StringOperations.getString((RubyString) inspectResult);
                 }
                 moduleName = "#<Class:" + attachedName + ">";
             } else if (fields.isRefinement()) {

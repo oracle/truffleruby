@@ -27,6 +27,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
@@ -73,8 +74,8 @@ public abstract class InteropNodes {
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(fileName)")
-        protected Object importFile(DynamicObject fileName) {
+        @Specialization
+        protected Object importFile(RubyString fileName) {
             try {
                 //intern() to improve footprint
                 final TruffleFile file = getContext()
@@ -1030,8 +1031,8 @@ public abstract class InteropNodes {
     public abstract static class MimeTypeSupportedNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(mimeType)")
-        protected boolean isMimeTypeSupported(DynamicObject mimeType) {
+        @Specialization
+        protected boolean isMimeTypeSupported(RubyString mimeType) {
             return getContext().getEnv().isMimeTypeSupported(StringOperations.getString(mimeType));
         }
 
@@ -1073,12 +1074,10 @@ public abstract class InteropNodes {
 
         @Specialization(
                 guards = {
-                        "isRubyString(mimeType)",
-                        "isRubyString(source)",
-                        "mimeTypeEqualNode.execute(rope(mimeType), cachedMimeType)",
-                        "sourceEqualNode.execute(rope(source), cachedSource)" },
+                        "mimeTypeEqualNode.execute(mimeType.rope, cachedMimeType)",
+                        "sourceEqualNode.execute(source.rope, cachedSource)" },
                 limit = "getCacheLimit()")
-        protected Object evalCached(DynamicObject mimeType, DynamicObject source,
+        protected Object evalCached(RubyString mimeType, RubyString source,
                 @Cached("privatizeRope(mimeType)") Rope cachedMimeType,
                 @Cached("privatizeRope(source)") Rope cachedSource,
                 @Cached("create(parse(mimeType, source))") DirectCallNode callNode,
@@ -1087,14 +1086,14 @@ public abstract class InteropNodes {
             return callNode.call(EMPTY_ARGUMENTS);
         }
 
-        @Specialization(guards = { "isRubyString(mimeType)", "isRubyString(source)" }, replaces = "evalCached")
-        protected Object evalUncached(DynamicObject mimeType, DynamicObject source,
+        @Specialization(replaces = "evalCached")
+        protected Object evalUncached(RubyString mimeType, RubyString source,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(mimeType, source), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(DynamicObject mimeType, DynamicObject code) {
+        protected CallTarget parse(RubyString mimeType, RubyString code) {
             final String mimeTypeString = StringOperations.getString(mimeType);
             final String codeString = StringOperations.getString(code);
             String language = Source.findLanguage(mimeTypeString);
@@ -1119,14 +1118,14 @@ public abstract class InteropNodes {
     @Primitive(name = "interop_eval_nfi")
     public abstract static class InteropEvalNFINode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyString(code)")
-        protected Object evalNFI(DynamicObject code,
+        @Specialization
+        protected Object evalNFI(RubyString code,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(parse(code), EMPTY_ARGUMENTS);
         }
 
         @TruffleBoundary
-        protected CallTarget parse(DynamicObject code) {
+        protected CallTarget parse(RubyString code) {
             final String codeString = StringOperations.getString(code);
             final Source source = Source.newBuilder("nfi", codeString, "(eval)").build();
 
@@ -1358,8 +1357,8 @@ public abstract class InteropNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(name)")
-        protected Object javaTypeString(DynamicObject name) {
+        @Specialization
+        protected Object javaTypeString(RubyString name) {
             return javaType(StringOperations.getString(name));
         }
 

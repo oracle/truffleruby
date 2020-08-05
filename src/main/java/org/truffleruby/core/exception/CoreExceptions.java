@@ -25,6 +25,7 @@ import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -198,7 +199,7 @@ public class CoreExceptions {
         assert RubyGuards.isRubyString(object);
 
         // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
-        final String formattedObject = StringOperations.getString((DynamicObject) context.send(object, "inspect"));
+        final String formattedObject = StringOperations.getString((RubyString) context.send(object, "inspect"));
         return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
     }
 
@@ -578,7 +579,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException typeErrorUnsupportedTypeException(UnsupportedTypeException exception, Node currentNode) {
         RubyArray rubyArray = createArray(context, exception.getSuppliedValues());
-        String formattedValues = StringOperations.getString((DynamicObject) context.send(rubyArray, "inspect"));
+        String formattedValues = StringOperations.getString((RubyString) context.send(rubyArray, "inspect"));
         return typeError("unsupported type " + formattedValues, currentNode);
     }
 

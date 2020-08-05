@@ -12,12 +12,12 @@ package org.truffleruby.core.format.convert;
 import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.library.CachedLibrary;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -81,8 +81,8 @@ public abstract class ToStringNode extends FormatNode {
         return RopeOperations.encodeAsciiBytes(Double.toString(value));
     }
 
-    @Specialization(guards = "isRubyString(string)", limit = "getRubyLibraryCacheLimit()")
-    protected byte[] toStringString(VirtualFrame frame, DynamicObject string,
+    @Specialization(limit = "getRubyLibraryCacheLimit()")
+    protected byte[] toStringString(VirtualFrame frame, RubyString string,
             @CachedLibrary("string") RubyLibrary rubyLibrary,
             @Cached RopeNodes.BytesNode bytesNode) {
         if (taintedProfile.profile(rubyLibrary.isTainted(string))) {
@@ -96,12 +96,12 @@ public abstract class ToStringNode extends FormatNode {
                     setTainted(frame);
                 }
 
-                return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
+                return bytesNode.execute(((RubyString) value).rope);
             } else {
                 throw new NoImplicitConversionException(string, "String");
             }
         }
-        return bytesNode.execute(Layouts.STRING.getRope(string));
+        return bytesNode.execute(string.rope);
     }
 
     @Specialization(guards = "isRubyArray(array)")
@@ -120,7 +120,7 @@ public abstract class ToStringNode extends FormatNode {
                 setTainted(frame);
             }
 
-            return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
+            return bytesNode.execute(((RubyString) value).rope);
         } else {
             throw new NoImplicitConversionException(array, "String");
         }
@@ -138,7 +138,7 @@ public abstract class ToStringNode extends FormatNode {
                 setTainted(frame);
             }
 
-            return bytesNode.execute(Layouts.STRING.getRope((DynamicObject) value));
+            return bytesNode.execute(((RubyString) value).rope);
         }
 
         if (inspectOnConversionFailure) {
@@ -147,7 +147,7 @@ public abstract class ToStringNode extends FormatNode {
                 inspectNode = insert(KernelNodes.ToSNode.create());
             }
 
-            return bytesNode.execute(Layouts.STRING.getRope(inspectNode.executeToS(object)));
+            return bytesNode.execute((inspectNode.executeToS(object)).rope);
         } else {
             throw new NoImplicitConversionException(object, "String");
         }

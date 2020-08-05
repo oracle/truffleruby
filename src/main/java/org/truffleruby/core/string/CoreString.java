@@ -17,7 +17,6 @@ import org.truffleruby.core.rope.Rope;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.rope.RopeOperations;
 
 public class CoreString {
@@ -49,7 +48,7 @@ public class CoreString {
         return rope;
     }
 
-    public DynamicObject createInstance() {
+    public RubyString createInstance() {
         return StringOperations.createString(context, getRope());
     }
 

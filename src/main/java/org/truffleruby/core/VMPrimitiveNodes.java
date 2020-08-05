@@ -64,6 +64,7 @@ import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -221,8 +222,8 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMWatchSignalNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(signalName)", "isRubyString(action)" })
-        protected boolean restoreDefault(DynamicObject signalName, DynamicObject action) {
+        @Specialization
+        protected boolean restoreDefault(RubyString signalName, RubyString action) {
             final String actionString = StringOperations.getString(action);
             final String signal = StringOperations.getString(signalName);
 
@@ -239,8 +240,8 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(signalName)", "isRubyProc(action)" })
-        protected boolean watchSignalProc(DynamicObject signalName, DynamicObject action) {
+        @Specialization(guards = { "isRubyProc(action)" })
+        protected boolean watchSignalProc(RubyString signalName, DynamicObject action) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), action);
@@ -365,8 +366,8 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMGetConfigItemNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(key)")
-        protected Object get(DynamicObject key) {
+        @Specialization
+        protected Object get(RubyString key) {
             final Object value = getContext().getNativeConfiguration().get(StringOperations.getString(key));
 
             if (value == null) {
@@ -382,8 +383,8 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMGetConfigSectionNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyString(section)", "isRubyProc(block)" })
-        protected Object getSection(DynamicObject section, DynamicObject block,
+        @Specialization(guards = { "isRubyProc(block)" })
+        protected Object getSection(RubyString section, DynamicObject block,
                 @Cached MakeStringNode makeStringNode,
                 @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()

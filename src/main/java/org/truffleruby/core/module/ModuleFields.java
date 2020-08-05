@@ -27,6 +27,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.MethodFilter;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyGuards;
@@ -328,8 +329,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, DynamicObject filename) {
-        assert RubyGuards.isRubyString(filename);
+    public void setAutoloadConstant(RubyContext context, Node currentNode, String name, RubyString filename) {
         RubyConstant autoloadConstant = setConstantInternal(context, currentNode, name, filename, true);
         if (context.getOptions().LOG_AUTOLOAD) {
             RubyLanguage.LOGGER.info(() -> String.format(

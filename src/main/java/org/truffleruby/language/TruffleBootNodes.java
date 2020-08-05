@@ -24,6 +24,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -111,7 +112,7 @@ public abstract class TruffleBootNodes {
 
         @TruffleBoundary
         @Specialization
-        protected int main(DynamicObject kind, DynamicObject toExecute) {
+        protected int main(RubyString kind, RubyString toExecute) {
             return topLevelRaiseHandler.execute(() -> {
                 setArgvGlobals();
 
@@ -301,8 +302,8 @@ public abstract class TruffleBootNodes {
         @Child private MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyString(optionName)")
-        protected Object getOption(DynamicObject optionName) {
+        @Specialization
+        protected Object getOption(RubyString optionName) {
             if (getContext().isPreInitializing()) {
                 throw new RaiseException(
                         getContext(),

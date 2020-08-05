@@ -60,6 +60,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
@@ -111,7 +112,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject setBasicWordBreakCharacters(DynamicObject characters) {
+        protected DynamicObject setBasicWordBreakCharacters(RubyString characters) {
             ProcCompleter.setDelimiter(StringOperations.getString(characters));
             return characters;
         }
@@ -401,7 +402,7 @@ public abstract class ReadlineNodes {
             assert RubyGuards.isRubyArray(completions);
             for (Object element : ArrayOperations.toIterable(completions)) {
                 assert RubyGuards.isRubyString(element);
-                candidates.add(StringOperations.getString((DynamicObject) element));
+                candidates.add(StringOperations.getString((RubyString) element));
             }
             return cursor - buffer.length();
         }

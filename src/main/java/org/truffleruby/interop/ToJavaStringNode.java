@@ -13,6 +13,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -24,7 +25,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @GenerateUncached
@@ -43,21 +43,21 @@ public abstract class ToJavaStringNode extends RubySourceNode {
     public abstract String executeToJavaString(Object name);
 
     @Specialization(
-            guards = { "isRubyString(value)", "equalsNode.execute(rope(value), cachedRope)" },
+            guards = { "equalsNode.execute(value.rope, cachedRope)" },
             limit = "getLimit()")
-    protected String stringCached(DynamicObject value,
+    protected String stringCached(RubyString value,
             @Cached("privatizeRope(value)") Rope cachedRope,
             @Cached("getString(value)") String convertedString,
             @Cached RopeNodes.EqualNode equalsNode) {
         return convertedString;
     }
 
-    @Specialization(guards = "isRubyString(value)", replaces = "stringCached")
-    protected String stringUncached(DynamicObject value,
+    @Specialization(replaces = "stringCached")
+    protected String stringUncached(RubyString value,
             @Cached ConditionProfile asciiOnlyProfile,
             @Cached RopeNodes.AsciiOnlyNode asciiOnlyNode,
             @Cached RopeNodes.BytesNode bytesNode) {
-        final Rope rope = StringOperations.rope(value);
+        final Rope rope = value.rope;
         final byte[] bytes = bytesNode.execute(rope);
 
         if (asciiOnlyProfile.profile(asciiOnlyNode.execute(rope))) {

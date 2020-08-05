@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -107,7 +108,7 @@ public abstract class DispatchNode extends FrameSendingNode {
         if (methodName instanceof String) {
             return (String) methodName;
         } else if (RubyGuards.isRubyString(methodName)) {
-            return StringOperations.getString((DynamicObject) methodName);
+            return StringOperations.getString((RubyString) methodName);
         } else if (methodName instanceof RubySymbol) {
             return ((RubySymbol) methodName).getString();
         } else {
