@@ -46,6 +46,7 @@ import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.mutex.RubyConditionVariable;
 import org.truffleruby.core.mutex.RubyMutex;
@@ -258,7 +259,7 @@ public class CoreLibrary {
     public final DynamicObject encodingCompatibilityErrorClass;
     public final DynamicObject encodingUndefinedConversionErrorClass;
     public final Shape methodShape;
-    public final DynamicObjectFactory unboundMethodFactory;
+    public final Shape unboundMethodShape;
     public final Shape byteArrayShape;
     public final DynamicObject fiberErrorClass;
     public final DynamicObject threadErrorClass;
@@ -571,8 +572,8 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, createFactory(timeShape));
         trueClass = defineClass("TrueClass");
         DynamicObject unboundMethodClass = defineClass("UnboundMethod");
-        unboundMethodFactory = Layouts.UNBOUND_METHOD.createUnboundMethodShape(unboundMethodClass, unboundMethodClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(unboundMethodClass, unboundMethodFactory);
+        unboundMethodShape = createShape(RubyUnboundMethod.class, unboundMethodClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(unboundMethodClass, createFactory(unboundMethodShape));
         ioClass = defineClass("IO");
         Shape ioShape = createShape(RubyIO.class, ioClass);
         Layouts.CLASS.setInstanceFactoryUnsafe(ioClass, createFactory(ioShape));

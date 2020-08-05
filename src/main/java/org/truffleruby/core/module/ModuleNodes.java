@@ -39,6 +39,7 @@ import org.truffleruby.core.cast.ToStringOrSymbolNodeGen;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.module.ModuleNodesFactory.ClassExecNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.ConstSetNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
@@ -88,6 +89,7 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.methods.UsingNode;
 import org.truffleruby.language.methods.UsingNodeGen;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ReadInstanceVariableNode;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -1171,21 +1173,21 @@ public abstract class ModuleNodes {
             return getSymbol(name);
         }
 
-        @Specialization(guards = "isRubyUnboundMethod(method)")
+        @Specialization
         protected RubySymbol defineMethod(
                 VirtualFrame frame,
                 DynamicObject module,
                 String name,
-                DynamicObject method,
+                RubyUnboundMethod method,
                 NotProvided block) {
             final MaterializedFrame callerFrame = readCallerFrame.execute(frame);
             return defineMethodInternal(module, name, method, callerFrame);
         }
 
         @TruffleBoundary
-        private RubySymbol defineMethodInternal(DynamicObject module, String name, DynamicObject method,
+        private RubySymbol defineMethodInternal(DynamicObject module, String name, RubyUnboundMethod method,
                 final MaterializedFrame callerFrame) {
-            final InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(method);
+            final InternalMethod internalMethod = method.method;
             if (!ModuleOperations.canBindMethodTo(internalMethod, module)) {
                 final DynamicObject declaringModule = internalMethod.getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {
@@ -1588,7 +1590,8 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected DynamicObject publicInstanceMethod(DynamicObject module, String name,
+        protected RubyUnboundMethod publicInstanceMethod(DynamicObject module, String name,
+                @Cached AllocateHelperNode allocateHelperNode,
                 @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1601,7 +1604,9 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorPrivateMethod(name, module, this));
             }
 
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().unboundMethodFactory, module, method);
+            final RubyUnboundMethod instance = new RubyUnboundMethod(coreLibrary().unboundMethodShape, module, method);
+            allocateHelperNode.trace(instance, this);
+            return instance;
         }
 
     }
@@ -1743,7 +1748,8 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected DynamicObject instanceMethod(DynamicObject module, String name,
+        protected RubyUnboundMethod instanceMethod(DynamicObject module, String name,
+                @Cached AllocateHelperNode allocateHelperNode,
                 @Cached BranchProfile errorProfile) {
             // TODO(CS, 11-Jan-15) cache this lookup
             final InternalMethod method = ModuleOperations.lookupMethodUncached(module, name, null);
@@ -1753,7 +1759,9 @@ public abstract class ModuleNodes {
                 throw new RaiseException(getContext(), coreExceptions().nameErrorUndefinedMethod(name, module, this));
             }
 
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(coreLibrary().unboundMethodFactory, module, method);
+            final RubyUnboundMethod instance = new RubyUnboundMethod(coreLibrary().unboundMethodShape, module, method);
+            allocateHelperNode.trace(instance, this);
+            return instance;
         }
 
     }
