@@ -14,6 +14,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
@@ -187,11 +188,11 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyUnboundMethod(Object value) {
-        return Layouts.UNBOUND_METHOD.isUnboundMethod(value);
+        return value instanceof RubyUnboundMethod;
     }
 
     public static boolean isRubyUnboundMethod(DynamicObject value) {
-        return Layouts.UNBOUND_METHOD.isUnboundMethod(value);
+        return value instanceof RubyUnboundMethod;
     }
 
     public static boolean isDynamicObject(Object value) {

@@ -19,6 +19,7 @@ import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
@@ -177,7 +178,7 @@ public class RubyObjectMessages {
         } else if (RubyGuards.isRubyMethod(receiver)) {
             return ((RubyMethod) receiver).method.getSharedMethodInfo().getSourceSection();
         } else if (RubyGuards.isRubyUnboundMethod(receiver)) {
-            return Layouts.UNBOUND_METHOD.getMethod(receiver).getSharedMethodInfo().getSourceSection();
+            return ((RubyUnboundMethod) receiver).method.getSharedMethodInfo().getSourceSection();
         } else if (RubyGuards.isRubyProc(receiver)) {
             return Layouts.PROC.getMethod(receiver).getSharedMethodInfo().getSourceSection();
         } else {

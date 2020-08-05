@@ -16,6 +16,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyNode;
@@ -55,10 +56,10 @@ public abstract class TruffleGraalNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyUnboundMethod(rubyMethod)")
-        protected DynamicObject splitUnboundMethod(DynamicObject rubyMethod) {
+        @Specialization
+        protected DynamicObject splitUnboundMethod(RubyUnboundMethod rubyMethod) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
-                InternalMethod internalMethod = Layouts.UNBOUND_METHOD.getMethod(rubyMethod);
+                InternalMethod internalMethod = rubyMethod.method;
                 internalMethod.getSharedMethodInfo().setAlwaysClone(true);
             }
             return rubyMethod;

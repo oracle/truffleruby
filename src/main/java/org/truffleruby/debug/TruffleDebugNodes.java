@@ -31,6 +31,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
@@ -185,9 +186,9 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyUnboundMethod(method)")
-        protected Object astUnboundMethod(DynamicObject method, NotProvided block) {
-            ast(Layouts.UNBOUND_METHOD.getMethod(method));
+        @Specialization
+        protected Object astUnboundMethod(RubyUnboundMethod method, NotProvided block) {
+            ast(method.method);
             return nil;
         }
 
@@ -247,9 +248,9 @@ public abstract class TruffleDebugNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyUnboundMethod(method)")
-        protected Object astUnboundMethod(DynamicObject method, NotProvided block) {
-            printAst(Layouts.UNBOUND_METHOD.getMethod(method));
+        @Specialization
+        protected Object astUnboundMethod(RubyUnboundMethod method, NotProvided block) {
+            printAst(method.method);
             return nil;
         }
 

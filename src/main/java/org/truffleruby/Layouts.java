@@ -15,8 +15,6 @@ import org.truffleruby.core.hash.HashLayout;
 import org.truffleruby.core.hash.HashLayoutImpl;
 import org.truffleruby.core.klass.ClassLayout;
 import org.truffleruby.core.klass.ClassLayoutImpl;
-import org.truffleruby.core.method.UnboundMethodLayout;
-import org.truffleruby.core.method.UnboundMethodLayoutImpl;
 import org.truffleruby.core.module.ModuleLayout;
 import org.truffleruby.core.module.ModuleLayoutImpl;
 import org.truffleruby.core.proc.ProcLayout;
@@ -51,6 +49,5 @@ public abstract class Layouts {
     public static final ProcLayout PROC = ProcLayoutImpl.INSTANCE;
     public static final StringLayout STRING = StringLayoutImpl.INSTANCE;
     public static final ThreadLayout THREAD = ThreadLayoutImpl.INSTANCE;
-    public static final UnboundMethodLayout UNBOUND_METHOD = UnboundMethodLayoutImpl.INSTANCE;
 
 }

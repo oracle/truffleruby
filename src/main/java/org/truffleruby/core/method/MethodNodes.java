@@ -226,12 +226,15 @@ public abstract class MethodNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        protected DynamicObject unbind(VirtualFrame frame, RubyMethod method) {
+        protected RubyUnboundMethod unbind(VirtualFrame frame, RubyMethod method,
+                @Cached AllocateHelperNode allocateHelperNode) {
             final DynamicObject receiverClass = classNode.executeLogicalClass(method.receiver);
-            return Layouts.UNBOUND_METHOD.createUnboundMethod(
-                    coreLibrary().unboundMethodFactory,
+            final RubyUnboundMethod instance = new RubyUnboundMethod(
+                    coreLibrary().unboundMethodShape,
                     receiverClass,
                     method.method);
+            allocateHelperNode.trace(instance, this);
+            return instance;
         }
 
     }
