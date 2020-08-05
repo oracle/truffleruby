@@ -47,7 +47,6 @@ fails:Public methods on Digest::Instance should not include to_str
 fails:Public methods on Digest::Instance should include block_length
 fails:Public methods on Dir should not include closed?
 fails:Public methods on Exception should not include backtrace?
-fails:Public methods on Exception should not include capture_backtrace!
 fails:Public methods on Exception should not include location
 fails:Public methods on Exception should not include set_context
 fails:Public methods on Exception should not include to_yaml_properties

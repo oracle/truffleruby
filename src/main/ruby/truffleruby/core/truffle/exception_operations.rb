@@ -32,7 +32,7 @@ module Truffle
     # Avoid using #raise here to prevent infinite recursion
     def self.exception_class_object_expected!
       exc = ::TypeError.new('exception class/object expected')
-      exc.capture_backtrace!(1)
+      Primitive.exception_capture_backtrace(exc, 1)
 
       show_exception_for_debug(exc, 2) if $DEBUG
 

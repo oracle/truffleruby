@@ -675,7 +675,7 @@ module Kernel
       exc = Truffle::ExceptionOperations.build_exception_for_raise(exc, msg)
 
       exc.set_context ctx if ctx
-      exc.capture_backtrace!(1) unless exc.backtrace?
+      Primitive.exception_capture_backtrace(exc, 1) unless exc.backtrace?
       Primitive.exception_set_cause exc, last unless Primitive.object_equal(exc, last)
     end
 
