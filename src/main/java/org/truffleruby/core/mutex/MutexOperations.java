@@ -12,6 +12,7 @@ package org.truffleruby.core.mutex;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
@@ -42,6 +43,10 @@ public abstract class MutexOperations {
             lock.lockInterruptibly();
             return ThreadManager.BlockingAction.SUCCESS;
         });
+
+        if (!lock.isHeldByCurrentThread()) {
+            throw CompilerDirectives.shouldNotReachHere("lockInternal() did not acquire lock as expected");
+        }
     }
 
     @TruffleBoundary
@@ -79,7 +84,7 @@ public abstract class MutexOperations {
             }
         } finally {
             if (!lock.isHeldByCurrentThread()) {
-                throw new AssertionError("the lock could not be reacquired after Mutex#sleep");
+                throw CompilerDirectives.shouldNotReachHere("the lock could not be reacquired after Mutex#sleep");
             }
         }
 
@@ -96,7 +101,9 @@ public abstract class MutexOperations {
 
     @TruffleBoundary
     public static void unlockInternal(ReentrantLock lock) {
-        assert lock.isHeldByCurrentThread();
+        if (!lock.isHeldByCurrentThread()) {
+            throw CompilerDirectives.shouldNotReachHere("the lock was not held when calling unlockInternal()");
+        }
         lock.unlock();
     }
 
