@@ -475,7 +475,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       local gate_no_build = $.cap.gate + $.use.common + { timelimit: "01:00:00" },
       local gate = gate_no_build + $.use.build,
       local native_config = $.run.generate_native_config + $.run.check_native_config,
-      local native_tests = $.run.testdownstream_aot + $.run.test_integration,
+      local native_tests = $.run.testdownstream_aot + $.run.test_integration + $.run.test_compiler,
 
       // Order: platform, jdk, mx_env. Keep aligned for an easy visual comparison.
       "ruby-test-specs-linux":       $.platform.linux  + $.jdk.v8  + $.env.jvm + gate_no_build + $.use.build_no_clean + $.run.test_unit_tck + native_config + $.run.clean + $.run.test_specs + { timelimit: "45:00" },
