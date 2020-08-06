@@ -494,9 +494,10 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-test-ecosystem-linux":   $.platform.linux  + $.jdk.v8  + $.env.jvm + gate + $.use.node + $.use.sqlite331 + $.use.gem_test_pack + $.run.test_ecosystem,
       "ruby-test-standalone-linux":  $.platform.linux  + $.jdk.v8 + gate_no_build + $.run.test_make_standalone_distribution + { timelimit: "40:00" },
 
-      "ruby-test-compiler-graal-core":    $.platform.linux + $.jdk.v8  + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
-      "ruby-test-compiler-graal-core-11": $.platform.linux + $.jdk.v11 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
-      # "ruby-test-compiler-graal-enterprise": $.platform.linux + $.jdk.v8 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-core":          $.platform.linux + $.jdk.v8  + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-core-11":       $.platform.linux + $.jdk.v11 + $.env.jvm_ce + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-enterprise":    $.platform.linux + $.jdk.v8 +  $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
+      "ruby-test-compiler-graal-enterprise-11": $.platform.linux + $.jdk.v11 + $.env.jvm_ee + gate + $.use.truffleruby + $.run.test_compiler,
 
       "ruby-test-svm-graal-core-linux":        $.platform.linux  + $.jdk.v8  + $.env.native_RemoveSaturatedTypeFlows + gate + native_tests,
       "ruby-test-svm-graal-core-linux-11":     $.platform.linux  + $.jdk.v11 + $.env.native                          + gate + native_tests,
