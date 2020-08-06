@@ -18,13 +18,15 @@ import com.oracle.truffle.api.utilities.TruffleWeakReference;
 
 public class ThreadAndFrameLocalStorage {
 
+    private static final TruffleWeakReference<Thread> EMPTY_WEAK_REF = newTruffleWeakReference(null);
+
     private final TruffleWeakReference<Thread> originalThread;
     private Object originalThreadValue;
     private volatile ThreadLocal<Object> otherThreadValues = null;
 
     public ThreadAndFrameLocalStorage(RubyContext context) {
         // Cannot store a Thread instance while pre-initializing
-        originalThread = new TruffleWeakReference<>(context.isPreInitializing() ? null : Thread.currentThread());
+        originalThread = context.isPreInitializing() ? EMPTY_WEAK_REF : newTruffleWeakReference(Thread.currentThread());
         originalThreadValue = initialValue();
     }
 
@@ -67,6 +69,11 @@ public class ThreadAndFrameLocalStorage {
     @TruffleBoundary
     private void fallbackSet(Object value) {
         getOtherThreadValues().set(value);
+    }
+
+    @TruffleBoundary // GR-25356
+    private static TruffleWeakReference<Thread> newTruffleWeakReference(Thread thread) {
+        return new TruffleWeakReference<>(thread);
     }
 
     protected Object initialValue() {
