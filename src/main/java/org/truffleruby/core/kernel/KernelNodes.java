@@ -71,6 +71,7 @@ import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNode
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
@@ -1753,17 +1754,17 @@ public abstract class KernelNodes {
                         coreExceptions().argumentError("time interval must be positive", this));
             }
 
-            final DynamicObject thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
 
             // Clear the wakeUp flag, following Ruby semantics:
             // it should only be considered if we are inside the sleep when Thread#{run,wakeup} is called.
-            Layouts.THREAD.getWakeUp(thread).set(false);
+            thread.wakeUp.set(false);
 
             return sleepFor(getContext(), thread, durationInMillis, this);
         }
 
         @TruffleBoundary
-        public static long sleepFor(RubyContext context, DynamicObject thread, long durationInMillis,
+        public static long sleepFor(RubyContext context, RubyThread thread, long durationInMillis,
                 Node currentNode) {
             assert durationInMillis >= 0;
 
@@ -1775,7 +1776,7 @@ public abstract class KernelNodes {
                 final long sleptInNanos = nowInNanos - startInNanos;
                 final long sleptInMillis = TimeUnit.NANOSECONDS.toMillis(sleptInNanos);
 
-                if (sleptInMillis >= durationInMillis || Layouts.THREAD.getWakeUp(thread).getAndSet(false)) {
+                if (sleptInMillis >= durationInMillis || thread.wakeUp.getAndSet(false)) {
                     return BlockingAction.SUCCESS;
                 }
 

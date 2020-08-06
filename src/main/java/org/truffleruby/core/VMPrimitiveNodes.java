@@ -68,6 +68,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
@@ -257,8 +258,8 @@ public abstract class VMPrimitiveNodes {
                     return;
                 }
 
-                final DynamicObject rootThread = context.getThreadManager().getRootThread();
-                final FiberManager fiberManager = Layouts.THREAD.getFiberManager(rootThread);
+                final RubyThread rootThread = context.getThreadManager().getRootThread();
+                final FiberManager fiberManager = rootThread.fiberManager;
                 final ThreadManager threadManager = getContext().getThreadManager();
 
                 // Workaround: we need to register with Truffle (which means going multithreaded),

@@ -477,7 +477,7 @@ class Array
     # refactoring against the original.
 
     id = object_id
-    objects = Thread.current.recursive_objects
+    objects = Primitive.thread_recursive_objects
 
     # If there is already an our version running...
     if objects.key? :__detect_outermost_recursion__

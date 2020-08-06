@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.tracepoint;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -19,6 +18,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.core.thread.RubyThread;
 
 class TracePointEventNode extends TraceBaseEventNode {
 
@@ -43,8 +43,8 @@ class TracePointEventNode extends TraceBaseEventNode {
 
     @Override
     protected void onEnter(VirtualFrame frame) {
-        final DynamicObject rubyThread = getCurrentRubyThreadNode.execute();
-        final TracePointState state = Layouts.THREAD.getTracePointState(rubyThread);
+        final RubyThread rubyThread = getCurrentRubyThreadNode.execute();
+        final TracePointState state = rubyThread.tracePointState;
 
         if (inTracePointProfile.profile(state.insideProc)) {
             return;

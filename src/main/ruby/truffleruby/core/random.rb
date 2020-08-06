@@ -116,7 +116,7 @@ end
 
 class Random
   def self.new_seed
-    Thread.current.randomizer.generate_seed
+    Primitive.thread_randomizer.generate_seed
   end
 
   def self.raw_seed(size)
@@ -126,15 +126,15 @@ class Random
 
   def self.srand(seed=undefined)
     if Primitive.undefined? seed
-      seed = Thread.current.randomizer.generate_seed
+      seed = Primitive.thread_randomizer.generate_seed
     end
 
     seed = Truffle::Type.coerce_to seed, Integer, :to_int
-    Thread.current.randomizer.swap_seed seed
+    Primitive.thread_randomizer.swap_seed seed
   end
 
   def self.rand(limit=undefined)
-    Thread.current.randomizer.random(limit)
+    Primitive.thread_randomizer.random(limit)
   end
 
   def self.random_number(limit=undefined)
@@ -142,7 +142,7 @@ class Random
   end
 
   def self.bytes(length)
-    Primitive.randomizer_bytes(Thread.current.randomizer, length)
+    Primitive.randomizer_bytes(Primitive.thread_randomizer, length)
   end
 
   def initialize(seed=undefined)

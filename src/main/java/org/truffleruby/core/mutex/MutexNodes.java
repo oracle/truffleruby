@@ -9,23 +9,6 @@
  */
 package org.truffleruby.core.mutex;
 
-import java.util.concurrent.locks.ReentrantLock;
-
-import org.truffleruby.Layouts;
-import org.truffleruby.builtins.CoreMethod;
-import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
-import org.truffleruby.builtins.CoreMethodNode;
-import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.UnaryCoreMethodNode;
-import org.truffleruby.builtins.YieldingCoreMethodNode;
-import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
-import org.truffleruby.core.kernel.KernelNodes;
-import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.Visibility;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.objects.AllocateHelperNode;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
@@ -35,6 +18,22 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import org.truffleruby.builtins.CoreMethod;
+import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
+import org.truffleruby.builtins.CoreMethodNode;
+import org.truffleruby.builtins.CoreModule;
+import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.builtins.YieldingCoreMethodNode;
+import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
+import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.Visibility;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.objects.AllocateHelperNode;
+
+import java.util.concurrent.locks.ReentrantLock;
 
 @CoreModule(value = "Mutex", isClass = true)
 public abstract class MutexNodes {
@@ -70,7 +69,7 @@ public abstract class MutexNodes {
                 throw new RaiseException(getContext(), coreExceptions().threadErrorRecursiveLocking(this));
             }
 
-            final DynamicObject thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
             MutexOperations.lock(getContext(), lock, thread, this);
             return mutex;
         }
@@ -103,7 +102,7 @@ public abstract class MutexNodes {
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached ConditionProfile heldByCurrentThreadProfile) {
             final ReentrantLock lock = mutex.lock;
-            final DynamicObject thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
 
             if (heldByCurrentThreadProfile.profile(lock.isHeldByCurrentThread())) {
                 return false;
@@ -113,9 +112,9 @@ public abstract class MutexNodes {
         }
 
         @TruffleBoundary
-        private boolean doTryLock(DynamicObject thread, ReentrantLock lock) {
+        private boolean doTryLock(RubyThread thread, ReentrantLock lock) {
             if (lock.tryLock()) {
-                Layouts.THREAD.getOwnedLocks(thread).add(lock);
+                thread.ownedLocks.add(lock);
                 return true;
             } else {
                 return false;
@@ -132,7 +131,7 @@ public abstract class MutexNodes {
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
-            final DynamicObject thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
 
             MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
             MutexOperations.unlock(lock, thread);
@@ -149,7 +148,7 @@ public abstract class MutexNodes {
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
-            final DynamicObject thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
 
             if (lock.isHeldByCurrentThread()) {
                 errorProfile.enter();
@@ -182,7 +181,7 @@ public abstract class MutexNodes {
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;
-            final DynamicObject thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
 
             MutexOperations.checkOwnedMutex(getContext(), lock, this, errorProfile);
 
@@ -191,7 +190,7 @@ public abstract class MutexNodes {
              * thread1: mutex.sleep thread2: mutex.synchronize { <ensured that thread1 is sleeping and thread1.wakeup
              * will wake it up> } */
 
-            Layouts.THREAD.getWakeUp(thread).set(false);
+            thread.wakeUp.set(false);
 
             MutexOperations.unlock(lock, thread);
             try {

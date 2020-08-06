@@ -67,7 +67,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import org.jcodings.specific.ASCIIEncoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -80,6 +79,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadLocalBuffer;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
@@ -510,7 +510,7 @@ public abstract class IONodes {
         protected RubyPointer getThreadBuffer(long size,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached ConditionProfile sizeProfile) {
-            DynamicObject thread = currentThreadNode.execute();
+            RubyThread thread = currentThreadNode.execute();
             final RubyPointer instance = new RubyPointer(
                     coreLibrary().truffleFFIPointerShape,
                     getBuffer(thread, size, sizeProfile));
@@ -518,10 +518,10 @@ public abstract class IONodes {
             return instance;
         }
 
-        public static Pointer getBuffer(DynamicObject rubyThread, long size, ConditionProfile sizeProfile) {
-            final ThreadLocalBuffer buffer = Layouts.THREAD.getIoBuffer(rubyThread);
+        public static Pointer getBuffer(RubyThread rubyThread, long size, ConditionProfile sizeProfile) {
+            final ThreadLocalBuffer buffer = rubyThread.ioBuffer;
             final ThreadLocalBuffer newBuffer = buffer.allocate(size, sizeProfile);
-            Layouts.THREAD.setIoBuffer(rubyThread, newBuffer);
+            rubyThread.ioBuffer = newBuffer;
             return newBuffer.start;
         }
 
@@ -534,10 +534,10 @@ public abstract class IONodes {
         protected Object getThreadBuffer(RubyPointer pointer,
                 @Cached GetCurrentRubyThreadNode currentThreadNode,
                 @Cached("createBinaryProfile()") ConditionProfile freeProfile) {
-            DynamicObject thread = currentThreadNode.execute();
-            final ThreadLocalBuffer threadBuffer = Layouts.THREAD.getIoBuffer(thread);
+            RubyThread thread = currentThreadNode.execute();
+            final ThreadLocalBuffer threadBuffer = thread.ioBuffer;
             assert threadBuffer.start.getAddress() == pointer.pointer.getAddress();
-            Layouts.THREAD.setIoBuffer(thread, threadBuffer.free(freeProfile));
+            thread.ioBuffer = threadBuffer.free(freeProfile);
             return nil;
         }
     }

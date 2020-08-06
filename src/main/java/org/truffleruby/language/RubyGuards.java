@@ -207,10 +207,6 @@ public abstract class RubyGuards {
         return Layouts.PROC.isProc(object);
     }
 
-    public static boolean isRubyThread(DynamicObject object) {
-        return Layouts.THREAD.isThread(object);
-    }
-
     public static boolean isRubyMatchData(DynamicObject object) {
         return object instanceof RubyMatchData;
     }

@@ -20,6 +20,7 @@ import org.truffleruby.core.rope.RopeCache;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.symbol.SymbolTable;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.debug.GlobalScope;
 import org.truffleruby.debug.LexicalScope;
 import org.truffleruby.language.NotProvided;
@@ -46,7 +47,6 @@ import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.nodes.ExecutableNode;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
 @TruffleLanguage.Registration(
@@ -253,7 +253,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return;
         }
 
-        final DynamicObject foreignThread = context.getThreadManager().createForeignThread();
+        final RubyThread foreignThread = context.getThreadManager().createForeignThread();
         context.getThreadManager().startForeignThread(foreignThread, thread);
     }
 
@@ -269,7 +269,7 @@ public class RubyLanguage extends TruffleLanguage<RubyContext> {
             return;
         }
 
-        final DynamicObject rubyThread = context.getThreadManager().getForeignRubyThread(thread);
+        final RubyThread rubyThread = context.getThreadManager().getForeignRubyThread(thread);
         context.getThreadManager().cleanup(rubyThread, thread);
     }
 

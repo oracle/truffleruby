@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.SuppressFBWarnings;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -21,6 +20,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadStatus;
 import org.truffleruby.language.Nil;
@@ -65,7 +65,7 @@ public abstract class ConditionVariableNodes {
         protected RubyConditionVariable noTimeout(RubyConditionVariable condVar, RubyMutex mutex, Nil timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
-            final DynamicObject thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
             final ReentrantLock mutexLock = mutex.lock;
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
@@ -77,7 +77,7 @@ public abstract class ConditionVariableNodes {
         protected RubyConditionVariable withTimeout(RubyConditionVariable condVar, RubyMutex mutex, long timeout,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
-            final DynamicObject thread = getCurrentRubyThreadNode.execute();
+            final RubyThread thread = getCurrentRubyThreadNode.execute();
             final ReentrantLock mutexLock = mutex.lock;
 
             MutexOperations.checkOwnedMutex(getContext(), mutexLock, this, errorProfile);
@@ -87,7 +87,7 @@ public abstract class ConditionVariableNodes {
 
         @TruffleBoundary
         private void waitInternal(RubyConditionVariable conditionVariable, ReentrantLock mutexLock,
-                DynamicObject thread, long durationInNanos) {
+                RubyThread thread, long durationInNanos) {
             final ReentrantLock condLock = conditionVariable.lock;
             final Condition condition = conditionVariable.condition;
             final long endNanoTime;
@@ -99,7 +99,7 @@ public abstract class ConditionVariableNodes {
 
             // Clear the wakeUp flag, following Ruby semantics:
             // it should only be considered if we are inside Mutex#sleep when Thread#{run,wakeup} is called.
-            Layouts.THREAD.getWakeUp(thread).set(false);
+            thread.wakeUp.set(false);
 
             // condLock must be locked before unlocking mutexLock, to avoid losing potential signals.
             // We must not change the Ruby Thread status and not consume a Java thread interrupt while locking condLock.
@@ -131,11 +131,11 @@ public abstract class ConditionVariableNodes {
         /** This duplicates {@link ThreadManager#runUntilResult} because it needs fine grained control when polling for
          * safepoints. */
         @SuppressFBWarnings(value = "UL")
-        private void awaitSignal(RubyConditionVariable self, DynamicObject thread, long durationInNanos,
+        private void awaitSignal(RubyConditionVariable self, RubyThread thread, long durationInNanos,
                 ReentrantLock condLock, Condition condition, long endNanoTime) {
-            final ThreadStatus status = Layouts.THREAD.getStatus(thread);
+            final ThreadStatus status = thread.status;
             while (true) {
-                Layouts.THREAD.setStatus(thread, ThreadStatus.SLEEP);
+                thread.status = ThreadStatus.SLEEP;
                 try {
                     try {
                         /* We must not consumeSignal() here, as we should only consume a signal after being awaken by
@@ -159,7 +159,7 @@ public abstract class ConditionVariableNodes {
                             return;
                         }
                     } finally {
-                        Layouts.THREAD.setStatus(thread, status);
+                        thread.status = status;
                     }
                 } catch (InterruptedException e) {
                     /* Working with ConditionVariables is tricky because of safepoints. To call await or signal on a
@@ -175,7 +175,7 @@ public abstract class ConditionVariableNodes {
                     }
 
                     // Thread#{wakeup,run} might have woken us. In that a case, no signal is consumed.
-                    if (Layouts.THREAD.getWakeUp(thread).getAndSet(false)) {
+                    if (thread.wakeUp.getAndSet(false)) {
                         return;
                     }
 

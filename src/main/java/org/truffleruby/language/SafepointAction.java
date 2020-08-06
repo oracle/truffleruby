@@ -12,9 +12,9 @@ package org.truffleruby.language;
 import java.util.function.BiConsumer;
 
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.thread.RubyThread;
 
-public interface SafepointAction extends BiConsumer<DynamicObject, Node> {
+public interface SafepointAction extends BiConsumer<RubyThread, Node> {
 
 }
 

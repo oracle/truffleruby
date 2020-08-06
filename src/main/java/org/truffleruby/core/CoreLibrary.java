@@ -69,6 +69,7 @@ import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.RubyBacktraceLocation;
+import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.time.RubyTime;
 import org.truffleruby.core.tracepoint.RubyTracePoint;
 import org.truffleruby.extra.RubyAtomicReference;
@@ -224,7 +225,7 @@ public class CoreLibrary {
     public final DynamicObject systemCallErrorClass;
     public final DynamicObject systemExitClass;
     public final DynamicObject threadClass;
-    public final DynamicObjectFactory threadFactory;
+    public final Shape threadShape;
     public final Shape threadBacktraceLocationShape;
     public final DynamicObject trueClass;
     public final DynamicObject typeErrorClass;
@@ -558,8 +559,8 @@ public class CoreLibrary {
         threadClass = defineClass("Thread");
         DynamicObjectLibrary.getUncached().put(threadClass, "@report_on_exception", true);
         DynamicObjectLibrary.getUncached().put(threadClass, "@abort_on_exception", false);
-        threadFactory = Layouts.THREAD.createThreadShape(threadClass, threadClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(threadClass, threadFactory);
+        threadShape = createShape(RubyThread.class, threadClass);
+        Layouts.CLASS.setInstanceFactoryUnsafe(threadClass, createFactory(threadShape));
 
         DynamicObject threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
         DynamicObject threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
