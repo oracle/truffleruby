@@ -27,7 +27,7 @@ public class ThreadAndFrameLocalStorage {
     public ThreadAndFrameLocalStorage(RubyContext context) {
         // Cannot store a Thread instance while pre-initializing
         originalThread = context.isPreInitializing() ? EMPTY_WEAK_REF : newTruffleWeakReference(Thread.currentThread());
-        originalThreadValue = initialValue();
+        originalThreadValue = Nil.INSTANCE;
     }
 
     public Object get(ConditionProfile sameThreadProfile) {
@@ -38,6 +38,7 @@ public class ThreadAndFrameLocalStorage {
         }
     }
 
+    @TruffleBoundary
     private ThreadLocal<Object> getOtherThreadValues() {
         if (otherThreadValues != null) {
             return otherThreadValues;
@@ -46,7 +47,7 @@ public class ThreadAndFrameLocalStorage {
                 if (otherThreadValues != null) {
                     return otherThreadValues;
                 } else {
-                    otherThreadValues = ThreadLocal.withInitial(this::initialValue);
+                    otherThreadValues = ThreadLocal.withInitial(() -> Nil.INSTANCE);
                     return otherThreadValues;
                 }
             }
@@ -74,10 +75,6 @@ public class ThreadAndFrameLocalStorage {
     @TruffleBoundary // GR-25356
     private static TruffleWeakReference<Thread> newTruffleWeakReference(Thread thread) {
         return new TruffleWeakReference<>(thread);
-    }
-
-    protected Object initialValue() {
-        return Nil.INSTANCE;
     }
 
 }
