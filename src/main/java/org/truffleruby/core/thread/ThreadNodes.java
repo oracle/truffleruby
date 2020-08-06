@@ -67,6 +67,7 @@ import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
@@ -566,8 +567,9 @@ public abstract class ThreadNodes {
     public static abstract class ThreadRandomizerPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject randomizer(RubyThread thread) {
-            return thread.randomizer;
+        protected RubyRandomizer randomizer(
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+            return getCurrentRubyThreadNode.execute().randomizer;
         }
 
     }

@@ -481,18 +481,18 @@ module Kernel
 
   def rand(limit=0)
     if limit == 0
-      return Primitive.thread_randomizer(Thread.current).random_float
+      return Primitive.thread_randomizer.random_float
     end
 
     if limit.kind_of?(Range)
-      return Primitive.thread_randomizer(Thread.current).random(limit)
+      return Primitive.thread_randomizer.random(limit)
     else
       limit = Integer(limit).abs
 
       if limit == 0
-        Primitive.thread_randomizer(Thread.current).random_float
+        Primitive.thread_randomizer.random_float
       else
-        Primitive.thread_randomizer(Thread.current).random_integer(limit - 1)
+        Primitive.thread_randomizer.random_integer(limit - 1)
       end
     end
   end
@@ -515,11 +515,11 @@ module Kernel
 
   def srand(seed=undefined)
     if Primitive.undefined? seed
-      seed = Primitive.thread_randomizer(Thread.current).generate_seed
+      seed = Primitive.thread_randomizer.generate_seed
     end
 
     seed = Truffle::Type.coerce_to seed, Integer, :to_int
-    Primitive.thread_randomizer(Thread.current).swap_seed seed
+    Primitive.thread_randomizer.swap_seed seed
   end
   module_function :srand
 
