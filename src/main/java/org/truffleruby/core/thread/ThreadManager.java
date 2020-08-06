@@ -9,13 +9,18 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleException;
-import com.oracle.truffle.api.TruffleStackTrace;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
+
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -43,17 +48,13 @@ import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.function.Supplier;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleException;
+import com.oracle.truffle.api.TruffleStackTrace;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 
 public class ThreadManager {
 
@@ -202,45 +203,29 @@ public class ThreadManager {
     }
 
     public RubyThread createBootThread(String info) {
-        final RubyThread thread = packThreadFields(context.getCoreLibrary().threadShape, Nil.INSTANCE, info);
-        return initializeThreadFields(thread);
+        return createThread(context.getCoreLibrary().threadShape, Nil.INSTANCE, info);
     }
 
     public RubyThread createThread(Shape shape) {
         final Object currentGroup = getCurrentThread().threadGroup;
         assert currentGroup != null;
-        final RubyThread thread = packThreadFields(shape, currentGroup, "<uninitialized>");
-        return initializeThreadFields(thread);
+        return createThread(shape, currentGroup, "<uninitialized>");
     }
 
     public RubyThread createForeignThread() {
         final Object currentGroup = rootThread.threadGroup;
         assert currentGroup != null;
-        final RubyThread thread = packThreadFields(
-                context.getCoreLibrary().threadShape,
-                currentGroup,
-                "<foreign thread>");
-        return initializeThreadFields(thread);
+        return createThread(context.getCoreLibrary().threadShape, currentGroup, "<foreign thread>");
     }
 
-    private RubyThread initializeThreadFields(RubyThread thread) {
-        setFiberManager(thread);
-        return thread;
-    }
-
-    private void setFiberManager(RubyThread thread) {
-        // Because it is cyclic
-        thread.fiberManager = new FiberManager(context, thread);
-    }
-
-    private RubyThread packThreadFields(Shape shape, Object currentGroup, String info) {
-        RubyThread thread = new RubyThread(
+    private RubyThread createThread(Shape shape, Object currentGroup, String info) {
+        return new RubyThread(
                 shape,
+                context,
                 createThreadLocals(),
                 InterruptMode.IMMEDIATE,
                 ThreadStatus.RUN,
                 new ArrayList<>(),
-                null,
                 new CountDownLatch(1),
                 HashOperations.newEmptyHash(context),
                 HashOperations.newEmptyHash(context),
@@ -257,7 +242,6 @@ public class ThreadManager {
                 currentGroup,
                 info,
                 Nil.INSTANCE);
-        return thread;
     }
 
     private boolean getGlobalReportOnException() {

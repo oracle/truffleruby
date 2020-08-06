@@ -9,9 +9,12 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+
+import org.truffleruby.RubyContext;
 import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
@@ -21,10 +24,9 @@ import org.truffleruby.interop.messages.RubyThreadMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 
 public class RubyThread extends RubyDynamicObject {
 
@@ -52,11 +54,11 @@ public class RubyThread extends RubyDynamicObject {
 
     public RubyThread(
             Shape shape,
+            RubyContext context,
             ThreadLocalGlobals threadLocalGlobals,
             InterruptMode interruptMode,
             ThreadStatus status,
             List<Lock> ownedLocks,
-            FiberManager fiberManager,
             CountDownLatch finishedLatch,
             DynamicObject threadLocalVariables,
             DynamicObject recursiveObjects,
@@ -78,7 +80,6 @@ public class RubyThread extends RubyDynamicObject {
         this.interruptMode = interruptMode;
         this.status = status;
         this.ownedLocks = ownedLocks;
-        this.fiberManager = fiberManager;
         this.finishedLatch = finishedLatch;
         this.threadLocalVariables = threadLocalVariables;
         this.recursiveObjects = recursiveObjects;
@@ -95,6 +96,8 @@ public class RubyThread extends RubyDynamicObject {
         this.threadGroup = threadGroup;
         this.sourceLocation = sourceLocation;
         this.name = name;
+
+        this.fiberManager = new FiberManager(context, this);
     }
 
     @Override
