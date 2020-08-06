@@ -49,9 +49,7 @@ public abstract class UnboundMethodNodes {
         @Specialization
         protected boolean equal(RubyUnboundMethod self, RubyUnboundMethod other) {
             return self.origin == other.origin &&
-                    MethodNodes.areInternalMethodEqual(
-                            self.method,
-                            other.method);
+                    MethodNodes.areInternalMethodEqual(self.method, other.method);
         }
 
         @Specialization(guards = "!isRubyUnboundMethod(other)")
@@ -65,8 +63,8 @@ public abstract class UnboundMethodNodes {
     public abstract static class ArityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected int arity(RubyUnboundMethod method) {
-            return method.method.getSharedMethodInfo().getArity().getArityNumber();
+        protected int arity(RubyUnboundMethod unboundMethod) {
+            return unboundMethod.method.getSharedMethodInfo().getArity().getArityNumber();
         }
 
     }
@@ -86,8 +84,7 @@ public abstract class UnboundMethodNodes {
             if (!canBindMethodToModuleNode
                     .executeCanBindMethodToModule(unboundMethod.method, objectMetaClass)) {
                 errorProfile.enter();
-                final DynamicObject declaringModule = unboundMethod.method
-                        .getDeclaringModule();
+                final DynamicObject declaringModule = unboundMethod.method.getDeclaringModule();
                 if (RubyGuards.isSingletonClass(declaringModule)) {
                     throw new RaiseException(getContext(), coreExceptions().typeError(
                             "singleton method called for a different object",
