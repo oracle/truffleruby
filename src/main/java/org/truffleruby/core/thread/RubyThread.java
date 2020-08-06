@@ -11,6 +11,7 @@ package org.truffleruby.core.thread;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -26,13 +27,15 @@ import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.interop.messages.RubyThreadMessages;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
-public class RubyThread extends RubyDynamicObject {
+public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
 
     public final ThreadLocalGlobals threadLocalGlobals;
     public volatile InterruptMode interruptMode;
@@ -86,6 +89,14 @@ public class RubyThread extends RubyDynamicObject {
         this.name = Nil.INSTANCE;
         // Initialized last as it captures `this`
         this.fiberManager = new FiberManager(context, this);
+    }
+
+    @Override
+    public void getAdjacentObjects(Set<Object> reachable) {
+        ObjectGraph.addProperty(reachable, threadLocalVariables);
+        if (name != Nil.INSTANCE) {
+            ObjectGraph.addProperty(reachable, name);
+        }
     }
 
     @Override
