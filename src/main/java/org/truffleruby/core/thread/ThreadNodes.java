@@ -40,18 +40,8 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.LoopConditionProfile;
-import com.oracle.truffle.api.source.SourceSection;
+import java.util.concurrent.TimeUnit;
+
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
@@ -93,7 +83,18 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 
-import java.util.concurrent.TimeUnit;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.LoopConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Thread", isClass = true)
 public abstract class ThreadNodes {
@@ -575,8 +576,9 @@ public abstract class ThreadNodes {
     public static abstract class ThreadRecursiveObjectsPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject recursiveObjects(RubyThread thread) {
-            return thread.recursiveObjects;
+        protected DynamicObject recursiveObjects(
+                @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
+            return getCurrentRubyThreadNode.execute().recursiveObjects;
         }
 
     }

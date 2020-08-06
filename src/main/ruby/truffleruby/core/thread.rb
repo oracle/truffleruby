@@ -72,7 +72,7 @@ class Thread
   # the tables independent.
   def self.recursion_guard(obj)
     id = obj.object_id
-    objects = Primitive.thread_recursive_objects(current)
+    objects = Primitive.thread_recursive_objects
 
     objects[id] = true
     begin
@@ -83,7 +83,7 @@ class Thread
   end
 
   def self.guarding?(obj)
-    Primitive.thread_recursive_objects(current)[obj.object_id]
+    Primitive.thread_recursive_objects[obj.object_id]
   end
 
   # detect_recursion will return if there's a recursion
@@ -98,7 +98,7 @@ class Thread
 
     id = obj.object_id
     pair_id = paired_obj.object_id
-    objects = Primitive.thread_recursive_objects(current)
+    objects = Primitive.thread_recursive_objects
 
     case objects[id]
 
@@ -148,7 +148,7 @@ class Thread
 
   # Similar to detect_recursion, but will short circuit all inner recursion levels
   def self.detect_outermost_recursion(obj, paired_obj=nil, &block)
-    rec = Primitive.thread_recursive_objects(current)
+    rec = Primitive.thread_recursive_objects
 
     if rec[:__detect_outermost_recursion__]
       if detect_recursion(obj, paired_obj, &block)
