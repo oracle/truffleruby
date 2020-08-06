@@ -14,6 +14,7 @@ Compatibility:
 * Load required libraries (`-r`) before parsing the main script (#2047).
 * `String#split` supports block (#2052, @ssnickolay)
 * Implemented `String#{grapheme_clusters, each_grapheme_cluster}`.
+* Fix the caller location for `#method_added` (#2059).
 
 Performance:
 

@@ -41,6 +41,7 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
@@ -406,17 +407,23 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         if (context.getCoreLibrary().isLoaded() && !method.isUndefined()) {
-            if (RubyGuards.isSingletonClass(rubyModuleObject)) {
-                DynamicObject receiver = Layouts.CLASS.getAttached(rubyModuleObject);
-                context.send(
-                        receiver,
-                        "singleton_method_added",
-                        context.getSymbol(method.getName()));
-            } else {
-                context.send(
-                        rubyModuleObject,
-                        "method_added",
-                        context.getSymbol(method.getName()));
+            final EncapsulatingNodeReference callNodeRef = EncapsulatingNodeReference.getCurrent();
+            final Node prev = callNodeRef.set(currentNode);
+            try {
+                if (RubyGuards.isSingletonClass(rubyModuleObject)) {
+                    DynamicObject receiver = Layouts.CLASS.getAttached(rubyModuleObject);
+                    context.send(
+                            receiver,
+                            "singleton_method_added",
+                            context.getSymbol(method.getName()));
+                } else {
+                    context.send(
+                            rubyModuleObject,
+                            "method_added",
+                            context.getSymbol(method.getName()));
+                }
+            } finally {
+                callNodeRef.set(prev);
             }
         }
     }

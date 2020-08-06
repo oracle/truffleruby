@@ -80,6 +80,7 @@ import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -409,7 +410,8 @@ public class RubyContext {
             return null;
         }
 
-        return method.getCallTarget().call(
+        return IndirectCallNode.getUncached().call(
+                method.getCallTarget(),
                 RubyArguments.pack(null, null, method, null, object, null, arguments));
     }
 

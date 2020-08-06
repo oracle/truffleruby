@@ -12,7 +12,6 @@ package org.truffleruby.core.exception;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
@@ -242,14 +241,12 @@ public abstract class ExceptionNodes {
 
     }
 
-    @NonStandard
-    @CoreMethod(names = "capture_backtrace!", required = 1, lowerFixnum = 1)
+    @Primitive(name = "exception_capture_backtrace", lowerFixnum = 1)
     public abstract static class CaptureBacktraceNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
         protected Object captureBacktrace(RubyException exception, int offset) {
-            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this, offset);
-            exception.backtrace = backtrace;
+            exception.backtrace = getContext().getCallStack().getBacktrace(this, offset);
             return nil;
         }
 

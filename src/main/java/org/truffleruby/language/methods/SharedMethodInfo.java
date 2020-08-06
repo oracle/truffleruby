@@ -139,7 +139,7 @@ public class SharedMethodInfo {
         }
     }
 
-    private String moduleAndMethodName(DynamicObject module, String methodName) {
+    private static String moduleAndMethodName(DynamicObject module, String methodName) {
         if (module != null && methodName != null) {
             if (RubyGuards.isMetaClass(module)) {
                 final DynamicObject attached = Layouts.CLASS.getAttached(module);
