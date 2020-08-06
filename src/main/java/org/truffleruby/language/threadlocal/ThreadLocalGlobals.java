@@ -9,13 +9,15 @@
  */
 package org.truffleruby.language.threadlocal;
 
+import org.truffleruby.language.Nil;
+
 public class ThreadLocalGlobals {
 
     public Object exception; // $!
     public Object processStatus; // $?
 
-    public ThreadLocalGlobals(Object exception, Object processStatus) {
-        this.exception = exception;
-        this.processStatus = processStatus;
+    public ThreadLocalGlobals() {
+        this.exception = Nil.INSTANCE;
+        this.processStatus = Nil.INSTANCE;
     }
 }

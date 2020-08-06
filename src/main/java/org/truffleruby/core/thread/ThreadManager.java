@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.thread;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -17,7 +16,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
@@ -25,15 +23,12 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
-import org.truffleruby.core.InterruptMode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.fiber.RubyFiber;
-import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RandomizerNodes;
-import org.truffleruby.core.tracepoint.TracePointState;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.SafepointManager;
@@ -43,7 +38,6 @@ import org.truffleruby.language.control.KillException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import org.truffleruby.language.objects.shared.SharedObjects;
-import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
@@ -222,26 +216,10 @@ public class ThreadManager {
         return new RubyThread(
                 shape,
                 context,
-                createThreadLocals(),
-                InterruptMode.IMMEDIATE,
-                ThreadStatus.RUN,
-                new ArrayList<>(),
-                new CountDownLatch(1),
-                HashOperations.newEmptyHash(context),
-                HashOperations.newEmptyHash(context),
-                RandomizerNodes.newRandomizer(context),
-                new TracePointState(),
                 getGlobalReportOnException(),
                 getGlobalAbortOnException(),
-                null,
-                null,
-                null,
-                new AtomicBoolean(false),
-                Thread.NORM_PRIORITY,
-                ThreadLocalBuffer.NULL_BUFFER,
                 currentGroup,
-                info,
-                Nil.INSTANCE);
+                info);
     }
 
     private boolean getGlobalReportOnException() {
@@ -252,10 +230,6 @@ public class ThreadManager {
     private boolean getGlobalAbortOnException() {
         final DynamicObject threadClass = context.getCoreLibrary().threadClass;
         return (boolean) ReadObjectFieldNodeGen.getUncached().execute(threadClass, "@abort_on_exception", null);
-    }
-
-    private ThreadLocalGlobals createThreadLocals() {
-        return new ThreadLocalGlobals(Nil.INSTANCE, Nil.INSTANCE);
     }
 
     private void setupSignalHandler(TruffleNFIPlatform nfi, NativeConfiguration config) {
