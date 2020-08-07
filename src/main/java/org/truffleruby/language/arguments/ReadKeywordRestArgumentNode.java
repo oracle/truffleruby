@@ -13,6 +13,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.BiConsumerNode;
 import org.truffleruby.core.hash.HashNodes.EachKeyValueNode;
 import org.truffleruby.core.hash.HashOperations;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.hash.SetNode;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -46,7 +47,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     }
 
     private Object lookupRestKeywordArgumentHash(VirtualFrame frame) {
-        final DynamicObject hash = readUserKeywordsHashNode.execute(frame);
+        final RubyHash hash = readUserKeywordsHashNode.execute(frame);
 
         if (noHash.profile(hash == null)) {
             return HashOperations.newEmptyHash(getContext());
@@ -59,7 +60,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
     @Override
     public void accept(VirtualFrame frame, Object key, Object value, Object kwRest) {
         if (isSymbolProfile.profile(key instanceof RubySymbol) && !keywordExcluded(key)) {
-            setNode.executeSet((DynamicObject) kwRest, key, value, false);
+            setNode.executeSet((RubyHash) kwRest, key, value, false);
         }
     }
 

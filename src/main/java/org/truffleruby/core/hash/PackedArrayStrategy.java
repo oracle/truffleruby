@@ -12,11 +12,9 @@ package org.truffleruby.core.hash;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class PackedArrayStrategy {
 
@@ -87,7 +85,7 @@ public abstract class PackedArrayStrategy {
     }
 
     @TruffleBoundary
-    public static void promoteToBuckets(RubyContext context, DynamicObject hash, Object[] store, int size) {
+    public static void promoteToBuckets(RubyContext context, RubyHash hash, Object[] store, int size) {
         final Entry[] buckets = new Entry[BucketsStrategy.capacityGreaterThan(size)];
 
         Entry firstInSequence = null;
@@ -123,10 +121,10 @@ public abstract class PackedArrayStrategy {
             }
         }
 
-        Layouts.HASH.setStore(hash, buckets);
-        Layouts.HASH.setSize(hash, size);
-        Layouts.HASH.setFirstInSequence(hash, firstInSequence);
-        Layouts.HASH.setLastInSequence(hash, lastInSequence);
+        hash.store = buckets;
+        hash.size = size;
+        hash.firstInSequence = firstInSequence;
+        hash.lastInSequence = lastInSequence;
 
         assert HashOperations.verifyStore(context, hash);
     }

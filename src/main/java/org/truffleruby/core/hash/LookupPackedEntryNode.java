@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.collections.BiFunctionNode;
 import org.truffleruby.language.RubyContextNode;
 
@@ -19,7 +18,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -32,7 +30,7 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
         return LookupPackedEntryNodeGen.create();
     }
 
-    public abstract Object executePackedLookup(VirtualFrame frame, DynamicObject hash, Object key, int hashed,
+    public abstract Object executePackedLookup(VirtualFrame frame, RubyHash hash, Object key, int hashed,
             BiFunctionNode defaultValueNode);
 
     @Specialization(
@@ -42,26 +40,22 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
                     "cachedIndex < getSize(hash)",
                     "sameKeysAtIndex(hash, key, hashed, cachedIndex, cachedByIdentity)" },
             limit = "1")
-    protected Object getConstantIndexPackedArray(
-            DynamicObject hash,
-            Object key,
-            int hashed,
-            BiFunctionNode defaultValueNode,
+    protected Object getConstantIndexPackedArray(RubyHash hash, Object key, int hashed, BiFunctionNode defaultValueNode,
             @Cached("index(hash, key, hashed)") int cachedIndex,
             @Cached("isCompareByIdentity(hash)") boolean cachedByIdentity) {
-        final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
+        final Object[] store = (Object[]) hash.store;
         return PackedArrayStrategy.getValue(store, cachedIndex);
     }
 
-    protected int index(DynamicObject hash, Object key, int hashed) {
+    protected int index(RubyHash hash, Object key, int hashed) {
         if (!HashGuards.isPackedHash(hash)) {
             return -1;
         }
 
-        boolean compareByIdentity = Layouts.HASH.getCompareByIdentity(hash);
+        boolean compareByIdentity = hash.compareByIdentity;
 
-        final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
-        final int size = Layouts.HASH.getSize(hash);
+        final Object[] store = (Object[]) hash.store;
+        final int size = hash.size;
 
         for (int n = 0; n < size; n++) {
             final int otherHashed = PackedArrayStrategy.getHashed(store, n);
@@ -74,9 +68,9 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
         return -1;
     }
 
-    protected boolean sameKeysAtIndex(DynamicObject hash, Object key, int hashed, int cachedIndex,
+    protected boolean sameKeysAtIndex(RubyHash hash, Object key, int hashed, int cachedIndex,
             boolean cachedByIdentity) {
-        final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
+        final Object[] store = (Object[]) hash.store;
         final Object otherKey = PackedArrayStrategy.getKey(store, cachedIndex);
         final int otherHashed = PackedArrayStrategy.getHashed(store, cachedIndex);
 
@@ -87,24 +81,24 @@ public abstract class LookupPackedEntryNode extends RubyContextNode {
         return compareHashKeysNode.referenceEqualKeys(compareByIdentity, key, hashed, otherKey, otherHashed);
     }
 
-    protected int getSize(DynamicObject hash) {
-        return Layouts.HASH.getSize(hash);
+    protected int getSize(RubyHash hash) {
+        return hash.size;
     }
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(replaces = "getConstantIndexPackedArray")
     protected Object getPackedArray(
             VirtualFrame frame,
-            DynamicObject hash,
+            RubyHash hash,
             Object key,
             int hashed,
             BiFunctionNode defaultValueNode,
             @Cached BranchProfile notInHashProfile,
             @Cached ConditionProfile byIdentityProfile) {
-        final boolean compareByIdentity = byIdentityProfile.profile(Layouts.HASH.getCompareByIdentity(hash));
+        final boolean compareByIdentity = byIdentityProfile.profile(hash.compareByIdentity);
 
-        final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
-        final int size = Layouts.HASH.getSize(hash);
+        final Object[] store = (Object[]) hash.store;
+        final int size = hash.size;
 
         for (int n = 0; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
             if (n < size) {

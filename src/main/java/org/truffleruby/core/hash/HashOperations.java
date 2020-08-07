@@ -13,7 +13,6 @@ import java.util.Collections;
 import java.util.Iterator;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.string.StringUtils;
@@ -22,21 +21,19 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class HashOperations {
 
-    public static DynamicObject newEmptyHash(RubyContext context) {
+    public static RubyHash newEmptyHash(RubyContext context) {
         final Object nil = Nil.INSTANCE;
-        return context.getCoreLibrary().hashFactory.newInstance(
-                Layouts.HASH.build(null, 0, null, null, nil, nil, false));
+        return new RubyHash(context.getCoreLibrary().hashShape, context, null, 0, null, null, nil, nil, false);
     }
 
-    public static boolean verifyStore(RubyContext context, DynamicObject hash) {
-        final Object store = Layouts.HASH.getStore(hash);
-        final int size = Layouts.HASH.getSize(hash);
-        final Entry firstInSequence = Layouts.HASH.getFirstInSequence(hash);
-        final Entry lastInSequence = Layouts.HASH.getLastInSequence(hash);
+    public static boolean verifyStore(RubyContext context, RubyHash hash) {
+        final Object store = hash.store;
+        final int size = hash.size;
+        final Entry firstInSequence = hash.firstInSequence;
+        final Entry lastInSequence = hash.lastInSequence;
 
         assert store == null || store.getClass() == Object[].class || store instanceof Entry[];
 
@@ -131,23 +128,23 @@ public abstract class HashOperations {
     }
 
     @TruffleBoundary
-    public static Iterator<KeyValue> iterateKeyValues(DynamicObject hash) {
+    public static Iterator<KeyValue> iterateKeyValues(RubyHash hash) {
         assert RubyGuards.isRubyHash(hash);
 
         if (HashGuards.isNullHash(hash)) {
             return Collections.emptyIterator();
         } else if (HashGuards.isPackedHash(hash)) {
             return PackedArrayStrategy
-                    .iterateKeyValues((Object[]) Layouts.HASH.getStore(hash), Layouts.HASH.getSize(hash));
+                    .iterateKeyValues((Object[]) hash.store, hash.size);
         } else if (HashGuards.isBucketHash(hash)) {
-            return BucketsStrategy.iterateKeyValues(Layouts.HASH.getFirstInSequence(hash));
+            return BucketsStrategy.iterateKeyValues(hash.firstInSequence);
         } else {
             throw CompilerDirectives.shouldNotReachHere();
         }
     }
 
     @TruffleBoundary
-    public static BoundaryIterable<KeyValue> iterableKeyValues(final DynamicObject hash) {
+    public static BoundaryIterable<KeyValue> iterableKeyValues(final RubyHash hash) {
         assert RubyGuards.isRubyHash(hash);
 
         return BoundaryIterable.wrap(() -> iterateKeyValues(hash));

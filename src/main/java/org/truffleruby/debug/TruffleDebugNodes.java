@@ -30,6 +30,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
@@ -336,9 +337,9 @@ public abstract class TruffleDebugNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyHash(hash)")
-        protected DynamicObject hashStorage(DynamicObject hash) {
-            Object store = Layouts.HASH.getStore(hash);
+        @Specialization
+        protected DynamicObject hashStorage(RubyHash hash) {
+            Object store = hash.store;
             String storage = store == null ? "null" : store.getClass().toString();
             return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         }

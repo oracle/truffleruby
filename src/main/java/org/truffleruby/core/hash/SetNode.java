@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
@@ -37,10 +36,10 @@ public abstract class SetNode extends RubyContextNode {
         return SetNodeGen.create();
     }
 
-    public abstract Object executeSet(DynamicObject hash, Object key, Object value, boolean byIdentity);
+    public abstract Object executeSet(RubyHash hash, Object key, Object value, boolean byIdentity);
 
     @Specialization(guards = "isNullHash(hash)")
-    protected Object setNull(DynamicObject hash, Object originalKey, Object value, boolean byIdentity) {
+    protected Object setNull(RubyHash hash, Object originalKey, Object value, boolean byIdentity) {
         assert HashOperations.verifyStore(getContext(), hash);
         boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
         final Object key = freezeHashKeyIfNeededNode.executeFreezeIfNeeded(originalKey, compareByIdentity);
@@ -51,10 +50,10 @@ public abstract class SetNode extends RubyContextNode {
         propagateSharingValueNode.executePropagate(hash, value);
 
         Object store = PackedArrayStrategy.createStore(getContext(), hashed, key, value);
-        Layouts.HASH.setStore(hash, store);
-        Layouts.HASH.setSize(hash, 1);
-        Layouts.HASH.setFirstInSequence(hash, null);
-        Layouts.HASH.setLastInSequence(hash, null);
+        hash.store = store;
+        hash.size = 1;
+        hash.firstInSequence = null;
+        hash.lastInSequence = null;
 
         assert HashOperations.verifyStore(getContext(), hash);
         return value;
@@ -62,7 +61,7 @@ public abstract class SetNode extends RubyContextNode {
 
     @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL_UNTIL_RETURN)
     @Specialization(guards = "isPackedHash(hash)")
-    protected Object setPackedArray(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
+    protected Object setPackedArray(RubyHash hash, Object originalKey, Object value, boolean byIdentity,
             @Cached ConditionProfile strategyProfile) {
         assert HashOperations.verifyStore(getContext(), hash);
         final boolean compareByIdentity = byIdentityProfile.profile(byIdentity);
@@ -73,8 +72,8 @@ public abstract class SetNode extends RubyContextNode {
         propagateSharingKeyNode.executePropagate(hash, key);
         propagateSharingValueNode.executePropagate(hash, value);
 
-        final Object[] store = (Object[]) Layouts.HASH.getStore(hash);
-        final int size = Layouts.HASH.getSize(hash);
+        final Object[] store = (Object[]) hash.store;
+        final int size = hash.size;
 
         // written very carefully to allow PE
         for (int n = 0; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
@@ -91,7 +90,7 @@ public abstract class SetNode extends RubyContextNode {
 
         if (strategyProfile.profile(size < getContext().getOptions().HASH_PACKED_ARRAY_MAX)) {
             PackedArrayStrategy.setHashedKeyValue(store, size, hashed, key, value);
-            Layouts.HASH.setSize(hash, size + 1);
+            hash.size += 1;
             return value;
         } else {
             PackedArrayStrategy.promoteToBuckets(getContext(), hash, store, size);
@@ -104,7 +103,7 @@ public abstract class SetNode extends RubyContextNode {
     }
 
     @Specialization(guards = "isBucketHash(hash)")
-    protected Object setBuckets(DynamicObject hash, Object originalKey, Object value, boolean byIdentity,
+    protected Object setBuckets(RubyHash hash, Object originalKey, Object value, boolean byIdentity,
             @Cached ConditionProfile foundProfile,
             @Cached ConditionProfile bucketCollisionProfile,
             @Cached ConditionProfile appendingProfile,
@@ -120,7 +119,7 @@ public abstract class SetNode extends RubyContextNode {
         final Entry entry = result.getEntry();
 
         if (foundProfile.profile(entry == null)) {
-            final Entry[] entries = (Entry[]) Layouts.HASH.getStore(hash);
+            final Entry[] entries = (Entry[]) hash.store;
 
             final Entry newEntry = new Entry(result.getHashed(), key, value);
 
@@ -130,20 +129,18 @@ public abstract class SetNode extends RubyContextNode {
                 result.getPreviousEntry().setNextInLookup(newEntry);
             }
 
-            final Entry lastInSequence = Layouts.HASH.getLastInSequence(hash);
+            final Entry lastInSequence = hash.lastInSequence;
 
             if (appendingProfile.profile(lastInSequence == null)) {
-                Layouts.HASH.setFirstInSequence(hash, newEntry);
+                hash.firstInSequence = newEntry;
             } else {
                 lastInSequence.setNextInSequence(newEntry);
                 newEntry.setPreviousInSequence(lastInSequence);
             }
 
-            Layouts.HASH.setLastInSequence(hash, newEntry);
+            hash.lastInSequence = newEntry;
 
-            final int newSize = Layouts.HASH.getSize(hash) + 1;
-
-            Layouts.HASH.setSize(hash, newSize);
+            final int newSize = (hash.size += 1);
 
             // TODO CS 11-May-15 could store the next size for resize instead of doing a float operation each time
 
@@ -164,7 +161,7 @@ public abstract class SetNode extends RubyContextNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupEntryNode = insert(new LookupEntryNode());
         }
-        return lookupEntryNode.lookup(hash, key);
+        return lookupEntryNode.lookup((RubyHash) hash, key);
     }
 
     protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {

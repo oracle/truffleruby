@@ -11,12 +11,12 @@ package org.truffleruby.stdlib;
 
 import java.util.Set;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.objects.ObjectGraph;
@@ -38,9 +38,9 @@ public abstract class ObjSpaceNodes {
             return memsizeOfObject(object) + object.size;
         }
 
-        @Specialization(guards = "isRubyHash(object)")
-        protected int memsizeOfHash(DynamicObject object) {
-            return memsizeOfObject(object) + Layouts.HASH.getSize(object);
+        @Specialization
+        protected int memsizeOfHash(RubyHash object) {
+            return memsizeOfObject(object) + object.size;
         }
 
         @Specialization

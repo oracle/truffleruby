@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -19,7 +18,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class HashLiteralNode extends RubyContextSourceNode {
@@ -108,8 +106,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
                 }
             }
 
-            return coreLibrary().hashFactory.newInstance(
-                    Layouts.HASH.build(store, size, null, null, nil, nil, false));
+            return new RubyHash(coreLibrary().hashShape, getContext(), store, size, null, null, nil, nil, false);
         }
 
         private int hash(Object key) {
@@ -156,8 +153,16 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
             }
 
             final Entry[] newEntries = new Entry[bucketsCount];
-            final DynamicObject hash = coreLibrary().hashFactory.newInstance(
-                    Layouts.HASH.build(newEntries, 0, null, null, nil, nil, false));
+            final RubyHash hash = new RubyHash(
+                    coreLibrary().hashShape,
+                    getContext(),
+                    newEntries,
+                    0,
+                    null,
+                    null,
+                    nil,
+                    nil,
+                    false);
 
             for (int n = 0; n < keyValues.length; n += 2) {
                 final Object key = keyValues[n].execute(frame);

@@ -44,6 +44,7 @@ import org.truffleruby.core.exception.RubyNameError;
 import org.truffleruby.core.exception.RubyNoMethodError;
 import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.fiber.RubyFiber;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
@@ -181,7 +182,7 @@ public class CoreLibrary {
     public final DynamicObject floatDomainErrorClass;
     public final DynamicObject frozenErrorClass;
     public final DynamicObject hashClass;
-    public final DynamicObjectFactory hashFactory;
+    public final Shape hashShape;
     public final DynamicObject integerClass;
     public final DynamicObject indexErrorClass;
     public final DynamicObject keyErrorClass;
@@ -516,12 +517,8 @@ public class CoreLibrary {
         Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, createFactory(fiberShape));
         defineModule("FileTest");
         hashClass = defineClass("Hash");
-        final DynamicObjectFactory originalHashFactory = Layouts.HASH.createHashShape(hashClass, hashClass);
-        if (context.isPreInitializing()) {
-            hashFactory = context.getPreInitializationManager().hookIntoHashFactory(originalHashFactory);
-        } else {
-            hashFactory = originalHashFactory;
-        }
+        hashShape = createShape(RubyHash.class, hashClass);
+        DynamicObjectFactory hashFactory = createFactory(hashShape);
         Layouts.CLASS.setInstanceFactoryUnsafe(hashClass, hashFactory);
         DynamicObject matchDataClass = defineClass("MatchData");
         matchDataShape = createShape(RubyMatchData.class, matchDataClass);

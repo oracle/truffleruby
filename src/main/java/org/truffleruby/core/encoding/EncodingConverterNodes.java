@@ -34,6 +34,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNodeGen;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -194,14 +195,14 @@ public abstract class EncodingConverterNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyHash(options)" })
+        @Specialization
         protected Object encodingConverterPrimitiveConvert(
                 RubyEncodingConverter encodingConverter,
                 RubyString source,
                 RubyString target,
                 int offset,
                 int size,
-                DynamicObject options) {
+                RubyHash options) {
             throw new UnsupportedOperationException("not implemented");
         }
 

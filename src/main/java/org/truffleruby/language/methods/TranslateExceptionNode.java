@@ -15,6 +15,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
@@ -188,7 +189,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
                     builder.append(array.size);
                     builder.append("]");
                 } else if (RubyGuards.isRubyHash(value)) {
-                    final Object store = Layouts.HASH.getStore((DynamicObject) value);
+                    final Object store = ((RubyHash) value).store;
 
                     if (store == null) {
                         builder.append("[null]");

@@ -9,42 +9,32 @@
  */
 package org.truffleruby.core.hash;
 
-import org.truffleruby.Layouts;
-import org.truffleruby.language.RubyGuards;
-
-import com.oracle.truffle.api.object.DynamicObject;
-
 public abstract class HashGuards {
 
     // Storage strategies
 
-    public static boolean isNullHash(DynamicObject hash) {
-        assert RubyGuards.isRubyHash(hash);
-        return Layouts.HASH.getStore(hash) == null;
+    public static boolean isNullHash(RubyHash hash) {
+        return hash.store == null;
     }
 
-    public static boolean isPackedHash(DynamicObject hash) {
-        assert RubyGuards.isRubyHash(hash);
+    public static boolean isPackedHash(RubyHash hash) {
         // Can't do instanceof Object[] due to covariance
-        final Object store = Layouts.HASH.getStore(hash);
+        final Object store = hash.store;
         return store != null && store.getClass() == Object[].class;
     }
 
-    public static boolean isBucketHash(DynamicObject hash) {
-        assert RubyGuards.isRubyHash(hash);
-        return Layouts.HASH.getStore(hash) instanceof Entry[];
+    public static boolean isBucketHash(RubyHash hash) {
+        return hash.store instanceof Entry[];
     }
 
     // Higher level properties
 
-    public static boolean isEmptyHash(DynamicObject hash) {
-        assert RubyGuards.isRubyHash(hash);
-        return Layouts.HASH.getSize(hash) == 0;
+    public static boolean isEmptyHash(RubyHash hash) {
+        return hash.size == 0;
     }
 
-    public static boolean isCompareByIdentity(DynamicObject hash) {
-        assert RubyGuards.isRubyHash(hash);
-        return Layouts.HASH.getCompareByIdentity(hash);
+    public static boolean isCompareByIdentity(RubyHash hash) {
+        return hash.compareByIdentity;
     }
 
 }

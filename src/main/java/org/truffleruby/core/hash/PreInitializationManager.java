@@ -15,13 +15,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
-import com.oracle.truffle.api.object.Shape;
 
 public final class PreInitializationManager {
 
@@ -29,8 +25,7 @@ public final class PreInitializationManager {
 
     private final List<ReHashable> reHashables = new ArrayList<>();
 
-    private TrackingHashFactory trackingHashFactory;
-    private final Set<DynamicObject> hashesCreatedDuringPreInit = Collections.newSetFromMap(new WeakHashMap<>());
+    private final Set<RubyHash> hashesCreatedDuringPreInit = Collections.newSetFromMap(new WeakHashMap<>());
 
     public PreInitializationManager(RubyContext context) {
         this.context = context;
@@ -48,19 +43,8 @@ public final class PreInitializationManager {
     }
 
     @TruffleBoundary
-    private void addPreInitHash(DynamicObject hash) {
+    public void addPreInitHash(RubyHash hash) {
         hashesCreatedDuringPreInit.add(hash);
-    }
-
-    public DynamicObjectFactory hookIntoHashFactory(DynamicObjectFactory originalHashFactory) {
-        trackingHashFactory = new TrackingHashFactory(context, this, originalHashFactory);
-        return trackingHashFactory;
-    }
-
-    private void restoreOriginalHashFactory() {
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                context.getCoreLibrary().hashClass,
-                trackingHashFactory.originalHashFactory);
     }
 
     public void rehash() {
@@ -73,42 +57,12 @@ public final class PreInitializationManager {
     }
 
     private void rehashRubyHashes() {
-        for (DynamicObject hash : hashesCreatedDuringPreInit) {
+        for (RubyHash hash : hashesCreatedDuringPreInit) {
             if (!HashGuards.isCompareByIdentity(hash)) {
                 context.send(hash, "rehash");
             }
         }
         hashesCreatedDuringPreInit.clear();
-
-        restoreOriginalHashFactory();
-    }
-
-    private static final class TrackingHashFactory implements DynamicObjectFactory {
-
-        private final RubyContext context;
-        private final PreInitializationManager preInitializationManager;
-        private final DynamicObjectFactory originalHashFactory;
-
-        public TrackingHashFactory(
-                RubyContext context,
-                PreInitializationManager preInitializationManager,
-                DynamicObjectFactory originalHashFactory) {
-            this.context = context;
-            this.preInitializationManager = preInitializationManager;
-            this.originalHashFactory = originalHashFactory;
-        }
-
-        public DynamicObject newInstance(Object... initialValues) {
-            final DynamicObject object = originalHashFactory.newInstance(initialValues);
-            if (context.isPreInitializing()) {
-                preInitializationManager.addPreInitHash(object);
-            }
-            return object;
-        }
-
-        public Shape getShape() {
-            return originalHashFactory.getShape();
-        }
     }
 
 }
