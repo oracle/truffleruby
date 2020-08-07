@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.oracle.truffle.api.nodes.NodeUtil;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -93,7 +94,6 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
@@ -1162,13 +1162,8 @@ public abstract class KernelNodes {
         }
 
         private boolean isLiteralBlock(Node callNode) {
-            if (callNode.getParent() instanceof DispatchNode) {
-                RubyCallNode rubyCallNode = ((DispatchNode) callNode.getParent()).findRubyCallNode();
-                if (rubyCallNode != null) {
-                    return rubyCallNode.hasLiteralBlock();
-                }
-            }
-            return false;
+            RubyCallNode rubyCallNode = NodeUtil.findParent(callNode, RubyCallNode.class);
+            return rubyCallNode != null && rubyCallNode.hasLiteralBlock();
         }
 
         private void warnProcWithoutBlock() {
