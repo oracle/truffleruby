@@ -15,6 +15,7 @@ Compatibility:
 * `String#split` supports block (#2052, @ssnickolay)
 * Implemented `String#{grapheme_clusters, each_grapheme_cluster}`.
 * Fix the caller location for `#method_added` (#2059).
+* Fix `String#unpack` issue with `m0` format (#2065).
 
 Performance:
 

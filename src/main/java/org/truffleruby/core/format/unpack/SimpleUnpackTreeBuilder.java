@@ -224,7 +224,7 @@ public class SimpleUnpackTreeBuilder implements SimplePackListener {
         appendNode(WriteValueNodeGen.create(
                 new OutputNode(),
                 TaintFromSourceNodeGen.create(
-                        ReadBase64StringNodeGen.create(new SourceNode()))));
+                        ReadBase64StringNodeGen.create(count, new SourceNode()))));
     }
 
     @Override
