@@ -17,6 +17,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.CoreLibrary.ShapeDynamicObjectFactory;
 import org.truffleruby.core.basicobject.BasicObjectLayoutImpl.BasicObjectType;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -310,11 +311,11 @@ public abstract class ClassNodes {
         }
 
         @Specialization
-        protected Object newInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, DynamicObject block) {
+        protected Object newInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, RubyProc block) {
             return doNewInstance(frame, rubyClass, args, block);
         }
 
-        private Object doNewInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, DynamicObject block) {
+        private Object doNewInstance(VirtualFrame frame, DynamicObject rubyClass, Object[] args, RubyProc block) {
             final Object instance = allocateNode.call(rubyClass, "__allocate__");
             initialize.callWithBlock(instance, "initialize", block, args);
             return instance;

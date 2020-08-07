@@ -99,6 +99,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.TaintResultNode;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.cast.ToLongNode;
@@ -117,6 +118,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
@@ -801,7 +803,7 @@ public abstract class StringNodes {
         }
 
         @Specialization
-        protected DynamicObject bytes(RubyString string, DynamicObject block) {
+        protected DynamicObject bytes(RubyString string, RubyProc block) {
             Rope rope = string.rope;
             byte[] bytes = bytesNode.execute(rope);
 
@@ -1218,7 +1220,7 @@ public abstract class StringNodes {
 
         @SuppressFBWarnings("SA")
         @Specialization
-        protected DynamicObject eachByte(RubyString string, DynamicObject block,
+        protected DynamicObject eachByte(RubyString string, RubyProc block,
                 @Cached RopeNodes.BytesNode bytesNode,
                 @Cached RopeNodes.BytesNode updatedBytesNode,
                 @Cached ConditionProfile ropeChangedProfile) {
@@ -1249,7 +1251,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization
-        protected DynamicObject eachChar(RubyString string, DynamicObject block,
+        protected DynamicObject eachChar(RubyString string, RubyProc block,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode,
                 @Cached RopeNodes.CodeRangeNode codeRangeNode,
                 @Cached AllocateHelperNode allocateHelperNode) {
@@ -1691,7 +1693,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
         @Specialization(guards = { "isBrokenCodeRange(string, codeRangeNode)", "isAsciiCompatible(string)" })
-        protected DynamicObject scrubAsciiCompat(RubyString string, DynamicObject block) {
+        protected DynamicObject scrubAsciiCompat(RubyString string, RubyProc block) {
             final Rope rope = string.rope;
             final Encoding enc = rope.getEncoding();
             final CodeRange cr = codeRangeNode.execute(rope);
@@ -1765,7 +1767,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "isBrokenCodeRange(string, codeRangeNode)", "!isAsciiCompatible(string)" })
-        protected DynamicObject scrubAsciiIncompatible(RubyString string, DynamicObject block,
+        protected DynamicObject scrubAsciiIncompatible(RubyString string, RubyProc block,
                 @Cached RopeNodes.CalculateCharacterLengthNode calculateCharacterLengthNode) {
             final Rope rope = string.rope;
             final Encoding enc = rope.getEncoding();
@@ -1829,7 +1831,7 @@ public abstract class StringNodes {
             return makeStringNode.fromRope(buf);
         }
 
-        public Object yield(DynamicObject block, Object... arguments) {
+        public Object yield(RubyProc block, Object... arguments) {
             return yieldNode.executeDispatch(block, arguments);
         }
 
@@ -3197,10 +3199,11 @@ public abstract class StringNodes {
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
                 @Cached ConditionProfile trailingSubstringProfile,
-                @Cached ConditionProfile trailingEmptyStringProfile) {
+                @Cached ConditionProfile trailingEmptyStringProfile,
+                @Cached ProcOrNullNode procOrNullNode) {
             Object[] ret = new Object[10];
             int storeIndex = 0;
-            final DynamicObject calledBlock = (block instanceof Nil) ? null : (DynamicObject) block;
+            final RubyProc calledBlock = procOrNullNode.executeProcOrNull(block);
 
             final Rope rope = string.rope;
             final byte[] bytes = bytesNode.execute(rope);
@@ -3258,10 +3261,11 @@ public abstract class StringNodes {
         protected RubyArray stringAwkSplit(RubyString string, int limit, Object block,
                 @Cached ConditionProfile executeBlockProfile,
                 @Cached ConditionProfile growArrayProfile,
-                @Cached ConditionProfile trailingSubstringProfile) {
+                @Cached ConditionProfile trailingSubstringProfile,
+                @Cached ProcOrNullNode procOrNullNode) {
             Object[] ret = new Object[10];
             int storeIndex = 0;
-            final DynamicObject calledBlock = (block instanceof Nil) ? null : (DynamicObject) block;
+            final RubyProc calledBlock = procOrNullNode.executeProcOrNull(block);
 
             final Rope rope = string.rope;
             final boolean limitPositive = limit > 0;
@@ -3321,7 +3325,7 @@ public abstract class StringNodes {
         }
 
         private Object[] addSubstring(Object[] store, int index, DynamicObject substring,
-                DynamicObject block, ConditionProfile executeBlockProfile, ConditionProfile growArrayProfile) {
+                RubyProc block, ConditionProfile executeBlockProfile, ConditionProfile growArrayProfile) {
             if (executeBlockProfile.profile(block != null)) {
                 yield(block, substring);
             } else {
@@ -3336,7 +3340,7 @@ public abstract class StringNodes {
             return store;
         }
 
-        private Object yield(DynamicObject block, Object... arguments) {
+        private Object yield(RubyProc block, Object... arguments) {
             return yieldNode.executeDispatch(block, arguments);
         }
     }

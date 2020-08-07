@@ -11,6 +11,7 @@ package org.truffleruby.language.supercall;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.ProcOrNullNode;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
@@ -18,7 +19,6 @@ import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class SuperCallNode extends RubyContextSourceNode {
 
@@ -42,11 +42,11 @@ public class SuperCallNode extends RubyContextSourceNode {
         final Object[] superArguments = (Object[]) arguments.execute(frame);
 
         // Execute the block
-        final DynamicObject blockObject = procOrNullNode.executeProcOrNull(block.execute(frame));
+        final RubyProc blockObject = procOrNullNode.executeProcOrNull(block.execute(frame));
 
         final InternalMethod superMethod = executeLookupSuperMethod(frame, self);
 
-        return callSuperMethodNode.executeCallSuperMethod(frame, self, superMethod, superArguments, blockObject);
+        return callSuperMethodNode.execute(frame, self, superMethod, superArguments, blockObject);
     }
 
     @Override

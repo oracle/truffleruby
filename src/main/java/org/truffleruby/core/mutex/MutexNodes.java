@@ -26,6 +26,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.language.RubyNode;
@@ -144,7 +145,7 @@ public abstract class MutexNodes {
     public abstract static class SynchronizeNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected Object synchronize(RubyMutex mutex, DynamicObject block,
+        protected Object synchronize(RubyMutex mutex, RubyProc block,
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode,
                 @Cached BranchProfile errorProfile) {
             final ReentrantLock lock = mutex.lock;

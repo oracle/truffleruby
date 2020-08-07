@@ -20,6 +20,7 @@ import com.oracle.truffle.api.object.Property;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.hash.Entry;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -176,7 +177,7 @@ public abstract class ObjectGraph {
             reachable.add(self);
         }
 
-        final DynamicObject block = RubyArguments.tryGetBlock(frame);
+        final RubyProc block = RubyArguments.tryGetBlock(frame);
         if (block != null) {
             reachable.add(block);
         }

@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -25,7 +26,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class CachedDispatchNode extends DispatchNode {
@@ -109,7 +109,7 @@ public abstract class CachedDispatchNode extends DispatchNode {
     }
 
     protected Object call(DirectCallNode callNode, VirtualFrame frame, InternalMethod method, Object receiver,
-            DynamicObject block, Object[] arguments) {
+            RubyProc block, Object[] arguments) {
         if (needsCallerAssumption == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             resetNeedsCallerAssumption();

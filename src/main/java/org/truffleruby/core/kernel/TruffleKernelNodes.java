@@ -20,6 +20,7 @@ import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.binding.RubyBinding;
@@ -55,7 +56,7 @@ public abstract class TruffleKernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object atExit(boolean always, DynamicObject block) {
+        protected Object atExit(boolean always, RubyProc block) {
             getContext().getAtExitManager().add(block, always);
             return nil;
         }
@@ -153,12 +154,12 @@ public abstract class TruffleKernelNodes {
     public abstract static class DefineHookedVariableInnerNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyProc(getter)", "isRubyProc(setter)" })
+        @Specialization
         protected Object defineHookedVariableInnerNode(
                 RubySymbol name,
-                DynamicObject getter,
-                DynamicObject setter,
-                DynamicObject isDefined) {
+                RubyProc getter,
+                RubyProc setter,
+                RubyProc isDefined) {
             getContext().getCoreLibrary().globalVariables.define(
                     name.getString(),
                     getter,

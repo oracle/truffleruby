@@ -14,9 +14,9 @@ import java.util.Collection;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.LogicalClassNode;
 import org.truffleruby.shared.TruffleRuby;
@@ -66,8 +66,7 @@ public class TraceManager {
     }
 
     @TruffleBoundary
-    public synchronized void setTraceFunc(DynamicObject traceFunc) {
-        assert traceFunc == null || RubyGuards.isRubyProc(traceFunc);
+    public synchronized void setTraceFunc(RubyProc traceFunc) {
 
         if (instruments != null) {
             for (EventBinding<?> instrument : instruments) {
@@ -130,13 +129,13 @@ public class TraceManager {
 
         protected final ConditionProfile inTraceFuncProfile = ConditionProfile.create();
 
-        protected final DynamicObject traceFunc;
+        protected final RubyProc traceFunc;
         protected final Object event;
 
         public BaseEventEventNode(
                 RubyContext context,
                 EventContext eventContext,
-                DynamicObject traceFunc,
+                RubyProc traceFunc,
                 Object event) {
             super(context, eventContext);
             this.traceFunc = traceFunc;
@@ -176,7 +175,7 @@ public class TraceManager {
         public CallEventEventNode(
                 RubyContext context,
                 EventContext eventContext,
-                DynamicObject traceFunc,
+                RubyProc traceFunc,
                 Object event) {
             super(context, eventContext, traceFunc, event);
         }

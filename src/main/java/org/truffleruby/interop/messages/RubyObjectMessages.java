@@ -20,6 +20,7 @@ import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.RubyGuards;
@@ -180,7 +181,7 @@ public class RubyObjectMessages {
         } else if (RubyGuards.isRubyUnboundMethod(receiver)) {
             return ((RubyUnboundMethod) receiver).method.getSharedMethodInfo().getSourceSection();
         } else if (RubyGuards.isRubyProc(receiver)) {
-            return Layouts.PROC.getMethod(receiver).getSharedMethodInfo().getSourceSection();
+            return ((RubyProc) receiver).method.getSharedMethodInfo().getSourceSection();
         } else {
             throw UnsupportedMessageException.create();
         }

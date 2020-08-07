@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.globals;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.yield.YieldNode;
@@ -60,7 +59,7 @@ public abstract class IsDefinedGlobalVariableNode extends RubyContextNode {
     }
 
     protected int isDefinedArity(GlobalVariableStorage storage) {
-        return Layouts.PROC.getSharedMethodInfo(storage.getIsDefined()).getArity().getArityNumber();
+        return storage.getIsDefined().sharedMethodInfo.getArity().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {

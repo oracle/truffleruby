@@ -44,7 +44,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -64,6 +63,7 @@ import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
@@ -73,7 +73,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.core.thread.ThreadManager.UnblockingActionHolder;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
 import org.truffleruby.language.Visibility;
@@ -252,7 +251,7 @@ public abstract class ThreadNodes {
                 RubyThread self,
                 DynamicObject exceptionClass,
                 RubySymbol timing,
-                DynamicObject block) {
+                RubyProc block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
             final InterruptMode newInterruptMode = symbolToInterruptMode(timing);
 
@@ -312,9 +311,9 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object initialize(RubyThread thread, RubyArray arguments, DynamicObject block,
+        protected Object initialize(RubyThread thread, RubyArray arguments, RubyProc block,
                 @CachedLibrary("arguments.store") ArrayStoreLibrary stores) {
-            final SourceSection sourceSection = Layouts.PROC.getSharedMethodInfo(block).getSourceSection();
+            final SourceSection sourceSection = block.sharedMethodInfo.getSourceSection();
             final String info = RubyContext.fileLine(sourceSection);
             final int argSize = arguments.size;
             final Object[] args = stores.boxedCopyOfRange(arguments.store, 0, argSize);
@@ -503,15 +502,15 @@ public abstract class ThreadNodes {
     @CoreMethod(names = "unblock", required = 2)
     public abstract static class UnblockNode extends YieldingCoreMethodNode {
 
-        @Specialization(guards = "isRubyProc(runner)")
-        protected Object unblock(RubyThread thread, Object unblocker, DynamicObject runner,
+        @Specialization
+        protected Object unblock(RubyThread thread, Object unblocker, RubyProc runner,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             final ThreadManager threadManager = getContext().getThreadManager();
             final UnblockingAction unblockingAction;
             if (unblocker == nil) {
                 unblockingAction = threadManager.getNativeCallUnblockingAction();
             } else {
-                unblockingAction = makeUnblockingAction(unblocker);
+                unblockingAction = makeUnblockingAction((RubyProc) unblocker);
             }
             final UnblockingActionHolder actionHolder = threadManager.getActionHolder(Thread.currentThread());
 
@@ -536,10 +535,8 @@ public abstract class ThreadNodes {
         }
 
         @TruffleBoundary
-        private UnblockingAction makeUnblockingAction(Object unblocker) {
-            assert RubyGuards.isRubyProc(unblocker);
-            final DynamicObject unblockerProc = (DynamicObject) unblocker;
-            return () -> yield(unblockerProc);
+        private UnblockingAction makeUnblockingAction(RubyProc unblocker) {
+            return () -> yield(unblocker);
         }
 
     }
@@ -647,8 +644,7 @@ public abstract class ThreadNodes {
                     currentNode,
                     (currentThread, currentNode1) -> {
                         if (exception.backtrace == null) {
-                            Backtrace backtrace = context.getCallStack().getBacktrace(currentNode1);
-                            exception.backtrace = backtrace;
+                            exception.backtrace = context.getCallStack().getBacktrace(currentNode1);
                         }
 
                         VMRaiseExceptionNode.reRaiseException(context, exception);
@@ -794,8 +790,8 @@ public abstract class ThreadNodes {
     @Primitive(name = "thread_run_blocking_nfi_system_call")
     public static abstract class ThreadRunBlockingSystemCallNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyProc(block)")
-        protected Object runBlockingSystemCall(DynamicObject block,
+        @Specialization
+        protected Object runBlockingSystemCall(RubyProc block,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile,
                 @Cached YieldNode yieldNode) {
             final ThreadManager threadManager = getContext().getThreadManager();

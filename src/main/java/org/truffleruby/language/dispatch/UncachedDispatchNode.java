@@ -13,7 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.proc.RubyProc;
 
 
 public class UncachedDispatchNode extends DispatchNode {
@@ -45,7 +45,7 @@ public class UncachedDispatchNode extends DispatchNode {
             VirtualFrame frame,
             Object receiver,
             Object name,
-            DynamicObject block,
+            RubyProc block,
             Object[] arguments) {
 
         if (needsCallerAssumption == null) {

@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language.dispatch;
 
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class DispatchHeadNode extends RubyContextNode {
 
@@ -39,7 +39,7 @@ public abstract class DispatchHeadNode extends RubyContextNode {
             VirtualFrame frame,
             Object receiverObject,
             Object methodName,
-            DynamicObject blockObject,
+            RubyProc blockObject,
             Object[] argumentsObjects) {
         return first.executeDispatch(
                 frame,

@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.Assumption;
@@ -62,7 +63,7 @@ public class CachedUnboxedDispatchNode extends CachedDispatchNode {
             VirtualFrame frame,
             Object receiverObject,
             Object methodName,
-            DynamicObject blockObject,
+            RubyProc blockObject,
             Object[] argumentsObjects) {
         try {
             checkAssumptions(assumptions);

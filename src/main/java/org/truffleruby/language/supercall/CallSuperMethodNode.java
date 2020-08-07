@@ -10,6 +10,7 @@
 package org.truffleruby.language.supercall;
 
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -17,12 +18,10 @@ import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-public abstract class CallSuperMethodNode extends FrameSendingNode {
+public class CallSuperMethodNode extends FrameSendingNode {
 
     private final ConditionProfile missingProfile = ConditionProfile.create();
 
@@ -30,21 +29,18 @@ public abstract class CallSuperMethodNode extends FrameSendingNode {
     @Child private CallDispatchHeadNode callMethodMissingNode;
 
     public static CallSuperMethodNode create() {
-        return CallSuperMethodNodeGen.create();
+        return new CallSuperMethodNode();
     }
 
-    public abstract Object executeCallSuperMethod(VirtualFrame frame, Object self, Object superMethod,
-            Object[] arguments, Object block);
+    private CallSuperMethodNode() {
+    }
 
-    // superMethod is typed as Object below because it must accept "null".
-    @Specialization
-    protected Object callSuperMethod(
+    public Object execute(
             VirtualFrame frame,
             Object self,
-            Object superMethodObject,
+            InternalMethod superMethod,
             Object[] arguments,
-            Object block) {
-        final InternalMethod superMethod = (InternalMethod) superMethodObject;
+            RubyProc block) {
 
         if (missingProfile.profile(superMethod == null)) {
             final String name = RubyArguments.getMethod(frame).getSharedMethodInfo().getName(); // use the original name
@@ -54,7 +50,7 @@ public abstract class CallSuperMethodNode extends FrameSendingNode {
         }
 
         final Object[] frameArguments = RubyArguments
-                .pack(null, getFrameIfRequired(frame), superMethod, null, self, (DynamicObject) block, arguments);
+                .pack(null, getFrameIfRequired(frame), superMethod, null, self, block, arguments);
 
         return callMethod(superMethod, frameArguments);
     }
@@ -67,12 +63,11 @@ public abstract class CallSuperMethodNode extends FrameSendingNode {
         return callMethodNode.executeCallMethod(superMethod, frameArguments);
     }
 
-    private Object callMethodMissing(VirtualFrame frame, Object receiver, Object block, Object[] arguments) {
+    private Object callMethodMissing(VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {
         if (callMethodMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             callMethodMissingNode = insert(CallDispatchHeadNode.createPrivate());
         }
-        return callMethodMissingNode.callWithBlock(receiver, "method_missing", (DynamicObject) block, arguments);
+        return callMethodMissingNode.callWithBlock(receiver, "method_missing", block, arguments);
     }
-
 }

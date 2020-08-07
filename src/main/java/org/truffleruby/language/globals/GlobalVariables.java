@@ -15,11 +15,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.truffleruby.collections.ConcurrentOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class GlobalVariables {
 
@@ -49,8 +49,7 @@ public class GlobalVariables {
         return define(name, new GlobalVariableStorage(value, null, null, null));
     }
 
-    public GlobalVariableStorage define(String name, DynamicObject getter, DynamicObject setter,
-            DynamicObject isDefined) {
+    public GlobalVariableStorage define(String name, RubyProc getter, RubyProc setter, RubyProc isDefined) {
         return define(name, new GlobalVariableStorage(getter, setter, isDefined));
     }
 

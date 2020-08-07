@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -23,7 +24,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class DispatchNode extends FrameSendingNode {
 
@@ -49,7 +49,7 @@ public abstract class DispatchNode extends FrameSendingNode {
             VirtualFrame frame,
             Object receiverObject,
             Object methodName,
-            DynamicObject blockObject,
+            RubyProc blockObject,
             Object[] argumentsObjects);
 
     protected MethodLookupResult lookup(
@@ -76,7 +76,7 @@ public abstract class DispatchNode extends FrameSendingNode {
             VirtualFrame frame,
             Object receiverObject,
             Object methodName,
-            DynamicObject blockObject,
+            RubyProc blockObject,
             Object[] argumentsObjects,
             String reason) {
         final DispatchHeadNode head = getHeadNode();

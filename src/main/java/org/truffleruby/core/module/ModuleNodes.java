@@ -46,6 +46,7 @@ import org.truffleruby.core.module.ModuleNodesFactory.GenerateAccessorNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.IsSubclassOfOrEqualToNodeFactory;
 import org.truffleruby.core.module.ModuleNodesFactory.SetMethodVisibilityNodeGen;
 import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -728,7 +729,7 @@ public abstract class ModuleNodes {
                 NotProvided code,
                 NotProvided file,
                 NotProvided line,
-                DynamicObject block,
+                RubyProc block,
                 @Cached ClassExecNode classExecNode) {
             return classExecNode.executeClassExec(self, new Object[]{ self }, block);
         }
@@ -749,7 +750,7 @@ public abstract class ModuleNodes {
                 Object code,
                 NotProvided file,
                 NotProvided line,
-                DynamicObject block) {
+                RubyProc block) {
             throw new RaiseException(getContext(), coreExceptions().argumentError(1, 0, this));
         }
 
@@ -764,16 +765,16 @@ public abstract class ModuleNodes {
 
         @Child private CallBlockNode callBlockNode = CallBlockNode.create();
 
-        abstract Object executeClassExec(DynamicObject self, Object[] args, DynamicObject block);
+        abstract Object executeClassExec(DynamicObject self, Object[] args, RubyProc block);
 
         @Specialization
-        protected Object classExec(DynamicObject self, Object[] args, DynamicObject block) {
+        protected Object classExec(DynamicObject self, Object[] args, RubyProc block) {
             final DeclarationContext declarationContext = new DeclarationContext(
                     Visibility.PUBLIC,
                     new FixedDefaultDefinee(self),
-                    Layouts.PROC.getDeclarationContext(block).getRefinements());
+                    block.declarationContext.getRefinements());
 
-            return callBlockNode.executeCallBlock(declarationContext, block, self, Layouts.PROC.getBlock(block), args);
+            return callBlockNode.executeCallBlock(declarationContext, block, self, block.block, args);
         }
 
         @Specialization
@@ -1132,16 +1133,16 @@ public abstract class ModuleNodes {
                 DynamicObject module,
                 String name,
                 NotProvided proc,
-                DynamicObject block) {
+                RubyProc block) {
             return defineMethodProc(frame, module, name, block, NotProvided.INSTANCE);
         }
 
-        @Specialization(guards = "isRubyProc(proc)")
+        @Specialization
         protected RubySymbol defineMethodProc(
                 VirtualFrame frame,
                 DynamicObject module,
                 String name,
-                DynamicObject proc,
+                RubyProc proc,
                 NotProvided block) {
             return defineMethod(module, name, proc, readCallerFrame.execute(frame));
         }
@@ -1208,15 +1209,13 @@ public abstract class ModuleNodes {
         }
 
         @TruffleBoundary
-        private RubySymbol defineMethod(DynamicObject module, String name, DynamicObject proc,
+        private RubySymbol defineMethod(DynamicObject module, String name, RubyProc proc,
                 MaterializedFrame callerFrame) {
-            final RootCallTarget callTarget = Layouts.PROC.getCallTargetForLambdas(proc);
-            final RubyRootNode rootNode = (RubyRootNode) callTarget.getRootNode();
-            final SharedMethodInfo info = Layouts.PROC.getSharedMethodInfo(proc).forDefineMethod(module, name);
-            final MaterializedFrame declarationFrame = Layouts.PROC.getDeclarationFrame(proc);
+            final RubyRootNode rootNode = (RubyRootNode) proc.callTargetForLambdas.getRootNode();
+            final SharedMethodInfo info = proc.sharedMethodInfo.forDefineMethod(module, name);
 
             final RubyNode body = NodeUtil.cloneNode(rootNode.getBody());
-            final RubyNode newBody = new CallMethodWithProcBody(declarationFrame, body);
+            final RubyNode newBody = new CallMethodWithProcBody(proc.declarationFrame, body);
             final RubyRootNode newRootNode = new RubyRootNode(
                     getContext(),
                     info.getSourceSection(),
@@ -1226,11 +1225,10 @@ public abstract class ModuleNodes {
                     true);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            final DeclarationContext declarationContext = Layouts.PROC.getDeclarationContext(proc);
             final InternalMethod method = InternalMethod.fromProc(
                     getContext(),
                     info,
-                    declarationContext,
+                    proc.declarationContext,
                     name,
                     module,
                     Visibility.PUBLIC,
@@ -1299,7 +1297,7 @@ public abstract class ModuleNodes {
 
         public abstract DynamicObject executeInitialize(DynamicObject module, Object block);
 
-        void classEval(DynamicObject module, DynamicObject block) {
+        void classEval(DynamicObject module, RubyProc block) {
             if (classExecNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 classExecNode = insert(ClassExecNode.create());
@@ -1313,7 +1311,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization
-        protected DynamicObject initialize(DynamicObject module, DynamicObject block) {
+        protected DynamicObject initialize(DynamicObject module, RubyProc block) {
             classEval(module, block);
             return module;
         }
@@ -2100,7 +2098,7 @@ public abstract class ModuleNodes {
         }
 
         @Specialization(guards = "!isRubyModule(moduleToRefine)")
-        protected DynamicObject refineNotModule(DynamicObject self, Object moduleToRefine, DynamicObject block) {
+        protected DynamicObject refineNotModule(DynamicObject self, Object moduleToRefine, RubyProc block) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().typeErrorWrongArgumentType(moduleToRefine, "Class", this));
@@ -2108,7 +2106,7 @@ public abstract class ModuleNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isRubyModule(moduleToRefine)")
-        protected DynamicObject refine(DynamicObject namespace, DynamicObject moduleToRefine, DynamicObject block) {
+        protected DynamicObject refine(DynamicObject namespace, DynamicObject moduleToRefine, RubyProc block) {
             final ConcurrentMap<DynamicObject, DynamicObject> refinements = Layouts.MODULE
                     .getFields(namespace)
                     .getRefinements();
@@ -2142,7 +2140,7 @@ public abstract class ModuleNodes {
                     declarationContext,
                     block,
                     refinement,
-                    Layouts.PROC.getBlock(block),
+                    block.block,
                     EMPTY_ARGUMENTS);
             return refinement;
         }

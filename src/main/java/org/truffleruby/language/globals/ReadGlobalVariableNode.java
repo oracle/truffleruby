@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.globals;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -54,7 +53,7 @@ public abstract class ReadGlobalVariableNode extends RubyContextSourceNode {
     }
 
     protected int getterArity(GlobalVariableStorage storage) {
-        return Layouts.PROC.getSharedMethodInfo(storage.getGetter()).getArity().getArityNumber();
+        return storage.getGetter().sharedMethodInfo.getArity().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {

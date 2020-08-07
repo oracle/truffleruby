@@ -9,15 +9,15 @@
  */
 package org.truffleruby.builtins;
 
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.yield.YieldNode;
 
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class YieldingCoreMethodNode extends CoreMethodArrayArgumentsNode {
 
     @Child private YieldNode dispatchNode = YieldNode.create();
 
-    public Object yield(DynamicObject block, Object... arguments) {
+    public Object yield(RubyProc block, Object... arguments) {
         return dispatchNode.executeDispatch(block, arguments);
     }
 

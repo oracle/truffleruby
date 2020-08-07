@@ -17,8 +17,6 @@ import org.truffleruby.core.klass.ClassLayout;
 import org.truffleruby.core.klass.ClassLayoutImpl;
 import org.truffleruby.core.module.ModuleLayout;
 import org.truffleruby.core.module.ModuleLayoutImpl;
-import org.truffleruby.core.proc.ProcLayout;
-import org.truffleruby.core.proc.ProcLayoutImpl;
 
 import com.oracle.truffle.api.object.HiddenKey;
 
@@ -42,6 +40,4 @@ public abstract class Layouts {
     public static final ClassLayout CLASS = ClassLayoutImpl.INSTANCE;
     public static final HashLayout HASH = HashLayoutImpl.INSTANCE;
     public static final ModuleLayout MODULE = ModuleLayoutImpl.INSTANCE;
-    public static final ProcLayout PROC = ProcLayoutImpl.INSTANCE;
-
 }

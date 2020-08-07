@@ -49,6 +49,7 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
 import org.truffleruby.core.numeric.FixnumLowerNode;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
@@ -637,7 +638,7 @@ public abstract class ArrayNodes {
                 if (maybeBlock == NotProvided.INSTANCE) {
                     return nil;
                 } else {
-                    return yield((DynamicObject) maybeBlock, value);
+                    return yield((RubyProc) maybeBlock, value);
                 }
             }
         }
@@ -679,7 +680,7 @@ public abstract class ArrayNodes {
                 if (maybeBlock == NotProvided.INSTANCE) {
                     return nil;
                 } else {
-                    return yield((DynamicObject) maybeBlock, value);
+                    return yield((RubyProc) maybeBlock, value);
                 }
             }
         }
@@ -759,13 +760,13 @@ public abstract class ArrayNodes {
     public abstract static class EachNode extends YieldingCoreMethodNode implements ArrayElementConsumerNode {
 
         @Specialization
-        protected Object each(RubyArray array, DynamicObject block,
+        protected Object each(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
         @Override
-        public void accept(RubyArray array, DynamicObject block, Object element, int index) {
+        public void accept(RubyArray array, RubyProc block, Object element, int index) {
             yield(block, element);
         }
 
@@ -780,13 +781,13 @@ public abstract class ArrayNodes {
         @Child private YieldNode dispatchNode = YieldNode.create();
 
         @Specialization
-        protected Object eachOther(RubyArray array, DynamicObject block,
+        protected Object eachOther(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
         @Override
-        public void accept(RubyArray array, DynamicObject block, Object element, int index) {
+        public void accept(RubyArray array, RubyProc block, Object element, int index) {
             dispatchNode.executeDispatch(block, element, index);
         }
 
@@ -955,7 +956,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization
-        protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, DynamicObject block,
+        protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, RubyProc block,
                 @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.callWithBlock(array, "fill_internal", block, args);
         }
@@ -1045,7 +1046,7 @@ public abstract class ArrayNodes {
                 RubyArray array,
                 NotProvided size,
                 NotProvided fillingValue,
-                DynamicObject block) {
+                RubyProc block) {
             setStoreAndSize(array, ArrayStoreLibrary.INITIAL_STORE, 0);
             return array;
         }
@@ -1127,7 +1128,7 @@ public abstract class ArrayNodes {
         // With block
 
         @Specialization(guards = "size >= 0")
-        protected Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, DynamicObject block,
+        protected Object initializeBlock(RubyArray array, int size, Object unusedFillingValue, RubyProc block,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached PropagateSharingNode propagateSharingNode) {
             BuilderState state = arrayBuilder.start(size);
@@ -1239,11 +1240,7 @@ public abstract class ArrayNodes {
 
         @Specialization(guards = { "isEmptyArray(array)", "wasProvided(initialOrSymbol)" })
         @ReportPolymorphism.Exclude
-        protected Object injectEmptyArray(
-                RubyArray array,
-                Object initialOrSymbol,
-                NotProvided symbol,
-                DynamicObject block) {
+        protected Object injectEmptyArray(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block) {
             return initialOrSymbol;
         }
 
@@ -1253,7 +1250,7 @@ public abstract class ArrayNodes {
                 RubyArray array,
                 NotProvided initialOrSymbol,
                 NotProvided symbol,
-                DynamicObject block) {
+                RubyProc block) {
             return nil;
         }
 
@@ -1262,11 +1259,7 @@ public abstract class ArrayNodes {
                         "!isEmptyArray(array)",
                         "wasProvided(initialOrSymbol)" },
                 limit = "storageStrategyLimit()")
-        protected Object injectWithInitial(
-                RubyArray array,
-                Object initialOrSymbol,
-                NotProvided symbol,
-                DynamicObject block,
+        protected Object injectWithInitial(RubyArray array, Object initialOrSymbol, NotProvided symbol, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores) {
             final Object store = array.store;
             return injectBlockHelper(stores, array, block, store, initialOrSymbol, 0);
@@ -1279,14 +1272,14 @@ public abstract class ArrayNodes {
                 RubyArray array,
                 NotProvided initialOrSymbol,
                 NotProvided symbol,
-                DynamicObject block,
+                RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores) {
             final Object store = array.store;
             return injectBlockHelper(stores, array, block, store, stores.read(store, 0), 1);
         }
 
         public Object injectBlockHelper(ArrayStoreLibrary stores, RubyArray array,
-                DynamicObject block, Object store, Object initial, int start) {
+                RubyProc block, Object store, Object initial, int start) {
             Object accumulator = initial;
             int n = start;
             try {
@@ -1385,7 +1378,7 @@ public abstract class ArrayNodes {
     public abstract static class MapNode extends YieldingCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object map(RubyArray array, DynamicObject block,
+        protected Object map(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder) {
             final Object store = array.store;
@@ -1416,13 +1409,13 @@ public abstract class ArrayNodes {
         @Child private ArrayWriteNormalizedNode writeNode = ArrayWriteNormalizedNodeGen.create();
 
         @Specialization
-        protected Object map(RubyArray array, DynamicObject block,
+        protected Object map(RubyArray array, RubyProc block,
                 @Cached ArrayEachIteratorNode iteratorNode) {
             return iteratorNode.execute(array, block, 0, this);
         }
 
         @Override
-        public void accept(RubyArray array, DynamicObject block, Object element, int index) {
+        public void accept(RubyArray array, RubyProc block, Object element, int index) {
             writeNode.executeWrite(array, index, yield(block, element));
         }
 
@@ -1664,7 +1657,7 @@ public abstract class ArrayNodes {
     public abstract static class RejectNode extends YieldingCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object rejectOther(RubyArray array, DynamicObject block,
+        protected Object rejectOther(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached BooleanCastNode booleanCastNode) {
@@ -1703,14 +1696,14 @@ public abstract class ArrayNodes {
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization(guards = "stores.isMutable(array.store)", limit = "storageStrategyLimit()")
-        protected Object rejectInPlaceMutable(RubyArray array, DynamicObject block,
+        protected Object rejectInPlaceMutable(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores) {
             return rejectInPlaceInternal(array, block, mutablestores, array.store);
         }
 
         @Specialization(guards = "!stores.isMutable(array.store)", limit = "storageStrategyLimit()")
-        protected Object rejectInPlaceImmutable(RubyArray array, DynamicObject block,
+        protected Object rejectInPlaceImmutable(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores) {
             final Object mutableStore = stores.allocator(array.store).allocate(array.size);
@@ -1719,7 +1712,7 @@ public abstract class ArrayNodes {
             return rejectInPlaceInternal(array, block, mutablestores, mutableStore);
         }
 
-        private Object rejectInPlaceInternal(RubyArray array, DynamicObject block, ArrayStoreLibrary stores,
+        private Object rejectInPlaceInternal(RubyArray array, RubyProc block, ArrayStoreLibrary stores,
                 Object store) {
             int i = 0;
             int n = 0;
@@ -1919,7 +1912,7 @@ public abstract class ArrayNodes {
     public abstract static class SelectNode extends YieldingCoreMethodNode {
 
         @Specialization(limit = "storageStrategyLimit()")
-        protected Object selectOther(RubyArray array, DynamicObject block,
+        protected Object selectOther(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @Cached ArrayBuilderNode arrayBuilder,
                 @Cached BooleanCastNode booleanCastNode) {
@@ -2120,7 +2113,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
-        protected Object sortGenericWithBlock(RubyArray array, DynamicObject block,
+        protected Object sortGenericWithBlock(RubyArray array, RubyProc block,
                 @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
             return fallbackNode.callWithBlock(array, "sort_fallback", block);
         }

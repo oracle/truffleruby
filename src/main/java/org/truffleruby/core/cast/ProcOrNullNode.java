@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
@@ -18,7 +19,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 @NodeChild(value = "child", type = RubyNode.class)
@@ -28,23 +28,22 @@ public abstract class ProcOrNullNode extends RubyBaseNode {
         return ProcOrNullNodeGen.create(null);
     }
 
-    public abstract DynamicObject executeProcOrNull(VirtualFrame frame);
+    public abstract RubyProc executeProcOrNull(VirtualFrame frame);
 
-    public abstract DynamicObject executeProcOrNull(Object proc);
+    public abstract RubyProc executeProcOrNull(Object proc);
 
     @Specialization
-    protected DynamicObject doNotProvided(NotProvided proc) {
+    protected RubyProc doNotProvided(NotProvided proc) {
         return null;
     }
 
     @Specialization
-    protected DynamicObject doNil(Nil nil) {
+    protected RubyProc doNil(Nil nil) {
         return null;
     }
 
-    @Specialization(guards = "isRubyProc(proc)")
-    protected DynamicObject doProc(DynamicObject proc) {
+    @Specialization
+    protected RubyProc doProc(RubyProc proc) {
         return proc;
     }
-
 }

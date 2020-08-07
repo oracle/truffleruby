@@ -38,6 +38,7 @@ import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RegexpCacheKey;
 import org.truffleruby.core.rope.PathToRopeCache;
 import org.truffleruby.core.rope.Rope;
@@ -290,13 +291,12 @@ public class RubyContext {
                 .getConstant("TO_RUN_AT_INIT")
                 .getValue();
         for (Object proc : ArrayOperations.toIterable((RubyArray) toRunAtInit)) {
-            final Source source = Layouts.PROC
-                    .getMethod((DynamicObject) proc)
+            final Source source = ((RubyProc) proc).method
                     .getSharedMethodInfo()
                     .getSourceSection()
                     .getSource();
             TranslatorDriver.printParseTranslateExecuteMetric("before-run-delayed-initialization", this, source);
-            ProcOperations.rootCall((DynamicObject) proc);
+            ProcOperations.rootCall((RubyProc) proc);
             TranslatorDriver.printParseTranslateExecuteMetric("after-run-delayed-initialization", this, source);
         }
         Metrics.printTime("after-run-delayed-initialization");

@@ -10,6 +10,7 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -17,7 +18,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class SymbolProcNode extends RubyContextSourceNode {
@@ -42,7 +42,7 @@ public class SymbolProcNode extends RubyContextSourceNode {
 
         final Object receiver = RubyArguments.getArgument(frame, 0);
         final Object[] arguments = ArrayUtils.extractRange(RubyArguments.getArguments(frame), 1, given);
-        final DynamicObject block = RubyArguments.getBlock(frame);
+        final RubyProc block = RubyArguments.getBlock(frame);
 
         return getCallNode().dispatch(frame, receiver, symbol, block, arguments);
     }

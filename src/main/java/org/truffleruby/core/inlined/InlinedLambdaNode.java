@@ -11,6 +11,7 @@ package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodNode;
@@ -19,7 +20,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild(value = "block", type = RubyNode.class)
 public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
@@ -34,13 +34,14 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
             guards = { "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().LAMBDA", },
             assumptions = "assumptions",
             limit = "1")
-    protected DynamicObject lambda(VirtualFrame frame, Object self, DynamicObject block,
+    protected RubyProc lambda(VirtualFrame frame, Object self, RubyProc block,
             @Cached LookupMethodNode lookupNode) {
         return ProcOperations.createLambdaFromBlock(getContext(), block);
     }
 
+    // The lambda method might have been overriden, undefined, redefined, ...
     @Specialization
-    protected Object fallback(VirtualFrame frame, Object self, DynamicObject block) {
+    protected Object fallback(VirtualFrame frame, Object self, RubyProc block) {
         return rewriteAndCallWithBlock(frame, self, block);
     }
 
@@ -50,5 +51,4 @@ public abstract class InlinedLambdaNode extends UnaryInlinedOperationNode {
     protected RubyNode getBlockNode() {
         return getBlock();
     }
-
 }

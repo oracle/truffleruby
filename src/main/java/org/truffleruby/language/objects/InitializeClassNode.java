@@ -13,6 +13,7 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyGuards;
@@ -42,7 +43,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     }
 
     @Specialization
-    protected DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, DynamicObject block) {
+    protected DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, RubyProc block) {
         return initializeGeneralWithBlock(rubyClass, coreLibrary().objectClass, block, false);
     }
 
@@ -52,7 +53,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     }
 
     @Specialization(guards = "isRubyClass(superclass)")
-    protected DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, DynamicObject block) {
+    protected DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, RubyProc block) {
         return initializeGeneralWithBlock(rubyClass, superclass, block, true);
     }
 
@@ -91,7 +92,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     }
 
     private DynamicObject initializeGeneralWithBlock(DynamicObject rubyClass, DynamicObject superclass,
-            DynamicObject block, boolean superClassProvided) {
+            RubyProc block, boolean superClassProvided) {
         assert RubyGuards.isRubyClass(superclass);
 
         if (isInitialized(rubyClass)) {
@@ -140,7 +141,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
         inheritedNode.call(superClass, "inherited", subClass);
     }
 
-    private void moduleInitialize(DynamicObject rubyClass, DynamicObject block) {
+    private void moduleInitialize(DynamicObject rubyClass, RubyProc block) {
         if (moduleInitializeNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             moduleInitializeNode = insert(ModuleNodesFactory.InitializeNodeFactory.create(null));

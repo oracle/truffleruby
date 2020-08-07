@@ -27,6 +27,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.CoreSymbols;
@@ -88,7 +89,7 @@ public abstract class TracePointNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize(RubyTracePoint tracePoint, DynamicObject eventsArray, DynamicObject block,
+        protected DynamicObject initialize(RubyTracePoint tracePoint, DynamicObject eventsArray, RubyProc block,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
 
@@ -127,7 +128,7 @@ public abstract class TracePointNodes {
         }
 
         @Specialization
-        protected Object enable(RubyTracePoint tracePoint, DynamicObject block) {
+        protected Object enable(RubyTracePoint tracePoint, RubyProc block) {
             final boolean setupDone = createEventBindings(getContext(), tracePoint);
             try {
                 return yield(block);
@@ -148,7 +149,7 @@ public abstract class TracePointNodes {
         }
 
         @Specialization
-        protected Object disable(RubyTracePoint tracePoint, DynamicObject block) {
+        protected Object disable(RubyTracePoint tracePoint, RubyProc block) {
             final boolean wasEnabled = disposeEventBindings(tracePoint);
             try {
                 return yield(block);

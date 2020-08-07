@@ -10,6 +10,7 @@
 package org.truffleruby.core.tracepoint;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -52,7 +53,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
         return line;
     }
 
-    protected Object yield(DynamicObject block, Object... arguments) {
+    protected Object yield(RubyProc block, Object... arguments) {
         if (yieldNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             yieldNode = insert(YieldNode.create());

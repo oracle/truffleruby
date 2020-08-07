@@ -9,9 +9,9 @@
  */
 package org.truffleruby.language.yield;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -25,7 +25,6 @@ import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ReportPolymorphism
 @GenerateUncached
@@ -35,14 +34,14 @@ public abstract class CallBlockNode extends RubyBaseNode {
         return CallBlockNodeGen.create();
     }
 
-    public abstract Object executeCallBlock(DeclarationContext declarationContext, DynamicObject block, Object self,
+    public abstract Object executeCallBlock(DeclarationContext declarationContext, RubyProc block, Object self,
             Object blockArgument, Object[] arguments);
 
     // blockArgument is typed as Object below because it must accept "null".
     @Specialization(guards = "getBlockCallTarget(block) == cachedCallTarget", limit = "getCacheLimit()")
     protected Object callBlockCached(
             DeclarationContext declarationContext,
-            DynamicObject block,
+            RubyProc block,
             Object self,
             Object blockArgument,
             Object[] arguments,
@@ -56,7 +55,7 @@ public abstract class CallBlockNode extends RubyBaseNode {
     @Specialization(replaces = "callBlockCached")
     protected Object callBlockUncached(
             DeclarationContext declarationContext,
-            DynamicObject block,
+            RubyProc block,
             Object self,
             Object blockArgument,
             Object[] arguments,
@@ -65,27 +64,27 @@ public abstract class CallBlockNode extends RubyBaseNode {
         return callNode.call(getBlockCallTarget(block), frameArguments);
     }
 
-    private Object[] packArguments(DeclarationContext declarationContext, DynamicObject block, Object self,
+    private Object[] packArguments(DeclarationContext declarationContext, RubyProc block, Object self,
             Object blockArgument, Object[] arguments) {
         return RubyArguments.pack(
-                Layouts.PROC.getDeclarationFrame(block),
+                block.declarationFrame,
                 null,
-                Layouts.PROC.getMethod(block),
+                block.method,
                 declarationContext,
-                Layouts.PROC.getFrameOnStackMarker(block),
+                block.frameOnStackMarker,
                 self,
-                (DynamicObject) blockArgument,
+                (RubyProc) blockArgument,
                 arguments);
     }
 
-    protected static RootCallTarget getBlockCallTarget(DynamicObject block) {
-        return Layouts.PROC.getCallTargetForType(block);
+    protected static RootCallTarget getBlockCallTarget(RubyProc block) {
+        return block.callTargetForType;
     }
 
-    protected DirectCallNode createBlockCallNode(RubyContext context, DynamicObject block, RootCallTarget callTarget) {
+    protected DirectCallNode createBlockCallNode(RubyContext context, RubyProc block, RootCallTarget callTarget) {
         final DirectCallNode callNode = Truffle.getRuntime().createDirectCallNode(callTarget);
 
-        final boolean clone = Layouts.PROC.getSharedMethodInfo(block).shouldAlwaysClone() ||
+        final boolean clone = block.sharedMethodInfo.shouldAlwaysClone() ||
                 context.getOptions().YIELD_ALWAYS_CLONE;
         if (clone && callNode.isCallTargetCloningAllowed()) {
             callNode.cloneCallTarget();

@@ -17,6 +17,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
@@ -200,11 +201,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyProc(Object object) {
-        return Layouts.PROC.isProc(object);
-    }
-
-    public static boolean isRubyProc(DynamicObject object) {
-        return Layouts.PROC.isProc(object);
+        return object instanceof RubyProc;
     }
 
     public static boolean isRubyMatchData(DynamicObject object) {

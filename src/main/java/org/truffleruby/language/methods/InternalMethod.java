@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
@@ -40,7 +41,7 @@ public class InternalMethod implements ObjectGraphNode {
     private final boolean unimplemented; // similar to MRI's rb_f_notimplement
     /** True if the method is defined in the core library (in Java or Ruby) */
     private final boolean builtIn;
-    private final DynamicObject proc; // only if method is created from a Proc
+    private final RubyProc proc; // only if method is created from a Proc
 
     private final RootCallTarget callTarget;
     private final DynamicObject capturedBlock;
@@ -52,12 +53,12 @@ public class InternalMethod implements ObjectGraphNode {
             String name,
             DynamicObject declaringModule,
             Visibility visibility,
-            DynamicObject proc,
+            RubyProc proc,
             RootCallTarget callTarget) {
         return new InternalMethod(
                 context,
                 sharedMethodInfo,
-                Layouts.PROC.getMethod(proc).getLexicalScope(),
+                proc.method.getLexicalScope(),
                 declarationContext,
                 name,
                 declaringModule,
@@ -65,7 +66,7 @@ public class InternalMethod implements ObjectGraphNode {
                 false,
                 proc,
                 callTarget,
-                Layouts.PROC.getBlock(proc));
+                proc.block);
     }
 
     public InternalMethod(
@@ -100,7 +101,7 @@ public class InternalMethod implements ObjectGraphNode {
             DynamicObject declaringModule,
             Visibility visibility,
             boolean undefined,
-            DynamicObject proc,
+            RubyProc proc,
             RootCallTarget callTarget,
             DynamicObject capturedBlock) {
         this(
@@ -130,7 +131,7 @@ public class InternalMethod implements ObjectGraphNode {
             boolean unimplemented,
             boolean builtIn,
             DeclarationContext activeRefinements,
-            DynamicObject proc,
+            RubyProc proc,
             RootCallTarget callTarget,
             DynamicObject capturedBlock) {
         assert RubyGuards.isRubyModule(declaringModule);

@@ -17,6 +17,7 @@ import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.cast.ProcOrNullNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -30,7 +31,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -93,7 +93,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
         final Object[] executedArguments = executeArguments(frame);
 
-        final DynamicObject blockObject = executeBlock(frame);
+        final RubyProc blockObject = executeBlock(frame);
 
         // The expansion of the splat is done after executing the block, for m(*args, &args.pop)
         final Object[] argumentsObjects;
@@ -106,7 +106,7 @@ public class RubyCallNode extends RubyContextSourceNode {
         return executeWithArgumentsEvaluated(frame, receiverObject, blockObject, argumentsObjects);
     }
 
-    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, DynamicObject blockObject,
+    public Object executeWithArgumentsEvaluated(VirtualFrame frame, Object receiverObject, RubyProc blockObject,
             Object[] argumentsObjects) {
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -123,7 +123,7 @@ public class RubyCallNode extends RubyContextSourceNode {
         }
     }
 
-    private DynamicObject executeBlock(VirtualFrame frame) {
+    private RubyProc executeBlock(VirtualFrame frame) {
         if (block != null) {
             return block.executeProcOrNull(frame);
         } else {

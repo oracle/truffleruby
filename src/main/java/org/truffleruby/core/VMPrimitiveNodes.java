@@ -63,6 +63,7 @@ import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcOperations;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -93,7 +94,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class CatchNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object doCatch(Object tag, DynamicObject block,
+        protected Object doCatch(Object tag, RubyProc block,
                 @Cached BranchProfile catchProfile,
                 @Cached ConditionProfile matchProfile,
                 @Cached ReferenceEqualNode referenceEqualNode,
@@ -126,7 +127,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMExtendedModulesNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object vmExtendedModules(Object object, DynamicObject block,
+        protected Object vmExtendedModules(Object object, RubyProc block,
                 @Cached MetaClassNode metaClassNode,
                 @Cached YieldNode yieldNode,
                 @Cached ConditionProfile isSingletonProfile) {
@@ -241,8 +242,8 @@ public abstract class VMPrimitiveNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyProc(action)" })
-        protected boolean watchSignalProc(RubyString signalName, DynamicObject action) {
+        @Specialization
+        protected boolean watchSignalProc(RubyString signalName, RubyProc action) {
             if (getContext().getThreadManager().getCurrentThread() != getContext().getThreadManager().getRootThread()) {
                 // The proc will be executed on the main thread
                 SharedObjects.writeBarrier(getContext(), action);
@@ -384,8 +385,8 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMGetConfigSectionNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = { "isRubyProc(block)" })
-        protected Object getSection(RubyString section, DynamicObject block,
+        @Specialization
+        protected Object getSection(RubyString section, RubyProc block,
                 @Cached MakeStringNode makeStringNode,
                 @Cached YieldNode yieldNode) {
             for (Entry<String, Object> entry : getContext()

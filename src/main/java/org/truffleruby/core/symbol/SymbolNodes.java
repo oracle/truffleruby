@@ -17,6 +17,7 @@ import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -99,22 +100,22 @@ public abstract class SymbolNodes {
         @Specialization(
                 guards = { "cachedSymbol == symbol", "getDeclarationContext(frame) == cachedDeclarationContext" },
                 limit = "getIdentityCacheLimit()")
-        protected DynamicObject toProcCached(VirtualFrame frame, RubySymbol symbol,
+        protected RubyProc toProcCached(VirtualFrame frame, RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
                 @Cached("getDeclarationContext(frame)") DeclarationContext cachedDeclarationContext,
-                @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") DynamicObject cachedProc) {
+                @Cached("createProc(cachedDeclarationContext, getMethod(frame), symbol)") RubyProc cachedProc) {
             return cachedProc;
         }
 
         @Specialization
-        protected DynamicObject toProcUncached(VirtualFrame frame, RubySymbol symbol) {
+        protected RubyProc toProcUncached(VirtualFrame frame, RubySymbol symbol) {
             final InternalMethod method = getMethod(frame);
             DeclarationContext declarationContext = getDeclarationContext(frame);
             return createProc(declarationContext, method, symbol);
         }
 
         @TruffleBoundary
-        protected DynamicObject createProc(DeclarationContext declarationContext, InternalMethod method,
+        protected RubyProc createProc(DeclarationContext declarationContext, InternalMethod method,
                 RubySymbol symbol) {
             final SourceSection sourceSection = CoreLibrary.UNAVAILABLE_SOURCE_SECTION;
             final SharedMethodInfo sharedMethodInfo = new SharedMethodInfo(
@@ -146,7 +147,7 @@ public abstract class SymbolNodes {
             final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
             return ProcOperations.createRubyProc(
-                    coreLibrary().procFactory,
+                    getContext().getCoreLibrary().procShape,
                     ProcType.PROC,
                     sharedMethodInfo,
                     callTarget,

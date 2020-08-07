@@ -12,9 +12,9 @@ package org.truffleruby.language.methods;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.cast.ProcOrNullNode;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.arguments.RubyArguments;
 
@@ -32,14 +32,14 @@ public abstract class CallBoundMethodNode extends RubyBaseNode {
             @Cached ProcOrNullNode procOrNullNode,
             @Cached CallInternalMethodNode callInternalMethodNode) {
         final InternalMethod internalMethod = method.method;
-        final DynamicObject typedBlock = procOrNullNode.executeProcOrNull(block);
+        final RubyProc typedBlock = procOrNullNode.executeProcOrNull(block);
         final Object[] frameArguments = packArguments(method, internalMethod, arguments, typedBlock);
 
         return callInternalMethodNode.executeCallMethod(internalMethod, frameArguments);
     }
 
     private Object[] packArguments(RubyMethod method, InternalMethod internalMethod, Object[] arguments,
-            DynamicObject block) {
+            RubyProc block) {
         return RubyArguments.pack(
                 null,
                 null,

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.globals;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -60,7 +59,7 @@ public abstract class WriteGlobalVariableNode extends RubyContextSourceNode {
     }
 
     protected int setterArity(GlobalVariableStorage storage) {
-        return Layouts.PROC.getSharedMethodInfo(storage.getSetter()).getArity().getArityNumber();
+        return storage.getSetter().sharedMethodInfo.getArity().getArityNumber();
     }
 
     protected GlobalVariableStorage getStorage() {
