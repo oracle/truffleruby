@@ -20,6 +20,7 @@ Compatibility:
 * Fix issue with `File.absolute_path` returning a path to current directory (#2062).
 * Update `Range#cover?` to handle `Range` parameter.
 * Fix `String#{casecmp, casecmp?}` parameter conversion.
+* Fix `Regexp` issue which raised syntax error instead of `RegexpError` (#2066).
 
 Performance:
 

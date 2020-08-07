@@ -28,6 +28,7 @@ import org.joni.Matcher;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
+import org.joni.exception.SyntaxException;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -69,32 +70,37 @@ public abstract class RegexpNodes {
 
     @TruffleBoundary
     public static Matcher createMatcher(RubyContext context, RubyRegexp regexp, Rope stringRope, byte[] stringBytes,
-            boolean encodingConversion, int start) {
+            boolean encodingConversion, int start, Node currentNode) {
         final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange(), true);
         Regex regex = regexp.regex;
 
         if (encodingConversion && regex.getEncoding() != enc) {
             EncodingCache encodingCache = regexp.cachedEncodings;
-            regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e));
+            regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
         }
 
         return regex.matcher(stringBytes, start, stringBytes.length);
     }
 
-    private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, final Encoding enc) {
+    private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, final Encoding enc,
+            Node currentNode) {
         Regex regex;
         final Encoding[] fixedEnc = new Encoding[]{ null };
         final Rope sourceRope = regexp.source;
         final RopeBuilder preprocessed = ClassicRegexp
                 .preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
         final RegexpOptions options = regexp.options;
-        regex = new Regex(
-                preprocessed.getUnsafeBytes(),
-                0,
-                preprocessed.getLength(),
-                options.toJoniOptions(),
-                enc,
-                new RegexWarnCallback(context));
+        try {
+            regex = new Regex(
+                    preprocessed.getUnsafeBytes(),
+                    0,
+                    preprocessed.getLength(),
+                    options.toJoniOptions(),
+                    enc,
+                    new RegexWarnCallback(context));
+        } catch (SyntaxException e) {
+            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
+        }
         return regex;
     }
 
@@ -153,7 +159,14 @@ public abstract class RegexpNodes {
         @Specialization
         protected Object matchOnwards(RubyRegexp regexp, RubyString string, int startPos, boolean atStart) {
             final Rope rope = string.rope;
-            final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, startPos);
+            final Matcher matcher = createMatcher(
+                    getContext(),
+                    regexp,
+                    rope,
+                    bytesNode.execute(rope),
+                    true,
+                    startPos,
+                    this);
             int range = rope.byteLength();
             Object result = matchNode.execute(regexp, string, matcher, startPos, range, atStart);
             if (result != nil) {
@@ -224,7 +237,14 @@ public abstract class RegexpNodes {
         @Specialization
         protected Object searchFrom(RubyRegexp regexp, RubyString string, int startPos) {
             final Rope rope = string.rope;
-            final Matcher matcher = createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), false, startPos);
+            final Matcher matcher = createMatcher(
+                    getContext(),
+                    regexp,
+                    rope,
+                    bytesNode.execute(rope),
+                    false,
+                    startPos,
+                    this);
             final int endPos = rope.byteLength();
             Object result = matchNode.execute(regexp, string, matcher, startPos, endPos, false);
             if (result != nil) {
@@ -433,9 +453,14 @@ public abstract class RegexpNodes {
             checkEncodingNode.executeCheckEncoding(regexp, string);
 
             final Rope rope = string.rope;
-            final Matcher matcher = RegexpNodes
-                    .createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, 0);
-
+            final Matcher matcher = RegexpNodes.createMatcher(
+                    getContext(),
+                    regexp,
+                    rope,
+                    bytesNode.execute(rope),
+                    true,
+                    0,
+                    this);
             if (forwardSearchProfile.profile(forward)) {
                 // Search forward through the string.
                 return matchNode.execute(regexp, string, matcher, start, end, false);
