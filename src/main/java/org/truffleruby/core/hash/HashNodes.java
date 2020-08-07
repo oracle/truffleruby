@@ -11,7 +11,6 @@ package org.truffleruby.core.hash;
 
 import java.util.Arrays;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
