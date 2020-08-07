@@ -21,6 +21,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNo
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.RopeOperations;
@@ -615,7 +616,7 @@ public abstract class BasicObjectNodes {
         @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(RubyClass rubyClass) {
             return allocateObjectNode.allocate(rubyClass);
         }
 

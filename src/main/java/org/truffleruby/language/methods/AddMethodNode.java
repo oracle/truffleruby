@@ -9,8 +9,9 @@
  */
 package org.truffleruby.language.methods;
 
-import org.truffleruby.Layouts;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -18,7 +19,6 @@ import org.truffleruby.language.objects.SingletonClassNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class AddMethodNode extends RubyContextNode {
 
@@ -35,11 +35,11 @@ public abstract class AddMethodNode extends RubyContextNode {
         this.ignoreNameVisibility = ignoreNameVisibility;
     }
 
-    public abstract void executeAddMethod(DynamicObject module, InternalMethod method, Visibility visibility);
+    public abstract void executeAddMethod(RubyModule module, InternalMethod method, Visibility visibility);
 
     @TruffleBoundary
-    @Specialization(guards = "isRubyModule(module)")
-    protected void addMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
+    @Specialization
+    protected void addMethod(RubyModule module, InternalMethod method, Visibility visibility) {
         if (!ignoreNameVisibility && ModuleOperations.isMethodPrivateFromName(method.getName())) {
             visibility = Visibility.PRIVATE;
         }
@@ -47,10 +47,10 @@ public abstract class AddMethodNode extends RubyContextNode {
         doAddMethod(module, method, visibility);
     }
 
-    private void doAddMethod(DynamicObject module, InternalMethod method, Visibility visibility) {
+    private void doAddMethod(RubyModule module, InternalMethod method, Visibility visibility) {
         if (visibility == Visibility.MODULE_FUNCTION) {
             addMethodToModule(module, method.withVisibility(Visibility.PRIVATE));
-            final DynamicObject singletonClass = getSingletonClass(module);
+            final RubyClass singletonClass = getSingletonClass(module);
             addMethodToModule(
                     singletonClass,
                     method.withDeclaringModule(singletonClass).withVisibility(Visibility.PUBLIC));
@@ -59,17 +59,17 @@ public abstract class AddMethodNode extends RubyContextNode {
         }
     }
 
-    public void addMethodToModule(DynamicObject module, InternalMethod method) {
-        Layouts.MODULE.getFields(module).addMethod(getContext(), this, method);
+    public void addMethodToModule(RubyModule module, InternalMethod method) {
+        module.fields.addMethod(getContext(), this, method);
     }
 
-    protected DynamicObject getSingletonClass(DynamicObject object) {
+    protected RubyClass getSingletonClass(RubyModule module) {
         if (singletonClassNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             singletonClassNode = insert(SingletonClassNode.create());
         }
 
-        return singletonClassNode.executeSingletonClass(object);
+        return singletonClassNode.executeSingletonClass(module);
     }
 
 }

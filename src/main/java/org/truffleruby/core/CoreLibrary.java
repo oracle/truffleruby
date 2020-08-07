@@ -46,17 +46,19 @@ import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.fiber.RubyFiber;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.mutex.RubyConditionVariable;
 import org.truffleruby.core.mutex.RubyMutex;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.objectspace.RubyWeakMap;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.queue.RubySizedQueue;
-import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.range.RubyLongRange;
 import org.truffleruby.core.range.RubyObjectRange;
@@ -134,8 +136,7 @@ import com.oracle.truffle.api.source.SourceSection;
  * <ul>
  * <li>Create a CoreLibrary field for the factory ({@code myClassFactory}) and initialize it by calling
  * {@code MyClassLayoutImpl.INSTANCE.createMyClassShape}.
- * <li>Set the factory for the class by calling {@link Layouts#CLASS}
- * {@link org.truffleruby.core.klass.ClassLayout#setInstanceFactoryUnsafe #setInstanceFactoryUnsafe}.
+ * <li>Set the factory for the class by setting {@link RubyClass#instanceFactory}.
  * <li>The above step is unnecessary when inheriting the superclass layout.
  * <li>> See examples in this file.
  * </ul>
@@ -162,132 +163,133 @@ public class CoreLibrary {
 
     public final SourceSection sourceSection;
 
-    public final DynamicObject argumentErrorClass;
-    public final DynamicObject arrayClass;
+    public final RubyClass argumentErrorClass;
+    public final RubyClass arrayClass;
     public final Shape arrayShape;
-    public final DynamicObject basicObjectClass;
+    public final RubyClass basicObjectClass;
     public final Shape bignumShape;
     public final Shape bindingShape;
-    public final DynamicObject classClass;
-    public final DynamicObject complexClass;
-    public final DynamicObject dirClass;
-    public final DynamicObject encodingClass;
+    public final RubyClass classClass;
+    public final Shape classShape;
+    public final RubyClass complexClass;
+    public final RubyClass dirClass;
+    public final RubyClass encodingClass;
     public final Shape encodingShape;
-    public final DynamicObject encodingConverterClass;
-    public final DynamicObject encodingErrorClass;
-    public final DynamicObject exceptionClass;
-    public final DynamicObject falseClass;
+    public final RubyClass encodingConverterClass;
+    public final RubyClass encodingErrorClass;
+    public final RubyClass exceptionClass;
+    public final RubyClass falseClass;
     public final Shape fiberShape;
-    public final DynamicObject floatClass;
-    public final DynamicObject floatDomainErrorClass;
-    public final DynamicObject frozenErrorClass;
-    public final DynamicObject hashClass;
+    public final RubyClass floatClass;
+    public final RubyClass floatDomainErrorClass;
+    public final RubyClass frozenErrorClass;
+    public final RubyClass hashClass;
     public final Shape hashShape;
-    public final DynamicObject integerClass;
-    public final DynamicObject indexErrorClass;
-    public final DynamicObject keyErrorClass;
-    public final DynamicObject ioErrorClass;
-    public final DynamicObject loadErrorClass;
-    public final DynamicObject localJumpErrorClass;
+    public final RubyClass integerClass;
+    public final RubyClass indexErrorClass;
+    public final RubyClass keyErrorClass;
+    public final RubyClass ioErrorClass;
+    public final RubyClass loadErrorClass;
+    public final RubyClass localJumpErrorClass;
     public final Shape matchDataShape;
-    public final DynamicObject moduleClass;
-    public final DynamicObject nameErrorClass;
+    public final RubyClass moduleClass;
+    public final RubyClass nameErrorClass;
     public final Shape nameErrorShape;
-    public final DynamicObject nilClass;
-    public final DynamicObject noMemoryErrorClass;
-    public final DynamicObject noMethodErrorClass;
+    public final RubyClass nilClass;
+    public final RubyClass noMemoryErrorClass;
+    public final RubyClass noMethodErrorClass;
     public final Shape noMethodErrorShape;
-    public final DynamicObject notImplementedErrorClass;
-    public final DynamicObject numericClass;
-    public final DynamicObject objectClass;
+    public final RubyClass notImplementedErrorClass;
+    public final RubyClass numericClass;
+    public final RubyClass objectClass;
     public final DynamicObjectFactory objectFactory;
-    public final DynamicObject procClass;
+    public final RubyClass procClass;
     public final Shape procShape;
-    public final DynamicObject processModule;
-    public final DynamicObject rangeClass;
+    public final RubyModule processModule;
+    public final RubyClass rangeClass;
     public final Shape intRangeShape;
     public final Shape longRangeShape;
     public final Shape objectRangeShape;
-    public final DynamicObject rangeErrorClass;
-    public final DynamicObject rationalClass;
+    public final RubyClass rangeErrorClass;
+    public final RubyClass rationalClass;
     public final Shape regexpShape;
-    public final DynamicObject regexpErrorClass;
-    public final DynamicObject graalErrorClass;
-    public final DynamicObject runtimeErrorClass;
-    public final DynamicObject signalExceptionClass;
-    public final DynamicObject systemStackErrorClass;
-    public final DynamicObject securityErrorClass;
-    public final DynamicObject standardErrorClass;
-    public final DynamicObject polyglotModule;
-    public final DynamicObject unsupportedMessageErrorClass;
-    public final DynamicObject stringClass;
+    public final RubyClass regexpErrorClass;
+    public final RubyClass graalErrorClass;
+    public final RubyClass runtimeErrorClass;
+    public final RubyClass signalExceptionClass;
+    public final RubyClass systemStackErrorClass;
+    public final RubyClass securityErrorClass;
+    public final RubyClass standardErrorClass;
+    public final RubyModule polyglotModule;
+    public final RubyClass unsupportedMessageErrorClass;
+    public final RubyClass stringClass;
     public final Shape stringShape;
-    public final DynamicObject symbolClass;
-    public final DynamicObject syntaxErrorClass;
-    public final DynamicObject systemCallErrorClass;
-    public final DynamicObject systemExitClass;
-    public final DynamicObject threadClass;
+    public final RubyClass symbolClass;
+    public final RubyClass syntaxErrorClass;
+    public final RubyClass systemCallErrorClass;
+    public final RubyClass systemExitClass;
+    public final RubyClass threadClass;
     public final Shape threadShape;
     public final Shape threadBacktraceLocationShape;
-    public final DynamicObject trueClass;
-    public final DynamicObject typeErrorClass;
-    public final DynamicObject zeroDivisionErrorClass;
-    public final DynamicObject enumerableModule;
-    public final DynamicObject errnoModule;
-    public final DynamicObject kernelModule;
-    public final DynamicObject truffleFFIModule;
-    public final DynamicObject truffleFFIPointerClass;
+    public final RubyClass trueClass;
+    public final RubyClass typeErrorClass;
+    public final RubyClass zeroDivisionErrorClass;
+    public final RubyModule enumerableModule;
+    public final RubyModule errnoModule;
+    public final RubyModule kernelModule;
+    public final RubyModule truffleFFIModule;
+    public final RubyClass truffleFFIPointerClass;
     public final Shape truffleFFIPointerShape;
-    public final DynamicObject truffleFFINullPointerErrorClass;
-    public final DynamicObject truffleTypeModule;
-    public final DynamicObject truffleModule;
-    public final DynamicObject truffleInternalModule;
-    public final DynamicObject truffleBootModule;
-    public final DynamicObject truffleExceptionOperationsModule;
-    public final DynamicObject truffleInteropModule;
-    public final DynamicObject truffleInteropForeignClass;
-    public final DynamicObject unsupportedMessageExceptionClass;
-    public final DynamicObject invalidArrayIndexExceptionClass;
-    public final DynamicObject unknownIdentifierExceptionClass;
-    public final DynamicObject unsupportedTypeExceptionClass;
-    public final DynamicObject arityExceptionClass;
-    public final DynamicObject truffleFeatureLoaderModule;
-    public final DynamicObject truffleKernelOperationsModule;
-    public final DynamicObject truffleStringOperationsModule;
-    public final DynamicObject truffleRegexpOperationsModule;
-    public final DynamicObject truffleThreadOperationsModule;
-    public final DynamicObject bigDecimalClass;
-    public final DynamicObject bigDecimalOperationsModule;
+    public final RubyClass truffleFFINullPointerErrorClass;
+    public final RubyModule truffleTypeModule;
+    public final RubyModule truffleModule;
+    public final RubyModule truffleInternalModule;
+    public final RubyModule truffleBootModule;
+    public final RubyModule truffleExceptionOperationsModule;
+    public final RubyModule truffleInteropModule;
+    public final RubyClass truffleInteropForeignClass;
+    public final RubyClass unsupportedMessageExceptionClass;
+    public final RubyClass invalidArrayIndexExceptionClass;
+    public final RubyClass unknownIdentifierExceptionClass;
+    public final RubyClass unsupportedTypeExceptionClass;
+    public final RubyClass arityExceptionClass;
+    public final RubyModule truffleFeatureLoaderModule;
+    public final RubyModule truffleKernelOperationsModule;
+    public final RubyModule truffleStringOperationsModule;
+    public final RubyModule truffleRegexpOperationsModule;
+    public final RubyModule truffleThreadOperationsModule;
+    public final RubyClass bigDecimalClass;
+    public final RubyModule bigDecimalOperationsModule;
     public final Shape bigDecimalShape;
-    public final DynamicObject encodingCompatibilityErrorClass;
-    public final DynamicObject encodingUndefinedConversionErrorClass;
+    public final RubyClass encodingCompatibilityErrorClass;
+    public final RubyClass encodingUndefinedConversionErrorClass;
     public final Shape methodShape;
     public final Shape unboundMethodShape;
     public final Shape byteArrayShape;
-    public final DynamicObject fiberErrorClass;
-    public final DynamicObject threadErrorClass;
-    public final DynamicObject objectSpaceModule;
+    public final RubyClass fiberErrorClass;
+    public final RubyClass threadErrorClass;
+    public final RubyModule objectSpaceModule;
     public final Shape randomizerShape;
     public final Shape handleShape;
-    public final DynamicObject ioClass;
-    public final DynamicObject closedQueueErrorClass;
-    public final DynamicObject warningModule;
+    public final RubyClass ioClass;
+    public final RubyClass closedQueueErrorClass;
+    public final RubyModule warningModule;
     public final Shape digestShape;
-    public final DynamicObject structClass;
-    public final DynamicObject weakMapClass;
+    public final RubyClass structClass;
+    public final RubyClass weakMapClass;
     public final Shape weakMapShape;
 
-    public final DynamicObject argv;
+    public final RubyArray argv;
     public final DynamicObject mainObject;
 
     public final GlobalVariables globalVariables;
 
     public final FrameDescriptor emptyDescriptor;
 
-    @CompilationFinal private DynamicObject eagainWaitReadable;
-    @CompilationFinal private DynamicObject eagainWaitWritable;
+    @CompilationFinal private RubyClass eagainWaitReadable;
+    @CompilationFinal private RubyClass eagainWaitWritable;
 
-    private final Map<String, DynamicObject> errnoClasses = new HashMap<>();
+    private final Map<String, RubyClass> errnoClasses = new HashMap<>();
     private final Map<Integer, String> errnoValueToNames = new HashMap<>();
 
     @CompilationFinal private SharedMethodInfo basicObjectSendInfo;
@@ -300,7 +302,7 @@ public class CoreLibrary {
     @CompilationFinal private GlobalVariableReader stdinReader;
     @CompilationFinal private GlobalVariableReader stderrReader;
 
-    @CompilationFinal public DynamicObject topLevelBinding;
+    @CompilationFinal public RubyBinding topLevelBinding;
 
     private final ConcurrentMap<String, Boolean> patchFiles;
 
@@ -364,7 +366,7 @@ public class CoreLibrary {
             return singletonClassNode;
         }
 
-        public DynamicObject getSingletonClass(Object object) {
+        public RubyClass getSingletonClass(Object object) {
             return singletonClassNode.executeSingletonClass(object);
         }
 
@@ -385,35 +387,37 @@ public class CoreLibrary {
         // Create the cyclic classes and modules
 
         classClass = ClassNodes.createClassClass(context, null);
+        classShape = classClass.getShape();
+        classClass.instanceFactory = createFactory(classShape);
 
-        basicObjectClass = ClassNodes.createBootClass(context, null, classClass, null, "BasicObject");
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                basicObjectClass,
-                Layouts.BASIC_OBJECT.createBasicObjectShape(basicObjectClass, basicObjectClass));
+        basicObjectClass = ClassNodes.createBootClass(context, null, classShape, null, "BasicObject");
+        basicObjectClass.instanceFactory = Layouts.BASIC_OBJECT
+                .createBasicObjectShape(basicObjectClass, basicObjectClass);
 
-        objectClass = ClassNodes.createBootClass(context, null, classClass, basicObjectClass, "Object");
+        objectClass = ClassNodes.createBootClass(context, null, classShape, basicObjectClass, "Object");
         objectFactory = Layouts.BASIC_OBJECT.createBasicObjectShape(objectClass, objectClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(objectClass, objectFactory);
+        objectClass.instanceFactory = objectFactory;
 
-        moduleClass = ClassNodes.createBootClass(context, null, classClass, objectClass, "Module");
-        Layouts.CLASS.setInstanceFactoryUnsafe(moduleClass, Layouts.MODULE.createModuleShape(moduleClass, moduleClass));
+        moduleClass = ClassNodes.createBootClass(context, null, classShape, objectClass, "Module");
+        Shape moduleShape = createShape(RubyModule.class, moduleClass);
+        moduleClass.instanceFactory = createFactory(moduleShape);
 
         // Close the cycles
         // Set superclass of Class to Module
-        Layouts.MODULE.getFields(classClass).setSuperClass(moduleClass, true);
+        classClass.fields.setSuperClass(moduleClass, true);
 
         // Set constants in Object and lexical parents
-        Layouts.MODULE.getFields(classClass).getAdoptedByLexicalParent(context, objectClass, "Class", node);
-        Layouts.MODULE.getFields(basicObjectClass).getAdoptedByLexicalParent(context, objectClass, "BasicObject", node);
-        Layouts.MODULE.getFields(objectClass).getAdoptedByLexicalParent(context, objectClass, "Object", node);
-        Layouts.MODULE.getFields(moduleClass).getAdoptedByLexicalParent(context, objectClass, "Module", node);
+        classClass.fields.getAdoptedByLexicalParent(context, objectClass, "Class", node);
+        basicObjectClass.fields.getAdoptedByLexicalParent(context, objectClass, "BasicObject", node);
+        objectClass.fields.getAdoptedByLexicalParent(context, objectClass, "Object", node);
+        moduleClass.fields.getAdoptedByLexicalParent(context, objectClass, "Module", node);
 
         // Create Exception classes
 
         // Exception
         exceptionClass = defineClass("Exception");
         Shape exceptionShape = createShape(RubyException.class, exceptionClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(exceptionClass, createFactory(exceptionShape));
+        exceptionClass.instanceFactory = createFactory(exceptionShape);
 
         // fatal
         defineClass(exceptionClass, "fatal");
@@ -446,7 +450,7 @@ public class CoreLibrary {
         // StandardError > IndexError
         indexErrorClass = defineClass(standardErrorClass, "IndexError");
         keyErrorClass = defineClass(indexErrorClass, "KeyError");
-        DynamicObject stopIterationClass = defineClass(indexErrorClass, "StopIteration");
+        RubyClass stopIterationClass = defineClass(indexErrorClass, "StopIteration");
         closedQueueErrorClass = defineClass(stopIterationClass, "ClosedQueueError");
 
         // StandardError > IOError
@@ -455,20 +459,20 @@ public class CoreLibrary {
         // StandardError > NameError
         nameErrorClass = defineClass(standardErrorClass, "NameError");
         nameErrorShape = createShape(RubyNameError.class, nameErrorClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(nameErrorClass, createFactory(nameErrorShape));
+        nameErrorClass.instanceFactory = createFactory(nameErrorShape);
         noMethodErrorClass = defineClass(nameErrorClass, "NoMethodError");
         noMethodErrorShape = createShape(RubyNoMethodError.class, noMethodErrorClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(noMethodErrorClass, createFactory(noMethodErrorShape));
+        noMethodErrorClass.instanceFactory = createFactory(noMethodErrorShape);
 
         // StandardError > SystemCallError
         systemCallErrorClass = defineClass(standardErrorClass, "SystemCallError");
         Shape systemCallErrorShape = createShape(RubySystemCallError.class, systemCallErrorClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(systemCallErrorClass, createFactory(systemCallErrorShape));
+        systemCallErrorClass.instanceFactory = createFactory(systemCallErrorShape);
 
         errnoModule = defineModule("Errno");
 
         // ScriptError
-        DynamicObject scriptErrorClass = defineClass(exceptionClass, "ScriptError");
+        RubyClass scriptErrorClass = defineClass(exceptionClass, "ScriptError");
         loadErrorClass = defineClass(scriptErrorClass, "LoadError");
         notImplementedErrorClass = defineClass(scriptErrorClass, "NotImplementedError");
         syntaxErrorClass = defineClass(scriptErrorClass, "SyntaxError");
@@ -499,94 +503,92 @@ public class CoreLibrary {
 
         arrayClass = defineClass("Array");
         arrayShape = createShape(RubyArray.class, arrayClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(arrayClass, createFactory(arrayShape));
-        DynamicObject bindingClass = defineClass("Binding");
+        arrayClass.instanceFactory = createFactory(arrayShape);
+        RubyClass bindingClass = defineClass("Binding");
         bindingShape = createShape(RubyBinding.class, bindingClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(bindingClass, createFactory(bindingShape));
-        DynamicObject conditionVariableClass = defineClass("ConditionVariable");
+        bindingClass.instanceFactory = createFactory(bindingShape);
+        RubyClass conditionVariableClass = defineClass("ConditionVariable");
         Shape conditionVariableShape = createShape(RubyConditionVariable.class, conditionVariableClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(conditionVariableClass, createFactory(conditionVariableShape));
+        conditionVariableClass.instanceFactory = createFactory(conditionVariableShape);
         defineClass("Data"); // Needed by Socket::Ifaddr and defined in core MRI
         dirClass = defineClass("Dir");
         encodingClass = defineClass("Encoding");
         encodingShape = createShape(RubyEncoding.class, encodingClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(encodingClass, createFactory(encodingShape));
+        encodingClass.instanceFactory = createFactory(encodingShape);
         falseClass = defineClass("FalseClass");
-        DynamicObject fiberClass = defineClass("Fiber");
+        RubyClass fiberClass = defineClass("Fiber");
         fiberShape = createShape(RubyFiber.class, fiberClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(fiberClass, createFactory(fiberShape));
+        fiberClass.instanceFactory = createFactory(fiberShape);
         defineModule("FileTest");
         hashClass = defineClass("Hash");
         hashShape = createShape(RubyHash.class, hashClass);
         DynamicObjectFactory hashFactory = createFactory(hashShape);
-        Layouts.CLASS.setInstanceFactoryUnsafe(hashClass, hashFactory);
-        DynamicObject matchDataClass = defineClass("MatchData");
+        hashClass.instanceFactory = hashFactory;
+        RubyClass matchDataClass = defineClass("MatchData");
         matchDataShape = createShape(RubyMatchData.class, matchDataClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(matchDataClass, createFactory(matchDataShape));
-        DynamicObject methodClass = defineClass("Method");
+        matchDataClass.instanceFactory = createFactory(matchDataShape);
+        RubyClass methodClass = defineClass("Method");
         methodShape = createShape(RubyMethod.class, methodClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(methodClass, createFactory(methodShape));
-        DynamicObject mutexClass = defineClass("Mutex");
+        methodClass.instanceFactory = createFactory(methodShape);
+        RubyClass mutexClass = defineClass("Mutex");
         Shape mutexShape = createShape(RubyMutex.class, mutexClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(mutexClass, createFactory(mutexShape));
+        mutexClass.instanceFactory = createFactory(mutexShape);
         nilClass = defineClass("NilClass");
         procClass = defineClass("Proc");
         procShape = createShape(RubyProc.class, procClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(procClass, createFactory(procShape));
+        procClass.instanceFactory = createFactory(procShape);
 
         processModule = defineModule("Process");
-        DynamicObject queueClass = defineClass("Queue");
+        RubyClass queueClass = defineClass("Queue");
         Shape queueShape = createShape(RubyQueue.class, queueClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(queueClass, createFactory(queueShape));
-        DynamicObject sizedQueueClass = defineClass(queueClass, "SizedQueue");
+        queueClass.instanceFactory = createFactory(queueShape);
+        RubyClass sizedQueueClass = defineClass(queueClass, "SizedQueue");
         Shape sizedQueueShape = createShape(RubySizedQueue.class, sizedQueueClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(sizedQueueClass, createFactory(sizedQueueShape));
+        sizedQueueClass.instanceFactory = createFactory(sizedQueueShape);
         rangeClass = defineClass("Range");
         intRangeShape = createShape(RubyIntRange.class, rangeClass);
         longRangeShape = createShape(RubyLongRange.class, rangeClass);
         objectRangeShape = createShape(RubyObjectRange.class, rangeClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(rangeClass, createFactory(objectRangeShape));
+        rangeClass.instanceFactory = createFactory(objectRangeShape);
 
-        DynamicObject regexpClass = defineClass("Regexp");
+        RubyClass regexpClass = defineClass("Regexp");
         regexpShape = createShape(RubyRegexp.class, regexpClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(regexpClass, createFactory(regexpShape));
+        regexpClass.instanceFactory = createFactory(regexpShape);
         stringClass = defineClass("String");
         stringShape = createShape(RubyString.class, stringClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(stringClass, createFactory(stringShape));
+        stringClass.instanceFactory = createFactory(stringShape);
         symbolClass = defineClass("Symbol");
 
         threadClass = defineClass("Thread");
         DynamicObjectLibrary.getUncached().put(threadClass, "@report_on_exception", true);
         DynamicObjectLibrary.getUncached().put(threadClass, "@abort_on_exception", false);
         threadShape = createShape(RubyThread.class, threadClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(threadClass, createFactory(threadShape));
+        threadClass.instanceFactory = createFactory(threadShape);
 
-        DynamicObject threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
-        DynamicObject threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
+        RubyClass threadBacktraceClass = defineClass(threadClass, objectClass, "Backtrace");
+        RubyClass threadBacktraceLocationClass = defineClass(threadBacktraceClass, objectClass, "Location");
         threadBacktraceLocationShape = createShape(RubyBacktraceLocation.class, threadBacktraceLocationClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(
-                threadBacktraceLocationClass,
-                createFactory(threadBacktraceLocationShape));
-        DynamicObject timeClass = defineClass("Time");
+        threadBacktraceLocationClass.instanceFactory = createFactory(threadBacktraceLocationShape);
+        RubyClass timeClass = defineClass("Time");
         Shape timeShape = createShape(RubyTime.class, timeClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(timeClass, createFactory(timeShape));
+        timeClass.instanceFactory = createFactory(timeShape);
         trueClass = defineClass("TrueClass");
-        DynamicObject unboundMethodClass = defineClass("UnboundMethod");
+        RubyClass unboundMethodClass = defineClass("UnboundMethod");
         unboundMethodShape = createShape(RubyUnboundMethod.class, unboundMethodClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(unboundMethodClass, createFactory(unboundMethodShape));
+        unboundMethodClass.instanceFactory = createFactory(unboundMethodShape);
         ioClass = defineClass("IO");
         Shape ioShape = createShape(RubyIO.class, ioClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(ioClass, createFactory(ioShape));
+        ioClass.instanceFactory = createFactory(ioShape);
         defineClass(ioClass, "File");
         structClass = defineClass("Struct");
 
-        final DynamicObject tracePointClass = defineClass("TracePoint");
+        final RubyClass tracePointClass = defineClass("TracePoint");
         Shape tracePointShape = createShape(RubyTracePoint.class, tracePointClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(tracePointClass, createFactory(tracePointShape));
+        tracePointClass.instanceFactory = createFactory(tracePointShape);
 
         // Modules
 
-        DynamicObject comparableModule = defineModule("Comparable");
+        RubyModule comparableModule = defineModule("Comparable");
         enumerableModule = defineModule("Enumerable");
         defineModule("GC");
         kernelModule = defineModule("Kernel");
@@ -595,7 +597,7 @@ public class CoreLibrary {
 
         weakMapClass = defineClass(objectSpaceModule, objectClass, "WeakMap");
         weakMapShape = createShape(RubyWeakMap.class, weakMapClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(weakMapClass, createFactory(weakMapShape));
+        weakMapClass.instanceFactory = createFactory(weakMapShape);
 
         // The rest
 
@@ -607,18 +609,18 @@ public class CoreLibrary {
 
         encodingConverterClass = defineClass(encodingClass, objectClass, "Converter");
         Shape encodingConverterShape = createShape(RubyEncodingConverter.class, encodingConverterClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(encodingConverterClass, createFactory(encodingConverterShape));
-        final DynamicObject truffleRubyModule = defineModule("TruffleRuby");
-        DynamicObject atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
+        encodingConverterClass.instanceFactory = createFactory(encodingConverterShape);
+        final RubyModule truffleRubyModule = defineModule("TruffleRuby");
+        RubyClass atomicReferenceClass = defineClass(truffleRubyModule, objectClass, "AtomicReference");
         Shape atomicReferenceShape = createShape(RubyAtomicReference.class, atomicReferenceClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(atomicReferenceClass, createFactory(atomicReferenceShape));
+        atomicReferenceClass.instanceFactory = createFactory(atomicReferenceShape);
         truffleModule = defineModule("Truffle");
         truffleInternalModule = defineModule(truffleModule, "Internal");
         graalErrorClass = defineClass(truffleModule, exceptionClass, "GraalError");
         truffleExceptionOperationsModule = defineModule(truffleModule, "ExceptionOperations");
         truffleInteropModule = defineModule(truffleModule, "Interop");
         truffleInteropForeignClass = defineClass(truffleInteropModule, objectClass, "Foreign");
-        DynamicObject interopExceptionClass = defineClass(
+        RubyClass interopExceptionClass = defineClass(
                 truffleInteropModule,
                 exceptionClass,
                 "InteropException");
@@ -661,39 +663,39 @@ public class CoreLibrary {
         defineModule(truffleModule, "ReadlineHistory");
         truffleThreadOperationsModule = defineModule(truffleModule, "ThreadOperations");
         defineModule(truffleModule, "WeakRefOperations");
-        DynamicObject handleClass = defineClass(truffleModule, objectClass, "Handle");
+        RubyClass handleClass = defineClass(truffleModule, objectClass, "Handle");
         handleShape = createShape(RubyHandle.class, handleClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(handleClass, createFactory(handleShape));
+        handleClass.instanceFactory = createFactory(handleShape);
         warningModule = defineModule("Warning");
 
         bigDecimalClass = defineClass(numericClass, "BigDecimal");
         bigDecimalShape = createShape(RubyBigDecimal.class, bigDecimalClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(bigDecimalClass, createFactory(bigDecimalShape));
+        bigDecimalClass.instanceFactory = createFactory(bigDecimalShape);
         bigDecimalOperationsModule = defineModule(truffleModule, "BigDecimalOperations");
 
         truffleFFIModule = defineModule(truffleModule, "FFI");
-        DynamicObject truffleFFIAbstractMemoryClass = defineClass(truffleFFIModule, objectClass, "AbstractMemory");
+        RubyClass truffleFFIAbstractMemoryClass = defineClass(truffleFFIModule, objectClass, "AbstractMemory");
         truffleFFIPointerClass = defineClass(truffleFFIModule, truffleFFIAbstractMemoryClass, "Pointer");
         truffleFFIPointerShape = createShape(RubyPointer.class, truffleFFIPointerClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(truffleFFIPointerClass, createFactory(truffleFFIPointerShape));
+        truffleFFIPointerClass.instanceFactory = createFactory(truffleFFIPointerShape);
         truffleFFINullPointerErrorClass = defineClass(truffleFFIModule, runtimeErrorClass, "NullPointerError");
 
         truffleTypeModule = defineModule(truffleModule, "Type");
 
-        DynamicObject byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
+        RubyClass byteArrayClass = defineClass(truffleModule, objectClass, "ByteArray");
         byteArrayShape = createShape(RubyByteArray.class, byteArrayClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(byteArrayClass, createFactory(byteArrayShape));
+        byteArrayClass.instanceFactory = createFactory(byteArrayShape);
         defineClass(truffleModule, objectClass, "StringData");
         defineClass(encodingClass, objectClass, "Transcoding");
-        DynamicObject randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
+        RubyClass randomizerClass = defineClass(truffleModule, objectClass, "Randomizer");
         randomizerShape = createShape(RubyRandomizer.class, randomizerClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(randomizerClass, createFactory(randomizerShape));
+        randomizerClass.instanceFactory = createFactory(randomizerShape);
 
         // Standard library
 
-        DynamicObject digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
+        RubyClass digestClass = defineClass(truffleModule, basicObjectClass, "Digest");
         digestShape = createShape(RubyDigest.class, digestClass);
-        Layouts.CLASS.setInstanceFactoryUnsafe(digestClass, createFactory(digestShape));
+        digestClass.instanceFactory = createFactory(digestShape);
 
         // Include the core modules
 
@@ -708,8 +710,8 @@ public class CoreLibrary {
         globalVariables = new GlobalVariables();
 
         // No need for new version since it's null before which is not cached
-        assert Layouts.CLASS.getSuperclass(basicObjectClass) == null;
-        Layouts.CLASS.setSuperclass(basicObjectClass, Nil.INSTANCE);
+        assert basicObjectClass.superclass == null;
+        basicObjectClass.superclass = Nil.INSTANCE;
 
         patchFiles = initializePatching(context);
     }
@@ -740,19 +742,17 @@ public class CoreLibrary {
         return patchFiles;
     }
 
-    private void includeModules(DynamicObject comparableModule) {
-        assert RubyGuards.isRubyModule(comparableModule);
+    private void includeModules(RubyModule comparableModule) {
+        objectClass.fields.include(context, node, kernelModule);
 
-        Layouts.MODULE.getFields(objectClass).include(context, node, kernelModule);
+        numericClass.fields.include(context, node, comparableModule);
+        symbolClass.fields.include(context, node, comparableModule);
 
-        Layouts.MODULE.getFields(numericClass).include(context, node, comparableModule);
-        Layouts.MODULE.getFields(symbolClass).include(context, node, comparableModule);
-
-        Layouts.MODULE.getFields(arrayClass).include(context, node, enumerableModule);
-        Layouts.MODULE.getFields(dirClass).include(context, node, enumerableModule);
-        Layouts.MODULE.getFields(hashClass).include(context, node, enumerableModule);
-        Layouts.MODULE.getFields(rangeClass).include(context, node, enumerableModule);
-        Layouts.MODULE.getFields(weakMapClass).include(context, node, enumerableModule);
+        arrayClass.fields.include(context, node, enumerableModule);
+        dirClass.fields.include(context, node, enumerableModule);
+        hashClass.fields.include(context, node, enumerableModule);
+        rangeClass.fields.include(context, node, enumerableModule);
+        weakMapClass.fields.include(context, node, enumerableModule);
     }
 
     public void initialize() {
@@ -772,8 +772,8 @@ public class CoreLibrary {
         truffleBootMainInfo = getMethod(node.getSingletonClass(truffleBootModule), "main").getSharedMethodInfo();
     }
 
-    private InternalMethod getMethod(DynamicObject module, String name) {
-        InternalMethod method = Layouts.MODULE.getFields(module).getMethod(name);
+    private InternalMethod getMethod(RubyModule module, String name) {
+        InternalMethod method = module.fields.getMethod(name);
         if (method == null || method.isUndefined()) {
             throw new Error("method " + module + "#" + name + " not found during CoreLibrary initialization");
         }
@@ -867,7 +867,7 @@ public class CoreLibrary {
                 continue; // Don't define it as a class, define it as constant later.
             }
             errnoValueToNames.put((int) entry.getValue(), name);
-            final DynamicObject rubyClass = defineClass(errnoModule, systemCallErrorClass, name);
+            final RubyClass rubyClass = defineClass(errnoModule, systemCallErrorClass, name);
             setConstant(rubyClass, "Errno", entry.getValue());
             errnoClasses.put(name, rubyClass);
         }
@@ -877,45 +877,41 @@ public class CoreLibrary {
         }
     }
 
-    private void setConstant(DynamicObject module, String name, Object value) {
-        Layouts.MODULE.getFields(module).setConstant(context, node, name, value);
+    private void setConstant(RubyModule module, String name, Object value) {
+        module.fields.setConstant(context, node, name, value);
     }
 
-    private DynamicObject frozenUSASCIIString(String string) {
+    private RubyString frozenUSASCIIString(String string) {
         final Rope rope = context.getRopeCache().getRope(
                 StringOperations.encodeRope(string, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         return StringOperations.createFrozenString(context, rope);
     }
 
-    private DynamicObject defineClass(String name) {
+    private RubyClass defineClass(String name) {
         return defineClass(objectClass, name);
     }
 
-    private DynamicObject defineClass(DynamicObject superclass, String name) {
-        assert RubyGuards.isRubyClass(superclass);
+    private RubyClass defineClass(RubyClass superclass, String name) {
         return ClassNodes.createInitializedRubyClass(context, null, objectClass, superclass, name);
     }
 
-    private DynamicObject defineClass(DynamicObject lexicalParent, DynamicObject superclass, String name) {
-        assert RubyGuards.isRubyModule(lexicalParent);
-        assert RubyGuards.isRubyClass(superclass);
+    private RubyClass defineClass(RubyModule lexicalParent, RubyClass superclass, String name) {
         return ClassNodes.createInitializedRubyClass(context, null, lexicalParent, superclass, name);
     }
 
-    private DynamicObject defineModule(String name) {
+    private RubyModule defineModule(String name) {
         return defineModule(null, objectClass, name);
     }
 
-    private DynamicObject defineModule(DynamicObject lexicalParent, String name) {
+    private RubyModule defineModule(RubyModule lexicalParent, String name) {
         return defineModule(null, lexicalParent, name);
     }
 
-    private DynamicObject defineModule(SourceSection sourceSection, DynamicObject lexicalParent, String name) {
-        assert RubyGuards.isRubyModule(lexicalParent);
+    private RubyModule defineModule(SourceSection sourceSection, RubyModule lexicalParent, String name) {
         return ModuleNodes.createModule(context, sourceSection, moduleClass, lexicalParent, name, node);
     }
 
-    private Shape createShape(Class<? extends RubyDynamicObject> layoutClass, DynamicObject rubyClass) {
+    public static Shape createShape(Class<? extends RubyDynamicObject> layoutClass, RubyClass rubyClass) {
         final BasicObjectType objectType = new BasicObjectType(rubyClass, rubyClass);
         return Shape.newBuilder().allowImplicitCastIntToLong(true).layout(layoutClass).dynamicType(objectType).build();
     }
@@ -1001,33 +997,28 @@ public class CoreLibrary {
     private void afterLoadCoreLibrary() {
         // Get some references to things defined in the Ruby core
 
-        eagainWaitReadable = (DynamicObject) Layouts.MODULE
-                .getFields(ioClass)
+        eagainWaitReadable = (RubyClass) ioClass.fields
                 .getConstant("EAGAINWaitReadable")
                 .getValue();
-        assert Layouts.CLASS.isClass(eagainWaitReadable);
 
-        eagainWaitWritable = (DynamicObject) Layouts.MODULE
-                .getFields(ioClass)
+        eagainWaitWritable = (RubyClass) ioClass.fields
                 .getConstant("EAGAINWaitWritable")
                 .getValue();
-        assert Layouts.CLASS.isClass(eagainWaitWritable);
 
         findGlobalVariableStorage();
 
         // Initialize $0 so it is set to a String as RubyGems expect, also when not run from the RubyLauncher
-        DynamicObject dollarZeroValue = StringOperations
+        RubyString dollarZeroValue = StringOperations
                 .createString(context, StringOperations.encodeRope("-", USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT));
         globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);
 
-        topLevelBinding = (DynamicObject) Layouts.MODULE
-                .getFields(objectClass)
+        topLevelBinding = (RubyBinding) objectClass.fields
                 .getConstant("TOPLEVEL_BINDING")
                 .getValue();
     }
 
     @TruffleBoundary
-    public DynamicObject getMetaClass(Object object) {
+    public RubyClass getMetaClass(Object object) {
         if (RubyGuards.isRubyDynamicObject(object)) {
             return Layouts.BASIC_OBJECT.getMetaClass((DynamicObject) object);
         } else {
@@ -1036,7 +1027,7 @@ public class CoreLibrary {
     }
 
     @TruffleBoundary
-    public DynamicObject getLogicalClass(Object object) {
+    public RubyClass getLogicalClass(Object object) {
         if (RubyGuards.isRubyDynamicObject(object)) {
             return Layouts.BASIC_OBJECT.getLogicalClass((DynamicObject) object);
         } else if (object instanceof Nil) {
@@ -1137,7 +1128,7 @@ public class CoreLibrary {
     }
 
     public DynamicObject getENV() {
-        return (DynamicObject) Layouts.MODULE.getFields(objectClass).getConstant("ENV").getValue();
+        return (DynamicObject) objectClass.fields.getConstant("ENV").getValue();
     }
 
     @TruffleBoundary
@@ -1151,7 +1142,7 @@ public class CoreLibrary {
     }
 
     @TruffleBoundary
-    public DynamicObject getErrnoClass(String name) {
+    public RubyClass getErrnoClass(String name) {
         return errnoClasses.get(name);
     }
 

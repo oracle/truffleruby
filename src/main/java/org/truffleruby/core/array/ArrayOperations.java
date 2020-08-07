@@ -38,7 +38,7 @@ public abstract class ArrayOperations {
                 backingStore instanceof int[] || backingStore instanceof long[] || backingStore instanceof double[] ||
                 backingStore.getClass() == Object[].class : backingStore;
 
-        final RubyContext context = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(array)).getContext();
+        final RubyContext context = Layouts.BASIC_OBJECT.getLogicalClass(array).fields.getContext();
         if (SharedObjects.isShared(context, array)) {
             final Object store = array.store;
 

@@ -20,6 +20,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.SingleValueCastNode;
 import org.truffleruby.core.cast.SingleValueCastNodeGen;
 import org.truffleruby.core.fiber.FiberNodesFactory.FiberTransferNodeFactory;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
@@ -86,7 +87,7 @@ public abstract class FiberNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyFiber allocate(DynamicObject rubyClass,
+        protected RubyFiber allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode helperNode) {
             final RubyThread thread = getContext().getThreadManager().getCurrentThread();
             final Shape shape = helperNode.getCachedShape(rubyClass);

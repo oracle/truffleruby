@@ -286,8 +286,7 @@ public class RubyContext {
         Metrics.printTime("after-rehash");
 
         Metrics.printTime("before-run-delayed-initialization");
-        final Object toRunAtInit = Layouts.MODULE
-                .getFields(coreLibrary.truffleBootModule)
+        final Object toRunAtInit = coreLibrary.truffleBootModule.fields
                 .getConstant("TO_RUN_AT_INIT")
                 .getValue();
         for (Object proc : ArrayOperations.toIterable((RubyArray) toRunAtInit)) {

@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -34,36 +35,36 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return MetaClassNodeGen.create();
     }
 
-    public abstract DynamicObject executeMetaClass(Object value);
+    public abstract RubyClass executeMetaClass(Object value);
 
     // Cover all primitives
 
     @Specialization(guards = "value")
-    protected DynamicObject metaClassTrue(boolean value,
+    protected RubyClass metaClassTrue(boolean value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected DynamicObject metaClassFalse(boolean value,
+    protected RubyClass metaClassFalse(boolean value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().falseClass;
     }
 
     @Specialization
-    protected DynamicObject metaClassInt(int value,
+    protected RubyClass metaClassInt(int value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().integerClass;
     }
 
     @Specialization
-    protected DynamicObject metaClassLong(long value,
+    protected RubyClass metaClassLong(long value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().integerClass;
     }
 
     @Specialization
-    protected DynamicObject metaClassDouble(double value,
+    protected RubyClass metaClassDouble(double value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().floatClass;
     }
@@ -71,13 +72,13 @@ public abstract class MetaClassNode extends RubyBaseNode {
     // nil
 
     @Specialization
-    protected DynamicObject metaClassNil(Nil value,
+    protected RubyClass metaClassNil(Nil value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().nilClass;
     }
 
     @Specialization
-    protected DynamicObject metaClassSymbol(RubySymbol value,
+    protected RubyClass metaClassSymbol(RubySymbol value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().symbolClass;
     }
@@ -88,40 +89,40 @@ public abstract class MetaClassNode extends RubyBaseNode {
             guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",
             limit = "getCacheLimit()")
-    protected DynamicObject metaClassCached(DynamicObject object,
+    protected RubyClass metaClassCached(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             // used only during instantiation when it's always correct for a given object
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Cached("getMetaClass(context, cachedShape)") DynamicObject metaClass) {
+            @Cached("getMetaClass(context, cachedShape)") RubyClass metaClass) {
         return metaClass;
     }
 
     @Specialization(guards = "updateShape(object)")
-    protected DynamicObject updateShapeAndMetaClass(DynamicObject object) {
+    protected RubyClass updateShapeAndMetaClass(DynamicObject object) {
         return executeMetaClass(object);
     }
 
     @Specialization(guards = "isRubyDynamicObject(object)", replaces = { "metaClassCached", "updateShapeAndMetaClass" })
-    protected DynamicObject metaClassUncached(DynamicObject object) {
+    protected RubyClass metaClassUncached(DynamicObject object) {
         return Layouts.BASIC_OBJECT.getMetaClass(object);
     }
 
     @Specialization(
             guards = "!isRubyDynamicObject(object)",
             replaces = { "metaClassCached", "updateShapeAndMetaClass" })
-    protected DynamicObject metaClassForeign(DynamicObject object,
+    protected RubyClass metaClassForeign(DynamicObject object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         assert RubyGuards.isForeignObject(object);
         return context.getCoreLibrary().truffleInteropForeignClass;
     }
 
     @Specialization(guards = "isForeignObject(object)")
-    protected DynamicObject metaClassForeign(Object object,
+    protected RubyClass metaClassForeign(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().truffleInteropForeignClass;
     }
 
-    protected DynamicObject getMetaClass(RubyContext context, Shape shape) {
+    protected RubyClass getMetaClass(RubyContext context, Shape shape) {
         final ObjectType objectType = shape.getObjectType();
         if (Layouts.BASIC_OBJECT.isBasicObject(objectType)) {
             return Layouts.BASIC_OBJECT.getMetaClass(objectType);

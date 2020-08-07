@@ -13,8 +13,8 @@ import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -52,7 +52,7 @@ public abstract class RescueNode extends RubyContextSourceNode {
     }
 
     protected boolean matches(VirtualFrame frame, Object exception, Object handlingClass) {
-        if (!RubyGuards.isRubyModule(handlingClass)) {
+        if (!(handlingClass instanceof RubyModule)) {
             errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorRescueInvalidClause(this));
         }

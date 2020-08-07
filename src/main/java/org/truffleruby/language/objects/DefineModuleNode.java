@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language.objects;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -19,7 +20,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -37,11 +37,11 @@ public abstract class DefineModuleNode extends RubyContextSourceNode {
         this.name = name;
     }
 
-    @Specialization(guards = "isRubyModule(lexicalParentModule)")
-    protected Object defineModule(VirtualFrame frame, DynamicObject lexicalParentModule) {
+    @Specialization
+    protected RubyModule defineModule(VirtualFrame frame, RubyModule lexicalParentModule) {
         final Object existing = lookupForExistingModule(frame, name, lexicalParentModule);
 
-        final DynamicObject definingModule;
+        final RubyModule definingModule;
 
         if (needToDefineProfile.profile(existing == null)) {
             definingModule = ModuleNodes.createModule(
@@ -52,23 +52,23 @@ public abstract class DefineModuleNode extends RubyContextSourceNode {
                     name,
                     this);
         } else {
-            if (!RubyGuards.isRubyModule(existing) || RubyGuards.isRubyClass(existing)) {
+            if (!(existing instanceof RubyModule) || existing instanceof RubyClass) {
                 errorProfile.enter();
                 throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(name, "module", this));
             }
 
-            definingModule = (DynamicObject) existing;
+            definingModule = (RubyModule) existing;
         }
 
         return definingModule;
     }
 
     @Specialization(guards = "!isRubyModule(lexicalParentObject)")
-    protected Object defineModuleWrongParent(VirtualFrame frame, Object lexicalParentObject) {
+    protected RubyModule defineModuleWrongParent(VirtualFrame frame, Object lexicalParentObject) {
         throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotA(lexicalParentObject, "module", this));
     }
 
-    private Object lookupForExistingModule(VirtualFrame frame, String name, DynamicObject lexicalParent) {
+    private Object lookupForExistingModule(VirtualFrame frame, String name, RubyModule lexicalParent) {
         if (lookupForExistingModuleNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupForExistingModuleNode = insert(new LookupForExistingModuleNode());

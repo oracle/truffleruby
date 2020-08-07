@@ -305,8 +305,7 @@ public class BacktraceFormatter {
 
         final String message = ExceptionOperations.messageToString(context, exception);
 
-        final String exceptionClass = Layouts.MODULE
-                .getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception))
+        final String exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception).fields
                 .getName();
 
         // Show the exception class at the end of the first line of the message

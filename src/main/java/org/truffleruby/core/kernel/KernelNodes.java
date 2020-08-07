@@ -50,8 +50,10 @@ import org.truffleruby.core.kernel.KernelNodesFactory.CopyNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.GetMethodObjectNodeGen;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqualNodeFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SingletonMethodsNodeFactory;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
@@ -79,7 +81,6 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
@@ -544,10 +545,10 @@ public abstract class KernelNodes {
             final DynamicObject newObject = copyNode.executeCopy(self);
 
             // Copy the singleton class if any.
-            final DynamicObject selfMetaClass = Layouts.BASIC_OBJECT.getMetaClass(self);
-            if (isSingletonProfile.profile(Layouts.CLASS.getIsSingleton(selfMetaClass))) {
-                final DynamicObject newObjectMetaClass = executeSingletonClass(newObject);
-                Layouts.MODULE.getFields(newObjectMetaClass).initCopy(selfMetaClass);
+            final RubyClass selfMetaClass = Layouts.BASIC_OBJECT.getMetaClass(self);
+            if (isSingletonProfile.profile(selfMetaClass.isSingleton)) {
+                final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
+                newObjectMetaClass.fields.initCopy(selfMetaClass);
             }
 
             initializeCloneNode.call(newObject, "initialize_clone", self);
@@ -558,8 +559,8 @@ public abstract class KernelNodes {
                 rubyLibraryFreeze.freeze(newObject);
             }
 
-            if (isRubyClass.profile(RubyGuards.isRubyClass(self))) {
-                Layouts.CLASS.setSuperclass(newObject, Layouts.CLASS.getSuperclass(self));
+            if (isRubyClass.profile(self instanceof RubyClass)) {
+                ((RubyClass) newObject).superclass = ((RubyClass) self).superclass;
             }
 
             return newObject;
@@ -632,7 +633,7 @@ public abstract class KernelNodes {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(self, this));
         }
 
-        private DynamicObject executeSingletonClass(DynamicObject newObject) {
+        private RubyClass executeSingletonClass(DynamicObject newObject) {
             if (singletonClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 singletonClassNode = insert(SingletonClassNode.create());
@@ -967,9 +968,9 @@ public abstract class KernelNodes {
 
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
-        @Specialization(guards = "isRubyModule(rubyClass)")
-        protected boolean instanceOf(Object self, DynamicObject rubyClass) {
-            return classNode.executeLogicalClass(self) == rubyClass;
+        @Specialization
+        protected boolean instanceOf(Object self, RubyModule module) {
+            return classNode.executeLogicalClass(self) == module;
         }
 
     }
@@ -1110,7 +1111,7 @@ public abstract class KernelNodes {
     public abstract static class KernelIsANode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected boolean isA(Object self, DynamicObject module,
+        protected boolean isA(Object self, RubyModule module,
                 @Cached IsANode isANode) {
             return isANode.executeIsA(self, module);
         }
@@ -1292,7 +1293,7 @@ public abstract class KernelNodes {
                     true);
             final RootCallTarget newCallTarget = Truffle.getRuntime().createCallTarget(newRootNode);
 
-            final DynamicObject module = coreLibrary().getMetaClass(self);
+            final RubyClass module = coreLibrary().getMetaClass(self);
             return new InternalMethod(
                     getContext(),
                     info,
@@ -1341,10 +1342,9 @@ public abstract class KernelNodes {
         @Specialization(guards = "regular")
         protected RubyArray methodsRegular(Object self, boolean regular,
                 @Cached MetaClassNode metaClassNode) {
-            final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
+            final RubyModule metaClass = metaClassNode.executeMetaClass(self);
 
-            Object[] objects = Layouts.MODULE
-                    .getFields(metaClass)
+            Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getContext(), regular, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
@@ -1403,10 +1403,9 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray privateMethods(Object self, boolean includeAncestors) {
-            DynamicObject metaClass = metaClassNode.executeMetaClass(self);
+            RubyClass metaClass = metaClassNode.executeMetaClass(self);
 
-            Object[] objects = Layouts.MODULE
-                    .getFields(metaClass)
+            Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PRIVATE)
                     .toArray();
             return createArray(objects);
@@ -1441,10 +1440,9 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray protectedMethods(Object self, boolean includeAncestors) {
-            final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
+            final RubyClass metaClass = metaClassNode.executeMetaClass(self);
 
-            Object[] objects = Layouts.MODULE
-                    .getFields(metaClass)
+            Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PROTECTED)
                     .toArray();
             return createArray(objects);
@@ -1486,10 +1484,9 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray publicMethods(Object self, boolean includeAncestors) {
-            final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
+            final RubyModule metaClass = metaClassNode.executeMetaClass(self);
 
-            Object[] objects = Layouts.MODULE
-                    .getFields(metaClass)
+            Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PUBLIC)
                     .toArray();
             return createArray(objects);
@@ -1679,10 +1676,10 @@ public abstract class KernelNodes {
                 @Cached BranchProfile errorProfile,
                 @Cached ConditionProfile singletonProfile,
                 @Cached ConditionProfile methodProfile) {
-            final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
+            final RubyClass metaClass = metaClassNode.executeMetaClass(self);
 
-            if (singletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
-                final InternalMethod method = Layouts.MODULE.getFields(metaClass).getMethod(name);
+            if (singletonProfile.profile(metaClass.isSingleton)) {
+                final InternalMethod method = metaClass.fields.getMethod(name);
                 if (methodProfile.profile(method != null && !method.isUndefined())) {
                     final RubyMethod instance = new RubyMethod(coreLibrary().methodShape, self, method);
                     allocateNode.trace(instance, this);
@@ -1720,14 +1717,13 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray singletonMethods(Object self, boolean includeAncestors) {
-            final DynamicObject metaClass = metaClassNode.executeMetaClass(self);
+            final RubyClass metaClass = metaClassNode.executeMetaClass(self);
 
-            if (!Layouts.CLASS.getIsSingleton(metaClass)) {
+            if (!metaClass.isSingleton) {
                 return ArrayHelpers.createEmptyArray(getContext());
             }
 
-            Object[] objects = Layouts.MODULE
-                    .getFields(metaClass)
+            Object[] objects = metaClass.fields
                     .filterSingletonMethods(getContext(), includeAncestors, MethodFilter.PUBLIC_PROTECTED)
                     .toArray();
             return createArray(objects);
@@ -1981,7 +1977,7 @@ public abstract class KernelNodes {
                 @Cached ObjectIDNode objectIDNode,
                 @Cached ToHexStringNode toHexStringNode,
                 @Cached PropagateTaintNode propagateTaintNode) {
-            String className = Layouts.MODULE.getFields(classNode.executeLogicalClass(self)).getName();
+            String className = classNode.executeLogicalClass(self).fields.getName();
             Object id = objectIDNode.execute(self);
             String hexID = toHexStringNode.executeToHexString(id);
 

@@ -11,15 +11,15 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 public class ReadClassVariableNode extends RubyContextSourceNode {
@@ -39,7 +39,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
         // TODO CS 21-Feb-16 these two operations are uncached and use loops - same for isDefined below
-        final DynamicObject module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
+        final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
 
@@ -60,7 +60,7 @@ public class ReadClassVariableNode extends RubyContextSourceNode {
     @Override
     public Object isDefined(VirtualFrame frame, RubyContext context) {
         final LexicalScope lexicalScope = (LexicalScope) lexicalScopeNode.execute(frame);
-        final DynamicObject module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
+        final RubyModule module = LexicalScope.resolveTargetModuleForClassVariables(lexicalScope);
 
         final Object value = ModuleOperations.lookupClassVariable(module, name);
 

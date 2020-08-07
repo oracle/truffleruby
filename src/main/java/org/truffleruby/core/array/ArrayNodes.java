@@ -48,6 +48,7 @@ import org.truffleruby.core.kernel.KernelNodes.SameOrEqlNode;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
 import org.truffleruby.core.kernel.KernelNodesFactory.SameOrEqlNodeFactory;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
@@ -102,7 +103,7 @@ public abstract class ArrayNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyArray allocate(DynamicObject rubyClass) {
+        protected RubyArray allocate(RubyClass rubyClass) {
             RubyArray array = new RubyArray(helperNode.getCachedShape(rubyClass), ArrayStoreLibrary.INITIAL_STORE, 0);
             helperNode.trace(array, this);
             return array;

@@ -116,6 +116,7 @@ import org.truffleruby.core.format.unpack.ArrayResult;
 import org.truffleruby.core.format.unpack.UnpackCompiler;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodesFactory;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.proc.RubyProc;
@@ -307,7 +308,7 @@ public abstract class StringNodes {
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyString allocate(DynamicObject rubyClass,
+        protected RubyString allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode allocateHelperNode) {
             final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
             final RubyString string = new RubyString(shape, false, false, EMPTY_ASCII_8BIT_ROPE);
@@ -4584,7 +4585,7 @@ public abstract class StringNodes {
         @Child private RopeNodes.RepeatNode repeatNode = RopeNodes.RepeatNode.create();
 
         @Specialization(guards = "pattern >= 0")
-        protected DynamicObject stringPatternZero(DynamicObject stringClass, int size, int pattern) {
+        protected DynamicObject stringPatternZero(RubyClass stringClass, int size, int pattern) {
             final Rope repeatingRope = repeatNode
                     .executeRepeat(RopeConstants.ASCII_8BIT_SINGLE_BYTE_ROPES[pattern], size);
 
@@ -4595,7 +4596,7 @@ public abstract class StringNodes {
         }
 
         @Specialization(guards = { "patternFitsEvenly(pattern, size)" })
-        protected DynamicObject stringPatternFitsEvenly(DynamicObject stringClass, int size, RubyString pattern) {
+        protected DynamicObject stringPatternFitsEvenly(RubyClass stringClass, int size, RubyString pattern) {
             final Rope rope = pattern.rope;
             final Rope repeatingRope = repeatNode.executeRepeat(rope, size / rope.byteLength());
 
@@ -4607,7 +4608,7 @@ public abstract class StringNodes {
 
         @TruffleBoundary
         @Specialization(guards = { "!patternFitsEvenly(pattern, size)" })
-        protected DynamicObject stringPattern(DynamicObject stringClass, int size, RubyString pattern) {
+        protected DynamicObject stringPattern(RubyClass stringClass, int size, RubyString pattern) {
             final Rope rope = pattern.rope;
             final byte[] bytes = new byte[size];
 

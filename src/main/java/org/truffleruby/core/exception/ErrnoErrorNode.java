@@ -13,6 +13,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -34,7 +35,7 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;
-        final DynamicObject errnoClass;
+        final RubyClass errnoClass;
         if (errnoName == null) {
             errnoClass = getContext().getCoreLibrary().systemCallErrorClass;
             errnoDescription = nil;

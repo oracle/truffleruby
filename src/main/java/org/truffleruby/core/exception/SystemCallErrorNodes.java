@@ -14,11 +14,11 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @CoreModule(value = "SystemCallError", isClass = true)
@@ -30,7 +30,7 @@ public abstract class SystemCallErrorNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubySystemCallError allocateNameError(DynamicObject rubyClass) {
+        protected RubySystemCallError allocateNameError(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubySystemCallError instance = new RubySystemCallError(shape, nil, null, nil, nil);
             allocateNode.trace(instance, this);

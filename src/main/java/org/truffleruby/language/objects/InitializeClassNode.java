@@ -9,20 +9,18 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class InitializeClassNode extends RubyContextNode {
 
@@ -35,38 +33,35 @@ public abstract class InitializeClassNode extends RubyContextNode {
         this.callInherited = callInherited;
     }
 
-    public abstract DynamicObject executeInitialize(DynamicObject rubyClass, Object superclass, Object block);
+    public abstract RubyClass executeInitialize(RubyClass rubyClass, Object superclass, Object block);
 
     @Specialization
-    protected DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, NotProvided block) {
+    protected RubyClass initialize(RubyClass rubyClass, NotProvided superclass, NotProvided block) {
         return initializeGeneralWithoutBlock(rubyClass, coreLibrary().objectClass, false);
     }
 
     @Specialization
-    protected DynamicObject initialize(DynamicObject rubyClass, NotProvided superclass, RubyProc block) {
+    protected RubyClass initialize(RubyClass rubyClass, NotProvided superclass, RubyProc block) {
         return initializeGeneralWithBlock(rubyClass, coreLibrary().objectClass, block, false);
     }
 
-    @Specialization(guards = "isRubyClass(superclass)")
-    protected DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, NotProvided block) {
+    @Specialization
+    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, NotProvided block) {
         return initializeGeneralWithoutBlock(rubyClass, superclass, true);
     }
 
-    @Specialization(guards = "isRubyClass(superclass)")
-    protected DynamicObject initialize(DynamicObject rubyClass, DynamicObject superclass, RubyProc block) {
+    @Specialization
+    protected RubyClass initialize(RubyClass rubyClass, RubyClass superclass, RubyProc block) {
         return initializeGeneralWithBlock(rubyClass, superclass, block, true);
     }
 
     @Specialization(guards = { "!isRubyClass(superclass)", "wasProvided(superclass)" })
-    protected DynamicObject initializeNotClass(DynamicObject rubyClass, Object superclass, Object maybeBlock) {
+    protected RubyClass initializeNotClass(RubyClass rubyClass, Object superclass, Object maybeBlock) {
         throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
     }
 
-    private DynamicObject initializeGeneralWithoutBlock(DynamicObject rubyClass, DynamicObject superclass,
+    private RubyClass initializeGeneralWithoutBlock(RubyClass rubyClass, RubyClass superclass,
             boolean superClassProvided) {
-        assert RubyGuards.isRubyClass(rubyClass);
-        assert RubyGuards.isRubyClass(superclass);
-
         if (isInitialized(rubyClass)) {
             throw new RaiseException(
                     getContext(),
@@ -91,10 +86,8 @@ public abstract class InitializeClassNode extends RubyContextNode {
         return rubyClass;
     }
 
-    private DynamicObject initializeGeneralWithBlock(DynamicObject rubyClass, DynamicObject superclass,
+    private RubyClass initializeGeneralWithBlock(RubyClass rubyClass, RubyClass superclass,
             RubyProc block, boolean superClassProvided) {
-        assert RubyGuards.isRubyClass(superclass);
-
         if (isInitialized(rubyClass)) {
             throw new RaiseException(
                     getContext(),
@@ -116,16 +109,16 @@ public abstract class InitializeClassNode extends RubyContextNode {
         return rubyClass;
     }
 
-    private boolean isInitialized(DynamicObject rubyClass) {
-        return Layouts.CLASS.getSuperclass(rubyClass) != null;
+    private boolean isInitialized(RubyClass rubyClass) {
+        return rubyClass.superclass != null;
     }
 
     // rb_check_inheritable
-    private void checkInheritable(DynamicObject superClass) {
-        if (!RubyGuards.isRubyClass(superClass)) {
+    private void checkInheritable(RubyClass superClass) {
+        if (!(superClass instanceof RubyClass)) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
         }
-        if (Layouts.CLASS.getIsSingleton(superClass)) {
+        if (superClass.isSingleton) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
         }
         if (superClass == coreLibrary().classClass) {
@@ -133,7 +126,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
         }
     }
 
-    private void triggerInheritedHook(DynamicObject subClass, DynamicObject superClass) {
+    private void triggerInheritedHook(RubyClass subClass, RubyClass superClass) {
         if (inheritedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             inheritedNode = insert(CallDispatchHeadNode.createPrivate());
@@ -141,7 +134,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
         inheritedNode.call(superClass, "inherited", subClass);
     }
 
-    private void moduleInitialize(DynamicObject rubyClass, RubyProc block) {
+    private void moduleInitialize(RubyClass rubyClass, RubyProc block) {
         if (moduleInitializeNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             moduleInitializeNode = insert(ModuleNodesFactory.InitializeNodeFactory.create(null));

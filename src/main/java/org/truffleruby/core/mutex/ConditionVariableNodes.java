@@ -19,6 +19,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
@@ -30,7 +31,6 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -43,7 +43,7 @@ public abstract class ConditionVariableNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyConditionVariable allocate(DynamicObject rubyClass) {
+        protected RubyConditionVariable allocate(RubyClass rubyClass) {
             // condLock is only held for a short number of non-blocking instructions,
             // so there is no need to poll for safepoints while locking it.
             // It is an internal lock and so locking should be done with condLock.lock()

@@ -17,6 +17,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
@@ -137,8 +138,8 @@ public abstract class ObjectSpaceNodes {
         }
 
         @TruffleBoundary // for the iterator
-        @Specialization(guards = "isRubyModule(ofClass)")
-        protected int eachObject(DynamicObject ofClass, RubyProc block,
+        @Specialization
+        protected int eachObject(RubyModule ofClass, RubyProc block,
                 @Cached IsANode isANode) {
             int count = 0;
 

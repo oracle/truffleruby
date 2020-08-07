@@ -11,9 +11,9 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -64,7 +64,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
                 getRoundModeCall().call(getBigDecimalClass(), "mode", 256)));
     }
 
-    protected DynamicObject getBigDecimalClass() {
+    protected RubyClass getBigDecimalClass() {
         return coreLibrary().bigDecimalClass;
     }
 

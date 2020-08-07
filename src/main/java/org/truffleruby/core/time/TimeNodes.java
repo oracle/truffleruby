@@ -24,6 +24,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.exception.ErrnoErrorNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -62,7 +63,7 @@ public abstract class TimeNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyTime instance = new RubyTime(shape, ZERO, nil, 0, false, false);
             allocateNode.trace(instance, this);
@@ -179,7 +180,7 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject timeNow(DynamicObject timeClass) {
+        protected DynamicObject timeNow(RubyClass timeClass) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dt = now(zoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, dt, zoneAndName);
@@ -205,7 +206,7 @@ public abstract class TimeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject timeAt(DynamicObject timeClass, long seconds, int nanoseconds) {
+        protected DynamicObject timeAt(RubyClass timeClass, long seconds, int nanoseconds) {
             final TimeZoneAndName zoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime dateTime = getDateTime(seconds, nanoseconds, zoneAndName.getZone());
             final DynamicObject zone = getShortZoneName(makeStringNode, dateTime, zoneAndName);
@@ -474,7 +475,7 @@ public abstract class TimeNodes {
 
         @Specialization(guards = "(isutc || !isDynamicObject(utcoffset)) || isNil(utcoffset)")
         protected RubyTime timeSFromArray(
-                DynamicObject timeClass,
+                RubyClass timeClass,
                 int sec,
                 int min,
                 int hour,
@@ -505,7 +506,7 @@ public abstract class TimeNodes {
         }
 
         @TruffleBoundary
-        private RubyTime buildTime(DynamicObject timeClass, int sec, int min, int hour, int mday, int month,
+        private RubyTime buildTime(RubyClass timeClass, int sec, int min, int hour, int mday, int month,
                 int year, int nsec, int isdst, boolean isutc, Object utcoffset) {
             if (sec < 0 || sec > 60 || // MRI accepts sec=60, whether it is a leap second or not
                     min < 0 || min > 59 ||

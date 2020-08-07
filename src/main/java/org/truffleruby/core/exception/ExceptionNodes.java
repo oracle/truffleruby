@@ -15,6 +15,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -43,7 +44,7 @@ public abstract class ExceptionNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyException allocateException(DynamicObject rubyClass) {
+        protected RubyException allocateException(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyException instance = new RubyException(shape, nil, null, nil);
             allocateNode.trace(instance, this);

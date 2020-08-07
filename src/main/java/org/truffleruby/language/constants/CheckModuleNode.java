@@ -9,32 +9,31 @@
  */
 package org.truffleruby.language.constants;
 
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** An efficient way to check if the value is a module. Needed for A::B constant lookup to check that A is a module, see
  * {@link ReadConstantNode}. */
 public abstract class CheckModuleNode extends RubyContextNode {
 
-    public abstract DynamicObject executeCheckModule(Object module);
+    public abstract RubyModule executeCheckModule(Object module);
 
     @Specialization(guards = { "module == cachedModule", "isRubyModule(cachedModule)" }, limit = "getCacheLimit()")
-    protected DynamicObject checkModule(Object module,
+    protected RubyModule checkModule(Object module,
             @Cached("module") Object cachedModule) {
-        return (DynamicObject) cachedModule;
+        return (RubyModule) cachedModule;
     }
 
     @Specialization
-    protected DynamicObject checkModuleUncached(Object module,
+    protected RubyModule checkModuleUncached(Object module,
             @Cached BranchProfile notModuleProfile) {
-        if (RubyGuards.isRubyModule(module)) {
-            return (DynamicObject) module;
+        if (module instanceof RubyModule) {
+            return (RubyModule) module;
         } else {
             notModuleProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(module, this));

@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -32,7 +31,9 @@ import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.kernel.KernelNodes.ToSNode;
 import org.truffleruby.core.kernel.KernelNodesFactory;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -67,8 +68,8 @@ public abstract class TypeNodes {
         @Child private IsANode isANode = IsANode.create();
 
         @Specialization
-        protected boolean objectKindOf(Object object, DynamicObject rubyClass) {
-            return isANode.executeIsA(object, rubyClass);
+        protected boolean objectKindOf(Object object, RubyModule module) {
+            return isANode.executeIsA(object, module);
         }
 
     }
@@ -316,8 +317,8 @@ public abstract class TypeNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject moduleName(DynamicObject module) {
-            final String name = Layouts.MODULE.getFields(module).getName();
+        protected RubyString moduleName(RubyModule module) {
+            final String name = module.fields.getName();
             return makeStringNode.executeMake(name, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 

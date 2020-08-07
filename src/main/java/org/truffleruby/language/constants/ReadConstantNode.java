@@ -12,16 +12,16 @@ package org.truffleruby.language.constants;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Read a literal constant on a given module: MOD::CONST */
 public class ReadConstantNode extends RubyContextSourceNode {
@@ -41,12 +41,12 @@ public class ReadConstantNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object moduleObject = moduleNode.execute(frame);
-        final DynamicObject module = checkModuleNode.executeCheckModule(moduleObject);
+        final RubyModule module = checkModuleNode.executeCheckModule(moduleObject);
         return lookupAndGetConstant(module);
     }
 
 
-    private Object lookupAndGetConstant(DynamicObject module) {
+    private Object lookupAndGetConstant(RubyModule module) {
         if (getConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             getConstantNode = insert(GetConstantNode.create());
@@ -81,7 +81,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
             return nil;
         }
 
-        final DynamicObject module = checkModuleNode.executeCheckModule(moduleObject);
+        final RubyModule module = checkModuleNode.executeCheckModule(moduleObject);
         final RubyConstant constant;
         try {
             constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name);

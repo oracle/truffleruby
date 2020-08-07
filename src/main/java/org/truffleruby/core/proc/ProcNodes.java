@@ -22,6 +22,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.SymbolNodes;
@@ -55,7 +56,7 @@ public abstract class ProcNodes {
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected RubyProc allocate(DynamicObject rubyClass) {
+        protected RubyProc allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
     }
@@ -68,12 +69,12 @@ public abstract class ProcNodes {
 
         public abstract RubyProc executeProcNew(
                 VirtualFrame frame,
-                DynamicObject procClass,
+                RubyClass procClass,
                 Object[] args,
                 Object block);
 
         @Specialization
-        protected RubyProc proc(VirtualFrame frame, DynamicObject procClass, Object[] args, NotProvided block,
+        protected RubyProc proc(VirtualFrame frame, RubyClass procClass, Object[] args, NotProvided block,
                 @Cached("create(nil)") FindAndReadDeclarationVariableNode readNode,
                 @Cached ReadCallerFrameNode readCaller) {
             final MaterializedFrame parentFrame = readCaller.execute(frame);
@@ -102,17 +103,17 @@ public abstract class ProcNodes {
         }
 
         @Specialization(guards = { "procClass == getProcClass()", "block.getShape() == getProcShape()" })
-        protected RubyProc procNormalOptimized(DynamicObject procClass, Object[] args, RubyProc block) {
+        protected RubyProc procNormalOptimized(RubyClass procClass, Object[] args, RubyProc block) {
             return block;
         }
 
         @Specialization(guards = "procClass == metaClass(block)")
-        protected RubyProc procNormal(DynamicObject procClass, Object[] args, RubyProc block) {
+        protected RubyProc procNormal(RubyClass procClass, Object[] args, RubyProc block) {
             return block;
         }
 
         @Specialization(guards = "procClass != metaClass(block)")
-        protected RubyProc procSpecial(VirtualFrame frame, DynamicObject procClass, Object[] args, RubyProc block,
+        protected RubyProc procSpecial(RubyClass procClass, Object[] args, RubyProc block,
                 @Cached AllocateHelperNode allocateHelper,
                 @Cached CallDispatchHeadNode initialize) {
             // Instantiate a new instance of procClass as classes do not correspond
@@ -134,7 +135,7 @@ public abstract class ProcNodes {
             return proc;
         }
 
-        protected DynamicObject getProcClass() {
+        protected RubyClass getProcClass() {
             return coreLibrary().procClass;
         }
 
@@ -142,7 +143,7 @@ public abstract class ProcNodes {
             return coreLibrary().procShape;
         }
 
-        protected DynamicObject metaClass(DynamicObject object) {
+        protected RubyClass metaClass(DynamicObject object) {
             return Layouts.BASIC_OBJECT.getMetaClass(object);
         }
     }

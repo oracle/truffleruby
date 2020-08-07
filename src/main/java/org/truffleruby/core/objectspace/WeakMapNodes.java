@@ -19,6 +19,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.WeakValueCache;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
@@ -39,7 +40,7 @@ public abstract class WeakMapNodes {
         @Child private AllocateHelperNode allocate = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(RubyClass rubyClass) {
             final Shape shape = allocate.getCachedShape(rubyClass);
             final RubyWeakMap weakMap = new RubyWeakMap(shape, new WeakMapStorage());
             allocate.trace(weakMap, this);

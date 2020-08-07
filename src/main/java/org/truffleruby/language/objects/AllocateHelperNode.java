@@ -9,9 +9,9 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -24,7 +24,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @ReportPolymorphism
@@ -35,11 +34,11 @@ public abstract class AllocateHelperNode extends RubyBaseNode {
         return AllocateHelperNodeGen.create();
     }
 
-    public Shape getCachedShape(DynamicObject classToAllocate) {
+    public Shape getCachedShape(RubyClass classToAllocate) {
         return execute(classToAllocate);
     }
 
-    protected abstract Shape execute(DynamicObject classToAllocate);
+    protected abstract Shape execute(RubyClass classToAllocate);
 
     // Convenience method when the context is guaranteed PE constant
     public void trace(RubyDynamicObject instance, RubyNode.WithContext contextNode) {
@@ -55,32 +54,32 @@ public abstract class AllocateHelperNode extends RubyBaseNode {
     @Specialization(
             guards = { "cachedClassToAllocate == classToAllocate", "!cachedIsSingleton" },
             limit = "getCacheLimit()")
-    protected Shape getShapeCached(DynamicObject classToAllocate,
-            @Cached("classToAllocate") DynamicObject cachedClassToAllocate,
+    protected Shape getShapeCached(RubyClass classToAllocate,
+            @Cached("classToAllocate") RubyClass cachedClassToAllocate,
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
             @Cached("getInstanceShape(classToAllocate)") Shape cachedShape) {
         return cachedShape;
     }
 
     @Specialization(guards = "!isSingleton(classToAllocate)", replaces = "getShapeCached")
-    protected Shape getShapeUncached(DynamicObject classToAllocate) {
+    protected Shape getShapeUncached(RubyClass classToAllocate) {
         return getInstanceShape(classToAllocate);
     }
 
     @Specialization(guards = "isSingleton(classToAllocate)")
-    protected Shape allocateSingleton(DynamicObject classToAllocate,
+    protected Shape allocateSingleton(RubyClass classToAllocate,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
                 context,
                 context.getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
     }
 
-    protected Shape getInstanceShape(DynamicObject classToAllocate) {
-        return Layouts.CLASS.getInstanceFactory(classToAllocate).getShape();
+    protected Shape getInstanceShape(RubyClass classToAllocate) {
+        return classToAllocate.instanceFactory.getShape();
     }
 
-    protected static boolean isSingleton(DynamicObject classToAllocate) {
-        return Layouts.CLASS.getIsSingleton(classToAllocate);
+    protected static boolean isSingleton(RubyClass classToAllocate) {
+        return classToAllocate.isSingleton;
     }
 
     protected int getCacheLimit() {

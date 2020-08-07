@@ -11,9 +11,8 @@ package org.truffleruby.core.module;
 
 import java.util.Iterator;
 
-import com.oracle.truffle.api.object.DynamicObject;
 
-public class AncestorIterator implements Iterator<DynamicObject> {
+public class AncestorIterator implements Iterator<RubyModule> {
 
     ModuleChain module;
 
@@ -27,7 +26,7 @@ public class AncestorIterator implements Iterator<DynamicObject> {
     }
 
     @Override
-    public DynamicObject next() {
+    public RubyModule next() {
         assert hasNext();
 
         ModuleChain mod = module;

@@ -15,6 +15,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
@@ -189,7 +190,7 @@ public abstract class SymbolNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

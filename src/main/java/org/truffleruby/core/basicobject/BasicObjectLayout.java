@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.basicobject;
 
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.interop.RubyObjectType;
 import org.truffleruby.interop.messages.RubyObjectMessages;
 
@@ -21,8 +22,8 @@ import com.oracle.truffle.api.object.dsl.Nullable;
 @Layout(objectTypeSuperclass = RubyObjectType.class, implicitCastIntToLong = true, dispatch = RubyObjectMessages.class)
 public interface BasicObjectLayout {
 
-    DynamicObjectFactory createBasicObjectShape(@Nullable DynamicObject logicalClass,
-            @Nullable DynamicObject metaClass);
+    DynamicObjectFactory createBasicObjectShape(@Nullable RubyClass logicalClass,
+            @Nullable RubyClass metaClass);
 
     DynamicObject createBasicObject(DynamicObjectFactory factory);
 
@@ -30,12 +31,12 @@ public interface BasicObjectLayout {
 
     boolean isBasicObject(Object object);
 
-    DynamicObject getLogicalClass(ObjectType objectType);
+    RubyClass getLogicalClass(ObjectType objectType);
 
-    DynamicObject getLogicalClass(DynamicObject object);
+    RubyClass getLogicalClass(DynamicObject object);
 
-    DynamicObject getMetaClass(ObjectType objectType);
+    RubyClass getMetaClass(ObjectType objectType);
 
-    DynamicObject getMetaClass(DynamicObject object);
+    RubyClass getMetaClass(DynamicObject object);
 
 }

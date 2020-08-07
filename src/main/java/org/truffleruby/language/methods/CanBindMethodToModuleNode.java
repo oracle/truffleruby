@@ -10,11 +10,11 @@
 package org.truffleruby.language.methods;
 
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Caches {@link ModuleOperations#canBindMethodTo} for a method. */
 public abstract class CanBindMethodToModuleNode extends RubyContextNode {
@@ -23,27 +23,26 @@ public abstract class CanBindMethodToModuleNode extends RubyContextNode {
         return CanBindMethodToModuleNodeGen.create();
     }
 
-    public abstract boolean executeCanBindMethodToModule(InternalMethod method, DynamicObject module);
+    public abstract boolean executeCanBindMethodToModule(InternalMethod method, RubyModule module);
 
     @Specialization(
             guards = {
-                    "isRubyModule(module)",
                     "method.getDeclaringModule() == declaringModule",
                     "module == cachedModule" },
             limit = "getCacheLimit()")
-    protected boolean canBindMethodToCached(InternalMethod method, DynamicObject module,
-            @Cached("method.getDeclaringModule()") DynamicObject declaringModule,
-            @Cached("module") DynamicObject cachedModule,
+    protected boolean canBindMethodToCached(InternalMethod method, RubyModule module,
+            @Cached("method.getDeclaringModule()") RubyModule declaringModule,
+            @Cached("module") RubyModule cachedModule,
             @Cached("canBindMethodTo(method, cachedModule)") boolean canBindMethodTo) {
         return canBindMethodTo;
     }
 
-    @Specialization(guards = "isRubyModule(module)")
-    protected boolean canBindMethodToUncached(InternalMethod method, DynamicObject module) {
+    @Specialization
+    protected boolean canBindMethodToUncached(InternalMethod method, RubyModule module) {
         return canBindMethodTo(method, module);
     }
 
-    protected boolean canBindMethodTo(InternalMethod method, DynamicObject module) {
+    protected boolean canBindMethodTo(InternalMethod method, RubyModule module) {
         return ModuleOperations.canBindMethodTo(method, module);
     }
 

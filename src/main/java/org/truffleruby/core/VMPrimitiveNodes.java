@@ -48,7 +48,6 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.builtins.CoreModule;
@@ -60,7 +59,9 @@ import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
@@ -131,10 +132,10 @@ public abstract class VMPrimitiveNodes {
                 @Cached MetaClassNode metaClassNode,
                 @Cached YieldNode yieldNode,
                 @Cached ConditionProfile isSingletonProfile) {
-            final DynamicObject metaClass = metaClassNode.executeMetaClass(object);
+            final RubyClass metaClass = metaClassNode.executeMetaClass(object);
 
-            if (isSingletonProfile.profile(Layouts.CLASS.getIsSingleton(metaClass))) {
-                for (DynamicObject included : Layouts.MODULE.getFields(metaClass).prependedAndIncludedModules()) {
+            if (isSingletonProfile.profile(metaClass.isSingleton)) {
+                for (RubyModule included : metaClass.fields.prependedAndIncludedModules()) {
                     yieldNode.executeDispatch(block, included);
                 }
             }
@@ -180,7 +181,7 @@ public abstract class VMPrimitiveNodes {
     public static abstract class VMRaiseExceptionNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject vmRaiseException(RubyException exception,
+        protected Object vmRaiseException(RubyException exception,
                 @Cached ConditionProfile reRaiseProfile) {
             final Backtrace backtrace = exception.backtrace;
             if (reRaiseProfile.profile(backtrace != null && backtrace.getRaiseException() != null)) {
@@ -392,7 +393,7 @@ public abstract class VMPrimitiveNodes {
             for (Entry<String, Object> entry : getContext()
                     .getNativeConfiguration()
                     .getSection(StringOperations.getString(section))) {
-                final DynamicObject key = makeStringNode
+                final RubyString key = makeStringNode
                         .executeMake(entry.getKey(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
                 yieldNode.executeDispatch(block, key, entry.getValue());
             }
@@ -406,8 +407,8 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMSetClassNode extends PrimitiveArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyClass(newClass)")
-        protected DynamicObject setClass(DynamicObject object, DynamicObject newClass) {
+        @Specialization
+        protected DynamicObject setClass(DynamicObject object, RubyClass newClass) {
             SharedObjects.propagate(getContext(), object, newClass);
             synchronized (object) {
                 ClassNodes.setLogicalAndMetaClass(object, newClass);

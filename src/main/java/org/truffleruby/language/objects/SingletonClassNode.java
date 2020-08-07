@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -36,63 +37,62 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
         return SingletonClassNodeGen.create(null);
     }
 
-    public abstract DynamicObject executeSingletonClass(Object value);
+    public abstract RubyClass executeSingletonClass(Object value);
 
     @Specialization(guards = "value")
-    protected DynamicObject singletonClassTrue(boolean value) {
+    protected RubyClass singletonClassTrue(boolean value) {
         return coreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected DynamicObject singletonClassFalse(boolean value) {
+    protected RubyClass singletonClassFalse(boolean value) {
         return coreLibrary().falseClass;
     }
 
     @Specialization
-    protected DynamicObject singletonClassNil(Nil value) {
+    protected RubyClass singletonClassNil(Nil value) {
         return coreLibrary().nilClass;
     }
 
     @Specialization
-    protected DynamicObject singletonClass(int value) {
+    protected RubyClass singletonClass(int value) {
         return noSingletonClass();
     }
 
     @Specialization
-    protected DynamicObject singletonClass(long value) {
+    protected RubyClass singletonClass(long value) {
         return noSingletonClass();
     }
 
     @Specialization
-    protected DynamicObject singletonClass(double value) {
+    protected RubyClass singletonClass(double value) {
         return noSingletonClass();
     }
 
     @Specialization
-    protected DynamicObject singletonClassBignum(RubyBignum value) {
+    protected RubyClass singletonClassBignum(RubyBignum value) {
         return noSingletonClass();
     }
 
     @Specialization
-    protected DynamicObject singletonClassSymbol(RubySymbol value) {
+    protected RubyClass singletonClassSymbol(RubySymbol value) {
         return noSingletonClass();
     }
 
     @Specialization(
             guards = {
-                    "isRubyClass(rubyClass)",
                     "rubyClass.getShape() == cachedShape",
                     "cachedSingletonClass != null" },
             limit = "getCacheLimit()")
-    protected DynamicObject singletonClassClassCached(DynamicObject rubyClass,
+    protected RubyClass singletonClassClassCached(RubyClass rubyClass,
             @Cached("rubyClass.getShape()") Shape cachedShape,
-            @Cached("getSingletonClassOrNull(rubyClass)") DynamicObject cachedSingletonClass) {
+            @Cached("getSingletonClassOrNull(rubyClass)") RubyClass cachedSingletonClass) {
 
         return cachedSingletonClass;
     }
 
-    @Specialization(guards = "isRubyClass(rubyClass)", replaces = "singletonClassClassCached")
-    protected DynamicObject singletonClassClassUncached(DynamicObject rubyClass) {
+    @Specialization(replaces = "singletonClassClassCached")
+    protected RubyClass singletonClassClassUncached(RubyClass rubyClass) {
         return ClassNodes.getSingletonClass(getContext(), rubyClass);
     }
 
@@ -102,43 +102,43 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
                     "!isRubyBignum(cachedObject)",
                     "!isRubyClass(cachedObject)" },
             limit = "getIdentityCacheLimit()")
-    protected DynamicObject singletonClassInstanceCached(DynamicObject object,
+    protected RubyClass singletonClassInstanceCached(DynamicObject object,
             @Cached("object") DynamicObject cachedObject,
-            @Cached("getSingletonClassForInstance(object)") DynamicObject cachedSingletonClass) {
+            @Cached("getSingletonClassForInstance(object)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
 
     @Specialization(
             guards = { "!isRubyBignum(object)", "!isRubyClass(object)" },
             replaces = "singletonClassInstanceCached")
-    protected DynamicObject singletonClassInstanceUncached(DynamicObject object) {
+    protected RubyClass singletonClassInstanceUncached(DynamicObject object) {
         return getSingletonClassForInstance(object);
     }
 
-    private DynamicObject noSingletonClass() {
+    private RubyClass noSingletonClass() {
         throw new RaiseException(getContext(), coreExceptions().typeErrorCantDefineSingleton(this));
     }
 
-    protected DynamicObject getSingletonClassOrNull(DynamicObject object) {
-        return ClassNodes.getSingletonClassOrNull(getContext(), object);
+    protected RubyClass getSingletonClassOrNull(RubyClass rubyClass) {
+        return ClassNodes.getSingletonClassOrNull(getContext(), rubyClass);
     }
 
     @TruffleBoundary
-    protected DynamicObject getSingletonClassForInstance(DynamicObject object) {
+    protected RubyClass getSingletonClassForInstance(DynamicObject object) {
         synchronized (object) {
-            DynamicObject metaClass = Layouts.BASIC_OBJECT.getMetaClass(object);
-            if (Layouts.CLASS.getIsSingleton(metaClass)) {
+            RubyClass metaClass = Layouts.BASIC_OBJECT.getMetaClass(object);
+            if (metaClass.isSingleton) {
                 return metaClass;
             }
 
-            final DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(object);
+            final RubyClass logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(object);
 
             final String name = StringUtils.format(
                     "#<Class:#<%s:0x%x>>",
-                    Layouts.MODULE.getFields(logicalClass).getName(),
+                    logicalClass.fields.getName(),
                     ObjectIDNode.getUncached().execute(object));
 
-            final DynamicObject singletonClass = ClassNodes.createSingletonClassOfObject(
+            final RubyClass singletonClass = ClassNodes.createSingletonClassOfObject(
                     getContext(),
                     getEncapsulatingSourceSection(),
                     logicalClass,

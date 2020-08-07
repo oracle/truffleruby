@@ -24,8 +24,8 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.util.CaseInsensitiveBytesHash;
 import org.jcodings.util.CaseInsensitiveBytesHash.CaseInsensitiveBytesHashEntry;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
@@ -65,12 +65,12 @@ public class EncodingManager {
     }
 
     public void defineEncodings() {
-        final DynamicObject encodingClass = context.getCoreLibrary().encodingClass;
+        final RubyClass encodingClass = context.getCoreLibrary().encodingClass;
         initializeEncodings(encodingClass);
         initializeEncodingAliases(encodingClass);
     }
 
-    private void initializeEncodings(DynamicObject encodingClass) {
+    private void initializeEncodings(RubyClass encodingClass) {
         final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB
                 .getEncodings()
                 .entryIterator();
@@ -81,12 +81,12 @@ public class EncodingManager {
             final DynamicObject rubyEncoding = defineEncoding(encodingEntry, e.bytes, e.p, e.end);
 
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
-                Layouts.MODULE.getFields(encodingClass).setConstant(context, null, constName, rubyEncoding);
+                encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
         }
     }
 
-    private void initializeEncodingAliases(DynamicObject encodingClass) {
+    private void initializeEncodingAliases(RubyClass encodingClass) {
         final CaseInsensitiveBytesHash<EncodingDB.Entry>.CaseInsensitiveBytesHashEntryIterator hei = EncodingDB
                 .getAliases()
                 .entryIterator();
@@ -101,7 +101,7 @@ public class EncodingManager {
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
-                Layouts.MODULE.getFields(encodingClass).setConstant(context, null, constName, rubyEncoding);
+                encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
             }
         }
     }

@@ -19,6 +19,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringOperations;
@@ -85,7 +86,7 @@ public abstract class TruffleKernelNodes {
                 throw new RaiseException(getContext(), coreExceptions().loadErrorCannotLoad(feature, this));
             }
 
-            final DynamicObject wrapModule;
+            final RubyModule wrapModule;
             if (wrap) {
                 wrapModule = ModuleNodes
                         .createModule(getContext(), null, coreLibrary().moduleClass, null, null, this);

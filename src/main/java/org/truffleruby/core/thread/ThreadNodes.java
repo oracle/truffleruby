@@ -62,6 +62,7 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.RubyFiber;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
@@ -103,7 +104,7 @@ public abstract class ThreadNodes {
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
@@ -246,10 +247,10 @@ public abstract class ThreadNodes {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
-        @Specialization(guards = "isRubyClass(exceptionClass)")
+        @Specialization
         protected Object handle_interrupt(
                 RubyThread self,
-                DynamicObject exceptionClass,
+                RubyClass exceptionClass,
                 RubySymbol timing,
                 RubyProc block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
@@ -283,7 +284,7 @@ public abstract class ThreadNodes {
     public abstract static class ThreadAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass,
+        protected DynamicObject allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode allocateNode) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyThread instance = getContext().getThreadManager().createThread(shape);

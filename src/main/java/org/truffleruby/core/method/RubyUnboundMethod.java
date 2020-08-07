@@ -9,20 +9,20 @@
  */
 package org.truffleruby.core.method;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.interop.messages.RubyUnboundMethodMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.methods.InternalMethod;
 
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.Shape;
+
 public class RubyUnboundMethod extends RubyDynamicObject {
 
-
-    final DynamicObject origin;
+    final RubyModule origin;
     public final InternalMethod method;
 
-    public RubyUnboundMethod(Shape shape, DynamicObject origin, InternalMethod method) {
+    public RubyUnboundMethod(Shape shape, RubyModule origin, InternalMethod method) {
         super(shape);
         this.origin = origin;
         this.method = method;

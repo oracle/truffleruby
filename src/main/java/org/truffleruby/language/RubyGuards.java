@@ -14,9 +14,11 @@ import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
@@ -130,11 +132,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyClass(Object value) {
-        return Layouts.CLASS.isClass(value);
-    }
-
-    public static boolean isRubyClass(DynamicObject value) {
-        return Layouts.CLASS.isClass(value);
+        return value instanceof RubyClass;
     }
 
     public static boolean isRubyHash(Object value) {
@@ -146,11 +144,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyModule(Object value) {
-        return Layouts.MODULE.isModule(value);
-    }
-
-    public static boolean isRubyModule(DynamicObject value) {
-        return Layouts.MODULE.isModule(value);
+        return value instanceof RubyModule;
     }
 
     public static boolean isRubyRegexp(Object value) {
@@ -272,11 +266,11 @@ public abstract class RubyGuards {
     // Composite
 
     public static boolean isSingletonClass(DynamicObject value) {
-        return isRubyClass(value) && Layouts.CLASS.getIsSingleton(value);
+        return value instanceof RubyClass && ((RubyClass) value).isSingleton;
     }
 
     public static boolean isMetaClass(DynamicObject value) {
-        return isSingletonClass(value) && RubyGuards.isRubyModule(Layouts.CLASS.getAttached(value));
+        return isSingletonClass(value) && ((RubyClass) value).attached instanceof RubyModule;
     }
 
     // Arguments

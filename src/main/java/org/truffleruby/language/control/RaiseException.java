@@ -65,7 +65,7 @@ public class RaiseException extends RuntimeException implements TruffleException
     @Override
     @TruffleBoundary
     public String getMessage() {
-        final ModuleFields exceptionClass = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
+        final ModuleFields exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception).fields;
         final String message = ExceptionOperations.messageToString(exceptionClass.getContext(), exception);
         return String.format("%s (%s)", message, exceptionClass.getName());
     }

@@ -13,16 +13,15 @@ import java.util.ArrayList;
 
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.parser.Identifiers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /** Caches {@link ModuleOperations#lookupConstant} and checks visibility. */
@@ -45,7 +44,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     public abstract RubyConstant executeLookupConstant(Object module, String name);
 
     @Override
-    public RubyConstant lookupConstant(LexicalScope lexicalScope, DynamicObject module, String name) {
+    public RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name) {
         return executeLookupConstant(module, name);
     }
 
@@ -53,8 +52,8 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
             guards = { "module == cachedModule", "guardName(name, cachedName, sameNameProfile)" },
             assumptions = "constant.getAssumptions()",
             limit = "getCacheLimit()")
-    protected RubyConstant lookupConstant(DynamicObject module, String name,
-            @Cached("module") DynamicObject cachedModule,
+    protected RubyConstant lookupConstant(RubyModule module, String name,
+            @Cached("module") RubyModule cachedModule,
             @Cached("name") String cachedName,
             @Cached("isValidConstantName(cachedName)") boolean isValidConstantName,
             @Cached("doLookup(cachedModule, cachedName)") ConstantLookupResult constant,
@@ -72,7 +71,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     }
 
     @Specialization
-    protected RubyConstant lookupConstantUncached(DynamicObject module, String name,
+    protected RubyConstant lookupConstantUncached(RubyModule module, String name,
             @Cached ConditionProfile isValidConstantNameProfile,
             @Cached ConditionProfile isVisibleProfile,
             @Cached ConditionProfile isDeprecatedProfile) {
@@ -101,9 +100,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
     }
 
     @TruffleBoundary
-    protected ConstantLookupResult doLookup(DynamicObject module, String name) {
-        assert RubyGuards.isRubyModule(module);
-
+    protected ConstantLookupResult doLookup(RubyModule module, String name) {
         if (lookInObject) {
             return ModuleOperations.lookupConstantAndObject(getContext(), module, name, new ArrayList<>());
         } else {
@@ -111,7 +108,7 @@ public abstract class LookupConstantNode extends LookupConstantBaseNode implemen
         }
     }
 
-    protected boolean isVisible(DynamicObject module, ConstantLookupResult constant) {
+    protected boolean isVisible(RubyModule module, ConstantLookupResult constant) {
         return ignoreVisibility || constant.isVisibleTo(getContext(), LexicalScope.NONE, module);
     }
 

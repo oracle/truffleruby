@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -32,46 +33,46 @@ public abstract class LogicalClassNode extends RubyBaseNode {
         return LogicalClassNodeGen.create();
     }
 
-    public abstract DynamicObject executeLogicalClass(Object value);
+    public abstract RubyClass executeLogicalClass(Object value);
 
     @Specialization(guards = "value")
-    protected DynamicObject logicalClassTrue(boolean value,
+    protected RubyClass logicalClassTrue(boolean value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().trueClass;
     }
 
     @Specialization(guards = "!value")
-    protected DynamicObject logicalClassFalse(boolean value,
+    protected RubyClass logicalClassFalse(boolean value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().falseClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassInt(int value,
+    protected RubyClass logicalClassInt(int value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().integerClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassLong(long value,
+    protected RubyClass logicalClassLong(long value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().integerClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassDouble(double value,
+    protected RubyClass logicalClassDouble(double value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().floatClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassNil(Nil value,
+    protected RubyClass logicalClassNil(Nil value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().nilClass;
     }
 
     @Specialization
-    protected DynamicObject logicalClassSymbol(RubySymbol value,
+    protected RubyClass logicalClassSymbol(RubySymbol value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().symbolClass;
     }
@@ -80,29 +81,29 @@ public abstract class LogicalClassNode extends RubyBaseNode {
             guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",
             limit = "getCacheLimit()")
-    protected DynamicObject logicalClassCached(DynamicObject object,
+    protected RubyClass logicalClassCached(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
-            @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass) {
+            @Cached("getLogicalClass(cachedShape)") RubyClass logicalClass) {
         return logicalClass;
     }
 
     @Specialization(guards = "updateShape(object)")
-    protected DynamicObject updateShapeAndLogicalClass(DynamicObject object) {
+    protected RubyClass updateShapeAndLogicalClass(DynamicObject object) {
         return executeLogicalClass(object);
     }
 
     @Specialization(replaces = { "logicalClassCached", "updateShapeAndLogicalClass" })
-    protected DynamicObject logicalClassUncached(DynamicObject object) {
+    protected RubyClass logicalClassUncached(DynamicObject object) {
         return Layouts.BASIC_OBJECT.getLogicalClass(object);
     }
 
     @Specialization(guards = "isForeignObject(object)")
-    protected DynamicObject logicalClassForeign(Object object,
+    protected RubyClass logicalClassForeign(Object object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().truffleInteropForeignClass;
     }
 
-    protected static DynamicObject getLogicalClass(Shape shape) {
+    protected static RubyClass getLogicalClass(Shape shape) {
         return Layouts.BASIC_OBJECT.getLogicalClass(shape.getObjectType());
     }
 

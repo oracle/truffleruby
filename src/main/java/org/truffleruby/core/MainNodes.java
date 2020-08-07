@@ -14,6 +14,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -39,8 +40,7 @@ public abstract class MainNodes {
 
         @Specialization
         protected DynamicObject doPublic(VirtualFrame frame, Object[] args) {
-            final DynamicObject object = coreLibrary().objectClass;
-            return publicNode.executePublic(frame, object, args);
+            return publicNode.executePublic(frame, coreLibrary().objectClass, args);
         }
     }
 
@@ -51,8 +51,7 @@ public abstract class MainNodes {
 
         @Specialization
         protected DynamicObject doPrivate(VirtualFrame frame, Object[] args) {
-            final DynamicObject object = coreLibrary().objectClass;
-            return privateNode.executePrivate(frame, object, args);
+            return privateNode.executePrivate(frame, coreLibrary().objectClass, args);
         }
     }
 
@@ -61,8 +60,8 @@ public abstract class MainNodes {
 
         @Child private UsingNode usingNode = UsingNodeGen.create();
 
-        @Specialization(guards = "isRubyModule(refinementModule)")
-        protected Object mainUsing(DynamicObject refinementModule,
+        @Specialization
+        protected Object mainUsing(RubyModule refinementModule,
                 @Cached BranchProfile errorProfile) {
             if (!isCalledFromTopLevel()) {
                 errorProfile.enter();

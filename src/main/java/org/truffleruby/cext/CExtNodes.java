@@ -37,11 +37,13 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
 import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.hash.HashNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleNodes.ConstSetNode;
 import org.truffleruby.core.module.ModuleNodes.SetVisibilityNode;
 import org.truffleruby.core.module.ModuleNodesFactory.SetVisibilityNodeGen;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.mutex.MutexOperations;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.BignumOperations;
@@ -707,7 +709,7 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstGet(DynamicObject module, String name) {
+        protected Object rbConstGet(RubyModule module, String name) {
             return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
@@ -727,7 +729,7 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstGetFrom(DynamicObject module, String name) {
+        protected Object rbConstGetFrom(RubyModule module, String name) {
             return getConstantNode.lookupAndResolveConstant(LexicalScope.IGNORE, module, name, lookupConstantNode);
         }
 
@@ -745,7 +747,7 @@ public class CExtNodes {
         }
 
         @Specialization
-        protected Object rbConstSet(DynamicObject module, String name, Object value,
+        protected Object rbConstSet(RubyModule module, String name, Object value,
                 @Cached ConstSetNode constSetNode) {
             return constSetNode.setConstantNoCheckName(module, name, value);
         }
@@ -757,8 +759,8 @@ public class CExtNodes {
 
         @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
-        @Specialization(guards = "isRubyModule(module)")
-        protected DynamicObject cextModuleFunction(VirtualFrame frame, DynamicObject module, RubySymbol name) {
+        @Specialization
+        protected DynamicObject cextModuleFunction(VirtualFrame frame, RubyModule module, RubySymbol name) {
             return setVisibilityNode.executeSetVisibility(frame, module, new Object[]{ name });
         }
 
@@ -890,7 +892,7 @@ public class CExtNodes {
             final Frame callingMethodFrame = findCallingMethodFrame();
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
             final Object callingSelf = RubyArguments.getSelf(callingMethodFrame);
-            final DynamicObject callingMetaclass = metaClassNode.executeMetaClass(callingSelf);
+            final RubyClass callingMetaclass = metaClassNode.executeMetaClass(callingSelf);
             final MethodLookupResult superMethodLookup = ModuleOperations
                     .lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();
@@ -1138,7 +1140,7 @@ public class CExtNodes {
                 initializeClassNode = insert(InitializeClassNodeGen.create(false));
             }
 
-            DynamicObject klass = (DynamicObject) allocateNode
+            RubyClass klass = (RubyClass) allocateNode
                     .call(getContext().getCoreLibrary().classClass, "__allocate__");
             return initializeClassNode.executeInitialize(klass, superclass, NotProvided.INSTANCE);
         }

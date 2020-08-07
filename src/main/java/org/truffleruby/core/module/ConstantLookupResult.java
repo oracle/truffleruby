@@ -15,7 +15,6 @@ import org.truffleruby.language.RubyConstant;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class ConstantLookupResult {
 
@@ -40,7 +39,7 @@ public class ConstantLookupResult {
         return constant != null && constant.isAutoload();
     }
 
-    public boolean isVisibleTo(RubyContext context, LexicalScope lexicalScope, DynamicObject module) {
+    public boolean isVisibleTo(RubyContext context, LexicalScope lexicalScope, RubyModule module) {
         return constant == null || constant.isVisibleTo(context, lexicalScope, module);
     }
 

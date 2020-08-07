@@ -9,9 +9,9 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.control.RaiseException;
 
@@ -33,21 +33,17 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
         return AllocateObjectNodeGen.create();
     }
 
-    public DynamicObject allocate(DynamicObject classToAllocate, Object... values) {
+    public DynamicObject allocate(RubyClass classToAllocate, Object... values) {
         return executeAllocate(classToAllocate, values);
     }
 
-    public DynamicObject allocateArray(DynamicObject classToAllocate, Object store, int size) {
-        return allocate(classToAllocate, store, size);
-    }
-
-    protected abstract DynamicObject executeAllocate(DynamicObject classToAllocate, Object[] values);
+    protected abstract DynamicObject executeAllocate(RubyClass classToAllocate, Object[] values);
 
     @Specialization(
             guards = { "cachedClassToAllocate == classToAllocate", "!cachedIsSingleton" },
             limit = "getCacheLimit()")
-    protected DynamicObject allocateCached(DynamicObject classToAllocate, Object[] values,
-            @Cached("classToAllocate") DynamicObject cachedClassToAllocate,
+    protected DynamicObject allocateCached(RubyClass classToAllocate, Object[] values,
+            @Cached("classToAllocate") RubyClass cachedClassToAllocate,
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
             @Cached("getInstanceFactory(classToAllocate)") DynamicObjectFactory factory,
             @CachedLanguage RubyLanguage language,
@@ -60,7 +56,7 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
     // because the factory is not constant
     @TruffleBoundary
     @Specialization(guards = { "!isSingleton(classToAllocate)" }, replaces = "allocateCached")
-    protected DynamicObject allocateUncached(DynamicObject classToAllocate, Object[] values,
+    protected DynamicObject allocateUncached(RubyClass classToAllocate, Object[] values,
             @CachedLanguage RubyLanguage language,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         final DynamicObject instance = getInstanceFactory(classToAllocate).newInstance(values);
@@ -69,7 +65,7 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "isSingleton(classToAllocate)")
-    protected DynamicObject allocateSingleton(DynamicObject classToAllocate, Object[] values,
+    protected DynamicObject allocateSingleton(RubyClass classToAllocate, Object[] values,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         throw new RaiseException(
                 context,
@@ -80,12 +76,12 @@ public abstract class AllocateObjectNode extends RubyBaseNode {
         AllocationTracing.trace(language, context, instance, this);
     }
 
-    protected DynamicObjectFactory getInstanceFactory(DynamicObject classToAllocate) {
-        return Layouts.CLASS.getInstanceFactory(classToAllocate);
+    protected DynamicObjectFactory getInstanceFactory(RubyClass classToAllocate) {
+        return classToAllocate.instanceFactory;
     }
 
-    protected static boolean isSingleton(DynamicObject classToAllocate) {
-        return Layouts.CLASS.getIsSingleton(classToAllocate);
+    protected static boolean isSingleton(RubyClass classToAllocate) {
+        return classToAllocate.isSingleton;
     }
 
     protected int getCacheLimit() {

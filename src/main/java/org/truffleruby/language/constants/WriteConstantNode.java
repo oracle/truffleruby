@@ -9,17 +9,15 @@
  */
 package org.truffleruby.language.constants;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.constant.WarnAlreadyInitializedNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -44,20 +42,19 @@ public class WriteConstantNode extends RubyContextSourceNode {
         final Object value = valueNode.execute(frame);
         final Object moduleObject = moduleNode.execute(frame);
 
-        if (!moduleProfile.profile(RubyGuards.isRubyModule(moduleObject))) {
+        if (!moduleProfile.profile(moduleObject instanceof RubyModule)) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(moduleObject, this));
         }
 
-        final RubyConstant previous = Layouts.MODULE
-                .getFields((DynamicObject) moduleObject)
+        final RubyConstant previous = ((RubyModule) moduleObject).fields
                 .setConstant(getContext(), this, name, value);
         if (previous != null && previous.hasValue()) {
-            warnAlreadyInitializedConstant((DynamicObject) moduleObject, name, previous.getSourceSection());
+            warnAlreadyInitializedConstant((RubyModule) moduleObject, name, previous.getSourceSection());
         }
         return value;
     }
 
-    private void warnAlreadyInitializedConstant(DynamicObject module, String name, SourceSection prevSourceSection) {
+    private void warnAlreadyInitializedConstant(RubyModule module, String name, SourceSection prevSourceSection) {
         if (warnAlreadyInitializedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnAlreadyInitializedNode = insert(new WarnAlreadyInitializedNode());

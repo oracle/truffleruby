@@ -25,6 +25,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -457,7 +458,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = "rubyClass == getRangeClass()")
-        protected RubyIntRange intRange(DynamicObject rubyClass, int begin, int end, boolean excludeEnd) {
+        protected RubyIntRange intRange(RubyClass rubyClass, int begin, int end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final RubyIntRange range = new RubyIntRange(coreLibrary().intRangeShape, excludeEnd, begin, end);
             allocateHelper.trace(range, this);
@@ -465,7 +466,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "fitsInInteger(begin)", "fitsInInteger(end)" })
-        protected RubyIntRange longFittingIntRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
+        protected RubyIntRange longFittingIntRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final Shape shape = coreLibrary().intRangeShape;
             final RubyIntRange range = new RubyIntRange(shape, excludeEnd, (int) begin, (int) end);
@@ -474,7 +475,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "rubyClass == getRangeClass()", "!fitsInInteger(begin) || !fitsInInteger(end)" })
-        protected RubyLongRange longRange(DynamicObject rubyClass, long begin, long end, boolean excludeEnd) {
+        protected RubyLongRange longRange(RubyClass rubyClass, long begin, long end, boolean excludeEnd) {
             // Not a Range subclass, we can use the shape directly.
             final RubyLongRange range = new RubyLongRange(coreLibrary().longRangeShape, excludeEnd, begin, end);
             allocateHelper.trace(range, this);
@@ -482,12 +483,7 @@ public abstract class RangeNodes {
         }
 
         @Specialization(guards = { "rubyClass != getRangeClass() || (!isIntOrLong(begin) || !isIntOrLong(end))" })
-        protected RubyObjectRange objectRange(
-                VirtualFrame frame,
-                DynamicObject rubyClass,
-                Object begin,
-                Object end,
-                boolean excludeEnd,
+        protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
                 @Cached("createPrivate()") CallDispatchHeadNode compare) {
 
             if (compare.call(begin, "<=>", end) == nil && end != nil) {
@@ -500,7 +496,7 @@ public abstract class RangeNodes {
             return range;
         }
 
-        protected DynamicObject getRangeClass() {
+        protected RubyClass getRangeClass() {
             return coreLibrary().rangeClass;
         }
     }
@@ -511,7 +507,7 @@ public abstract class RangeNodes {
         @Child private AllocateHelperNode allocateHelper = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyObjectRange allocate(DynamicObject rubyClass) {
+        protected RubyObjectRange allocate(RubyClass rubyClass) {
             final RubyObjectRange range = new RubyObjectRange(coreLibrary().objectRangeShape, false, nil, nil);
             allocateHelper.trace(range, this);
             return range;

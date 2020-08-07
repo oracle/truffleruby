@@ -10,7 +10,6 @@
 package org.truffleruby.language.objects;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
@@ -65,8 +64,7 @@ public abstract class AllocationTracing {
 
         final Object allocatingSelf = RubyArguments.getSelf(allocatingFrame);
         final String allocatingMethod = RubyArguments.getMethod(allocatingFrame).getName();
-        final String className = Layouts.CLASS
-                .getFields(context.getCoreLibrary().getLogicalClass(allocatingSelf))
+        final String className = context.getCoreLibrary().getLogicalClass(allocatingSelf).fields
                 .getName();
 
         context.send(

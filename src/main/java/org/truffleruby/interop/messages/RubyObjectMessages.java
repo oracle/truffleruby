@@ -18,8 +18,10 @@ import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.LongCastNode;
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
@@ -126,14 +128,14 @@ public class RubyObjectMessages {
 
     @ExportMessage
     protected static boolean isMetaObject(DynamicObject receiver) {
-        return RubyGuards.isRubyClass(receiver);
+        return receiver instanceof RubyClass;
     }
 
     @ExportMessage
     protected static String getMetaQualifiedName(DynamicObject rubyClass,
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
-        if (isMetaObject(rubyClass)) {
-            return Layouts.MODULE.getFields(rubyClass).getName();
+        if (rubyClass instanceof RubyClass) {
+            return ((RubyClass) rubyClass).fields.getName();
         } else {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
@@ -143,8 +145,8 @@ public class RubyObjectMessages {
     @ExportMessage
     protected static String getMetaSimpleName(DynamicObject rubyClass,
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
-        if (isMetaObject(rubyClass)) {
-            return Layouts.MODULE.getFields(rubyClass).getSimpleName();
+        if (rubyClass instanceof RubyClass) {
+            return ((RubyClass) rubyClass).fields.getSimpleName();
         } else {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
@@ -155,8 +157,8 @@ public class RubyObjectMessages {
     protected static boolean isMetaInstance(DynamicObject rubyClass, Object instance,
             @Cached IsANode isANode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile) throws UnsupportedMessageException {
-        if (isMetaObject(rubyClass)) {
-            return isANode.executeIsA(instance, rubyClass);
+        if (rubyClass instanceof RubyClass) {
+            return isANode.executeIsA(instance, (RubyClass) rubyClass);
         } else {
             errorProfile.enter();
             throw UnsupportedMessageException.create();
@@ -167,15 +169,15 @@ public class RubyObjectMessages {
     // region SourceLocation
     @ExportMessage
     protected static boolean hasSourceLocation(DynamicObject receiver) {
-        return RubyGuards.isRubyModule(receiver) || RubyGuards.isRubyMethod(receiver) ||
+        return receiver instanceof RubyModule || RubyGuards.isRubyMethod(receiver) ||
                 RubyGuards.isRubyUnboundMethod(receiver) || RubyGuards.isRubyProc(receiver);
     }
 
     @TruffleBoundary
     @ExportMessage
     protected static SourceSection getSourceLocation(DynamicObject receiver) throws UnsupportedMessageException {
-        if (RubyGuards.isRubyModule(receiver)) {
-            return Layouts.CLASS.getFields(receiver).getSourceSection();
+        if (receiver instanceof RubyModule) {
+            return ((RubyModule) receiver).fields.getSourceSection();
         } else if (RubyGuards.isRubyMethod(receiver)) {
             return ((RubyMethod) receiver).method.getSharedMethodInfo().getSourceSection();
         } else if (RubyGuards.isRubyUnboundMethod(receiver)) {

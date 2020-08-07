@@ -35,6 +35,7 @@ import org.truffleruby.core.encoding.EncodingNodesFactory.CheckRopeEncodingNodeG
 import org.truffleruby.core.encoding.EncodingNodesFactory.GetRubyEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleEncodingNodeGen;
 import org.truffleruby.core.encoding.EncodingNodesFactory.NegotiateCompatibleRopeEncodingNodeGen;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.rope.CodeRange;
@@ -450,7 +451,7 @@ public abstract class EncodingNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

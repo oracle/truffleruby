@@ -27,6 +27,7 @@ import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.kernel.TraceManager;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
@@ -76,7 +77,7 @@ public abstract class TracePointNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyTracePoint allocate(DynamicObject rubyClass) {
+        protected RubyTracePoint allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyTracePoint instance = new RubyTracePoint(shape, null, null);
             allocateNode.trace(instance, this);

@@ -20,12 +20,12 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.IONodes.IOThreadBufferAllocateNode;
 import org.truffleruby.core.thread.RubyThread;
@@ -420,8 +420,8 @@ public class FeatureLoader {
                         .createString(context, StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
                 context.send(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
 
-                final DynamicObject truffleModule = context.getCoreLibrary().truffleModule;
-                final Object truffleCExt = Layouts.MODULE.getFields(truffleModule).getConstant("CExt").getValue();
+                final RubyModule truffleModule = context.getCoreLibrary().truffleModule;
+                final Object truffleCExt = truffleModule.fields.getConstant("CExt").getValue();
 
                 final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
                 final Object library = loadCExtLibRuby(rubyLibPath, feature);

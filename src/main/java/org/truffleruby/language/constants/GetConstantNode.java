@@ -9,11 +9,12 @@
  */
 package org.truffleruby.language.constants;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
@@ -25,7 +26,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class GetConstantNode extends RubyContextNode {
@@ -42,14 +42,14 @@ public abstract class GetConstantNode extends RubyContextNode {
         return GetConstantNodeGen.create(callConstMissing);
     }
 
-    public Object lookupAndResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+    public Object lookupAndResolveConstant(LexicalScope lexicalScope, RubyModule module, String name,
             LookupConstantInterface lookupConstantNode) {
         final RubyConstant constant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
         return executeGetConstant(lexicalScope, module, name, constant, lookupConstantNode);
     }
 
     // name is always the same as constant.getName(), but is needed as constant can be null.
-    protected abstract Object executeGetConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+    protected abstract Object executeGetConstant(LexicalScope lexicalScope, RubyModule module, String name,
             Object constant, LookupConstantInterface lookupConstantNode);
 
     public GetConstantNode(boolean callConstMissing) {
@@ -59,7 +59,7 @@ public abstract class GetConstantNode extends RubyContextNode {
     @Specialization(guards = { "constant != null", "constant.hasValue()" })
     protected Object getConstant(
             LexicalScope lexicalScope,
-            DynamicObject module,
+            RubyModule module,
             String name,
             RubyConstant constant,
             LookupConstantInterface lookupConstantNode) {
@@ -70,13 +70,13 @@ public abstract class GetConstantNode extends RubyContextNode {
     @Specialization(guards = { "autoloadConstant != null", "autoloadConstant.isAutoload()" })
     protected Object autoloadConstant(
             LexicalScope lexicalScope,
-            DynamicObject module,
+            RubyModule module,
             String name,
             RubyConstant autoloadConstant,
             LookupConstantInterface lookupConstantNode,
             @Cached("createPrivate()") CallDispatchHeadNode callRequireNode) {
 
-        final DynamicObject feature = autoloadConstant.getAutoloadConstant().getFeature();
+        final RubyString feature = autoloadConstant.getAutoloadConstant().getFeature();
 
         if (autoloadConstant.getAutoloadConstant().isAutoloadingThread()) {
             // Pretend the constant does not exist while it is autoloading
@@ -95,7 +95,7 @@ public abstract class GetConstantNode extends RubyContextNode {
                 RubyLanguage.LOGGER.info(() -> String.format(
                         "%s: %s::%s is being treated as missing while loading %s",
                         RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                        Layouts.MODULE.getFields(module).getName(),
+                        module.fields.getName(),
                         name,
                         expandedPath));
             }
@@ -129,7 +129,7 @@ public abstract class GetConstantNode extends RubyContextNode {
         // We need to notify cached lookup that we are autoloading the constant, as constant
         // lookup changes based on whether an autoload constant is loading or not (constant
         // lookup ignores being-autoloaded constants).
-        Layouts.MODULE.getFields(autoloadConstant.getDeclaringModule()).newConstantsVersion();
+        autoloadConstant.getDeclaringModule().fields.newConstantsVersion();
     }
 
     @TruffleBoundary
@@ -140,16 +140,16 @@ public abstract class GetConstantNode extends RubyContextNode {
     /** Subset of {@link #autoloadResolveConstant} which does not try to resolve the constant. */
     @TruffleBoundary
     public static void autoloadUndefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
-        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
-        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
+        final RubyModule autoloadConstantModule = autoloadConstant.getDeclaringModule();
+        final ModuleFields fields = autoloadConstantModule.fields;
         fields.undefineConstantIfStillAutoload(autoloadConstant);
     }
 
     @TruffleBoundary
-    public Object autoloadResolveConstant(LexicalScope lexicalScope, DynamicObject module, String name,
+    public Object autoloadResolveConstant(LexicalScope lexicalScope, RubyModule module, String name,
             RubyConstant autoloadConstant, LookupConstantInterface lookupConstantNode) {
-        final DynamicObject autoloadConstantModule = autoloadConstant.getDeclaringModule();
-        final ModuleFields fields = Layouts.MODULE.getFields(autoloadConstantModule);
+        final RubyModule autoloadConstantModule = autoloadConstant.getDeclaringModule();
+        final ModuleFields fields = autoloadConstantModule.fields;
 
         RubyConstant resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);
 
@@ -174,7 +174,7 @@ public abstract class GetConstantNode extends RubyContextNode {
             limit = "getCacheLimit()")
     protected Object missingConstantCached(
             LexicalScope lexicalScope,
-            DynamicObject module,
+            RubyModule module,
             String name,
             Object constant,
             LookupConstantInterface lookupConstantNode,
@@ -187,14 +187,14 @@ public abstract class GetConstantNode extends RubyContextNode {
     @Specialization(guards = "isNullOrUndefined(constant)")
     protected Object missingConstantUncached(
             LexicalScope lexicalScope,
-            DynamicObject module,
+            RubyModule module,
             String name,
             Object constant,
             LookupConstantInterface lookupConstantNode) {
         return doMissingConstant(module, name, getSymbol(name));
     }
 
-    private Object doMissingConstant(DynamicObject module, String name, RubySymbol symbolName) {
+    private Object doMissingConstant(RubyModule module, String name, RubySymbol symbolName) {
         if (callConstMissing) {
             if (constMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();

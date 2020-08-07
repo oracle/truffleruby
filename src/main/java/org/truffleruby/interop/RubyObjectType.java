@@ -10,10 +10,7 @@
 package org.truffleruby.interop;
 
 import org.truffleruby.Layouts;
-import org.truffleruby.core.exception.RubyException;
-import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
-import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -24,16 +21,8 @@ public class RubyObjectType extends ObjectType {
     @Override
     @TruffleBoundary
     public String toString(DynamicObject object) {
-        if (RubyGuards.isRubyString(object)) {
-            return ((RubyString) object).rope.toString();
-        } else if (object instanceof RubyException) {
-            return ((RubyException) object).message.toString();
-        } else if (RubyGuards.isRubyModule(object)) {
-            return Layouts.MODULE.getFields(object).getName();
-        } else {
-            final String className = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(object)).getName();
-            return StringUtils.format("DynamicObject@%x<%s>", System.identityHashCode(object), className);
-        }
+        final String className = Layouts.BASIC_OBJECT.getLogicalClass(object).fields.getName();
+        return StringUtils.format("DynamicObject@%x<%s>", System.identityHashCode(object), className);
     }
 
 }

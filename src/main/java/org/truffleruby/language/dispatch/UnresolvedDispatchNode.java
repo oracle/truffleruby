@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.dispatch;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -218,7 +217,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                     argumentsObjects);
         }
 
-        if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
+        if (coreLibrary().getMetaClass(receiverObject).isSingleton) {
             return new CachedSingletonDispatchNode(
                     getContext(),
                     methodName,

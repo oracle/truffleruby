@@ -10,6 +10,7 @@
 package org.truffleruby.language.loader;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -27,7 +28,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class CodeLoader {
 
@@ -41,7 +41,7 @@ public class CodeLoader {
     public RubyRootNode parse(RubySource source,
             ParserContext parserContext,
             MaterializedFrame parentFrame,
-            DynamicObject wrap,
+            RubyModule wrap,
             boolean ownScopeForAssignments,
             Node currentNode) {
         final TranslatorDriver translator = new TranslatorDriver(context);
@@ -56,12 +56,12 @@ public class CodeLoader {
             Object self) {
         final RootCallTarget callTarget = Truffle.getRuntime().createCallTarget(rootNode);
 
-        final DynamicObject declaringModule;
+        final RubyModule declaringModule;
 
         if (parserContext == ParserContext.EVAL && parentFrame != null) {
             declaringModule = RubyArguments.getMethod(parentFrame).getDeclaringModule();
         } else if (parserContext == ParserContext.MODULE) {
-            declaringModule = (DynamicObject) self;
+            declaringModule = (RubyModule) self;
         } else {
             declaringModule = context.getCoreLibrary().objectClass;
         }

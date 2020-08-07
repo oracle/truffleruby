@@ -11,8 +11,9 @@ package org.truffleruby.language.methods;
 
 import java.util.Arrays;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -142,10 +143,10 @@ public class SharedMethodInfo {
     private static String moduleAndMethodName(DynamicObject module, String methodName) {
         if (module != null && methodName != null) {
             if (RubyGuards.isMetaClass(module)) {
-                final DynamicObject attached = Layouts.CLASS.getAttached(module);
-                return Layouts.MODULE.getFields(attached).getName() + "." + methodName;
+                final DynamicObject attached = ((RubyClass) module).attached;
+                return ((RubyModule) attached).fields.getName() + "." + methodName;
             } else {
-                return Layouts.MODULE.getFields(module).getName() + "#" + methodName;
+                return ((RubyModule) module).fields.getName() + "#" + methodName;
             }
         } else if (methodName != null) {
             return methodName;

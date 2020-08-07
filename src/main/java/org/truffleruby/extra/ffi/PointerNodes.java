@@ -21,6 +21,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
@@ -77,7 +78,7 @@ public abstract class PointerNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject pointerClass) {
+        protected DynamicObject allocate(RubyClass pointerClass) {
             final Shape shape = allocateNode.getCachedShape(pointerClass);
             final RubyPointer instance = new RubyPointer(shape, Pointer.NULL);
             allocateNode.trace(instance, this);

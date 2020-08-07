@@ -9,17 +9,18 @@
  */
 package org.truffleruby.core.exception;
 
+import java.util.Set;
+
 import org.truffleruby.interop.messages.ExceptionMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
-
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import java.util.Set;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 
 
 public class RubyException extends RubyDynamicObject implements ObjectGraphNode {
@@ -38,6 +39,12 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
         this.message = message;
         this.backtrace = backtrace;
         this.cause = cause;
+    }
+
+    @TruffleBoundary
+    @Override
+    public String toString() {
+        return message.toString();
     }
 
     @Override

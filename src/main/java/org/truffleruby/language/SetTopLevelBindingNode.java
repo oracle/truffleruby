@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.binding.BindingNodes;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.module.ModuleFields;
@@ -29,7 +28,7 @@ public class SetTopLevelBindingNode extends RubyContextSourceNode {
 
     @TruffleBoundary
     private void updateTopLevelBindingFrame(MaterializedFrame mainScriptFrame) {
-        final ModuleFields fields = Layouts.MODULE.getFields(coreLibrary().objectClass);
+        final ModuleFields fields = coreLibrary().objectClass.fields;
         final RubyBinding toplevelBinding = (RubyBinding) fields.getConstant("TOPLEVEL_BINDING").getValue();
         BindingNodes.insertAncestorFrame(toplevelBinding, mainScriptFrame);
     }

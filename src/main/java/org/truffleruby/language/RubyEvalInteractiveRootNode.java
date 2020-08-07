@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.Rope;
@@ -44,8 +43,7 @@ public class RubyEvalInteractiveRootNode extends RubyBaseRootNode implements Int
 
         // Just do Truffle::Boot::INTERACTIVE_BINDING.eval(code) for interactive sources.
         // It's the semantics we want and takes care of caching correctly based on the Binding's FrameDescriptor.
-        final Object interactiveBinding = Layouts.MODULE
-                .getFields(context.getCoreLibrary().truffleBootModule)
+        final Object interactiveBinding = context.getCoreLibrary().truffleBootModule.fields
                 .getConstant("INTERACTIVE_BINDING")
                 .getValue();
         return context

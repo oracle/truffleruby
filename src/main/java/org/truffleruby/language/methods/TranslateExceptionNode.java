@@ -170,7 +170,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             } else if (value instanceof DynamicObject) {
                 final DynamicObject dynamicObject = (DynamicObject) value;
 
-                builder.append(Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(dynamicObject)).getName());
+                builder.append(Layouts.BASIC_OBJECT.getLogicalClass(dynamicObject).fields.getName());
                 builder.append("(");
                 builder.append(value.getClass().getName());
                 builder.append(")");

@@ -10,7 +10,6 @@
 package org.truffleruby.core.method;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -21,6 +20,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.proc.ProcOperations;
@@ -206,7 +206,7 @@ public abstract class MethodNodes {
         protected Object superMethod(RubyMethod method) {
             Object receiver = method.receiver;
             InternalMethod internalMethod = method.method;
-            DynamicObject selfMetaClass = metaClassNode.executeMetaClass(receiver);
+            RubyClass selfMetaClass = metaClassNode.executeMetaClass(receiver);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
             if (!superMethod.isDefined()) {
                 return nil;
@@ -228,9 +228,9 @@ public abstract class MethodNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        protected RubyUnboundMethod unbind(VirtualFrame frame, RubyMethod method,
+        protected RubyUnboundMethod unbind(RubyMethod method,
                 @Cached AllocateHelperNode allocateHelperNode) {
-            final DynamicObject receiverClass = classNode.executeLogicalClass(method.receiver);
+            final RubyClass receiverClass = classNode.executeLogicalClass(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodShape,
                     receiverClass,
@@ -318,7 +318,7 @@ public abstract class MethodNodes {
         @Specialization
         protected Object methodUnimplement(RubyMethod rubyMethod) {
             final InternalMethod method = rubyMethod.method;
-            Layouts.MODULE.getFields(method.getDeclaringModule()).addMethod(
+            method.getDeclaringModule().fields.addMethod(
                     getContext(),
                     this,
                     method.unimplemented());
@@ -359,7 +359,7 @@ public abstract class MethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

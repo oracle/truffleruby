@@ -27,6 +27,7 @@ import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.language.Nil;
@@ -62,7 +63,7 @@ public abstract class HashNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected DynamicObject allocate(RubyClass rubyClass) {
             RubyHash hash = new RubyHash(
                     helperNode.getCachedShape(rubyClass),
                     getContext(),
@@ -89,7 +90,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args)")
-        protected Object construct(DynamicObject hashClass, Object[] args) {
+        protected Object construct(RubyClass hashClass, Object[] args) {
             final RubyArray array = (RubyArray) args[0];
 
             final Object[] store = (Object[]) array.store;
