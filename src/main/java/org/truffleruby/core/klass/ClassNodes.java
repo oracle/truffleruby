@@ -16,7 +16,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.CoreLibrary.ShapeDynamicObjectFactory;
-import org.truffleruby.core.basicobject.BasicObjectLayoutImpl.BasicObjectType;
+import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;

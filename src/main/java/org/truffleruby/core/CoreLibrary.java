@@ -35,7 +35,7 @@ import org.truffleruby.builtins.CoreMethodNodeManager;
 import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.core.basicobject.BasicObjectLayoutImpl.BasicObjectType;
+import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.RubyEncodingConverter;

@@ -15,7 +15,7 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
+import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
@@ -32,7 +32,7 @@ public abstract class ShapeCachingGuards {
     }
 
     public static boolean isBasicObjectShape(Shape shape) {
-        return shape.getObjectType().getClass() == BasicObjectLayoutImpl.BasicObjectType.class &&
+        return shape.getObjectType().getClass() == BasicObjectType.class &&
                 // TODO: when all layouts are migrated, this can accept all RubyDynamicObject subclasses with no internal fields
                 !RubyDynamicObject.class.isAssignableFrom(shape.getLayout().getType());
     }
