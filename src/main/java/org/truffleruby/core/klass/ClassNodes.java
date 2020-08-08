@@ -14,7 +14,6 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.CoreLibrary;
-import org.truffleruby.core.CoreLibrary.ShapeDynamicObjectFactory;
 import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
@@ -34,7 +33,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -163,7 +161,7 @@ public abstract class ClassNodes {
 
         // Singleton classes cannot be instantiated
         if (!isSingleton) {
-            setInstanceFactory(rubyClass, superclass);
+            setInstanceShape(rubyClass, superclass);
         }
 
         return rubyClass;
@@ -177,22 +175,15 @@ public abstract class ClassNodes {
 
         ensureItHasSingletonClassCreated(context, rubyClass);
 
-        setInstanceFactory(rubyClass, superclass);
+        setInstanceShape(rubyClass, superclass);
     }
 
-    public static void setInstanceFactory(RubyClass rubyClass, RubyClass baseClass) {
+    public static void setInstanceShape(RubyClass rubyClass, RubyClass baseClass) {
         assert !rubyClass.isSingleton : "Singleton classes cannot be instantiated";
-        final DynamicObjectFactory factory = baseClass.instanceFactory;
-        final Shape parentShape = factory.getShape();
+        final Shape parentShape = baseClass.instanceShape;
         final BasicObjectType objectType = (BasicObjectType) parentShape.getObjectType();
         final Shape newShape = parentShape.changeType(objectType.setLogicalClass(rubyClass).setMetaClass(rubyClass));
-        final DynamicObjectFactory newFactory;
-        if (factory instanceof ShapeDynamicObjectFactory) {
-            newFactory = new ShapeDynamicObjectFactory(newShape);
-        } else {
-            newFactory = newShape.createFactory();
-        }
-        rubyClass.instanceFactory = newFactory;
+        rubyClass.instanceShape = newShape;
     }
 
     private static RubyClass ensureItHasSingletonClassCreated(RubyContext context, RubyClass rubyClass) {
@@ -255,7 +246,7 @@ public abstract class ClassNodes {
 
     /** The same as {@link CoreLibrary#classShape} but available while executing the CoreLibrary constructor */
     private static Shape getClassShapeFromClass(RubyClass rubyClass) {
-        return rubyClass.getLogicalClass().instanceFactory.getShape();
+        return rubyClass.getLogicalClass().instanceShape;
     }
 
     @TruffleBoundary

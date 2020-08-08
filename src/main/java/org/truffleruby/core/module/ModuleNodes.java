@@ -129,7 +129,7 @@ public abstract class ModuleNodes {
     public static RubyModule createModule(RubyContext context, SourceSection sourceSection, RubyClass selfClass,
             RubyModule lexicalParent, String name, Node currentNode) {
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
-        final RubyModule module = new RubyModule(selfClass.instanceFactory.getShape(), fields);
+        final RubyModule module = new RubyModule(selfClass.instanceShape, fields);
         fields.rubyModuleObject = module;
 
         if (lexicalParent != null) {

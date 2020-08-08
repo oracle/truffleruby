@@ -57,13 +57,13 @@ public abstract class AllocateHelperNode extends RubyBaseNode {
     protected Shape getShapeCached(RubyClass classToAllocate,
             @Cached("classToAllocate") RubyClass cachedClassToAllocate,
             @Cached("isSingleton(classToAllocate)") boolean cachedIsSingleton,
-            @Cached("getInstanceShape(classToAllocate)") Shape cachedShape) {
-        return cachedShape;
+            @Cached("classToAllocate.instanceShape") Shape cachedInstanceShape) {
+        return cachedInstanceShape;
     }
 
     @Specialization(guards = "!isSingleton(classToAllocate)", replaces = "getShapeCached")
     protected Shape getShapeUncached(RubyClass classToAllocate) {
-        return getInstanceShape(classToAllocate);
+        return classToAllocate.instanceShape;
     }
 
     @Specialization(guards = "isSingleton(classToAllocate)")
@@ -72,10 +72,6 @@ public abstract class AllocateHelperNode extends RubyBaseNode {
         throw new RaiseException(
                 context,
                 context.getCoreExceptions().typeErrorCantCreateInstanceOfSingletonClass(this));
-    }
-
-    protected Shape getInstanceShape(RubyClass classToAllocate) {
-        return classToAllocate.instanceFactory.getShape();
     }
 
     protected static boolean isSingleton(RubyClass classToAllocate) {

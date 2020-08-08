@@ -82,7 +82,7 @@ public abstract class ExceptionOperations {
             Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        final Shape shape = rubyClass.instanceFactory.getShape();
+        final Shape shape = rubyClass.instanceShape;
         return new RubyException(shape, message, backtrace, cause);
     }
 
@@ -91,7 +91,7 @@ public abstract class ExceptionOperations {
             Object message, int errno, Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        final Shape shape = rubyClass.instanceFactory.getShape();
+        final Shape shape = rubyClass.instanceShape;
         return new RubySystemCallError(shape, message, backtrace, cause, errno);
     }
 

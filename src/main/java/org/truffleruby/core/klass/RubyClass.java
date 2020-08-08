@@ -9,23 +9,22 @@
  */
 package org.truffleruby.core.klass;
 
+import java.util.Set;
+
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.interop.messages.RubyClassMessages;
-
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectFactory;
-import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import java.util.Set;
+import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 
 public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
     public final boolean isSingleton;
     public final DynamicObject attached;
-    public DynamicObjectFactory instanceFactory = null;
+    public Shape instanceShape = null;
     /* a RubyClass, or nil for BasicObject, or null when not yet initialized */
     public Object superclass = null;
 
