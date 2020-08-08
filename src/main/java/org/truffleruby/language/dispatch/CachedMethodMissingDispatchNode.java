@@ -11,6 +11,7 @@ package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.proc.RubyProc;
@@ -26,11 +27,10 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
 
-    private final DynamicObject expectedClass;
+    private final RubyClass expectedClass;
     @CompilationFinal(dimensions = 1) private final Assumption[] originalMethodAssumptions;
     @CompilationFinal(dimensions = 1) private final Assumption[] methodMissingAssumptions;
     private final InternalMethod methodMissing;
@@ -44,7 +44,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
             RubyContext context,
             Object cachedName,
             DispatchNode next,
-            DynamicObject expectedClass,
+            RubyClass expectedClass,
             MethodLookupResult originalMethodLookup,
             MethodLookupResult methodMissingLookup,
             DispatchAction dispatchAction) {

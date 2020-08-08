@@ -9,14 +9,6 @@
  */
 package org.truffleruby.core.array;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.ReportPolymorphism;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -24,6 +16,14 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "Truffle::ArrayIndex", isClass = false)
 public abstract class ArrayIndexNodes {
@@ -112,11 +112,8 @@ public abstract class ArrayIndexNodes {
             return nil;
         }
 
-        @Specialization(
-                guards = {
-                        "indexInBounds(array, index)",
-                        "length >= 0" })
-        protected DynamicObject readInBounds(RubyArray array, int index, int length,
+        @Specialization(guards = { "indexInBounds(array, index)", "length >= 0" })
+        protected RubyArray readInBounds(RubyArray array, int index, int length,
                 @Cached ArrayCopyOnWriteNode cowNode,
                 @Cached ConditionProfile endsInBoundsProfile) {
             final int size = array.size;
@@ -131,7 +128,7 @@ public abstract class ArrayIndexNodes {
             return index >= 0 && index <= array.size;
         }
 
-        protected DynamicObject createArrayOfSameClass(RubyArray array, Object store, int size) {
+        protected RubyArray createArrayOfSameClass(RubyArray array, Object store, int size) {
             RubyArray newArray = new RubyArray(
                     helperNode.getCachedShape(array.getLogicalClass()),
                     store,

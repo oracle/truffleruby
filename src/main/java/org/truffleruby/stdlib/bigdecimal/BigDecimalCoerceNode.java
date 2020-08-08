@@ -11,6 +11,7 @@ package org.truffleruby.stdlib.bigdecimal;
 
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
@@ -20,7 +21,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** This node implements the front part of the coercion logic in BigDecimal - the types it handles before going into
  * normal coercion logic. Also see calls to <code>#redo_coerced</code> in nodes in {@link BigDecimalNodes}. */
@@ -64,7 +64,7 @@ public abstract class BigDecimalCoerceNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "isRubyRational(value)")
-    protected Object coerceRational(DynamicObject value,
+    protected Object coerceRational(RubyDynamicObject value,
             @Cached("createPublic()") CallDispatchHeadNode coerce) {
         return coerce.call(
                 getContext().getCoreLibrary().bigDecimalOperationsModule,

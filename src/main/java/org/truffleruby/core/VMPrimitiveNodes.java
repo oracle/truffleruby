@@ -37,15 +37,9 @@
  */
 package org.truffleruby.core;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleContext;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
+import java.io.PrintStream;
+import java.util.Map.Entry;
+
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
@@ -63,15 +57,16 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -83,10 +78,17 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.shared.SharedObjects;
 import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.platform.Signals;
-import sun.misc.Signal;
 
-import java.io.PrintStream;
-import java.util.Map.Entry;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleContext;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import sun.misc.Signal;
 
 @CoreModule(value = "VMPrimitives", isClass = true)
 public abstract class VMPrimitiveNodes {
@@ -408,7 +410,7 @@ public abstract class VMPrimitiveNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject setClass(DynamicObject object, RubyClass newClass) {
+        protected RubyDynamicObject setClass(RubyDynamicObject object, RubyClass newClass) {
             SharedObjects.propagate(getContext(), object, newClass);
             synchronized (object) {
                 ClassNodes.setLogicalAndMetaClass(object, newClass);
@@ -422,7 +424,7 @@ public abstract class VMPrimitiveNodes {
     public abstract static class VMDevUrandomBytes extends PrimitiveArrayArgumentsNode {
 
         @Specialization(guards = "count >= 0")
-        protected DynamicObject readRandomBytes(int count,
+        protected RubyString readRandomBytes(int count,
                 @Cached MakeStringNode makeStringNode) {
             final byte[] bytes = getContext().getRandomSeedBytes(count);
 
@@ -430,7 +432,7 @@ public abstract class VMPrimitiveNodes {
         }
 
         @Specialization(guards = "count < 0")
-        protected DynamicObject negativeCount(int count) {
+        protected RubyString negativeCount(int count) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().argumentError(

@@ -20,13 +20,12 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class ToStrNode extends RubyContextSourceNode {
 
-    public abstract RubyString executeToStr(VirtualFrame frame, Object object);
+    public abstract RubyString executeToStr(Object object);
 
     public static ToStrNode create() {
         return ToStrNodeGen.create(null);
@@ -38,7 +37,7 @@ public abstract class ToStrNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = "!isRubyString(object)")
-    protected RubyString coerceObject(VirtualFrame frame, Object object,
+    protected RubyString coerceObject(Object object,
             @Cached BranchProfile errorProfile,
             @Cached("createPrivate()") CallDispatchHeadNode toStrNode) {
         final Object coerced;

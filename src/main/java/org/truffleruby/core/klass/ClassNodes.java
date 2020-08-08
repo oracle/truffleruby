@@ -20,6 +20,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -32,7 +33,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -42,14 +42,14 @@ import com.oracle.truffle.api.source.SourceSection;
 public abstract class ClassNodes {
 
     @TruffleBoundary
-    public static void setMetaClass(DynamicObject object, RubyClass singletonClass) {
+    public static void setMetaClass(RubyDynamicObject object, RubyClass singletonClass) {
         final BasicObjectType objectType = (BasicObjectType) object.getShape().getObjectType();
         final BasicObjectType newObjectType = objectType.setMetaClass(singletonClass);
         DynamicObjectLibrary.getUncached().setDynamicType(object, newObjectType);
     }
 
     @TruffleBoundary
-    public static void setLogicalAndMetaClass(DynamicObject object, RubyClass rubyClass) {
+    public static void setLogicalAndMetaClass(RubyDynamicObject object, RubyClass rubyClass) {
         final BasicObjectType objectType = (BasicObjectType) object.getShape().getObjectType();
         final BasicObjectType newObjectType = objectType.setLogicalClass(rubyClass).setMetaClass(rubyClass);
         DynamicObjectLibrary.getUncached().setDynamicType(object, newObjectType);
@@ -94,7 +94,7 @@ public abstract class ClassNodes {
 
     @TruffleBoundary
     public static RubyClass createSingletonClassOfObject(RubyContext context, SourceSection sourceSection,
-            RubyClass superclass, DynamicObject attached, String name) {
+            RubyClass superclass, RubyDynamicObject attached, String name) {
         // We also need to create the singleton class of a singleton class for proper lookup and consistency.
         // See rb_singleton_class() documentation in MRI.
         // Allocator is null here, we cannot create instances of singleton classes.
@@ -138,7 +138,7 @@ public abstract class ClassNodes {
             RubyClass superclass,
             String name,
             boolean isSingleton,
-            DynamicObject attached,
+            RubyDynamicObject attached,
             boolean initialized) {
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
 
@@ -251,7 +251,7 @@ public abstract class ClassNodes {
 
     @TruffleBoundary
     public static RubyClass getSuperClass(RubyClass rubyClass) {
-        for (DynamicObject ancestor : rubyClass.fields.ancestors()) {
+        for (RubyModule ancestor : rubyClass.fields.ancestors()) {
             if (ancestor instanceof RubyClass && ancestor != rubyClass) {
                 return (RubyClass) ancestor;
             }

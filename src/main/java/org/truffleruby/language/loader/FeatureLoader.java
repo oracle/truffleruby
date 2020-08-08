@@ -26,6 +26,7 @@ import org.truffleruby.collections.ConcurrentOperations;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.encoding.EncodingManager;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.IONodes.IOThreadBufferAllocateNode;
 import org.truffleruby.core.thread.RubyThread;
@@ -45,7 +46,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -416,7 +416,7 @@ public class FeatureLoader {
 
             Metrics.printTime("before-load-cext-support");
             try {
-                final DynamicObject cextRb = StringOperations
+                final RubyString cextRb = StringOperations
                         .createString(context, StringOperations.encodeRope("truffle/cext", UTF8Encoding.INSTANCE));
                 context.send(context.getCoreLibrary().mainObject, "gem_original_require", cextRb);
 

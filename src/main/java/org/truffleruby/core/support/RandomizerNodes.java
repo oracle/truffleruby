@@ -33,10 +33,8 @@
  */
 package org.truffleruby.core.support;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.math.BigInteger;
+
 import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.algorithms.Randomizer;
@@ -46,15 +44,19 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.BignumOperations;
 import org.truffleruby.core.numeric.FixnumOrBignumNode;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.Visibility;
 
-import java.math.BigInteger;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
 
 @CoreModule(value = "Truffle::Randomizer", isClass = true)
 public abstract class RandomizerNodes {
@@ -75,7 +77,7 @@ public abstract class RandomizerNodes {
     public static abstract class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected RubyRandomizer randomizerAllocate(DynamicObject randomizerClass) {
+        protected RubyRandomizer randomizerAllocate(RubyClass randomizerClass) {
             return new RubyRandomizer(coreLibrary().randomizerShape, new Randomizer());
         }
 
@@ -318,7 +320,7 @@ public abstract class RandomizerNodes {
     public static abstract class RandomizerGenSeedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject generateSeed() {
+        protected RubyBignum generateSeed() {
             return randomSeedBignum(getContext());
         }
 
@@ -338,7 +340,7 @@ public abstract class RandomizerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject genRandBytes(RubyRandomizer randomizer, int length,
+        protected RubyString genRandBytes(RubyRandomizer randomizer, int length,
                 @Cached MakeStringNode makeStringNode) {
             final Randomizer random = randomizer.randomizer;
             final byte[] bytes = new byte[length];

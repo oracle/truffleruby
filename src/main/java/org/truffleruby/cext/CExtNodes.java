@@ -35,7 +35,6 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
-import org.truffleruby.core.exception.RubySystemCallError;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -64,9 +63,9 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -80,7 +79,6 @@ import org.truffleruby.language.control.BreakID;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -90,6 +88,7 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.supercall.CallSuperMethodNode;
+import org.truffleruby.language.yield.YieldNode;
 import org.truffleruby.parser.Identifiers;
 import org.truffleruby.utils.Utils;
 
@@ -110,7 +109,6 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.SourceSection;
@@ -121,10 +119,10 @@ public class CExtNodes {
     @Primitive(name = "call_with_c_mutex")
     public abstract static class CallCWithMutexNode extends PrimitiveArrayArgumentsNode {
 
-        public abstract Object execute(Object receiver, DynamicObject argsArray);
+        public abstract Object execute(Object receiver, RubyArray argsArray);
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object callCWithMutex(Object receiver, DynamicObject argsArray,
+        protected Object callCWithMutex(Object receiver, RubyArray argsArray,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @Cached BranchProfile exceptionProfile,
@@ -173,7 +171,7 @@ public class CExtNodes {
         @Child protected CallCWithMutexNode callCextNode = CallCWithMutexNodeFactory.create(RubyNode.EMPTY_ARRAY);
 
         @Specialization
-        protected Object callCWithMutex(Object receiver, DynamicObject argsArray, Object block,
+        protected Object callCWithMutex(Object receiver, RubyArray argsArray, Object block,
                 @Cached MarkingServiceNodes.GetMarkerThreadLocalDataNode getDataNode) {
             ExtensionCallStack extensionStack = getDataNode.execute().getExtensionCallStack();
             extensionStack.push(block);
@@ -190,7 +188,7 @@ public class CExtNodes {
     public abstract static class CallCWithoutMutexNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization(limit = "getCacheLimit()")
-        protected Object callCWithoutMutex(Object receiver, DynamicObject argsArray,
+        protected Object callCWithoutMutex(Object receiver, RubyArray argsArray,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached BranchProfile exceptionProfile,
@@ -482,7 +480,7 @@ public class CExtNodes {
     public abstract static class RBClassOfNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject rb_class_of(Object object,
+        protected RubyClass rb_class_of(Object object,
                 @Cached MetaClassNode metaClassNode) {
             return metaClassNode.executeMetaClass(object);
         }
@@ -517,7 +515,7 @@ public class CExtNodes {
     public abstract static class RbEncCodeRangeClear extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject clearCodeRange(RubyString string,
+        protected RubyString clearCodeRange(RubyString string,
                 @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
             nativeRope.clearCodeRange();
@@ -602,7 +600,7 @@ public class CExtNodes {
     public abstract static class RbStrNewNulNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject rbStrNewNul(int byteLength,
+        protected RubyString rbStrNewNul(int byteLength,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final Rope rope = NativeRope.newBuffer(getContext().getFinalizationService(), byteLength, byteLength);
 
@@ -615,7 +613,7 @@ public class CExtNodes {
     public abstract static class RbStrCapacityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected long capacity(DynamicObject string,
+        protected long capacity(RubyString string,
                 @Cached StringToNativeNode stringToNativeNode) {
             return stringToNativeNode.executeToNative(string).getCapacity();
         }
@@ -626,7 +624,7 @@ public class CExtNodes {
     public abstract static class RbStrSetLenNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject strSetLen(RubyString string, int newByteLength,
+        protected RubyString strSetLen(RubyString string, int newByteLength,
                 @Cached StringToNativeNode stringToNativeNode,
                 @Cached ConditionProfile asciiOnlyProfile) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
@@ -653,7 +651,7 @@ public class CExtNodes {
     public abstract static class RbStrResizeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject rbStrResize(RubyString string, int newByteLength,
+        protected RubyString rbStrResize(RubyString string, int newByteLength,
                 @Cached StringToNativeNode stringToNativeNode) {
             final NativeRope nativeRope = stringToNativeNode.executeToNative(string);
 
@@ -760,7 +758,7 @@ public class CExtNodes {
         @Child SetVisibilityNode setVisibilityNode = SetVisibilityNodeGen.create(Visibility.MODULE_FUNCTION);
 
         @Specialization
-        protected DynamicObject cextModuleFunction(VirtualFrame frame, RubyModule module, RubySymbol name) {
+        protected RubyModule cextModuleFunction(VirtualFrame frame, RubyModule module, RubySymbol name) {
             return setVisibilityNode.executeSetVisibility(frame, module, new Object[]{ name });
         }
 
@@ -805,7 +803,7 @@ public class CExtNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject sourceFile() {
+        protected RubyString sourceFile() {
             final SourceSection sourceSection = getTopUserSourceSection("rb_sourcefile");
             final String file = RubyContext.getPath(sourceSection.getSource());
 
@@ -955,24 +953,11 @@ public class CExtNodes {
     @CoreMethod(names = "rb_syserr_fail", onSingleton = true, required = 2, lowerFixnum = 1)
     public abstract static class RbSysErrFail extends CoreMethodArrayArgumentsNode {
 
-        @Child private ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
-
         @Specialization
-        protected Object rbSysErrFailNoMessage(int errno, Nil message) {
+        protected Object rbSysErrFail(int errno, RubyString message,
+                @Cached ErrnoErrorNode errnoErrorNode) {
             final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
-            throw new RaiseException(getContext(), errnoError(errno, nil, backtrace));
-        }
-
-        @Specialization
-        protected Object rbSysErrFail(int errno, RubyString message) {
-            final Backtrace backtrace = getContext().getCallStack().getBacktrace(this);
-            throw new RaiseException(
-                    getContext(),
-                    errnoError(errno, message, backtrace));
-        }
-
-        private RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace) {
-            return errnoErrorNode.execute(errno, extraMessage, backtrace);
+            throw new RaiseException(getContext(), errnoErrorNode.execute(errno, message, backtrace));
         }
 
     }
@@ -1017,7 +1002,7 @@ public class CExtNodes {
             return StringToNativeNodeGen.create();
         }
 
-        public abstract NativeRope executeToNative(DynamicObject string);
+        public abstract NativeRope executeToNative(RubyString string);
 
         @Specialization
         protected NativeRope toNative(RubyString string,
@@ -1133,7 +1118,7 @@ public class CExtNodes {
         @Child private InitializeClassNode initializeClassNode;
 
         @Specialization
-        protected DynamicObject classNew(DynamicObject superclass) {
+        protected RubyClass classNew(RubyClass superclass) {
             if (allocateNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 allocateNode = insert(CallDispatchHeadNode.createPrivate());
@@ -1478,7 +1463,7 @@ public class CExtNodes {
     public abstract static class NewMarkerList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object createNewMarkList(DynamicObject obj,
+        protected Object createNewMarkList(RubyDynamicObject obj,
                 @Cached ReadObjectFieldNode readMarkedNode) {
             getContext().getMarkingService().startMarking(
                     (Object[]) readMarkedNode.execute(obj, Layouts.MARKED_OBJECTS_IDENTIFIER, null));
@@ -1528,7 +1513,7 @@ public class CExtNodes {
     public abstract static class SetMarkList extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object setMarkList(DynamicObject structOwner,
+        protected Object setMarkList(RubyDynamicObject structOwner,
                 @Cached WriteObjectFieldNode writeMarkedNode) {
             writeMarkedNode.write(
                     structOwner,
@@ -1541,31 +1526,19 @@ public class CExtNodes {
     @CoreMethod(names = "define_marker", onSingleton = true, required = 2)
     public abstract static class CreateMarkerNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private DoesRespondDispatchHeadNode respondToCallNode = DoesRespondDispatchHeadNode.getUncached();
-
-        @Specialization
-        protected Object createMarker(VirtualFrame frame, DynamicObject object, DynamicObject marker,
-                @Cached BranchProfile errorProfile) {
-            if (respondToCallNode.doesRespondTo(frame, "call", marker)) {
-                addObjectToMarkingService(object, marker);
-                return nil;
-            } else {
-                errorProfile.enter();
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().argumentErrorWrongArgumentType(marker, "callable", this));
-            }
-        }
-
         @TruffleBoundary
-        protected void addObjectToMarkingService(DynamicObject object, DynamicObject marker) {
-            RubyContext capturedContext = getContext();
+        @Specialization
+        protected Object createMarker(RubyDynamicObject object, RubyProc marker) {
             /* The code here has to be a little subtle. The marker must be associated with the object it will act on,
              * but the lambda must not capture the object (and prevent garbage collection). So the marking function is a
              * lambda that will take the object as an argument 'o' which will be provided when the marking function is
              * called by the marking service. */
-            getContext().getMarkingService().addMarker(object, (o) -> capturedContext.send(marker, "call", o));
+            getContext()
+                    .getMarkingService()
+                    .addMarker(object, (o) -> YieldNode.getUncached().executeDispatch(marker, o));
+            return nil;
         }
+
     }
 
     @CoreMethod(names = "push_extension_call_frame", onSingleton = true, required = 1)

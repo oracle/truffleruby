@@ -17,6 +17,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.FinalizerReference;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
@@ -40,7 +41,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule("ObjectSpace")
@@ -78,9 +78,9 @@ public abstract class ObjectSpaceNodes {
                 assert ObjectGraph.isSymbolOrDynamicObject(object);
 
                 long objectID = 0L;
-                if (object instanceof DynamicObject) {
+                if (object instanceof RubyDynamicObject) {
                     objectID = (long) readObjectIdNode
-                            .execute((DynamicObject) object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
+                            .execute((RubyDynamicObject) object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
                 } else if (object instanceof RubySymbol) {
                     objectID = ((RubySymbol) object).getObjectId();
                 }
@@ -129,7 +129,7 @@ public abstract class ObjectSpaceNodes {
             int count = 0;
 
             for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
-                if (!isHidden(object)) {
+                if (include(object)) {
                     yield(block, object);
                     count++;
                 }
@@ -145,7 +145,7 @@ public abstract class ObjectSpaceNodes {
             int count = 0;
 
             for (Object object : ObjectGraph.stopAndGetAllObjects(this, getContext())) {
-                if (!isHidden(object) && isANode.executeIsA(object, ofClass)) {
+                if (include(object) && isANode.executeIsA(object, ofClass)) {
                     yield(block, object);
                     count++;
                 }
@@ -154,15 +154,17 @@ public abstract class ObjectSpaceNodes {
             return count;
         }
 
-        private boolean isHidden(Object object) {
+        private boolean include(Object object) {
             if (object instanceof RubySymbol) {
-                return false;
-            } else {
-                if (object instanceof RubyDynamicObject) {
-                    return RubyGuards.isSingletonClass((RubyDynamicObject) object);
+                return true;
+            } else if (object instanceof RubyDynamicObject) {
+                if (object instanceof RubyClass) {
+                    return !RubyGuards.isSingletonClass((RubyClass) object);
                 } else {
                     return true;
                 }
+            } else {
+                return false;
             }
         }
 
@@ -200,7 +202,7 @@ public abstract class ObjectSpaceNodes {
         @Child private WriteObjectFieldNode setFinalizerNode = WriteObjectFieldNode.create();
 
         @Specialization
-        protected RubyArray defineFinalizer(VirtualFrame frame, DynamicObject object, Object finalizer,
+        protected RubyArray defineFinalizer(VirtualFrame frame, RubyDynamicObject object, Object finalizer,
                 @Cached BranchProfile errorProfile,
                 @Cached WriteBarrierNode writeBarrierNode) {
             if (respondToCallNode.doesRespondTo(frame, "call", finalizer)) {
@@ -220,8 +222,10 @@ public abstract class ObjectSpaceNodes {
         }
 
         @TruffleBoundary
-        private void defineFinalizer(DynamicObject object, Object finalizer) {
-            final DynamicObject root = (finalizer instanceof DynamicObject) ? (DynamicObject) finalizer : null;
+        private void defineFinalizer(RubyDynamicObject object, Object finalizer) {
+            final RubyDynamicObject root = (finalizer instanceof RubyDynamicObject)
+                    ? (RubyDynamicObject) finalizer
+                    : null;
             final CallableFinalizer action = new CallableFinalizer(getContext(), finalizer);
 
             synchronized (object) {
@@ -250,7 +254,7 @@ public abstract class ObjectSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object undefineFinalizer(DynamicObject object) {
+        protected Object undefineFinalizer(RubyDynamicObject object) {
             synchronized (object) {
                 FinalizerReference ref = (FinalizerReference) getFinaliserNode
                         .execute(object, Layouts.FINALIZER_REF_IDENTIFIER, null);

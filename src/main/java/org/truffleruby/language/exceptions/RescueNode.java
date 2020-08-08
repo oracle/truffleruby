@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language.exceptions;
 
-import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -21,8 +21,8 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.GenerateWrapper;
 import com.oracle.truffle.api.instrumentation.ProbeNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateWrapper
@@ -44,14 +44,14 @@ public abstract class RescueNode extends RubyContextSourceNode {
         this.rescueBody = null;
     }
 
-    public abstract boolean canHandle(VirtualFrame frame, DynamicObject exception);
+    public abstract boolean canHandle(VirtualFrame frame, RubyException exception);
 
     @Override
     public Object execute(VirtualFrame frame) {
         return rescueBody.execute(frame);
     }
 
-    protected boolean matches(VirtualFrame frame, Object exception, Object handlingClass) {
+    protected boolean matches(RubyException exception, Object handlingClass) {
         if (!(handlingClass instanceof RubyModule)) {
             errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorRescueInvalidClause(this));

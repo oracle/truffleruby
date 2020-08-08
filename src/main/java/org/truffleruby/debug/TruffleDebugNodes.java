@@ -34,18 +34,19 @@ import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.method.RubyUnboundMethod;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.interop.BoxedValue;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.Nil;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
@@ -73,7 +74,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
 
@@ -99,7 +99,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject setBreak(RubyString file, int line, RubyProc block) {
+        protected RubyHandle setBreak(RubyString file, int line, RubyProc block) {
             final String fileString = StringOperations.getString(file);
 
             final SourceSectionFilter filter = SourceSectionFilter
@@ -154,7 +154,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject javaClassOf(Object value) {
+        protected RubyString javaClassOf(Object value) {
             return makeStringNode
                     .executeMake(value.getClass().getSimpleName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -286,7 +286,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubySymbol objectTypeOf(DynamicObject value) {
+        protected RubySymbol objectTypeOf(RubyDynamicObject value) {
             return getSymbol(value.getShape().getObjectType().getClass().getSimpleName());
         }
     }
@@ -298,7 +298,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject shape(DynamicObject object) {
+        protected RubyString shape(RubyDynamicObject object) {
             return makeStringNode
                     .executeMake(object.getShape().toString(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -312,7 +312,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject arrayStorage(RubyArray array) {
+        protected RubyString arrayStorage(RubyArray array) {
             String storage = ArrayStoreLibrary.getFactory().getUncached().toString(array.store);
             return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -338,7 +338,7 @@ public abstract class TruffleDebugNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject hashStorage(RubyHash hash) {
+        protected RubyString hashStorage(RubyHash hash) {
             Object store = hash.store;
             String storage = store == null ? "null" : store.getClass().toString();
             return makeStringNode.executeMake(storage, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
@@ -354,19 +354,19 @@ public abstract class TruffleDebugNodes {
                 guards = "object.getShape() == cachedShape",
                 assumptions = "cachedShape.getValidAssumption()",
                 limit = "getCacheLimit()")
-        protected boolean isSharedCached(DynamicObject object,
+        protected boolean isSharedCached(RubyDynamicObject object,
                 @Cached("object.getShape()") Shape cachedShape,
                 @Cached("isShared(getContext(), cachedShape)") boolean shared) {
             return shared;
         }
 
         @Specialization(replaces = "isSharedCached")
-        protected boolean isShared(DynamicObject object) {
+        protected boolean isShared(RubyDynamicObject object) {
             return SharedObjects.isShared(getContext(), object);
         }
 
         @Specialization
-        protected boolean isSharedNil(Nil object) {
+        protected boolean isSharedImmutable(ImmutableRubyObject object) {
             return true;
         }
 
@@ -871,7 +871,7 @@ public abstract class TruffleDebugNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject threadInfo() {
+        protected RubyString threadInfo() {
             return makeStringNode.executeMake(getThreadDebugInfo(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -889,7 +889,7 @@ public abstract class TruffleDebugNodes {
         @SuppressFBWarnings("UW")
         @TruffleBoundary
         @Specialization
-        protected DynamicObject deadBlock() {
+        protected Object deadBlock() {
             RubyLanguage.LOGGER.severe("Truffle::Debug.dead_block is being called - will lock up the interpreter");
 
             final Object monitor = new Object();
@@ -911,9 +911,9 @@ public abstract class TruffleDebugNodes {
     public abstract static class AssociatedNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected RubyArray associated(DynamicObject value,
+        protected RubyArray associated(RubyString string,
                 @Cached ReadObjectFieldNode readAssociatedNode) {
-            Pointer[] associated = (Pointer[]) readAssociatedNode.execute(value, Layouts.ASSOCIATED_IDENTIFIER, null);
+            Pointer[] associated = (Pointer[]) readAssociatedNode.execute(string, Layouts.ASSOCIATED_IDENTIFIER, null);
 
             if (associated == null) {
                 associated = Pointer.EMPTY_ARRAY;

@@ -12,7 +12,6 @@ package org.truffleruby.core.cast;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -22,7 +21,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Convert objects to a String by calling #to_str, but leave existing Strings or Symbols as they are. */
@@ -37,12 +35,12 @@ public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected DynamicObject coerceRubyString(RubyString string) {
+    protected RubyString coerceRubyString(RubyString string) {
         return string;
     }
 
     @Specialization(guards = { "!isRubySymbol(object)", "!isRubyString(object)" })
-    protected DynamicObject coerceObject(VirtualFrame frame, Object object,
+    protected RubyString coerceObject(VirtualFrame frame, Object object,
             @Cached BranchProfile errorProfile) {
         final Object coerced;
         try {
@@ -58,8 +56,8 @@ public abstract class ToStringOrSymbolNode extends RubyContextSourceNode {
             }
         }
 
-        if (RubyGuards.isRubyString(coerced)) {
-            return (DynamicObject) coerced;
+        if (coerced instanceof RubyString) {
+            return (RubyString) coerced;
         } else {
             errorProfile.enter();
             throw new RaiseException(

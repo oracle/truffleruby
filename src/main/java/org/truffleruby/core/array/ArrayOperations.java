@@ -19,12 +19,11 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ArrayOperations {
 
-    public static boolean isPrimitiveStorage(DynamicObject array) {
+    public static boolean isPrimitiveStorage(RubyArray array) {
         Object store = getBackingStore(array);
         return store == ArrayStoreLibrary.INITIAL_STORE || store instanceof int[] || store instanceof long[] ||
                 store instanceof double[];
@@ -106,8 +105,8 @@ public abstract class ArrayOperations {
     }
 
     @TruffleBoundary
-    private static Object getBackingStore(DynamicObject array) {
-        final Object store = ((RubyArray) array).store;
+    private static Object getBackingStore(RubyArray array) {
+        final Object store = array.store;
         if (store instanceof DelegatedArrayStorage) {
             return ((DelegatedArrayStorage) store).storage;
         } else {

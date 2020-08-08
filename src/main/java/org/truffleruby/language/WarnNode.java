@@ -12,13 +12,13 @@ package org.truffleruby.language;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 /** Warns if $VERBOSE is true or false, but not nil. Corresponds to Kernel#warn(message, uplevel: 1), but in Java with a
@@ -49,7 +49,7 @@ public class WarnNode extends RubyContextNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             makeStringNode = insert(MakeStringNode.create());
         }
-        final DynamicObject warningString = makeStringNode
+        final RubyString warningString = makeStringNode
                 .executeMake(warningMessage, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
 
         if (callWarnNode == null) {

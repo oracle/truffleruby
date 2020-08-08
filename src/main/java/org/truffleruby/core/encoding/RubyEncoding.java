@@ -9,17 +9,18 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
 import org.jcodings.Encoding;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyDynamicObject;
+
+import com.oracle.truffle.api.object.Shape;
 
 public class RubyEncoding extends RubyDynamicObject {
 
     public final Encoding encoding;
-    public final DynamicObject name;
+    public final RubyString name;
 
-    public RubyEncoding(Shape shape, Encoding encoding, DynamicObject name) {
+    public RubyEncoding(Shape shape, Encoding encoding, RubyString name) {
         super(shape);
         this.encoding = encoding;
         this.name = name;

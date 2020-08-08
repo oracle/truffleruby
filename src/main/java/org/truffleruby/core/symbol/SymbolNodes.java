@@ -19,6 +19,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -41,7 +42,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Symbol", isClass = true)
@@ -178,7 +178,7 @@ public abstract class SymbolNodes {
     public abstract static class ToSNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject toS(RubySymbol symbol,
+        protected RubyString toS(RubySymbol symbol,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode.fromRope(symbol.getRope());
         }
@@ -188,9 +188,8 @@ public abstract class SymbolNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
-        @TruffleBoundary
         @Specialization
-        protected DynamicObject allocate(RubyClass rubyClass) {
+        protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

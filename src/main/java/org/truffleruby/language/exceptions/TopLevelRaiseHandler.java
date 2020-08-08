@@ -19,7 +19,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class TopLevelRaiseHandler extends RubyContextNode {
 
@@ -74,7 +73,7 @@ public class TopLevelRaiseHandler extends RubyContextNode {
         }
     }
 
-    private void setLastException(DynamicObject exception) {
+    private void setLastException(RubyException exception) {
         if (setExceptionVariableNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             setExceptionVariableNode = insert(new SetExceptionVariableNode());

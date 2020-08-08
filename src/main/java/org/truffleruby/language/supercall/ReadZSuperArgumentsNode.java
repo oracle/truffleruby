@@ -12,15 +12,14 @@ package org.truffleruby.language.supercall;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNodeGen;
 import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Get the arguments of a super call with implicit arguments (using the ones of the surrounding method). */
 public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
@@ -49,8 +48,7 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
 
         if (restArgIndex != -1) {
             final Object restArg = superArguments[restArgIndex];
-            assert RubyGuards.isRubyArray(restArg);
-            final Object[] restArgs = unsplat((DynamicObject) restArg);
+            final Object[] restArgs = unsplat((RubyArray) restArg);
             final int after = superArguments.length - (restArgIndex + 1);
             Object[] splattedArguments = ArrayUtils.copyOf(superArguments, superArguments.length + restArgs.length - 1);
             ArrayUtils.arraycopy(
@@ -66,7 +64,7 @@ public class ReadZSuperArgumentsNode extends RubyContextSourceNode {
         return superArguments;
     }
 
-    private Object[] unsplat(DynamicObject array) {
+    private Object[] unsplat(RubyArray array) {
         if (unsplatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             unsplatNode = insert(ArrayToObjectArrayNodeGen.create());

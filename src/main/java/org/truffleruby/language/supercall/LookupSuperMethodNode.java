@@ -22,7 +22,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Caches {@link ModuleOperations#lookupSuperMethod} on an actual instance. */
 public abstract class LookupSuperMethodNode extends RubyContextNode {
@@ -41,7 +40,7 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
             guards = { "getCurrentMethod(frame) == currentMethod", "metaClass(self) == selfMetaClass" },
             assumptions = "superMethod.getAssumptions()",
             limit = "getCacheLimit()")
-    protected InternalMethod lookupSuperMethodCachedDynamicObject(VirtualFrame frame, DynamicObject self,
+    protected InternalMethod lookupSuperMethodCached(VirtualFrame frame, Object self,
             @Cached("getCurrentMethod(frame)") InternalMethod currentMethod,
             @Cached("metaClass(self)") RubyClass selfMetaClass,
             @Cached("doLookup(currentMethod, selfMetaClass)") MethodLookupResult superMethod) {

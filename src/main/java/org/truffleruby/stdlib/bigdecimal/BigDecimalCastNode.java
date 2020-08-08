@@ -52,7 +52,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(BigDecimalCoreMethodNode.class)
 public abstract class BigDecimalCastNode extends RubyContextNode {
@@ -89,7 +88,7 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
     }
 
     @Specialization(guards = "isSpecial(value)")
-    protected DynamicObject doSpecialBigDecimal(RubyBigDecimal value, int digits, RoundingMode roundingMode) {
+    protected RubyBigDecimal doSpecialBigDecimal(RubyBigDecimal value, int digits, RoundingMode roundingMode) {
         return value;
     }
 

@@ -14,7 +14,6 @@ import org.truffleruby.core.cast.ToSNode;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -52,7 +51,6 @@ public final class InterpolatedStringNode extends RubyContextSourceNode {
         // TODO (nirvdrum 11-Jan-16) Rewrite to avoid massively unbalanced trees.
         for (ToSNode child : children) {
             final Object toInterpolate = child.execute(frame);
-            assert RubyGuards.isRubyString(toInterpolate);
             builder = executeStringAppend(builder, (RubyString) toInterpolate);
             tainted |= executeIsTainted(toInterpolate);
         }

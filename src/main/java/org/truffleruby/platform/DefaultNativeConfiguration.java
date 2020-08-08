@@ -42,17 +42,18 @@ import java.math.BigInteger;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.RopeOperations;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.string.RubyString;
 
 public abstract class DefaultNativeConfiguration {
 
-    protected static DynamicObject newBignum(RubyContext context, String value) {
+    protected static RubyBignum newBignum(RubyContext context, String value) {
         return BignumOperations.createBignum(context, new BigInteger(value));
     }
 
-    protected static DynamicObject string(RubyContext context, String value) {
+    protected static RubyString string(RubyContext context, String value) {
         return context.getFrozenStringLiteral(RopeOperations.encodeAscii(value, UTF8Encoding.INSTANCE));
     }
 

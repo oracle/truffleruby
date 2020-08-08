@@ -21,7 +21,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.NodeInterface;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(ArrayGuards.class)
@@ -38,17 +37,13 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
         return ArrayEachIteratorNodeGen.create();
     }
 
-    public abstract DynamicObject execute(RubyArray array, RubyProc block, int startAt,
+    public abstract RubyArray execute(RubyArray array, RubyProc block, int startAt,
             ArrayElementConsumerNode consumerNode);
 
     @Specialization(
             guards = { "array.size == 1", "startAt == 0" },
             limit = "storageStrategyLimit()")
-    protected DynamicObject iterateOne(
-            RubyArray array,
-            RubyProc block,
-            int startAt,
-            ArrayElementConsumerNode consumerNode,
+    protected RubyArray iterateOne(RubyArray array, RubyProc block, int startAt, ArrayElementConsumerNode consumerNode,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays) {
         final Object store = array.store;
 
@@ -65,11 +60,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
     @Specialization(
             guards = { "array.size != 1" },
             limit = "storageStrategyLimit()")
-    protected DynamicObject iterateMany(
-            RubyArray array,
-            RubyProc block,
-            int startAt,
-            ArrayElementConsumerNode consumerNode,
+    protected RubyArray iterateMany(RubyArray array, RubyProc block, int startAt, ArrayElementConsumerNode consumerNode,
             @CachedLibrary("array.store") ArrayStoreLibrary arrays,
             @Cached ConditionProfile strategyMatchProfile) {
         int i = startAt;

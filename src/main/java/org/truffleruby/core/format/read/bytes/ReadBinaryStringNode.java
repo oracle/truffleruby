@@ -15,13 +15,13 @@ import org.jcodings.specific.ASCIIEncoding;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild(value = "source", type = SourceNode.class)
 public abstract class ReadBinaryStringNode extends FormatNode {
@@ -58,7 +58,7 @@ public abstract class ReadBinaryStringNode extends FormatNode {
     }
 
     @Specialization
-    protected DynamicObject read(VirtualFrame frame, byte[] source,
+    protected RubyString read(VirtualFrame frame, byte[] source,
             @Cached StringNodes.MakeStringNode makeStringNode) {
         final int start = getSourcePosition(frame);
 

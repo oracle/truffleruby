@@ -44,7 +44,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -371,8 +370,8 @@ public abstract class RangeNodes {
             }
         }
 
-        @Specialization(guards = "isBoundedObjectRange(range)")
-        protected Object boundedToA(VirtualFrame frame, RubyObjectRange range) {
+        @Specialization(guards = "range.isBounded()")
+        protected Object boundedToA(RubyObjectRange range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toAInternalCall = insert(CallDispatchHeadNode.createPrivate());
@@ -381,8 +380,8 @@ public abstract class RangeNodes {
             return toAInternalCall.call(range, "to_a_internal");
         }
 
-        @Specialization(guards = "isEndlessObjectRange(range)")
-        protected Object endlessToA(VirtualFrame frame, RubyObjectRange range) {
+        @Specialization(guards = "range.isEndless()")
+        protected Object endlessToA(RubyObjectRange range) {
             throw new RaiseException(getContext(), coreExceptions().rangeError(
                     "cannot convert endless range to an array",
                     this));
@@ -408,14 +407,14 @@ public abstract class RangeNodes {
             return new RubyIntRange(coreLibrary().intRangeShape, range.excludedEnd, begin, end);
         }
 
-        @Specialization(guards = "isBoundedObjectRange(range)")
+        @Specialization(guards = "range.isBounded()")
         protected RubyIntRange boundedObjectRange(RubyObjectRange range, RubyArray array) {
             int begin = toInt(range.begin);
             int end = toInt(range.end);
             return new RubyIntRange(coreLibrary().intRangeShape, range.excludedEnd, begin, end);
         }
 
-        @Specialization(guards = "isEndlessObjectRange(range)")
+        @Specialization(guards = "range.isEndless()")
         protected RubyIntRange endlessObjectRange(RubyObjectRange range, RubyArray array) {
             int end = array.size;
             return new RubyIntRange(coreLibrary().intRangeShape, true, toInt(range.begin), end);
@@ -529,7 +528,7 @@ public abstract class RangeNodes {
         @Child NormalizedStartLengthNode startLengthNode = NormalizedStartLengthNode.create();
 
         @Specialization
-        protected RubyArray normalize(DynamicObject range, int size) {
+        protected RubyArray normalize(RubyRange range, int size) {
             return ArrayHelpers.createArray(getContext(), startLengthNode.execute(range, size));
         }
     }
@@ -541,7 +540,7 @@ public abstract class RangeNodes {
             return RangeNodesFactory.NormalizedStartLengthNodeGen.create();
         }
 
-        public abstract int[] execute(DynamicObject range, int size);
+        public abstract int[] execute(RubyRange range, int size);
 
         private final BranchProfile overflow = BranchProfile.create();
         private final ConditionProfile notExcluded = ConditionProfile.create();
@@ -559,14 +558,14 @@ public abstract class RangeNodes {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);
         }
 
-        @Specialization(guards = "isEndlessObjectRange(range)")
+        @Specialization(guards = "range.isEndless()")
         protected int[] normalizeEndlessRange(RubyObjectRange range, int size,
                 @Cached ToIntNode toInt) {
             int begin = toInt.execute(range.begin);
             return new int[]{ begin >= 0 ? begin : begin + size, size - begin };
         }
 
-        @Specialization(guards = "isBoundedObjectRange(range)")
+        @Specialization(guards = "range.isBounded()")
         protected int[] normalizeObjectRange(RubyObjectRange range, int size,
                 @Cached ToIntNode toInt) {
             return normalize(toInt.execute(range.begin), toInt.execute(range.end), range.excludedEnd, size);

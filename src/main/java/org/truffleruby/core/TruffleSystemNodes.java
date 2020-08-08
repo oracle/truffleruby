@@ -43,7 +43,6 @@ import java.nio.file.NoSuchFileException;
 import java.util.Set;
 import java.util.logging.Level;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
@@ -64,17 +63,18 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.BasicPlatform;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Truffle::System")
@@ -175,7 +175,7 @@ public abstract class TruffleSystemNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject hostCPU() {
+        protected RubyString hostCPU() {
             return makeStringNode.executeMake(BasicPlatform.getArchName(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
 
@@ -187,7 +187,7 @@ public abstract class TruffleSystemNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject hostOS() {
+        protected RubyString hostOS() {
             return makeStringNode.executeMake(Platform.getOSName(), UTF8Encoding.INSTANCE, CodeRange.CR_7BIT);
         }
 
@@ -198,7 +198,7 @@ public abstract class TruffleSystemNodes {
 
         // We must not allow to synchronize on boxed primitives.
         @Specialization
-        protected Object synchronize(DynamicObject object, RubyProc block) {
+        protected Object synchronize(RubyDynamicObject object, RubyProc block) {
             synchronized (object) {
                 return yield(block);
             }
@@ -245,7 +245,7 @@ public abstract class TruffleSystemNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject setProcessTitle(RubyString name) {
+        protected RubyString setProcessTitle(RubyString name) {
             if (TruffleOptions.AOT) {
                 ProcessProperties.setArgumentVectorProgramName(StringOperations.getString(name));
             } else {

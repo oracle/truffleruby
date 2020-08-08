@@ -18,7 +18,6 @@ import org.truffleruby.core.time.GetTimeZoneNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreModule(value = "Truffle::POSIX", isClass = true)
 public abstract class TrufflePosixNodes {
@@ -35,7 +34,7 @@ public abstract class TrufflePosixNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject invalidate(RubyString envVar) {
+        protected RubyString invalidate(RubyString envVar) {
             invalidateENV(StringOperations.getString(envVar));
             return envVar;
         }

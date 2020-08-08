@@ -12,11 +12,11 @@ package org.truffleruby.core;
 import java.util.Collection;
 import java.util.Objects;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.MarkingService.ExtensionCallStack;
+import org.truffleruby.language.RubyDynamicObject;
 
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /** Finalizers are implemented with phantom references and reference queues, and are run in a dedicated Ruby thread. */
 public class FinalizationService extends ReferenceProcessingService<FinalizerReference> {
@@ -25,9 +25,9 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
 
         private final Class<?> owner;
         private final Runnable action;
-        private final DynamicObject root;
+        private final RubyDynamicObject root;
 
-        public Finalizer(Class<?> owner, Runnable action, DynamicObject root) {
+        public Finalizer(Class<?> owner, Runnable action, RubyDynamicObject root) {
             this.owner = owner;
             this.action = action;
             this.root = root;
@@ -41,7 +41,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
             return action;
         }
 
-        public DynamicObject getRoot() {
+        public RubyDynamicObject getRoot() {
             return root;
         }
     }
@@ -52,7 +52,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
     }
 
     @TruffleBoundary
-    public FinalizerReference addFinalizer(Object object, Class<?> owner, Runnable action, DynamicObject root) {
+    public FinalizerReference addFinalizer(Object object, Class<?> owner, Runnable action, RubyDynamicObject root) {
         final FinalizerReference newRef = new FinalizerReference(object, referenceProcessor.processingQueue, this);
         // No need to synchronize since called on a new private object
         newRef.addFinalizer(owner, action, root);
@@ -65,7 +65,7 @@ public class FinalizationService extends ReferenceProcessingService<FinalizerRef
 
     @TruffleBoundary
     public void addAdditionalFinalizer(FinalizerReference existingRef, Object object, Class<?> owner, Runnable action,
-            DynamicObject root) {
+            RubyDynamicObject root) {
         Objects.requireNonNull(existingRef);
 
         assert Thread.holdsLock(object) : "caller must synchronize access to the FinalizerReference";

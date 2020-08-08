@@ -32,7 +32,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
@@ -78,7 +77,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         @Specialization(guards = "ropesMatch(cachedParts, parts)", limit = "getDefaultCacheLimit()")
         protected Object executeFast(Rope[] parts,
                 @Cached(value = "parts", dimensions = 1) Rope[] cachedParts,
-                @Cached("createRegexp(cachedParts)") DynamicObject regexp) {
+                @Cached("createRegexp(cachedParts)") RubyRegexp regexp) {
             final Object clone = copyNode.call(regexp, "clone");
             return clone;
         }
@@ -101,7 +100,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
         }
 
         @TruffleBoundary
-        protected DynamicObject createRegexp(Rope[] strings) {
+        protected RubyRegexp createRegexp(Rope[] strings) {
             final RegexpOptions options = (RegexpOptions) this.options.clone();
             final RopeBuilder preprocessed = ClassicRegexp.preprocessDRegexp(getContext(), strings, options);
 

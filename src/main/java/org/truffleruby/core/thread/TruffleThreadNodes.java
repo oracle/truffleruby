@@ -32,7 +32,7 @@ public class TruffleThreadNodes {
     public abstract static class FindRubyCaller extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
-        @Specialization(guards = "isRubyArray(modules)", limit = "storageStrategyLimit()")
+        @Specialization(limit = "storageStrategyLimit()")
         protected Object findRubyCaller(RubyArray modules,
                 @CachedLibrary("modules.store") ArrayStoreLibrary stores) {
             final int modulesSize = modules.size;

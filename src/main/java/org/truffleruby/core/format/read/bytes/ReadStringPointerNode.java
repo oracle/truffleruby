@@ -9,22 +9,22 @@
  */
 package org.truffleruby.core.format.read.bytes;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.MissingValue;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @NodeChild("value")
@@ -45,7 +45,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
     }
 
     @Specialization
-    protected Object read(VirtualFrame frame, long address,
+    protected RubyString read(VirtualFrame frame, long address,
             @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
         final Pointer pointer = new Pointer(address);
         checkAssociated(
@@ -53,7 +53,7 @@ public abstract class ReadStringPointerNode extends FormatNode {
                 pointer);
 
         final byte[] bytes = pointer.readZeroTerminatedByteArray(getContext(), 0, limit);
-        final DynamicObject string = makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
+        final RubyString string = makeStringNode.executeMake(bytes, USASCIIEncoding.INSTANCE, CodeRange.CR_7BIT);
         rubyLibrary.taint(string);
         return string;
     }

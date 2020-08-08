@@ -16,9 +16,9 @@ format the files automatically.
 
 ```java
 @Specialization
-public Object lookupMethod(DynamicObject object,
+public Object lookupMethod(Object object,
         @Cached MetaClassNode metaClassNode) {
-    final DynamicObject rubyClass = metaClassNode.executeMetaClass(object);
+    final RubyClass rubyClass = metaClassNode.executeMetaClass(object);
     ...
 }
 ```
@@ -42,7 +42,7 @@ public abstract class MyNode extends ContextSourceRubyNode {
 @Child ToStrNode toStrNode;
 ...
 
-protected DynamicObject toStr(VirtualFrame frame, Object object) {
+protected RubyString toStr(VirtualFrame frame, Object object) {
     if (toStrNode == null) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         toStrNode = insert(ToStrNodeGen.create(getContext(), getSourceSection(), null));

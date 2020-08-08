@@ -57,6 +57,7 @@ import org.truffleruby.collections.Memo;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.proc.RubyProc;
@@ -65,11 +66,11 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.core.thread.ThreadManager;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.interop.ToJavaStringWithDefaultNodeGen;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
@@ -79,7 +80,6 @@ import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 import jline.console.ConsoleReader;
 import jline.console.CursorBuffer;
@@ -95,7 +95,7 @@ public abstract class ReadlineNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject basicWordBreakCharacters() {
+        protected RubyString basicWordBreakCharacters() {
             return makeStringNode
                     .executeMake(ProcCompleter.getDelimiter(), UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -113,7 +113,7 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject setBasicWordBreakCharacters(RubyString characters) {
+        protected RubyString setBasicWordBreakCharacters(RubyString characters) {
             ProcCompleter.setDelimiter(StringOperations.getString(characters));
             return characters;
         }
@@ -202,7 +202,7 @@ public abstract class ReadlineNodes {
                 // is that no al M17n encodings are valid encodings in java.lang.String.
                 // We clearly need a byte[]-version of JLine since we cannot totally
                 // behave properly using Java Strings.
-                final DynamicObject ret = makeStringNode.executeMake(
+                final RubyString ret = makeStringNode.executeMake(
                         value,
                         getContext().getEncodingManager().getDefaultExternalEncoding(),
                         CodeRange.CR_UNKNOWN);
@@ -236,9 +236,8 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject insertText(DynamicObject readline, String text) {
+        protected RubyBasicObject insertText(RubyBasicObject readline, String text) {
             getContext().getConsoleHolder().getReadline().getCursorBuffer().write(text);
-
             return readline;
         }
 
@@ -249,9 +248,8 @@ public abstract class ReadlineNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject deleteText(DynamicObject readline) {
+        protected RubyBasicObject deleteText(RubyBasicObject readline) {
             getContext().getConsoleHolder().getReadline().getCursorBuffer().clear();
-
             return readline;
         }
 
@@ -268,7 +266,7 @@ public abstract class ReadlineNodes {
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             final CursorBuffer cb = getContext().getConsoleHolder().getReadline().getCursorBuffer();
 
-            final DynamicObject ret = makeStringNode
+            final RubyString ret = makeStringNode
                     .executeMake(cb.toString(), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
             rubyLibrary.taint(ret);
             return ret;
@@ -297,7 +295,7 @@ public abstract class ReadlineNodes {
     public abstract static class SetInputNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int setInput(int fd, DynamicObject io) {
+        protected int setInput(int fd, RubyIO io) {
             final ConsoleHolder oldConsoleHolder = getContext().getConsoleHolder();
             final ConsoleHolder newConsoleHolder = oldConsoleHolder.updateIn(fd, io);
 
@@ -314,7 +312,7 @@ public abstract class ReadlineNodes {
     public abstract static class SetOutputNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected int setOutput(int fd, DynamicObject io) {
+        protected int setOutput(int fd, RubyIO io) {
             final ConsoleHolder oldConsoleHolder = getContext().getConsoleHolder();
             final ConsoleHolder newConsoleHolder = oldConsoleHolder.updateOut(fd, io);
 
@@ -397,12 +395,10 @@ public abstract class ReadlineNodes {
                 buffer = buffer.substring(index + 1);
             }
 
-            DynamicObject string = StringOperations
+            RubyString string = StringOperations
                     .createString(context, StringOperations.encodeRope(buffer, UTF8Encoding.INSTANCE));
             RubyArray completions = (RubyArray) context.send(proc, "call", string);
-            assert RubyGuards.isRubyArray(completions);
             for (Object element : ArrayOperations.toIterable(completions)) {
-                assert RubyGuards.isRubyString(element);
                 candidates.add(StringOperations.getString((RubyString) element));
             }
             return cursor - buffer.length();

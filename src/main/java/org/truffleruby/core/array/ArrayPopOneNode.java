@@ -17,12 +17,11 @@ import org.truffleruby.language.RubyContextNode;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayPopOneNode extends RubyContextNode {
 
-    public abstract Object executePopOne(DynamicObject array);
+    public abstract Object executePopOne(RubyArray array);
 
     // Pop from an empty array
 

@@ -30,6 +30,7 @@ import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
@@ -43,7 +44,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
@@ -399,7 +399,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
             final Node prev = callNodeRef.set(currentNode);
             try {
                 if (RubyGuards.isSingletonClass(rubyModuleObject)) {
-                    DynamicObject receiver = ((RubyClass) rubyModuleObject).attached;
+                    RubyDynamicObject receiver = ((RubyClass) rubyModuleObject).attached;
                     context.send(
                             receiver,
                             "singleton_method_added",

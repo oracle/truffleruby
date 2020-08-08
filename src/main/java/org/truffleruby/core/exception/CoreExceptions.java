@@ -23,6 +23,7 @@ import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
@@ -32,7 +33,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
@@ -43,7 +43,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -196,9 +195,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
-        assert RubyGuards.isRubyString(object);
-
+    public RubyException argumentErrorInvalidStringToInteger(RubyString object, Node currentNode) {
         // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
         final String formattedObject = StringOperations.getString((RubyString) context.send(object, "inspect"));
         return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
@@ -748,7 +745,7 @@ public class CoreExceptions {
                 context.getSymbol(name));
     }
 
-    public RubyNameError nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
+    public RubyNameError nameErrorFromMethodMissing(RubyProc formatter, Object receiver, String name,
             Node currentNode) {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
@@ -786,7 +783,7 @@ public class CoreExceptions {
                 argsArray);
     }
 
-    public RubyNoMethodError noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
+    public RubyNoMethodError noMethodErrorFromMethodMissing(RubyProc formatter, Object receiver, String name,
             Object[] args, Node currentNode) {
         final RubyArray argsArray = createArray(context, args);
 

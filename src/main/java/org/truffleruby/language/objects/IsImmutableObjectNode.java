@@ -11,11 +11,12 @@ package org.truffleruby.language.objects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyDynamicObject;
 
 /** Determines if an object is immutable for Kernel#clone, Kernel#dup, and rb_obj_clone. */
 public abstract class IsImmutableObjectNode extends RubyContextNode {
@@ -60,12 +61,12 @@ public abstract class IsImmutableObjectNode extends RubyContextNode {
     }
 
     @Specialization(guards = "!isRubyBignum(object)")
-    protected boolean isImmutableObject(DynamicObject object) {
-        final DynamicObject logicalClass = getLogicalClass(object);
+    protected boolean isImmutableObject(RubyDynamicObject object) {
+        final RubyClass logicalClass = getLogicalClass(object);
         return logicalClass == coreLibrary().rationalClass || logicalClass == coreLibrary().complexClass;
     }
 
-    private DynamicObject getLogicalClass(Object object) {
+    private RubyClass getLogicalClass(Object object) {
         if (logicalClassNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             logicalClassNode = insert(LogicalClassNode.create());

@@ -21,7 +21,6 @@ import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public final class UnresolvedDispatchNode extends DispatchNode {
 
@@ -59,8 +58,8 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         assert !(receiverObject instanceof NotProvided) : RubyContext.fileLine(getEncapsulatingSourceSection());
 
         // Make sure to have an up-to-date Shape.
-        if (receiverObject instanceof DynamicObject) {
-            ShapeCachingGuards.updateShape((DynamicObject) receiverObject);
+        if (receiverObject instanceof RubyDynamicObject) {
+            ShapeCachingGuards.updateShape((RubyDynamicObject) receiverObject);
         }
 
         final DispatchNode dispatch = atomic(() -> {
@@ -223,7 +222,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                     getContext(),
                     methodName,
                     first,
-                    ((DynamicObject) receiverObject),
+                    ((RubyDynamicObject) receiverObject),
                     method,
                     getDispatchAction());
         } else {
@@ -231,7 +230,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                     getContext(),
                     methodName,
                     first,
-                    ((DynamicObject) receiverObject).getShape(),
+                    ((RubyDynamicObject) receiverObject).getShape(),
                     method,
                     getDispatchAction());
         }
@@ -259,7 +258,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 final MethodLookupResult methodMissing = lookup(null, receiverObject, "method_missing", true, false);
 
                 if (!methodMissing.isDefined()) {
-                    final DynamicObject formatter = ExceptionOperations
+                    final RubyProc formatter = ExceptionOperations
                             .getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
                     throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
                             formatter,

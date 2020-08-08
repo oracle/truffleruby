@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.ImmutableRubyObject;
 
@@ -23,7 +24,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ExportLibrary(InteropLibrary.class)
 public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
@@ -100,7 +100,7 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
     }
 
     @ExportMessage
-    public DynamicObject getMetaObject(
+    public RubyClass getMetaObject(
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().symbolClass;
     }

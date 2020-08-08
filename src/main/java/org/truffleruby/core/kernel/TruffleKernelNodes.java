@@ -17,6 +17,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
+import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.RubyModule;
@@ -46,7 +47,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Truffle::KernelOperations")
@@ -98,7 +98,7 @@ public abstract class TruffleKernelNodes {
                     .getCodeLoader()
                     .parse(source, ParserContext.TOP_LEVEL, null, wrapModule, true, this);
 
-            final DynamicObject mainObject = getContext().getCoreLibrary().mainObject;
+            final RubyBasicObject mainObject = getContext().getCoreLibrary().mainObject;
             final DeclarationContext declarationContext;
             final Object self;
 

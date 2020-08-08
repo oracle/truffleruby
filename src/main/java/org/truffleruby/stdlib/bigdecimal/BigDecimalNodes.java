@@ -31,6 +31,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -44,7 +45,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -941,7 +941,7 @@ public abstract class BigDecimalNodes {
         }
 
         @Specialization(guards = "!isRubyBigDecimal(b)")
-        protected Object compareCoerced(RubyBigDecimal a, DynamicObject b) {
+        protected Object compareCoerced(RubyBigDecimal a, RubyDynamicObject b) {
             return redoCompare(a, b);
         }
 

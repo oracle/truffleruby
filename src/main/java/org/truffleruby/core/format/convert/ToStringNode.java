@@ -12,6 +12,7 @@ package org.truffleruby.core.format.convert;
 import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.library.CachedLibrary;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.kernel.KernelNodes;
@@ -28,7 +29,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild("value")
@@ -104,8 +104,8 @@ public abstract class ToStringNode extends FormatNode {
         return bytesNode.execute(string.rope);
     }
 
-    @Specialization(guards = "isRubyArray(array)")
-    protected byte[] toString(VirtualFrame frame, DynamicObject array,
+    @Specialization
+    protected byte[] toString(VirtualFrame frame, RubyArray array,
             @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary,
             @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {

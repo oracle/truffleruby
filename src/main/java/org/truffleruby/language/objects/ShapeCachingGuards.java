@@ -11,15 +11,15 @@
 package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
 public abstract class ShapeCachingGuards {
 
-    public static boolean updateShape(DynamicObject object) {
+    public static boolean updateShape(RubyDynamicObject object) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         // TODO (eregon, 14 July 2020): review callers, once they use the library they should not need to update the Shape manually anymore
         boolean updated = DynamicObjectLibrary.getUncached().updateShape(object);

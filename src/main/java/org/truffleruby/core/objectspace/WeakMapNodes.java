@@ -9,8 +9,6 @@
  */
 package org.truffleruby.core.objectspace;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -26,8 +24,9 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 
 /** Note that WeakMap uses identity comparison semantics. See top comment in src/main/ruby/truffleruby/core/weakmap.rb
  * for more information. */
@@ -40,7 +39,7 @@ public abstract class WeakMapNodes {
         @Child private AllocateHelperNode allocate = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(RubyClass rubyClass) {
+        protected RubyWeakMap allocate(RubyClass rubyClass) {
             final Shape shape = allocate.getCachedShape(rubyClass);
             final RubyWeakMap weakMap = new RubyWeakMap(shape, new WeakMapStorage());
             allocate.trace(weakMap, this);
@@ -108,12 +107,12 @@ public abstract class WeakMapNodes {
     public abstract static class EachKeyNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected DynamicObject eachKey(RubyWeakMap map, NotProvided block) {
+        protected RubyWeakMap eachKey(RubyWeakMap map, NotProvided block) {
             return eachNoBlockProvided(this, map);
         }
 
         @Specialization
-        protected DynamicObject eachKey(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap eachKey(RubyWeakMap map, RubyProc block) {
             for (Object key : keys(map.storage)) {
                 yield(block, key);
             }
@@ -125,12 +124,12 @@ public abstract class WeakMapNodes {
     public abstract static class EachValueNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected DynamicObject eachValue(RubyWeakMap map, NotProvided block) {
+        protected RubyWeakMap eachValue(RubyWeakMap map, NotProvided block) {
             return eachNoBlockProvided(this, map);
         }
 
         @Specialization
-        protected DynamicObject eachValue(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap eachValue(RubyWeakMap map, RubyProc block) {
             for (Object value : values(map.storage)) {
                 yield(block, value);
             }
@@ -142,12 +141,12 @@ public abstract class WeakMapNodes {
     public abstract static class EachNode extends YieldingCoreMethodNode {
 
         @Specialization
-        protected DynamicObject each(RubyWeakMap map, NotProvided block) {
+        protected RubyWeakMap each(RubyWeakMap map, NotProvided block) {
             return eachNoBlockProvided(this, map);
         }
 
         @Specialization
-        protected DynamicObject each(RubyWeakMap map, RubyProc block) {
+        protected RubyWeakMap each(RubyWeakMap map, RubyProc block) {
 
             for (WeakValueCache.WeakMapEntry<?, ?> e : entries(map.storage)) {
                 yield(block, e.getKey(), e.getValue());
@@ -172,7 +171,7 @@ public abstract class WeakMapNodes {
         return storage.entries().toArray(new WeakValueCache.WeakMapEntry<?, ?>[0]);
     }
 
-    private static DynamicObject eachNoBlockProvided(YieldingCoreMethodNode node, RubyWeakMap map) {
+    private static RubyWeakMap eachNoBlockProvided(YieldingCoreMethodNode node, RubyWeakMap map) {
         if (map.storage.size() == 0) {
             return map;
         }

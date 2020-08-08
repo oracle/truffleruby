@@ -12,6 +12,7 @@ package org.truffleruby.core.exception;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
@@ -23,7 +24,6 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -100,10 +100,8 @@ public abstract class ExceptionOperations {
         exception.initCause(cause);
     }
 
-    public static DynamicObject getFormatter(String name, RubyContext context) {
-        return (DynamicObject) context.getCoreLibrary().truffleExceptionOperationsModule.fields
-                .getConstant(name)
-                .getValue();
+    public static RubyProc getFormatter(String name, RubyContext context) {
+        return (RubyProc) context.getCoreLibrary().truffleExceptionOperationsModule.fields.getConstant(name).getValue();
     }
 
     public static RuntimeException rethrow(Throwable throwable) {

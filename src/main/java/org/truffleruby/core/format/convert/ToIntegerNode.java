@@ -17,7 +17,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @NodeChild("value")
 public abstract class ToIntegerNode extends FormatNode {
@@ -37,7 +36,7 @@ public abstract class ToIntegerNode extends FormatNode {
     }
 
     @Specialization
-    protected DynamicObject toInteger(RubyBignum value) {
+    protected RubyBignum toInteger(RubyBignum value) {
         return value;
     }
 

@@ -13,7 +13,9 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.objectspace.ObjectSpaceManager;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -22,12 +24,11 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class AllocationTracing {
 
-    public static void trace(RubyLanguage language, RubyContext context, DynamicObject instance, Node currentNode) {
+    public static void trace(RubyLanguage language, RubyContext context, RubyDynamicObject instance, Node currentNode) {
         CompilerAsserts.partialEvaluationConstant(language);
 
         final AllocationReporter allocationReporter = language.getAllocationReporter();
@@ -42,7 +43,7 @@ public abstract class AllocationTracing {
     }
 
     @TruffleBoundary
-    private static void traceBoundary(RubyContext context, DynamicObject object, Node currentNode) {
+    private static void traceBoundary(RubyContext context, RubyDynamicObject object, Node currentNode) {
         final ObjectSpaceManager objectSpaceManager = context.getObjectSpaceManager();
         if (!objectSpaceManager.isTracingPaused()) {
             objectSpaceManager.setTracingPaused(true);
@@ -55,7 +56,7 @@ public abstract class AllocationTracing {
     }
 
     @TruffleBoundary
-    private static void callTraceAllocation(RubyContext context, DynamicObject object, Node currentNode) {
+    private static void callTraceAllocation(RubyContext context, RubyDynamicObject object, Node currentNode) {
         final SourceSection allocatingSourceSection = context
                 .getCallStack()
                 .getTopMostUserSourceSection(currentNode.getEncapsulatingSourceSection());
@@ -78,7 +79,7 @@ public abstract class AllocationTracing {
                 ObjectSpaceManager.getCollectionCount());
     }
 
-    private static DynamicObject string(RubyContext context, String value) {
+    private static RubyString string(RubyContext context, String value) {
         // No point to use MakeStringNode (which uses AllocateObjectNode) here, as we should not
         // trace the allocation of Strings used for tracing allocations.
         return StringOperations.createString(context, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));

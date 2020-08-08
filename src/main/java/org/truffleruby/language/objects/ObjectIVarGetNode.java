@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.symbol.SymbolTable;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -21,7 +22,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ReportPolymorphism
 @GenerateUncached
@@ -31,14 +31,14 @@ public abstract class ObjectIVarGetNode extends RubyBaseNode {
         return ObjectIVarGetNodeGen.create();
     }
 
-    public abstract Object executeIVarGet(DynamicObject object, Object name, boolean checkName);
+    public abstract Object executeIVarGet(RubyDynamicObject object, Object name, boolean checkName);
 
-    public final Object executeIVarGet(DynamicObject object, Object name) {
+    public final Object executeIVarGet(RubyDynamicObject object, Object name) {
         return executeIVarGet(object, name, false);
     }
 
     @Specialization(guards = { "name == cachedName", "checkName == cachedCheckName" }, limit = "getCacheLimit()")
-    protected Object ivarGetCached(DynamicObject object, Object name, boolean checkName,
+    protected Object ivarGetCached(RubyDynamicObject object, Object name, boolean checkName,
             @Cached("checkName") boolean cachedCheckName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("checkName(context, object, name, cachedCheckName)") Object cachedName,
@@ -48,7 +48,7 @@ public abstract class ObjectIVarGetNode extends RubyBaseNode {
 
     @TruffleBoundary
     @Specialization(replaces = "ivarGetCached")
-    protected Object ivarGetUncached(DynamicObject object, Object name, boolean checkName,
+    protected Object ivarGetUncached(RubyDynamicObject object, Object name, boolean checkName,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return ReadObjectFieldNodeGen.getUncached().execute(
                 object,
@@ -56,12 +56,12 @@ public abstract class ObjectIVarGetNode extends RubyBaseNode {
                 nil);
     }
 
-    protected Object checkName(RubyContext context, DynamicObject object, Object name, boolean checkName) {
+    protected Object checkName(RubyContext context, RubyDynamicObject object, Object name, boolean checkName) {
         return checkName(context, object, name, checkName, this);
     }
 
     static Object checkName(
-            RubyContext context, DynamicObject object, Object name, boolean checkName, Node currentNode) {
+            RubyContext context, RubyDynamicObject object, Object name, boolean checkName, Node currentNode) {
         return checkName ? SymbolTable.checkInstanceVariableName(context, (String) name, object, currentNode) : name;
     }
 

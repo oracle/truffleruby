@@ -12,6 +12,7 @@ package org.truffleruby.language.objects.shared;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.TruffleLanguage;
@@ -20,7 +21,6 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @ImportStatic(ShapeCachingGuards.class)
@@ -29,7 +29,7 @@ public abstract class IsSharedNode extends RubyBaseNode {
 
     protected static final int CACHE_LIMIT = 8;
 
-    public abstract boolean executeIsShared(DynamicObject object);
+    public abstract boolean executeIsShared(RubyDynamicObject object);
 
     public static IsSharedNode create() {
         return IsSharedNodeGen.create();
@@ -39,7 +39,7 @@ public abstract class IsSharedNode extends RubyBaseNode {
             guards = { "object.getShape() == cachedShape", "contextReference.get() == cachedContext" },
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
-    protected boolean isShareCached(DynamicObject object,
+    protected boolean isShareCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
             @Cached("contextReference.get()") RubyContext cachedContext,
@@ -48,12 +48,12 @@ public abstract class IsSharedNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "updateShape(object)")
-    protected boolean updateShapeAndIsShared(DynamicObject object) {
+    protected boolean updateShapeAndIsShared(RubyDynamicObject object) {
         return executeIsShared(object);
     }
 
     @Specialization(replaces = { "isShareCached", "updateShapeAndIsShared" })
-    protected boolean isSharedUncached(DynamicObject object,
+    protected boolean isSharedUncached(RubyDynamicObject object,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return SharedObjects.isShared(context, object);
     }

@@ -114,7 +114,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Layout;
 import com.oracle.truffle.api.object.Property;
@@ -280,7 +279,7 @@ public class CoreLibrary {
     public final Shape weakMapShape;
 
     public final RubyArray argv;
-    public final DynamicObject mainObject;
+    public final RubyBasicObject mainObject;
 
     public final GlobalVariables globalVariables;
 
@@ -1101,8 +1100,8 @@ public class CoreLibrary {
         return stderrReader.getValue(globalVariables);
     }
 
-    public DynamicObject getENV() {
-        return (DynamicObject) objectClass.fields.getConstant("ENV").getValue();
+    public RubyBasicObject getENV() {
+        return (RubyBasicObject) objectClass.fields.getConstant("ENV").getValue();
     }
 
     @TruffleBoundary

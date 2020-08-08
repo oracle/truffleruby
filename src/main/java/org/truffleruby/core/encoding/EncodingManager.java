@@ -12,9 +12,14 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.ProcessProperties;
 import org.jcodings.Encoding;
@@ -30,19 +35,15 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.EncodingUtils;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.TruffleNFIPlatform;
 import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 /** Always use {@link Encoding#getIndex()} for encoding indices. Never use
  * {@link org.jcodings.EncodingDB.Entry#getIndex()}. */
@@ -78,7 +79,7 @@ public class EncodingManager {
         while (hei.hasNext()) {
             final CaseInsensitiveBytesHashEntry<EncodingDB.Entry> e = hei.next();
             final EncodingDB.Entry encodingEntry = e.value;
-            final DynamicObject rubyEncoding = defineEncoding(encodingEntry, e.bytes, e.p, e.end);
+            final RubyEncoding rubyEncoding = defineEncoding(encodingEntry, e.bytes, e.p, e.end);
 
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
                 encodingClass.fields.setConstant(context, null, constName, rubyEncoding);
@@ -97,7 +98,7 @@ public class EncodingManager {
 
             // The alias name should be exactly the one in the encodings DB.
             final Encoding encoding = encodingEntry.getEncoding();
-            final DynamicObject rubyEncoding = defineAlias(encoding, new String(e.bytes, e.p, e.end));
+            final RubyEncoding rubyEncoding = defineAlias(encoding, new String(e.bytes, e.p, e.end));
 
             // The constant names must be treated by the the <code>encodingNames</code> helper.
             for (String constName : EncodingUtils.encodingNames(e.bytes, e.p, e.end)) {
@@ -180,7 +181,7 @@ public class EncodingManager {
         final Rope cachedRope = context
                 .getRopeCache()
                 .getRope(rope.getBytes(), rope.getEncoding(), rope.getCodeRange());
-        final DynamicObject string = StringOperations.createFrozenString(context, cachedRope);
+        final RubyString string = StringOperations.createFrozenString(context, cachedRope);
 
         final RubyEncoding instance = new RubyEncoding(context.getCoreLibrary().encodingShape, encoding, string);
         // TODO BJF Jul-29-2020 Add allocation tracing
@@ -261,7 +262,7 @@ public class EncodingManager {
     }
 
     @TruffleBoundary
-    public DynamicObject defineAlias(Encoding encoding, String name) {
+    public RubyEncoding defineAlias(Encoding encoding, String name) {
         final RubyEncoding rubyEncoding = getRubyEncoding(encoding);
         LOOKUP.put(name.toLowerCase(Locale.ENGLISH), rubyEncoding);
         return rubyEncoding;

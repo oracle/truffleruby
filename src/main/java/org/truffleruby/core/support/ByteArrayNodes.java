@@ -29,7 +29,6 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.ArrayUtils;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -56,7 +55,7 @@ public abstract class ByteArrayNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize(RubyByteArray byteArray, int size) {
+        protected RubyByteArray initialize(RubyByteArray byteArray, int size) {
             final byte[] bytes = new byte[size];
             byteArray.bytes = bytes;
             return byteArray;
@@ -80,7 +79,7 @@ public abstract class ByteArrayNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject prepend(RubyByteArray byteArray, RubyString string,
+        protected RubyByteArray prepend(RubyByteArray byteArray, RubyString string,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final byte[] bytes = byteArray.bytes;
 

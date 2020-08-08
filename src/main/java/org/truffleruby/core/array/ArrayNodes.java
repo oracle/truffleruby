@@ -52,6 +52,7 @@ import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.numeric.FixnumLowerNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RangeNodes.NormalizedStartLengthNode;
+import org.truffleruby.core.range.RubyRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.string.RubyString;
@@ -89,7 +90,6 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.profiles.IntValueProfile;
@@ -261,8 +261,8 @@ public abstract class ArrayNodes {
             return readNode.executeRead(array, normalizedIndex);
         }
 
-        @Specialization(guards = "isRubyRange(range)")
-        protected Object indexRange(RubyArray array, DynamicObject range, NotProvided length,
+        @Specialization
+        protected Object indexRange(RubyArray array, RubyRange range, NotProvided length,
                 @Cached NormalizedStartLengthNode startLengthNode,
                 @Cached ReadSliceNormalizedNode readSlice) {
             final int[] startLength = startLengthNode.execute(range, array.size);
@@ -327,8 +327,8 @@ public abstract class ArrayNodes {
             return writeNode.executeWrite(array, nIndex, value);
         }
 
-        @Specialization(guards = "isRubyRange(range)")
-        protected Object setRange(RubyArray array, DynamicObject range, Object value, NotProvided unused,
+        @Specialization
+        protected Object setRange(RubyArray array, RubyRange range, Object value, NotProvided unused,
                 @Cached NormalizedStartLengthNode normalizedStartLength,
                 @Cached BranchProfile negativeStart) {
             final int[] startLength = normalizedStartLength.execute(range, array.size);
@@ -537,8 +537,8 @@ public abstract class ArrayNodes {
             return array;
         }
 
-        @Specialization(guards = "rest.length == 0")
-        protected RubyArray concatOne(RubyArray array, DynamicObject first, Object[] rest,
+        @Specialization(guards = { "wasProvided(first)", "rest.length == 0" })
+        protected RubyArray concatOne(RubyArray array, Object first, Object[] rest,
                 @Cached("createInternal()") ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode) {
             appendManyNode.executeAppendMany(array, toAryNode.executeToAry(first));
@@ -552,7 +552,7 @@ public abstract class ArrayNodes {
                         "rest.length > 0",
                         "rest.length == cachedLength",
                         "cachedLength <= 8" })
-        protected RubyArray concatMany(RubyArray array, DynamicObject first, Object[] rest,
+        protected RubyArray concatMany(RubyArray array, Object first, Object[] rest,
                 @Cached("rest.length") int cachedLength,
                 @Cached("createInternal()") ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode,
@@ -574,7 +574,7 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = { "wasProvided(first)", "rest.length > 0" },
                 replaces = "concatMany")
-        protected RubyArray concatManyGeneral(RubyArray array, DynamicObject first, Object[] rest,
+        protected RubyArray concatManyGeneral(RubyArray array, Object first, Object[] rest,
                 @Cached("createInternal()") ToAryNode toAryNode,
                 @Cached ArrayAppendManyNode appendManyNode,
                 @Cached ArrayCopyOnWriteNode cowNode,
@@ -801,9 +801,9 @@ public abstract class ArrayNodes {
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
 
         @Specialization(
-                guards = { "isRubyArray(b)", "stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
+                guards = { "stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
                 limit = "storageStrategyLimit()")
-        protected boolean equalSamePrimitiveType(VirtualFrame frame, RubyArray a, RubyArray b,
+        protected boolean equalSamePrimitiveType(RubyArray a, RubyArray b,
                 @CachedLibrary("a.store") ArrayStoreLibrary stores,
                 @Cached ConditionProfile sameProfile,
                 @Cached("createIdentityProfile()") IntValueProfile sizeProfile,
@@ -838,7 +838,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "isRubyArray(b)", "!stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
+                guards = { "!stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
                 limit = "storageStrategyLimit()")
         protected Object equalDifferentPrimitiveType(RubyArray a, RubyArray b,
                 @CachedLibrary("a.store") ArrayStoreLibrary stores) {
@@ -846,7 +846,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "isRubyArray(b)", "stores.accepts(a.store)", "!stores.isPrimitive(a.store)" },
+                guards = { "stores.accepts(a.store)", "!stores.isPrimitive(a.store)" },
                 limit = "storageStrategyLimit()")
         protected Object equalNotPrimitiveType(RubyArray a, RubyArray b,
                 @CachedLibrary("a.store") ArrayStoreLibrary stores) {
@@ -867,7 +867,7 @@ public abstract class ArrayNodes {
         @Child private SameOrEqlNode eqlNode = SameOrEqlNodeFactory.create(null);
 
         @Specialization(
-                guards = { "isRubyArray(b)", "stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
+                guards = { "stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
                 limit = "storageStrategyLimit()")
         protected boolean eqlSamePrimitiveType(RubyArray a, RubyArray b,
                 @CachedLibrary("a.store") ArrayStoreLibrary stores,
@@ -903,7 +903,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "isRubyArray(b)", "!stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
+                guards = { "!stores.accepts(b.store)", "stores.isPrimitive(a.store)" },
                 limit = "storageStrategyLimit()")
         protected Object eqlDifferentPrimitiveType(RubyArray a, RubyArray b,
                 @CachedLibrary("a.store") ArrayStoreLibrary stores) {
@@ -911,7 +911,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(
-                guards = { "isRubyArray(b)", "!stores.isPrimitive(a.store)" },
+                guards = { "!stores.isPrimitive(a.store)" },
                 limit = "storageStrategyLimit()")
         protected Object eqlNotPrimitiveType(RubyArray a, RubyArray b,
                 @CachedLibrary("a.store") ArrayStoreLibrary stores) {
@@ -1443,9 +1443,9 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(guards = "equalNode.execute(format.rope, cachedFormat)", limit = "getCacheLimit()")
-        protected DynamicObject packCached(RubyArray array, RubyString format,
+        protected RubyString packCached(RubyArray array, RubyString format,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
-                @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
+                @Cached("cachedFormat.byteLength()") int cachedFormatLength,
                 @Cached("create(compileFormat(format))") DirectCallNode callPackNode,
                 @Cached RopeNodes.EqualNode equalNode) {
             final BytesResult result;
@@ -1462,7 +1462,7 @@ public abstract class ArrayNodes {
         }
 
         @Specialization(replaces = "packCached")
-        protected DynamicObject packUncached(RubyArray array, RubyString format,
+        protected RubyString packUncached(RubyArray array, RubyString format,
                 @Cached IndirectCallNode callPackNode) {
             final BytesResult result;
 
@@ -1478,7 +1478,7 @@ public abstract class ArrayNodes {
             return finishPack(format.rope.byteLength(), result);
         }
 
-        private DynamicObject finishPack(int formatLength, BytesResult result) {
+        private RubyString finishPack(int formatLength, BytesResult result) {
             byte[] bytes = result.getOutput();
 
             if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
@@ -1495,7 +1495,7 @@ public abstract class ArrayNodes {
                 makeStringNode = insert(StringNodes.MakeStringNode.create());
             }
 
-            final DynamicObject string = makeStringNode.fromRope(makeLeafRopeNode.executeMake(
+            final RubyString string = makeStringNode.fromRope(makeLeafRopeNode.executeMake(
                     bytes,
                     result.getEncoding().getEncodingForLength(formatLength),
                     result.getStringCodeRange(),
@@ -1522,7 +1522,7 @@ public abstract class ArrayNodes {
         }
 
         @TruffleBoundary
-        protected RootCallTarget compileFormat(DynamicObject format) {
+        protected RootCallTarget compileFormat(RubyString format) {
             return new PackCompiler(getContext(), this).compile(format.toString());
         }
 

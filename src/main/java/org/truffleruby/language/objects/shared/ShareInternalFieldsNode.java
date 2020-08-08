@@ -20,13 +20,13 @@ import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -42,7 +42,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
         this.depth = depth;
     }
 
-    public abstract void executeShare(DynamicObject object);
+    public abstract void executeShare(RubyDynamicObject object);
 
     @Specialization(guards = "isObjectArray(array)")
     protected void shareCachedObjectArray(RubyArray array,
@@ -99,7 +99,7 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
                     "shareCachedPrimitiveArray",
                     "shareCachedQueue",
                     "shareCachedBasicObject" })
-    protected void shareUncached(DynamicObject object) {
+    protected void shareUncached(RubyDynamicObject object) {
         SharedObjects.shareInternalFields(getContext(), object);
     }
 

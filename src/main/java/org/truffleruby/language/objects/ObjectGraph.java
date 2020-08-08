@@ -9,14 +9,13 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Property;
+import java.util.ArrayDeque;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.IdentityHashMap;
+import java.util.Set;
+
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.proc.RubyProc;
@@ -24,12 +23,13 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.IdentityHashMap;
-import java.util.Set;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.Frame;
+import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.object.Property;
 
 public abstract class ObjectGraph {
 
@@ -68,8 +68,8 @@ public abstract class ObjectGraph {
                     final Object object = stack.pop();
 
                     if (visited.add(object)) {
-                        if (object instanceof DynamicObject) {
-                            stack.addAll(ObjectGraph.getAdjacentObjects((DynamicObject) object));
+                        if (object instanceof RubyDynamicObject) {
+                            stack.addAll(ObjectGraph.getAdjacentObjects((RubyDynamicObject) object));
                         }
                     }
                 }
@@ -106,24 +106,21 @@ public abstract class ObjectGraph {
     }
 
     public static boolean isSymbolOrDynamicObject(Object value) {
-        return value instanceof DynamicObject || value instanceof RubySymbol;
+        return value instanceof RubyDynamicObject || value instanceof RubySymbol;
     }
 
-    public static Set<Object> getAdjacentObjects(DynamicObject object) {
+    public static Set<Object> getAdjacentObjects(RubyDynamicObject object) {
         final Set<Object> reachable = newObjectSet();
+
+        reachable.add(object.getLogicalClass());
+        reachable.add(object.getMetaClass());
 
         if (object instanceof ObjectGraphNode) {
             ((ObjectGraphNode) object).getAdjacentObjects(reachable);
         }
 
-        if (object instanceof RubyDynamicObject) {
-            reachable.add(((RubyDynamicObject) object).getLogicalClass());
-            reachable.add(((RubyDynamicObject) object).getMetaClass());
-        }
-
         for (Property property : object.getShape().getPropertyListInternal(false)) {
             final Object value = property.get(object, object.getShape());
-
             addProperty(reachable, value);
         }
 

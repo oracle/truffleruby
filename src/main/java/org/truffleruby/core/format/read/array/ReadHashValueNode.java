@@ -11,6 +11,7 @@ package org.truffleruby.core.format.read.array;
 
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.read.SourceNode;
+import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -19,7 +20,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "source", type = SourceNode.class)
@@ -41,7 +41,7 @@ public abstract class ReadHashValueNode extends FormatNode {
             throw new RaiseException(getContext(), getContext().getCoreExceptions().argumentErrorOneHashRequired(this));
         }
 
-        final DynamicObject hash = (DynamicObject) source[0];
+        final RubyHash hash = (RubyHash) source[0];
 
         if (fetchNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();

@@ -20,7 +20,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Builds a new Array and learns its storage strategy and its expected length. The storage strategy is generalized as
  * needed and the expected length is increased until all elements fit.
@@ -51,7 +50,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
 
     public abstract BuilderState start(int length);
 
-    public abstract void appendArray(BuilderState state, int index, DynamicObject array);
+    public abstract void appendArray(BuilderState state, int index, RubyArray array);
 
     public abstract void appendValue(BuilderState state, int index, Object value);
 
@@ -74,7 +73,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
         }
 
         @Override
-        public void appendArray(BuilderState state, int index, DynamicObject array) {
+        public void appendArray(BuilderState state, int index, RubyArray array) {
             getAppendArrayNode().executeAppend(state, index, array);
         }
 
@@ -262,7 +261,7 @@ public abstract class ArrayBuilderNode extends RubyContextNode {
             this.allocator = allocator;
         }
 
-        public abstract void executeAppend(BuilderState state, int index, DynamicObject value);
+        public abstract void executeAppend(BuilderState state, int index, RubyArray value);
 
         @Specialization(
                 guards = { "arrays.acceptsAllValues(state.store, other.store)" },

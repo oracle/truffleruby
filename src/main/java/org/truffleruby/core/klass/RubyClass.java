@@ -15,25 +15,25 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.IsANode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @ExportLibrary(InteropLibrary.class)
 public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
     public final boolean isSingleton;
-    public final DynamicObject attached;
+    public final RubyDynamicObject attached;
     public Shape instanceShape = null;
     /* a RubyClass, or nil for BasicObject, or null when not yet initialized */
     public Object superclass = null;
 
-    public RubyClass(Shape shape, ModuleFields fields, boolean isSingleton, DynamicObject attached) {
+    public RubyClass(Shape shape, ModuleFields fields, boolean isSingleton, RubyDynamicObject attached) {
         super(shape, fields);
         this.isSingleton = isSingleton;
         this.attached = attached;

@@ -19,7 +19,6 @@ import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyConstant implements ObjectGraphNode {
@@ -165,7 +164,7 @@ public class RubyConstant implements ObjectGraphNode {
 
         // Look in ancestors
         if (module instanceof RubyClass) {
-            for (DynamicObject included : module.fields.ancestors()) {
+            for (RubyModule included : module.fields.ancestors()) {
                 if (included != module && included == declaringModule) {
                     return true;
                 }

@@ -20,7 +20,6 @@ import java.io.Reader;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Source;
@@ -112,7 +111,7 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = new RubyArray(
+            RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
@@ -126,7 +125,7 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = new RubyArray(
+            RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     new int[10],
                     10);
@@ -140,7 +139,7 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = new RubyArray(
+            RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     new long[10],
                     10);
@@ -154,7 +153,7 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = new RubyArray(
+            RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     new double[10],
                     10);
@@ -168,7 +167,7 @@ public class ArrayBuilderTest {
         testInContext(() -> {
             ArrayBuilderNode builder = createBuilder();
             BuilderState state = builder.start(10);
-            DynamicObject otherStore = new RubyArray(
+            RubyArray otherStore = new RubyArray(
                     RubyLanguage.getCurrentContext().getCoreLibrary().arrayShape,
                     new Object[10],
                     10);

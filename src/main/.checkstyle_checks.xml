@@ -211,7 +211,7 @@
       <property name="message" value="Don't use transferToInterpreterOnException"/>
     </module>
     <module name="IllegalType">
-      <property name="illegalClassNames" value="TruffleObject"/>
+      <property name="illegalClassNames" value="TruffleObject,DynamicObject"/>
     </module>
   </module>
   <module name="RegexpMultiline">

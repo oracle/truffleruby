@@ -11,6 +11,7 @@ package org.truffleruby.core.tracepoint;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.yield.YieldNode;
 
@@ -18,7 +19,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.ExecutionEventNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 
 public class TraceBaseEventNode extends ExecutionEventNode {
@@ -26,7 +26,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
     protected final RubyContext context;
     protected final EventContext eventContext;
 
-    @CompilationFinal private DynamicObject file;
+    @CompilationFinal private RubyString file;
     @CompilationFinal private int line;
 
     @Child private YieldNode yieldNode;
@@ -36,7 +36,7 @@ public class TraceBaseEventNode extends ExecutionEventNode {
         this.eventContext = eventContext;
     }
 
-    protected DynamicObject getFile() {
+    protected RubyString getFile() {
         if (file == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             final Source source = eventContext.getInstrumentedSourceSection().getSource();

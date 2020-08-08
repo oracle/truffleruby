@@ -12,6 +12,7 @@ package org.truffleruby.debug;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.globals.GlobalVariables;
@@ -27,7 +28,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class GlobalScope {
 
@@ -70,7 +70,7 @@ public class GlobalScope {
             if (!isMemberReadable(member)) {
                 throw UnknownIdentifierException.create(member);
             } else {
-                final DynamicObject string = StringOperations
+                final RubyString string = StringOperations
                         .createString(context, StringOperations.encodeRope(member, UTF8Encoding.INSTANCE));
                 return evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
             }
@@ -86,7 +86,7 @@ public class GlobalScope {
                 throw UnknownIdentifierException.create(member);
             } else {
                 final String code = "-> value { " + member + " = value }";
-                final DynamicObject string = StringOperations
+                final RubyString string = StringOperations
                         .createString(context, StringOperations.encodeRope(code, UTF8Encoding.INSTANCE));
                 final Object lambda = evalNode.call(context.getCoreLibrary().topLevelBinding, "eval", string);
                 callNode.call(lambda, "call", value);

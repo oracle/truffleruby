@@ -9,14 +9,6 @@
  */
 package org.truffleruby.core.queue;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.CreateCast;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -30,6 +22,14 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.shared.PropagateSharingNode;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.CreateCast;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
+
 @CoreModule(value = "Queue", isClass = true)
 public abstract class QueueNodes {
 
@@ -39,7 +39,7 @@ public abstract class QueueNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(RubyClass rubyClass) {
+        protected RubyQueue allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyQueue instance = new RubyQueue(shape, new UnsizedQueue());
             allocateNode.trace(instance, this);
@@ -54,7 +54,7 @@ public abstract class QueueNodes {
         @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
         @Specialization
-        protected DynamicObject push(RubyQueue self, final Object value) {
+        protected RubyQueue push(RubyQueue self, final Object value) {
             final UnsizedQueue queue = self.queue;
 
             propagateSharingNode.executePropagate(self, value);
@@ -182,7 +182,7 @@ public abstract class QueueNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject clear(RubyQueue self) {
+        protected RubyQueue clear(RubyQueue self) {
             final UnsizedQueue queue = self.queue;
             queue.clear();
             return self;
@@ -194,7 +194,7 @@ public abstract class QueueNodes {
     public abstract static class MarshalDumpNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected Object marshal_dump(DynamicObject self) {
+        protected Object marshal_dump(RubyQueue self) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorCantDump(self, this));
         }
 
@@ -215,7 +215,7 @@ public abstract class QueueNodes {
     public abstract static class CloseNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject close(RubyQueue self) {
+        protected RubyQueue close(RubyQueue self) {
             self.queue.close();
             return self;
         }

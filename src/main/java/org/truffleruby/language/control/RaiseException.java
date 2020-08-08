@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
@@ -20,7 +21,6 @@ import org.truffleruby.language.objects.ReadObjectFieldNodeGen;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 /** A ControlFlowException holding a Ruby exception. */
@@ -124,7 +124,7 @@ public class RaiseException extends RuntimeException implements TruffleException
                 String.format("Ruby exit exception status is not an integer (%s)", status.getClass()));
     }
 
-    private boolean isA(RubyContext context, DynamicObject rubyClass) {
+    private boolean isA(RubyContext context, RubyClass rubyClass) {
         return context.send(exception, "is_a?", rubyClass) == Boolean.TRUE;
     }
 

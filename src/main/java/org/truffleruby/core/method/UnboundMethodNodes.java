@@ -22,6 +22,7 @@ import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyGuards;
@@ -38,7 +39,6 @@ import org.truffleruby.utils.Utils;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -55,7 +55,7 @@ public abstract class UnboundMethodNodes {
         }
 
         @Specialization(guards = "!isRubyUnboundMethod(other)")
-        protected boolean equal(DynamicObject self, Object other) {
+        protected boolean equal(RubyUnboundMethod self, Object other) {
             return false;
         }
 
@@ -77,7 +77,7 @@ public abstract class UnboundMethodNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject bind(RubyUnboundMethod unboundMethod, Object object,
+        protected RubyMethod bind(RubyUnboundMethod unboundMethod, Object object,
                 @Cached MetaClassNode metaClassNode,
                 @Cached CanBindMethodToModuleNode canBindMethodToModuleNode,
                 @Cached BranchProfile errorProfile) {
@@ -185,7 +185,7 @@ public abstract class UnboundMethodNodes {
             if (!sourceSection.isAvailable()) {
                 return nil;
             } else {
-                DynamicObject file = makeStringNode.executeMake(
+                RubyString file = makeStringNode.executeMake(
                         RubyContext.getPath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
@@ -224,7 +224,7 @@ public abstract class UnboundMethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject allocate(RubyClass rubyClass) {
+        protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

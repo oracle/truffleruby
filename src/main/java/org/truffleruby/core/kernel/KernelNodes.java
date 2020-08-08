@@ -148,7 +148,6 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
@@ -280,7 +279,7 @@ public abstract class KernelNodes {
 
         @Specialization
         @TruffleBoundary
-        protected DynamicObject getCallerPath(RubyString feature,
+        protected RubyString getCallerPath(RubyString feature,
                 @Cached MakeStringNode makeStringNode) {
             final String featureString = StringOperations.getString(feature);
             final String featurePath;
@@ -323,7 +322,7 @@ public abstract class KernelNodes {
         @Child private RequireNode requireNode = RequireNodeGen.create();
 
         @Specialization
-        protected boolean loadFeature(RubyString featureString, DynamicObject expandedPathString) {
+        protected boolean loadFeature(RubyString featureString, RubyString expandedPathString) {
             return requireNode.executeRequire(StringOperations.getString(featureString), expandedPathString);
         }
 
@@ -419,7 +418,7 @@ public abstract class KernelNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        protected DynamicObject getClass(VirtualFrame frame, Object self) {
+        protected RubyClass getClass(Object self) {
             return classNode.executeLogicalClass(self);
         }
 
@@ -436,17 +435,17 @@ public abstract class KernelNodes {
 
         @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
 
-        public abstract DynamicObject executeCopy(DynamicObject self);
+        public abstract RubyDynamicObject executeCopy(RubyDynamicObject self);
 
         @ExplodeLoop
         @Specialization(guards = "self.getShape() == cachedShape", limit = "getCacheLimit()")
-        protected DynamicObject copyCached(RubyDynamicObject self,
+        protected RubyDynamicObject copyCached(RubyDynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
                 @Cached("getLogicalClass(cachedShape)") RubyClass logicalClass,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
                 @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
-            final DynamicObject newObject = (DynamicObject) allocateNode.call(logicalClass, "__allocate__");
+            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(logicalClass, "__allocate__");
 
             for (int i = 0; i < properties.length; i++) {
                 final Object value = readFieldNodes[i].execute(self, properties[i].getKey(), nil);
@@ -462,9 +461,9 @@ public abstract class KernelNodes {
         }
 
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
-        protected DynamicObject copyUncached(RubyDynamicObject self) {
+        protected RubyDynamicObject copyUncached(RubyDynamicObject self) {
             final RubyClass rubyClass = self.getLogicalClass();
-            final DynamicObject newObject = (DynamicObject) allocateNode.call(rubyClass, "__allocate__");
+            final RubyDynamicObject newObject = (RubyDynamicObject) allocateNode.call(rubyClass, "__allocate__");
             copyInstanceVariables(self, newObject);
             return newObject;
         }
@@ -498,7 +497,7 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        private void copyInstanceVariables(DynamicObject from, DynamicObject to) {
+        private void copyInstanceVariables(RubyDynamicObject from, RubyDynamicObject to) {
             // Concurrency: OK if callers create the object and publish it after copy
             // Only copy user-level instance variables, hidden ones are initialized later with #initialize_copy.
             for (Property property : getCopiedProperties(from.getShape())) {
@@ -532,14 +531,14 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(self)", limit = "getRubyLibraryCacheLimit()")
-        protected DynamicObject clone(RubyDynamicObject self, boolean freeze,
+        protected RubyDynamicObject clone(RubyDynamicObject self, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
                 @Cached ConditionProfile isRubyClass,
                 @CachedLibrary("self") RubyLibrary rubyLibrary,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibraryFreeze) {
-            final DynamicObject newObject = copyNode.executeCopy(self);
+            final RubyDynamicObject newObject = copyNode.executeCopy(self);
 
             // Copy the singleton class if any.
             final RubyClass selfMetaClass = self.getMetaClass();
@@ -630,7 +629,7 @@ public abstract class KernelNodes {
             throw new RaiseException(getContext(), coreExceptions().argumentErrorCantUnfreeze(self, this));
         }
 
-        private RubyClass executeSingletonClass(DynamicObject newObject) {
+        private RubyClass executeSingletonClass(RubyDynamicObject newObject) {
             if (singletonClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 singletonClassNode = insert(SingletonClassNode.create());
@@ -654,7 +653,7 @@ public abstract class KernelNodes {
                 return self;
             }
 
-            final DynamicObject newObject = copyNode.executeCopy((DynamicObject) self);
+            final RubyDynamicObject newObject = copyNode.executeCopy((RubyDynamicObject) self);
 
             initializeDupNode.call(newObject, "initialize_dup", self);
 
@@ -669,7 +668,6 @@ public abstract class KernelNodes {
     public abstract static class EvalNode extends PrimitiveArrayArgumentsNode {
 
         @Child private CreateEvalSourceNode createEvalSourceNode = new CreateEvalSourceNode();
-        @Child private BindingNodes.CallerBindingNode bindingNode;
 
         protected static class RootNodeWrapper {
             private final RubyRootNode rootNode;
@@ -683,8 +681,8 @@ public abstract class KernelNodes {
             }
         }
 
-        public abstract Object execute(VirtualFrame frame, Object target, DynamicObject source, RubyBinding binding,
-                DynamicObject file, int line);
+        public abstract Object execute(VirtualFrame frame, Object target, RubyString source, RubyBinding binding,
+                RubyString file, int line);
 
         // If the source defines new local variables, those should be set in the Binding.
         // So we have 2 specializations for whether or not the code defines new local variables.
@@ -913,7 +911,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization(guards = "!isRubyBignum(self)")
-        protected int hash(DynamicObject self) {
+        protected int hash(RubyDynamicObject self) {
             // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
             // own @CoreMethod hash
             return System.identityHashCode(self);
@@ -954,7 +952,7 @@ public abstract class KernelNodes {
         @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        protected Object initializeDup(VirtualFrame frame, DynamicObject self, DynamicObject from) {
+        protected Object initializeDup(VirtualFrame frame, RubyDynamicObject self, RubyDynamicObject from) {
             return initializeCopyNode.call(self, "initialize_copy", from);
         }
 
@@ -1014,7 +1012,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected boolean isInstanceVariableDefined(DynamicObject object, String name) {
+        protected boolean isInstanceVariableDefined(RubyDynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             return object.getShape().hasProperty(ivar);
         }
@@ -1032,7 +1030,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object instanceVariableGetSymbol(DynamicObject object, String name,
+        protected Object instanceVariableGetSymbol(RubyDynamicObject object, String name,
                 @Cached ObjectIVarGetNode iVarGetNode) {
             return iVarGetNode.executeIVarGet(object, name, true);
         }
@@ -1050,7 +1048,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected Object instanceVariableSet(DynamicObject object, String name, Object value,
+        protected Object instanceVariableSet(RubyDynamicObject object, String name, Object value,
                 @Cached ObjectIVarSetNode iVarSetNode) {
             return iVarSetNode.executeIVarSet(object, name, value, true);
         }
@@ -1068,7 +1066,7 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected Object removeInstanceVariable(DynamicObject object, String name) {
+        protected Object removeInstanceVariable(RubyDynamicObject object, String name) {
             final String ivar = SymbolTable.checkInstanceVariableName(getContext(), name, object, this);
             final Object value = ReadObjectFieldNodeGen.getUncached().execute(object, ivar, nil);
 
@@ -1082,7 +1080,7 @@ public abstract class KernelNodes {
             return value;
         }
 
-        private void removeField(DynamicObject object, String name) {
+        private void removeField(RubyDynamicObject object, String name) {
             if (!DynamicObjectLibrary.getUncached().removeKey(object, name)) {
                 throw new RaiseException(
                         getContext(),
@@ -1098,7 +1096,7 @@ public abstract class KernelNodes {
                 .create(null);
 
         @Specialization
-        protected DynamicObject instanceVariables(Object self) {
+        protected RubyArray instanceVariables(Object self) {
             return instanceVariablesNode.executeGetIVars(self);
         }
 
@@ -1217,7 +1215,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected DynamicObject method(VirtualFrame frame, Object self, Object name) {
+        protected RubyMethod method(VirtualFrame frame, Object self, Object name) {
             return getMethodObjectNode.executeGetMethodObject(frame, self, name);
         }
 
@@ -1242,10 +1240,10 @@ public abstract class KernelNodes {
             lookupMethodNode = LookupMethodNode.create();
         }
 
-        public abstract DynamicObject executeGetMethodObject(VirtualFrame frame, Object self, Object name);
+        public abstract RubyMethod executeGetMethodObject(VirtualFrame frame, Object self, Object name);
 
         @Specialization
-        protected DynamicObject methods(VirtualFrame frame, Object self, Object name,
+        protected RubyMethod method(VirtualFrame frame, Object self, Object name,
                 @Cached ConditionProfile notFoundProfile,
                 @Cached ConditionProfile respondToMissingProfile) {
             final String normalizedName = nameToJavaStringNode.execute(name);
@@ -1348,7 +1346,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!regular")
-        protected DynamicObject methodsSingleton(VirtualFrame frame, Object self, boolean regular,
+        protected RubyArray methodsSingleton(VirtualFrame frame, Object self, boolean regular,
                 @Cached SingletonMethodsNode singletonMethodsNode) {
             return singletonMethodsNode.executeSingletonMethods(frame, self, false);
         }
@@ -1460,7 +1458,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected DynamicObject publicMethod(VirtualFrame frame, Object self, Object name) {
+        protected RubyMethod publicMethod(VirtualFrame frame, Object self, Object name) {
             return getMethodObjectNode.executeGetMethodObject(frame, self, name);
         }
 
@@ -1635,7 +1633,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected DynamicObject setTraceFunc(RubyProc traceFunc) {
+        protected RubyProc setTraceFunc(RubyProc traceFunc) {
             getContext().getTraceManager().setTraceFunc(traceFunc);
             return traceFunc;
         }
@@ -1646,10 +1644,10 @@ public abstract class KernelNodes {
 
         @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
 
-        public abstract DynamicObject executeSingletonClass(Object self);
+        public abstract RubyClass executeSingletonClass(Object self);
 
         @Specialization
-        protected DynamicObject singletonClass(Object self) {
+        protected RubyClass singletonClass(Object self) {
             return singletonClassNode.executeSingletonClass(self);
         }
 
@@ -1669,7 +1667,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization
-        protected DynamicObject singletonMethod(Object self, String name,
+        protected RubyMethod singletonMethod(Object self, String name,
                 @Cached BranchProfile errorProfile,
                 @Cached ConditionProfile singletonProfile,
                 @Cached ConditionProfile methodProfile) {
@@ -1701,10 +1699,7 @@ public abstract class KernelNodes {
             return SingletonMethodsNodeFactory.create(null, null);
         }
 
-        @Child private MetaClassNode metaClassNode = MetaClassNode.create();
-
-        public abstract DynamicObject executeSingletonMethods(VirtualFrame frame, Object self,
-                boolean includeAncestors);
+        public abstract RubyArray executeSingletonMethods(VirtualFrame frame, Object self, boolean includeAncestors);
 
         @CreateCast("includeAncestors")
         protected RubyNode coerceToBoolean(RubyNode includeAncestors) {
@@ -1713,7 +1708,8 @@ public abstract class KernelNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray singletonMethods(Object self, boolean includeAncestors) {
+        protected RubyArray singletonMethods(Object self, boolean includeAncestors,
+                @Cached MetaClassNode metaClassNode) {
             final RubyClass metaClass = metaClassNode.executeMetaClass(self);
 
             if (!metaClass.isSingleton) {
@@ -1801,15 +1797,14 @@ public abstract class KernelNodes {
                         "equalNode.execute(format.rope, cachedFormat)",
                         "isDebug(frame) == cachedIsDebug" },
                 limit = "getRubyLibraryCacheLimit()")
-        protected DynamicObject formatCached(VirtualFrame frame, RubyString format, Object[] arguments,
+        protected RubyString formatCached(VirtualFrame frame, RubyString format, Object[] arguments,
                 @Cached("isDebug(frame)") boolean cachedIsDebug,
                 @Cached("privatizeRope(format)") Rope cachedFormat,
-                @Cached("ropeLength(cachedFormat)") int cachedFormatLength,
+                @Cached("cachedFormat.byteLength()") int cachedFormatLength,
                 @Cached("create(compileFormat(format, arguments, isDebug(frame)))") DirectCallNode callPackNode,
                 @Cached RopeNodes.EqualNode equalNode,
                 @CachedLibrary("format") RubyLibrary rubyLibrary) {
             final BytesResult result;
-
             try {
                 result = (BytesResult) callPackNode.call(
                         new Object[]{ arguments, arguments.length, rubyLibrary.isTainted(format), null });
@@ -1822,13 +1817,11 @@ public abstract class KernelNodes {
         }
 
         @Specialization(replaces = "formatCached", limit = "getRubyLibraryCacheLimit()")
-        protected DynamicObject formatUncached(VirtualFrame frame, RubyString format, Object[] arguments,
+        protected RubyString formatUncached(VirtualFrame frame, RubyString format, Object[] arguments,
                 @Cached IndirectCallNode callPackNode,
                 @CachedLibrary("format") RubyLibrary rubyLibrary) {
             final BytesResult result;
-
             final boolean isDebug = readDebugGlobalNode.executeBoolean(frame);
-
             try {
                 result = (BytesResult) callPackNode.call(
                         compileFormat(format, arguments, isDebug),
@@ -1841,7 +1834,7 @@ public abstract class KernelNodes {
             return finishFormat(format.rope.byteLength(), result);
         }
 
-        private DynamicObject finishFormat(int formatLength, BytesResult result) {
+        private RubyString finishFormat(int formatLength, BytesResult result) {
             byte[] bytes = result.getOutput();
 
             if (resizeProfile.profile(bytes.length != result.getOutputLength())) {
@@ -1853,7 +1846,7 @@ public abstract class KernelNodes {
                 makeStringNode = insert(MakeStringNode.create());
             }
 
-            final DynamicObject string = makeStringNode.executeMake(
+            final RubyString string = makeStringNode.executeMake(
                     bytes,
                     result.getEncoding().getEncodingForLength(formatLength),
                     result.getStringCodeRange());

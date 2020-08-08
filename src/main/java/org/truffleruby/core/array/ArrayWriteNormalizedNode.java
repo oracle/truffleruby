@@ -21,7 +21,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @ImportStatic(ArrayGuards.class)
 @ReportPolymorphism
@@ -29,7 +28,7 @@ public abstract class ArrayWriteNormalizedNode extends RubyContextNode {
 
     @Child private PropagateSharingNode propagateSharingNode = PropagateSharingNode.create();
 
-    public abstract Object executeWrite(DynamicObject array, int index, Object value);
+    public abstract Object executeWrite(RubyArray array, int index, Object value);
 
     // Writing within an existing array with a compatible type
 

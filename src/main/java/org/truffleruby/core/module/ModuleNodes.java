@@ -63,6 +63,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
@@ -117,7 +118,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.SourceSection;
@@ -616,7 +616,7 @@ public abstract class ModuleNodes {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 toStrNode = insert(ToStrNode.create());
             }
-            return toStrNode.executeToStr(frame, object);
+            return toStrNode.executeToStr(object);
         }
 
         @Specialization
@@ -1266,7 +1266,7 @@ public abstract class ModuleNodes {
         @Child private SingletonClassNode singletonClassNode = SingletonClassNode.create();
 
         @Specialization
-        protected RubyModule extendObject(RubyModule module, DynamicObject object,
+        protected RubyModule extendObject(RubyModule module, Object object,
                 @Cached BranchProfile errorProfile) {
             if (module instanceof RubyClass) {
                 errorProfile.enter();
@@ -1350,7 +1350,7 @@ public abstract class ModuleNodes {
             return nil;
         }
 
-        protected RubyClass getSingletonClass(DynamicObject object) {
+        protected RubyClass getSingletonClass(RubyModule object) {
             if (singletonClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 singletonClassNode = insert(SingletonClassNode.create());
@@ -1868,19 +1868,19 @@ public abstract class ModuleNodes {
         @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
 
         @Specialization
-        protected RubyModule removeMethods(VirtualFrame frame, RubyModule module, Object[] names) {
+        protected RubyModule removeMethods(RubyModule module, Object[] names) {
             for (Object name : names) {
-                removeMethod(frame, module, nameToJavaStringNode.execute(name));
+                removeMethod(module, nameToJavaStringNode.execute(name));
             }
             return module;
         }
 
-        private void removeMethod(VirtualFrame frame, RubyModule module, String name) {
+        private void removeMethod(RubyModule module, String name) {
             raiseIfFrozenNode.execute(module);
 
             if (module.fields.removeMethod(name)) {
                 if (RubyGuards.isSingletonClass(module)) {
-                    final DynamicObject receiver = ((RubyClass) module).attached;
+                    final RubyDynamicObject receiver = ((RubyClass) module).attached;
                     methodRemovedNode.call(receiver, "singleton_method_removed", getSymbol(name));
                 } else {
                     methodRemovedNode.call(module, "method_removed", getSymbol(name));
@@ -1907,7 +1907,7 @@ public abstract class ModuleNodes {
             final String moduleName;
             final ModuleFields fields = module.fields;
             if (RubyGuards.isSingletonClass(module)) {
-                final DynamicObject attached = ((RubyClass) module).attached;
+                final RubyDynamicObject attached = ((RubyClass) module).attached;
                 final String attachedName;
                 if (attached instanceof RubyModule) {
                     attachedName = ((RubyModule) attached).fields.getName();
@@ -1961,7 +1961,7 @@ public abstract class ModuleNodes {
 
             module.fields.undefMethod(getContext(), this, name);
             if (RubyGuards.isSingletonClass(module)) {
-                final DynamicObject receiver = ((RubyClass) module).attached;
+                final RubyDynamicObject receiver = ((RubyClass) module).attached;
                 methodUndefinedNode.call(receiver, "singleton_method_undefined", getSymbol(name));
             } else {
                 methodUndefinedNode.call(module, "method_undefined", getSymbol(name));

@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.Assumption;
@@ -22,13 +23,12 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
-import com.oracle.truffle.api.object.DynamicObject;
 
-/** Like {@link CachedBoxedDispatchNode}, but on singleton objects. Checking identity of the DynamicObject is therefore
- * faster than reading the Shape and checking the Shape identity. */
+/** Like {@link CachedBoxedDispatchNode}, but on singleton objects. Checking identity of the RubyDynamicObject is
+ * therefore faster than reading the Shape and checking the Shape identity. */
 public class CachedSingletonDispatchNode extends CachedDispatchNode {
 
-    private final DynamicObject expectedReceiver;
+    private final RubyDynamicObject expectedReceiver;
     @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     private final InternalMethod method;
@@ -38,7 +38,7 @@ public class CachedSingletonDispatchNode extends CachedDispatchNode {
             RubyContext context,
             Object cachedName,
             DispatchNode next,
-            DynamicObject expectedReceiver,
+            RubyDynamicObject expectedReceiver,
             MethodLookupResult methodLookup,
             DispatchAction dispatchAction) {
         super(context, cachedName, next, dispatchAction);

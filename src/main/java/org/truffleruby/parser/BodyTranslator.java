@@ -56,11 +56,13 @@ import org.truffleruby.core.regexp.MatchDataNodes.GetIndexNode;
 import org.truffleruby.core.regexp.RegexWarnCallback;
 import org.truffleruby.core.regexp.RegexpNodes;
 import org.truffleruby.core.regexp.RegexpOptions;
+import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.regexp.TruffleRegexpNodes;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.string.InterpolatedStringNode;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.Nil;
@@ -263,7 +265,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -505,7 +506,7 @@ public class BodyTranslator extends Translator {
             final CodeRange codeRange = strNode.getCodeRange();
 
             final Rope rope = context.getRopeCache().getRope(nodeRope, codeRange);
-            final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
+            final RubyString frozenString = context.getFrozenStringLiteral(rope);
 
             return addNewlineIfNeeded(node, withSourceSection(
                     sourceSection,
@@ -2742,13 +2743,12 @@ public class BodyTranslator extends Translator {
         // in the Regex object as the "user object". Since ropes are immutable, we need to take this updated copy when
         // constructing the final regexp.
         final Rope updatedRope = (Rope) regex.getUserObject();
-        final DynamicObject regexp = RegexpNodes
-                .createRubyRegexp(
-                        context.getCoreLibrary().regexpShape,
-                        regex,
-                        updatedRope,
-                        options,
-                        new EncodingCache());
+        final RubyRegexp regexp = RegexpNodes.createRubyRegexp(
+                context.getCoreLibrary().regexpShape,
+                regex,
+                updatedRope,
+                options,
+                new EncodingCache());
 
         final ObjectLiteralNode literalNode = new ObjectLiteralNode(regexp);
         literalNode.unsafeSetSourceSection(node.getPosition());
@@ -2841,7 +2841,7 @@ public class BodyTranslator extends Translator {
     private RescueNode translateRescueSplatParseNode(SplatParseNode splat, RescueBodyParseNode rescueBody) {
         final RubyNode splatTranslated = translateNodeOrNil(rescueBody.getPosition(), splat.getValue());
         final RubyNode translatedBody = translateNodeOrNil(rescueBody.getPosition(), rescueBody.getBodyNode());
-        return withSourceSection(splat.getPosition(), new RescueSplatNode(context, splatTranslated, translatedBody));
+        return withSourceSection(splat.getPosition(), new RescueSplatNode(splatTranslated, translatedBody));
     }
 
     @Override
@@ -2930,7 +2930,7 @@ public class BodyTranslator extends Translator {
         final RubyNode ret;
 
         if (node.isFrozen()) {
-            final DynamicObject frozenString = context.getFrozenStringLiteral(rope);
+            final RubyString frozenString = context.getFrozenStringLiteral(rope);
 
             ret = new DefinedWrapperNode(
                     context.getCoreStrings().EXPRESSION,

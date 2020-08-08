@@ -43,9 +43,9 @@ package org.truffleruby.stdlib.readline;
 import java.io.IOException;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.support.RubyIO;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 import jline.console.ConsoleReader;
 import jline.console.completer.Completer;
@@ -62,7 +62,7 @@ public class ConsoleHolder {
     private final IoStream out;
 
     public static ConsoleHolder create(RubyContext context) {
-        final DynamicObject stdin = (DynamicObject) context.getCoreLibrary().getStdin();
+        final RubyIO stdin = (RubyIO) context.getCoreLibrary().getStdin();
         return new ConsoleHolder(
                 context,
                 0,
@@ -80,9 +80,9 @@ public class ConsoleHolder {
     private ConsoleHolder(
             RubyContext context,
             int inFd,
-            DynamicObject inIo,
+            RubyIO inIo,
             int outFd,
-            DynamicObject outIo,
+            RubyIO outIo,
             boolean historyEnabled,
             boolean paginationEnabled,
             boolean bellEnabled,
@@ -139,7 +139,7 @@ public class ConsoleHolder {
         return history;
     }
 
-    public ConsoleHolder updateIn(int fd, DynamicObject io) {
+    public ConsoleHolder updateIn(int fd, RubyIO io) {
         if (fd == in.getFd()) {
             return this;
         }
@@ -157,7 +157,7 @@ public class ConsoleHolder {
                 history);
     }
 
-    public ConsoleHolder updateOut(int fd, DynamicObject io) {
+    public ConsoleHolder updateOut(int fd, RubyIO io) {
         if (fd == out.getFd()) {
             return this;
         }

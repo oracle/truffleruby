@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import org.truffleruby.builtins.CoreMethod;
@@ -41,7 +40,7 @@ public abstract class SizedQueueNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(RubyClass rubyClass) {
+        protected RubySizedQueue allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubySizedQueue instance = new RubySizedQueue(shape, null);
             allocateNode.trace(instance, this);
@@ -54,7 +53,7 @@ public abstract class SizedQueueNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize(RubySizedQueue self, int capacity,
+        protected RubySizedQueue initialize(RubySizedQueue self, int capacity,
                 @Cached BranchProfile errorProfile) {
             if (capacity <= 0) {
                 errorProfile.enter();
@@ -115,7 +114,7 @@ public abstract class SizedQueueNodes {
         }
 
         @Specialization(guards = "!nonBlocking")
-        protected DynamicObject pushBlocking(RubySizedQueue self, final Object value, boolean nonBlocking) {
+        protected RubySizedQueue pushBlocking(RubySizedQueue self, final Object value, boolean nonBlocking) {
             final SizedQueue queue = self.queue;
 
             propagateSharingNode.executePropagate(self, value);
@@ -136,7 +135,7 @@ public abstract class SizedQueueNodes {
         }
 
         @Specialization(guards = "nonBlocking")
-        protected DynamicObject pushNonBlock(RubySizedQueue self, final Object value, boolean nonBlocking,
+        protected RubySizedQueue pushNonBlock(RubySizedQueue self, final Object value, boolean nonBlocking,
                 @Cached BranchProfile errorProfile) {
             final SizedQueue queue = self.queue;
 

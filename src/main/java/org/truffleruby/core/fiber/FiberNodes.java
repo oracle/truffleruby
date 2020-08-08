@@ -33,7 +33,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -53,7 +52,7 @@ public abstract class FiberNodes {
             return singleValueCastNode.executeSingleValue(args);
         }
 
-        public abstract Object executeTransferControlTo(DynamicObject currentThread, RubyFiber currentFiber,
+        public abstract Object executeTransferControlTo(RubyThread currentThread, RubyFiber currentFiber,
                 RubyFiber fiber, FiberOperation operation, Object[] args);
 
         @Specialization

@@ -16,13 +16,13 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class AtExitManager {
 
@@ -83,7 +83,7 @@ public class AtExitManager {
     }
 
     public static boolean isSilentException(RubyContext context, RubyException rubyException) {
-        final DynamicObject logicalClass = rubyException.getLogicalClass();
+        final RubyClass logicalClass = rubyException.getLogicalClass();
         return logicalClass == context.getCoreLibrary().systemExitClass ||
                 logicalClass == context.getCoreLibrary().signalExceptionClass;
     }

@@ -40,7 +40,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -78,7 +77,7 @@ public abstract class PointerNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(RubyClass pointerClass) {
+        protected RubyPointer allocate(RubyClass pointerClass) {
             final Shape shape = allocateNode.getCachedShape(pointerClass);
             final RubyPointer instance = new RubyPointer(shape, Pointer.NULL);
             allocateNode.trace(instance, this);
@@ -189,7 +188,7 @@ public abstract class PointerNodes {
     public static abstract class PointerMallocPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject malloc(RubyPointer pointer, long size) {
+        protected RubyPointer malloc(RubyPointer pointer, long size) {
             pointer.pointer = Pointer.malloc(size);
             return pointer;
         }
@@ -200,7 +199,7 @@ public abstract class PointerNodes {
     public static abstract class PointerFreeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject free(RubyPointer pointer) {
+        protected RubyPointer free(RubyPointer pointer) {
             pointer.pointer.free(getContext().getFinalizationService());
             return pointer;
         }
@@ -211,7 +210,7 @@ public abstract class PointerNodes {
     public abstract static class PointerClearNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject clear(RubyPointer pointer, long length) {
+        protected RubyPointer clear(RubyPointer pointer, long length) {
             pointer.pointer.writeBytes(0, length, (byte) 0);
             return pointer;
         }
@@ -239,7 +238,7 @@ public abstract class PointerNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization(guards = "limit == 0")
-        protected DynamicObject readNullPointer(long address, long limit) {
+        protected RubyString readNullPointer(long address, long limit) {
             final RubyString instance = new RubyString(
                     coreLibrary().stringShape,
                     false,
@@ -250,7 +249,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "limit != 0")
-        protected DynamicObject readStringToNull(long address, long limit,
+        protected RubyString readStringToNull(long address, long limit,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
@@ -264,7 +263,7 @@ public abstract class PointerNodes {
         }
 
         @Specialization(guards = "isNil(limit)")
-        protected DynamicObject readStringToNull(long address, Object limit,
+        protected RubyString readStringToNull(long address, Object limit,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
@@ -283,7 +282,7 @@ public abstract class PointerNodes {
     public static abstract class PointerReadBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject readBytes(long address, int length,
+        protected RubyString readBytes(long address, int length,
                 @Cached ConditionProfile zeroProfile,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode,
                 @Cached AllocateHelperNode allocateNode) {
@@ -315,7 +314,7 @@ public abstract class PointerNodes {
     public static abstract class PointerWriteBytesNode extends PointerPrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject writeBytes(long address, RubyString string, int index, int length,
+        protected RubyString writeBytes(long address, RubyString string, int index, int length,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final Pointer ptr = new Pointer(address);
             final Rope rope = string.rope;

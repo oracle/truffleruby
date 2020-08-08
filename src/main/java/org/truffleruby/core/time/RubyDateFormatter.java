@@ -66,13 +66,11 @@ import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class RubyDateFormatter {
     private static final DateFormatSymbols FORMAT_SYMBOLS = new DateFormatSymbols(Locale.US);
@@ -527,7 +525,7 @@ public abstract class RubyDateFormatter {
             } catch (IndexOutOfBoundsException ioobe) {
                 final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
                 final Rope messageRope = StringOperations.encodeRope("strftime", UTF8Encoding.INSTANCE);
-                final DynamicObject message = StringOperations.createString(context, messageRope);
+                final RubyString message = StringOperations.createString(context, messageRope);
                 throw new RaiseException(
                         context,
                         errnoErrorNode.execute(context.getCoreLibrary().getErrnoValue("ERANGE"), message, backtrace));
@@ -618,7 +616,7 @@ public abstract class RubyDateFormatter {
     }
 
     private static String getRubyTimeZoneName(ZonedDateTime dt, Object zone) {
-        if (RubyGuards.isRubyString(zone)) {
+        if (zone instanceof RubyString) {
             return StringOperations.getString((RubyString) zone);
         } else {
             return "";

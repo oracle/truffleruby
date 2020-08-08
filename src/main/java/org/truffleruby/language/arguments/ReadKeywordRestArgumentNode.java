@@ -22,7 +22,6 @@ import org.truffleruby.language.methods.Arity;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implements BiConsumerNode {
@@ -52,7 +51,7 @@ public class ReadKeywordRestArgumentNode extends RubyContextSourceNode implement
         if (noHash.profile(hash == null)) {
             return HashOperations.newEmptyHash(getContext());
         } else {
-            final DynamicObject kwRest = HashOperations.newEmptyHash(getContext());
+            final RubyHash kwRest = HashOperations.newEmptyHash(getContext());
             return eachKeyNode.executeEachKeyValue(frame, hash, this, kwRest);
         }
     }

@@ -82,7 +82,6 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -609,7 +608,7 @@ public class RubyContext {
         return coreStrings;
     }
 
-    public DynamicObject getFrozenStringLiteral(Rope rope) {
+    public RubyString getFrozenStringLiteral(Rope rope) {
         return frozenStringLiterals.getFrozenStringLiteral(rope);
     }
 

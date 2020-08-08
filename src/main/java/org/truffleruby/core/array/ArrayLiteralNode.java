@@ -19,7 +19,6 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class ArrayLiteralNode extends RubyContextSourceNode {
 
@@ -34,7 +33,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
         this.values = values;
     }
 
-    protected DynamicObject makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
+    protected RubyArray makeGeneric(VirtualFrame frame, Object[] alreadyExecuted) {
         final ArrayLiteralNode newNode = new ObjectArrayLiteralNode(values);
         newNode.unsafeSetSourceSection(getSourceIndexLength());
         replace(newNode);
@@ -133,7 +132,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             return cachedCreateArray(executedValues, values.length);
         }
 
-        private DynamicObject makeGeneric(VirtualFrame frame, final double[] executedValues, int n, Object value) {
+        private RubyArray makeGeneric(VirtualFrame frame, final double[] executedValues, int n, Object value) {
             final Object[] executedObjects = new Object[n + 1];
 
             for (int i = 0; i < n; i++) {
@@ -170,7 +169,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             return cachedCreateArray(executedValues, values.length);
         }
 
-        private DynamicObject makeGeneric(VirtualFrame frame, final int[] executedValues, int n, Object value) {
+        private RubyArray makeGeneric(VirtualFrame frame, final int[] executedValues, int n, Object value) {
             final Object[] executedObjects = new Object[n + 1];
 
             for (int i = 0; i < n; i++) {
@@ -207,7 +206,7 @@ public abstract class ArrayLiteralNode extends RubyContextSourceNode {
             return cachedCreateArray(executedValues, values.length);
         }
 
-        private DynamicObject makeGeneric(VirtualFrame frame, final long[] executedValues, int n, Object value) {
+        private RubyArray makeGeneric(VirtualFrame frame, final long[] executedValues, int n, Object value) {
             final Object[] executedObjects = new Object[n + 1];
 
             for (int i = 0; i < n; i++) {

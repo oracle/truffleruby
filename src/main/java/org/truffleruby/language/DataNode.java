@@ -12,13 +12,13 @@ package org.truffleruby.language;
 import org.jcodings.Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class DataNode extends RubyContextSourceNode {
 
@@ -45,7 +45,7 @@ public class DataNode extends RubyContextSourceNode {
 
         final String path = getPath();
         final Encoding localeEncoding = getContext().getEncodingManager().getLocaleEncoding();
-        final DynamicObject pathString = makeStringNode.executeMake(path, localeEncoding, CodeRange.CR_UNKNOWN);
+        final RubyString pathString = makeStringNode.executeMake(path, localeEncoding, CodeRange.CR_UNKNOWN);
         final Object data = callHelperNode
                 .call(coreLibrary().truffleInternalModule, "get_data", pathString, endPosition);
 

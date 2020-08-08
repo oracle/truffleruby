@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language;
 
-import com.oracle.truffle.api.object.DynamicObject;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -21,8 +20,6 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
-import org.truffleruby.core.range.RubyLongRange;
-import org.truffleruby.core.range.RubyObjectRange;
 import org.truffleruby.core.range.RubyRange;
 import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
@@ -86,7 +83,7 @@ public abstract class RubyGuards {
 
     // Ruby types
 
-    public static boolean isRubyBignum(DynamicObject value) {
+    public static boolean isRubyBignum(Object value) {
         return value instanceof RubyBignum;
     }
 
@@ -94,28 +91,8 @@ public abstract class RubyGuards {
         return value instanceof RubyBigDecimal;
     }
 
-    public static boolean isRubyBigDecimal(DynamicObject value) {
-        return value instanceof RubyBigDecimal;
-    }
-
     public static boolean isIntRange(Object value) {
         return value instanceof RubyIntRange;
-    }
-
-    public static boolean isLongRange(Object value) {
-        return value instanceof RubyLongRange;
-    }
-
-    public static boolean isObjectRange(Object value) {
-        return value instanceof RubyObjectRange;
-    }
-
-    public static boolean isEndlessObjectRange(DynamicObject value) {
-        return isObjectRange(value) && ((RubyObjectRange) value).end == Nil.INSTANCE;
-    }
-
-    public static boolean isBoundedObjectRange(DynamicObject value) {
-        return isObjectRange(value) && ((RubyObjectRange) value).end != Nil.INSTANCE;
     }
 
     public static boolean isRubyRange(Object value) {
@@ -123,10 +100,6 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyArray(Object value) {
-        return value instanceof RubyArray;
-    }
-
-    public static boolean isRubyArray(DynamicObject value) {
         return value instanceof RubyArray;
     }
 
@@ -138,10 +111,6 @@ public abstract class RubyGuards {
         return value instanceof RubyHash;
     }
 
-    public static boolean isRubyHash(DynamicObject value) {
-        return value instanceof RubyHash;
-    }
-
     public static boolean isRubyModule(Object value) {
         return value instanceof RubyModule;
     }
@@ -150,23 +119,11 @@ public abstract class RubyGuards {
         return value instanceof RubyRegexp;
     }
 
-    public static boolean isRubyRegexp(DynamicObject value) {
-        return value instanceof RubyRegexp;
-    }
-
     public static boolean isRubyString(Object value) {
         return value instanceof RubyString;
     }
 
-    public static boolean isRubyString(DynamicObject value) {
-        return value instanceof RubyString;
-    }
-
     public static boolean isRubyEncoding(Object object) {
-        return object instanceof RubyEncoding;
-    }
-
-    public static boolean isRubyEncoding(DynamicObject object) {
         return object instanceof RubyEncoding;
     }
 
@@ -178,27 +135,15 @@ public abstract class RubyGuards {
         return value instanceof RubyMethod;
     }
 
-    public static boolean isRubyMethod(DynamicObject value) {
-        return value instanceof RubyMethod;
-    }
-
     public static boolean isRubyUnboundMethod(Object value) {
         return value instanceof RubyUnboundMethod;
-    }
-
-    public static boolean isRubyUnboundMethod(DynamicObject value) {
-        return value instanceof RubyUnboundMethod;
-    }
-
-    public static boolean isDynamicObject(Object value) {
-        return value instanceof DynamicObject;
     }
 
     public static boolean isRubyProc(Object object) {
         return object instanceof RubyProc;
     }
 
-    public static boolean isRubyMatchData(DynamicObject object) {
+    public static boolean isRubyMatchData(Object object) {
         return object instanceof RubyMatchData;
     }
 
@@ -232,7 +177,7 @@ public abstract class RubyGuards {
     // Sentinels
 
     public static boolean wasProvided(Object value) {
-        return !(wasNotProvided(value));
+        return !wasNotProvided(value);
     }
 
     public static boolean wasNotProvided(Object value) {
@@ -263,11 +208,11 @@ public abstract class RubyGuards {
 
     // Composite
 
-    public static boolean isSingletonClass(DynamicObject value) {
+    public static boolean isSingletonClass(RubyModule value) {
         return value instanceof RubyClass && ((RubyClass) value).isSingleton;
     }
 
-    public static boolean isMetaClass(DynamicObject value) {
+    public static boolean isMetaClass(RubyModule value) {
         return isSingletonClass(value) && ((RubyClass) value).attached instanceof RubyModule;
     }
 

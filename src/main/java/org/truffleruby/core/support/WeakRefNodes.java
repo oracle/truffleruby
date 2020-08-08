@@ -12,12 +12,12 @@ package org.truffleruby.core.support;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.HiddenKey;
 import com.oracle.truffle.api.utilities.TruffleWeakReference;
 
@@ -33,7 +33,7 @@ public abstract class WeakRefNodes {
         @Child WriteObjectFieldNode fieldNode = WriteObjectFieldNode.create();
 
         @Specialization
-        protected Object weakRefSetObject(DynamicObject weakRef, Object object) {
+        protected Object weakRefSetObject(RubyDynamicObject weakRef, Object object) {
             fieldNode.write(weakRef, fieldName, newTruffleWeakReference(object));
             return object;
         }
@@ -51,7 +51,7 @@ public abstract class WeakRefNodes {
         @Child ReadObjectFieldNode fieldNode = ReadObjectFieldNode.create();
 
         @Specialization
-        protected Object weakRefObject(DynamicObject weakRef) {
+        protected Object weakRefObject(RubyDynamicObject weakRef) {
             final TruffleWeakReference<?> ref = (TruffleWeakReference<?>) fieldNode
                     .execute(weakRef, fieldName, EMPTY_WEAK_REF);
             final Object object = ref.get();

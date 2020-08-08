@@ -10,10 +10,10 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class RescueAnyNode extends RescueNode {
 
@@ -22,8 +22,8 @@ public class RescueAnyNode extends RescueNode {
     }
 
     @Override
-    public boolean canHandle(VirtualFrame frame, DynamicObject exception) {
-        return matches(frame, exception, coreLibrary().standardErrorClass);
+    public boolean canHandle(VirtualFrame frame, RubyException exception) {
+        return matches(exception, coreLibrary().standardErrorClass);
     }
 
     @Override

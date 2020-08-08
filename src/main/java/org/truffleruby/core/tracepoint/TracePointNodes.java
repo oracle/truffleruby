@@ -9,12 +9,6 @@
  */
 package org.truffleruby.core.tracepoint;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
@@ -25,11 +19,13 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.array.ArrayToObjectArrayNode;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -40,6 +36,12 @@ import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.AllocateHelperNode;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "TracePoint", isClass = true)
 public abstract class TracePointNodes {
@@ -90,7 +92,7 @@ public abstract class TracePointNodes {
     public abstract static class InitializeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize(RubyTracePoint tracePoint, DynamicObject eventsArray, RubyProc block,
+        protected RubyTracePoint initialize(RubyTracePoint tracePoint, RubyArray eventsArray, RubyProc block,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode) {
             final Object[] eventSymbols = arrayToObjectArrayNode.executeToObjectArray(eventsArray);
 
@@ -198,7 +200,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "path")
     public abstract static class PathNode extends TracePointCoreNode {
         @Specialization
-        protected DynamicObject path(RubyTracePoint tracePoint) {
+        protected RubyString path(RubyTracePoint tracePoint) {
             return getTracePointState().path;
         }
     }
@@ -214,7 +216,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "binding")
     public abstract static class BindingNode extends TracePointCoreNode {
         @Specialization
-        protected DynamicObject binding(RubyTracePoint tracePoint) {
+        protected RubyBinding binding(RubyTracePoint tracePoint) {
             return getTracePointState().binding;
         }
     }
@@ -222,7 +224,7 @@ public abstract class TracePointNodes {
     @CoreMethod(names = "method_id")
     public abstract static class MethodIDNode extends TracePointCoreNode {
         @Specialization
-        protected DynamicObject methodId(RubyTracePoint tracePoint,
+        protected RubyString methodId(RubyTracePoint tracePoint,
                 @Cached MakeStringNode makeStringNode) {
             final RubyBinding binding = getTracePointState().binding;
             final InternalMethod method = RubyArguments.getMethod(binding.getFrame());
