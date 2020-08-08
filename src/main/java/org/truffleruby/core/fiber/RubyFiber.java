@@ -17,12 +17,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.thread.RubyThread;
-import org.truffleruby.interop.messages.RubyFiberMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
 public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
@@ -58,9 +56,4 @@ public class RubyFiber extends RubyDynamicObject implements ObjectGraphNode {
         reachable.add(rubyThread);
     }
 
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyFiberMessages.class;
-    }
 }

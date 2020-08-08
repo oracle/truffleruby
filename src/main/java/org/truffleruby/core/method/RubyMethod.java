@@ -9,16 +9,24 @@
  */
 package org.truffleruby.core.method;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyMethodMessages;
+import java.util.Set;
+
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import org.truffleruby.interop.ForeignToRubyArgumentsNode;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.methods.CallBoundMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import java.util.Set;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.source.SourceSection;
 
+@ExportLibrary(InteropLibrary.class)
 public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
 
     public RubyMethod(Shape shape, Object receiver, InternalMethod method) {
@@ -38,10 +46,31 @@ public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
         method.getAdjacentObjects(reachable);
     }
 
-    @Override
+    // region SourceLocation
     @ExportMessage
-    public Class<?> dispatch() {
-        return RubyMethodMessages.class;
+    public boolean hasSourceLocation() {
+        return true;
     }
+
+    @ExportMessage
+    public SourceSection getSourceLocation() {
+        return method.getSharedMethodInfo().getSourceSection();
+    }
+    // endregion
+
+    // region Executable
+    @ExportMessage
+    public boolean isExecutable() {
+        return true;
+    }
+
+    @ExportMessage
+    public Object execute(Object[] arguments,
+            @Cached CallBoundMethodNode callBoundMethodNode,
+            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+        return callBoundMethodNode
+                .executeCallBoundMethod(this, foreignToRubyArgumentsNode.executeConvert(arguments), Nil.INSTANCE);
+    }
+    // endregion
 
 }

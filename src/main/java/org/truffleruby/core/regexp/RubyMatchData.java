@@ -11,17 +11,16 @@ package org.truffleruby.core.regexp;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 import org.joni.Region;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.interop.messages.MatchDataMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 public class RubyMatchData extends RubyDynamicObject implements ObjectGraphNode {
+
     public DynamicObject regexp;
     public RubyString source;
     public Region region;
@@ -33,12 +32,6 @@ public class RubyMatchData extends RubyDynamicObject implements ObjectGraphNode 
         this.source = source;
         this.region = region;
         this.charOffsets = charOffsets;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return MatchDataMessages.class;
     }
 
     public void getAdjacentObjects(Set<Object> reachable) {

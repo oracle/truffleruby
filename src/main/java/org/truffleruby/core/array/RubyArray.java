@@ -9,17 +9,28 @@
  */
 package org.truffleruby.core.array;
 
-import org.truffleruby.interop.messages.ArrayMessages;
+import java.util.Set;
+
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import java.util.Set;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
+@ExportLibrary(InteropLibrary.class)
 public final class RubyArray extends RubyDynamicObject implements ObjectGraphNode {
 
     public Object store;
@@ -31,14 +42,93 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
         this.size = size;
     }
 
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return ArrayMessages.class;
-    }
-
     @TruffleBoundary
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.addProperty(reachable, store);
     }
+
+    // region Array elements
+    @ExportMessage
+    public boolean hasArrayElements() {
+        return true;
+    }
+
+    @ExportMessage
+    public long getArraySize() {
+        return size;
+    }
+
+    @ExportMessage
+    public Object readArrayElement(long index,
+            @Cached @Shared("error") BranchProfile errorProfile,
+            @Cached @Exclusive CallDispatchHeadNode dispatch) throws InvalidArrayIndexException {
+        if (inBounds(index)) {
+            // FIXME (pitr 11-Feb-2020): use ArrayReadNormalizedNode
+            // @Cached ArrayReadNormalizedNode readNode
+            // return readNode.executeRead(this, (int) index);
+            return dispatch.call(this, "[]", index);
+        } else {
+            errorProfile.enter();
+            throw InvalidArrayIndexException.create(index);
+        }
+    }
+
+    @ExportMessage
+    public void writeArrayElement(long index, Object value,
+            @Cached @Shared("error") BranchProfile errorProfile,
+            @Cached @Exclusive CallDispatchHeadNode dispatch) throws InvalidArrayIndexException {
+        if (index >= 0 && RubyGuards.fitsInInteger(index)) {
+            // FIXME (pitr 11-Feb-2020): use ArrayWriteNormalizedNode
+            // @Cached ArrayWriteNormalizedNode writeNode
+            // writeNode.executeWrite(this, (int) index, value);
+            dispatch.call(this, "[]=", index, value);
+        } else {
+            errorProfile.enter();
+            throw InvalidArrayIndexException.create(index);
+        }
+    }
+
+    @ExportMessage
+    public void removeArrayElement(long index,
+            @Cached @Exclusive CallDispatchHeadNode dispatch,
+            @Cached @Shared("error") BranchProfile errorProfile) throws InvalidArrayIndexException {
+        if (inBounds(index)) {
+            // FIXME (pitr 11-Feb-2020): use delete-at node directly
+            // @Cached ArrayNodes.DeleteAtNode deleteAtNode
+            // deleteAtNode.executeDeleteAt(this, (int) index);
+            dispatch.call(this, "delete_at", index);
+        } else {
+            errorProfile.enter();
+            throw InvalidArrayIndexException.create(index);
+        }
+    }
+
+    @ExportMessage
+    public boolean isArrayElementReadable(long index) {
+        return inBounds(index);
+    }
+
+    @ExportMessage
+    public boolean isArrayElementModifiable(long index,
+            @CachedLibrary("this") RubyLibrary rubyLibrary) {
+        return !rubyLibrary.isFrozen(this) && inBounds(index);
+    }
+
+    @ExportMessage
+    public boolean isArrayElementRemovable(long index,
+            @CachedLibrary("this") RubyLibrary rubyLibrary) {
+        return !rubyLibrary.isFrozen(this) && inBounds(index);
+    }
+
+    @ExportMessage
+    public boolean isArrayElementInsertable(long index,
+            @CachedLibrary("this") RubyLibrary rubyLibrary) {
+        return !rubyLibrary.isFrozen(this) && RubyGuards.fitsInInteger(index) && index >= size;
+    }
+    // endregion
+
+    private boolean inBounds(long index) {
+        return index >= 0 && index < size;
+    }
+
 }

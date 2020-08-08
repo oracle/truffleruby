@@ -12,11 +12,9 @@ package org.truffleruby.core.hash;
 import java.util.Set;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.interop.messages.HashMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -53,12 +51,6 @@ public class RubyHash extends RubyDynamicObject implements ObjectGraphNode {
         if (context.isPreInitializing()) {
             context.getPreInitializationManager().addPreInitHash(this);
         }
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return HashMessages.class;
     }
 
     @TruffleBoundary

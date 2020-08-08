@@ -9,9 +9,7 @@
  */
 package org.truffleruby.core.queue;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyQueueMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -34,12 +32,6 @@ public class RubyQueue extends RubyDynamicObject implements ObjectGraphNode {
                 reachable.add(element);
             }
         }
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyQueueMessages.class;
     }
 
 }

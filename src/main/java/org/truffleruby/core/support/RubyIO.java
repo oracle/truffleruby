@@ -9,10 +9,8 @@
  */
 package org.truffleruby.core.support;
 
-import org.truffleruby.interop.messages.IOMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
 public final class RubyIO extends RubyDynamicObject {
@@ -32,12 +30,6 @@ public final class RubyIO extends RubyDynamicObject {
 
     public void setDescriptor(int descriptor) {
         this.descriptor = descriptor;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return IOMessages.class;
     }
 
 }

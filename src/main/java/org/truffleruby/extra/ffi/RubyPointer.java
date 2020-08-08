@@ -9,11 +9,14 @@
  */
 package org.truffleruby.extra.ffi;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyPointerMessages;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
 import org.truffleruby.language.RubyDynamicObject;
 
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.Shape;
+
+@ExportLibrary(InteropLibrary.class)
 public class RubyPointer extends RubyDynamicObject {
 
     public Pointer pointer;
@@ -23,10 +26,20 @@ public class RubyPointer extends RubyDynamicObject {
         this.pointer = pointer;
     }
 
-    @Override
+    // region Pointer
     @ExportMessage
-    public Class<?> dispatch() {
-        return RubyPointerMessages.class;
+    public boolean isPointer() {
+        return true;
     }
+
+    @ExportMessage
+    public long asPointer() {
+        return pointer.getAddress();
+    }
+
+    @ExportMessage
+    public void toNative() {
+    }
+    // endregion
 
 }

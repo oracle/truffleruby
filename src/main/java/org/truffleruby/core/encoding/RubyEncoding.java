@@ -9,11 +9,9 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.Encoding;
-import org.truffleruby.interop.messages.RubyEncodingMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyEncoding extends RubyDynamicObject {
@@ -25,12 +23,6 @@ public class RubyEncoding extends RubyDynamicObject {
         super(shape);
         this.encoding = encoding;
         this.name = name;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyEncodingMessages.class;
     }
 
 }

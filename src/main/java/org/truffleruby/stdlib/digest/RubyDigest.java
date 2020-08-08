@@ -9,15 +9,13 @@
  */
 package org.truffleruby.stdlib.digest;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyDigestMessages;
-import org.truffleruby.language.RubyDynamicObject;
-
 import java.security.MessageDigest;
 
-public class RubyDigest extends RubyDynamicObject {
+import org.truffleruby.language.RubyDynamicObject;
 
+import com.oracle.truffle.api.object.Shape;
+
+public class RubyDigest extends RubyDynamicObject {
 
     final DigestAlgorithm algorithm;
     final MessageDigest digest;
@@ -26,12 +24,6 @@ public class RubyDigest extends RubyDynamicObject {
         super(shape);
         this.algorithm = algorithm;
         this.digest = digest;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyDigestMessages.class;
     }
 
 }

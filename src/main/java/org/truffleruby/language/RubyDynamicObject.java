@@ -9,21 +9,56 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.Layouts;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
+import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectType;
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.cast.IntegerCastNode;
+import org.truffleruby.core.cast.LongCastNode;
+import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.interop.ForeignToRubyArgumentsNode;
+import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.interop.TranslateInteropRubyExceptionNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.DispatchNode;
+import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.objects.LogicalClassNode;
+import org.truffleruby.language.objects.ReadObjectFieldNode;
+import org.truffleruby.language.objects.WriteObjectFieldNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.library.DynamicDispatchLibrary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.nodes.EncapsulatingNodeReference;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.utilities.TriState;
 
-/** All Ruby DynamicObjects will eventually extend this.
- *
- * {@link org.truffleruby.Layouts} still use DynamicObjectImpl until migrated. */
-@ExportLibrary(DynamicDispatchLibrary.class)
+/** All Ruby DynamicObjects extend this. */
+@ExportLibrary(RubyLibrary.class)
+@ExportLibrary(InteropLibrary.class)
 public abstract class RubyDynamicObject extends DynamicObject {
 
     public RubyDynamicObject(Shape shape) {
@@ -45,8 +80,642 @@ public abstract class RubyDynamicObject extends DynamicObject {
         return StringUtils.format("%s@%x<%s>", getClass().getSimpleName(), System.identityHashCode(this), className);
     }
 
-    /** Each subclass should define its own Messages class, until all Layouts are migrated. */
+    // region RubyLibrary messages
     @ExportMessage
-    public abstract Class<?> dispatch();
+    public void freeze(
+            @Exclusive @Cached WriteObjectFieldNode writeFrozenNode) {
+        writeFrozenNode.write(this, Layouts.FROZEN_IDENTIFIER, true);
+    }
+
+    @ExportMessage
+    public boolean isFrozen(
+            @Exclusive @Cached ReadObjectFieldNode readFrozenNode) {
+        return (boolean) readFrozenNode.execute(this, Layouts.FROZEN_IDENTIFIER, false);
+    }
+
+    @ExportMessage
+    public boolean isTainted(
+            @Exclusive @Cached ReadObjectFieldNode readTaintedNode) {
+        return (boolean) readTaintedNode.execute(this, Layouts.TAINTED_IDENTIFIER, false);
+    }
+
+    @ExportMessage
+    public void taint(
+            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Exclusive @Cached WriteObjectFieldNode writeTaintNode,
+            @Exclusive @Cached BranchProfile errorProfile,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+
+        if (!rubyLibrary.isTainted(this) && rubyLibrary.isFrozen(this)) {
+            errorProfile.enter();
+            throw new RaiseException(context, context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
+        }
+
+        writeTaintNode.write(this, Layouts.TAINTED_IDENTIFIER, true);
+    }
+
+    @ExportMessage
+    public void untaint(
+            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Exclusive @Cached WriteObjectFieldNode writeTaintNode,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached BranchProfile errorProfile) {
+        if (!rubyLibrary.isTainted(this)) {
+            return;
+        }
+
+        if (rubyLibrary.isFrozen(this)) {
+            errorProfile.enter();
+            throw new RaiseException(context, context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
+        }
+
+        writeTaintNode.write(this, Layouts.TAINTED_IDENTIFIER, false);
+    }
+    // endregion
+
+    // region InteropLibrary messages
+    @ExportMessage
+    public boolean hasLanguage() {
+        return true;
+    }
+
+    @ExportMessage
+    public Class<RubyLanguage> getLanguage() {
+        return RubyLanguage.class;
+    }
+
+    @ExportMessage
+    public RubyString toDisplayString(boolean allowSideEffects,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode,
+            @Cached KernelNodes.ToSNode kernelToSNode) {
+        if (allowSideEffects) {
+            Object inspect = dispatchNode.call(this, "inspect");
+            if (inspect instanceof RubyString) {
+                return (RubyString) inspect;
+            } else {
+                return kernelToSNode.executeToS(this);
+            }
+        } else {
+            return kernelToSNode.executeToS(this);
+        }
+    }
+
+    // region Identity
+    /** Like {@link org.truffleruby.core.hash.HashNode} but simplified since {@link ObjectIDNode} for RubyDynamicObject
+     * can only return long. */
+    @ExportMessage
+    public int identityHashCode(
+            @Cached ObjectIDNode objectIDNode) {
+        return (int) objectIDNode.execute(this);
+    }
+
+    @ExportMessage
+    public TriState isIdenticalOrUndefined(Object other,
+            @Exclusive @Cached ConditionProfile rubyObjectProfile) {
+        if (rubyObjectProfile.profile(other instanceof RubyDynamicObject)) {
+            return this == other ? TriState.TRUE : TriState.FALSE;
+        } else {
+            return TriState.UNDEFINED;
+        }
+    }
+    // endregion
+
+    // region MetaObject
+    @ExportMessage
+    public boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    public RubyClass getMetaObject(
+            @Cached LogicalClassNode classNode) {
+        return classNode.executeLogicalClass(this);
+    }
+    // endregion
+
+    // region Array elements
+    @ExportMessage
+    public boolean hasArrayElements(
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object value = dispatchNode.call(this, "polyglot_has_array_elements?");
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public long getArraySize(
+            @Cached IntegerCastNode integerCastNode,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
+            throws UnsupportedMessageException {
+        Object value;
+        try {
+            value = dispatchNode.call(this, "polyglot_array_size");
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e);
+        }
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return integerCastNode.executeCastInt(value);
+    }
+
+    @ExportMessage
+    @SuppressWarnings("unused") // because of throws in ArrayMessages
+    public Object readArrayElement(long index,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
+            throws InvalidArrayIndexException, UnsupportedMessageException {
+        try {
+            Object value = dispatchNode.call(this, "polyglot_read_array_element", index);
+            if (value == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
+            return value;
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, index);
+        }
+    }
+
+    @ExportMessage
+    @SuppressWarnings("unused") // because of throws in ArrayMessages
+    public void writeArrayElement(long index, Object value,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
+            throws UnsupportedMessageException, InvalidArrayIndexException, UnsupportedTypeException {
+        try {
+            Object result = dispatchNode.call(this, "polyglot_write_array_element", index, value);
+            if (result == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, index, value);
+        }
+
+    }
+
+    @ExportMessage
+    public void removeArrayElement(long index,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode)
+            throws UnsupportedMessageException, InvalidArrayIndexException {
+        try {
+            Object result = dispatchNode.call(this, "polyglot_remove_array_element", index);
+            if (result == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, index);
+        }
+    }
+
+    @ExportMessage
+    public boolean isArrayElementReadable(long index,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object value = dispatchNode.call(this, "polyglot_array_element_readable?", index);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public boolean isArrayElementModifiable(long index,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object value = dispatchNode.call(this, "polyglot_array_element_modifiable?", index);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public boolean isArrayElementInsertable(long index,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object value = dispatchNode.call(this, "polyglot_array_element_insertable?", index);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public boolean isArrayElementRemovable(long index,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object value = dispatchNode.call(this, "polyglot_array_element_removable?", index);
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+    // endregion
+
+    // region Pointer
+    @ExportMessage
+    public boolean isPointer(
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+
+        Object value = dispatchNode.call(this, "polyglot_pointer?");
+        return value != DispatchNode.MISSING && booleanCastNode.executeToBoolean(value);
+    }
+
+    @ExportMessage
+    public long asPointer(
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Cached LongCastNode longCastNode) throws UnsupportedMessageException {
+
+        Object value;
+        try {
+            value = dispatchNode.call(this, "polyglot_as_pointer");
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e);
+        }
+        if (value == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return longCastNode.executeCastLong(value);
+    }
+
+    @ExportMessage
+    public void toNative(
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode) {
+
+        dispatchNode.call(this, "polyglot_to_native");
+        // we ignore the method missing, toNative never throws
+    }
+    // endregion
+
+    // region Members
+    @ExportMessage
+    public boolean hasMembers(
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object dynamic = dispatchNode.call(this, "polyglot_has_members?");
+        return dynamic == DispatchNode.MISSING || booleanCastNode.executeToBoolean(dynamic);
+    }
+
+    @ExportMessage
+    public Object getMembers(boolean internal,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached CallDispatchHeadNode dispatchNode) {
+        return dispatchNode.call(
+                context.getCoreLibrary().truffleInteropModule,
+                // language=ruby prefix=Truffle::Interop.
+                "get_members_implementation",
+                this,
+                internal);
+    }
+
+    private static boolean isIVar(String name) {
+        return !name.isEmpty() && name.charAt(0) == '@';
+    }
+
+    @ExportMessage
+    public Object readMember(String name,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Cached @Exclusive CallDispatchHeadNode dispatch,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnknownIdentifierException, UnsupportedMessageException {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic;
+        try {
+            dynamic = dispatchNode.call(this, "polyglot_read_member", rubyName);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, name);
+        }
+
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object iVar = readObjectFieldNode.execute(this, name, null);
+            if (ivarFoundProfile.profile(iVar != null)) {
+                return iVar;
+            } else if (definedNode.doesRespondTo(null, name, this)) {
+                return dispatch.call(this, "method", rubyName);
+            } else {
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name);
+            }
+        } else {
+            return dynamic;
+        }
+    }
+
+    @ExportMessage
+    public void writeMember(String name, Object value,
+            @Cached WriteObjectFieldNode writeObjectFieldNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnknownIdentifierException, UnsupportedMessageException {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic;
+        try {
+            dynamic = dispatchNode.call(this, "polyglot_write_member", rubyName, value);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, name);
+        }
+
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (rubyLibrary.isFrozen(this)) {
+                errorProfile.enter();
+                throw UnsupportedMessageException.create();
+            }
+            if (isIVar(name)) {
+                writeObjectFieldNode.write(this, name, value);
+            } else {
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name);
+            }
+        }
+    }
+
+    @ExportMessage
+    public void removeMember(String name,
+            @Exclusive @Cached ForeignToRubyNode foreignToRubyNode,
+            @Exclusive @Cached CallDispatchHeadNode removeInstanceVariableNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @CachedLibrary("this") InteropLibrary interopLibrary)
+            throws UnknownIdentifierException, UnsupportedMessageException {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic;
+        try {
+            dynamic = dispatchNode.call(this, "polyglot_remove_member", rubyName);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, name);
+        }
+
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (!interopLibrary.isMemberRemovable(this, name)) {
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name);
+            }
+            try {
+                removeInstanceVariableNode.call(this, "remove_instance_variable", rubyName);
+            } catch (RaiseException e) { // raises only if the name is missing
+                // concurrent change in whether the member is removable
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name, e);
+            }
+        }
+    }
+
+    @ExportMessage
+    public Object invokeMember(String name, Object[] arguments,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchDynamic,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchMember,
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Shared("translateRubyException") @Cached TranslateInteropRubyExceptionNode translateRubyException,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile)
+            throws UnknownIdentifierException, UnsupportedTypeException, UnsupportedMessageException, ArityException {
+        Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object[] combinedArguments = ArrayUtils.unshift(convertedArguments, rubyName);
+        Object dynamic;
+        try {
+            dynamic = dispatchDynamic.call(this, "polyglot_invoke_member", combinedArguments);
+        } catch (RaiseException e) {
+            throw translateRubyException.execute(e, name, arguments);
+        }
+
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object result = dispatchMember.call(this, name, convertedArguments);
+            if (result == DispatchNode.MISSING) {
+                errorProfile.enter();
+                throw UnknownIdentifierException.create(name);
+            }
+            return result;
+        }
+        return dynamic;
+    }
+
+    @ExportMessage
+    public boolean isMemberReadable(String name,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile) {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(this, "polyglot_member_readable?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object iVar = readObjectFieldNode.execute(this, name, null);
+            if (ivarFoundProfile.profile(iVar != null)) {
+                return true;
+            } else {
+                return definedNode.doesRespondTo(null, name, this);
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    public boolean isMemberModifiable(String name,
+            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(this, "polyglot_member_modifiable?", rubyName);
+        return isMemberModifiableRemovable(
+                dynamic,
+                name,
+                rubyLibrary,
+                readObjectFieldNode,
+                booleanCastNode,
+                dynamicProfile);
+    }
+
+    @ExportMessage
+    public boolean isMemberRemovable(String name,
+            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(this, "polyglot_member_removable?", rubyName);
+        return isMemberModifiableRemovable(
+                dynamic,
+                name,
+                rubyLibrary,
+                readObjectFieldNode,
+                booleanCastNode,
+                dynamicProfile);
+    }
+
+    private boolean isMemberModifiableRemovable(Object dynamic,
+            String name,
+            RubyLibrary rubyLibrary,
+            ReadObjectFieldNode readObjectFieldNode,
+            BooleanCastNode booleanCastNode,
+            ConditionProfile dynamicProfile) {
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (rubyLibrary.isFrozen(this)) {
+                return false;
+            } else {
+                return readObjectFieldNode.execute(this, name, null) != null;
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    public boolean isMemberInsertable(String name,
+            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode) {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(this, "polyglot_member_insertable?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            if (rubyLibrary.isFrozen(this) || !isIVar(name)) {
+                return false;
+            } else {
+                return readObjectFieldNode.execute(this, name, null) == null;
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    public boolean isMemberInvocable(String name,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile) {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(this, "polyglot_member_invocable?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object iVar = readObjectFieldNode.execute(this, name, null);
+            if (ivarFoundProfile.profile(iVar != null)) {
+                return false;
+            } else {
+                return definedNode.doesRespondTo(null, name, this);
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    public boolean isMemberInternal(String name,
+            @Cached @Shared("readObjectFieldNode") ReadObjectFieldNode readObjectFieldNode,
+            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Exclusive @Cached(parameters = "PUBLIC") DoesRespondDispatchHeadNode definedPublicNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached BooleanCastNode booleanCastNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Shared("ivarFoundProfile") @Cached ConditionProfile ivarFoundProfile) {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(this, "polyglot_member_internal?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            Object result = readObjectFieldNode.execute(this, name, null);
+            if (ivarFoundProfile.profile(result != null)) {
+                return true;
+            } else {
+                // defined but not publicly
+                return definedNode.doesRespondTo(null, name, this) &&
+                        !definedPublicNode.doesRespondTo(null, name, this);
+            }
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    public boolean hasMemberReadSideEffects(String name,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(this, "polyglot_has_member_read_side_effects?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            return false;
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+
+    @ExportMessage
+    public boolean hasMemberWriteSideEffects(String name,
+            @Cached @Shared("nameToRubyNode") ForeignToRubyNode nameToRubyNode,
+            @Exclusive @Cached(parameters = "RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Shared("dynamicProfile") @Cached ConditionProfile dynamicProfile,
+            @Exclusive @Cached BooleanCastNode booleanCastNode) {
+        Object rubyName = nameToRubyNode.executeConvert(name);
+        Object dynamic = dispatchNode.call(this, "polyglot_has_member_write_side_effects?", rubyName);
+        if (dynamicProfile.profile(dynamic == DispatchNode.MISSING)) {
+            return false;
+        } else {
+            return booleanCastNode.executeToBoolean(dynamic);
+        }
+    }
+    // endregion
+
+    // region Instantiable
+    @ExportMessage
+    public boolean isInstantiable(
+            @Exclusive @Cached(parameters = "PUBLIC") DoesRespondDispatchHeadNode doesRespond) {
+        return doesRespond.doesRespondTo(null, "new", this);
+    }
+
+    @ExportMessage
+    public Object instantiate(Object[] arguments,
+            @Shared("errorProfile") @Cached BranchProfile errorProfile,
+            @Exclusive @Cached(parameters = "PUBLIC_RETURN_MISSING") CallDispatchHeadNode dispatchNode,
+            @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode)
+            throws UnsupportedMessageException {
+        Object instance = dispatchNode.call(this, "new", foreignToRubyArgumentsNode.executeConvert(arguments));
+
+        // TODO (pitr-ch 28-Jan-2020): we should translate argument-error caused by bad arity to ArityException
+        if (instance == DispatchNode.MISSING) {
+            errorProfile.enter();
+            throw UnsupportedMessageException.create();
+        }
+        return instance;
+    }
+    // endregion
+    // endregion
+
+    public static Node getNode(RubyLibrary node) {
+        if (!node.isAdoptable()) {
+            return EncapsulatingNodeReference.getCurrent().get();
+        }
+        return node;
+    }
 
 }

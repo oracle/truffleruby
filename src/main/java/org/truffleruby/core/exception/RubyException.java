@@ -11,14 +11,12 @@ package org.truffleruby.core.exception;
 
 import java.util.Set;
 
-import org.truffleruby.interop.messages.ExceptionMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
@@ -58,9 +56,4 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
         }
     }
 
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return ExceptionMessages.class;
-    }
 }

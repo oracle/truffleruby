@@ -10,7 +10,6 @@
 package org.truffleruby.core.range;
 
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyObjectRangeMessages;
 
 public final class RubyObjectRange extends RubyRange {
 
@@ -21,11 +20,6 @@ public final class RubyObjectRange extends RubyRange {
         super(shape, excludedEnd);
         this.begin = begin;
         this.end = end;
-    }
-
-    @Override
-    public Class<?> dispatch() {
-        return RubyObjectRangeMessages.class;
     }
 
 }

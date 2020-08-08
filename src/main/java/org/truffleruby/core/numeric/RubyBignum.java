@@ -9,13 +9,16 @@
  */
 package org.truffleruby.core.numeric;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyBignumMessages;
-import org.truffleruby.language.RubyDynamicObject;
-
 import java.math.BigInteger;
 
+import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.library.RubyLibrary;
+
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.Shape;
+
+@ExportLibrary(RubyLibrary.class)
 public class RubyBignum extends RubyDynamicObject {
 
     public final BigInteger value;
@@ -25,10 +28,8 @@ public class RubyBignum extends RubyDynamicObject {
         this.value = value;
     }
 
-    @Override
     @ExportMessage
-    public Class<?> dispatch() {
-        return RubyBignumMessages.class;
+    protected void freeze() {
     }
 
 }

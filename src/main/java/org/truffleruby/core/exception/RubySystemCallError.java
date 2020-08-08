@@ -9,10 +9,8 @@
  */
 package org.truffleruby.core.exception;
 
-import org.truffleruby.interop.messages.SystemCallErrorMessages;
 import org.truffleruby.language.backtrace.Backtrace;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
 
@@ -24,12 +22,6 @@ public final class RubySystemCallError extends RubyException {
         super(shape, message, backtrace, cause);
         assert errno != null;
         this.errno = errno;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return SystemCallErrorMessages.class;
     }
 
 }

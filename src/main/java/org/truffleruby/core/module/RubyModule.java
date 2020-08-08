@@ -9,15 +9,19 @@
  */
 package org.truffleruby.core.module;
 
-import org.truffleruby.interop.messages.RubyModuleMessages;
-import org.truffleruby.language.RubyDynamicObject;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.language.objects.ObjectGraphNode;
-
 import java.util.Set;
 
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.objects.ObjectGraphNode;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.source.SourceSection;
+
+@ExportLibrary(InteropLibrary.class)
 public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
 
     public static final RubyModule[] EMPTY_ARRAY = new RubyModule[0];
@@ -40,8 +44,16 @@ public class RubyModule extends RubyDynamicObject implements ObjectGraphNode {
         fields.getAdjacentObjects(reachable);
     }
 
-    @Override
-    public Class<?> dispatch() {
-        return RubyModuleMessages.class;
+    // region SourceLocation
+    @ExportMessage
+    public boolean hasSourceLocation() {
+        return true;
     }
+
+    @ExportMessage
+    public SourceSection getSourceLocation() {
+        return fields.getSourceSection();
+    }
+    // endregion
+
 }

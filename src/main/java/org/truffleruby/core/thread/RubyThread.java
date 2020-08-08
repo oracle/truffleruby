@@ -24,14 +24,12 @@ import org.truffleruby.core.hash.HashOperations;
 import org.truffleruby.core.support.RandomizerNodes;
 import org.truffleruby.core.support.RubyRandomizer;
 import org.truffleruby.core.tracepoint.TracePointState;
-import org.truffleruby.interop.messages.RubyThreadMessages;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
@@ -97,12 +95,6 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
         if (name != Nil.INSTANCE) {
             ObjectGraph.addProperty(reachable, name);
         }
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyThreadMessages.class;
     }
 
 }

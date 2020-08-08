@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.basicobject;
 
-import org.truffleruby.interop.messages.RubyBasicObjectMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
@@ -32,11 +31,6 @@ public final class RubyBasicObject extends RubyDynamicObject {
 
     public RubyBasicObject(Shape shape) {
         super(shape);
-    }
-
-    @Override
-    public Class<?> dispatch() {
-        return RubyBasicObjectMessages.class;
     }
 
 }
