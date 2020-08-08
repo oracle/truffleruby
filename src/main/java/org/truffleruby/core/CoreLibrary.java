@@ -36,6 +36,7 @@ import org.truffleruby.builtins.PrimitiveManager;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.basicobject.BasicObjectType;
+import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.encoding.RubyEncodingConverter;
@@ -202,7 +203,7 @@ public class CoreLibrary {
     public final RubyClass notImplementedErrorClass;
     public final RubyClass numericClass;
     public final RubyClass objectClass;
-    public final DynamicObjectFactory objectFactory;
+    public final Shape objectShape;
     public final RubyClass procClass;
     public final Shape procShape;
     public final RubyModule processModule;
@@ -391,12 +392,12 @@ public class CoreLibrary {
         classClass.instanceFactory = createFactory(classShape);
 
         basicObjectClass = ClassNodes.createBootClass(context, null, classShape, null, "BasicObject");
-        basicObjectClass.instanceFactory = Layouts.BASIC_OBJECT
-                .createBasicObjectShape(basicObjectClass, basicObjectClass);
+        Shape basicObjectShape = createShape(RubyBasicObject.class, basicObjectClass);
+        basicObjectClass.instanceFactory = createFactory(basicObjectShape);
 
         objectClass = ClassNodes.createBootClass(context, null, classShape, basicObjectClass, "Object");
-        objectFactory = Layouts.BASIC_OBJECT.createBasicObjectShape(objectClass, objectClass);
-        objectClass.instanceFactory = objectFactory;
+        objectShape = createShape(RubyBasicObject.class, objectClass);
+        objectClass.instanceFactory = createFactory(objectShape);
 
         moduleClass = ClassNodes.createBootClass(context, null, classShape, objectClass, "Module");
         Shape moduleShape = createShape(RubyModule.class, moduleClass);
@@ -703,7 +704,7 @@ public class CoreLibrary {
 
         // Create some key objects
 
-        mainObject = objectFactory.newInstance();
+        mainObject = new RubyBasicObject(objectShape);
         emptyDescriptor = new FrameDescriptor(Nil.INSTANCE);
         argv = new RubyArray(arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
@@ -1019,8 +1020,8 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public RubyClass getMetaClass(Object object) {
-        if (RubyGuards.isRubyDynamicObject(object)) {
-            return Layouts.BASIC_OBJECT.getMetaClass((DynamicObject) object);
+        if (object instanceof RubyDynamicObject) {
+            return ((RubyDynamicObject) object).getMetaClass();
         } else {
             return getLogicalClass(object);
         }
@@ -1028,8 +1029,8 @@ public class CoreLibrary {
 
     @TruffleBoundary
     public RubyClass getLogicalClass(Object object) {
-        if (RubyGuards.isRubyDynamicObject(object)) {
-            return Layouts.BASIC_OBJECT.getLogicalClass((DynamicObject) object);
+        if (object instanceof RubyDynamicObject) {
+            return ((RubyDynamicObject) object).getLogicalClass();
         } else if (object instanceof Nil) {
             return nilClass;
         } else if (object instanceof RubySymbol) {

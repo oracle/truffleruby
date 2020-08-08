@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -33,7 +32,9 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.BooleanCastNodeGen;
 import org.truffleruby.core.cast.BooleanCastWithDefaultNodeGen;
@@ -55,6 +56,7 @@ import org.truffleruby.core.method.MethodFilter;
 import org.truffleruby.core.method.RubyMethod;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.ProcNodes.ProcNewNode;
 import org.truffleruby.core.proc.ProcNodesFactory.ProcNewNodeFactory;
 import org.truffleruby.core.proc.ProcOperations;
@@ -67,7 +69,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.support.TypeNodes.CheckFrozenNode;
 import org.truffleruby.core.support.TypeNodes.ObjectInstanceVariablesNode;
 import org.truffleruby.core.support.TypeNodesFactory.ObjectInstanceVariablesNodeFactory;
@@ -78,9 +79,9 @@ import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
@@ -424,7 +425,7 @@ public abstract class KernelNodes {
 
     }
 
-    @ImportStatic(ShapeCachingGuards.class)
+    @ImportStatic({ ShapeCachingGuards.class, BasicObjectType.class })
     public abstract static class CopyNode extends UnaryCoreMethodNode {
 
         public static final Property[] EMPTY_PROPERTY_ARRAY = new Property[0];
@@ -439,9 +440,9 @@ public abstract class KernelNodes {
 
         @ExplodeLoop
         @Specialization(guards = "self.getShape() == cachedShape", limit = "getCacheLimit()")
-        protected DynamicObject copyCached(DynamicObject self,
+        protected DynamicObject copyCached(RubyDynamicObject self,
                 @Cached("self.getShape()") Shape cachedShape,
-                @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass,
+                @Cached("getLogicalClass(cachedShape)") RubyClass logicalClass,
                 @Cached(value = "getCopiedProperties(cachedShape)", dimensions = 1) Property[] properties,
                 @Cached("createReadFieldNodes(properties)") ReadObjectFieldNode[] readFieldNodes,
                 @Cached("createWriteFieldNodes(properties)") WriteObjectFieldNode[] writeFieldNodes) {
@@ -456,20 +457,16 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "updateShape(self)")
-        protected Object updateShapeAndCopy(DynamicObject self) {
+        protected Object updateShapeAndCopy(RubyDynamicObject self) {
             return executeCopy(self);
         }
 
         @Specialization(replaces = { "copyCached", "updateShapeAndCopy" })
-        protected DynamicObject copyUncached(DynamicObject self) {
-            final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(self);
+        protected DynamicObject copyUncached(RubyDynamicObject self) {
+            final RubyClass rubyClass = self.getLogicalClass();
             final DynamicObject newObject = (DynamicObject) allocateNode.call(rubyClass, "__allocate__");
             copyInstanceVariables(self, newObject);
             return newObject;
-        }
-
-        protected DynamicObject getLogicalClass(Shape shape) {
-            return Layouts.BASIC_OBJECT.getLogicalClass(shape.getObjectType());
         }
 
         protected Property[] getCopiedProperties(Shape shape) {
@@ -535,7 +532,7 @@ public abstract class KernelNodes {
         }
 
         @Specialization(guards = "!isRubyBignum(self)", limit = "getRubyLibraryCacheLimit()")
-        protected DynamicObject clone(DynamicObject self, boolean freeze,
+        protected DynamicObject clone(RubyDynamicObject self, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,
                 @Cached ConditionProfile isFrozenProfile,
@@ -545,7 +542,7 @@ public abstract class KernelNodes {
             final DynamicObject newObject = copyNode.executeCopy(self);
 
             // Copy the singleton class if any.
-            final RubyClass selfMetaClass = Layouts.BASIC_OBJECT.getMetaClass(self);
+            final RubyClass selfMetaClass = self.getMetaClass();
             if (isSingletonProfile.profile(selfMetaClass.isSingleton)) {
                 final RubyClass newObjectMetaClass = executeSingletonClass(newObject);
                 newObjectMetaClass.fields.initCopy(selfMetaClass);

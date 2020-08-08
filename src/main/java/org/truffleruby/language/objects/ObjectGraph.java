@@ -17,11 +17,11 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.arguments.RubyArguments;
 
 import java.util.ArrayDeque;
@@ -116,9 +116,9 @@ public abstract class ObjectGraph {
             ((ObjectGraphNode) object).getAdjacentObjects(reachable);
         }
 
-        if (Layouts.BASIC_OBJECT.isBasicObject(object)) {
-            reachable.add(Layouts.BASIC_OBJECT.getLogicalClass(object));
-            reachable.add(Layouts.BASIC_OBJECT.getMetaClass(object));
+        if (object instanceof RubyDynamicObject) {
+            reachable.add(((RubyDynamicObject) object).getLogicalClass());
+            reachable.add(((RubyDynamicObject) object).getMetaClass());
         }
 
         for (Property property : object.getShape().getPropertyListInternal(false)) {

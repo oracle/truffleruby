@@ -9,11 +9,12 @@
  */
 package org.truffleruby.core.basicobject;
 
+import com.oracle.truffle.api.object.ObjectType;
+import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.klass.RubyClass;
-import org.truffleruby.interop.RubyObjectType;
 import org.truffleruby.interop.messages.RubyObjectMessages;
 
-public class BasicObjectType extends RubyObjectType {
+public final class BasicObjectType extends ObjectType {
 
     protected final RubyClass logicalClass;
     protected final RubyClass metaClass;
@@ -37,6 +38,14 @@ public class BasicObjectType extends RubyObjectType {
 
     public BasicObjectType setMetaClass(RubyClass metaClass) {
         return new BasicObjectType(logicalClass, metaClass);
+    }
+
+    public static RubyClass getLogicalClass(Shape shape) {
+        return ((BasicObjectType) shape.getObjectType()).getLogicalClass();
+    }
+
+    public static RubyClass getMetaClass(Shape shape) {
+        return ((BasicObjectType) shape.getObjectType()).getMetaClass();
     }
 
     @Override

@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -129,7 +128,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         if (!hasFullName()) {
             // Tricky, we need to compare with the Object class, but we only have a Class at hand.
-            final RubyClass classClass = Layouts.BASIC_OBJECT.getLogicalClass(getLogicalClass());
+            final RubyClass classClass = getLogicalClass().getLogicalClass();
             final RubyClass objectClass = ClassNodes.getSuperClass(ClassNodes.getSuperClass(classClass));
 
             if (lexicalParent == objectClass) {
@@ -749,7 +748,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
     }
 
     public RubyClass getLogicalClass() {
-        return Layouts.BASIC_OBJECT.getLogicalClass(rubyModuleObject);
+        return rubyModuleObject.getLogicalClass();
     }
 
     @Override

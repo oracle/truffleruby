@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.control;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.ExceptionOperations;
@@ -65,7 +64,7 @@ public class RaiseException extends RuntimeException implements TruffleException
     @Override
     @TruffleBoundary
     public String getMessage() {
-        final ModuleFields exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception).fields;
+        final ModuleFields exceptionClass = exception.getLogicalClass().fields;
         final String message = ExceptionOperations.messageToString(exceptionClass.getContext(), exception);
         return String.format("%s (%s)", message, exceptionClass.getName());
     }

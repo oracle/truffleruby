@@ -14,6 +14,7 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -101,7 +102,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                         default:
                             throw CompilerDirectives.shouldNotReachHere();
                     }
-                } else if (RubyGuards.isRubyDynamicObject(receiverObject)) {
+                } else if (receiverObject instanceof RubyDynamicObject) {
                     newDispatchNode = doDynamicObject(
                             frame,
                             first,

@@ -24,6 +24,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
@@ -157,8 +158,8 @@ public abstract class ObjectSpaceNodes {
             if (object instanceof RubySymbol) {
                 return false;
             } else {
-                if (RubyGuards.isRubyDynamicObject(object)) {
-                    return RubyGuards.isSingletonClass((DynamicObject) object);
+                if (object instanceof RubyDynamicObject) {
+                    return RubyGuards.isSingletonClass((RubyDynamicObject) object);
                 } else {
                     return true;
                 }

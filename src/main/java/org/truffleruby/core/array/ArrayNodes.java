@@ -150,7 +150,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = "count == 0")
         protected RubyArray mulZero(RubyArray array, int count) {
             final RubyArray result = new RubyArray(
-                    helperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)),
+                    helperNode.getCachedShape(array.getLogicalClass()),
                     ArrayStoreLibrary.INITIAL_STORE,
                     0);
             propagateTaintNode.executePropagate(array, result);
@@ -177,7 +177,7 @@ public abstract class ArrayNodes {
             }
 
             final RubyArray result = new RubyArray(helperNode
-                    .getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)), newStore, newSize);
+                    .getCachedShape(array.getLogicalClass()), newStore, newSize);
             propagateTaintNode.executePropagate(array, result);
             return result;
         }
@@ -195,7 +195,7 @@ public abstract class ArrayNodes {
         @Specialization(guards = { "isEmptyArray(array)" })
         protected RubyArray mulEmpty(RubyArray array, long count) {
             final RubyArray result = new RubyArray(helperNode
-                    .getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)), ArrayStoreLibrary.INITIAL_STORE, 0);
+                    .getCachedShape(array.getLogicalClass()), ArrayStoreLibrary.INITIAL_STORE, 0);
             propagateTaintNode.executePropagate(array, result);
             return result;
         }

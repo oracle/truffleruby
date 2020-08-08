@@ -19,7 +19,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -1341,10 +1340,10 @@ public abstract class ModuleNodes {
             self.fields.initCopy(from);
 
             final RubyClass selfMetaClass = getSingletonClass(self);
-            final RubyClass fromMetaClass = Layouts.BASIC_OBJECT.getMetaClass(from);
+            final RubyClass fromMetaClass = from.getMetaClass();
 
             assert fromMetaClass.isSingleton;
-            assert Layouts.BASIC_OBJECT.getMetaClass(self).isSingleton;
+            assert self.getMetaClass().isSingleton;
 
             selfMetaClass.fields.initCopy(fromMetaClass); // copy class methods
 

@@ -16,6 +16,7 @@ import org.truffleruby.core.array.ArrayOperations;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
+import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.queue.RubyQueue;
 import org.truffleruby.core.queue.UnsizedQueue;
 import org.truffleruby.language.RubyContextNode;
@@ -82,13 +83,13 @@ public abstract class ShareInternalFieldsNode extends RubyContextNode {
     }
 
     @Specialization(
-            guards = { "object.getShape() == cachedShape", "isBasicObjectShape(cachedShape)", "!hasFinalizerRef" },
+            guards = { "object.getShape() == cachedShape", "!hasFinalizerRef" },
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
-    protected void shareCachedBasicObject(DynamicObject object,
+    protected void shareCachedBasicObject(RubyBasicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @Cached("hasFinalizerRefProperty(cachedShape)") boolean hasFinalizerRef) {
-        /* No internal fields */
+        /* No internal fields for RubyBasicObject */
     }
 
     @Specialization(

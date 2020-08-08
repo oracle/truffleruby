@@ -11,7 +11,6 @@ package org.truffleruby.core.array;
 
 import java.lang.reflect.Array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
@@ -38,7 +37,7 @@ public abstract class ArrayOperations {
                 backingStore instanceof int[] || backingStore instanceof long[] || backingStore instanceof double[] ||
                 backingStore.getClass() == Object[].class : backingStore;
 
-        final RubyContext context = Layouts.BASIC_OBJECT.getLogicalClass(array).fields.getContext();
+        final RubyContext context = array.getLogicalClass().fields.getContext();
         if (SharedObjects.isShared(context, array)) {
             final Object store = array.store;
 

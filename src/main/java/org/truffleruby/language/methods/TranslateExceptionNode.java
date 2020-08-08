@@ -11,13 +11,13 @@ package org.truffleruby.language.methods;
 
 import java.util.EnumSet;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
@@ -38,7 +38,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
@@ -167,10 +166,10 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
 
             if (value == null) {
                 builder.append("null");
-            } else if (value instanceof DynamicObject) {
-                final DynamicObject dynamicObject = (DynamicObject) value;
+            } else if (value instanceof RubyDynamicObject) {
+                final RubyDynamicObject dynamicObject = (RubyDynamicObject) value;
 
-                builder.append(Layouts.BASIC_OBJECT.getLogicalClass(dynamicObject).fields.getName());
+                builder.append(dynamicObject.getLogicalClass().fields.getName());
                 builder.append("(");
                 builder.append(value.getClass().getName());
                 builder.append(")");

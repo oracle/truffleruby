@@ -16,7 +16,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
@@ -305,7 +304,7 @@ public class BacktraceFormatter {
 
         final String message = ExceptionOperations.messageToString(context, exception);
 
-        final String exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception).fields
+        final String exceptionClass = exception.getLogicalClass().fields
                 .getName();
 
         // Show the exception class at the end of the first line of the message

@@ -25,6 +25,7 @@ import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -106,7 +107,7 @@ public class RubyObjectMessages {
     @ExportMessage
     protected static TriState isIdenticalOrUndefined(DynamicObject receiver, Object other,
             @Exclusive @Cached ConditionProfile rubyObjectProfile) {
-        if (rubyObjectProfile.profile(RubyGuards.isRubyDynamicObject(other))) {
+        if (rubyObjectProfile.profile(other instanceof RubyDynamicObject)) {
             return receiver == other ? TriState.TRUE : TriState.FALSE;
         } else {
             return TriState.UNDEFINED;

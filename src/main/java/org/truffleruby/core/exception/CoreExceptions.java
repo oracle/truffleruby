@@ -16,7 +16,6 @@ import java.util.EnumSet;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
@@ -60,7 +59,7 @@ public class CoreExceptions {
 
     public void showExceptionIfDebug(RubyException exception) {
         showExceptionIfDebug(
-                Layouts.BASIC_OBJECT.getLogicalClass(exception),
+                exception.getLogicalClass(),
                 exception.message,
                 exception.backtrace);
     }
@@ -68,7 +67,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public void showExceptionIfDebug(RubyException rubyException, Backtrace backtrace) {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
-            final RubyClass rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
+            final RubyClass rubyClass = rubyException.getLogicalClass();
             final Object message = context.send(rubyException, "to_s");
             showExceptionIfDebug(rubyClass, message, backtrace);
         }

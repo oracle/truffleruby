@@ -9,6 +9,11 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.core.basicobject.BasicObjectType;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.string.StringUtils;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.library.DynamicDispatchLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -23,6 +28,21 @@ public abstract class RubyDynamicObject extends DynamicObject {
 
     public RubyDynamicObject(Shape shape) {
         super(shape);
+    }
+
+    public final RubyClass getLogicalClass() {
+        return BasicObjectType.getLogicalClass(getShape());
+    }
+
+    public final RubyClass getMetaClass() {
+        return BasicObjectType.getMetaClass(getShape());
+    }
+
+    @Override
+    @TruffleBoundary
+    public String toString() {
+        final String className = getLogicalClass().fields.getName();
+        return StringUtils.format("%s@%x<%s>", getClass().getSimpleName(), System.identityHashCode(this), className);
     }
 
     /** Each subclass should define its own Messages class, until all Layouts are migrated. */

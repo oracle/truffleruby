@@ -10,7 +10,6 @@
 package org.truffleruby.core.proc;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -143,8 +142,8 @@ public abstract class ProcNodes {
             return coreLibrary().procShape;
         }
 
-        protected RubyClass metaClass(DynamicObject object) {
-            return Layouts.BASIC_OBJECT.getMetaClass(object);
+        protected RubyClass metaClass(RubyProc object) {
+            return object.getMetaClass();
         }
     }
 
@@ -155,7 +154,7 @@ public abstract class ProcNodes {
         protected RubyProc dup(RubyProc proc,
                 @Cached AllocateHelperNode allocateHelper) {
             final RubyProc copy = new RubyProc(
-                    allocateHelper.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(proc)),
+                    allocateHelper.getCachedShape(proc.getLogicalClass()),
                     proc.type,
                     proc.sharedMethodInfo,
                     proc.callTargetForType,

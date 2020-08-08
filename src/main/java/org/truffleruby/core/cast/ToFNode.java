@@ -10,7 +10,6 @@
 
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -68,7 +67,7 @@ public abstract class ToFNode extends RubyContextNode {
         try {
             coerced = toFNode.call(object, "to_f");
         } catch (RaiseException e) {
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
+            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),

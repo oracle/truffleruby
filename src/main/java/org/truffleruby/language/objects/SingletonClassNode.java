@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.klass.ClassNodes;
 import org.truffleruby.core.klass.RubyClass;
@@ -18,6 +17,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
@@ -27,7 +27,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @NodeChild(value = "value", type = RubyNode.class)
@@ -102,8 +101,8 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
                     "!isRubyBignum(cachedObject)",
                     "!isRubyClass(cachedObject)" },
             limit = "getIdentityCacheLimit()")
-    protected RubyClass singletonClassInstanceCached(DynamicObject object,
-            @Cached("object") DynamicObject cachedObject,
+    protected RubyClass singletonClassInstanceCached(RubyDynamicObject object,
+            @Cached("object") RubyDynamicObject cachedObject,
             @Cached("getSingletonClassForInstance(object)") RubyClass cachedSingletonClass) {
         return cachedSingletonClass;
     }
@@ -111,7 +110,7 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
     @Specialization(
             guards = { "!isRubyBignum(object)", "!isRubyClass(object)" },
             replaces = "singletonClassInstanceCached")
-    protected RubyClass singletonClassInstanceUncached(DynamicObject object) {
+    protected RubyClass singletonClassInstanceUncached(RubyDynamicObject object) {
         return getSingletonClassForInstance(object);
     }
 
@@ -124,14 +123,14 @@ public abstract class SingletonClassNode extends RubyContextSourceNode {
     }
 
     @TruffleBoundary
-    protected RubyClass getSingletonClassForInstance(DynamicObject object) {
+    protected RubyClass getSingletonClassForInstance(RubyDynamicObject object) {
         synchronized (object) {
-            RubyClass metaClass = Layouts.BASIC_OBJECT.getMetaClass(object);
+            RubyClass metaClass = object.getMetaClass();
             if (metaClass.isSingleton) {
                 return metaClass;
             }
 
-            final RubyClass logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(object);
+            final RubyClass logicalClass = object.getLogicalClass();
 
             final String name = StringUtils.format(
                     "#<Class:#<%s:0x%x>>",

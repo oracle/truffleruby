@@ -9,16 +9,11 @@
  */
 package org.truffleruby;
 
-import org.truffleruby.core.basicobject.BasicObjectLayout;
-import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
-
 import com.oracle.truffle.api.object.HiddenKey;
 
 public abstract class Layouts {
 
     // Standard identifiers
-    // These must appear before the generated layout list so the identifiers have been initialized by the time
-    // the layout singletons are created.
 
     public static final HiddenKey OBJECT_ID_IDENTIFIER = new HiddenKey("object_id"); // long
     public static final HiddenKey TAINTED_IDENTIFIER = new HiddenKey("tainted?"); // boolean
@@ -28,7 +23,4 @@ public abstract class Layouts {
     public static final HiddenKey MARKED_OBJECTS_IDENTIFIER = new HiddenKey("marked_objects"); // Object[]
     public static final HiddenKey VALUE_WRAPPER_IDENTIFIER = new HiddenKey("value_wrapper"); // ValueWrapper
 
-    // Generated layouts
-
-    public static final BasicObjectLayout BASIC_OBJECT = BasicObjectLayoutImpl.INSTANCE;
 }

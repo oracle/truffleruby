@@ -12,7 +12,7 @@ package org.truffleruby.language.objects.shared;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.truffleruby.Layouts;
+import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ShapeCachingGuards;
@@ -30,7 +30,7 @@ import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 
 /** Share the object and all that is reachable from it (see {@link ObjectGraph#getAdjacentObjects(DynamicObject)}. */
-@ImportStatic({ ShapeCachingGuards.class, Layouts.class })
+@ImportStatic({ ShapeCachingGuards.class, BasicObjectType.class })
 public abstract class ShareObjectNode extends RubyContextNode {
 
     protected static final int CACHE_LIMIT = 8;
@@ -51,8 +51,8 @@ public abstract class ShareObjectNode extends RubyContextNode {
     protected void shareCached(DynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
             @CachedLibrary(limit = "1") DynamicObjectLibrary objectLibrary,
-            @Cached("BASIC_OBJECT.getLogicalClass(cachedShape.getObjectType())") DynamicObject logicalClass,
-            @Cached("BASIC_OBJECT.getMetaClass(cachedShape.getObjectType())") DynamicObject metaClass,
+            @Cached("getLogicalClass(cachedShape)") DynamicObject logicalClass,
+            @Cached("getMetaClass(cachedShape)") DynamicObject metaClass,
             @Cached("createShareInternalFieldsNode()") ShareInternalFieldsNode shareInternalFieldsNode,
             @Cached("createReadAndShareFieldNodes(getObjectProperties(cachedShape))") ReadAndShareFieldNode[] readAndShareFieldNodes,
             @Cached("createSharedShape(cachedShape)") Shape sharedShape) {

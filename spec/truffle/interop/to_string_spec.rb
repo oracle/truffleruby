@@ -19,7 +19,7 @@ describe "Truffle::Interop.to_string" do
   end
 
   it "converts an object to a String" do
-    Truffle::Interop.to_string(Object.new).should =~ /DynamicObject@\h+<Object>/
+    Truffle::Interop.to_string(Object.new).should =~ /^RubyBasicObject@\h+<Object>$/
   end
 
   it "converts a foreign object to a String" do

@@ -75,7 +75,6 @@ import static org.truffleruby.core.string.StringSupport.MBCLEN_NEEDMORE_P;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-import com.oracle.truffle.api.object.Shape;
 import org.jcodings.Config;
 import org.jcodings.Encoding;
 import org.jcodings.exception.EncodingException;
@@ -170,10 +169,10 @@ import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
 import org.truffleruby.language.yield.YieldNode;
+import org.truffleruby.utils.Utils;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -193,9 +192,9 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.utils.Utils;
 
 @CoreModule(value = "String", isClass = true)
 public abstract class StringNodes {
@@ -292,7 +291,7 @@ public abstract class StringNodes {
                 @Cached AllocateHelperNode allocateHelperNode) {
             final Rope rope = source.rope;
 
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+            final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
             final RubyString string = new RubyString(
                     shape,
                     false,
@@ -361,7 +360,7 @@ public abstract class StringNodes {
         @Specialization(guards = "times == 0")
         protected RubyString multiplyZero(RubyString string, int times) {
 
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(string));
+            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
             final RubyString instance = new RubyString(
                     shape,
                     false,
@@ -388,7 +387,7 @@ public abstract class StringNodes {
             }
 
             final Rope repeated = repeatNode.executeRepeat(string.rope, times);
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(string));
+            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
             final RubyString instance = new RubyString(shape, false, false, repeated);
             allocateHelperNode.trace(instance, this);
             return instance;
@@ -399,7 +398,7 @@ public abstract class StringNodes {
                 @Cached RopeNodes.RepeatNode repeatNode) {
             final Rope repeated = repeatNode.executeRepeat(string.rope, 0);
 
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(string));
+            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
             final RubyString instance = new RubyString(shape, false, false, repeated);
             allocateHelperNode.trace(instance, this);
             return instance;
@@ -1247,7 +1246,6 @@ public abstract class StringNodes {
     @ImportStatic(StringGuards.class)
     public abstract static class EachCharNode extends YieldingCoreMethodNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private RopeNodes.BytesNode bytesNode = RopeNodes.BytesNode.create();
 
@@ -1294,7 +1292,7 @@ public abstract class StringNodes {
 
             final Rope substringRope = substringNode.executeSubstring(rope, beg, end - beg);
 
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(string));
+            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
             final RubyString ret = new RubyString(shape, false, string.tainted, substringRope);
             allocateHelperNode.trace(ret, this);
             return ret;
@@ -1936,7 +1934,7 @@ public abstract class StringNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(string));
+            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
             final RubyString result = new RubyString(shape, false, false, rope);
             allocateHelperNode.trace(result, this);
             return result;
@@ -1964,7 +1962,7 @@ public abstract class StringNodes {
             final Rope rope = makeLeafRopeNode
                     .executeMake(outputBytes.getBytes(), outputBytes.getEncoding(), CR_7BIT, outputBytes.getLength());
 
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(string));
+            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
             final RubyString result = new RubyString(shape, false, false, rope);
             allocateHelperNode.trace(result, this);
             return result;
@@ -2453,8 +2451,8 @@ public abstract class StringNodes {
             return result;
         }
 
-        public boolean isStringSubclass(DynamicObject string) {
-            return Layouts.BASIC_OBJECT.getLogicalClass(string) != coreLibrary().stringClass;
+        public boolean isStringSubclass(RubyString string) {
+            return string.getLogicalClass() != coreLibrary().stringClass;
         }
 
     }
@@ -4983,7 +4981,7 @@ public abstract class StringNodes {
                 substringNode = insert(RopeNodes.SubstringNode.create());
             }
 
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(string));
+            final Shape shape = allocateHelperNode.getCachedShape(string.getLogicalClass());
             final RubyString ret = new RubyString(
                     shape,
                     false,

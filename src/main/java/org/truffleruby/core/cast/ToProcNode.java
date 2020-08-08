@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -46,7 +45,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
             coerced = toProc.dispatch(frame, object, "to_proc", null, EMPTY_ARGUMENTS);
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
+            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeErrorNoImplicitConversion(object, "Proc", this));

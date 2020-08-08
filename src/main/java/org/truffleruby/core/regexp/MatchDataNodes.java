@@ -17,7 +17,6 @@ import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
 import org.joni.exception.ValueException;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -252,7 +251,7 @@ public abstract class MatchDataNodes {
                 final int end = region.end[normalizedIndex];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+                    final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
                     final RubyString string = new RubyString(shape, false, false, rope);
                     allocateHelperNode.trace(string, this);
                     return string;
@@ -451,7 +450,7 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+                    final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
                     final RubyString string = new RubyString(shape, false, isTainted, rope);
                     allocateHelperNode.trace(string, this);
                     values[n] = string;
@@ -567,7 +566,7 @@ public abstract class MatchDataNodes {
             int start = 0;
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+            final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
             final RubyString string = new RubyString(shape, false, false, rope);
             allocateHelperNode.trace(string, this);
             return string;
@@ -590,7 +589,7 @@ public abstract class MatchDataNodes {
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+            final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
             final RubyString string = new RubyString(shape, false, false, rope);
             allocateHelperNode.trace(string, this);
             return string;

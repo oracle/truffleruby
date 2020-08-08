@@ -17,7 +17,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
@@ -134,7 +133,7 @@ public abstract class ArrayIndexNodes {
 
         protected DynamicObject createArrayOfSameClass(RubyArray array, Object store, int size) {
             RubyArray newArray = new RubyArray(
-                    helperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(array)),
+                    helperNode.getCachedShape(array.getLogicalClass()),
                     store,
                     size);
             helperNode.trace(newArray, this);

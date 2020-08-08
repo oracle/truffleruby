@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.range;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
@@ -242,7 +241,7 @@ public abstract class RangeNodes {
 
         @Specialization
         protected RubyObjectRange dup(RubyObjectRange range) {
-            final Shape shape = allocateHelper.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(range));
+            final Shape shape = allocateHelper.getCachedShape(range.getLogicalClass());
             final RubyObjectRange copy = new RubyObjectRange(shape, range.excludedEnd, range.begin, range.end);
             allocateHelper.trace(copy, this);
             return copy;

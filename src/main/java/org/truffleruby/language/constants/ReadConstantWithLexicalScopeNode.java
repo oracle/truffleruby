@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.constants;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
 import org.truffleruby.core.module.RubyModule;
@@ -48,7 +47,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
         try {
             constant = lookupConstantNode.executeLookupConstant();
         } catch (RaiseException e) {
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().nameErrorClass) {
+            if (e.getException().getLogicalClass() == coreLibrary().nameErrorClass) {
                 // private constant
                 return nil;
             }

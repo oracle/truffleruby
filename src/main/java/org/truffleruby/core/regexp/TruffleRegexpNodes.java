@@ -48,7 +48,7 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -172,7 +172,7 @@ public class TruffleRegexpNodes {
     public static abstract class MatchNode extends RubyContextNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.createPrivate();
 
         public static MatchNode create() {
@@ -219,6 +219,7 @@ public class TruffleRegexpNodes {
             final Region region = matcher.getEagerRegion();
             final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
             RubyMatchData result = new RubyMatchData(coreLibrary().matchDataShape, regexp, dupedString, region, null);
+            allocateNode.trace(result, this);
             return taintResultNode.maybeTaint(string, result);
         }
 

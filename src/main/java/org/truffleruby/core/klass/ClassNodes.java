@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.klass;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -71,8 +70,8 @@ public abstract class ClassNodes {
 
         model.rubyModuleObject = rubyClass;
 
-        assert Layouts.BASIC_OBJECT.getLogicalClass(rubyClass) == rubyClass;
-        assert Layouts.BASIC_OBJECT.getMetaClass(rubyClass) == rubyClass;
+        assert rubyClass.getLogicalClass() == rubyClass;
+        assert rubyClass.getMetaClass() == rubyClass;
 
         return rubyClass;
     }
@@ -208,7 +207,7 @@ public abstract class ClassNodes {
     }
 
     public static RubyClass getSingletonClassOrNull(RubyContext context, RubyClass rubyClass) {
-        RubyClass metaClass = Layouts.BASIC_OBJECT.getMetaClass(rubyClass);
+        RubyClass metaClass = rubyClass.getMetaClass();
         if (metaClass.isSingleton) {
             return ensureItHasSingletonClassCreated(context, metaClass);
         } else {
@@ -218,7 +217,7 @@ public abstract class ClassNodes {
 
     private static RubyClass getLazyCreatedSingletonClass(RubyContext context, RubyClass rubyClass) {
         synchronized (rubyClass) {
-            RubyClass metaClass = Layouts.BASIC_OBJECT.getMetaClass(rubyClass);
+            RubyClass metaClass = rubyClass.getMetaClass();
             if (metaClass.isSingleton) {
                 return metaClass;
             }
@@ -232,7 +231,7 @@ public abstract class ClassNodes {
         final RubyClass singletonSuperclass;
         final RubyClass superclass = getSuperClass(rubyClass);
         if (superclass == null) {
-            singletonSuperclass = Layouts.BASIC_OBJECT.getLogicalClass(rubyClass);
+            singletonSuperclass = rubyClass.getLogicalClass();
         } else {
             singletonSuperclass = getLazyCreatedSingletonClass(context, superclass);
         }
@@ -251,12 +250,12 @@ public abstract class ClassNodes {
         SharedObjects.propagate(context, rubyClass, metaClass);
         setMetaClass(rubyClass, metaClass);
 
-        return Layouts.BASIC_OBJECT.getMetaClass(rubyClass);
+        return rubyClass.getMetaClass();
     }
 
     /** The same as {@link CoreLibrary#classShape} but available while executing the CoreLibrary constructor */
     private static Shape getClassShapeFromClass(RubyClass rubyClass) {
-        return Layouts.BASIC_OBJECT.getLogicalClass(rubyClass).instanceFactory.getShape();
+        return rubyClass.getLogicalClass().instanceFactory.getShape();
     }
 
     @TruffleBoundary

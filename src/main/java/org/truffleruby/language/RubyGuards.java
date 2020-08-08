@@ -10,7 +10,6 @@
 package org.truffleruby.language;
 
 import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.Layouts;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
@@ -219,11 +218,11 @@ public abstract class RubyGuards {
     // Internal types
 
     public static boolean isRubyDynamicObject(Object object) {
-        return Layouts.BASIC_OBJECT.isBasicObject(object);
+        return object instanceof RubyDynamicObject;
     }
 
     public static boolean isRubyValue(Object object) {
-        return isRubyDynamicObject(object) || isPrimitive(object) || object instanceof Nil ||
+        return object instanceof RubyDynamicObject || isPrimitive(object) || object instanceof Nil ||
                 object instanceof RubySymbol;
     }
 

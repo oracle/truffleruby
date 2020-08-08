@@ -19,7 +19,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -337,7 +336,7 @@ public class ThreadManager {
         final RubyThread mainThread = context.getThreadManager().getRootThread();
 
         if (thread != mainThread) {
-            final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context
+            final boolean isSystemExit = exception.getLogicalClass() == context
                     .getCoreLibrary().systemExitClass;
 
             if (!isSystemExit && thread.reportOnException) {

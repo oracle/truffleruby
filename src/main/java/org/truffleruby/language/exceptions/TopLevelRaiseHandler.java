@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.exceptions;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.kernel.AtExitManager;
@@ -45,7 +44,7 @@ public class TopLevelRaiseHandler extends RubyContextNode {
 
         // Execute at_exit hooks (except if hard #exit!)
         try {
-            DynamicObject atExitException = getContext().getAtExitManager().runAtExitHooks();
+            RubyException atExitException = getContext().getAtExitManager().runAtExitHooks();
             if (atExitException != null) {
                 exitCode = statusFromException(atExitException);
             }
@@ -66,8 +65,8 @@ public class TopLevelRaiseHandler extends RubyContextNode {
         return exitCode;
     }
 
-    private int statusFromException(DynamicObject exception) {
-        if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().systemExitClass) {
+    private int statusFromException(RubyException exception) {
+        if (exception.getLogicalClass() == coreLibrary().systemExitClass) {
             final Object status = ReadObjectFieldNodeGen.getUncached().execute(exception, "@status", null);
             return IntegerCastNodeGen.getUncached().executeCastInt(status);
         } else {
@@ -84,8 +83,8 @@ public class TopLevelRaiseHandler extends RubyContextNode {
         setExceptionVariableNode.setLastException(exception);
     }
 
-    private void handleSignalException(DynamicObject exception) {
-        if (Layouts.BASIC_OBJECT.getLogicalClass(exception) == coreLibrary().signalExceptionClass) {
+    private void handleSignalException(RubyException exception) {
+        if (exception.getLogicalClass() == coreLibrary().signalExceptionClass) {
             // Calls raise(3) or no-op
             CallDispatchHeadNode.getUncached().call(exception, "reached_top_level");
         }

@@ -9,13 +9,14 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -102,9 +103,9 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return executeMetaClass(object);
     }
 
-    @Specialization(guards = "isRubyDynamicObject(object)", replaces = { "metaClassCached", "updateShapeAndMetaClass" })
-    protected RubyClass metaClassUncached(DynamicObject object) {
-        return Layouts.BASIC_OBJECT.getMetaClass(object);
+    @Specialization(replaces = { "metaClassCached", "updateShapeAndMetaClass" })
+    protected RubyClass metaClassUncached(RubyDynamicObject object) {
+        return object.getMetaClass();
     }
 
     @Specialization(
@@ -124,8 +125,8 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     protected RubyClass getMetaClass(RubyContext context, Shape shape) {
         final ObjectType objectType = shape.getObjectType();
-        if (Layouts.BASIC_OBJECT.isBasicObject(objectType)) {
-            return Layouts.BASIC_OBJECT.getMetaClass(objectType);
+        if (objectType instanceof BasicObjectType) {
+            return ((BasicObjectType) objectType).getMetaClass();
         } else {
             return context.getCoreLibrary().truffleInteropForeignClass;
         }

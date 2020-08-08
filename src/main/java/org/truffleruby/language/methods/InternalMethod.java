@@ -11,7 +11,6 @@ package org.truffleruby.language.methods;
 
 import java.util.Set;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.RubyModule;
@@ -345,7 +344,7 @@ public class InternalMethod implements ObjectGraphNode {
         assert visibility == Visibility.PROTECTED;
 
         for (RubyModule ancestor : callerClass.fields.ancestors()) {
-            if (ancestor == declaringModule || Layouts.BASIC_OBJECT.getMetaClass(ancestor) == declaringModule) {
+            if (ancestor == declaringModule || ancestor.getMetaClass() == declaringModule) {
                 return true;
             }
         }

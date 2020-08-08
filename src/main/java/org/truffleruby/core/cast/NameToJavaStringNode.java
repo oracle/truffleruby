@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
@@ -82,7 +81,7 @@ public abstract class NameToJavaStringNode extends RubySourceNode {
             coerced = toStr.call(object, "to_str");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == context.getCoreLibrary().noMethodErrorClass) {
+            if (e.getException().getLogicalClass() == context.getCoreLibrary().noMethodErrorClass) {
                 throw new RaiseException(context, context.getCoreExceptions().typeError(
                         Utils.concat(object, " is not a symbol nor a string"),
                         this));

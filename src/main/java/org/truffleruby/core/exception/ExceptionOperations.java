@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.exception;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
@@ -45,7 +44,7 @@ public abstract class ExceptionOperations {
     private static String messageFieldToString(RubyContext context, RubyException exception) {
         Object message = exception.message;
         if (message == null || message == Nil.INSTANCE) {
-            final ModuleFields exceptionClass = Layouts.BASIC_OBJECT.getLogicalClass(exception).fields;
+            final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
         } else if (RubyGuards.isRubyString(message)) {
             return StringOperations.getString((RubyString) message);
