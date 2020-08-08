@@ -21,14 +21,15 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Read a literal constant on a given module: MOD::CONST */
 public class ReadConstantNode extends RubyContextSourceNode {
 
     private final String name;
+    private final BranchProfile notModuleProfile = BranchProfile.create();
 
     @Child private RubyNode moduleNode;
-    @Child private CheckModuleNode checkModuleNode = CheckModuleNodeGen.create();
     @Child private LookupConstantNode lookupConstantNode;
     @Child private GetConstantNode getConstantNode;
 
@@ -40,10 +41,8 @@ public class ReadConstantNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object moduleObject = moduleNode.execute(frame);
-        final RubyModule module = checkModuleNode.executeCheckModule(moduleObject);
-        return lookupAndGetConstant(module);
+        return lookupAndGetConstant(checkModule(moduleObject));
     }
-
 
     private Object lookupAndGetConstant(RubyModule module) {
         if (getConstantNode == null) {
@@ -80,7 +79,7 @@ public class ReadConstantNode extends RubyContextSourceNode {
             return nil;
         }
 
-        final RubyModule module = checkModuleNode.executeCheckModule(moduleObject);
+        final RubyModule module = checkModule(moduleObject);
         final RubyConstant constant;
         try {
             constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name);
@@ -101,6 +100,15 @@ public class ReadConstantNode extends RubyContextSourceNode {
 
     public RubyNode makeWriteNode(RubyNode rhs) {
         return new WriteConstantNode(name, NodeUtil.cloneNode(moduleNode), rhs);
+    }
+
+    private RubyModule checkModule(Object module) {
+        if (module instanceof RubyModule) {
+            return ((RubyModule) module);
+        } else {
+            notModuleProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(module, this));
+        }
     }
 
 }
