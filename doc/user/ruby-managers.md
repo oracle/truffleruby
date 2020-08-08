@@ -147,6 +147,17 @@ $ rvm use ext-truffleruby
 $ ruby --version
 ```
 
+### asdf (with asdf-ruby plugin)
+
+Adding Truffleruby to asdf functions much like `rbenv` or `chruby`, create a symbolic link in the `.installs/ruby` directory but you also need to reshim:
+
+```bash
+ln -s "$ruby_home" "$HOME/.asdf/installs/ruby/truffleruby"
+asdf reshim ruby truffleruby
+asdf local ruby truffleruby
+ruby --version
+```
+
 ## Using TruffleRuby without a Ruby Manager
 
 If you are using a Ruby manager like `rvm`, `rbenv`, or `chruby` and wish not to
