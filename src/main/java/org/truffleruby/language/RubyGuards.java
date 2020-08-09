@@ -222,8 +222,7 @@ public abstract class RubyGuards {
     }
 
     public static boolean isRubyValue(Object object) {
-        return object instanceof RubyDynamicObject || isPrimitive(object) || object instanceof Nil ||
-                object instanceof RubySymbol;
+        return object instanceof RubyDynamicObject || object instanceof ImmutableRubyObject || isPrimitive(object);
     }
 
     public static boolean isForeignObject(Object object) {
