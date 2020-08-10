@@ -62,23 +62,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
 
     private RubyClass initializeGeneralWithoutBlock(RubyClass rubyClass, RubyClass superclass,
             boolean superClassProvided) {
-        if (isInitialized(rubyClass)) {
-            throw new RaiseException(
-                    getContext(),
-                    getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
-        }
-
-        if (superClassProvided) {
-            checkInheritable(superclass);
-            if (!isInitialized(superclass)) {
-                throw new RaiseException(
-                        getContext(),
-                        getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
-            }
-        }
-
-        ClassNodes.initialize(getContext(), rubyClass, superclass);
-
+        initializeCommon(rubyClass, superclass, superClassProvided);
         if (callInherited) {
             triggerInheritedHook(rubyClass, superclass);
         }
@@ -86,13 +70,23 @@ public abstract class InitializeClassNode extends RubyContextNode {
         return rubyClass;
     }
 
-    private RubyClass initializeGeneralWithBlock(RubyClass rubyClass, RubyClass superclass,
-            RubyProc block, boolean superClassProvided) {
+    private RubyClass initializeGeneralWithBlock(RubyClass rubyClass, RubyClass superclass, RubyProc block,
+            boolean superClassProvided) {
+        initializeCommon(rubyClass, superclass, superClassProvided);
+        triggerInheritedHook(rubyClass, superclass);
+
+        moduleInitialize(rubyClass, block);
+
+        return rubyClass;
+    }
+
+    private void initializeCommon(RubyClass rubyClass, RubyClass superclass, boolean superClassProvided) {
         if (isInitialized(rubyClass)) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
         }
+
         if (superClassProvided) {
             checkInheritable(superclass);
             if (!isInitialized(superclass)) {
@@ -103,10 +97,6 @@ public abstract class InitializeClassNode extends RubyContextNode {
         }
 
         ClassNodes.initialize(getContext(), rubyClass, superclass);
-        triggerInheritedHook(rubyClass, superclass);
-        moduleInitialize(rubyClass, block);
-
-        return rubyClass;
     }
 
     private boolean isInitialized(RubyClass rubyClass) {
