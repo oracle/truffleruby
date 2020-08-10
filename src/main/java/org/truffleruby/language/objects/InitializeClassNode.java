@@ -21,10 +21,12 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 public abstract class InitializeClassNode extends RubyContextNode {
 
     private final boolean callInherited;
+    private final BranchProfile errorProfile = BranchProfile.create();
 
     @Child private ModuleNodes.InitializeNode moduleInitializeNode;
     @Child private CallDispatchHeadNode inheritedNode;
@@ -82,6 +84,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
 
     private void initializeCommon(RubyClass rubyClass, RubyClass superclass, boolean superClassProvided) {
         if (isInitialized(rubyClass)) {
+            errorProfile.enter();
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().typeErrorAlreadyInitializedClass(this));
@@ -90,6 +93,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
         if (superClassProvided) {
             checkInheritable(superclass);
             if (!isInitialized(superclass)) {
+                errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
                         getContext().getCoreExceptions().typeErrorInheritUninitializedClass(this));
@@ -106,9 +110,11 @@ public abstract class InitializeClassNode extends RubyContextNode {
     // rb_check_inheritable
     private void checkInheritable(RubyClass superClass) {
         if (superClass.isSingleton) {
+            errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
         }
         if (superClass == coreLibrary().classClass) {
+            errorProfile.enter();
             throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassClass(this));
         }
     }
