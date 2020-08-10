@@ -15,6 +15,7 @@ Compatibility:
 * `String#split` supports block (#2052, @ssnickolay)
 * Implemented `String#{grapheme_clusters, each_grapheme_cluster}`.
 * Fix the caller location for `#method_added` (#2059).
+* Fix issue with `File.absolute_path` returning a path to current directory (#2062).
 
 Performance:
 

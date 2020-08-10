@@ -122,12 +122,7 @@ class File < IO
   end
 
   def self.absolute_path(obj, dir = nil)
-    obj = path(obj)
-    if obj[0] == '~'
-      File.join Dir.getwd, dir.to_s, obj
-    else
-      expand_path(obj, dir)
-    end
+    Truffle::FileOperations.expand_path(obj, dir, false)
   end
 
   def self.absolute_path?(path)
@@ -463,11 +458,6 @@ class File < IO
     mode > 0
   end
 
-  # Pull a constant for Dir local to File so that we don't have to depend
-  # on the global Dir constant working. This sounds silly, I know, but it's a
-  # little bit of defensive coding so Rubinius can run things like fakefs better.
-  PrivateDir = ::Dir
-
   ##
   # Converts a pathname to an absolute pathname. Relative
   # paths are referenced from the current working directory
@@ -480,78 +470,7 @@ class File < IO
   #  File.expand_path("~oracle/bin")           #=> "/home/oracle/bin"
   #  File.expand_path("../../bin", "/tmp/x")   #=> "/bin"
   def self.expand_path(path, dir=nil)
-    path = Truffle::Type.coerce_to_path(path)
-    str = ''.encode path.encoding
-    first = path[0]
-    if first == ?~
-      first_char = path[1]
-
-      if first_char == ?/ || Primitive.nil?(first_char)
-        home = ENV['HOME']
-        raise ArgumentError, "couldn't find HOME environment variable when expanding '~'" if Primitive.nil? home
-        raise ArgumentError, 'non-absolute home' unless home.start_with?('/')
-      end
-
-      case first_char
-      when ?/
-        path = home + path.byteslice(1, path.bytesize - 1)
-      when nil
-        if home.empty?
-          raise ArgumentError, "HOME environment variable is empty expanding '~'"
-        end
-
-        return home.dup
-      else
-        length = Primitive.find_string(path, '/', 1) || path.bytesize
-        name = path.byteslice 1, length - 1
-
-        if ptr = Truffle::POSIX.truffleposix_get_user_home(name) and !ptr.null?
-          dir = ptr.read_string
-          ptr.free
-          raise ArgumentError, "user #{name} does not exist" if dir.empty?
-        else
-          Errno.handle
-        end
-
-        path = dir + path.byteslice(length, path.bytesize - length)
-      end
-    elsif first != ?/
-      if dir
-        dir = expand_path dir
-      else
-        dir = PrivateDir.pwd
-      end
-
-      path = "#{dir}/#{path}"
-    end
-
-    items = []
-    start = 0
-    bytesize = path.bytesize
-
-    while index = Primitive.find_string(path, '/', start) or (start < bytesize and index = bytesize)
-      length = index - start
-
-      if length > 0
-        item = path.byteslice start, length
-
-        if item == '..'
-          items.pop
-        elsif item != '.'
-          items << item
-        end
-      end
-
-      start = index + 1
-    end
-
-    if items.empty?
-      str << '/'
-    else
-      items.each { |x| Primitive.string_append(str, "/#{x}") }
-    end
-
-    str
+    Truffle::FileOperations.expand_path(path, dir, true)
   end
 
   ##
