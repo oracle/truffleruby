@@ -2125,8 +2125,7 @@ EOS
   def command_format(*args)
     ENV['ECLIPSE_EXE'] ||= install_eclipse
     mx 'eclipseformat', '--no-backup', '--primary', *args
-    format_specializations_visibility
-    format_specializations_arguments
+    format_specializations_check
   end
 
   private def check_filename_length
@@ -2431,6 +2430,11 @@ EOS
     Formatting.format_specializations_arguments
   end
 
+  def format_specializations_check
+    abort 'Some Specializations were not protected.' if format_specializations_visibility
+    abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
+  end
+
   def lint(*args)
     fast = args.first == 'fast'
     args.shift if fast
@@ -2454,9 +2458,8 @@ EOS
       checkstyle if changed['.java']
       command_format if changed['.java']
     else
-      mx 'gate', '--tags', 'style'
-      abort 'Some Specializations were not protected.' if format_specializations_visibility
-      abort 'Some Specializations were not properly formatted.' if format_specializations_arguments
+      mx 'gate', '--tags', 'style' # mx eclipseformat, mx checkstyle and a few more checks
+      format_specializations_check
     end
     shellcheck if changed['.sh'] or changed['.inc']
 
