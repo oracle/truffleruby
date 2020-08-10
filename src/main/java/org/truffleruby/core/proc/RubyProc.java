@@ -82,7 +82,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
 
     @ExportMessage
     public SourceSection getSourceLocation() {
-        return method.getSharedMethodInfo().getSourceSection();
+        return sharedMethodInfo.getSourceSection();
     }
     // endregion
 
