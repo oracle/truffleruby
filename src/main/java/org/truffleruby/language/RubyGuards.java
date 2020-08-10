@@ -25,6 +25,7 @@ import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.regexp.RubyRegexp;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.stdlib.bigdecimal.RubyBigDecimal;
 
 public abstract class RubyGuards {
@@ -123,12 +124,17 @@ public abstract class RubyGuards {
         return value instanceof RubyString;
     }
 
-    public static boolean isRubyEncoding(Object object) {
-        return object instanceof RubyEncoding;
-    }
-
     public static boolean isRubySymbol(Object value) {
         return value instanceof RubySymbol;
+    }
+
+    /** Should be used only for interop together with {@link ToJavaStringNode} */
+    public static boolean isRubySymbolOrString(Object value) {
+        return isRubySymbol(value) || isRubyString(value);
+    }
+
+    public static boolean isRubyEncoding(Object object) {
+        return object instanceof RubyEncoding;
     }
 
     public static boolean isRubyMethod(Object value) {

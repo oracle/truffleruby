@@ -27,7 +27,7 @@ public abstract class RubyToForeignNode extends RubyBaseNode {
 
     public abstract Object executeConvert(Object value);
 
-    @Specialization(guards = "isRubySymbol(value) || isRubyString(value)")
+    @Specialization(guards = "isRubySymbolOrString(value)")
     protected String convertString(Object value,
             @Cached ToJavaStringNode toJavaStringNode) {
         return toJavaStringNode.executeToJavaString(value);

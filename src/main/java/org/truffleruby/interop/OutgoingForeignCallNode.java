@@ -107,7 +107,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "name == cachedName",
                     "cachedName.equals(INDEX_READ)",
                     "args.length == 1",
-                    "isRubySymbol(first(args)) || isRubyString(first(args))" },
+                    "isRubySymbolOrString(first(args))" },
             limit = "1")
     protected Object readMember(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -134,7 +134,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "name == cachedName",
                     "cachedName.equals(INDEX_WRITE)",
                     "args.length == 2",
-                    "isRubySymbol(first(args)) || isRubyString(first(args))" },
+                    "isRubySymbolOrString(first(args))" },
             limit = "1")
     protected Object writeMember(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,
@@ -207,7 +207,7 @@ public abstract class OutgoingForeignCallNode extends RubyBaseNode {
                     "name == cachedName",
                     "cachedName.equals(DELETE)",
                     "args.length == 1",
-                    "isRubySymbol(first(args)) || isRubyString(first(args))" },
+                    "isRubySymbolOrString(first(args))" },
             limit = "1")
     protected Object deleteMember(Object receiver, String name, Object[] args,
             @Cached(value = "name", allowUncached = true) @Shared("name") String cachedName,

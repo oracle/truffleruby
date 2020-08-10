@@ -544,7 +544,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
+        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -669,7 +669,7 @@ public abstract class InteropNodes {
 
         abstract Object execute(Object receiver, Object identifier);
 
-        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
+        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getCacheLimit()")
         protected Object readMember(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException,
@@ -701,7 +701,7 @@ public abstract class InteropNodes {
         abstract Object execute(Object receiver, Object identifier, Object value);
 
         @Specialization(
-                guards = "isRubySymbol(identifier) || isRubyString(identifier)",
+                guards = "isRubySymbolOrString(identifier)",
                 limit = "getCacheLimit()")
         protected Object write(Object receiver, Object identifier, Object value,
                 @CachedLibrary("receiver") InteropLibrary receivers,
@@ -757,7 +757,7 @@ public abstract class InteropNodes {
     @CoreMethod(names = "remove_member", onSingleton = true, required = 2)
     public abstract static class RemoveMemberNode extends InteropCoreMethodArrayArgumentsNode {
 
-        @Specialization(guards = "isRubySymbol(identifier) || isRubyString(identifier)", limit = "getCacheLimit()")
+        @Specialization(guards = "isRubySymbolOrString(identifier)", limit = "getCacheLimit()")
         protected Nil remove(Object receiver, Object identifier,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ToJavaStringNode toJavaStringNode,
