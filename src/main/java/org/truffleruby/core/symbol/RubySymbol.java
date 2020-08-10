@@ -89,6 +89,7 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
     }
 
     // region InteropLibrary messages
+    @Override
     @ExportMessage
     public String toDisplayString(boolean allowSideEffects) {
         return toString();

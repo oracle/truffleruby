@@ -115,9 +115,6 @@ public abstract class InitializeClassNode extends RubyContextNode {
 
     // rb_check_inheritable
     private void checkInheritable(RubyClass superClass) {
-        if (!(superClass instanceof RubyClass)) {
-            throw new RaiseException(getContext(), coreExceptions().typeErrorSuperclassMustBeClass(this));
-        }
         if (superClass.isSingleton) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorSubclassSingletonClass(this));
         }

@@ -34,6 +34,7 @@ public final class Nil extends ImmutableRubyObject implements TruffleObject {
     }
 
     // region InteropLibrary messages
+    @Override
     @ExportMessage
     public String toDisplayString(boolean allowSideEffects) {
         return "nil";

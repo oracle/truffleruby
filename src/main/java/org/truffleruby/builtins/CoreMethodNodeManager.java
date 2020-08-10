@@ -122,9 +122,7 @@ public class CoreMethodNodeManager {
             }
         }
 
-        assert isClass
-                ? module instanceof RubyClass
-                : module instanceof RubyModule && !(module instanceof RubyClass) : fullName;
+        assert isClass == (module instanceof RubyClass) : fullName;
         return module;
     }
 
