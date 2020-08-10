@@ -87,10 +87,15 @@ import org.truffleruby.stdlib.readline.ConsoleHolder;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -153,6 +158,8 @@ public class RubyContext {
 
     private final AssumedValue<Boolean> warningCategoryDeprecated;
     private final AssumedValue<Boolean> warningCategoryExperimental;
+
+    @CompilationFinal private Object truffleRegexEngine;
 
     private static boolean preInitializeContexts = TruffleRuby.PRE_INITIALIZE_CONTEXTS;
 
@@ -863,6 +870,28 @@ public class RubyContext {
             } else {
                 return filename;
             }
+        }
+    }
+
+    private static final String REGEX_LANGUAGE_ID = "regex";
+
+    public Object getRegexEngine() {
+        if (truffleRegexEngine == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            truffleRegexEngine = createTRegexEngine(getEnv());
+        }
+        return truffleRegexEngine;
+    }
+
+    @TruffleBoundary
+    public static Object createTRegexEngine(Env env) {
+        Source engineBuilderRequest = Source.newBuilder(REGEX_LANGUAGE_ID, "", "TRegex Engine Builder Request").internal(true).build();
+        Object regexEngineBuilder = env.parseInternal(engineBuilderRequest).call();
+        String regexOptions = "";
+        try {
+            return InteropLibrary.getFactory().getUncached().execute(regexEngineBuilder, regexOptions);
+        } catch (UnsupportedMessageException | UnsupportedTypeException | ArityException e) {
+            throw new IllegalStateException("Failed to create regexp engine", e);
         }
     }
 

@@ -174,6 +174,15 @@ public class TruffleRegexpNodes {
         }
     }
 
+    @CoreMethod(names = "tregex_engine", onSingleton = true, required = 0, rest = false)
+    public static abstract class TRegexEngine extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        public Object getTRegexEngine(VirtualFrame frame) {
+            return getContext().getRegexEngine();
+        }
+    }
+
     public static abstract class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
