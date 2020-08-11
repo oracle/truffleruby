@@ -193,7 +193,15 @@ class Float < Numeric
   end
 
   def round(ndigits=undefined, half: nil)
-    if Primitive.undefined?(ndigits)
+    ndigits = if Primitive.undefined?(ndigits)
+                nil
+              else
+                Truffle::Type.coerce_to(ndigits, Integer, :to_int)
+              end
+    if self == 0.0
+      return ndigits && ndigits > 0 ? self : 0
+    end
+    if Primitive.nil?(ndigits)
       if infinite?
         raise FloatDomainError, 'Infinite'
       elsif nan?
@@ -211,7 +219,6 @@ class Float < Numeric
         end
       end
     else
-      ndigits = Truffle::Type.coerce_to(ndigits, Integer, :to_int)
       if ndigits == 0
         round(half: half)
       elsif ndigits < 0
