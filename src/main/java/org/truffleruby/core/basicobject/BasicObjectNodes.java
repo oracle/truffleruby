@@ -229,19 +229,17 @@ public abstract class BasicObjectNodes {
 
         @Specialization(replaces = "objectIDSmallFixnumOverflow")
         protected Object objectIDLong(long value,
-                @Cached("createCountingProfile()") ConditionProfile smallProfile,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+                @Cached("createCountingProfile()") ConditionProfile smallProfile) {
             if (smallProfile.profile(ObjectIDOperations.isSmallFixnum(value))) {
                 return ObjectIDOperations.smallFixnumToID(value);
             } else {
-                return ObjectIDOperations.largeFixnumToID(context, value);
+                return ObjectIDOperations.largeFixnumToID(value);
             }
         }
 
         @Specialization
-        protected RubyBignum objectID(double value,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return ObjectIDOperations.floatToID(context, value);
+        protected RubyBignum objectID(double value) {
+            return ObjectIDOperations.floatToID(value);
         }
 
         @Specialization
@@ -252,6 +250,20 @@ public abstract class BasicObjectNodes {
             if (id == 0) {
                 final long newId = context.getObjectSpaceManager().getNextObjectID();
                 symbol.setObjectId(newId);
+                return newId;
+            }
+
+            return id;
+        }
+
+        @Specialization
+        protected long objectIDBignum(RubyBignum bignum,
+                @CachedContext(RubyLanguage.class) RubyContext context) {
+            final long id = bignum.getObjectId();
+
+            if (id == 0) {
+                final long newId = context.getObjectSpaceManager().getNextObjectID();
+                bignum.setObjectId(newId);
                 return newId;
             }
 

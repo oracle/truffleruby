@@ -99,7 +99,7 @@ class JavaHandler
       when (-2**63...2**63)
         "#{value}L"
       else
-        "newBignum(context, \"#{value}\")"
+        "newBignum(\"#{value}\")"
       end
     when 'true'
       value

@@ -49,8 +49,8 @@ import org.truffleruby.core.string.RubyString;
 
 public abstract class DefaultNativeConfiguration {
 
-    protected static RubyBignum newBignum(RubyContext context, String value) {
-        return BignumOperations.createBignum(context, new BigInteger(value));
+    protected static RubyBignum newBignum(String value) {
+        return BignumOperations.createBignum(new BigInteger(value));
     }
 
     protected static RubyString string(RubyContext context, String value) {

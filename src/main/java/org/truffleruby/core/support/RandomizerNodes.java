@@ -330,7 +330,7 @@ public abstract class RandomizerNodes {
         public static RubyBignum randomSeedBignum(RubyContext context) {
             byte[] seed = context.getRandomSeedBytes(DEFAULT_SEED_CNT * 4);
             final BigInteger bigInteger = new BigInteger(seed).abs();
-            return BignumOperations.createBignum(context, bigInteger);
+            return BignumOperations.createBignum(bigInteger);
         }
 
     }

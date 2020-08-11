@@ -422,13 +422,13 @@ public abstract class PointerNodes {
         protected Object readLongUnsigned(long address) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);
-            return readUnsignedLong(getContext(), ptr, 0);
+            return readUnsignedLong(ptr, 0);
         }
 
         @TruffleBoundary
-        private static Object readUnsignedLong(RubyContext context, Pointer ptr, int offset) {
+        private static Object readUnsignedLong(Pointer ptr, int offset) {
             long signedValue = ptr.readLong(offset);
-            return BigIntegerOps.asUnsignedFixnumOrBignum(context, signedValue);
+            return BigIntegerOps.asUnsignedFixnumOrBignum(signedValue);
         }
     }
 

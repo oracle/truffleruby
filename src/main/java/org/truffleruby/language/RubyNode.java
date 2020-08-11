@@ -268,7 +268,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
         }
 
         default RubyBignum createBignum(BigInteger value) {
-            return BignumOperations.createBignum(getContext(), value);
+            return BignumOperations.createBignum(value);
         }
 
         default CoreStrings coreStrings() {

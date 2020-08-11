@@ -41,6 +41,6 @@ public abstract class ReinterpretAsUnsignedNode extends FormatNode {
 
     @Specialization
     protected Object asUnsigned(long value) {
-        return BigIntegerOps.asUnsignedFixnumOrBignum(getContext(), value);
+        return BigIntegerOps.asUnsignedFixnumOrBignum(value);
     }
 }
