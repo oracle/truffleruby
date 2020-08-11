@@ -12,6 +12,7 @@ package org.truffleruby.language.objects;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -19,7 +20,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -31,14 +31,14 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
         return WriteObjectFieldNodeGen.create();
     }
 
-    public final void write(DynamicObject object, Object name, Object value) {
+    public final void write(RubyDynamicObject object, Object name, Object value) {
         execute(object, name, value);
     }
 
-    protected abstract void execute(DynamicObject object, Object name, Object value);
+    protected abstract void execute(RubyDynamicObject object, Object name, Object value);
 
     @Specialization(guards = { "name == cachedName", "!objectLibrary.isShared(object)" }, limit = "getCacheLimit()")
-    protected void writeLocalCached(DynamicObject object, Object name, Object value,
+    protected void writeLocalCached(RubyDynamicObject object, Object name, Object value,
             @Cached("name") Object cachedName,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         writeLocalUncached(object, cachedName, value, objectLibrary);
@@ -48,13 +48,13 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             guards = "!objectLibrary.isShared(object)",
             replaces = "writeLocalCached",
             limit = "getCacheLimit()")
-    protected void writeLocalUncached(DynamicObject object, Object name, Object value,
+    protected void writeLocalUncached(RubyDynamicObject object, Object name, Object value,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(object, name, value);
     }
 
     @Specialization(guards = { "name == cachedName", "objectLibrary.isShared(object)" }, limit = "getCacheLimit()")
-    protected void writeSharedCached(DynamicObject object, Object name, Object value,
+    protected void writeSharedCached(RubyDynamicObject object, Object name, Object value,
             @Cached("name") Object cachedName,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
             @Cached WriteBarrierNode writeBarrierNode,
@@ -66,7 +66,7 @@ public abstract class WriteObjectFieldNode extends RubyBaseNode {
             guards = "objectLibrary.isShared(object)",
             replaces = "writeSharedCached",
             limit = "getCacheLimit()")
-    protected void writeSharedUncached(DynamicObject object, Object name, Object value,
+    protected void writeSharedUncached(RubyDynamicObject object, Object name, Object value,
             @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
             @Cached WriteBarrierNode writeBarrierNode,
             @Cached BranchProfile shapeRaceProfile) {

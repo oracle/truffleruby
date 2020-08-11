@@ -10,7 +10,6 @@
 package org.truffleruby.core.module;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Either an IncludedModule, a RubyClass or a RubyModule. Private interface, do not use outside RubyModule. */
 public abstract class ModuleChain {
@@ -25,10 +24,10 @@ public abstract class ModuleChain {
         return parentModule;
     }
 
-    public final void insertAfter(DynamicObject module) {
+    public final void insertAfter(RubyModule module) {
         parentModule = new IncludedModule(module, parentModule);
     }
 
-    public abstract DynamicObject getActualModule();
+    public abstract RubyModule getActualModule();
 
 }

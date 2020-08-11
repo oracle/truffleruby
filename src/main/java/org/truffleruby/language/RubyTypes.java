@@ -12,7 +12,15 @@ package org.truffleruby.language;
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
-/** Also see {@link NoImplicitCastsToLong} */
+/** Here are all types used for representing Ruby values (see {@link RubyGuards#isRubyValue(Object)}):
+ * <ul>
+ * <li>{@link RubyDynamicObject} subclasses</li>
+ * <li>{@link ImmutableRubyObject} subclasses</li>
+ * <li>Primitives: boolean, int, long, double are produced by Ruby nodes</li>
+ * <li>Other primitives from foreign languages accepted in Ruby nodes via implicit cast: byte, short, float</li>
+ * </ul>
+ *
+ * Also see {@link NoImplicitCastsToLong} */
 @TypeSystem
 public abstract class RubyTypes {
 

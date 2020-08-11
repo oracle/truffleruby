@@ -9,6 +9,7 @@
  */
 package org.truffleruby.interop;
 
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 
@@ -16,7 +17,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
@@ -29,13 +29,13 @@ public abstract class ForeignToRubyNode extends RubyBaseNode {
     public abstract Object executeConvert(Object value);
 
     @Specialization
-    protected DynamicObject convertCharacterCached(char value,
+    protected RubyString convertCharacterCached(char value,
             @Cached FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(String.valueOf(value));
     }
 
     @Specialization
-    protected DynamicObject convertStringCached(String value,
+    protected RubyString convertStringCached(String value,
             @Cached FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.executeFromJavaString(value);
     }

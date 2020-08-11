@@ -16,6 +16,7 @@ import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
@@ -28,11 +29,52 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/** A subset of messages from {@link org.truffleruby.interop.messages.RubyObjectMessages} for immutable objects. Such
- * objects have no instance variables, so the logic is simpler. We cannot easily reuse RubyObjectMessages here. */
-@ExportLibrary(value = InteropLibrary.class)
+/** A subset of messages from {@link org.truffleruby.language.RubyDynamicObject} for immutable objects. Such objects
+ * have no instance variables, so the logic is simpler. We cannot easily reuse RubyDynamicObject messages since the
+ * superclass differs. */
+@ExportLibrary(RubyLibrary.class)
+@ExportLibrary(InteropLibrary.class)
 public abstract class ImmutableRubyObject implements TruffleObject {
 
+    // region RubyLibrary messages
+    @ExportMessage
+    public void freeze() {
+    }
+
+    @ExportMessage
+    public boolean isFrozen() {
+        return true;
+    }
+
+    @ExportMessage
+    public boolean isTainted() {
+        return false;
+    }
+
+    @ExportMessage
+    public void taint() {
+    }
+
+    @ExportMessage
+    public void untaint() {
+    }
+    // endregion
+
+    // region InteropLibrary messages
+    @ExportMessage
+    public boolean hasLanguage() {
+        return true;
+    }
+
+    @ExportMessage
+    public Class<RubyLanguage> getLanguage() {
+        return RubyLanguage.class;
+    }
+
+    @ExportMessage
+    public abstract String toDisplayString(boolean allowSideEffects);
+
+    // region Members
     @ExportMessage
     public boolean hasMembers() {
         return true;
@@ -101,5 +143,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
         return definedNode.doesRespondTo(null, name, this) &&
                 !definedPublicNode.doesRespondTo(null, name, this);
     }
+    // endregion
+    // endregion
 
 }

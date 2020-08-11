@@ -18,8 +18,8 @@ import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.OutgoingForeignCallNodeGen;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotOptimizedWarningNode;
+import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -38,7 +38,6 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
@@ -174,9 +173,8 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
                 return false;
             } else {
                 methodMissingNotFoundProfile.enter();
-                final DynamicObject formatter = ExceptionOperations.getFormatter(
-                        ExceptionOperations.NO_METHOD_ERROR,
-                        context);
+                final RubyProc formatter = ExceptionOperations
+                        .getFormatter(ExceptionOperations.NO_METHOD_ERROR, context);
                 throw new RaiseException(
                         context,
                         context.getCoreExceptions().noMethodErrorFromMethodMissing(

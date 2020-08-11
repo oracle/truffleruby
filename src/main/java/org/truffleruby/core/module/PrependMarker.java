@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.module;
 
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class PrependMarker extends ModuleChain {
 
@@ -22,7 +21,7 @@ public class PrependMarker extends ModuleChain {
     }
 
     @Override
-    public DynamicObject getActualModule() {
+    public RubyModule getActualModule() {
         throw new UnsupportedOperationException();
     }
 

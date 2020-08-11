@@ -10,6 +10,7 @@
 package org.truffleruby.language.dispatch;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.objects.MetaClassNode;
@@ -19,11 +20,10 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
 
-    private final DynamicObject expectedClass;
+    private final RubyClass expectedClass;
     @CompilationFinal(dimensions = 1) private final Assumption[] assumptions;
 
     @Child private MetaClassNode metaClassNode;
@@ -33,7 +33,7 @@ public class CachedReturnMissingDispatchNode extends CachedDispatchNode {
             Object cachedName,
             DispatchNode next,
             MethodLookupResult methodLookup,
-            DynamicObject expectedClass,
+            RubyClass expectedClass,
             DispatchAction dispatchAction) {
         super(context, cachedName, next, dispatchAction);
 

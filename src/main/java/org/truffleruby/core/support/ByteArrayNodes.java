@@ -14,6 +14,7 @@ import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeConstants;
 import org.truffleruby.core.rope.RopeGuards;
@@ -28,7 +29,6 @@ import org.truffleruby.language.control.RaiseException;
 import com.oracle.truffle.api.ArrayUtils;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -42,7 +42,7 @@ public abstract class ByteArrayNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyByteArray allocate(DynamicObject rubyClass) {
+        protected RubyByteArray allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyByteArray instance = new RubyByteArray(shape, RopeConstants.EMPTY_BYTES);
             allocateNode.trace(instance, this);
@@ -55,7 +55,7 @@ public abstract class ByteArrayNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize(RubyByteArray byteArray, int size) {
+        protected RubyByteArray initialize(RubyByteArray byteArray, int size) {
             final byte[] bytes = new byte[size];
             byteArray.bytes = bytes;
             return byteArray;
@@ -79,7 +79,7 @@ public abstract class ByteArrayNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject prepend(RubyByteArray byteArray, RubyString string,
+        protected RubyByteArray prepend(RubyByteArray byteArray, RubyString string,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final byte[] bytes = byteArray.bytes;
 

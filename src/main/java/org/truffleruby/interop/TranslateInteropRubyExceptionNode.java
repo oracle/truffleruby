@@ -7,7 +7,7 @@
  * GNU General Public License version 2, or
  * GNU Lesser General Public License version 2.1.
  */
-package org.truffleruby.interop.messages;
+package org.truffleruby.interop;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -33,7 +33,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 
 @GenerateUncached
-abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
+public abstract class TranslateInteropRubyExceptionNode extends RubyBaseNode {
 
     public final AssertionError execute(RaiseException exception)
             throws UnsupportedMessageException {

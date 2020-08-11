@@ -27,6 +27,7 @@ import org.truffleruby.core.hash.HashNodesFactory.EachKeyValueNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.HashLookupOrExecuteDefaultNodeGen;
 import org.truffleruby.core.hash.HashNodesFactory.InitializeCopyNodeFactory;
 import org.truffleruby.core.hash.HashNodesFactory.InternalRehashNodeGen;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.language.Nil;
@@ -49,7 +50,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -62,7 +62,7 @@ public abstract class HashNodes {
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected RubyHash allocate(RubyClass rubyClass) {
             RubyHash hash = new RubyHash(
                     helperNode.getCachedShape(rubyClass),
                     getContext(),
@@ -89,7 +89,7 @@ public abstract class HashNodes {
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args)")
-        protected Object construct(DynamicObject hashClass, Object[] args) {
+        protected Object construct(RubyClass hashClass, Object[] args) {
             final RubyArray array = (RubyArray) args[0];
 
             final Object[] store = (Object[]) array.store;
@@ -137,7 +137,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "!isSmallArrayOfPairs(args)")
-        protected Object constructFallback(DynamicObject hashClass, Object[] args) {
+        protected Object constructFallback(RubyClass hashClass, Object[] args) {
             return fallbackNode.call(hashClass, "_constructor_fallback", args);
         }
 
@@ -270,12 +270,12 @@ public abstract class HashNodes {
     public abstract static class ClearNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isNullHash(hash)")
-        protected DynamicObject emptyNull(RubyHash hash) {
+        protected RubyHash emptyNull(RubyHash hash) {
             return hash;
         }
 
         @Specialization(guards = "!isNullHash(hash)")
-        protected DynamicObject empty(RubyHash hash) {
+        protected RubyHash empty(RubyHash hash) {
             assert HashOperations.verifyStore(getContext(), hash);
             hash.store = null;
             hash.size = 0;
@@ -292,14 +292,14 @@ public abstract class HashNodes {
     public abstract static class CompareByIdentityNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "!isCompareByIdentity(hash)")
-        protected DynamicObject compareByIdentity(RubyHash hash,
+        protected RubyHash compareByIdentity(RubyHash hash,
                 @Cached InternalRehashNode internalRehashNode) {
             hash.compareByIdentity = true;
             return internalRehashNode.executeRehash(hash);
         }
 
         @Specialization(guards = "isCompareByIdentity(hash)")
-        protected DynamicObject alreadyCompareByIdentity(RubyHash hash) {
+        protected RubyHash alreadyCompareByIdentity(RubyHash hash) {
             return hash;
         }
 
@@ -454,13 +454,13 @@ public abstract class HashNodes {
         private final ConditionProfile arityMoreThanOne = ConditionProfile.create();
 
         @Specialization(guards = "isNullHash(hash)")
-        protected DynamicObject eachNull(RubyHash hash, RubyProc block) {
+        protected RubyHash eachNull(RubyHash hash, RubyProc block) {
             return hash;
         }
 
         @ExplodeLoop
         @Specialization(guards = "isPackedHash(hash)")
-        protected DynamicObject eachPackedArray(RubyHash hash, RubyProc block) {
+        protected RubyHash eachPackedArray(RubyHash hash, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
             final Object[] originalStore = (Object[]) hash.store;
 
@@ -493,7 +493,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected DynamicObject eachBuckets(RubyHash hash, RubyProc block) {
+        protected RubyHash eachBuckets(RubyHash hash, RubyProc block) {
             assert HashOperations.verifyStore(getContext(), hash);
 
             Entry entry = hash.firstInSequence;
@@ -537,7 +537,7 @@ public abstract class HashNodes {
     public abstract static class InitializeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initialize(RubyHash hash, NotProvided defaultValue, NotProvided block) {
+        protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, NotProvided block) {
             assert HashOperations.verifyStore(getContext(), hash);
             hash.defaultValue = nil;
             hash.defaultBlock = nil;
@@ -545,7 +545,7 @@ public abstract class HashNodes {
         }
 
         @Specialization
-        protected DynamicObject initialize(RubyHash hash, NotProvided defaultValue, RubyProc block,
+        protected RubyHash initialize(RubyHash hash, NotProvided defaultValue, RubyProc block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             hash.defaultValue = nil;
@@ -555,7 +555,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "wasProvided(defaultValue)")
-        protected DynamicObject initialize(RubyHash hash, Object defaultValue, NotProvided block,
+        protected RubyHash initialize(RubyHash hash, Object defaultValue, NotProvided block,
                 @Cached PropagateSharingNode propagateSharingNode) {
             assert HashOperations.verifyStore(getContext(), hash);
             propagateSharingNode.executePropagate(hash, defaultValue);
@@ -583,10 +583,10 @@ public abstract class HashNodes {
             return InitializeCopyNodeFactory.create(null);
         }
 
-        public abstract DynamicObject executeReplace(RubyHash self, DynamicObject from);
+        public abstract RubyHash executeReplace(RubyHash self, RubyHash from);
 
         @Specialization(guards = "isNullHash(from)")
-        protected DynamicObject replaceNull(RubyHash self, RubyHash from) {
+        protected RubyHash replaceNull(RubyHash self, RubyHash from) {
             if (self == from) {
                 return self;
             }
@@ -605,7 +605,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isPackedHash(from)")
-        protected DynamicObject replacePackedArray(RubyHash self, RubyHash from) {
+        protected RubyHash replacePackedArray(RubyHash self, RubyHash from) {
             if (self == from) {
                 return self;
             }
@@ -628,7 +628,7 @@ public abstract class HashNodes {
 
         @TruffleBoundary
         @Specialization(guards = "isBucketHash(from)")
-        protected DynamicObject replaceBuckets(RubyHash self, RubyHash from) {
+        protected RubyHash replaceBuckets(RubyHash self, RubyHash from) {
             if (self == from) {
                 return self;
             }
@@ -643,7 +643,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "!isRubyHash(from)")
-        protected DynamicObject replaceCoerce(RubyHash self, Object from,
+        protected RubyHash replaceCoerce(RubyHash self, Object from,
                 @Cached("createPrivate()") CallDispatchHeadNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
@@ -652,7 +652,7 @@ public abstract class HashNodes {
                     from,
                     coreLibrary().hashClass,
                     CoreSymbols.TO_HASH);
-            return initializeCopyNode.executeReplace(self, (DynamicObject) otherHash);
+            return initializeCopyNode.executeReplace(self, (RubyHash) otherHash);
         }
 
         private void copyOtherFields(RubyHash self, RubyHash from) {
@@ -744,8 +744,8 @@ public abstract class HashNodes {
     @Primitive(name = "hash_set_default_proc")
     public abstract static class SetDefaultProcNode extends PrimitiveArrayArgumentsNode {
 
-        @Specialization(guards = "isRubyProc(defaultProc)")
-        protected DynamicObject setDefaultProc(RubyHash hash, RubyProc defaultProc,
+        @Specialization
+        protected RubyProc setDefaultProc(RubyHash hash, RubyProc defaultProc,
                 @Cached PropagateSharingNode propagateSharingNode) {
             propagateSharingNode.executePropagate(hash, defaultProc);
 
@@ -754,7 +754,7 @@ public abstract class HashNodes {
             return defaultProc;
         }
 
-        @Specialization(guards = "isNil(defaultProc)")
+        @Specialization
         protected Object setDefaultProc(RubyHash hash, Nil defaultProc) {
             hash.defaultValue = nil;
             hash.defaultBlock = nil;
@@ -878,15 +878,15 @@ public abstract class HashNodes {
             return InternalRehashNodeGen.create();
         }
 
-        public abstract DynamicObject executeRehash(RubyHash hash);
+        public abstract RubyHash executeRehash(RubyHash hash);
 
         @Specialization(guards = "isNullHash(hash)")
-        protected DynamicObject rehashNull(RubyHash hash) {
+        protected RubyHash rehashNull(RubyHash hash) {
             return hash;
         }
 
         @Specialization(guards = "isPackedHash(hash)")
-        protected DynamicObject rehashPackedArray(RubyHash hash,
+        protected RubyHash rehashPackedArray(RubyHash hash,
                 @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -909,7 +909,7 @@ public abstract class HashNodes {
         }
 
         @Specialization(guards = "isBucketHash(hash)")
-        protected DynamicObject rehashBuckets(RubyHash hash,
+        protected RubyHash rehashBuckets(RubyHash hash,
                 @Cached ConditionProfile byIdentityProfile) {
             assert HashOperations.verifyStore(getContext(), hash);
 
@@ -1013,13 +1013,13 @@ public abstract class HashNodes {
     public abstract static class RehashNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization(guards = "isCompareByIdentity(hash)")
-        protected DynamicObject rehashIdentity(RubyHash hash) {
+        protected RubyHash rehashIdentity(RubyHash hash) {
             // the identity hash of objects never change.
             return hash;
         }
 
         @Specialization(guards = "!isCompareByIdentity(hash)")
-        protected DynamicObject rehashNotIdentity(RubyHash hash,
+        protected RubyHash rehashNotIdentity(RubyHash hash,
                 @Cached InternalRehashNode internalRehashNode) {
             return internalRehashNode.executeRehash(hash);
         }

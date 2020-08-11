@@ -12,8 +12,8 @@ package org.truffleruby.language.objects.shared;
 import org.truffleruby.language.RubyBaseNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Property;
+import org.truffleruby.language.RubyDynamicObject;
 
 public abstract class ReadAndShareFieldNode extends RubyBaseNode {
 
@@ -28,10 +28,10 @@ public abstract class ReadAndShareFieldNode extends RubyBaseNode {
         this.writeBarrierNode = WriteBarrierNodeGen.create(depth);
     }
 
-    public abstract void executeReadFieldAndShare(DynamicObject object);
+    public abstract void executeReadFieldAndShare(RubyDynamicObject object);
 
     @Specialization
-    protected void readFieldAndShare(DynamicObject object) {
+    protected void readFieldAndShare(RubyDynamicObject object) {
         final Object value = property.get(object, true);
         writeBarrierNode.executeWriteBarrier(value);
     }

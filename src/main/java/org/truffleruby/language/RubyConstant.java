@@ -11,21 +11,21 @@ package org.truffleruby.language;
 
 import java.util.Set;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class RubyConstant implements ObjectGraphNode {
 
     public static final RubyConstant[] EMPTY_ARRAY = new RubyConstant[0];
 
-    private final DynamicObject declaringModule;
+    private final RubyModule declaringModule;
     private final String name;
     private final Object value;
     private final boolean isPrivate;
@@ -39,7 +39,7 @@ public class RubyConstant implements ObjectGraphNode {
     private final SourceSection sourceSection;
 
     public RubyConstant(
-            DynamicObject declaringModule,
+            RubyModule declaringModule,
             String name,
             Object value,
             boolean isPrivate,
@@ -58,7 +58,7 @@ public class RubyConstant implements ObjectGraphNode {
     }
 
     private RubyConstant(
-            DynamicObject declaringModule,
+            RubyModule declaringModule,
             String name,
             Object value,
             boolean isPrivate,
@@ -66,7 +66,6 @@ public class RubyConstant implements ObjectGraphNode {
             boolean undefined,
             boolean isDeprecated,
             SourceSection sourceSection) {
-        assert RubyGuards.isRubyModule(declaringModule);
         assert !undefined || autoloadConstant == null : "undefined and autoload are exclusive";
 
         this.declaringModule = declaringModule;
@@ -79,7 +78,7 @@ public class RubyConstant implements ObjectGraphNode {
         this.sourceSection = sourceSection;
     }
 
-    public DynamicObject getDeclaringModule() {
+    public RubyModule getDeclaringModule() {
         return declaringModule;
     }
 
@@ -146,8 +145,7 @@ public class RubyConstant implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public boolean isVisibleTo(RubyContext context, LexicalScope lexicalScope, DynamicObject module) {
-        assert RubyGuards.isRubyModule(module);
+    public boolean isVisibleTo(RubyContext context, LexicalScope lexicalScope, RubyModule module) {
         assert lexicalScope == null || lexicalScope.getLiveModule() == module;
 
         if (!isPrivate) {
@@ -165,8 +163,8 @@ public class RubyConstant implements ObjectGraphNode {
         }
 
         // Look in ancestors
-        if (RubyGuards.isRubyClass(module)) {
-            for (DynamicObject included : Layouts.MODULE.getFields(module).ancestors()) {
+        if (module instanceof RubyClass) {
+            for (RubyModule included : module.fields.ancestors()) {
                 if (included != module && included == declaringModule) {
                     return true;
                 }
@@ -202,7 +200,7 @@ public class RubyConstant implements ObjectGraphNode {
 
     @Override
     public String toString() {
-        return Layouts.MODULE.getFields(getDeclaringModule()).getName() + "::" + getName();
+        return getDeclaringModule().fields.getName() + "::" + getName();
     }
 
 }

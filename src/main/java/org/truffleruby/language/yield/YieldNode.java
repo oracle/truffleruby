@@ -24,6 +24,10 @@ public abstract class YieldNode extends RubyBaseNode {
         return YieldNodeGen.create();
     }
 
+    public static YieldNode getUncached() {
+        return YieldNodeGen.getUncached();
+    }
+
     public final Object executeDispatch(RubyProc block, Object... args) {
         return executeDispatchWithArrayArguments(block, args);
     }

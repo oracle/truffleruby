@@ -45,10 +45,9 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -56,7 +55,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Truffle::RegexpOperations")
@@ -74,7 +72,7 @@ public class TruffleRegexpNodes {
         @Specialization(guards = "argsMatch(frame, cachedArgs, args)", limit = "getDefaultCacheLimit()")
         protected Object executeFastUnion(VirtualFrame frame, RubyString str, RubyString sep, Object[] args,
                 @Cached(value = "args", dimensions = 1) Object[] cachedArgs,
-                @Cached("buildUnion(str, sep, args)") DynamicObject union) {
+                @Cached("buildUnion(str, sep, args)") RubyRegexp union) {
             return copyNode.call(union, "clone");
         }
 
@@ -83,7 +81,7 @@ public class TruffleRegexpNodes {
             return buildUnion(str, sep, args);
         }
 
-        public DynamicObject buildUnion(RubyString str, RubyString sep, Object[] args) {
+        public RubyRegexp buildUnion(RubyString str, RubyString sep, Object[] args) {
             RubyString regexpString = null;
             for (int i = 0; i < args.length; i++) {
                 if (regexpString == null) {
@@ -97,11 +95,11 @@ public class TruffleRegexpNodes {
         }
 
         public RubyString string(Object obj) {
-            if (RubyGuards.isRubyString(obj)) {
+            if (obj instanceof RubyString) {
                 final Rope rope = ((RubyString) obj).rope;
                 return makeStringNode.fromRope(ClassicRegexp.quote19(rope));
             } else {
-                return (RubyString) toSNode.execute((RubyRegexp) obj);
+                return toSNode.execute((RubyRegexp) obj);
             }
         }
 
@@ -120,7 +118,7 @@ public class TruffleRegexpNodes {
         }
 
         @TruffleBoundary
-        public DynamicObject createRegexp(Rope pattern) {
+        public RubyRegexp createRegexp(Rope pattern) {
             final RegexpOptions regexpOptions = RegexpOptions.fromEmbeddedOptions(0);
             final Regex regex = compile(getContext(), pattern, regexpOptions, this);
 
@@ -172,14 +170,14 @@ public class TruffleRegexpNodes {
     public static abstract class MatchNode extends RubyContextNode {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
-        @Child private AllocateObjectNode allocateNode = AllocateObjectNode.create();
+        @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.createPrivate();
 
         public static MatchNode create() {
             return MatchNodeGen.create();
         }
 
-        public abstract Object execute(RubyRegexp regexp, DynamicObject string, Matcher matcher,
+        public abstract Object execute(RubyRegexp regexp, RubyString string, Matcher matcher,
                 int startPos, int range, boolean onlyMatchAtStart);
 
         // Creating a MatchData will store a copy of the source string. It's tempting to use a rope here, but a bit
@@ -202,8 +200,6 @@ public class TruffleRegexpNodes {
                 int range,
                 boolean onlyMatchAtStart,
                 @Cached ConditionProfile matchesProfile) {
-            assert RubyGuards.isRubyString(string);
-
             if (getContext().getOptions().REGEXP_INSTRUMENT_MATCH) {
                 instrument(regexp, string, onlyMatchAtStart);
             }
@@ -219,6 +215,7 @@ public class TruffleRegexpNodes {
             final Region region = matcher.getEagerRegion();
             final RubyString dupedString = (RubyString) dupNode.call(string, "dup");
             RubyMatchData result = new RubyMatchData(coreLibrary().matchDataShape, regexp, dupedString, region, null);
+            allocateNode.trace(result, this);
             return taintResultNode.maybeTaint(string, result);
         }
 

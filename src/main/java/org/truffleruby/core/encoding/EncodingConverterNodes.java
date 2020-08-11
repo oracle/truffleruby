@@ -35,6 +35,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.ToStrNodeGen;
 import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
@@ -58,7 +59,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
@@ -156,7 +156,7 @@ public abstract class EncodingConverterNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected RubyEncodingConverter allocate(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyEncodingConverter instance = new RubyEncodingConverter(shape, null);
             allocateNode.trace(instance, this);
@@ -336,7 +336,7 @@ public abstract class EncodingConverterNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes) {
+        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, int maxBytes) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = encodingConverter.econv;
@@ -346,9 +346,7 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization
-        protected DynamicObject encodingConverterPutback(
-                RubyEncodingConverter encodingConverter,
-                NotProvided maxBytes) {
+        protected RubyString encodingConverterPutback(RubyEncodingConverter encodingConverter, NotProvided maxBytes) {
             // Taken from org.jruby.RubyConverter#putback.
 
             final EConv ec = encodingConverter.econv;
@@ -356,7 +354,7 @@ public abstract class EncodingConverterNodes {
             return putback(encodingConverter, ec.putbackable());
         }
 
-        private DynamicObject putback(RubyEncodingConverter encodingConverter, int n) {
+        private RubyString putback(RubyEncodingConverter encodingConverter, int n) {
 
             // Taken from org.jruby.RubyConverter#putback.
 
@@ -479,7 +477,7 @@ public abstract class EncodingConverterNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject getReplacement(RubyEncodingConverter encodingConverter) {
+        protected RubyString getReplacement(RubyEncodingConverter encodingConverter) {
             final EConv ec = encodingConverter.econv;
 
             final int ret = ec.makeReplacement();
@@ -509,7 +507,7 @@ public abstract class EncodingConverterNodes {
         }
 
         @Specialization
-        protected DynamicObject setReplacement(RubyEncodingConverter encodingConverter, RubyString replacement,
+        protected RubyString setReplacement(RubyEncodingConverter encodingConverter, RubyString replacement,
                 @Cached BranchProfile errorProfile,
                 @Cached RopeNodes.BytesNode bytesNode) {
             final EConv ec = encodingConverter.econv;

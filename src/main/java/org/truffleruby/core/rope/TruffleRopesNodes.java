@@ -21,7 +21,6 @@ import org.truffleruby.language.NotProvided;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreModule("Truffle::Ropes")
 public abstract class TruffleRopesNodes {
@@ -33,7 +32,7 @@ public abstract class TruffleRopesNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject dumpString(RubyString string) {
+        protected RubyString dumpString(RubyString string) {
             final StringBuilder builder = new StringBuilder();
 
             final Rope rope = string.rope;
@@ -87,7 +86,7 @@ public abstract class TruffleRopesNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject getStructure(RubyString string) {
+        protected RubyString getStructure(RubyString string) {
             Rope rope = string.rope;
             String result = getStructure(rope);
             return makeStringNode.executeMake(result.getBytes(), rope.getEncoding(), CodeRange.CR_7BIT);
@@ -142,7 +141,7 @@ public abstract class TruffleRopesNodes {
     public abstract static class FlattenRopeNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject flattenRope(RubyString string,
+        protected RubyString flattenRope(RubyString string,
                 @Cached RopeNodes.FlattenNode flattenNode,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final LeafRope flattened = flattenNode.executeFlatten(string.rope);
@@ -158,7 +157,7 @@ public abstract class TruffleRopesNodes {
     public abstract static class CreateSimpleStringNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject createSimpleString(
+        protected RubyString createSimpleString(
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             return makeStringNode
                     .fromRope(new AsciiOnlyLeafRope(new byte[]{ 't', 'e', 's', 't' }, UTF8Encoding.INSTANCE));

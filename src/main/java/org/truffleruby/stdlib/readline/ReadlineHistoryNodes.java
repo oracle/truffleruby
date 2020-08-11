@@ -40,28 +40,28 @@
  */
 package org.truffleruby.stdlib.readline;
 
-import com.oracle.truffle.api.library.CachedLibrary;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreMethodNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.collections.BoundaryIterable;
+import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.cast.ToIntNode;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.interop.ToJavaStringNode;
-import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.library.CachedLibrary;
 
 import jline.console.history.History;
 
@@ -74,7 +74,7 @@ public abstract class ReadlineHistoryNodes {
         @Child private ToJavaStringNode toJavaStringNode = ToJavaStringNode.create();
 
         @Specialization
-        protected DynamicObject push(VirtualFrame frame, DynamicObject history, Object... lines) {
+        protected RubyBasicObject push(RubyBasicObject history, Object... lines) {
             for (Object line : lines) {
                 final String asString = toJavaStringNode.executeToJavaString(line);
                 addToHistory(asString);
@@ -106,8 +106,7 @@ public abstract class ReadlineHistoryNodes {
             }
 
             final String lastLine = consoleHolder.getHistory().removeLast().toString();
-            final DynamicObject ret = makeStringNode.executeMake(lastLine, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
-
+            final RubyString ret = makeStringNode.executeMake(lastLine, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
             rubyLibrary.taint(ret);
             return ret;
         }
@@ -130,8 +129,7 @@ public abstract class ReadlineHistoryNodes {
             }
 
             final String lastLine = consoleHolder.getHistory().removeFirst().toString();
-            final DynamicObject ret = makeStringNode.executeMake(lastLine, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
-
+            final RubyString ret = makeStringNode.executeMake(lastLine, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
             rubyLibrary.taint(ret);
             return ret;
         }
@@ -156,7 +154,6 @@ public abstract class ReadlineHistoryNodes {
         @Specialization
         protected Object clear() {
             getContext().getConsoleHolder().getHistory().clear();
-
             return nil;
         }
 
@@ -168,14 +165,13 @@ public abstract class ReadlineHistoryNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject each(DynamicObject history, RubyProc block,
+        protected RubyBasicObject each(RubyBasicObject history, RubyProc block,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
 
             for (final History.Entry e : BoundaryIterable.wrap(consoleHolder.getHistory())) {
-                final DynamicObject line = makeStringNode
+                final RubyString line = makeStringNode
                         .executeMake(historyEntryToString(e), getLocaleEncoding(), CodeRange.CR_UNKNOWN);
-
                 rubyLibrary.taint(line);
                 yield(block, line);
             }
@@ -205,8 +201,7 @@ public abstract class ReadlineHistoryNodes {
 
             try {
                 final String line = consoleHolder.getHistory().get(normalizedIndex).toString();
-                final DynamicObject ret = makeStringNode.executeMake(line, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
-
+                final RubyString ret = makeStringNode.executeMake(line, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
                 rubyLibrary.taint(ret);
                 return ret;
             } catch (IndexOutOfBoundsException e) {
@@ -240,7 +235,6 @@ public abstract class ReadlineHistoryNodes {
 
             try {
                 consoleHolder.getHistory().set(normalizedIndex, line);
-
                 return nil;
             } catch (IndexOutOfBoundsException e) {
                 throw new RaiseException(getContext(), coreExceptions().indexErrorInvalidIndex(this));
@@ -259,13 +253,10 @@ public abstract class ReadlineHistoryNodes {
         protected Object deleteAt(int index,
                 @CachedLibrary(limit = "getRubyLibraryCacheLimit()") RubyLibrary rubyLibrary) {
             final ConsoleHolder consoleHolder = getContext().getConsoleHolder();
-
             final int normalizedIndex = index < 0 ? index + consoleHolder.getHistory().size() : index;
-
             try {
                 final String line = consoleHolder.getHistory().remove(normalizedIndex).toString();
-                final DynamicObject ret = makeStringNode.executeMake(line, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
-
+                final RubyString ret = makeStringNode.executeMake(line, getLocaleEncoding(), CodeRange.CR_UNKNOWN);
                 rubyLibrary.taint(ret);
                 return ret;
             } catch (IndexOutOfBoundsException e) {

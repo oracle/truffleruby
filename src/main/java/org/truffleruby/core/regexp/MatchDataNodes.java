@@ -12,13 +12,11 @@ package org.truffleruby.core.regexp;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import com.oracle.truffle.api.object.Shape;
 import org.jcodings.Encoding;
 import org.joni.NameEntry;
 import org.joni.Regex;
 import org.joni.Region;
 import org.joni.exception.ValueException;
-import org.truffleruby.Layouts;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
@@ -32,6 +30,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.IntegerCastNode;
 import org.truffleruby.core.cast.ToIntNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.regexp.MatchDataNodesFactory.ValuesNodeFactory;
 import org.truffleruby.core.rope.Rope;
@@ -42,6 +41,7 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -54,7 +54,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "MatchData", isClass = true)
@@ -182,7 +182,7 @@ public abstract class MatchDataNodes {
     public abstract static class MatchDataCreateSingleGroupNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object create(DynamicObject regexp, RubyString string, int start, int end,
+        protected Object create(RubyString regexp, RubyString string, int start, int end,
                 @Cached AllocateHelperNode allocateNode) {
             final Region region = new Region(start, end);
             RubyMatchData matchData = new RubyMatchData(coreLibrary().matchDataShape, regexp, string, region, null);
@@ -196,7 +196,7 @@ public abstract class MatchDataNodes {
     public abstract static class MatchDataCreateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object create(DynamicObject regexp, RubyString string, RubyArray starts, RubyArray ends,
+        protected Object create(RubyDynamicObject regexp, RubyString string, RubyArray starts, RubyArray ends,
                 @Cached ArrayIndexNodes.ReadNormalizedNode readNode,
                 @Cached IntegerCastNode integerCastNode,
                 @Cached AllocateHelperNode allocateNode) {
@@ -251,7 +251,7 @@ public abstract class MatchDataNodes {
                 final int end = region.end[normalizedIndex];
                 if (hasValueProfile.profile(start > -1 && end > -1)) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+                    final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
                     final RubyString string = new RubyString(shape, false, false, rope);
                     allocateHelperNode.trace(string, this);
                     return string;
@@ -450,7 +450,7 @@ public abstract class MatchDataNodes {
 
                 if (start > -1 && end > -1) {
                     Rope rope = substringNode.executeSubstring(sourceRope, start, end - start);
-                    final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+                    final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
                     final RubyString string = new RubyString(shape, false, isTainted, rope);
                     allocateHelperNode.trace(string, this);
                     values[n] = string;
@@ -556,17 +556,17 @@ public abstract class MatchDataNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateHelperNode allocateHelperNode = AllocateHelperNode.create();
 
-        public abstract DynamicObject execute(RubyMatchData matchData);
+        public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
-        protected Object preMatch(RubyMatchData matchData) {
+        protected RubyString preMatch(RubyMatchData matchData) {
             RubyString source = matchData.source;
             Rope sourceRope = source.rope;
             Region region = matchData.region;
             int start = 0;
             int length = region.beg[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+            final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
             final RubyString string = new RubyString(shape, false, false, rope);
             allocateHelperNode.trace(string, this);
             return string;
@@ -579,17 +579,17 @@ public abstract class MatchDataNodes {
         @Child private RopeNodes.SubstringNode substringNode = RopeNodes.SubstringNode.create();
         @Child private AllocateHelperNode allocateHelperNode = AllocateHelperNode.create();
 
-        public abstract DynamicObject execute(RubyMatchData matchData);
+        public abstract RubyString execute(RubyMatchData matchData);
 
         @Specialization
-        protected Object postMatch(RubyMatchData matchData) {
+        protected RubyString postMatch(RubyMatchData matchData) {
             RubyString source = matchData.source;
             Rope sourceRope = source.rope;
             Region region = matchData.region;
             int start = region.end[0];
             int length = sourceRope.byteLength() - region.end[0];
             Rope rope = substringNode.executeSubstring(sourceRope, start, length);
-            final Shape shape = allocateHelperNode.getCachedShape(Layouts.BASIC_OBJECT.getLogicalClass(source));
+            final Shape shape = allocateHelperNode.getCachedShape(source.getLogicalClass());
             final RubyString string = new RubyString(shape, false, false, rope);
             allocateHelperNode.trace(string, this);
             return string;
@@ -621,7 +621,7 @@ public abstract class MatchDataNodes {
         protected RubyRegexp regexp(RubyMatchData matchData,
                 @Cached ConditionProfile profile,
                 @Cached("createPrivate()") CallDispatchHeadNode stringToRegexp) {
-            final DynamicObject value = matchData.regexp;
+            final RubyDynamicObject value = matchData.regexp;
             if (profile.profile(value instanceof RubyRegexp)) {
                 return (RubyRegexp) value;
             } else {
@@ -643,7 +643,7 @@ public abstract class MatchDataNodes {
     public abstract static class InternalAllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass,
+        protected RubyMatchData allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode allocateNode) {
             RubyMatchData matchData = new RubyMatchData(allocateNode.getCachedShape(rubyClass), null, null, null, null);
             allocateNode.trace(matchData, this);
@@ -656,24 +656,23 @@ public abstract class MatchDataNodes {
     public abstract static class InitializeCopyNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject initializeCopy(RubyMatchData self, DynamicObject from) {
+        protected RubyMatchData initializeCopy(RubyMatchData self, RubyMatchData from) {
             if (self == from) {
                 return self;
             }
 
-            if (!(from instanceof RubyMatchData)) {
-                throw new RaiseException(
-                        getContext(),
-                        coreExceptions().typeError("initialize_copy should take same class object", this));
-            }
-
-
-            final RubyMatchData frommd = (RubyMatchData) from;
-            self.source = frommd.source;
-            self.regexp = frommd.regexp;
-            self.region = frommd.region;
-            self.charOffsets = frommd.charOffsets;
+            self.source = from.source;
+            self.regexp = from.regexp;
+            self.region = from.region;
+            self.charOffsets = from.charOffsets;
             return self;
+        }
+
+        @Specialization(guards = "!isRubyMatchData(from)")
+        protected RubyMatchData initializeCopy(RubyMatchData self, Object from) {
+            throw new RaiseException(
+                    getContext(),
+                    coreExceptions().typeError("initialize_copy should take same class object", this));
         }
     }
 
@@ -681,7 +680,7 @@ public abstract class MatchDataNodes {
     public abstract static class GetSourceNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getSource(RubyMatchData matchData) {
+        protected RubyString getSource(RubyMatchData matchData) {
             return matchData.source;
         }
     }

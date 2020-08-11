@@ -9,12 +9,26 @@
  */
 package org.truffleruby.core.string;
 
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.rope.Rope;
+import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.library.RubyLibrary;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Exclusive;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.core.rope.Rope;
-import org.truffleruby.interop.messages.RubyStringMessages;
-import org.truffleruby.language.RubyDynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
+@ExportLibrary(RubyLibrary.class)
+@ExportLibrary(InteropLibrary.class)
 public class RubyString extends RubyDynamicObject {
 
     public boolean frozen;
@@ -29,14 +43,72 @@ public class RubyString extends RubyDynamicObject {
     }
 
     @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyStringMessages.class;
-    }
-
-    @Override
     public String toString() {
         return rope.toString();
     }
+
+    // region RubyLibrary messages
+    @ExportMessage
+    public void freeze() {
+        frozen = true;
+    }
+
+    @ExportMessage
+    public boolean isFrozen() {
+        return frozen;
+    }
+
+    @ExportMessage
+    public boolean isTainted() {
+        return tainted;
+    }
+
+    @ExportMessage
+    public void taint(
+            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached BranchProfile errorProfile) {
+        if (!tainted && frozen) {
+            errorProfile.enter();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
+        }
+
+        tainted = true;
+    }
+
+    @ExportMessage
+    public void untaint(
+            @CachedLibrary("this") RubyLibrary rubyLibrary,
+            @CachedContext(RubyLanguage.class) RubyContext context,
+            @Exclusive @Cached BranchProfile errorProfile) {
+        if (!tainted) {
+            return;
+        }
+
+        if (frozen) {
+            errorProfile.enter();
+            throw new RaiseException(
+                    context,
+                    context.getCoreExceptions().frozenError(this, getNode(rubyLibrary)));
+        }
+
+        tainted = false;
+    }
+    // endregion
+
+    // region String messages
+    @ExportMessage
+    public boolean isString() {
+        return true;
+    }
+
+    @ExportMessage
+    public String asString(
+            @Cached ToJavaStringNode toJavaStringNode) {
+        return toJavaStringNode.executeToJavaString(this);
+    }
+    // endregion
 
 }

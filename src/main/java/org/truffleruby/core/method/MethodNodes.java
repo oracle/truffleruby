@@ -10,7 +10,6 @@
 package org.truffleruby.core.method;
 
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
@@ -21,12 +20,15 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ReferenceEqualNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.ProcType;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyContextSourceNode;
@@ -51,7 +53,6 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Method", isClass = true)
@@ -142,7 +143,7 @@ public abstract class MethodNodes {
     public abstract static class OwnerNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject owner(RubyMethod method) {
+        protected RubyModule owner(RubyMethod method) {
             return method.method.getDeclaringModule();
         }
 
@@ -186,7 +187,7 @@ public abstract class MethodNodes {
             if (!sourceSection.isAvailable()) {
                 return nil;
             } else {
-                DynamicObject file = makeStringNode.executeMake(
+                RubyString file = makeStringNode.executeMake(
                         RubyContext.getPath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
@@ -206,7 +207,7 @@ public abstract class MethodNodes {
         protected Object superMethod(RubyMethod method) {
             Object receiver = method.receiver;
             InternalMethod internalMethod = method.method;
-            DynamicObject selfMetaClass = metaClassNode.executeMetaClass(receiver);
+            RubyClass selfMetaClass = metaClassNode.executeMetaClass(receiver);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
             if (!superMethod.isDefined()) {
                 return nil;
@@ -228,9 +229,9 @@ public abstract class MethodNodes {
         @Child private LogicalClassNode classNode = LogicalClassNode.create();
 
         @Specialization
-        protected RubyUnboundMethod unbind(VirtualFrame frame, RubyMethod method,
+        protected RubyUnboundMethod unbind(RubyMethod method,
                 @Cached AllocateHelperNode allocateHelperNode) {
-            final DynamicObject receiverClass = classNode.executeLogicalClass(method.receiver);
+            final RubyClass receiverClass = classNode.executeLogicalClass(method.receiver);
             final RubyUnboundMethod instance = new RubyUnboundMethod(
                     coreLibrary().unboundMethodShape,
                     receiverClass,
@@ -318,7 +319,7 @@ public abstract class MethodNodes {
         @Specialization
         protected Object methodUnimplement(RubyMethod rubyMethod) {
             final InternalMethod method = rubyMethod.method;
-            Layouts.MODULE.getFields(method.getDeclaringModule()).addMethod(
+            method.getDeclaringModule().fields.addMethod(
                     getContext(),
                     this,
                     method.unimplemented());
@@ -359,7 +360,7 @@ public abstract class MethodNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

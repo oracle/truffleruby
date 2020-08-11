@@ -14,16 +14,15 @@ import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class AtExitManager {
 
@@ -44,7 +43,7 @@ public class AtExitManager {
         }
     }
 
-    public DynamicObject runAtExitHooks() {
+    public RubyException runAtExitHooks() {
         return runExitHooks(atExitHooks, "at_exit");
     }
 
@@ -53,8 +52,8 @@ public class AtExitManager {
     }
 
     @TruffleBoundary
-    private DynamicObject runExitHooks(Deque<RubyProc> stack, String name) {
-        DynamicObject lastException = null;
+    private RubyException runExitHooks(Deque<RubyProc> stack, String name) {
+        RubyException lastException = null;
 
         while (true) {
             RubyProc block = stack.poll();
@@ -84,7 +83,7 @@ public class AtExitManager {
     }
 
     public static boolean isSilentException(RubyContext context, RubyException rubyException) {
-        final DynamicObject logicalClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
+        final RubyClass logicalClass = rubyException.getLogicalClass();
         return logicalClass == context.getCoreLibrary().systemExitClass ||
                 logicalClass == context.getCoreLibrary().signalExceptionClass;
     }

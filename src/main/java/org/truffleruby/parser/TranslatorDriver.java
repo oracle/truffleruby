@@ -48,6 +48,7 @@ import org.truffleruby.core.kernel.AutoSplitNode;
 import org.truffleruby.core.kernel.ChompLoopNode;
 import org.truffleruby.core.kernel.KernelGetsNode;
 import org.truffleruby.core.kernel.KernelPrintLastLineNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.DataNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyNode;
@@ -82,7 +83,6 @@ import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -98,7 +98,7 @@ public class TranslatorDriver {
     }
 
     public RubyRootNode parse(RubySource rubySource, ParserContext parserContext, String[] argumentNames,
-            MaterializedFrame parentFrame, DynamicObject wrap, boolean ownScopeForAssignments, Node currentNode) {
+            MaterializedFrame parentFrame, RubyModule wrap, boolean ownScopeForAssignments, Node currentNode) {
         assert parserContext
                 .isTopLevel() == (parentFrame == null) : "A frame should be given iff the context is not toplevel: " +
                         parserContext + " " + parentFrame;
@@ -191,7 +191,7 @@ public class TranslatorDriver {
         }
         if (parserContext == ParserContext.MODULE) {
             Object module = RubyArguments.getSelf(context.getCallStack().getCurrentFrame(FrameAccess.READ_ONLY));
-            lexicalScope = new LexicalScope(lexicalScope, (DynamicObject) module);
+            lexicalScope = new LexicalScope(lexicalScope, (RubyModule) module);
         }
         parseEnvironment.resetLexicalScope(lexicalScope);
         parseEnvironment.allowTruffleRubyPrimitives = parserConfiguration.allowTruffleRubyPrimitives;

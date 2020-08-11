@@ -9,15 +9,16 @@
  */
 package org.truffleruby.core.cast;
 
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "duration", type = RubyNode.class)
@@ -52,8 +53,8 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
         return validate((long) (duration * 1000));
     }
 
-    @Specialization(guards = "isNil(duration)")
-    protected long durationNil(Object duration) {
+    @Specialization
+    protected long durationNil(Nil duration) {
         if (acceptsNil) {
             return noDuration(NotProvided.INSTANCE);
         } else {
@@ -64,7 +65,7 @@ public abstract class DurationToMillisecondsNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected long duration(DynamicObject duration) {
+    protected long duration(RubyDynamicObject duration) {
         if (floatCastNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             floatCastNode = insert(NumericToFloatNodeGen.create());

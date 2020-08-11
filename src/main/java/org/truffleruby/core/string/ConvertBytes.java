@@ -27,13 +27,12 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class ConvertBytes {
     private final RubyContext context;
     private final Node node;
     private final FixnumOrBignumNode fixnumOrBignumNode;
-    private final DynamicObject _str;
+    private final RubyString _str;
     private int str;
     private int end;
     private byte[] data;

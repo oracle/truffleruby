@@ -9,9 +9,9 @@
  */
 package org.truffleruby.core.time;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyTimeMessages;
+import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 
 import java.time.ZonedDateTime;
@@ -32,17 +32,12 @@ public class RubyTime extends RubyDynamicObject {
             boolean relativeOffset,
             boolean isUtc) {
         super(shape);
+        assert zone instanceof RubyString || zone == Nil.INSTANCE;
         this.dateTime = dateTime;
         this.offset = offset;
         this.zone = zone;
         this.relativeOffset = relativeOffset;
         this.isUtc = isUtc;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyTimeMessages.class;
     }
 
 }

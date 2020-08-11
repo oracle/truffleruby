@@ -10,7 +10,6 @@
 package org.truffleruby.core.objectspace;
 
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.WeakMapMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyWeakMap extends RubyDynamicObject {
@@ -22,8 +21,4 @@ public class RubyWeakMap extends RubyDynamicObject {
         this.storage = storage;
     }
 
-    @Override
-    public Class<?> dispatch() {
-        return WeakMapMessages.class;
-    }
 }

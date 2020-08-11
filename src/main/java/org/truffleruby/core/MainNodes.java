@@ -14,6 +14,7 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.module.ModuleNodes;
 import org.truffleruby.core.module.ModuleNodesFactory;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
@@ -26,7 +27,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @CoreModule(value = "main", isClass = true)
@@ -38,9 +38,8 @@ public abstract class MainNodes {
         @Child private ModuleNodes.PublicNode publicNode = ModuleNodesFactory.PublicNodeFactory.create(null);
 
         @Specialization
-        protected DynamicObject doPublic(VirtualFrame frame, Object[] args) {
-            final DynamicObject object = coreLibrary().objectClass;
-            return publicNode.executePublic(frame, object, args);
+        protected RubyModule doPublic(VirtualFrame frame, Object[] args) {
+            return publicNode.executePublic(frame, coreLibrary().objectClass, args);
         }
     }
 
@@ -50,9 +49,8 @@ public abstract class MainNodes {
         @Child private ModuleNodes.PrivateNode privateNode = ModuleNodesFactory.PrivateNodeFactory.create(null);
 
         @Specialization
-        protected DynamicObject doPrivate(VirtualFrame frame, Object[] args) {
-            final DynamicObject object = coreLibrary().objectClass;
-            return privateNode.executePrivate(frame, object, args);
+        protected RubyModule doPrivate(VirtualFrame frame, Object[] args) {
+            return privateNode.executePrivate(frame, coreLibrary().objectClass, args);
         }
     }
 
@@ -61,8 +59,8 @@ public abstract class MainNodes {
 
         @Child private UsingNode usingNode = UsingNodeGen.create();
 
-        @Specialization(guards = "isRubyModule(refinementModule)")
-        protected Object mainUsing(DynamicObject refinementModule,
+        @Specialization
+        protected Object mainUsing(RubyModule refinementModule,
                 @Cached BranchProfile errorProfile) {
             if (!isCalledFromTopLevel()) {
                 errorProfile.enter();

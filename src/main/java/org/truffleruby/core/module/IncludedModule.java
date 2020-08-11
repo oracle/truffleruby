@@ -9,23 +9,18 @@
  */
 package org.truffleruby.core.module;
 
-import org.truffleruby.language.RubyGuards;
-
-import com.oracle.truffle.api.object.DynamicObject;
-
 /** A reference to an included RubyModule. */
 public class IncludedModule extends ModuleChain {
 
-    private final DynamicObject includedModule;
+    private final RubyModule includedModule;
 
-    public IncludedModule(DynamicObject includedModule, ModuleChain parentModule) {
+    public IncludedModule(RubyModule includedModule, ModuleChain parentModule) {
         super(parentModule);
-        assert RubyGuards.isRubyModule(includedModule);
         this.includedModule = includedModule;
     }
 
     @Override
-    public DynamicObject getActualModule() {
+    public RubyModule getActualModule() {
         return includedModule;
     }
 

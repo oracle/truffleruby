@@ -9,19 +9,18 @@
  */
 package org.truffleruby.language.dispatch;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public final class UnresolvedDispatchNode extends DispatchNode {
 
@@ -59,8 +58,8 @@ public final class UnresolvedDispatchNode extends DispatchNode {
         assert !(receiverObject instanceof NotProvided) : RubyContext.fileLine(getEncapsulatingSourceSection());
 
         // Make sure to have an up-to-date Shape.
-        if (receiverObject instanceof DynamicObject) {
-            ShapeCachingGuards.updateShape((DynamicObject) receiverObject);
+        if (receiverObject instanceof RubyDynamicObject) {
+            ShapeCachingGuards.updateShape((RubyDynamicObject) receiverObject);
         }
 
         final DispatchNode dispatch = atomic(() -> {
@@ -102,7 +101,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                         default:
                             throw CompilerDirectives.shouldNotReachHere();
                     }
-                } else if (RubyGuards.isRubyDynamicObject(receiverObject)) {
+                } else if (receiverObject instanceof RubyDynamicObject) {
                     newDispatchNode = doDynamicObject(
                             frame,
                             first,
@@ -218,12 +217,12 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                     argumentsObjects);
         }
 
-        if (Layouts.CLASS.getIsSingleton(coreLibrary().getMetaClass(receiverObject))) {
+        if (coreLibrary().getMetaClass(receiverObject).isSingleton) {
             return new CachedSingletonDispatchNode(
                     getContext(),
                     methodName,
                     first,
-                    ((DynamicObject) receiverObject),
+                    ((RubyDynamicObject) receiverObject),
                     method,
                     getDispatchAction());
         } else {
@@ -231,7 +230,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                     getContext(),
                     methodName,
                     first,
-                    ((DynamicObject) receiverObject).getShape(),
+                    ((RubyDynamicObject) receiverObject).getShape(),
                     method,
                     getDispatchAction());
         }
@@ -259,7 +258,7 @@ public final class UnresolvedDispatchNode extends DispatchNode {
                 final MethodLookupResult methodMissing = lookup(null, receiverObject, "method_missing", true, false);
 
                 if (!methodMissing.isDefined()) {
-                    final DynamicObject formatter = ExceptionOperations
+                    final RubyProc formatter = ExceptionOperations
                             .getFormatter(ExceptionOperations.NO_METHOD_ERROR, getContext());
                     throw new RaiseException(getContext(), coreExceptions().noMethodErrorFromMethodMissing(
                             formatter,

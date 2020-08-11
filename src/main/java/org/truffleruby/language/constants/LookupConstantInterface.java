@@ -9,13 +9,12 @@
  */
 package org.truffleruby.language.constants;
 
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
 
-import com.oracle.truffle.api.object.DynamicObject;
-
 public interface LookupConstantInterface {
 
-    public abstract RubyConstant lookupConstant(LexicalScope lexicalScope, DynamicObject module, String name);
+    public abstract RubyConstant lookupConstant(LexicalScope lexicalScope, RubyModule module, String name);
 
 }

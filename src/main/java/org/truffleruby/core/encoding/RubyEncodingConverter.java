@@ -9,10 +9,8 @@
  */
 package org.truffleruby.core.encoding;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import org.jcodings.transcode.EConv;
-import org.truffleruby.interop.messages.RubyEncodingConverterMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyEncodingConverter extends RubyDynamicObject {
@@ -22,12 +20,6 @@ public class RubyEncodingConverter extends RubyDynamicObject {
     public RubyEncodingConverter(Shape shape, EConv econv) {
         super(shape);
         this.econv = econv;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyEncodingConverterMessages.class;
     }
 
 }

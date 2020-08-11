@@ -11,34 +11,28 @@ package org.truffleruby.core.regexp;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.Shape;
-
 import org.joni.Region;
 import org.truffleruby.core.string.RubyString;
-import org.truffleruby.interop.messages.MatchDataMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
+import com.oracle.truffle.api.object.Shape;
+
 public class RubyMatchData extends RubyDynamicObject implements ObjectGraphNode {
-    public DynamicObject regexp;
+
+    /** Either a Regexp or a String for the case of String#gsub(String) */
+    public RubyDynamicObject regexp;
     public RubyString source;
     public Region region;
     public Region charOffsets;
 
-    public RubyMatchData(Shape shape, DynamicObject regexp, RubyString source, Region region, Region charOffsets) {
+    public RubyMatchData(Shape shape, RubyDynamicObject regexp, RubyString source, Region region, Region charOffsets) {
         super(shape);
+        assert regexp instanceof RubyRegexp || regexp instanceof RubyString || regexp == null;
         this.regexp = regexp;
         this.source = source;
         this.region = region;
         this.charOffsets = charOffsets;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return MatchDataMessages.class;
     }
 
     public void getAdjacentObjects(Set<Object> reachable) {

@@ -9,25 +9,6 @@
  */
 package org.truffleruby.stdlib.bigdecimal;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.profiles.BranchProfile;
-import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.cast.BooleanCastNode;
-import org.truffleruby.core.numeric.BigDecimalOps;
-import org.truffleruby.core.string.RubyString;
-import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.numeric.RubyBignum;
-import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.objects.AllocateHelperNode;
-
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.MathContext;
@@ -35,6 +16,26 @@ import java.math.RoundingMode;
 import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.truffleruby.core.cast.BooleanCastNode;
+import org.truffleruby.core.numeric.BigDecimalOps;
+import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.core.string.RubyString;
+import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyNode;
+import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeChild(value = "value", type = RubyNode.class)
 @NodeChild(value = "digits", type = RubyNode.class)
@@ -170,12 +171,12 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     }
 
     @Specialization
-    protected DynamicObject createBignum(RubyBignum value, NotProvided digits, boolean strict) {
+    protected RubyBigDecimal createBignum(RubyBignum value, NotProvided digits, boolean strict) {
         return createBignum(value, 0, strict);
     }
 
     @Specialization
-    protected DynamicObject createBignum(RubyBignum value, int digits, boolean strict) {
+    protected RubyBigDecimal createBignum(RubyBignum value, int digits, boolean strict) {
         return createNormalBigDecimal(
                 round(BigDecimalOps.fromBigInteger(value), BigDecimalOps.newMathContext(digits, getRoundMode())));
     }
@@ -185,25 +186,25 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
         return createBigDecimal(value, 0, strict);
     }
 
-    @Specialization(guards = "isRubyBigDecimal(value)")
+    @Specialization
     protected RubyBigDecimal createBigDecimal(RubyBigDecimal value, int digits, boolean strict) {
         return createNormalBigDecimal(
                 round(value.value, BigDecimalOps.newMathContext(digits, getRoundMode())));
     }
 
     @Specialization
-    protected DynamicObject createString(RubyString value, NotProvided digits, boolean strict) {
+    protected RubyBigDecimal createString(RubyString value, NotProvided digits, boolean strict) {
         return createString(value, 0, strict);
     }
 
     @TruffleBoundary
     @Specialization
-    protected DynamicObject createString(RubyString value, int digits, boolean strict) {
+    protected RubyBigDecimal createString(RubyString value, int digits, boolean strict) {
         return executeCreate(getValueFromString(StringOperations.getString(value), digits, strict), digits, strict);
     }
 
     @Specialization(guards = { "!isRubyBignum(value)", "!isRubyBigDecimal(value)", "!isRubyString(value)" })
-    protected RubyBigDecimal create(DynamicObject value, int digits, boolean strict,
+    protected RubyBigDecimal create(RubyDynamicObject value, int digits, boolean strict,
             @Cached BigDecimalCastNode bigDecimalCastNode,
             @Cached ConditionProfile castProfile) {
         final Object castedValue = bigDecimalCastNode.execute(value, digits, getRoundMode());

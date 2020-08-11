@@ -9,8 +9,9 @@
  */
 package org.truffleruby.core.range;
 
+import org.truffleruby.language.Nil;
+
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyObjectRangeMessages;
 
 public final class RubyObjectRange extends RubyRange {
 
@@ -23,9 +24,12 @@ public final class RubyObjectRange extends RubyRange {
         this.end = end;
     }
 
-    @Override
-    public Class<?> dispatch() {
-        return RubyObjectRangeMessages.class;
+    public boolean isEndless() {
+        return end == Nil.INSTANCE;
+    }
+
+    public boolean isBounded() {
+        return end != Nil.INSTANCE;
     }
 
 }

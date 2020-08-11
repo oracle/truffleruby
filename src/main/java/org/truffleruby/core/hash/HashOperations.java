@@ -12,14 +12,13 @@ package org.truffleruby.core.hash;
 import java.util.Collections;
 import java.util.Iterator;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.collections.BoundaryIterable;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
 public abstract class HashOperations {
@@ -129,8 +128,6 @@ public abstract class HashOperations {
 
     @TruffleBoundary
     public static Iterator<KeyValue> iterateKeyValues(RubyHash hash) {
-        assert RubyGuards.isRubyHash(hash);
-
         if (HashGuards.isNullHash(hash)) {
             return Collections.emptyIterator();
         } else if (HashGuards.isPackedHash(hash)) {
@@ -144,9 +141,7 @@ public abstract class HashOperations {
     }
 
     @TruffleBoundary
-    public static BoundaryIterable<KeyValue> iterableKeyValues(final RubyHash hash) {
-        assert RubyGuards.isRubyHash(hash);
-
+    public static BoundaryIterable<KeyValue> iterableKeyValues(RubyHash hash) {
         return BoundaryIterable.wrap(() -> iterateKeyValues(hash));
     }
 

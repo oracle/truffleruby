@@ -9,9 +9,10 @@
  */
 package org.truffleruby.core.exception;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
@@ -23,7 +24,6 @@ import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -44,8 +44,7 @@ public abstract class ExceptionOperations {
     private static String messageFieldToString(RubyContext context, RubyException exception) {
         Object message = exception.message;
         if (message == null || message == Nil.INSTANCE) {
-            final ModuleFields exceptionClass = Layouts.MODULE
-                    .getFields(Layouts.BASIC_OBJECT.getLogicalClass(exception));
+            final ModuleFields exceptionClass = exception.getLogicalClass().fields;
             return exceptionClass.getName(); // What Exception#message would return if no message is set
         } else if (RubyGuards.isRubyString(message)) {
             return StringOperations.getString((RubyString) message);
@@ -67,32 +66,32 @@ public abstract class ExceptionOperations {
         return messageFieldToString(context, exception);
     }
 
-    public static RubyException createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+    public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
             Node node, Throwable javaException) {
         return createRubyException(context, rubyClass, message, node, null, javaException);
     }
 
-    public static RubyException createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+    public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
             Node node, SourceSection sourceLocation, Throwable javaException) {
         final Backtrace backtrace = context.getCallStack().getBacktrace(node, sourceLocation, javaException);
         return createRubyException(context, rubyClass, message, backtrace);
     }
 
     @TruffleBoundary
-    public static RubyException createRubyException(RubyContext context, DynamicObject rubyClass, Object message,
+    public static RubyException createRubyException(RubyContext context, RubyClass rubyClass, Object message,
             Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        final Shape shape = Layouts.CLASS.getInstanceFactory(rubyClass).getShape();
+        final Shape shape = rubyClass.instanceShape;
         return new RubyException(shape, message, backtrace, cause);
     }
 
     @TruffleBoundary
-    public static RubySystemCallError createSystemCallError(RubyContext context, DynamicObject rubyClass,
+    public static RubySystemCallError createSystemCallError(RubyContext context, RubyClass rubyClass,
             Object message, int errno, Backtrace backtrace) {
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         context.getCoreExceptions().showExceptionIfDebug(rubyClass, message, backtrace);
-        final Shape shape = Layouts.CLASS.getInstanceFactory(rubyClass).getShape();
+        final Shape shape = rubyClass.instanceShape;
         return new RubySystemCallError(shape, message, backtrace, cause, errno);
     }
 
@@ -101,11 +100,8 @@ public abstract class ExceptionOperations {
         exception.initCause(cause);
     }
 
-    public static DynamicObject getFormatter(String name, RubyContext context) {
-        return (DynamicObject) Layouts.MODULE
-                .getFields(context.getCoreLibrary().truffleExceptionOperationsModule)
-                .getConstant(name)
-                .getValue();
+    public static RubyProc getFormatter(String name, RubyContext context) {
+        return (RubyProc) context.getCoreLibrary().truffleExceptionOperationsModule.fields.getConstant(name).getValue();
     }
 
     public static RuntimeException rethrow(Throwable throwable) {

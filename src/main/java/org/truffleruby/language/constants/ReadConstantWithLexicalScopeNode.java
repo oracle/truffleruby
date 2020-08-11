@@ -9,16 +9,15 @@
  */
 package org.truffleruby.language.constants;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Read a constant using the current lexical scope: CONST */
 public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
@@ -37,7 +36,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject module = lexicalScope.getLiveModule();
+        final RubyModule module = lexicalScope.getLiveModule();
 
         return getConstantNode.lookupAndResolveConstant(lexicalScope, module, name, lookupConstantNode);
     }
@@ -48,7 +47,7 @@ public class ReadConstantWithLexicalScopeNode extends RubyContextSourceNode {
         try {
             constant = lookupConstantNode.executeLookupConstant();
         } catch (RaiseException e) {
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().nameErrorClass) {
+            if (e.getException().getLogicalClass() == coreLibrary().nameErrorClass) {
                 // private constant
                 return nil;
             }

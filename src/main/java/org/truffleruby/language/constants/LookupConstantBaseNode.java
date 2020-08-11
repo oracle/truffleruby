@@ -10,20 +10,20 @@
 package org.truffleruby.language.constants;
 
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class LookupConstantBaseNode extends RubyContextNode {
 
     @Child private WarnNode warnNode;
 
-    protected void warnDeprecatedConstant(DynamicObject module, RubyConstant constant, String name) {
+    protected void warnDeprecatedConstant(RubyModule module, RubyConstant constant, String name) {
         if (warnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             warnNode = insert(new WarnNode());
@@ -40,7 +40,7 @@ public abstract class LookupConstantBaseNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    private String formatMessage(DynamicObject module, String name) {
+    private String formatMessage(RubyModule module, String name) {
         return "constant " + ModuleOperations.constantName(getContext(), module, name) + " is deprecated";
     }
 

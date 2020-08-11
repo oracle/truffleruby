@@ -9,8 +9,9 @@
  */
 package org.truffleruby.language.objects;
 
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.methods.InternalMethod;
@@ -19,7 +20,6 @@ import org.truffleruby.language.methods.ModuleBodyDefinitionNode;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class RunModuleDefinitionNode extends RubyContextSourceNode {
 
@@ -40,7 +40,7 @@ public class RunModuleDefinitionNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject module = (DynamicObject) definingModule.execute(frame);
+        final RubyModule module = (RubyModule) definingModule.execute(frame);
         final InternalMethod definition = definitionMethod.createMethod(frame, lexicalScope, module);
 
         return callModuleDefinitionNode.call(definition.getCallTarget(), RubyArguments.pack(

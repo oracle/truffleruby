@@ -24,7 +24,6 @@ import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class StringLiteralNode extends RubyContextSourceNode {
 
@@ -37,7 +36,7 @@ public class StringLiteralNode extends RubyContextSourceNode {
     }
 
     @Override
-    public DynamicObject execute(VirtualFrame frame) {
+    public RubyString execute(VirtualFrame frame) {
         final RubyString string = new RubyString(coreLibrary().stringShape, false, false, rope);
         allocateNode.trace(string, this);
         return string;

@@ -14,7 +14,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
@@ -26,6 +25,7 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.cast.DurationToMillisecondsNodeGen;
 import org.truffleruby.core.kernel.KernelNodes;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.RubyThread;
@@ -45,7 +45,7 @@ public abstract class MutexNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyMutex allocate(DynamicObject rubyClass) {
+        protected RubyMutex allocate(RubyClass rubyClass) {
             final ReentrantLock lock = MutexOperations.newReentrantLock();
 
             final Shape shape = allocateNode.getCachedShape(rubyClass);

@@ -15,9 +15,8 @@ import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Set;
 
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraphNode;
-
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class FinalizerReference
         extends
@@ -31,7 +30,7 @@ public class FinalizerReference
         super(object, queue, service);
     }
 
-    void addFinalizer(Class<?> owner, Runnable action, DynamicObject root) {
+    void addFinalizer(Class<?> owner, Runnable action, RubyDynamicObject root) {
         finalizers.addLast(new FinalizationService.Finalizer(owner, action, root));
     }
 
@@ -52,7 +51,7 @@ public class FinalizerReference
 
     void collectRoots(Collection<Object> roots) {
         for (FinalizationService.Finalizer finalizer : finalizers) {
-            final DynamicObject root = finalizer.getRoot();
+            final RubyDynamicObject root = finalizer.getRoot();
             if (root != null) {
                 roots.add(root);
             }

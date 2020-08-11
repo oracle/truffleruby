@@ -10,14 +10,14 @@
 package org.truffleruby.stdlib.bigdecimal;
 
 import org.truffleruby.core.cast.ToIntNode;
-import org.truffleruby.language.RubyContextNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
+import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public abstract class GetIntegerConstantNode extends RubyContextNode {
 
@@ -25,10 +25,10 @@ public abstract class GetIntegerConstantNode extends RubyContextNode {
         return GetIntegerConstantNodeGen.create();
     }
 
-    public abstract int executeGetIntegerConstant(DynamicObject module, String name);
+    public abstract int executeGetIntegerConstant(RubyModule module, String name);
 
-    @Specialization(guards = "isRubyModule(module)")
-    protected int doInteger(DynamicObject module, String name,
+    @Specialization
+    protected int doInteger(RubyModule module, String name,
             @Cached("createLookupConstantNode()") LookupConstantNode lookupConstantNode,
             @Cached GetConstantNode getConstantNode,
             @Cached ToIntNode toIntNode) {

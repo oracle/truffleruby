@@ -10,11 +10,11 @@
 package org.truffleruby.core.constant;
 
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.WarnNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public class WarnAlreadyInitializedNode extends RubyContextNode {
@@ -26,7 +26,7 @@ public class WarnAlreadyInitializedNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    public void warnAlreadyInitialized(DynamicObject module, String name, SourceSection sourceSection,
+    public void warnAlreadyInitialized(RubyModule module, String name, SourceSection sourceSection,
             SourceSection previousSourceSection) {
         assert shouldWarn();
         final String constName = ModuleOperations.constantNameNoLeadingColon(getContext(), module, name);

@@ -12,10 +12,8 @@ package org.truffleruby.core.mutex;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.truffleruby.interop.messages.ConditionVariableMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
 public final class RubyConditionVariable extends RubyDynamicObject {
@@ -29,12 +27,6 @@ public final class RubyConditionVariable extends RubyDynamicObject {
         super(shape);
         this.lock = lock;
         this.condition = condition;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return ConditionVariableMessages.class;
     }
 
 }

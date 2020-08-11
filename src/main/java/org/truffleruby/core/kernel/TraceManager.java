@@ -14,6 +14,7 @@ import java.util.Collection;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.tracepoint.TraceBaseEventNode;
 import org.truffleruby.language.Nil;
@@ -30,7 +31,6 @@ import com.oracle.truffle.api.instrumentation.EventContext;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.instrumentation.SourceSectionFilter;
 import com.oracle.truffle.api.instrumentation.Tag;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 
@@ -204,7 +204,7 @@ public class TraceManager {
             }
         }
 
-        private DynamicObject getLogicalClass(Object object) {
+        private RubyClass getLogicalClass(Object object) {
             if (logicalClassNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 logicalClassNode = insert(LogicalClassNode.create());

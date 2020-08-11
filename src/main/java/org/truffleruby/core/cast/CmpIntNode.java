@@ -20,7 +20,6 @@
 
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
@@ -73,8 +72,8 @@ public abstract class CmpIntNode extends RubyContextNode {
     private String formatMessage(Object receiver, Object other) {
         return StringUtils.format(
                 "comparison of %s with %s failed",
-                Layouts.MODULE.getFields(coreLibrary().getLogicalClass(receiver)).getName(),
-                Layouts.MODULE.getFields(coreLibrary().getLogicalClass(other)).getName());
+                coreLibrary().getLogicalClass(receiver).fields.getName(),
+                coreLibrary().getLogicalClass(other).fields.getName());
     }
 
     @Specialization(guards = { "!isRubyInteger(value)", "!isNil(value)" })

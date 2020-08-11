@@ -10,18 +10,16 @@
 
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.object.DynamicObject;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.basicobject.BasicObjectLayoutImpl;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+
 public abstract class ShapeCachingGuards {
 
-    public static boolean updateShape(DynamicObject object) {
+    public static boolean updateShape(RubyDynamicObject object) {
         CompilerDirectives.transferToInterpreterAndInvalidate();
         // TODO (eregon, 14 July 2020): review callers, once they use the library they should not need to update the Shape manually anymore
         boolean updated = DynamicObjectLibrary.getUncached().updateShape(object);
@@ -29,12 +27,6 @@ public abstract class ShapeCachingGuards {
             assert !SharedObjects.isShared(RubyLanguage.getCurrentContext(), object);
         }
         return updated;
-    }
-
-    public static boolean isBasicObjectShape(Shape shape) {
-        return shape.getObjectType().getClass() == BasicObjectLayoutImpl.BasicObjectType.class &&
-                // TODO: when all layouts are migrated, this can accept all RubyDynamicObject subclasses with no internal fields
-                !RubyDynamicObject.class.isAssignableFrom(shape.getLayout().getType());
     }
 
 }

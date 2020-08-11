@@ -9,9 +9,7 @@
  */
 package org.truffleruby.core.support;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyByteArrayMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyByteArray extends RubyDynamicObject {
@@ -21,12 +19,6 @@ public class RubyByteArray extends RubyDynamicObject {
     public RubyByteArray(Shape shape, byte[] bytes) {
         super(shape);
         this.bytes = bytes;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyByteArrayMessages.class;
     }
 
 }

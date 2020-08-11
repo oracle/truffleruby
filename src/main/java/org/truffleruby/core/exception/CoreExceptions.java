@@ -16,12 +16,14 @@ import java.util.EnumSet;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.UTF8Encoding;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.core.encoding.RubyEncoding;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
+import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.range.RubyIntRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
@@ -31,7 +33,6 @@ import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
@@ -42,7 +43,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -58,7 +58,7 @@ public class CoreExceptions {
 
     public void showExceptionIfDebug(RubyException exception) {
         showExceptionIfDebug(
-                Layouts.BASIC_OBJECT.getLogicalClass(exception),
+                exception.getLogicalClass(),
                 exception.message,
                 exception.backtrace);
     }
@@ -66,23 +66,23 @@ public class CoreExceptions {
     @TruffleBoundary
     public void showExceptionIfDebug(RubyException rubyException, Backtrace backtrace) {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
-            final DynamicObject rubyClass = Layouts.BASIC_OBJECT.getLogicalClass(rubyException);
+            final RubyClass rubyClass = rubyException.getLogicalClass();
             final Object message = context.send(rubyException, "to_s");
             showExceptionIfDebug(rubyClass, message, backtrace);
         }
     }
 
     @TruffleBoundary
-    public void showExceptionIfDebug(DynamicObject rubyClass, Object message, Backtrace backtrace) {
+    public void showExceptionIfDebug(RubyClass rubyClass, Object message, Backtrace backtrace) {
         if (context.getCoreLibrary().getDebug() == Boolean.TRUE) {
-            final String exceptionClass = Layouts.MODULE.getFields(rubyClass).getName();
+            final String exceptionClass = rubyClass.fields.getName();
             String from = "";
             if (backtrace != null && backtrace.getStackTrace().length > 0) {
                 from = " at " + debugBacktraceFormatter.formatLine(backtrace.getStackTrace(), 0, null);
             }
             Object stderr = context.getCoreLibrary().getStderr();
             String output = "Exception `" + exceptionClass + "'" + from + " - " + message + "\n";
-            DynamicObject outputString = StringOperations
+            RubyString outputString = StringOperations
                     .createString(context, StringOperations.encodeRope(output, UTF8Encoding.INSTANCE));
             context.send(stderr, "write", outputString);
         }
@@ -188,16 +188,14 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException argumentErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
-        String badClassName = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
+        String badClassName = context.getCoreLibrary().getLogicalClass(object).fields.getName();
         return argumentError(
                 StringUtils.format("wrong argument type %s (expected %s)", badClassName, expectedType),
                 currentNode);
     }
 
     @TruffleBoundary
-    public RubyException argumentErrorInvalidStringToInteger(Object object, Node currentNode) {
-        assert RubyGuards.isRubyString(object);
-
+    public RubyException argumentErrorInvalidStringToInteger(RubyString object, Node currentNode) {
         // TODO (nirvdrum 19-Apr-18): Guard against String#inspect being redefined to return something other than a String.
         final String formattedObject = StringOperations.getString((RubyString) context.send(object, "inspect"));
         return argumentError(StringUtils.format("invalid value for Integer(): %s", formattedObject), currentNode);
@@ -219,7 +217,7 @@ public class CoreExceptions {
     }
 
     public RubyException argumentError(Rope message, Node currentNode, Throwable javaThrowable) {
-        DynamicObject exceptionClass = context.getCoreLibrary().argumentErrorClass;
+        RubyClass exceptionClass = context.getCoreLibrary().argumentErrorClass;
         return ExceptionOperations.createRubyException(
                 context,
                 exceptionClass,
@@ -233,7 +231,7 @@ public class CoreExceptions {
     }
 
     public RubyException argumentErrorCantUnfreeze(Object self, Node currentNode) {
-        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(self)).getName();
+        String className = context.getCoreLibrary().getLogicalClass(self).fields.getName();
         return argumentError(StringUtils.format("can't unfreeze %s", className), currentNode);
     }
 
@@ -241,14 +239,14 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException frozenError(Object object, Node currentNode) {
-        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
+        String className = context.getCoreLibrary().getLogicalClass(object).fields.getName();
         return frozenError(StringUtils.format("can't modify frozen %s", className), currentNode);
     }
 
     @TruffleBoundary
     public RubyException frozenError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().frozenErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().frozenErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -261,16 +259,16 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException runtimeError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().runtimeErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     @TruffleBoundary
     public RubyException runtimeError(String message, Node currentNode, Throwable javaThrowable) {
-        DynamicObject exceptionClass = context.getCoreLibrary().runtimeErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
@@ -278,8 +276,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException runtimeError(String message, Backtrace backtrace) {
-        DynamicObject exceptionClass = context.getCoreLibrary().runtimeErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().runtimeErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, backtrace);
     }
@@ -288,7 +286,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException systemStackErrorStackLevelTooDeep(Node currentNode, StackOverflowError javaThrowable) {
-        DynamicObject exceptionClass = context.getCoreLibrary().systemStackErrorClass;
+        RubyClass exceptionClass = context.getCoreLibrary().systemStackErrorClass;
         StackTraceElement[] stackTrace = javaThrowable.getStackTrace();
         String topOfTheStack = stackTrace.length > 0
                 ? BacktraceFormatter.formatJava(stackTrace[0])
@@ -306,7 +304,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException noMemoryError(Node currentNode, OutOfMemoryError javaThrowable) {
-        DynamicObject exceptionClass = context.getCoreLibrary().noMemoryErrorClass;
+        RubyClass exceptionClass = context.getCoreLibrary().noMemoryErrorClass;
         return ExceptionOperations.createRubyException(
                 context,
                 exceptionClass,
@@ -359,11 +357,11 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException mathDomainError(String method, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().getErrnoClass("EDOM");
+        RubyClass exceptionClass = context.getCoreLibrary().getErrnoClass("EDOM");
         Rope rope = StringOperations.encodeRope(
                 StringUtils.format("Numerical argument is out of domain - \"%s\"", method),
                 UTF8Encoding.INSTANCE);
-        DynamicObject errorMessage = StringOperations.createString(context, rope);
+        RubyString errorMessage = StringOperations.createString(context, rope);
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         return ExceptionOperations
                 .createSystemCallError(
@@ -383,8 +381,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException indexError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().indexErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().indexErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -415,8 +413,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException localJumpError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().localJumpErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().localJumpErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -453,8 +451,8 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException typeErrorAllocatorUndefinedFor(DynamicObject rubyClass, Node currentNode) {
-        String className = Layouts.MODULE.getFields(rubyClass).getName();
+    public RubyException typeErrorAllocatorUndefinedFor(RubyClass rubyClass, Node currentNode) {
+        String className = rubyClass.fields.getName();
         return typeError(StringUtils.format("allocator undefined for %s", className), currentNode);
     }
 
@@ -469,7 +467,7 @@ public class CoreExceptions {
     @TruffleBoundary
     public RubyException typeErrorCantConvertTo(Object from, String toClass, String methodUsed, Object result,
             Node currentNode) {
-        String fromClass = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName();
+        String fromClass = context.getCoreLibrary().getLogicalClass(from).fields.getName();
         return typeError(StringUtils.format(
                 "can't convert %s to %s (%s#%s gives %s)",
                 fromClass,
@@ -483,7 +481,7 @@ public class CoreExceptions {
     public RubyException typeErrorCantConvertInto(Object from, String toClass, Node currentNode) {
         return typeError(StringUtils.format(
                 "can't convert %s into %s",
-                Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName(),
+                context.getCoreLibrary().getLogicalClass(from).fields.getName(),
                 toClass), currentNode);
     }
 
@@ -506,32 +504,32 @@ public class CoreExceptions {
     public RubyException typeErrorNoImplicitConversion(Object from, String to, Node currentNode) {
         return typeError(StringUtils.format(
                 "no implicit conversion of %s into %s",
-                Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName(),
+                context.getCoreLibrary().getLogicalClass(from).fields.getName(),
                 to), currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorBadCoercion(Object from, String to, String coercionMethod, Object coercedTo,
             Node currentNode) {
-        String badClassName = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(from)).getName();
+        String badClassName = context.getCoreLibrary().getLogicalClass(from).fields.getName();
         return typeError(StringUtils.format(
                 "can't convert %s to %s (%s#%s gives %s)",
                 badClassName,
                 to,
                 badClassName,
                 coercionMethod,
-                Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(coercedTo)).getName()), currentNode);
+                context.getCoreLibrary().getLogicalClass(coercedTo).fields.getName()), currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorCantDump(Object object, Node currentNode) {
-        String logicalClass = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
+        String logicalClass = context.getCoreLibrary().getLogicalClass(object).fields.getName();
         return typeError(StringUtils.format("can't dump %s", logicalClass), currentNode);
     }
 
     @TruffleBoundary
     public RubyException typeErrorWrongArgumentType(Object object, String expectedType, Node currentNode) {
-        String badClassName = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(object)).getName();
+        String badClassName = context.getCoreLibrary().getLogicalClass(object).fields.getName();
         return typeError(
                 StringUtils.format("wrong argument type %s (expected %s)", badClassName, expectedType),
                 currentNode);
@@ -569,8 +567,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException typeError(String message, Node currentNode, Throwable javaThrowable) {
-        DynamicObject exceptionClass = context.getCoreLibrary().typeErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().typeErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, javaThrowable);
@@ -591,7 +589,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyException nameErrorConstantNotDefined(DynamicObject module, String name, Node currentNode) {
+    public RubyException nameErrorConstantNotDefined(RubyModule module, String name, Node currentNode) {
         return nameError(
                 StringUtils.format("constant %s not defined", ModuleOperations.constantName(context, module, name)),
                 null,
@@ -600,8 +598,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyNameError nameErrorUninitializedConstant(DynamicObject module, String name, Node currentNode) {
-        assert RubyGuards.isRubyModule(module);
+    public RubyNameError nameErrorUninitializedConstant(RubyModule module, String name, Node currentNode) {
         final String message = StringUtils.format(
                 "uninitialized constant %s",
                 ModuleOperations.constantNameNoLeadingColon(context, module, name));
@@ -609,7 +606,7 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyNameError nameErrorPrivateConstant(DynamicObject module, String name, Node currentNode) {
+    public RubyNameError nameErrorPrivateConstant(RubyModule module, String name, Node currentNode) {
         return nameError(
                 StringUtils
                         .format("private constant %s referenced", ModuleOperations.constantName(context, module, name)),
@@ -619,12 +616,11 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyNameError nameErrorUninitializedClassVariable(DynamicObject module, String name, Node currentNode) {
-        assert RubyGuards.isRubyModule(module);
+    public RubyNameError nameErrorUninitializedClassVariable(RubyModule module, String name, Node currentNode) {
         return nameError(StringUtils.format(
                 "uninitialized class variable %s in %s",
                 name,
-                Layouts.MODULE.getFields(module).getName()), module, name, currentNode);
+                module.fields.getName()), module, name, currentNode);
     }
 
     @TruffleBoundary
@@ -642,14 +638,13 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyNameError nameErrorUndefinedMethod(String name, DynamicObject module, Node currentNode) {
-        assert RubyGuards.isRubyModule(module);
+    public RubyNameError nameErrorUndefinedMethod(String name, RubyModule module, Node currentNode) {
         return nameError(
                 StringUtils.format(
                         "undefined method `%s' for %s `%s'",
                         name,
-                        Layouts.CLASS.isClass(module) ? "class" : "module",
-                        Layouts.MODULE.getFields(module).getName()),
+                        module instanceof RubyClass ? "class" : "module",
+                        module.fields.getName()),
                 module,
                 name,
                 currentNode);
@@ -657,7 +652,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyNameError nameErrorUndefinedSingletonMethod(String name, Object receiver, Node currentNode) {
-        String className = Layouts.MODULE.getFields(context.getCoreLibrary().getLogicalClass(receiver)).getName();
+        String className = context.getCoreLibrary().getLogicalClass(receiver).fields.getName();
         return nameError(
                 StringUtils.format("undefined singleton method `%s' for %s", name, className),
                 receiver,
@@ -666,18 +661,18 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyNameError nameErrorMethodNotDefinedIn(DynamicObject module, String name, Node currentNode) {
+    public RubyNameError nameErrorMethodNotDefinedIn(RubyModule module, String name, Node currentNode) {
         return nameError(
-                StringUtils.format("method `%s' not defined in %s", name, Layouts.MODULE.getFields(module).getName()),
+                StringUtils.format("method `%s' not defined in %s", name, module.fields.getName()),
                 module,
                 name,
                 currentNode);
     }
 
     @TruffleBoundary
-    public RubyNameError nameErrorPrivateMethod(String name, DynamicObject module, Node currentNode) {
+    public RubyNameError nameErrorPrivateMethod(String name, RubyModule module, Node currentNode) {
         return nameError(
-                StringUtils.format("method `%s' for %s is private", name, Layouts.MODULE.getFields(module).getName()),
+                StringUtils.format("method `%s' for %s is private", name, module.fields.getName()),
                 module,
                 name,
                 currentNode);
@@ -693,12 +688,11 @@ public class CoreExceptions {
     }
 
     @TruffleBoundary
-    public RubyNameError nameErrorClassVariableNotDefined(String name, DynamicObject module, Node currentNode) {
-        assert RubyGuards.isRubyModule(module);
+    public RubyNameError nameErrorClassVariableNotDefined(String name, RubyModule module, Node currentNode) {
         return nameError(StringUtils.format(
                 "class variable `%s' not defined for %s",
                 name,
-                Layouts.MODULE.getFields(module).getName()), module, name, currentNode);
+                module.fields.getName()), module, name, currentNode);
     }
 
     @TruffleBoundary
@@ -736,9 +730,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyNameError nameError(String message, Object receiver, String name, Node currentNode) {
-        final DynamicObject messageString = StringOperations
+        final RubyString messageString = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        final DynamicObject exceptionClass = context.getCoreLibrary().nameErrorClass;
+        final RubyClass exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
@@ -751,7 +745,7 @@ public class CoreExceptions {
                 context.getSymbol(name));
     }
 
-    public RubyNameError nameErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
+    public RubyNameError nameErrorFromMethodMissing(RubyProc formatter, Object receiver, String name,
             Node currentNode) {
         // omit = 1 to skip over the call to `method_missing'. MRI does not show this is the backtrace.
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode, 1);
@@ -772,10 +766,10 @@ public class CoreExceptions {
 
     public RubyNoMethodError noMethodError(String message, Object receiver, String name, Object[] args,
             Node currentNode) {
-        final DynamicObject messageString = StringOperations
+        final RubyString messageString = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         final RubyArray argsArray = createArray(context, args);
-        final DynamicObject exceptionClass = context.getCoreLibrary().noMethodErrorClass;
+        final RubyClass exceptionClass = context.getCoreLibrary().noMethodErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
@@ -789,7 +783,7 @@ public class CoreExceptions {
                 argsArray);
     }
 
-    public RubyNoMethodError noMethodErrorFromMethodMissing(DynamicObject formatter, Object receiver, String name,
+    public RubyNoMethodError noMethodErrorFromMethodMissing(RubyProc formatter, Object receiver, String name,
             Object[] args, Node currentNode) {
         final RubyArray argsArray = createArray(context, args);
 
@@ -811,10 +805,10 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyNoMethodError noSuperMethodOutsideMethodError(Node currentNode) {
-        final DynamicObject messageString = StringOperations.createString(
+        final RubyString messageString = StringOperations.createString(
                 context,
                 StringOperations.encodeRope("super called outside of method", UTF8Encoding.INSTANCE));
-        final DynamicObject exceptionClass = context.getCoreLibrary().nameErrorClass;
+        final RubyClass exceptionClass = context.getCoreLibrary().nameErrorClass;
         final Backtrace backtrace = context.getCallStack().getBacktrace(currentNode);
         final Object cause = ThreadGetExceptionNode.getLastException(context);
         showExceptionIfDebug(exceptionClass, messageString, backtrace);
@@ -839,9 +833,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException loadError(String message, String path, Node currentNode) {
-        DynamicObject messageString = StringOperations
+        RubyString messageString = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
-        DynamicObject exceptionClass = context.getCoreLibrary().loadErrorClass;
+        RubyClass exceptionClass = context.getCoreLibrary().loadErrorClass;
         RubyException loadError = ExceptionOperations
                 .createRubyException(context, exceptionClass, messageString, currentNode, null);
         if ("openssl.so".equals(path)) {
@@ -868,8 +862,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException zeroDivisionError(Node currentNode, ArithmeticException exception) {
-        DynamicObject exceptionClass = context.getCoreLibrary().zeroDivisionErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().zeroDivisionErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope("divided by 0", UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, exception);
     }
@@ -883,8 +877,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException syntaxError(String message, Node currentNode, SourceSection sourceLocation) {
-        DynamicObject exceptionClass = context.getCoreLibrary().syntaxErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().syntaxErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations
                 .createRubyException(context, exceptionClass, errorMessage, currentNode, sourceLocation, null);
@@ -894,8 +888,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException floatDomainError(String value, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().floatDomainErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().floatDomainErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(value, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -920,8 +914,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException ioError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().ioErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().ioErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -966,8 +960,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException rangeError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().rangeErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().rangeErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -984,8 +978,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     private RubyException graalError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().graalErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().graalErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -994,8 +988,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException regexpError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().regexpErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().regexpErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -1004,8 +998,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException encodingError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().encodingErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().encodingErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -1026,15 +1020,15 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException encodingCompatibilityError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().encodingCompatibilityErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().encodingCompatibilityErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
 
     @TruffleBoundary
     public RubyException encodingUndefinedConversionError(Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().encodingUndefinedConversionErrorClass;
+        RubyClass exceptionClass = context.getCoreLibrary().encodingUndefinedConversionErrorClass;
         return ExceptionOperations.createRubyException(
                 context,
                 exceptionClass,
@@ -1047,8 +1041,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException fiberError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().fiberErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().fiberErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -1065,8 +1059,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException threadError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().threadErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().threadErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -1095,8 +1089,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException securityError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().securityErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().securityErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -1105,7 +1099,7 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubySystemCallError systemCallError(String message, int errno, Backtrace backtrace) {
-        DynamicObject exceptionClass = context.getCoreLibrary().systemCallErrorClass;
+        RubyClass exceptionClass = context.getCoreLibrary().systemCallErrorClass;
         Object errorMessage;
         if (message == null) {
             errorMessage = Nil.INSTANCE;
@@ -1121,8 +1115,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException ffiNullPointerError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().truffleFFINullPointerErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().truffleFFINullPointerErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -1131,9 +1125,9 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException systemExit(int exitStatus, Node currentNode) {
-        final DynamicObject message = StringOperations
+        final RubyString message = StringOperations
                 .createString(context, StringOperations.encodeRope("exit", UTF8Encoding.INSTANCE));
-        DynamicObject exceptionClass = context.getCoreLibrary().systemExitClass;
+        RubyClass exceptionClass = context.getCoreLibrary().systemExitClass;
         final RubyException systemExit = ExceptionOperations
                 .createRubyException(context, exceptionClass, message, currentNode, null);
         DynamicObjectLibrary.getUncached().put(systemExit, "@status", exitStatus);
@@ -1144,8 +1138,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException closedQueueError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().closedQueueErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().closedQueueErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }
@@ -1158,8 +1152,8 @@ public class CoreExceptions {
 
     @TruffleBoundary
     public RubyException unsupportedMessageError(String message, Node currentNode) {
-        DynamicObject exceptionClass = context.getCoreLibrary().unsupportedMessageErrorClass;
-        DynamicObject errorMessage = StringOperations
+        RubyClass exceptionClass = context.getCoreLibrary().unsupportedMessageErrorClass;
+        RubyString errorMessage = StringOperations
                 .createString(context, StringOperations.encodeRope(message, UTF8Encoding.INSTANCE));
         return ExceptionOperations.createRubyException(context, exceptionClass, errorMessage, currentNode, null);
     }

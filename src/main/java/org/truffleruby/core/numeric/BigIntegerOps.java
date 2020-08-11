@@ -196,7 +196,7 @@ public final class BigIntegerOps {
                 : fractional < 0 ? -1 : 1;
     }
 
-    // We add these DynamicObject overloads for compare because it is used relatively often,
+    // We add these RubyBignum overloads for compare because it is used relatively often,
     // and it helps readability.
 
     public static int compare(long a, RubyBignum b) {

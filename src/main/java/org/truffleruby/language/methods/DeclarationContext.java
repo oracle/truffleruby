@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyGuards;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.objects.SingletonClassNode;
@@ -22,7 +22,6 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** The set of values captured when a method is defined:
  * <ul>
@@ -32,11 +31,11 @@ import com.oracle.truffle.api.object.DynamicObject;
  * </ul>
 */
 public class DeclarationContext {
-    private static final Map<DynamicObject, DynamicObject[]> NO_REFINEMENTS = Collections.emptyMap();
+    private static final Map<RubyModule, RubyModule[]> NO_REFINEMENTS = Collections.emptyMap();
 
     /** @see <a href="http://yugui.jp/articles/846">http://yugui.jp/articles/846</a> */
     private interface DefaultDefinee {
-        DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode);
+        RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode);
     }
 
     /** #instance_eval, the default definee is self.singleton_class */
@@ -47,21 +46,20 @@ public class DeclarationContext {
             this.self = self;
         }
 
-        public DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
+        public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
             return singletonClassNode.executeSingletonClass(self);
         }
     }
 
     /** class/module body or Module#class_eval, the default definee is opened module */
     public static class FixedDefaultDefinee implements DefaultDefinee {
-        private final DynamicObject module;
+        private final RubyModule module;
 
-        public FixedDefaultDefinee(DynamicObject module) {
-            assert RubyGuards.isRubyModule(module);
+        public FixedDefaultDefinee(RubyModule module) {
             this.module = module;
         }
 
-        public DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
+        public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
             return module;
         }
     }
@@ -70,15 +68,14 @@ public class DeclarationContext {
         return topLevel(context.getCoreLibrary().objectClass);
     }
 
-    public static DeclarationContext topLevel(DynamicObject defaultDefinee) {
-        assert RubyGuards.isRubyModule(defaultDefinee);
+    public static DeclarationContext topLevel(RubyModule defaultDefinee) {
         return new DeclarationContext(Visibility.PRIVATE, new FixedDefaultDefinee(defaultDefinee));
     }
 
     public final Visibility visibility;
     public final DefaultDefinee defaultDefinee;
     /** Maps a refined class (C) to refinement modules (M) */
-    private final Map<DynamicObject, DynamicObject[]> refinements; // immutable
+    private final Map<RubyModule, RubyModule[]> refinements; // immutable
 
     public DeclarationContext(Visibility visibility, DefaultDefinee defaultDefinee) {
         this(visibility, defaultDefinee, NO_REFINEMENTS);
@@ -87,7 +84,7 @@ public class DeclarationContext {
     public DeclarationContext(
             Visibility visibility,
             DefaultDefinee defaultDefinee,
-            Map<DynamicObject, DynamicObject[]> refinements) {
+            Map<RubyModule, RubyModule[]> refinements) {
         assert refinements == NO_REFINEMENTS ||
                 !refinements.isEmpty() : "Should use NO_REFINEMENTS if empty for faster getRefinementsFor()";
         this.visibility = visibility;
@@ -131,7 +128,7 @@ public class DeclarationContext {
 
     @TruffleBoundary
     public static void setRefinements(Frame callerFrame, DeclarationContext declarationContext,
-            Map<DynamicObject, DynamicObject[]> refinements) {
+            Map<RubyModule, RubyModule[]> refinements) {
         RubyArguments.setDeclarationContext(callerFrame, declarationContext.withRefinements(refinements));
     }
 
@@ -143,21 +140,21 @@ public class DeclarationContext {
         }
     }
 
-    public DeclarationContext withRefinements(Map<DynamicObject, DynamicObject[]> refinements) {
+    public DeclarationContext withRefinements(Map<RubyModule, RubyModule[]> refinements) {
         assert refinements != null;
         return new DeclarationContext(visibility, defaultDefinee, refinements);
     }
 
-    public Map<DynamicObject, DynamicObject[]> getRefinements() {
+    public Map<RubyModule, RubyModule[]> getRefinements() {
         return refinements;
     }
 
-    public DynamicObject[] getRefinementsFor(DynamicObject module) {
+    public RubyModule[] getRefinementsFor(RubyModule module) {
         return refinements.get(module);
     }
 
     @TruffleBoundary
-    public DynamicObject getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
+    public RubyModule getModuleToDefineMethods(SingletonClassNode singletonClassNode) {
         assert defaultDefinee != null : "Trying to find the default definee but this method should not have method definitions inside";
         return defaultDefinee.getModuleToDefineMethods(singletonClassNode);
     }

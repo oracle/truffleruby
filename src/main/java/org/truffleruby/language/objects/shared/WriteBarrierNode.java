@@ -12,6 +12,7 @@ package org.truffleruby.language.objects.shared;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
@@ -21,7 +22,6 @@ import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @ImportStatic(ShapeCachingGuards.class)
@@ -47,7 +47,7 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
                     "getDepth() < MAX_DEPTH" },
             assumptions = "cachedShape.getValidAssumption()",
             limit = "CACHE_LIMIT")
-    protected void writeBarrierCached(DynamicObject value,
+    protected void writeBarrierCached(RubyDynamicObject value,
             @Cached("value.getShape()") Shape cachedShape,
             @CachedContext(RubyLanguage.class) ContextReference<RubyContext> contextReference,
             @Cached("contextReference.get()") RubyContext cachedContext,
@@ -59,17 +59,17 @@ public abstract class WriteBarrierNode extends RubyBaseNode {
     }
 
     @Specialization(guards = "updateShape(value)")
-    protected void updateShapeAndWriteBarrier(DynamicObject value) {
+    protected void updateShapeAndWriteBarrier(RubyDynamicObject value) {
         executeWriteBarrier(value);
     }
 
     @Specialization(replaces = { "writeBarrierCached", "updateShapeAndWriteBarrier" })
-    protected void writeBarrierUncached(DynamicObject value,
+    protected void writeBarrierUncached(RubyDynamicObject value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         SharedObjects.writeBarrier(context, value);
     }
 
-    @Specialization(guards = "!isDynamicObject(value)")
+    @Specialization(guards = "!isRubyDynamicObject(value)")
     protected void noWriteBarrier(Object value) {
     }
 

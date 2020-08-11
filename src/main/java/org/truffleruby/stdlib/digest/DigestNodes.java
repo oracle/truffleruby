@@ -11,7 +11,6 @@ package org.truffleruby.stdlib.digest;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.ASCIIEncoding;
 import org.jcodings.specific.USASCIIEncoding;
 import org.truffleruby.RubyContext;
@@ -117,7 +116,7 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject update(RubyDigest digestObject, RubyString message) {
+        protected RubyDigest update(RubyDigest digestObject, RubyString message) {
             final MessageDigest digest = digestObject.digest;
             final Rope rope = message.rope;
 
@@ -132,7 +131,7 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject reset(RubyDigest digestObject) {
+        protected RubyDigest reset(RubyDigest digestObject) {
             digestObject.digest.reset();
             return digestObject;
         }
@@ -145,7 +144,7 @@ public abstract class DigestNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject digest(RubyDigest digestObject) {
+        protected RubyString digest(RubyDigest digestObject) {
             final MessageDigest digest = digestObject.digest;
 
             return makeStringNode.executeMake(cloneAndDigest(digest), ASCIIEncoding.INSTANCE, CodeRange.CR_VALID);
@@ -185,7 +184,7 @@ public abstract class DigestNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject bubblebabble(RubyString message) {
+        protected RubyString bubblebabble(RubyString message) {
             final Rope rope = message.rope;
             final byte[] bubblebabbleBytes = bubblebabble(rope.getBytes(), 0, rope.byteLength()).getBytes();
 

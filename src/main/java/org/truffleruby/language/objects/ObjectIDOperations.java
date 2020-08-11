@@ -22,7 +22,7 @@ import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.numeric.BignumOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.numeric.RubyBignum;
 
 /** <pre>
  * Object IDs distribution
@@ -69,14 +69,14 @@ public abstract class ObjectIDOperations {
     }
 
     @TruffleBoundary // BigInteger
-    public static DynamicObject largeFixnumToID(RubyContext context, long fixnum) {
+    public static RubyBignum largeFixnumToID(RubyContext context, long fixnum) {
         assert !isSmallFixnum(fixnum);
         BigInteger big = unsignedBigInteger(fixnum);
         return BignumOperations.createBignum(context, big.or(LARGE_FIXNUM_FLAG));
     }
 
     @TruffleBoundary // BigInteger
-    public static DynamicObject floatToID(RubyContext context, double value) {
+    public static RubyBignum floatToID(RubyContext context, double value) {
         long bits = Double.doubleToRawLongBits(value);
         BigInteger big = unsignedBigInteger(bits);
         return BignumOperations.createBignum(context, big.or(FLOAT_FLAG));

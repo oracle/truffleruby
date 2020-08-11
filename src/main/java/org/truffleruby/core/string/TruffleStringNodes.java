@@ -14,13 +14,11 @@ import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreModule("Truffle::StringOperations")
 public class TruffleStringNodes {
@@ -30,7 +28,7 @@ public class TruffleStringNodes {
 
         @Specialization(guards = { "newByteLength < 0" })
         @TruffleBoundary
-        protected DynamicObject truncateLengthNegative(DynamicObject string, int newByteLength) {
+        protected RubyString truncateLengthNegative(RubyString string, int newByteLength) {
             throw new RaiseException(
                     getContext(),
                     getContext().getCoreExceptions().argumentError(formatNegativeError(newByteLength), this));
@@ -39,29 +37,23 @@ public class TruffleStringNodes {
         @Specialization(
                 guards = { "newByteLength >= 0", "isNewLengthTooLarge(string, newByteLength)" })
         @TruffleBoundary
-        protected DynamicObject truncateLengthTooLong(RubyString string, int newByteLength) {
+        protected RubyString truncateLengthTooLong(RubyString string, int newByteLength) {
             throw new RaiseException(
                     getContext(),
-                    getContext()
-                            .getCoreExceptions()
-                            .argumentError(formatTooLongError(newByteLength, string.rope), this));
+                    coreExceptions().argumentError(formatTooLongError(newByteLength, string.rope), this));
         }
 
         @Specialization(
                 guards = {
                         "newByteLength >= 0",
                         "!isNewLengthTooLarge(string, newByteLength)" })
-        protected DynamicObject stealStorage(RubyString string, int newByteLength,
+        protected RubyString stealStorage(RubyString string, int newByteLength,
                 @Cached RopeNodes.SubstringNode substringNode) {
-
             StringOperations.setRope(string, substringNode.executeSubstring(string.rope, 0, newByteLength));
-
             return string;
         }
 
         protected static boolean isNewLengthTooLarge(RubyString string, int newByteLength) {
-            assert RubyGuards.isRubyString(string);
-
             return newByteLength > string.rope.byteLength();
         }
 

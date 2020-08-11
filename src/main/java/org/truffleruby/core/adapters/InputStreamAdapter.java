@@ -12,16 +12,15 @@ package org.truffleruby.core.adapters;
 import java.io.InputStream;
 
 import org.truffleruby.RubyContext;
-
-import com.oracle.truffle.api.object.DynamicObject;
+import org.truffleruby.core.support.RubyIO;
 import org.truffleruby.language.Nil;
 
 public class InputStreamAdapter extends InputStream {
 
     private final RubyContext context;
-    private final DynamicObject object;
+    private final RubyIO object;
 
-    public InputStreamAdapter(RubyContext context, DynamicObject object) {
+    public InputStreamAdapter(RubyContext context, RubyIO object) {
         this.context = context;
         this.object = object;
     }

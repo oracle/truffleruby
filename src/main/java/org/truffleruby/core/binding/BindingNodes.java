@@ -23,7 +23,9 @@ import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.NameToJavaStringNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyNode;
@@ -51,7 +53,6 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 @CoreModule(value = "Binding", isClass = true)
@@ -373,7 +374,7 @@ public abstract class BindingNodes {
             if (sourceSection == null) {
                 return nil;
             } else {
-                final DynamicObject file = makeStringNode.executeMake(
+                final RubyString file = makeStringNode.executeMake(
                         RubyContext.getPath(sourceSection.getSource()),
                         UTF8Encoding.INSTANCE,
                         CodeRange.CR_UNKNOWN);
@@ -386,7 +387,7 @@ public abstract class BindingNodes {
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected Object allocate(DynamicObject rubyClass) {
+        protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 

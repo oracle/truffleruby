@@ -9,16 +9,17 @@
  */
 package org.truffleruby.core.array;
 
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.objects.shared.IsSharedNode;
+import org.truffleruby.language.objects.shared.WriteBarrierNode;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import org.truffleruby.core.array.library.ArrayStoreLibrary;
-import org.truffleruby.language.RubyBaseNode;
-import org.truffleruby.language.objects.shared.IsSharedNode;
-import org.truffleruby.language.objects.shared.WriteBarrierNode;
 
 
 /** Copies a portion of an array to another array, whose store is known to have sufficient capacity, and to be

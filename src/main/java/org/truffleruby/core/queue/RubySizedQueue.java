@@ -9,14 +9,13 @@
  */
 package org.truffleruby.core.queue;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubySizedQueueMessages;
+import java.util.Set;
+
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
-import java.util.Set;
+import com.oracle.truffle.api.object.Shape;
 
 
 public class RubySizedQueue extends RubyDynamicObject implements ObjectGraphNode {
@@ -35,12 +34,6 @@ public class RubySizedQueue extends RubyDynamicObject implements ObjectGraphNode
                 reachable.add(element);
             }
         }
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubySizedQueueMessages.class;
     }
 
 }

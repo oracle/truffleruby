@@ -44,7 +44,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class RequireNode extends RubyContextNode {
@@ -56,7 +55,7 @@ public abstract class RequireNode extends RubyContextNode {
 
     @Child private WarningNode warningNode;
 
-    public abstract boolean executeRequire(String feature, DynamicObject expandedPath);
+    public abstract boolean executeRequire(String feature, RubyString expandedPath);
 
     @Specialization
     protected boolean require(String feature, RubyString expandedPathString) {
@@ -65,7 +64,7 @@ public abstract class RequireNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    private boolean requireWithMetrics(String feature, String expandedPathRaw, DynamicObject pathString) {
+    private boolean requireWithMetrics(String feature, String expandedPathRaw, RubyString pathString) {
         requireMetric("before-require-" + feature);
         try {
             //intern() to improve footprint
@@ -78,7 +77,7 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
-    private boolean requireConsideringAutoload(String feature, String expandedPath, DynamicObject pathString) {
+    private boolean requireConsideringAutoload(String feature, String expandedPath, RubyString pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final List<RubyConstant> autoloadConstants = featureLoader.getAutoloadConstants(expandedPath);
         if (autoloadConstants != null) {
@@ -112,7 +111,7 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
-    private boolean doRequire(String originalFeature, String expandedPath, DynamicObject pathString) {
+    private boolean doRequire(String originalFeature, String expandedPath, RubyString pathString) {
         final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
         final ConcurrentMap<String, Boolean> patchFiles = getContext().getCoreLibrary().getPatchFiles();
         String relativeFeature = originalFeature;
@@ -370,7 +369,7 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
-    public boolean isFeatureLoaded(DynamicObject feature) {
+    public boolean isFeatureLoaded(RubyString feature) {
         final Object included;
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
             included = isInLoadedFeatures
@@ -379,7 +378,7 @@ public abstract class RequireNode extends RubyContextNode {
         return booleanCastNode.executeToBoolean(included);
     }
 
-    private void addToLoadedFeatures(DynamicObject feature) {
+    private void addToLoadedFeatures(RubyString feature) {
         synchronized (getContext().getFeatureLoader().getLoadedFeaturesLock()) {
             addToLoadedFeatures.call(coreLibrary().truffleFeatureLoaderModule, "provide_feature", feature);
         }

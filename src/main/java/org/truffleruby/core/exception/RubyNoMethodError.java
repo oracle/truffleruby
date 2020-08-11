@@ -10,11 +10,9 @@
 package org.truffleruby.core.exception;
 
 import org.truffleruby.core.array.RubyArray;
-import org.truffleruby.interop.messages.NoMethodErrorMessages;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.backtrace.Backtrace;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -46,12 +44,6 @@ public final class RubyNoMethodError extends RubyNameError implements ObjectGrap
         if (ObjectGraph.isSymbolOrDynamicObject(args)) {
             reachable.add(args);
         }
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return NoMethodErrorMessages.class;
     }
 
 }

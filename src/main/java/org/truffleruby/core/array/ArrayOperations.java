@@ -11,7 +11,6 @@ package org.truffleruby.core.array;
 
 import java.lang.reflect.Array;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.array.library.DelegatedArrayStorage;
@@ -20,12 +19,11 @@ import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public abstract class ArrayOperations {
 
-    public static boolean isPrimitiveStorage(DynamicObject array) {
+    public static boolean isPrimitiveStorage(RubyArray array) {
         Object store = getBackingStore(array);
         return store == ArrayStoreLibrary.INITIAL_STORE || store instanceof int[] || store instanceof long[] ||
                 store instanceof double[];
@@ -38,7 +36,7 @@ public abstract class ArrayOperations {
                 backingStore instanceof int[] || backingStore instanceof long[] || backingStore instanceof double[] ||
                 backingStore.getClass() == Object[].class : backingStore;
 
-        final RubyContext context = Layouts.MODULE.getFields(Layouts.BASIC_OBJECT.getLogicalClass(array)).getContext();
+        final RubyContext context = array.getLogicalClass().fields.getContext();
         if (SharedObjects.isShared(context, array)) {
             final Object store = array.store;
 
@@ -107,8 +105,8 @@ public abstract class ArrayOperations {
     }
 
     @TruffleBoundary
-    private static Object getBackingStore(DynamicObject array) {
-        final Object store = ((RubyArray) array).store;
+    private static Object getBackingStore(RubyArray array) {
+        final Object store = array.store;
         if (store instanceof DelegatedArrayStorage) {
             return ((DelegatedArrayStorage) store).storage;
         } else {

@@ -11,12 +11,12 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class WriteInstanceVariableNode extends RubyContextSourceNode {
@@ -40,13 +40,13 @@ public class WriteInstanceVariableNode extends RubyContextSourceNode {
         final Object object = receiver.execute(frame);
         final Object value = rhs.execute(frame);
 
-        if (objectProfile.profile(object instanceof DynamicObject)) {
+        if (objectProfile.profile(object instanceof RubyDynamicObject)) {
             if (writeNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 writeNode = insert(WriteObjectFieldNode.create());
             }
 
-            writeNode.write((DynamicObject) object, name, value);
+            writeNode.write((RubyDynamicObject) object, name, value);
         } else {
             throw new RaiseException(getContext(), coreExceptions().frozenError(object, this));
         }

@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.exceptions;
 
+import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.core.thread.GetCurrentRubyThreadNodeGen;
 import org.truffleruby.core.thread.RubyThread;
@@ -19,7 +20,6 @@ import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class SetExceptionVariableNode extends RubyBaseNode {
 
@@ -39,7 +39,7 @@ public class SetExceptionVariableNode extends RubyBaseNode {
     }
 
 
-    public void setLastException(DynamicObject exception) {
+    public void setLastException(RubyException exception) {
         final RubyThread thread = getCurrentThreadNode().execute();
         final ThreadLocalGlobals threadLocalGlobals = thread.threadLocalGlobals;
         threadLocalGlobals.exception = exception;

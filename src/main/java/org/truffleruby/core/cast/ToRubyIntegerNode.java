@@ -17,7 +17,6 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** See {@link ToIntNode} for a comparison of different integer conversion nodes. */
 @NodeChild(value = "child", type = RubyNode.class)
@@ -44,7 +43,7 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
     }
 
     @Specialization
-    protected DynamicObject coerceRubyBignum(RubyBignum value) {
+    protected RubyBignum coerceRubyBignum(RubyBignum value) {
         return value;
     }
 

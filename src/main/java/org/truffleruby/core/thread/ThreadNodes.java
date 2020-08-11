@@ -59,12 +59,16 @@ import org.truffleruby.core.VMPrimitiveNodes.VMRaiseExceptionNode;
 import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.array.library.ArrayStoreLibrary;
+import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.exception.GetBacktraceException;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.RubyFiber;
+import org.truffleruby.core.hash.RubyHash;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RubyRandomizer;
@@ -90,7 +94,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.LoopConditionProfile;
@@ -103,7 +106,7 @@ public abstract class ThreadNodes {
     public abstract static class AllocateNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
+        protected Object allocate(RubyClass rubyClass) {
             throw new RaiseException(getContext(), coreExceptions().typeErrorAllocatorUndefinedFor(rubyClass, this));
         }
 
@@ -219,9 +222,9 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject kill(RubyThread rubyThread) {
+        protected RubyThread kill(RubyThread rubyThread) {
             final ThreadManager threadManager = getContext().getThreadManager();
-            final DynamicObject rootThread = threadManager.getRootThread();
+            final RubyThread rootThread = threadManager.getRootThread();
 
             getContext().getSafepointManager().pauseRubyThreadAndExecute(rubyThread, this, (thread, currentNode) -> {
                 if (thread == rootThread) {
@@ -246,10 +249,10 @@ public abstract class ThreadNodes {
 
         private final BranchProfile errorProfile = BranchProfile.create();
 
-        @Specialization(guards = "isRubyClass(exceptionClass)")
+        @Specialization
         protected Object handle_interrupt(
                 RubyThread self,
-                DynamicObject exceptionClass,
+                RubyClass exceptionClass,
                 RubySymbol timing,
                 RubyProc block) {
             // TODO (eregon, 12 July 2015): should we consider exceptionClass?
@@ -283,7 +286,7 @@ public abstract class ThreadNodes {
     public abstract static class ThreadAllocateNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass,
+        protected RubyThread allocate(RubyClass rubyClass,
                 @Cached AllocateHelperNode allocateNode) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyThread instance = getContext().getThreadManager().createThread(shape);
@@ -339,13 +342,13 @@ public abstract class ThreadNodes {
     public abstract static class JoinNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject join(RubyThread thread, NotProvided timeout) {
+        protected RubyThread join(RubyThread thread, NotProvided timeout) {
             doJoin(getContext(), this, thread);
             return thread;
         }
 
         @Specialization(guards = "isNil(timeout)")
-        protected DynamicObject join(RubyThread thread, Object timeout) {
+        protected RubyThread join(RubyThread thread, Object timeout) {
             return join(thread, NotProvided.INSTANCE);
         }
 
@@ -412,7 +415,7 @@ public abstract class ThreadNodes {
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject main() {
+        protected RubyThread main() {
             return getContext().getThreadManager().getRootThread();
         }
 
@@ -481,7 +484,7 @@ public abstract class ThreadNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject wakeup(RubyThread rubyThread) {
+        protected RubyThread wakeup(RubyThread rubyThread) {
             final RubyFiber currentFiber = rubyThread.fiberManager.getCurrentFiberRacy();
             final Thread thread = currentFiber.thread;
             if (!currentFiber.alive || thread == null) {
@@ -554,7 +557,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadLocalVariablesPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject threadLocalVariables(RubyThread thread) {
+        protected RubyHash threadLocalVariables(RubyThread thread) {
             return thread.threadLocalVariables;
         }
 
@@ -575,7 +578,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadRecursiveObjectsPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject recursiveObjects(
+        protected RubyHash recursiveObjects(
                 @Cached GetCurrentRubyThreadNode getCurrentRubyThreadNode) {
             return getCurrentRubyThreadNode.execute().recursiveObjects;
         }
@@ -596,7 +599,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadSetReportOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setReportOnException(RubyThread thread, boolean value) {
+        protected RubyThread setReportOnException(RubyThread thread, boolean value) {
             thread.reportOnException = value;
             return thread;
         }
@@ -617,7 +620,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadSetAbortOnExceptionPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setAbortOnException(RubyThread thread, boolean value) {
+        protected RubyThread setAbortOnException(RubyThread thread, boolean value) {
             thread.abortOnException = value;
             return thread;
         }
@@ -659,7 +662,7 @@ public abstract class ThreadNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject sourceLocation(RubyThread thread) {
+        protected RubyString sourceLocation(RubyThread thread) {
             return makeStringNode
                     .executeMake(thread.sourceLocation, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
         }
@@ -718,7 +721,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadSetGroupPrimitiveNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject setGroup(RubyThread thread, DynamicObject threadGroup) {
+        protected Object setGroup(RubyThread thread, Object threadGroup) {
             thread.threadGroup = threadGroup;
             return threadGroup;
         }
@@ -767,9 +770,9 @@ public abstract class ThreadNodes {
     public static abstract class SetThreadLocalReturnCodeNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected Object getException(DynamicObject returnCode,
+        protected Object getException(Object processStatus,
                 @Cached GetCurrentRubyThreadNode getThreadNode) {
-            return getThreadNode.execute().threadLocalGlobals.processStatus = returnCode;
+            return getThreadNode.execute().threadLocalGlobals.processStatus = processStatus;
         }
     }
 
@@ -777,7 +780,7 @@ public abstract class ThreadNodes {
     public static abstract class ThreadGetFiberLocalsNode extends PrimitiveArrayArgumentsNode {
 
         @Specialization
-        protected DynamicObject getFiberLocals(RubyThread thread) {
+        protected RubyBasicObject getFiberLocals(RubyThread thread) {
             final RubyFiber fiber = thread.fiberManager.getCurrentFiberRacy();
             return fiber.fiberLocals;
         }

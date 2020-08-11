@@ -12,7 +12,6 @@ package org.truffleruby.core.hash;
 import java.util.Iterator;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.language.RubyGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
@@ -170,10 +169,8 @@ public abstract class BucketsStrategy {
     }
 
     public static void copyInto(RubyContext context, RubyHash from, RubyHash to) {
-        assert RubyGuards.isRubyHash(from);
         assert HashGuards.isBucketHash(from);
         assert HashOperations.verifyStore(context, from);
-        assert RubyGuards.isRubyHash(to);
         assert HashOperations.verifyStore(context, to);
 
         final Entry[] newEntries = new Entry[((Entry[]) from.store).length];

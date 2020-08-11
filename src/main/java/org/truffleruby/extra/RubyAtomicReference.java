@@ -9,9 +9,7 @@
  */
 package org.truffleruby.extra;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyAtomicReferenceMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
 import java.util.concurrent.atomic.AtomicReference;
@@ -23,12 +21,6 @@ public class RubyAtomicReference extends RubyDynamicObject {
     public RubyAtomicReference(Shape shape, AtomicReference<Object> value) {
         super(shape);
         this.value = value;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyAtomicReferenceMessages.class;
     }
 
 }

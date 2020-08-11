@@ -20,6 +20,7 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.BigIntegerCastNode;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.cast.ToIntNode;
@@ -33,6 +34,7 @@ import org.truffleruby.core.numeric.IntegerNodesFactory.RightShiftNodeFactory;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.LazyIntRope;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.language.NoImplicitCastsToLong;
@@ -54,7 +56,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.nodes.LoopNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -598,32 +599,32 @@ public abstract class IntegerNodes {
         @Child private GeneralDivModNode divModNode = new GeneralDivModNode();
 
         @Specialization
-        protected DynamicObject divMod(long a, long b) {
+        protected RubyArray divMod(long a, long b) {
             return divModNode.execute(a, b);
         }
 
         @Specialization
-        protected DynamicObject divMod(long a, RubyBignum b) {
+        protected RubyArray divMod(long a, RubyBignum b) {
             return divModNode.execute(a, b.value);
         }
 
         @Specialization
-        protected DynamicObject divMod(long a, double b) {
+        protected RubyArray divMod(long a, double b) {
             return divModNode.execute(a, b);
         }
 
         @Specialization
-        protected DynamicObject divMod(RubyBignum a, long b) {
+        protected RubyArray divMod(RubyBignum a, long b) {
             return divModNode.execute(a.value, b);
         }
 
         @Specialization
-        protected DynamicObject divMod(RubyBignum a, double b) {
+        protected RubyArray divMod(RubyBignum a, double b) {
             return divModNode.execute(a.value, b);
         }
 
         @Specialization
-        protected DynamicObject divMod(RubyBignum a, RubyBignum b) {
+        protected RubyArray divMod(RubyBignum a, RubyBignum b) {
             return divModNode.execute(a.value, b.value);
         }
 
@@ -1416,13 +1417,13 @@ public abstract class IntegerNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject toS(int n, NotProvided base) {
+        protected RubyString toS(int n, NotProvided base) {
             return makeStringNode.fromRope(new LazyIntRope(n));
         }
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject toS(long n, NotProvided base) {
+        protected RubyString toS(long n, NotProvided base) {
             if (CoreLibrary.fitsIntoInteger(n)) {
                 return toS((int) n, base);
             }
@@ -1432,7 +1433,7 @@ public abstract class IntegerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject toS(RubyBignum value, NotProvided base) {
+        protected RubyString toS(RubyBignum value, NotProvided base) {
             return makeStringNode.executeMake(
                     BigIntegerOps.toString(value.value),
                     USASCIIEncoding.INSTANCE,
@@ -1441,7 +1442,7 @@ public abstract class IntegerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject toS(long n, int base) {
+        protected RubyString toS(long n, int base) {
             if (base == 10) {
                 return toS(n, NotProvided.INSTANCE);
             }
@@ -1455,7 +1456,7 @@ public abstract class IntegerNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject toS(RubyBignum value, int base) {
+        protected RubyString toS(RubyBignum value, int base) {
             if (base < 2 || base > 36) {
                 throw new RaiseException(getContext(), coreExceptions().argumentErrorInvalidRadix(base, this));
             }
@@ -1902,7 +1903,7 @@ public abstract class IntegerNodes {
             return downto(from, (long) Math.ceil(to), block);
         }
 
-        @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")
+        @Specialization(guards = "isRubyDynamicObject(from) || isRubyDynamicObject(to)")
         protected Object downto(Object from, Object to, RubyProc block) {
             if (downtoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
@@ -1996,7 +1997,7 @@ public abstract class IntegerNodes {
             return upto(from, (long) Math.ceil(to), block);
         }
 
-        @Specialization(guards = "isDynamicObject(from) || isDynamicObject(to)")
+        @Specialization(guards = "isRubyDynamicObject(from) || isRubyDynamicObject(to)")
         protected Object upto(Object from, Object to, RubyProc block) {
             if (uptoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();

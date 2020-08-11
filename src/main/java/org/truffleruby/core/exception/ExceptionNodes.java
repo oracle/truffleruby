@@ -15,6 +15,10 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.builtins.PrimitiveNode;
+import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.proc.RubyProc;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -28,7 +32,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -43,7 +46,7 @@ public abstract class ExceptionNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyException allocateException(DynamicObject rubyClass) {
+        protected RubyException allocateException(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyException instance = new RubyException(shape, nil, null, nil);
             allocateNode.trace(instance, this);
@@ -155,7 +158,7 @@ public abstract class ExceptionNodes {
             if (hasCustomBacktraceProfile.profile(customBacktrace != null)) {
                 return customBacktrace;
             } else if (hasBacktraceProfile.profile(exception.backtrace != null)) {
-                DynamicObject backtraceStringArray = exception.backtraceStringArray;
+                RubyArray backtraceStringArray = exception.backtraceStringArray;
                 if (backtraceStringArray == null) {
                     backtraceStringArray = getContext().getUserBacktraceFormatter().formatBacktraceAsRubyStringArray(
                             exception,
@@ -283,7 +286,7 @@ public abstract class ExceptionNodes {
 
         @Specialization
         protected Object formatter(RubyException exception) {
-            final DynamicObject formatter = exception.formatter;
+            final RubyProc formatter = exception.formatter;
             if (formatter == null) {
                 return nil;
             } else {
@@ -320,7 +323,7 @@ public abstract class ExceptionNodes {
         @Child ErrnoErrorNode errnoErrorNode = ErrnoErrorNode.create();
 
         @Specialization
-        protected RubySystemCallError exceptionErrnoError(DynamicObject message, int errno) {
+        protected RubySystemCallError exceptionErrnoError(RubyString message, int errno) {
             return errnoErrorNode.execute(errno, message, null);
         }
 

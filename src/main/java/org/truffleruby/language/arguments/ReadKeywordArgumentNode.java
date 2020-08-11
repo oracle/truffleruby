@@ -18,7 +18,6 @@ import org.truffleruby.language.RubyNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 public class ReadKeywordArgumentNode extends RubyContextSourceNode implements BiFunctionNode {
@@ -38,7 +37,7 @@ public class ReadKeywordArgumentNode extends RubyContextSourceNode implements Bi
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject hash = readUserKeywordsHashNode.execute(frame);
+        final RubyHash hash = readUserKeywordsHashNode.execute(frame);
 
         if (defaultProfile.profile(hash == null)) {
             return defaultValue.execute(frame);
@@ -47,13 +46,13 @@ public class ReadKeywordArgumentNode extends RubyContextSourceNode implements Bi
         return lookupKeywordInHash(frame, hash);
     }
 
-    private Object lookupKeywordInHash(VirtualFrame frame, DynamicObject hash) {
+    private Object lookupKeywordInHash(VirtualFrame frame, RubyHash hash) {
         if (hashLookupNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             hashLookupNode = insert(HashLookupOrExecuteDefaultNode.create());
         }
 
-        return hashLookupNode.executeGet(frame, (RubyHash) hash, name, this);
+        return hashLookupNode.executeGet(frame, hash, name, this);
     }
 
     @Override

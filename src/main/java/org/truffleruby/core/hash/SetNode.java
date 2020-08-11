@@ -18,7 +18,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @ImportStatic(HashGuards.class)
@@ -156,12 +155,12 @@ public abstract class SetNode extends RubyContextNode {
         return value;
     }
 
-    private HashLookupResult lookup(DynamicObject hash, Object key) {
+    private HashLookupResult lookup(RubyHash hash, Object key) {
         if (lookupEntryNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             lookupEntryNode = insert(new LookupEntryNode());
         }
-        return lookupEntryNode.lookup((RubyHash) hash, key);
+        return lookupEntryNode.lookup(hash, key);
     }
 
     protected boolean equalKeys(boolean compareByIdentity, Object key, int hashed, Object otherKey, int otherHashed) {

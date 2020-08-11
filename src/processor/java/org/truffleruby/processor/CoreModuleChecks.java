@@ -208,7 +208,7 @@ public class CoreModuleChecks {
 
         // A specialization will only be called if the types of the arguments match its declared parameter
         // types. So a specialization with a declared optional parameter of type NotProvided will only be
-        // called if that argument is not supplied. Similarly a specialization with a DynamicObject optional
+        // called if that argument is not supplied. Similarly a specialization with a RubyDynamicObject optional
         // parameter will only be called if the value has been supplied.
         //
         // Since Object is the super type of NotProvided any optional parameter declaration of type Object

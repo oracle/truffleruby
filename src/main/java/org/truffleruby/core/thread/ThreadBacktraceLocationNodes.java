@@ -16,6 +16,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.UnaryCoreMethodNode;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -25,7 +26,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleStackTraceElement;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -48,7 +48,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject absolutePath(RubyBacktraceLocation threadBacktraceLocation,
+        protected RubyString absolutePath(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
@@ -77,7 +77,7 @@ public class ThreadBacktraceLocationNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject path(RubyBacktraceLocation threadBacktraceLocation,
+        protected RubyString path(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final SourceSection sourceSection = getAvailableSourceSection(getContext(), threadBacktraceLocation);
 
@@ -103,7 +103,7 @@ public class ThreadBacktraceLocationNodes {
     public abstract static class LabelNode extends UnaryCoreMethodNode {
 
         @Specialization
-        protected DynamicObject label(RubyBacktraceLocation threadBacktraceLocation,
+        protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
@@ -117,7 +117,7 @@ public class ThreadBacktraceLocationNodes {
     @CoreMethod(names = "base_label")
     public abstract static class BaseLabelNode extends UnaryCoreMethodNode {
         @Specialization
-        protected DynamicObject label(RubyBacktraceLocation threadBacktraceLocation,
+        protected RubyString label(RubyBacktraceLocation threadBacktraceLocation,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
@@ -147,7 +147,7 @@ public class ThreadBacktraceLocationNodes {
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
         @Specialization
-        protected DynamicObject toS(RubyBacktraceLocation threadBacktraceLocation) {
+        protected RubyString toS(RubyBacktraceLocation threadBacktraceLocation) {
             final Backtrace backtrace = threadBacktraceLocation.backtrace;
             final int index = threadBacktraceLocation.activationIndex;
 

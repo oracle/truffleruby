@@ -20,8 +20,9 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.language.Nil;
-import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -30,7 +31,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
@@ -109,8 +109,8 @@ public abstract class WrapNode extends RubyBaseNode {
         return wrapper;
     }
 
-    @Specialization(guards = "isRubyDynamicObject(value)")
-    protected ValueWrapper wrapValue(DynamicObject value,
+    @Specialization
+    protected ValueWrapper wrapValue(RubyDynamicObject value,
             @Cached ReadObjectFieldNode readWrapperNode,
             @Cached WriteObjectFieldNode writeWrapperNode,
             @Cached BranchProfile noHandleProfile) {

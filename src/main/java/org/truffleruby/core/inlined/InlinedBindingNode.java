@@ -11,13 +11,13 @@ package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.binding.BindingNodes;
+import org.truffleruby.core.binding.RubyBinding;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
@@ -32,7 +32,7 @@ public abstract class InlinedBindingNode extends UnaryInlinedOperationNode {
             guards = { "lookupNode.lookupIgnoringVisibility(frame, self, METHOD) == coreMethods().BINDING", },
             assumptions = "assumptions",
             limit = "1")
-    protected DynamicObject binding(VirtualFrame frame, Object self,
+    protected RubyBinding binding(VirtualFrame frame, Object self,
             @Cached LookupMethodNode lookupNode,
             @Cached("getMyEncapsulatingSourceSection()") SourceSection sourceSection) {
         return BindingNodes.createBinding(getContext(), frame.materialize(), sourceSection);

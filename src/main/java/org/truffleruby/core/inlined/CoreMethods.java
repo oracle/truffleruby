@@ -9,9 +9,10 @@
  */
 package org.truffleruby.core.inlined;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
@@ -20,7 +21,6 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.parser.TranslatorEnvironment;
 
 import com.oracle.truffle.api.Assumption;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** We inline basic operations as it makes little sense to compile them in isolation without the surrounding method and
  * it delays more interesting compilations by filling the compilation queue. The performance in interpreter is typically
@@ -72,13 +72,13 @@ public class CoreMethods {
 
     public CoreMethods(RubyContext context) {
         this.context = context;
-        final DynamicObject basicObjectClass = context.getCoreLibrary().basicObjectClass;
-        final DynamicObject exceptionClass = context.getCoreLibrary().exceptionClass;
-        final DynamicObject kernelModule = context.getCoreLibrary().kernelModule;
-        final DynamicObject integerClass = context.getCoreLibrary().integerClass;
-        final DynamicObject floatClass = context.getCoreLibrary().floatClass;
-        final DynamicObject nilClass = context.getCoreLibrary().nilClass;
-        final DynamicObject stringClass = context.getCoreLibrary().stringClass;
+        final RubyClass basicObjectClass = context.getCoreLibrary().basicObjectClass;
+        final RubyClass exceptionClass = context.getCoreLibrary().exceptionClass;
+        final RubyModule kernelModule = context.getCoreLibrary().kernelModule;
+        final RubyClass integerClass = context.getCoreLibrary().integerClass;
+        final RubyClass floatClass = context.getCoreLibrary().floatClass;
+        final RubyClass nilClass = context.getCoreLibrary().nilClass;
+        final RubyClass stringClass = context.getCoreLibrary().stringClass;
 
         integerNegAssumption = registerAssumption(integerClass, "-@");
         floatNegAssumption = registerAssumption(floatClass, "-@");
@@ -123,12 +123,12 @@ public class CoreMethods {
         STRING_BYTESIZE = getMethod(stringClass, "bytesize");
     }
 
-    private Assumption registerAssumption(DynamicObject klass, String methodName) {
-        return Layouts.MODULE.getFields(klass).registerAssumption(methodName);
+    private Assumption registerAssumption(RubyClass klass, String methodName) {
+        return klass.fields.registerAssumption(methodName);
     }
 
-    private InternalMethod getMethod(DynamicObject module, String name) {
-        final InternalMethod method = Layouts.MODULE.getFields(module).getMethod(name);
+    private InternalMethod getMethod(RubyModule module, String name) {
+        final InternalMethod method = module.fields.getMethod(name);
         if (method == null || method.isUndefined()) {
             throw new AssertionError();
         }

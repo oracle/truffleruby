@@ -11,18 +11,16 @@ package org.truffleruby.language;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.klass.RubyClass;
 
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.library.RubyLibrary;
 
 /** The Ruby {@code nil}, the single instance of NilClass. */
 @ExportLibrary(InteropLibrary.class)
-@ExportLibrary(RubyLibrary.class)
 public final class Nil extends ImmutableRubyObject implements TruffleObject {
 
     public static final Nil INSTANCE = new Nil();
@@ -35,59 +33,28 @@ public final class Nil extends ImmutableRubyObject implements TruffleObject {
         return "nil";
     }
 
+    // region InteropLibrary messages
+    @Override
     @ExportMessage
-    protected boolean hasLanguage() {
-        return true;
-    }
-
-    @ExportMessage
-    protected Class<RubyLanguage> getLanguage() {
-        return RubyLanguage.class;
-    }
-
-    @ExportMessage
-    protected String toDisplayString(boolean allowSideEffects) {
+    public String toDisplayString(boolean allowSideEffects) {
         return "nil";
     }
 
     @ExportMessage
-    protected boolean hasMetaObject() {
+    public boolean hasMetaObject() {
         return true;
     }
 
     @ExportMessage
-    protected DynamicObject getMetaObject(
+    public RubyClass getMetaObject(
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().nilClass;
     }
 
     @ExportMessage
-    protected boolean isNull() {
+    public boolean isNull() {
         return true;
     }
-
-    // RubyLibrary messages
-
-    @ExportMessage
-    protected void freeze() {
-    }
-
-    @ExportMessage
-    protected boolean isFrozen() {
-        return true;
-    }
-
-    @ExportMessage
-    protected boolean isTainted() {
-        return false;
-    }
-
-    @ExportMessage
-    protected void taint() {
-    }
-
-    @ExportMessage
-    protected void untaint() {
-    }
+    // endregion
 
 }

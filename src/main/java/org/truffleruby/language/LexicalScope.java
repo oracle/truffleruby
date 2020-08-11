@@ -9,9 +9,10 @@
  */
 package org.truffleruby.language;
 
+import org.truffleruby.core.module.RubyModule;
+
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Instances of this class represent the Ruby lexical scope for constants, which is only changed by `class Name`,
  * `module Name` and `class << expr`. Other lexical scope features such as refinement and the default definee are
@@ -24,10 +25,9 @@ public class LexicalScope {
     public static final LexicalScope IGNORE = new LexicalScope(null, null);
 
     private final LexicalScope parent;
-    @CompilationFinal private volatile DynamicObject liveModule;
+    @CompilationFinal private volatile RubyModule liveModule;
 
-    public LexicalScope(LexicalScope parent, DynamicObject liveModule) {
-        assert liveModule == null || RubyGuards.isRubyModule(liveModule);
+    public LexicalScope(LexicalScope parent, RubyModule liveModule) {
         this.parent = parent;
         this.liveModule = liveModule;
     }
@@ -40,16 +40,16 @@ public class LexicalScope {
         return parent;
     }
 
-    public DynamicObject getLiveModule() {
+    public RubyModule getLiveModule() {
         return liveModule;
     }
 
-    public void unsafeSetLiveModule(DynamicObject liveModule) {
+    public void unsafeSetLiveModule(RubyModule liveModule) {
         this.liveModule = liveModule;
     }
 
     @TruffleBoundary
-    public static DynamicObject resolveTargetModuleForClassVariables(LexicalScope lexicalScope) {
+    public static RubyModule resolveTargetModuleForClassVariables(LexicalScope lexicalScope) {
         LexicalScope scope = lexicalScope;
 
         // MRI logic: ignore lexical scopes (cref) referring to singleton classes

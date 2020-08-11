@@ -17,11 +17,12 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.core.thread.RubyThread;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ShapeCachingGuards;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
@@ -67,7 +68,7 @@ public class SharedObjects {
         stack.push(context.getCoreLibrary().objectClass);
 
         // Share all threads since they are accessible via Thread.list
-        for (DynamicObject thread : context.getThreadManager().iterateThreads()) {
+        for (RubyThread thread : context.getThreadManager().iterateThreads()) {
             stack.push(thread);
         }
 
@@ -96,16 +97,16 @@ public class SharedObjects {
             final Object object = stack.pop();
             assert ObjectGraph.isSymbolOrDynamicObject(object) : object;
 
-            if (object instanceof DynamicObject) {
-                if (share(context, (DynamicObject) object)) {
-                    stack.addAll(ObjectGraph.getAdjacentObjects((DynamicObject) object));
+            if (object instanceof RubyDynamicObject) {
+                if (share(context, (RubyDynamicObject) object)) {
+                    stack.addAll(ObjectGraph.getAdjacentObjects((RubyDynamicObject) object));
                 }
             }
         }
     }
 
     @TruffleBoundary
-    private static void shareObject(RubyContext context, DynamicObject value) {
+    private static void shareObject(RubyContext context, RubyDynamicObject value) {
         final Deque<Object> stack = new ArrayDeque<>();
         stack.add(value);
         shareObjects(context, stack);
@@ -113,15 +114,15 @@ public class SharedObjects {
 
     public static boolean isShared(RubyContext context, Object object) {
         return object instanceof RubySymbol ||
-                (object instanceof DynamicObject && isShared(context, ((DynamicObject) object).getShape()));
+                (object instanceof RubyDynamicObject && isShared(context, ((RubyDynamicObject) object).getShape()));
     }
 
     public static boolean isShared(RubyContext context, Shape shape) {
         return context.getOptions().SHARED_OBJECTS_ENABLED && shape.isShared();
     }
 
-    public static boolean assertPropagateSharing(RubyContext context, DynamicObject source, Object value) {
-        if (isShared(context, source) && value instanceof DynamicObject) {
+    public static boolean assertPropagateSharing(RubyContext context, RubyDynamicObject source, Object value) {
+        if (isShared(context, source) && value instanceof RubyDynamicObject) {
             return isShared(context, value);
         } else {
             return true;
@@ -129,19 +130,19 @@ public class SharedObjects {
     }
 
     public static void writeBarrier(RubyContext context, Object value) {
-        if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof DynamicObject &&
+        if (context.getOptions().SHARED_OBJECTS_ENABLED && value instanceof RubyDynamicObject &&
                 !isShared(context, value)) {
-            shareObject(context, (DynamicObject) value);
+            shareObject(context, (RubyDynamicObject) value);
         }
     }
 
-    public static void propagate(RubyContext context, DynamicObject source, Object value) {
+    public static void propagate(RubyContext context, RubyDynamicObject source, Object value) {
         if (isShared(context, source)) {
             writeBarrier(context, value);
         }
     }
 
-    private static boolean share(RubyContext context, DynamicObject object) {
+    private static boolean share(RubyContext context, RubyDynamicObject object) {
         if (isShared(context, object)) {
             return false;
         }
@@ -153,11 +154,11 @@ public class SharedObjects {
         return true;
     }
 
-    public static void onShareHook(DynamicObject object) {
+    public static void onShareHook(RubyDynamicObject object) {
     }
 
     @TruffleBoundary
-    public static void shareInternalFields(RubyContext context, DynamicObject object) {
+    public static void shareInternalFields(RubyContext context, RubyDynamicObject object) {
         onShareHook(object);
         // This will also share user fields, but that's OK
         final Deque<Object> stack = new ArrayDeque<>(ObjectGraph.getAdjacentObjects(object));

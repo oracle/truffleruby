@@ -10,9 +10,7 @@
 package org.truffleruby.stdlib.bigdecimal;
 
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.objects.IsANode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.CreateCast;
 import com.oracle.truffle.api.dsl.NodeChild;
 
@@ -23,17 +21,6 @@ public abstract class BigDecimalOpNode extends BigDecimalCoreMethodNode {
     @CreateCast("b")
     protected RubyNode coerceB(RubyNode b) {
         return BigDecimalCoerceNodeGen.create(b);
-    }
-
-    @Child private IsANode isANode;
-
-    protected boolean isRubyRational(Object object) {
-        if (isANode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            isANode = insert(IsANode.create());
-        }
-
-        return isANode.executeIsA(object, getContext().getCoreLibrary().rationalClass);
     }
 
 }

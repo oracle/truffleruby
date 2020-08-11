@@ -16,7 +16,6 @@ import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import org.jcodings.specific.USASCIIEncoding;
@@ -31,9 +30,11 @@ import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.numeric.FloatNodesFactory.ModNodeFactory;
 import org.truffleruby.core.rope.CodeRange;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.CoreSymbols;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -264,22 +265,22 @@ public abstract class FloatNodes {
         @Child private GeneralDivModNode divModNode = new GeneralDivModNode();
 
         @Specialization
-        protected DynamicObject divMod(double a, long b) {
+        protected RubyArray divMod(double a, long b) {
             return divModNode.execute(a, b);
         }
 
         @Specialization
-        protected DynamicObject divMod(double a, double b) {
+        protected RubyArray divMod(double a, double b) {
             return divModNode.execute(a, b);
         }
 
         @Specialization
-        protected DynamicObject divMod(double a, RubyBignum b) {
+        protected RubyArray divMod(double a, RubyBignum b) {
             return divModNode.execute(a, b.value);
         }
 
         @Specialization(guards = "!isRubyBignum(b)")
-        protected Object divModCoerced(double a, DynamicObject b,
+        protected Object divModCoerced(double a, RubyDynamicObject b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVMOD, b);
         }
@@ -415,7 +416,7 @@ public abstract class FloatNodes {
         }
 
         @Specialization(guards = { "!isNaN(a)", "!isRubyBignum(b)" })
-        protected Object compare(double a, DynamicObject b,
+        protected Object compare(double a, RubyDynamicObject b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
@@ -828,7 +829,7 @@ public abstract class FloatNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject toS(double value) {
+        protected RubyString toS(double value) {
             /* Ruby has complex custom formatting logic for floats. Our logic meets the specs but we suspect it's
              * possibly still not entirely correct. JRuby seems to be correct, but their logic is tied up in their
              * printf implementation. Also see our FormatFloatNode, which I suspect is also deficient or

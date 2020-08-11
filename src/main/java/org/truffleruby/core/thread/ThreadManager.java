@@ -19,7 +19,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Supplier;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.collections.ConcurrentOperations;
@@ -27,6 +26,7 @@ import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.fiber.FiberManager;
 import org.truffleruby.core.fiber.RubyFiber;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.RandomizerNodes;
 import org.truffleruby.extra.ffi.Pointer;
@@ -47,7 +47,6 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.TruffleStackTrace;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 public class ThreadManager {
@@ -223,12 +222,12 @@ public class ThreadManager {
     }
 
     private boolean getGlobalReportOnException() {
-        final DynamicObject threadClass = context.getCoreLibrary().threadClass;
+        final RubyClass threadClass = context.getCoreLibrary().threadClass;
         return (boolean) ReadObjectFieldNodeGen.getUncached().execute(threadClass, "@report_on_exception", null);
     }
 
     private boolean getGlobalAbortOnException() {
-        final DynamicObject threadClass = context.getCoreLibrary().threadClass;
+        final RubyClass threadClass = context.getCoreLibrary().threadClass;
         return (boolean) ReadObjectFieldNodeGen.getUncached().execute(threadClass, "@abort_on_exception", null);
     }
 
@@ -337,7 +336,7 @@ public class ThreadManager {
         final RubyThread mainThread = context.getThreadManager().getRootThread();
 
         if (thread != mainThread) {
-            final boolean isSystemExit = Layouts.BASIC_OBJECT.getLogicalClass(exception) == context
+            final boolean isSystemExit = exception.getLogicalClass() == context
                     .getCoreLibrary().systemExitClass;
 
             if (!isSystemExit && thread.reportOnException) {
@@ -356,7 +355,7 @@ public class ThreadManager {
     }
 
     // Share the Ruby Thread before it can be accessed concurrently, and before it is added to Thread.list
-    public void startSharing(DynamicObject rubyThread, String reason) {
+    public void startSharing(RubyThread rubyThread, String reason) {
         if (context.getOptions().SHARED_OBJECTS_ENABLED) {
             // TODO (eregon, 22 Sept 2017): no need if singleThreaded in isThreadAccessAllowed()
             context.getSharedObjects().startSharing(reason);

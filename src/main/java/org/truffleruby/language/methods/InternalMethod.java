@@ -11,17 +11,16 @@ package org.truffleruby.language.methods;
 
 import java.util.Set;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.LexicalScope;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** A Ruby method: either a method in a module, a literal module/class body or some meta-information for eval'd code.
  * Blocks capture the method in which they are defined. */
@@ -35,7 +34,7 @@ public class InternalMethod implements ObjectGraphNode {
     private final DeclarationContext activeRefinements;
     private final String name;
 
-    private final DynamicObject declaringModule;
+    private final RubyModule declaringModule;
     private final Visibility visibility;
     private final boolean undefined;
     private final boolean unimplemented; // similar to MRI's rb_f_notimplement
@@ -44,14 +43,14 @@ public class InternalMethod implements ObjectGraphNode {
     private final RubyProc proc; // only if method is created from a Proc
 
     private final RootCallTarget callTarget;
-    private final DynamicObject capturedBlock;
+    private final RubyProc capturedBlock;
 
     public static InternalMethod fromProc(
             RubyContext context,
             SharedMethodInfo sharedMethodInfo,
             DeclarationContext declarationContext,
             String name,
-            DynamicObject declaringModule,
+            RubyModule declaringModule,
             Visibility visibility,
             RubyProc proc,
             RootCallTarget callTarget) {
@@ -75,7 +74,7 @@ public class InternalMethod implements ObjectGraphNode {
             LexicalScope lexicalScope,
             DeclarationContext declarationContext,
             String name,
-            DynamicObject declaringModule,
+            RubyModule declaringModule,
             Visibility visibility,
             RootCallTarget callTarget) {
         this(
@@ -98,12 +97,12 @@ public class InternalMethod implements ObjectGraphNode {
             LexicalScope lexicalScope,
             DeclarationContext declarationContext,
             String name,
-            DynamicObject declaringModule,
+            RubyModule declaringModule,
             Visibility visibility,
             boolean undefined,
             RubyProc proc,
             RootCallTarget callTarget,
-            DynamicObject capturedBlock) {
+            RubyProc capturedBlock) {
         this(
                 sharedMethodInfo,
                 lexicalScope,
@@ -125,7 +124,7 @@ public class InternalMethod implements ObjectGraphNode {
             LexicalScope lexicalScope,
             DeclarationContext declarationContext,
             String name,
-            DynamicObject declaringModule,
+            RubyModule declaringModule,
             Visibility visibility,
             boolean undefined,
             boolean unimplemented,
@@ -133,8 +132,7 @@ public class InternalMethod implements ObjectGraphNode {
             DeclarationContext activeRefinements,
             RubyProc proc,
             RootCallTarget callTarget,
-            DynamicObject capturedBlock) {
-        assert RubyGuards.isRubyModule(declaringModule);
+            RubyProc capturedBlock) {
         assert lexicalScope != null;
         this.sharedMethodInfo = sharedMethodInfo;
         this.lexicalScope = lexicalScope;
@@ -155,7 +153,7 @@ public class InternalMethod implements ObjectGraphNode {
         return sharedMethodInfo;
     }
 
-    public DynamicObject getDeclaringModule() {
+    public RubyModule getDeclaringModule() {
         return declaringModule;
     }
 
@@ -183,9 +181,7 @@ public class InternalMethod implements ObjectGraphNode {
         return callTarget;
     }
 
-    public InternalMethod withDeclaringModule(DynamicObject newDeclaringModule) {
-        assert RubyGuards.isRubyModule(newDeclaringModule);
-
+    public InternalMethod withDeclaringModule(RubyModule newDeclaringModule) {
         if (newDeclaringModule == declaringModule) {
             return this;
         } else {
@@ -325,9 +321,7 @@ public class InternalMethod implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public boolean isVisibleTo(DynamicObject callerClass) {
-        assert RubyGuards.isRubyClass(callerClass);
-
+    public boolean isVisibleTo(RubyClass callerClass) {
         switch (visibility) {
             case PUBLIC:
                 return true;
@@ -346,11 +340,11 @@ public class InternalMethod implements ObjectGraphNode {
     }
 
     @TruffleBoundary
-    public boolean isProtectedMethodVisibleTo(DynamicObject callerClass) {
+    public boolean isProtectedMethodVisibleTo(RubyClass callerClass) {
         assert visibility == Visibility.PROTECTED;
 
-        for (DynamicObject ancestor : Layouts.MODULE.getFields(callerClass).ancestors()) {
-            if (ancestor == declaringModule || Layouts.BASIC_OBJECT.getMetaClass(ancestor) == declaringModule) {
+        for (RubyModule ancestor : callerClass.fields.ancestors()) {
+            if (ancestor == declaringModule || ancestor.getMetaClass() == declaringModule) {
                 return true;
             }
         }
@@ -374,7 +368,7 @@ public class InternalMethod implements ObjectGraphNode {
         }
     }
 
-    public DynamicObject getCapturedBlock() {
+    public RubyProc getCapturedBlock() {
         return capturedBlock;
     }
 

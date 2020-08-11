@@ -19,6 +19,7 @@ import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.exception.CoreExceptions;
 import org.truffleruby.core.kernel.TraceManager;
 import org.truffleruby.core.numeric.BignumOperations;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.CoreStrings;
 import org.truffleruby.core.symbol.RubySymbol;
@@ -33,7 +34,6 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.SourceSection;
 
 /** RubyNode has source, execute, and is instrument-able. However, it does not have any fields which would prevent
@@ -267,7 +267,7 @@ public abstract class RubyNode extends RubyBaseNode implements InstrumentableNod
             return ArrayHelpers.createArray(getContext(), store);
         }
 
-        default DynamicObject createBignum(BigInteger value) {
+        default RubyBignum createBignum(BigInteger value) {
             return BignumOperations.createBignum(getContext(), value);
         }
 

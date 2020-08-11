@@ -15,12 +15,12 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 @CoreModule(value = "NoMethodError", isClass = true)
@@ -32,7 +32,7 @@ public abstract class NoMethodErrorNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
 
         @Specialization
-        protected RubyNoMethodError allocateNoMethodError(DynamicObject rubyClass) {
+        protected RubyNoMethodError allocateNoMethodError(RubyClass rubyClass) {
             final Shape shape = allocateNode.getCachedShape(rubyClass);
             final RubyNoMethodError instance = new RubyNoMethodError(shape, nil, null, nil, null, nil, nil);
             allocateNode.trace(instance, this);

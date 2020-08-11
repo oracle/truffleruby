@@ -38,7 +38,6 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreModule("Truffle::Graal")
 public abstract class TruffleGraalNodes {
@@ -48,7 +47,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject splitMethod(RubyMethod rubyMethod) {
+        protected RubyMethod splitMethod(RubyMethod rubyMethod) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
                 InternalMethod internalMethod = rubyMethod.method;
                 internalMethod.getSharedMethodInfo().setAlwaysClone(true);
@@ -58,7 +57,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject splitUnboundMethod(RubyUnboundMethod rubyMethod) {
+        protected RubyUnboundMethod splitUnboundMethod(RubyUnboundMethod rubyMethod) {
             if (getContext().getOptions().ALWAYS_SPLIT_HONOR) {
                 InternalMethod internalMethod = rubyMethod.method;
                 internalMethod.getSharedMethodInfo().setAlwaysClone(true);
@@ -88,7 +87,7 @@ public abstract class TruffleGraalNodes {
 
         @TruffleBoundary
         @Specialization
-        protected DynamicObject copyCapturedLocals(RubyProc proc) {
+        protected RubyProc copyCapturedLocals(RubyProc proc) {
             final RubyRootNode rootNode = (RubyRootNode) proc.callTargetForType.getRootNode();
             final RubyNode newBody = NodeUtil.cloneNode(rootNode.getBody());
 

@@ -10,8 +10,10 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.array.ArrayHelpers;
+import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -23,7 +25,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /*
@@ -79,8 +80,8 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
         return nil;
     }
 
-    @Specialization(guards = "isRubyArray(array)")
-    protected DynamicObject castArray(DynamicObject array) {
+    @Specialization
+    protected RubyArray castArray(RubyArray array) {
         return array;
     }
 
@@ -102,7 +103,7 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
     }
 
     @Specialization(guards = { "!isRubyBignum(object)", "!isRubyArray(object)" })
-    protected Object cast(DynamicObject object,
+    protected Object cast(RubyDynamicObject object,
             @Cached BranchProfile errorProfile) {
         final Object result = toArrayNode.call(object, "to_ary");
 

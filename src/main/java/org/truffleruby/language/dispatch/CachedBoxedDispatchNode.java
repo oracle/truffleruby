@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.MethodLookupResult;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.methods.InternalMethod;
 
 import com.oracle.truffle.api.Assumption;
@@ -22,7 +23,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.InvalidAssumptionException;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 
 public class CachedBoxedDispatchNode extends CachedDispatchNode {
@@ -59,8 +59,8 @@ public class CachedBoxedDispatchNode extends CachedDispatchNode {
     @Override
     public boolean guard(Object methodName, Object receiver) {
         return guardName(methodName) &&
-                (receiver instanceof DynamicObject) &&
-                ((DynamicObject) receiver).getShape() == expectedShape;
+                (receiver instanceof RubyDynamicObject) &&
+                ((RubyDynamicObject) receiver).getShape() == expectedShape;
     }
 
     @Override

@@ -15,7 +15,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class AutoloadConstant {
 
@@ -32,7 +31,7 @@ public class AutoloadConstant {
         return autoloadPath;
     }
 
-    public DynamicObject getFeature() {
+    public RubyString getFeature() {
         return feature;
     }
 

@@ -9,11 +9,9 @@
  */
 package org.truffleruby.core.proc;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.object.dsl.Nullable;
-import org.truffleruby.interop.messages.ProcMessages;
+import java.util.Set;
+
+import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.FrameOnStackMarker;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -21,9 +19,19 @@ import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.SharedMethodInfo;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
+import org.truffleruby.language.yield.YieldNode;
 
-import java.util.Set;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.object.dsl.Nullable;
+import com.oracle.truffle.api.source.SourceSection;
 
+@ExportLibrary(InteropLibrary.class)
 public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
 
     public final ProcType type;
@@ -60,14 +68,36 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
     }
 
     @Override
-    public Class<?> dispatch() {
-        return ProcMessages.class;
-    }
-
-    @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.addProperty(reachable, declarationFrame);
         ObjectGraph.addProperty(reachable, method);
         ObjectGraph.addProperty(reachable, block);
     }
+
+    // region SourceLocation
+    @ExportMessage
+    public boolean hasSourceLocation() {
+        return true;
+    }
+
+    @ExportMessage
+    public SourceSection getSourceLocation() {
+        return sharedMethodInfo.getSourceSection();
+    }
+    // endregion
+
+    // region Executable
+    @ExportMessage
+    public boolean isExecutable() {
+        return true;
+    }
+
+    @ExportMessage
+    public Object execute(Object[] arguments,
+            @Cached YieldNode yieldNode,
+            @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode) {
+        return yieldNode.executeDispatch(this, foreignToRubyArgumentsNode.executeConvert(arguments));
+    }
+    // endregion
+
 }

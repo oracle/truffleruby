@@ -9,9 +9,7 @@
  */
 package org.truffleruby.core.thread;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
-import org.truffleruby.interop.messages.RubyBacktraceLocationMessages;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.backtrace.Backtrace;
 
@@ -24,12 +22,6 @@ public class RubyBacktraceLocation extends RubyDynamicObject {
         super(shape);
         this.backtrace = backtrace;
         this.activationIndex = activationIndex;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyBacktraceLocationMessages.class;
     }
 
 }

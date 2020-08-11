@@ -14,11 +14,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.basicobject.BasicObjectNodes.ObjectIDNode;
+import org.truffleruby.core.basicobject.RubyBasicObject;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.proc.ProcOperations;
 import org.truffleruby.core.thread.RubyThread;
@@ -36,7 +36,6 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
@@ -90,8 +89,7 @@ public class FiberManager {
 
     public RubyFiber createFiber(RubyContext context, RubyThread thread, Shape shape) {
         CompilerAsserts.partialEvaluationConstant(context);
-        final DynamicObject fiberLocals = Layouts.BASIC_OBJECT
-                .createBasicObject(context.getCoreLibrary().objectFactory);
+        final RubyBasicObject fiberLocals = new RubyBasicObject(context.getCoreLibrary().objectShape);
         final RubyArray catchTags = ArrayHelpers.createEmptyArray(context);
 
         return new RubyFiber(shape, fiberLocals, catchTags, thread);

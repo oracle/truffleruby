@@ -9,6 +9,7 @@
  */
 package org.truffleruby.language.methods;
 
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -16,7 +17,6 @@ import org.truffleruby.language.arguments.RubyArguments;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 
 /** Define a method from a method literal (def mymethod ... end). That is, create an InternalMethod and add it to the
  * current module (default definee). */
@@ -51,7 +51,7 @@ public class LiteralMethodDefinitionNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final DynamicObject module = (DynamicObject) moduleNode.execute(frame);
+        final RubyModule module = (RubyModule) moduleNode.execute(frame);
 
         final Visibility visibility;
         if (isDefSingleton) {

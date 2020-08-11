@@ -82,7 +82,6 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.instrumentation.Instrumenter;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -286,8 +285,7 @@ public class RubyContext {
         Metrics.printTime("after-rehash");
 
         Metrics.printTime("before-run-delayed-initialization");
-        final Object toRunAtInit = Layouts.MODULE
-                .getFields(coreLibrary.truffleBootModule)
+        final Object toRunAtInit = coreLibrary.truffleBootModule.fields
                 .getConstant("TO_RUN_AT_INIT")
                 .getValue();
         for (Object proc : ArrayOperations.toIterable((RubyArray) toRunAtInit)) {
@@ -610,7 +608,7 @@ public class RubyContext {
         return coreStrings;
     }
 
-    public DynamicObject getFrozenStringLiteral(Rope rope) {
+    public RubyString getFrozenStringLiteral(Rope rope) {
         return frozenStringLiterals.getFrozenStringLiteral(rope);
     }
 

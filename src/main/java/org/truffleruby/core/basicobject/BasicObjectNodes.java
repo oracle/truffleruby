@@ -21,13 +21,16 @@ import org.truffleruby.core.basicobject.BasicObjectNodesFactory.ReferenceEqualNo
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.exception.RubyException;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.RubySourceNode;
@@ -43,7 +46,7 @@ import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfDefaultDefinee;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
-import org.truffleruby.language.objects.AllocateObjectNode;
+import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
 import org.truffleruby.language.supercall.SuperCallNode;
 import org.truffleruby.language.yield.CallBlockNode;
@@ -68,8 +71,8 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule(value = "BasicObject", isClass = true)
@@ -129,14 +132,14 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        protected boolean equal(DynamicObject a, DynamicObject b) {
+        protected boolean equal(RubyDynamicObject a, RubyDynamicObject b) {
             return a == b;
         }
 
         @Specialization(
                 guards = {
-                        "isNotDynamicObject(a)",
-                        "isNotDynamicObject(b)",
+                        "isNotRubyDynamicObject(a)",
+                        "isNotRubyDynamicObject(b)",
                         "!sameClass(a, b)",
                         "isNotIntLong(a) || isNotIntLong(b)" })
         protected boolean equalIncompatiblePrimitiveTypes(Object a, Object b) {
@@ -145,26 +148,26 @@ public abstract class BasicObjectNodes {
 
         @Specialization(
                 guards = {
-                        "isNotDynamicObject(a)",
-                        "isNotDynamicObject(b)",
+                        "isNotRubyDynamicObject(a)",
+                        "isNotRubyDynamicObject(b)",
                         "sameClass(a, b)",
                         "isNotIntLongDouble(a) || isNotIntLongDouble(b)" })
         protected boolean equalOtherSameClass(Object a, Object b) {
             return a == b;
         }
 
-        @Specialization(guards = "isNotDynamicObject(a)")
-        protected boolean equal(Object a, DynamicObject b) {
+        @Specialization(guards = "isNotRubyDynamicObject(a)")
+        protected boolean equal(Object a, RubyDynamicObject b) {
             return false;
         }
 
-        @Specialization(guards = "isNotDynamicObject(b)")
-        protected boolean equal(DynamicObject a, Object b) {
+        @Specialization(guards = "isNotRubyDynamicObject(b)")
+        protected boolean equal(RubyDynamicObject a, Object b) {
             return false;
         }
 
-        protected boolean isNotDynamicObject(Object value) {
-            return !(value instanceof DynamicObject);
+        protected boolean isNotRubyDynamicObject(Object value) {
+            return !(value instanceof RubyDynamicObject);
         }
 
         protected boolean sameClass(Object a, Object b) {
@@ -197,7 +200,7 @@ public abstract class BasicObjectNodes {
 
         public abstract Object execute(Object value);
 
-        public abstract long execute(DynamicObject value);
+        public abstract long execute(RubyDynamicObject value);
 
         @Specialization
         protected long objectIDNil(Nil nil) {
@@ -236,7 +239,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization
-        protected Object objectID(double value,
+        protected RubyBignum objectID(double value,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             return ObjectIDOperations.floatToID(context, value);
         }
@@ -256,7 +259,7 @@ public abstract class BasicObjectNodes {
         }
 
         @Specialization(limit = "getCacheLimit()")
-        protected long objectID(DynamicObject object,
+        protected long objectID(RubyDynamicObject object,
                 @CachedLibrary("object") DynamicObjectLibrary objectLibrary,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
             return objectIDDynamicObject(context, object, objectLibrary);
@@ -273,11 +276,11 @@ public abstract class BasicObjectNodes {
         }
 
         /** Needed instead of an uncached node when the Context is not entered */
-        public static long uncachedObjectID(RubyContext context, DynamicObject object) {
+        public static long uncachedObjectID(RubyContext context, RubyDynamicObject object) {
             return objectIDDynamicObject(context, object, DynamicObjectLibrary.getUncached());
         }
 
-        private static long objectIDDynamicObject(RubyContext context, DynamicObject object,
+        private static long objectIDDynamicObject(RubyContext context, RubyDynamicObject object,
                 DynamicObjectLibrary objectLibrary) {
             final long id = readObjectID(object, objectLibrary);
 
@@ -303,7 +306,7 @@ public abstract class BasicObjectNodes {
             return id;
         }
 
-        private static long readObjectID(DynamicObject object, DynamicObjectLibrary objectLibrary) {
+        private static long readObjectID(RubyDynamicObject object, DynamicObjectLibrary objectLibrary) {
             try {
                 return objectLibrary.getLongOrDefault(object, Layouts.OBJECT_ID_IDENTIFIER, 0L);
             } catch (UnexpectedResultException e) {
@@ -502,7 +505,7 @@ public abstract class BasicObjectNodes {
             final FrameAndCallNode relevantCallerFrame = getRelevantCallerFrame();
             Visibility visibility;
 
-            final DynamicObject formatter;
+            final RubyProc formatter;
             if (lastCallWasSuper(relevantCallerFrame)) {
                 formatter = ExceptionOperations.getFormatter(ExceptionOperations.SUPER_METHOD_ERROR, getContext());
                 return coreExceptions().noMethodErrorFromMethodMissing(formatter, self, name, args, this);
@@ -612,11 +615,13 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = { "__allocate__", "__layout_allocate__" }, constructor = true, visibility = Visibility.PRIVATE)
     public abstract static class AllocateNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private AllocateObjectNode allocateObjectNode = AllocateObjectNode.create();
-
         @Specialization
-        protected DynamicObject allocate(DynamicObject rubyClass) {
-            return allocateObjectNode.allocate(rubyClass);
+        protected RubyBasicObject allocate(RubyClass rubyClass,
+                @Cached AllocateHelperNode allocateHelperNode) {
+            final Shape shape = allocateHelperNode.getCachedShape(rubyClass);
+            final RubyBasicObject instance = new RubyBasicObject(shape);
+            allocateHelperNode.trace(instance, this);
+            return instance;
         }
 
     }

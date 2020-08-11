@@ -9,15 +9,14 @@
  */
 package org.truffleruby.core.regexp;
 
-import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
 import org.joni.Regex;
 import org.truffleruby.core.rope.Rope;
-import org.truffleruby.interop.messages.RegexpMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
 public class RubyRegexp extends RubyDynamicObject {
+
     public Regex regex;
     public Rope source;
     public RegexpOptions options;
@@ -29,12 +28,6 @@ public class RubyRegexp extends RubyDynamicObject {
         this.source = source;
         this.options = options;
         this.cachedEncodings = encodingCache;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RegexpMessages.class;
     }
 
 }

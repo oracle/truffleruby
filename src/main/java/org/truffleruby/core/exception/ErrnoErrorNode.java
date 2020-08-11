@@ -11,8 +11,9 @@ package org.truffleruby.core.exception;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 import org.jcodings.specific.UTF8Encoding;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.backtrace.Backtrace;
@@ -27,14 +28,14 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode formatMessageNode;
 
-    public abstract RubySystemCallError execute(int errno, Object extraMessage, Backtrace backtrace);
+    public abstract RubySystemCallError execute(int errno, RubyString extraMessage, Backtrace backtrace);
 
     @Specialization
-    protected RubySystemCallError errnoError(int errno, Object extraMessage, Backtrace backtrace) {
+    protected RubySystemCallError errnoError(int errno, RubyString extraMessage, Backtrace backtrace) {
         final String errnoName = getContext().getCoreLibrary().getErrnoName(errno);
 
         final Object errnoDescription;
-        final DynamicObject errnoClass;
+        final RubyClass errnoClass;
         if (errnoName == null) {
             errnoClass = getContext().getCoreLibrary().systemCallErrorClass;
             errnoDescription = nil;
@@ -46,18 +47,18 @@ public abstract class ErrnoErrorNode extends RubyContextNode {
         }
 
 
-        final DynamicObject errorMessage = formatMessage(errnoDescription, errno, extraMessage);
+        final RubyString errorMessage = formatMessage(errnoDescription, errno, extraMessage);
 
         return ExceptionOperations
                 .createSystemCallError(getContext(), errnoClass, errorMessage, errno, backtrace);
     }
 
-    private DynamicObject formatMessage(Object errnoDescription, int errno, Object extraMessage) {
+    private RubyString formatMessage(Object errnoDescription, int errno, RubyString extraMessage) {
         if (formatMessageNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             formatMessageNode = insert(CallDispatchHeadNode.createPrivate());
         }
-        return (DynamicObject) formatMessageNode.call(
+        return (RubyString) formatMessageNode.call(
                 getContext().getCoreLibrary().truffleExceptionOperationsModule,
                 "format_errno_error_message",
                 errnoDescription,

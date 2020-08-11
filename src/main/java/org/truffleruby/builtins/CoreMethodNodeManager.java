@@ -12,20 +12,20 @@ package org.truffleruby.builtins;
 import java.util.List;
 import java.util.function.Function;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.TaintResultNode;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ConstantLookupResult;
 import org.truffleruby.core.module.ModuleOperations;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.numeric.FixnumLowerNodeGen;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.language.LazyRubyNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.Visibility;
@@ -49,7 +49,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.object.DynamicObject;
 
 public class CoreMethodNodeManager {
 
@@ -80,7 +79,7 @@ public class CoreMethodNodeManager {
 
     public void addCoreMethodNodes(List<? extends NodeFactory<? extends RubyNode>> nodeFactories) {
         String moduleName = null;
-        DynamicObject module = null;
+        RubyModule module = null;
 
         for (NodeFactory<? extends RubyNode> nodeFactory : nodeFactories) {
             final Class<?> nodeClass = nodeFactory.getNodeClass();
@@ -103,8 +102,8 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private DynamicObject getModule(String fullName, boolean isClass) {
-        DynamicObject module;
+    private RubyModule getModule(String fullName, boolean isClass) {
+        RubyModule module;
 
         if (fullName.equals("main")) {
             module = getSingletonClass(context.getCoreLibrary().mainObject);
@@ -119,21 +118,19 @@ public class CoreMethodNodeManager {
                             StringUtils.format("Module %s not found when adding core library", moduleName));
                 }
 
-                module = (DynamicObject) constant.getConstant().getValue();
+                module = (RubyModule) constant.getConstant().getValue();
             }
         }
 
-        assert isClass
-                ? RubyGuards.isRubyClass(module)
-                : RubyGuards.isRubyModule(module) && !RubyGuards.isRubyClass(module) : fullName;
+        assert isClass == (module instanceof RubyClass) : fullName;
         return module;
     }
 
-    private DynamicObject getSingletonClass(Object object) {
+    private RubyClass getSingletonClass(Object object) {
         return singletonClassNode.executeSingletonClass(object);
     }
 
-    private void addCoreMethod(DynamicObject module, MethodDetails methodDetails) {
+    private void addCoreMethod(RubyModule module, MethodDetails methodDetails) {
         final CoreMethod method = methodDetails.getMethodAnnotation();
 
         final String[] names = method.names();
@@ -166,7 +163,7 @@ public class CoreMethodNodeManager {
     public void addLazyCoreMethod(String nodeFactoryName, String moduleName, boolean isClass, Visibility visibility,
             boolean isModuleFunction, boolean onSingleton,
             boolean neverSplit, int required, int optional, boolean rest, String keywordAsOptional, String... names) {
-        final DynamicObject module = getModule(moduleName, isClass);
+        final RubyModule module = getModule(moduleName, isClass);
         final Arity arity = createArity(required, optional, rest, keywordAsOptional);
 
         Function<SharedMethodInfo, RubyNode> methodNodeFactory = sharedMethodInfo -> new LazyRubyNode(context, () -> {
@@ -178,7 +175,7 @@ public class CoreMethodNodeManager {
         addMethods(module, isModuleFunction, onSingleton, names, arity, visibility, methodNodeFactory, neverSplit);
     }
 
-    private void addMethods(DynamicObject module, boolean isModuleFunction, boolean onSingleton, String[] names,
+    private void addMethods(RubyModule module, boolean isModuleFunction, boolean onSingleton, String[] names,
             Arity arity, Visibility visibility,
             Function<SharedMethodInfo, RubyNode> methodNodeFactory, boolean neverSplit) {
         if (isModuleFunction) {
@@ -198,7 +195,7 @@ public class CoreMethodNodeManager {
         }
     }
 
-    private static void addMethod(RubyContext context, DynamicObject module,
+    private static void addMethod(RubyContext context, RubyModule module,
             Function<SharedMethodInfo, RubyNode> methodNodeFactory, String[] names, Visibility originalVisibility,
             Arity arity,
             boolean neverSplit) {
@@ -222,12 +219,12 @@ public class CoreMethodNodeManager {
                     visibility,
                     callTarget);
 
-            Layouts.MODULE.getFields(module).addMethod(context, null, method);
+            module.fields.addMethod(context, null, method);
         }
     }
 
     private static SharedMethodInfo makeSharedMethodInfo(RubyContext context, LexicalScope lexicalScope,
-            DynamicObject module, String name, Arity arity) {
+            RubyModule module, String name, Arity arity) {
         return new SharedMethodInfo(
                 context.getCoreLibrary().sourceSection,
                 lexicalScope,
@@ -371,7 +368,7 @@ public class CoreMethodNodeManager {
         return node;
     }
 
-    private void verifyUsage(DynamicObject module, MethodDetails methodDetails, CoreMethod method,
+    private void verifyUsage(RubyModule module, MethodDetails methodDetails, CoreMethod method,
             Visibility visibility) {
         if (method.isModuleFunction()) {
             if (visibility != Visibility.PUBLIC) {
@@ -386,7 +383,7 @@ public class CoreMethodNodeManager {
                 RubyLanguage.LOGGER
                         .warning("either constructor or isModuleFunction for " + methodDetails.getIndicativeName());
             }
-            if (RubyGuards.isRubyClass(module)) {
+            if (module instanceof RubyClass) {
                 RubyLanguage.LOGGER
                         .warning("using isModuleFunction on a Class for " + methodDetails.getIndicativeName());
             }

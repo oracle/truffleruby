@@ -9,27 +9,27 @@
  */
 package org.truffleruby.language.constants;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.module.ModuleOperations;
-import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.RubyConstant;
+import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeUtil;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 /** Read a literal constant on a given module: MOD::CONST */
 public class ReadConstantNode extends RubyContextSourceNode {
 
     private final String name;
+    private final BranchProfile notModuleProfile = BranchProfile.create();
 
     @Child private RubyNode moduleNode;
-    @Child private CheckModuleNode checkModuleNode = CheckModuleNodeGen.create();
     @Child private LookupConstantNode lookupConstantNode;
     @Child private GetConstantNode getConstantNode;
 
@@ -41,12 +41,10 @@ public class ReadConstantNode extends RubyContextSourceNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final Object moduleObject = moduleNode.execute(frame);
-        final DynamicObject module = checkModuleNode.executeCheckModule(moduleObject);
-        return lookupAndGetConstant(module);
+        return lookupAndGetConstant(checkModule(moduleObject));
     }
 
-
-    private Object lookupAndGetConstant(DynamicObject module) {
+    private Object lookupAndGetConstant(RubyModule module) {
         if (getConstantNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             getConstantNode = insert(GetConstantNode.create());
@@ -81,12 +79,12 @@ public class ReadConstantNode extends RubyContextSourceNode {
             return nil;
         }
 
-        final DynamicObject module = checkModuleNode.executeCheckModule(moduleObject);
+        final RubyModule module = checkModule(moduleObject);
         final RubyConstant constant;
         try {
             constant = getLookupConstantNode().lookupConstant(LexicalScope.IGNORE, module, name);
         } catch (RaiseException e) {
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().nameErrorClass) {
+            if (e.getException().getLogicalClass() == coreLibrary().nameErrorClass) {
                 // private constant
                 return nil;
             }
@@ -102,6 +100,15 @@ public class ReadConstantNode extends RubyContextSourceNode {
 
     public RubyNode makeWriteNode(RubyNode rhs) {
         return new WriteConstantNode(name, NodeUtil.cloneNode(moduleNode), rhs);
+    }
+
+    private RubyModule checkModule(Object module) {
+        if (module instanceof RubyModule) {
+            return ((RubyModule) module);
+        } else {
+            notModuleProfile.enter();
+            throw new RaiseException(getContext(), coreExceptions().typeErrorIsNotAClassModule(module, this));
+        }
     }
 
 }

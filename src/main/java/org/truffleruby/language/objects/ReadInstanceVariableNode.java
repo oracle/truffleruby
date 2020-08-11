@@ -11,13 +11,13 @@ package org.truffleruby.language.objects;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyContextSourceNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarningNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
@@ -47,9 +47,9 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
     public Object execute(VirtualFrame frame) {
         final Object receiverObject = receiver.execute(frame);
 
-        if (objectProfile.profile(receiverObject instanceof DynamicObject)) {
+        if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
-            final DynamicObject dynamicObject = (DynamicObject) receiverObject;
+            final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
             if (warnIfUndefined && !objectLibrary.containsKey(dynamicObject, name)) {
                 warnNotInitialized();
             }
@@ -68,9 +68,9 @@ public class ReadInstanceVariableNode extends RubyContextSourceNode {
     public Object isDefined(VirtualFrame frame, RubyContext context) {
         final Object receiverObject = receiver.execute(frame);
 
-        if (objectProfile.profile(receiverObject instanceof DynamicObject)) {
+        if (objectProfile.profile(receiverObject instanceof RubyDynamicObject)) {
             final DynamicObjectLibrary objectLibrary = getObjectLibrary();
-            final DynamicObject dynamicObject = (DynamicObject) receiverObject;
+            final RubyDynamicObject dynamicObject = (RubyDynamicObject) receiverObject;
             if (objectLibrary.containsKey(dynamicObject, name)) {
                 return coreStrings().INSTANCE_VARIABLE.createInstance();
             } else {

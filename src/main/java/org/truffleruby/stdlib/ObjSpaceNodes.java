@@ -14,18 +14,18 @@ import java.util.Set;
 import org.truffleruby.builtins.CoreMethod;
 import org.truffleruby.builtins.CoreMethodArrayArgumentsNode;
 import org.truffleruby.builtins.CoreModule;
-import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.regexp.MatchDataNodes.ValuesNode;
+import org.truffleruby.core.regexp.RubyMatchData;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @CoreModule("Truffle::ObjSpace")
 public abstract class ObjSpaceNodes {
@@ -60,11 +60,11 @@ public abstract class ObjSpaceNodes {
                         "!isRubyHash(object)",
                         "!isRubyString(object)",
                         "!isRubyMatchData(object)" })
-        protected int memsizeOfObject(DynamicObject object) {
+        protected int memsizeOfObject(RubyDynamicObject object) {
             return 1 + object.getShape().getPropertyListInternal(false).size();
         }
 
-        @Specialization(guards = "!isDynamicObject(object)")
+        @Specialization(guards = "!isRubyDynamicObject(object)")
         protected int memsize(Object object) {
             return 0;
         }
@@ -75,7 +75,7 @@ public abstract class ObjSpaceNodes {
 
         @TruffleBoundary
         @Specialization
-        protected RubyArray adjacentObjects(DynamicObject object) {
+        protected RubyArray adjacentObjects(RubyDynamicObject object) {
             final Set<Object> objects = ObjectGraph.getAdjacentObjects(object);
             return createArray(objects.toArray());
         }

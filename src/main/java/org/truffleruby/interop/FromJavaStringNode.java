@@ -13,6 +13,7 @@ import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
+import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyBaseNode;
@@ -22,7 +23,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
 
 @GenerateUncached
 @ImportStatic(RubyGuards.class)
@@ -32,10 +32,10 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
         return FromJavaStringNodeGen.create();
     }
 
-    public abstract DynamicObject executeFromJavaString(Object value);
+    public abstract RubyString executeFromJavaString(Object value);
 
     @Specialization(guards = "stringsEquals(cachedValue, value)", limit = "getLimit()")
-    protected DynamicObject doCached(String value,
+    protected RubyString doCached(String value,
             @Cached("value") String cachedValue,
             @Cached("getRope(value)") Rope cachedRope,
             @Cached StringNodes.MakeStringNode makeStringNode) {
@@ -43,7 +43,7 @@ public abstract class FromJavaStringNode extends RubyBaseNode {
     }
 
     @Specialization(replaces = "doCached")
-    protected DynamicObject doGeneric(String value,
+    protected RubyString doGeneric(String value,
             @Cached StringNodes.MakeStringNode makeStringNode) {
         return makeStringNode.executeMake(value, UTF8Encoding.INSTANCE, CodeRange.CR_UNKNOWN);
     }

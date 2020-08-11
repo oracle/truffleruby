@@ -9,14 +9,12 @@
  */
 package org.truffleruby.core.tracepoint;
 
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.Shape;
 import org.truffleruby.core.proc.RubyProc;
-import org.truffleruby.interop.messages.RubyTracePointMessages;
 import org.truffleruby.language.RubyDynamicObject;
 
-public class RubyTracePoint extends RubyDynamicObject {
+import com.oracle.truffle.api.object.Shape;
 
+public class RubyTracePoint extends RubyDynamicObject {
 
     TracePointEvent[] events;
     RubyProc proc;
@@ -25,12 +23,6 @@ public class RubyTracePoint extends RubyDynamicObject {
         super(shape);
         this.events = events;
         this.proc = proc;
-    }
-
-    @Override
-    @ExportMessage
-    public Class<?> dispatch() {
-        return RubyTracePointMessages.class;
     }
 
 }

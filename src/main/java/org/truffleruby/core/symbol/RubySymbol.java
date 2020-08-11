@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.Hashing;
+import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.language.ImmutableRubyObject;
 
@@ -23,11 +24,8 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.DynamicObject;
-import org.truffleruby.language.library.RubyLibrary;
 
 @ExportLibrary(InteropLibrary.class)
-@ExportLibrary(RubyLibrary.class)
 public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
 
     public static final int UNASSIGNED_ID = -1;
@@ -85,43 +83,32 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
         return hashing.hash(CLASS_SALT, javaStringHashCode);
     }
 
-    // Messages
-
     @Override
     public String toString() {
         return ":" + string;
     }
 
+    // region InteropLibrary messages
+    @Override
     @ExportMessage
-    protected boolean hasLanguage() {
-        return true;
-    }
-
-    @ExportMessage
-    protected Class<RubyLanguage> getLanguage() {
-        return RubyLanguage.class;
-    }
-
-    @ExportMessage
-    protected String toDisplayString(boolean allowSideEffects) {
+    public String toDisplayString(boolean allowSideEffects) {
         return toString();
     }
 
     @ExportMessage
-    protected boolean hasMetaObject() {
+    public boolean hasMetaObject() {
         return true;
     }
 
     @ExportMessage
-    protected DynamicObject getMetaObject(
+    public RubyClass getMetaObject(
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().symbolClass;
     }
 
-    // String messages
-
+    // region String messages
     @ExportMessage
-    protected boolean isString() {
+    public boolean isString() {
         return true;
     }
 
@@ -131,7 +118,7 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
         @Specialization(guards = "symbol == cachedSymbol", limit = "getLimit()")
         protected static String asString(RubySymbol symbol,
                 @Cached("symbol") RubySymbol cachedSymbol,
-                @Cached("uncachedAsString(cachedSymbol)") String cachedString) {
+                @Cached("cachedSymbol.getString()") String cachedString) {
             return cachedString;
         }
 
@@ -144,29 +131,7 @@ public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
             return RubyLanguage.getCurrentContext().getOptions().INTEROP_CONVERT_CACHE;
         }
     }
-
-    // RubyLibrary messages
-
-    @ExportMessage
-    protected void freeze() {
-    }
-
-    @ExportMessage
-    protected boolean isFrozen() {
-        return true;
-    }
-
-    @ExportMessage
-    protected boolean isTainted() {
-        return false;
-    }
-
-    @ExportMessage
-    protected void taint() {
-    }
-
-    @ExportMessage
-    protected void untaint() {
-    }
+    // endregion
+    // endregion
 
 }

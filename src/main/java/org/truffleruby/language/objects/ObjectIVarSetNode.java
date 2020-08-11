@@ -9,10 +9,10 @@
  */
 package org.truffleruby.language.objects;
 
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
+import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.objects.shared.SharedObjects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -21,7 +21,7 @@ import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
 @ReportPolymorphism
 @GenerateUncached
@@ -31,14 +31,14 @@ public abstract class ObjectIVarSetNode extends RubyBaseNode {
         return ObjectIVarSetNodeGen.create();
     }
 
-    public abstract Object executeIVarSet(DynamicObject object, Object name, Object value, boolean checkName);
+    public abstract Object executeIVarSet(RubyDynamicObject object, Object name, Object value, boolean checkName);
 
-    public final Object executeIVarSet(DynamicObject object, Object name, Object value) {
+    public final Object executeIVarSet(RubyDynamicObject object, Object name, Object value) {
         return executeIVarSet(object, name, value, false);
     }
 
     @Specialization(guards = { "name == cachedName", "checkName == cachedCheckName" }, limit = "getCacheLimit()")
-    protected Object ivarSetCached(DynamicObject object, Object name, Object value, boolean checkName,
+    protected Object ivarSetCached(RubyDynamicObject object, Object name, Object value, boolean checkName,
             @Cached("checkName") boolean cachedCheckName,
             @CachedContext(RubyLanguage.class) RubyContext context,
             // context does not have to be guarded since it used only during cache instance creation
@@ -50,7 +50,7 @@ public abstract class ObjectIVarSetNode extends RubyBaseNode {
 
     @TruffleBoundary
     @Specialization(replaces = "ivarSetCached")
-    protected Object ivarSetUncached(DynamicObject object, Object name, Object value, boolean checkName,
+    protected Object ivarSetUncached(RubyDynamicObject object, Object name, Object value, boolean checkName,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         if (SharedObjects.isShared(context, object)) {
             SharedObjects.writeBarrier(context, value);
@@ -64,7 +64,7 @@ public abstract class ObjectIVarSetNode extends RubyBaseNode {
     }
 
     protected Object checkName(
-            RubyContext context, DynamicObject object, Object name, boolean checkName) {
+            RubyContext context, RubyDynamicObject object, Object name, boolean checkName) {
         return ObjectIVarGetNode.checkName(context, object, name, checkName, this);
     }
 

@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.cast;
 
-import org.truffleruby.Layouts;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
@@ -52,7 +51,7 @@ public abstract class ToAryNode extends RubyContextSourceNode {
             coerced = toAryNode.call(object, "to_ary");
         } catch (RaiseException e) {
             errorProfile.enter();
-            if (Layouts.BASIC_OBJECT.getLogicalClass(e.getException()) == coreLibrary().noMethodErrorClass) {
+            if (e.getException().getLogicalClass() == coreLibrary().noMethodErrorClass) {
                 throw new RaiseException(
                         getContext(),
                         coreExceptions().typeErrorNoImplicitConversion(object, "Array", this));
