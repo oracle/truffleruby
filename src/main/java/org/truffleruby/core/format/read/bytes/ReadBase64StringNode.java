@@ -66,6 +66,12 @@ public abstract class ReadBase64StringNode extends FormatNode {
 
     @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
+    private final int count;
+
+    public ReadBase64StringNode(int count) {
+        this.count = count;
+    }
+
     @Specialization
     protected Object read(VirtualFrame frame, byte[] source) {
         final ByteBuffer encode = wrapByteBuffer(frame, source);
@@ -79,15 +85,13 @@ public abstract class ReadBase64StringNode extends FormatNode {
 
     @TruffleBoundary
     private byte[] read(ByteBuffer encode) {
-        int occurrences = encode.remaining();
-
         int length = encode.remaining() * 3 / 4;
         byte[] lElem = new byte[length];
         int a = -1, b = -1, c = 0, d;
         int index = 0;
         int s = -1;
 
-        if (occurrences == 0) {
+        if (count == 0) {
             if (encode.remaining() % 4 != 0) {
                 throw new InvalidFormatException("invalid base64");
             }
