@@ -11,6 +11,11 @@
 module Truffle
   module RegexpOperations
 
+    USE_TRUFFLE_REGEX = false
+    USE_TRUFFLE_REGEX_EXEC_BYTES = false
+
+    TREGEX = Primitive.object_hidden_var_create :tregex
+
     def self.search_region(re, str, start_index, end_index, forward)
       raise TypeError, 'uninitialized regexp' unless Primitive.regexp_initialized?(re)
       raise ArgumentError, "invalid byte sequence in #{str.encoding}" unless str.valid_encoding?
@@ -23,7 +28,7 @@ module Truffle
         from = end_index
         to = start_index
       end
-      Primitive.regexp_match_in_region(re, str, from, to, false, true, 0)
+      match_in_region(re, str, from, to, false, true, 0)
     end
 
     # This path is used by some string and scanner methods and allows
@@ -31,7 +36,7 @@ module Truffle
     # possible to refactor search region to offer the ability to
     # specify at start, we should investigate this at some point.
     def self.match_onwards(re, str, from, at_start)
-      md = Primitive.regexp_match_in_region(re, str, from, str.bytesize, at_start, true, from)
+      md = match_in_region(re, str, from, str.bytesize, at_start, true, from)
       Primitive.matchdata_fixup_positions(md, from) if md
       md
     end
@@ -51,6 +56,40 @@ module Truffle
       return nil unless str
 
       search_region(re, str, pos, str.bytesize, true)
+    end
+
+    def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      if USE_TRUFFLE_REGEX
+        if (nil == Primitive.object_hidden_var_get(re, TREGEX))
+          Primitive.object_hidden_var_set(re, TREGEX, tregex_engine.call(re.source))
+        end
+        raise RuntimeeError, 'Backwards searching not yet supported' unless to >= from
+        tr = Primitive.object_hidden_var_get(re, TREGEX)
+        if USE_TRUFFLE_REGEX_EXEC_BYTES && str.encoding == Encoding::UTF_8
+          bytes = Truffle::StringOperations.raw_bytes(str)
+          tr_match = tr.execBytes(bytes, from)
+        else
+          tr_match = tr.exec(str, from)
+        end
+        if (tr_match.isMatch)
+          starts = []
+          ends = []
+          pos = 0
+          while true
+            a_start = tr_match.getStart(pos)
+            a_end = tr_match.getEnd(pos)
+            break if (a_start == -1)
+            starts << a_start
+            ends << a_end
+            pos += 1
+          end
+          Primitive.matchdata_create(re, str, starts, ends)
+        else
+          nil
+        end
+      else
+        Primitive.regexp_match_in_region(re, str, from, to, at_start, encoding_conversion, start)
+      end
     end
 
     def self.compilation_stats
