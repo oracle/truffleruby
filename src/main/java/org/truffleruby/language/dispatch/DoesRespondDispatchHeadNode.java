@@ -16,19 +16,26 @@ import org.truffleruby.core.proc.RubyProc;
 
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
-    public static final boolean PRIVATE = true;
-    public static final boolean PUBLIC = false;
+    public static final DispatchConfiguration PRIVATE = DispatchConfiguration.PRIVATE_DOES_RESPOND;
+    public static final DispatchConfiguration PUBLIC = DispatchConfiguration.PUBLIC_DOES_RESPOND;
 
     public static DoesRespondDispatchHeadNode create() {
         return create(PRIVATE);
     }
 
-    public static DoesRespondDispatchHeadNode create(boolean ignoreVisibility) {
-        return new DoesRespondDispatchHeadNode(ignoreVisibility);
+    public static DoesRespondDispatchHeadNode create(DispatchConfiguration config) {
+        return new DoesRespondDispatchHeadNode(config);
     }
 
-    private DoesRespondDispatchHeadNode(boolean ignoreVisibility) {
-        super(ignoreVisibility, !ignoreVisibility, MissingBehavior.RETURN_MISSING, DispatchAction.RESPOND_TO_METHOD);
+    @Child NewDispatchHeadNode newDispatch;
+
+    private DoesRespondDispatchHeadNode(DispatchConfiguration config, NewDispatchHeadNode newDispatch) {
+        super(config.ignoreVisibility, config.onlyLookupPublic, config.missingBehavior, config.dispatchAction);
+        this.newDispatch = newDispatch;
+    }
+
+    private DoesRespondDispatchHeadNode(DispatchConfiguration config) {
+        this(config, NewDispatchHeadNode.create(config));
     }
 
     /** Check if a specific method is defined on the receiver object. This check is "static" and should only be used in
@@ -47,41 +54,34 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
                 EMPTY_ARGUMENTS);
     }
 
+    @Override
+    public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, RubyProc blockObject,
+            Object[] argumentsObjects) {
+        return newDispatch.execute(frame, receiverObject, methodName, blockObject, argumentsObjects);
+    }
+
+    public static DoesRespondDispatchHeadNode getUncached() {
+        return Uncached.UNCACHED_PRIVATE;
+    }
+
+    public static DoesRespondDispatchHeadNode getUncached(DispatchConfiguration config) {
+        switch (config) {
+            case PUBLIC_DOES_RESPOND:
+                return Uncached.UNCACHED_PUBLIC;
+            case PRIVATE_DOES_RESPOND:
+                return Uncached.UNCACHED_PRIVATE;
+            default:
+                throw CompilerDirectives.shouldNotReachHere();
+        }
+    }
+
     private static class Uncached extends DoesRespondDispatchHeadNode {
 
-        Uncached(boolean ignoreVisibility) {
-            super(ignoreVisibility);
-        }
+        private static final Uncached UNCACHED_PRIVATE = new Uncached(DispatchConfiguration.PRIVATE_DOES_RESPOND);
+        private static final Uncached UNCACHED_PUBLIC = new Uncached(DispatchConfiguration.PUBLIC_DOES_RESPOND);
 
-        @Override
-        public boolean doesRespondTo(VirtualFrame frame, Object name, Object receiver) {
-            return (boolean) DSLUncachedDispatchNodeGen.getUncached().dispatch(
-                    null,
-                    receiver,
-                    name,
-                    null,
-                    null,
-                    EMPTY_ARGUMENTS,
-                    DispatchAction.RESPOND_TO_METHOD,
-                    MissingBehavior.RETURN_MISSING,
-                    this.ignoreVisibility,
-                    false);
-        }
-
-        @Override
-        public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, RubyProc blockObject,
-                Object[] argumentsObjects) {
-            throw CompilerDirectives.shouldNotReachHere();
-        }
-
-        @Override
-        public void reset(String reason) {
-            throw CompilerDirectives.shouldNotReachHere();
-        }
-
-        @Override
-        public DispatchNode getFirstDispatchNode() {
-            throw CompilerDirectives.shouldNotReachHere();
+        Uncached(DispatchConfiguration config) {
+            super(config, NewDispatchHeadNode.getUncached(config));
         }
 
         @Override
@@ -94,16 +94,4 @@ public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
             return false;
         }
     }
-
-    private static final Uncached UNCACHED_PRIVATE = new Uncached(true);
-    private static final Uncached UNCACHED_PUBLIC = new Uncached(false);
-
-    public static DoesRespondDispatchHeadNode getUncached() {
-        return getUncached(PRIVATE);
-    }
-
-    public static DoesRespondDispatchHeadNode getUncached(boolean ignoreVisibility) {
-        return ignoreVisibility ? UNCACHED_PRIVATE : UNCACHED_PUBLIC;
-    }
-
 }

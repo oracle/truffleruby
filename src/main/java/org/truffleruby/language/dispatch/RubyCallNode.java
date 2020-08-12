@@ -110,8 +110,9 @@ public class RubyCallNode extends RubyContextSourceNode {
             Object[] argumentsObjects) {
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatchHead = insert(
-                    new CallDispatchHeadNode(ignoreVisibility, false, MissingBehavior.CALL_METHOD_MISSING));
+            dispatchHead = insert(CallDispatchHeadNode.create(ignoreVisibility
+                    ? DispatchConfiguration.PRIVATE
+                    : DispatchConfiguration.PROTECTED));
         }
 
         final Object returnValue = dispatchHead

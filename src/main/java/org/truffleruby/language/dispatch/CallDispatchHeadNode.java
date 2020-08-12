@@ -17,47 +17,43 @@ import org.truffleruby.core.proc.RubyProc;
 
 public class CallDispatchHeadNode extends DispatchHeadNode {
 
-    public static final byte PRIVATE = 0b10;
-    public static final byte PUBLIC = 0b00;
-    public static final byte RETURN_MISSING = 0b11;
-    public static final byte PUBLIC_RETURN_MISSING = 0b01;
+    public static final DispatchConfiguration PRIVATE = DispatchConfiguration.PRIVATE;
+    public static final DispatchConfiguration PUBLIC = DispatchConfiguration.PUBLIC;
+    public static final DispatchConfiguration PRIVATE_RETURN_MISSING = DispatchConfiguration.PRIVATE_RETURN_MISSING;
+    public static final DispatchConfiguration PUBLIC_RETURN_MISSING = DispatchConfiguration.PUBLIC_RETURN_MISSING;
 
     public static CallDispatchHeadNode create() {
-        return create(PRIVATE);
+        return createPrivate();
     }
 
-    public static CallDispatchHeadNode create(byte configuration) {
-        switch (configuration) {
-            case PRIVATE:
-                return createPrivate();
-            case PUBLIC:
-                return createPublic();
-            case RETURN_MISSING:
-                return createReturnMissing();
-            case PUBLIC_RETURN_MISSING:
-                return new CallDispatchHeadNode(false, true, MissingBehavior.RETURN_MISSING);
-            default:
-                throw new IllegalStateException("Unexpected value: " + configuration);
-        }
+    public static CallDispatchHeadNode create(DispatchConfiguration config) {
+        return new CallDispatchHeadNode(config);
     }
 
     /** Create a dispatch node ignoring visibility. This is the case for most calls from Java nodes and from the C-API,
-     * as checking visibility doesn't make much sense in this context and MRI doesn't do it either. */
+     *  as checking visibility doesn't make much sense in this context and MRI doesn't do it either. */
     public static CallDispatchHeadNode createPrivate() {
-        return new CallDispatchHeadNode(true, false, MissingBehavior.CALL_METHOD_MISSING);
+        return new CallDispatchHeadNode(PRIVATE);
     }
 
     /** Create a dispatch node only allowed to call public methods. This is rather rare. */
     public static CallDispatchHeadNode createPublic() {
-        return new CallDispatchHeadNode(false, true, MissingBehavior.CALL_METHOD_MISSING);
+        return new CallDispatchHeadNode(PUBLIC);
     }
 
     public static CallDispatchHeadNode createReturnMissing() {
-        return new CallDispatchHeadNode(true, false, MissingBehavior.RETURN_MISSING);
+        return new CallDispatchHeadNode(PRIVATE_RETURN_MISSING);
     }
 
-    CallDispatchHeadNode(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
-        super(ignoreVisibility, onlyCallPublic, missingBehavior, DispatchAction.CALL_METHOD);
+    @Child NewDispatchHeadNode newDispatch;
+
+    private CallDispatchHeadNode(DispatchConfiguration config, NewDispatchHeadNode newDispatch) {
+        super(config.ignoreVisibility, config.onlyLookupPublic, config.missingBehavior, config.dispatchAction);
+        this.newDispatch = newDispatch;
+    }
+
+    private CallDispatchHeadNode(DispatchConfiguration config) {
+        this(config, NewDispatchHeadNode.create(config));
     }
 
     public Object call(Object receiver, String method, Object... arguments) {
@@ -68,9 +64,49 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         return dispatch(null, receiver, method, block, arguments);
     }
 
+    @Override
+    public Object dispatch(VirtualFrame frame, Object receiverObject, Object methodName, RubyProc blockObject,
+            Object[] argumentsObjects) {
+        return newDispatch.execute(frame, receiverObject, methodName, blockObject, argumentsObjects);
+    }
+
+    public static CallDispatchHeadNode getUncached() {
+        return Uncached.UNCACHED_PRIVATE;
+    }
+
+    public static CallDispatchHeadNode getUncached(DispatchConfiguration config) {
+        switch (config) {
+            case PRIVATE:
+                return Uncached.UNCACHED_PRIVATE;
+            case PUBLIC:
+                return Uncached.UNCACHED_PUBLIC;
+            case PRIVATE_RETURN_MISSING:
+                return Uncached.UNCACHED_PRIVATE_RETURN_MISSING;
+            case PUBLIC_RETURN_MISSING:
+                return Uncached.UNCACHED_PUBLIC_RETURN_MISSING;
+            default:
+                throw CompilerDirectives.shouldNotReachHere();
+        }
+    }
+
+    @TruffleBoundary
+    private static IllegalStateException unexpectedConfiguration(String msg) {
+        return new IllegalStateException(msg);
+    }
+
     private static class Uncached extends CallDispatchHeadNode {
-        Uncached(boolean ignoreVisibility, boolean onlyCallPublic, MissingBehavior missingBehavior) {
-            super(ignoreVisibility, onlyCallPublic, missingBehavior);
+
+        private static final Uncached UNCACHED_PRIVATE = new Uncached(PRIVATE);
+        private static final Uncached UNCACHED_PUBLIC = new Uncached(PUBLIC);
+        private static final Uncached UNCACHED_PRIVATE_RETURN_MISSING = new Uncached(PRIVATE_RETURN_MISSING);
+        private static final CallDispatchHeadNode UNCACHED_PUBLIC_RETURN_MISSING = new Uncached(PUBLIC_RETURN_MISSING);
+
+        public static CallDispatchHeadNode getUncached() {
+            return UNCACHED_PRIVATE;
+        }
+
+        Uncached(DispatchConfiguration config) {
+            super(config, NewDispatchHeadNode.getUncached(config));
         }
 
         @Override
@@ -121,48 +157,5 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
         public boolean isAdoptable() {
             return false;
         }
-    }
-
-    private static final CallDispatchHeadNode UNCACHED_PRIVATE = new Uncached(
-            true,
-            false,
-            MissingBehavior.CALL_METHOD_MISSING);
-    private static final CallDispatchHeadNode UNCACHED_PUBLIC = new Uncached(
-            false,
-            true,
-            MissingBehavior.CALL_METHOD_MISSING);
-
-    private static final CallDispatchHeadNode UNCACHED_RETURN_MISSING = new Uncached(
-            true,
-            false,
-            MissingBehavior.RETURN_MISSING);
-
-    private static final CallDispatchHeadNode UNCACHED_PUBLIC_RETURN_MISSING = new Uncached(
-            false,
-            true,
-            MissingBehavior.RETURN_MISSING);
-
-    public static CallDispatchHeadNode getUncached() {
-        return UNCACHED_PRIVATE;
-    }
-
-    public static CallDispatchHeadNode getUncached(byte configuration) {
-        switch (configuration) {
-            case PRIVATE:
-                return UNCACHED_PRIVATE;
-            case PUBLIC:
-                return UNCACHED_PUBLIC;
-            case RETURN_MISSING:
-                return UNCACHED_RETURN_MISSING;
-            case PUBLIC_RETURN_MISSING:
-                return UNCACHED_PUBLIC_RETURN_MISSING;
-            default:
-                throw unexpectedConfiguration("Unexpected value: " + configuration);
-        }
-    }
-
-    @TruffleBoundary
-    private static IllegalStateException unexpectedConfiguration(String msg) {
-        return new IllegalStateException(msg);
     }
 }
