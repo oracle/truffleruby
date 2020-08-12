@@ -62,6 +62,8 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
 
@@ -117,7 +119,7 @@ public class TruffleRegexpNodes {
 
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
-        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
+        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.create(PRIVATE);
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -287,7 +289,7 @@ public class TruffleRegexpNodes {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create(PRIVATE);
 
         public static MatchNode create() {
             return MatchNodeGen.create();

@@ -26,12 +26,14 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 // TODO(CS): copy and paste of ArrayCastNode
 
 @NodeChild(value = "child", type = RubyNode.class)
 public abstract class HashCastNode extends RubyContextSourceNode {
 
-    @Child private CallDispatchHeadNode toHashNode = CallDispatchHeadNode.createReturnMissing();
+    @Child private CallDispatchHeadNode toHashNode = CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING);
 
     protected abstract RubyNode getChild();
 

@@ -28,7 +28,7 @@ public abstract class ToPathNode extends RubyContextSourceNode {
 
     @Specialization(guards = "!isRubyString(object)")
     protected RubyString coerceObject(Object object,
-            @Cached("createPrivate()") CallDispatchHeadNode toPathNode) {
+            @Cached(parameters = "PRIVATE") CallDispatchHeadNode toPathNode) {
         return (RubyString) toPathNode.call(coreLibrary().truffleTypeModule, "coerce_to_path", object);
     }
 

@@ -33,6 +33,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 public class InterpolatedRegexpNode extends RubyContextSourceNode {
 
     @Children private final ToSNode[] children;
@@ -61,7 +63,7 @@ public class InterpolatedRegexpNode extends RubyContextSourceNode {
     public static abstract class RegexpBuilderNode extends RubyContextNode {
 
         @Child private RopeNodes.EqualNode ropesEqualNode = RopeNodes.EqualNode.create();
-        @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode copyNode = CallDispatchHeadNode.create(PRIVATE);
         private final RegexpOptions options;
 
         public static RegexpBuilderNode create(RegexpOptions options) {

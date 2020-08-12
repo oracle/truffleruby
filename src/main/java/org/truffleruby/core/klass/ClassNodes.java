@@ -39,6 +39,8 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 @CoreModule(value = "Class", isClass = true)
 public abstract class ClassNodes {
 
@@ -275,7 +277,7 @@ public abstract class ClassNodes {
     @CoreMethod(names = "allocate")
     public abstract static class AllocateInstanceNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.create(PRIVATE);
 
         @Specialization
         protected Object newInstance(VirtualFrame frame, RubyClass rubyClass) {
@@ -286,8 +288,8 @@ public abstract class ClassNodes {
     @CoreMethod(names = "new", needsBlock = true, rest = true)
     public abstract static class NewNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
-        @Child private CallDispatchHeadNode initialize = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.create(PRIVATE);
+        @Child private CallDispatchHeadNode initialize = CallDispatchHeadNode.create(PRIVATE);
 
         @Specialization
         protected Object newInstance(VirtualFrame frame, RubyClass rubyClass, Object[] args, NotProvided block) {

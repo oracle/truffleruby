@@ -22,6 +22,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 @NodeChild("value")
 public abstract class ToLongNode extends FormatNode {
 
@@ -71,7 +73,7 @@ public abstract class ToLongNode extends FormatNode {
 
         if (toIntNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toIntNode = insert(CallDispatchHeadNode.createReturnMissing());
+            toIntNode = insert(CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
         }
 
         final Object value = toIntNode.call(object, "to_int");

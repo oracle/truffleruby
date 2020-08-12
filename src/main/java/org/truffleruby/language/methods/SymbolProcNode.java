@@ -20,6 +20,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import static org.truffleruby.language.dispatch.CallDispatchHeadNode.PUBLIC;
+
 public class SymbolProcNode extends RubyContextSourceNode {
 
     private final String symbol;
@@ -50,7 +52,7 @@ public class SymbolProcNode extends RubyContextSourceNode {
     private CallDispatchHeadNode getCallNode() {
         if (callNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callNode = insert(CallDispatchHeadNode.createPublic());
+            callNode = insert(CallDispatchHeadNode.create(PUBLIC));
         }
 
         return callNode;

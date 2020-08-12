@@ -22,6 +22,8 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
 
     private final String methodName;
@@ -42,7 +44,7 @@ public class ReturnEnumeratorIfNoBlockNode extends RubyContextSourceNode {
         if (noBlockProfile.profile(block == null)) {
             if (toEnumNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toEnumNode = insert(CallDispatchHeadNode.createPrivate());
+                toEnumNode = insert(CallDispatchHeadNode.create(PRIVATE));
             }
 
             if (methodSymbol == null) {

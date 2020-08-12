@@ -68,8 +68,7 @@ public abstract class DispatchNode extends FrameSendingNode {
                 frame,
                 metaClass,
                 name,
-                ignoreVisibility,
-                onlyCallPublic);
+                DispatchConfiguration.from(ignoreVisibility, onlyCallPublic));
         if (dispatchAction == DispatchAction.RESPOND_TO_METHOD && method.isDefined() &&
                 method.getMethod().isUnimplemented()) {
             return method.withNoMethod();

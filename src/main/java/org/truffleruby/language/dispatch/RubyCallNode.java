@@ -34,6 +34,8 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.CallDispatchHeadNode.PRIVATE_RETURN_MISSING;
+
 public class RubyCallNode extends RubyContextSourceNode {
 
     private final String methodName;
@@ -178,7 +180,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
         private final RubySymbol methodNameSymbol = getContext().getSymbol(methodName);
 
-        @Child private CallDispatchHeadNode respondToMissing = CallDispatchHeadNode.createReturnMissing();
+        @Child private CallDispatchHeadNode respondToMissing = CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING);
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
 
         // TODO CS-10-Apr-17 see below

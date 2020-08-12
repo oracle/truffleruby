@@ -18,6 +18,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 @NodeChild("value")
 public abstract class ToIntegerNode extends FormatNode {
 
@@ -49,7 +51,7 @@ public abstract class ToIntegerNode extends FormatNode {
     protected Object toInteger(VirtualFrame frame, Object value) {
         if (integerNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            integerNode = insert(CallDispatchHeadNode.createPrivate());
+            integerNode = insert(CallDispatchHeadNode.create(PRIVATE));
         }
 
         return integerNode.call(getContext().getCoreLibrary().kernelModule, "Integer", value);

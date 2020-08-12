@@ -17,6 +17,8 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 @NodeChild("value")
 public abstract class ToDoubleWithCoercionNode extends FormatNode {
 
@@ -26,7 +28,7 @@ public abstract class ToDoubleWithCoercionNode extends FormatNode {
     protected Object toDouble(VirtualFrame frame, Object value) {
         if (floatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            floatNode = insert(CallDispatchHeadNode.createPrivate());
+            floatNode = insert(CallDispatchHeadNode.create(PRIVATE));
         }
 
         return floatNode.call(getContext().getCoreLibrary().kernelModule, "Float", value);

@@ -123,6 +123,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 @CoreModule(value = "Module", isClass = true)
 public abstract class ModuleNodes {
 
@@ -1865,7 +1867,7 @@ public abstract class ModuleNodes {
 
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode = TypeNodes.CheckFrozenNode.create();
-        @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode methodRemovedNode = CallDispatchHeadNode.create(PRIVATE);
 
         @Specialization
         protected RubyModule removeMethods(RubyModule module, Object[] names) {
@@ -1914,7 +1916,7 @@ public abstract class ModuleNodes {
                 } else {
                     if (callRbInspect == null) {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
-                        callRbInspect = insert(CallDispatchHeadNode.createPrivate());
+                        callRbInspect = insert(CallDispatchHeadNode.create(PRIVATE));
                     }
                     final Object inspectResult = callRbInspect
                             .call(coreLibrary().truffleTypeModule, "rb_inspect", attached);
@@ -1936,7 +1938,6 @@ public abstract class ModuleNodes {
 
     @CoreMethod(names = "undef_method", rest = true, split = Split.NEVER, argumentNames = "names")
     public abstract static class UndefMethodNode extends CoreMethodArrayArgumentsNode {
-
         @TruffleBoundary
         @Specialization
         protected RubyModule undefMethods(RubyModule module, Object[] names,

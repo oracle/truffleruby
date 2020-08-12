@@ -21,6 +21,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.source.SourceSection;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 /** Warns if $VERBOSE is true or false, but not nil. Corresponds to Kernel#warn(message, uplevel: 1), but in Java with a
  * given SourceSection. */
 public class WarnNode extends RubyContextNode {
@@ -54,7 +56,7 @@ public class WarnNode extends RubyContextNode {
 
         if (callWarnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callWarnNode = insert(CallDispatchHeadNode.createPrivate());
+            callWarnNode = insert(CallDispatchHeadNode.create(PRIVATE));
         }
         callWarnNode.call(getContext().getCoreLibrary().kernelModule, "warn", warningString);
     }

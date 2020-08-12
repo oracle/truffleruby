@@ -189,7 +189,7 @@ public abstract class KernelNodes {
         private boolean areEqual(Object left, Object right) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.createPrivate());
+                equalNode = insert(CallDispatchHeadNode.create(PRIVATE));
             }
 
             if (booleanCastNode == null) {
@@ -237,7 +237,7 @@ public abstract class KernelNodes {
         private boolean areEql(Object left, Object right) {
             if (eqlNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eqlNode = insert(CallDispatchHeadNode.createPrivate());
+                eqlNode = insert(CallDispatchHeadNode.create(PRIVATE));
             }
 
             if (booleanCastNode == null) {
@@ -435,7 +435,7 @@ public abstract class KernelNodes {
             return CopyNodeFactory.create(null);
         }
 
-        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode allocateNode = CallDispatchHeadNode.create(PRIVATE);
 
         public abstract RubyDynamicObject executeCopy(RubyDynamicObject self);
 
@@ -515,7 +515,7 @@ public abstract class KernelNodes {
     public abstract static class CloneNode extends CoreMethodNode {
 
         @Child private CopyNode copyNode = CopyNode.create();
-        @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode initializeCloneNode = CallDispatchHeadNode.create(PRIVATE);
         @Child private PropagateTaintNode propagateTaintNode = PropagateTaintNode.create();
         @Child private SingletonClassNode singletonClassNode;
 
@@ -642,7 +642,7 @@ public abstract class KernelNodes {
                 @Cached IsImmutableObjectNode isImmutableObjectNode,
                 @Cached ConditionProfile immutableProfile,
                 @Cached CopyNode copyNode,
-                @Cached("createPrivate()") CallDispatchHeadNode initializeDupNode) {
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode initializeDupNode) {
             if (immutableProfile.profile(isImmutableObjectNode.execute(self))) {
                 return self;
             }
@@ -943,7 +943,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = { "initialize_dup", "initialize_clone" }, required = 1)
     public abstract static class InitializeDupCloneNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode initializeCopyNode = CallDispatchHeadNode.create(PRIVATE);
 
         @Specialization
         protected Object initializeDup(VirtualFrame frame, RubyDynamicObject self, RubyDynamicObject from) {
@@ -1226,7 +1226,7 @@ public abstract class KernelNodes {
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
         @Child private NameToJavaStringNode nameToJavaStringNode = NameToJavaStringNode.create();
         @Child private LookupMethodOnSelfNode lookupMethodNode;
-        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode respondToMissingNode = CallDispatchHeadNode.create(PRIVATE);
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         public GetMethodObjectNode(boolean ignoreVisibility) {
@@ -1297,7 +1297,7 @@ public abstract class KernelNodes {
         private static class CallMethodMissingWithStaticName extends RubyContextSourceNode {
 
             private final Object methodName;
-            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.createPrivate();
+            @Child private CallDispatchHeadNode methodMissing = CallDispatchHeadNode.create(PRIVATE);
 
             public CallMethodMissingWithStaticName(Object methodName) {
                 this.methodName = methodName;
@@ -1361,7 +1361,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "p", isModuleFunction = true, required = 1)
     public abstract static class DebugPrintNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode callInspectNode = CallDispatchHeadNode.create(PRIVATE);
 
         @Specialization
         protected Object p(VirtualFrame frame, Object value) {
@@ -1486,7 +1486,7 @@ public abstract class KernelNodes {
     @CoreMethod(names = "public_send", needsBlock = true, required = 1, rest = true)
     public abstract static class PublicSendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.createPublic();
+        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.create(PUBLIC);
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization
@@ -1520,7 +1520,7 @@ public abstract class KernelNodes {
         private final ConditionProfile respondToMissingProfile = ConditionProfile.create();
 
         public RespondToNode() {
-            dispatch = DoesRespondDispatchHeadNode.create(DoesRespondDispatchHeadNode.PUBLIC);
+            dispatch = DoesRespondDispatchHeadNode.create(DoesRespondDispatchHeadNode.PUBLIC_DOES_RESPOND);
             dispatchIgnoreVisibility = DoesRespondDispatchHeadNode.create();
             dispatchRespondToMissing = DoesRespondDispatchHeadNode.create();
         }
@@ -1589,7 +1589,7 @@ public abstract class KernelNodes {
                 boolean includeProtectedAndPrivate) {
             if (respondToMissingNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                respondToMissingNode = insert(CallDispatchHeadNode.createPrivate());
+                respondToMissingNode = insert(CallDispatchHeadNode.create(PRIVATE));
             }
 
             if (booleanCastNode == null) {

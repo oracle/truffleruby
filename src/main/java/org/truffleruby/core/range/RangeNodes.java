@@ -48,6 +48,8 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 @CoreModule(value = "Range", isClass = true)
 public abstract class RangeNodes {
 
@@ -140,7 +142,7 @@ public abstract class RangeNodes {
         private Object eachInternal(VirtualFrame frame, RubyRange range, RubyProc block) {
             if (eachInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                eachInternalCall = insert(CallDispatchHeadNode.createPrivate());
+                eachInternalCall = insert(CallDispatchHeadNode.create(PRIVATE));
             }
 
             return eachInternalCall.callWithBlock(range, "each_internal", block);
@@ -297,7 +299,7 @@ public abstract class RangeNodes {
         protected Object stepFallback(VirtualFrame frame, Object range, Object step, Object block) {
             if (stepInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                stepInternalCall = insert(CallDispatchHeadNode.createPrivate());
+                stepInternalCall = insert(CallDispatchHeadNode.create(PRIVATE));
             }
 
             if (RubyGuards.wasNotProvided(step)) {
@@ -342,7 +344,7 @@ public abstract class RangeNodes {
         protected Object boundedToA(RubyObjectRange range) {
             if (toAInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAInternalCall = insert(CallDispatchHeadNode.createPrivate());
+                toAInternalCall = insert(CallDispatchHeadNode.create(PRIVATE));
             }
 
             return toAInternalCall.call(range, "to_a_internal");
@@ -450,7 +452,7 @@ public abstract class RangeNodes {
 
         @Specialization(guards = { "rubyClass != getRangeClass() || (!isIntOrLong(begin) || !isIntOrLong(end))" })
         protected RubyObjectRange objectRange(RubyClass rubyClass, Object begin, Object end, boolean excludeEnd,
-                @Cached("createPrivate()") CallDispatchHeadNode compare) {
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode compare) {
 
             if (compare.call(begin, "<=>", end) == nil && end != nil) {
                 throw new RaiseException(getContext(), coreExceptions().argumentError("bad value for range", this));

@@ -20,6 +20,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 public abstract class HashLiteralNode extends RubyContextSourceNode {
 
     @Children protected final RubyNode[] keyValues;
@@ -120,7 +122,7 @@ public abstract class HashLiteralNode extends RubyContextSourceNode {
         private boolean callEqual(Object receiver, Object key) {
             if (equalNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                equalNode = insert(CallDispatchHeadNode.createPrivate());
+                equalNode = insert(CallDispatchHeadNode.create(PRIVATE));
             }
 
             if (booleanCastNode == null) {

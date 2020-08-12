@@ -53,6 +53,8 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 @CoreModule(value = "Hash", isClass = true)
 public abstract class HashNodes {
 
@@ -85,7 +87,7 @@ public abstract class HashNodes {
 
         @Child private HashNode hashNode = new HashNode();
         @Child private AllocateHelperNode helperNode = AllocateHelperNode.create();
-        @Child private CallDispatchHeadNode fallbackNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode fallbackNode = CallDispatchHeadNode.create(PRIVATE);
 
         @ExplodeLoop(kind = LoopExplosionKind.FULL_UNROLL)
         @Specialization(guards = "isSmallArrayOfPairs(args)")
@@ -229,7 +231,7 @@ public abstract class HashNodes {
         public Object accept(VirtualFrame frame, Object hash, Object key) {
             if (callDefaultNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                callDefaultNode = insert(CallDispatchHeadNode.createPrivate());
+                callDefaultNode = insert(CallDispatchHeadNode.create(PRIVATE));
             }
             return callDefaultNode.call(hash, "default", key);
         }
@@ -637,7 +639,7 @@ public abstract class HashNodes {
 
         @Specialization(guards = "!isRubyHash(from)")
         protected RubyHash replaceCoerce(RubyHash self, Object from,
-                @Cached("createPrivate()") CallDispatchHeadNode coerceNode,
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode coerceNode,
                 @Cached InitializeCopyNode initializeCopyNode) {
             final Object otherHash = coerceNode.call(
                     coreLibrary().truffleTypeModule,
@@ -770,7 +772,7 @@ public abstract class HashNodes {
     @ImportStatic(HashGuards.class)
     public abstract static class ShiftNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.createPrivate();
+        @Child private CallDispatchHeadNode callDefaultNode = CallDispatchHeadNode.create(PRIVATE);
 
         @Specialization(guards = "isEmptyHash(hash)")
         protected Object shiftEmpty(RubyHash hash) {

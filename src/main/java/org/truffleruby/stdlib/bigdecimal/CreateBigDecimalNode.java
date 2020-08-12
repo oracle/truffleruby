@@ -116,7 +116,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     protected RubyBigDecimal createInfinity(BigDecimalType type, Object digits, boolean strict,
             @Cached BooleanCastNode booleanCastNode,
             @Cached GetIntegerConstantNode getIntegerConstantNode,
-            @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
+            @Cached(parameters = "PRIVATE") CallDispatchHeadNode modeCallNode,
             @Cached ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
@@ -137,7 +137,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     protected RubyBigDecimal createNaN(BigDecimalType type, Object digits, boolean strict,
             @Cached BooleanCastNode booleanCastNode,
             @Cached GetIntegerConstantNode getIntegerConstantNode,
-            @Cached("createPrivate()") CallDispatchHeadNode modeCallNode,
+            @Cached(parameters = "PRIVATE") CallDispatchHeadNode modeCallNode,
             @Cached ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 

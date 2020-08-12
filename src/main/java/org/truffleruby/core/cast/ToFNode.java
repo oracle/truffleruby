@@ -20,6 +20,8 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 public abstract class ToFNode extends RubyContextNode {
 
     @Child private CallDispatchHeadNode toFNode;
@@ -60,7 +62,7 @@ public abstract class ToFNode extends RubyContextNode {
     private double coerceObject(Object object, BranchProfile errorProfile) {
         if (toFNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toFNode = insert(CallDispatchHeadNode.createPrivate());
+            toFNode = insert(CallDispatchHeadNode.create(PRIVATE));
         }
 
         final Object coerced;

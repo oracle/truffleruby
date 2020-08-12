@@ -28,6 +28,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 /*
  * TODO(CS): could probably unify this with SplatCastNode with some final configuration getContext().getOptions().
  */
@@ -38,7 +40,7 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
 
     private final SplatCastNode.NilBehavior nilBehavior;
 
-    @Child private CallDispatchHeadNode toArrayNode = CallDispatchHeadNode.createReturnMissing();
+    @Child private CallDispatchHeadNode toArrayNode = CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING);
 
     public static ArrayCastNode create() {
         return ArrayCastNodeGen.create(null);

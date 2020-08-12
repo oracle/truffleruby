@@ -16,11 +16,11 @@ import org.truffleruby.core.proc.RubyProc;
 
 public class DoesRespondDispatchHeadNode extends DispatchHeadNode {
 
-    public static final DispatchConfiguration PRIVATE = DispatchConfiguration.PRIVATE_DOES_RESPOND;
-    public static final DispatchConfiguration PUBLIC = DispatchConfiguration.PUBLIC_DOES_RESPOND;
+    public static final DispatchConfiguration PRIVATE_DOES_RESPOND = DispatchConfiguration.PRIVATE_DOES_RESPOND;
+    public static final DispatchConfiguration PUBLIC_DOES_RESPOND = DispatchConfiguration.PUBLIC_DOES_RESPOND;
 
     public static DoesRespondDispatchHeadNode create() {
-        return create(PRIVATE);
+        return create(PRIVATE_DOES_RESPOND);
     }
 
     public static DoesRespondDispatchHeadNode create(DispatchConfiguration config) {

@@ -95,8 +95,8 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
     @Specialization(guards = { "!isRubyNumber(value)", "!isRubyBigDecimal(value)" })
     protected Object doOther(Object value, int digits, RoundingMode roundingMode,
             @Cached IsANode isRationalNode,
-            @Cached("createPrivate()") CallDispatchHeadNode numeratorCallNode,
-            @Cached("createPrivate()") CallDispatchHeadNode denominatorCallNode) {
+            @Cached(parameters = "PRIVATE") CallDispatchHeadNode numeratorCallNode,
+            @Cached(parameters = "PRIVATE") CallDispatchHeadNode denominatorCallNode) {
         if (isRationalNode.executeIsA(value, coreLibrary().rationalClass)) {
             final Object numerator = numeratorCallNode.call(value, "numerator");
             final Object denominator = denominatorCallNode.call(value, "denominator");

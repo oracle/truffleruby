@@ -22,6 +22,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 public class DefineClassNode extends RubyContextSourceNode {
 
     protected final String name;
@@ -122,7 +124,7 @@ public class DefineClassNode extends RubyContextSourceNode {
     private void callInherited(VirtualFrame frame, RubyClass superClass, RubyClass childClass) {
         if (inheritedNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            inheritedNode = insert(CallDispatchHeadNode.createPrivate());
+            inheritedNode = insert(CallDispatchHeadNode.create(PRIVATE));
         }
         inheritedNode.call(superClass, "inherited", childClass);
     }

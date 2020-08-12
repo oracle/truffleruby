@@ -159,16 +159,6 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     public static MethodLookupResult lookupCached(RubyContext context, Frame callingFrame,
-            RubyClass metaClass, String name, boolean ignoreVisibility, boolean onlyLookupPublic) {
-        return lookupCached(
-                context,
-                callingFrame,
-                metaClass,
-                name,
-                DispatchConfiguration.from(ignoreVisibility, onlyLookupPublic));
-    }
-
-    protected static MethodLookupResult lookupCached(RubyContext context, Frame callingFrame,
             RubyClass metaClass, String name, DispatchConfiguration config) {
         CompilerAsserts.neverPartOfCompilation("slow-path method lookup should not be compiled");
 

@@ -11,6 +11,8 @@ package org.truffleruby.core.array;
 
 import static org.truffleruby.core.array.ArrayHelpers.setSize;
 import static org.truffleruby.core.array.ArrayHelpers.setStoreAndSize;
+import static org.truffleruby.language.dispatch.CallDispatchHeadNode.PUBLIC;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 import java.util.Arrays;
 
@@ -967,13 +969,13 @@ public abstract class ArrayNodes {
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, NotProvided block,
-                @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.call(array, "fill_internal", args);
         }
 
         @Specialization
         protected Object fillFallback(VirtualFrame frame, RubyArray array, Object[] args, RubyProc block,
-                @Cached("createPrivate()") CallDispatchHeadNode callFillInternal) {
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode callFillInternal) {
             return callFillInternal.callWithBlock(array, "fill_internal", block, args);
         }
 
@@ -988,7 +990,7 @@ public abstract class ArrayNodes {
         @Specialization(limit = "storageStrategyLimit()")
         protected long hash(VirtualFrame frame, RubyArray array,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createPrivate()") CallDispatchHeadNode toHashNode,
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode toHashNode,
                 @Cached ToLongNode toLongNode,
                 @Cached("createCountingProfile()") LoopConditionProfile loopProfile) {
             final int size = array.size;
@@ -1213,7 +1215,7 @@ public abstract class ArrayNodes {
         protected Object callToAry(Object object) {
             if (toAryNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                toAryNode = insert(CallDispatchHeadNode.createPrivate());
+                toAryNode = insert(CallDispatchHeadNode.create(PRIVATE));
             }
             return toAryNode.call(object, "to_ary");
         }
@@ -1256,7 +1258,7 @@ public abstract class ArrayNodes {
     @ReportPolymorphism
     public abstract static class InjectNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.createPublic();
+        @Child private CallDispatchHeadNode dispatch = CallDispatchHeadNode.create(PUBLIC);
 
         // With block
 
@@ -2092,7 +2094,7 @@ public abstract class ArrayNodes {
         protected RubyArray sortVeryShort(VirtualFrame frame, RubyArray array, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary originalStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary stores,
-                @Cached("createPrivate()") CallDispatchHeadNode compareDispatchNode,
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode compareDispatchNode,
                 @Cached CmpIntNode cmpIntNode) {
             final Object originalStore = array.store;
             final Object store = originalStores
@@ -2154,13 +2156,13 @@ public abstract class ArrayNodes {
                 limit = "storageStrategyLimit()")
         protected Object sortArrayWithoutBlock(RubyArray array, NotProvided block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
-                @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode fallbackNode) {
             return fallbackNode.call(array, "sort_fallback");
         }
 
         @Specialization(guards = "!isEmptyArray(array)")
         protected Object sortGenericWithBlock(RubyArray array, RubyProc block,
-                @Cached("createPrivate()") CallDispatchHeadNode fallbackNode) {
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode fallbackNode) {
             return fallbackNode.callWithBlock(array, "sort_fallback", block);
         }
 

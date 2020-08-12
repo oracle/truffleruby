@@ -141,8 +141,7 @@ public abstract class DSLUncachedDispatchNode extends RubyBaseNode {
                 (VirtualFrame) frame,
                 receiver,
                 methodName,
-                cachedIgnoreVisibility,
-                cachedOnlyCallPublic);
+                DispatchConfiguration.from(ignoreVisibility, onlyCallPublic));
 
         if (method != null) {
             if (cachedDispatchAction == DispatchAction.CALL_METHOD) {

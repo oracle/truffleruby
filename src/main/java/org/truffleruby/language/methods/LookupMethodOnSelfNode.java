@@ -30,11 +30,6 @@ public abstract class LookupMethodOnSelfNode extends RubyBaseNode {
         return execute(frame, self, name, DispatchConfiguration.PROTECTED);
     }
 
-    public InternalMethod lookup(VirtualFrame frame, Object self, String name, boolean ignoreVisibility,
-            boolean onlyCallPublic) {
-        return execute(frame, self, name, DispatchConfiguration.from(ignoreVisibility, onlyCallPublic));
-    }
-
     public InternalMethod lookup(
             VirtualFrame frame, Object self, String name, DispatchConfiguration config) {
         return execute(frame, self, name, config);

@@ -22,6 +22,8 @@ import org.truffleruby.utils.Utils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
 
     @Child private CreateBigDecimalNode createBigDecimal;
@@ -123,7 +125,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private CallDispatchHeadNode getLimitCall() {
         if (limitCall == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            limitCall = insert(CallDispatchHeadNode.createPrivate());
+            limitCall = insert(CallDispatchHeadNode.create(PRIVATE));
         }
 
         return limitCall;
@@ -141,7 +143,7 @@ public abstract class BigDecimalCoreMethodNode extends CoreMethodNode {
     private CallDispatchHeadNode getRoundModeCall() {
         if (roundModeCall == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            roundModeCall = insert(CallDispatchHeadNode.createPrivate());
+            roundModeCall = insert(CallDispatchHeadNode.create(PRIVATE));
         }
 
         return roundModeCall;

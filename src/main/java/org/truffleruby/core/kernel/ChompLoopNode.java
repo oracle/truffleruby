@@ -15,9 +15,11 @@ import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 public class ChompLoopNode extends RubyContextSourceNode {
 
-    @Child private CallDispatchHeadNode callChompNode = CallDispatchHeadNode.createPrivate();
+    @Child private CallDispatchHeadNode callChompNode = CallDispatchHeadNode.create(PRIVATE);
     @Child private ReadGlobalVariableNode readGlobalVariableNode = ReadGlobalVariableNodeGen.create("$_");
 
     @Override

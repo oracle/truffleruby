@@ -51,6 +51,8 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.llvm.api.Toolchain;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 @CoreModule("Truffle::Boot")
 public abstract class TruffleBootNodes {
 
@@ -103,9 +105,9 @@ public abstract class TruffleBootNodes {
     public abstract static class MainNode extends CoreMethodArrayArgumentsNode {
 
         @Child TopLevelRaiseHandler topLevelRaiseHandler = new TopLevelRaiseHandler();
-        @Child CallDispatchHeadNode checkSyntax = CallDispatchHeadNode.createPrivate();
+        @Child CallDispatchHeadNode checkSyntax = CallDispatchHeadNode.create(PRIVATE);
         @Child IndirectCallNode callNode = IndirectCallNode.create();
-        @Child CallDispatchHeadNode requireNode = CallDispatchHeadNode.createPrivate();
+        @Child CallDispatchHeadNode requireNode = CallDispatchHeadNode.create(PRIVATE);
         @Child MakeStringNode makeStringNode = MakeStringNode.create();
 
         @TruffleBoundary

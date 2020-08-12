@@ -620,8 +620,9 @@ public abstract class MatchDataNodes {
         @Specialization
         protected RubyRegexp regexp(RubyMatchData matchData,
                 @Cached ConditionProfile profile,
-                @Cached("createPrivate()") CallDispatchHeadNode stringToRegexp) {
+                @Cached(parameters = "PRIVATE") CallDispatchHeadNode stringToRegexp) {
             final RubyDynamicObject value = matchData.regexp;
+
             if (profile.profile(value instanceof RubyRegexp)) {
                 return (RubyRegexp) value;
             } else {

@@ -23,26 +23,11 @@ public class CallDispatchHeadNode extends DispatchHeadNode {
     public static final DispatchConfiguration PUBLIC_RETURN_MISSING = DispatchConfiguration.PUBLIC_RETURN_MISSING;
 
     public static CallDispatchHeadNode create() {
-        return createPrivate();
+        return new CallDispatchHeadNode(PRIVATE);
     }
 
     public static CallDispatchHeadNode create(DispatchConfiguration config) {
         return new CallDispatchHeadNode(config);
-    }
-
-    /** Create a dispatch node ignoring visibility. This is the case for most calls from Java nodes and from the C-API,
-     *  as checking visibility doesn't make much sense in this context and MRI doesn't do it either. */
-    public static CallDispatchHeadNode createPrivate() {
-        return new CallDispatchHeadNode(PRIVATE);
-    }
-
-    /** Create a dispatch node only allowed to call public methods. This is rather rare. */
-    public static CallDispatchHeadNode createPublic() {
-        return new CallDispatchHeadNode(PUBLIC);
-    }
-
-    public static CallDispatchHeadNode createReturnMissing() {
-        return new CallDispatchHeadNode(PRIVATE_RETURN_MISSING);
     }
 
     @Child NewDispatchHeadNode newDispatch;

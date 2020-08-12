@@ -32,6 +32,8 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
+
 @NodeChild("value")
 public abstract class ToStringNode extends FormatNode {
 
@@ -111,7 +113,7 @@ public abstract class ToStringNode extends FormatNode {
             @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toSNode = insert(CallDispatchHeadNode.createReturnMissing());
+            toSNode = insert(CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
         }
 
         final Object value = toSNode.call(array, "to_s");
@@ -163,7 +165,7 @@ public abstract class ToStringNode extends FormatNode {
     private CallDispatchHeadNode getToStrNode() {
         if (toStrNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStrNode = insert(CallDispatchHeadNode.createReturnMissing());
+            toStrNode = insert(CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
         }
         return toStrNode;
     }

@@ -20,6 +20,8 @@ import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+
 public class DataNode extends RubyContextSourceNode {
 
     @Child private StringNodes.MakeStringNode makeStringNode;
@@ -40,7 +42,7 @@ public class DataNode extends RubyContextSourceNode {
 
         if (callHelperNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callHelperNode = insert(CallDispatchHeadNode.createPrivate());
+            callHelperNode = insert(CallDispatchHeadNode.create(PRIVATE));
         }
 
         final String path = getPath();

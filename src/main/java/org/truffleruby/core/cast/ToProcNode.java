@@ -38,7 +38,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
 
     @Specialization(guards = { "!isNil(object)", "!isRubyProc(object)" })
     protected RubyProc doObject(VirtualFrame frame, Object object,
-            @Cached("createPrivate()") CallDispatchHeadNode toProc,
+            @Cached(parameters = "PRIVATE") CallDispatchHeadNode toProc,
             @Cached BranchProfile errorProfile) {
         final Object coerced;
         try {
