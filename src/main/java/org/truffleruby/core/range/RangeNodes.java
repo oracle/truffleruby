@@ -69,20 +69,14 @@ public abstract class RangeNodes {
 
             final int length = exclusiveEnd - begin;
             BuilderState state = arrayBuilder.start(length);
-            int count = 0;
 
+            int n = 0;
             try {
-                for (int n = 0; n < length; n++) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; n < length; n++) {
                     arrayBuilder.appendValue(state, n, yieldNode.executeDispatch(block, begin + n));
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                LoopNode.reportLoopCount(this, n);
             }
 
             return createArray(arrayBuilder.finish(state, length), length);
@@ -109,20 +103,13 @@ public abstract class RangeNodes {
             }
             final int exclusiveEnd = result;
 
-            int count = 0;
-
+            int n = range.begin;
             try {
-                for (int n = range.begin; n < exclusiveEnd; n++) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; n < exclusiveEnd; n++) {
                     yield(block, n);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                LoopNode.reportLoopCount(this, n - range.begin);
             }
 
             return range;
@@ -138,20 +125,13 @@ public abstract class RangeNodes {
             }
             final long exclusiveEnd = result;
 
-            int count = 0;
-
+            long n = range.begin;
             try {
-                for (long n = range.begin; n < exclusiveEnd; n++) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; n < exclusiveEnd; n++) {
                     yield(block, n);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                reportLongLoopCount(n - range.begin);
             }
 
             return range;
@@ -273,26 +253,20 @@ public abstract class RangeNodes {
 
         @Specialization(guards = "step > 0")
         protected Object stepInt(RubyIntRange range, int step, RubyProc block) {
-            int count = 0;
+            int result;
+            if (range.excludedEnd) {
+                result = range.end;
+            } else {
+                result = range.end + 1;
+            }
 
+            int n = range.begin;
             try {
-                int result;
-                if (range.excludedEnd) {
-                    result = range.end;
-                } else {
-                    result = range.end + 1;
-                }
-                for (int n = range.begin; n < result; n += step) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; n < result; n += step) {
                     yield(block, n);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                LoopNode.reportLoopCount(this, n - range.begin);
             }
 
             return range;
@@ -300,26 +274,20 @@ public abstract class RangeNodes {
 
         @Specialization(guards = "step > 0")
         protected Object stepLong(RubyLongRange range, int step, RubyProc block) {
-            int count = 0;
+            long result;
+            if (range.excludedEnd) {
+                result = range.end;
+            } else {
+                result = range.end + 1;
+            }
 
+            long n = range.begin;
             try {
-                long result;
-                if (range.excludedEnd) {
-                    result = range.end;
-                } else {
-                    result = range.end + 1;
-                }
-                for (long n = range.begin; n < result; n += step) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; n < result; n += step) {
                     yield(block, n);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                reportLongLoopCount(n - range.begin);
             }
 
             return range;

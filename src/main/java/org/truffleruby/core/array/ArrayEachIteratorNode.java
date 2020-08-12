@@ -74,9 +74,7 @@ public abstract class ArrayEachIteratorNode extends RubyContextNode {
                 }
             }
         } finally {
-            if (CompilerDirectives.inInterpreter()) {
-                LoopNode.reportLoopCount(this, i - startAt);
-            }
+            LoopNode.reportLoopCount(this, i - startAt);
         }
 
         return array;
