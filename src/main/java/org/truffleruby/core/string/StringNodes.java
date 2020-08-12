@@ -92,6 +92,7 @@ import org.truffleruby.builtins.CoreModule;
 import org.truffleruby.builtins.NonStandard;
 import org.truffleruby.builtins.Primitive;
 import org.truffleruby.builtins.PrimitiveArrayArgumentsNode;
+import org.truffleruby.builtins.PrimitiveNode;
 import org.truffleruby.builtins.YieldingCoreMethodNode;
 import org.truffleruby.core.CoreLibrary;
 import org.truffleruby.core.array.ArrayUtils;
@@ -832,10 +833,10 @@ public abstract class StringNodes {
 
     }
 
-    @CoreMethod(names = "casecmp", required = 1)
+    @Primitive(name = "string_casecmp")
     @NodeChild(value = "string", type = RubyNode.class)
     @NodeChild(value = "other", type = RubyNode.class)
-    public abstract static class CaseCmpNode extends CoreMethodNode {
+    public abstract static class CaseCmpNode extends PrimitiveNode {
 
         @Child private NegotiateCompatibleEncodingNode negotiateCompatibleEncodingNode = NegotiateCompatibleEncodingNode
                 .create();
