@@ -77,7 +77,7 @@ module Truffle
         match = index ? Primitive.matchdata_create_single_group(pattern, orig.dup, index, index + pattern.bytesize) : nil
       else
         pattern = Truffle::Type.coerce_to_regexp(pattern, true) unless pattern.kind_of? Regexp
-        match = pattern.search_region(orig, 0, orig.bytesize, true)
+        match = Truffle::RegexpOperations.search_region(pattern, orig, 0, orig.bytesize, true)
       end
 
       return nil unless match

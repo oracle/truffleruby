@@ -96,7 +96,7 @@ class String
   def =~(pattern)
     case pattern
     when Regexp
-      match_data = pattern.search_region(self, 0, bytesize, true)
+      match_data = Truffle::RegexpOperations.search_region(pattern, self, 0, bytesize, true)
       Truffle::RegexpOperations.set_last_match(match_data, Primitive.caller_binding)
       return match_data.begin(0) if match_data
     when String
@@ -224,7 +224,7 @@ class String
 
   def rpartition(pattern)
     if pattern.kind_of? Regexp
-      if m = pattern.search_region(self, 0, size, false)
+      if m = Truffle::RegexpOperations.search_region(pattern, self, 0, size, false)
         Truffle::RegexpOperations.set_last_match(m, Primitive.caller_binding)
         [m.pre_match, m[0], m.post_match]
       end
@@ -1417,7 +1417,7 @@ class String
     when Regexp
       Truffle::Type.compatible_encoding self, sub
 
-      match_data = sub.search_region(self, 0, byte_finish, false)
+      match_data = Truffle::RegexpOperations.search_region(sub, self, 0, byte_finish, false)
       Truffle::RegexpOperations.set_last_match(match_data, Primitive.caller_binding)
       return match_data.begin(0) if match_data
 

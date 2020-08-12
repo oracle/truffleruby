@@ -33,17 +33,20 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.TaintResultNode;
+import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
+import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -51,6 +54,7 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -129,6 +133,51 @@ public class TruffleRegexpNodes {
                     regexpOptions,
                     new EncodingCache());
         }
+    }
+
+    @CoreMethod(names = "search_region", onSingleton = true, required = 5, lowerFixnum = { 3, 4 })
+    @ImportStatic(RegexpGuards.class)
+    public static abstract class RegexpSearchRegionNode extends CoreMethodArrayArgumentsNode {
+
+        @Child RopeNodes.CodeRangeNode rangeNode = RopeNodes.CodeRangeNode.create();
+
+        @Specialization(guards = { "!isInitialized(regexp)" })
+        protected Object notInitialized(RubyRegexp regexp, RubyString string, int start, int end, boolean forward) {
+            throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
+        }
+
+        @Specialization(guards = { "!isValidEncoding(string, rangeNode)" })
+        protected Object invalidEncoding(RubyRegexp regexp, RubyString string, int start, int end, boolean forward) {
+            throw new RaiseException(getContext(), coreExceptions().argumentError(formatError(string), this));
+        }
+
+        @TruffleBoundary
+        private String formatError(RubyString string) {
+            return StringUtils.format("invalid byte sequence in %s", string.rope.getEncoding());
+        }
+
+        @Specialization(
+                guards = { "isInitialized(regexp)", "isValidEncoding(string, rangeNode)" })
+        protected Object searchRegion(RubyRegexp regexp, RubyString string, int start, int end, boolean forward,
+                @Cached ConditionProfile forwardSearchProfile,
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached TruffleRegexpNodes.MatchNode matchNode,
+                @Cached EncodingNodes.CheckEncodingNode checkEncodingNode) {
+            checkEncodingNode.executeCheckEncoding(regexp, string);
+
+            final Rope rope = string.rope;
+            final Matcher matcher = RegexpNodes
+                .createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, 0, this);
+
+            if (forwardSearchProfile.profile(forward)) {
+                // Search forward through the string.
+                return matchNode.execute(regexp, string, matcher, start, end, false);
+            } else {
+                // Search backward through the string.
+                return matchNode.execute(regexp, string, matcher, end, start, false);
+            }
+        }
+
     }
 
     public static abstract class RegexpStatsNode extends CoreMethodArrayArgumentsNode {

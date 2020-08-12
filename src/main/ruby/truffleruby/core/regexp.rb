@@ -228,7 +228,7 @@ class Regexp
 
   def match_from(str, count)
     return nil unless str
-    search_region(str, count, str.bytesize, true)
+    Truffle::RegexpOperations.search_region(self, str, count, str.bytesize, true)
   end
 
   def option_to_string(option)

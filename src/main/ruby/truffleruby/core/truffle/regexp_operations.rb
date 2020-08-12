@@ -10,6 +10,9 @@
 
 module Truffle
   module RegexpOperations
+
+    USE_TRUFFLE_REGEX = false
+
     def self.match(re, str, pos=0)
       return nil unless str
 
@@ -18,13 +21,13 @@ module Truffle
 
       pos = pos < 0 ? pos + str.size : pos
       pos = Primitive.string_byte_index_from_char_index(str, pos)
-      re.search_region(str, pos, str.bytesize, true)
+      search_region(re, str, pos, str.bytesize, true)
     end
 
     def self.match_from(re, str, pos)
       return nil unless str
 
-      re.search_region(str, pos, str.bytesize, true)
+      search_region(re, str, pos, str.bytesize, true)
     end
 
     def self.last_match(a_binding)
