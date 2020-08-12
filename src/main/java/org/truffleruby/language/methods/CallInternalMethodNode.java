@@ -12,6 +12,7 @@ package org.truffleruby.language.methods;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.language.RubyBaseNode;
 
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -32,11 +33,11 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
 
     @Specialization(
             guards = "method.getCallTarget() == cachedCallTarget",
-            /* TODO(eregon, 12 June 2015) we should maybe check an Assumption here to remove the cache entry when the
-             * lookup changes (redefined method, hierarchy changes) */
+            assumptions = "getModuleAssumption(cachedMethod)",
             limit = "getCacheLimit()")
     protected Object callMethodCached(InternalMethod method, Object[] frameArguments,
             @Cached("method.getCallTarget()") RootCallTarget cachedCallTarget,
+            @Cached("method") InternalMethod cachedMethod,
             @Cached("create(cachedCallTarget)") DirectCallNode callNode) {
         return callNode.call(frameArguments);
     }
@@ -51,4 +52,7 @@ public abstract class CallInternalMethodNode extends RubyBaseNode {
         return RubyLanguage.getCurrentContext().getOptions().DISPATCH_CACHE;
     }
 
+    protected Assumption getModuleAssumption(InternalMethod method) {
+        return method.getDeclaringModule().fields.getMethodsUnmodifiedAssumption();
+    }
 }
