@@ -65,14 +65,14 @@ $ rbenv install truffleruby-dev
 
 ### ruby-install and chruby
 
-First, you need at least `ruby-install` 0.7.0 to get TruffleRuby support.
+First, you need at least `ruby-install` 0.7.1 to get TruffleRuby support.
 Check your version with:
 
 ```bash
 $ ruby-install --version
 ```
 
-If it is older than `0.7.0`, you need to update to latest `ruby-install`.
+If it is older than `0.7.1`, you need to update to latest `ruby-install`.
 Follow the [installation instructions](https://github.com/postmodern/ruby-install#install),
 since the steps for upgrading `ruby-install` are the same as the steps for
 installing it.
