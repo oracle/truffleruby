@@ -1,3 +1,0 @@
-fails:Range#cover? range argument accepts range argument
-fails:Range#cover? range argument supports boundaries of different comparable types
-fails:Range#cover? range argument honors exclusion of right boundary (:exclude_end option)

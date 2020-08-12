@@ -17,6 +17,7 @@ Compatibility:
 * Fix the caller location for `#method_added` (#2059).
 * Fix issue with `Float#round` when `self` is `-0.0`.
 * Fix `String#unpack` issue with `m0` format (#2065).
+* Update `Range#cover?` to handle `Range` parameter.
 
 Performance:
 
