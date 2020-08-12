@@ -15,9 +15,7 @@ import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.dispatch.NewDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.language.library.RubyLibrary;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Cached.Exclusive;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -147,7 +145,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
             throws UnknownIdentifierException {
         Object[] convertedArguments = foreignToRubyArgumentsNode.executeConvert(arguments);
         Object result = dispatchMember.call(this, name, convertedArguments);
-        if (result == DispatchNode.MISSING) {
+        if (result == NewDispatchHeadNode.MISSING) {
             errorProfile.enter();
             throw UnknownIdentifierException.create(name);
         }

@@ -49,7 +49,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return execute(frame, metaClass, name, DispatchConfiguration.PROTECTED);
     }
 
-    public abstract InternalMethod execute(Frame frame, RubyClass metaclass, String name,
+    public abstract InternalMethod execute(Frame frame, RubyClass metaClass, String name,
             DispatchConfiguration config);
 
     @Specialization(
@@ -67,9 +67,9 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             DispatchConfiguration config,
             @CachedContext(RubyLanguage.class) TruffleLanguage.ContextReference<RubyContext> contextReference,
             @Cached("contextReference.get()") RubyContext cachedContext,
-            @Cached("name") String cachedName,
-            @Cached("config") DispatchConfiguration cachedConfig,
             @Cached("metaClass") RubyClass cachedMetaClass,
+            @Cached("name") String cachedName,
+            @Cached(value = "config", allowUncached = true) DispatchConfiguration cachedConfig,
             @Cached("lookupCached(cachedContext, frame, cachedMetaClass, cachedName, config)") MethodLookupResult methodLookupResult) {
 
         return methodLookupResult.getMethod();
@@ -158,7 +158,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
         return method;
     }
 
-    public static MethodLookupResult lookupCached(RubyContext context, Frame callingFrame,
+    protected static MethodLookupResult lookupCached(RubyContext context, Frame callingFrame,
             RubyClass metaClass, String name, DispatchConfiguration config) {
         CompilerAsserts.neverPartOfCompilation("slow-path method lookup should not be compiled");
 

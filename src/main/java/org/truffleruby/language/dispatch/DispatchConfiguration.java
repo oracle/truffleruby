@@ -9,7 +9,6 @@
  */
 package org.truffleruby.language.dispatch;
 
-import com.oracle.truffle.api.CompilerDirectives;
 
 public enum DispatchConfiguration {
     PUBLIC(false, true, MissingBehavior.CALL_METHOD_MISSING, DispatchAction.CALL_METHOD),
@@ -34,16 +33,5 @@ public enum DispatchConfiguration {
         this.onlyLookupPublic = onlyLookupPublic;
         this.missingBehavior = missingBehavior;
         this.dispatchAction = dispatchAction;
-    }
-
-    public static DispatchConfiguration from(boolean ignoreVisibility, boolean onlyLookupPublic) {
-        if (ignoreVisibility) {
-            if (onlyLookupPublic) {
-                throw CompilerDirectives.shouldNotReachHere();
-            }
-            return PRIVATE;
-        }
-
-        return onlyLookupPublic ? PUBLIC : PROTECTED;
     }
 }

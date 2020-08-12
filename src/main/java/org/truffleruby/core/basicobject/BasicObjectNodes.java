@@ -47,6 +47,7 @@ import org.truffleruby.language.loader.CodeLoader;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.DeclarationContext.SingletonClassOfSelfDefaultDefinee;
 import org.truffleruby.language.methods.InternalMethod;
+import org.truffleruby.language.methods.LookupMethodNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.language.objects.ObjectIDOperations;
@@ -560,8 +561,7 @@ public abstract class BasicObjectNodes {
             return superCallNode != null;
         }
 
-        /** See {@link org.truffleruby.language.dispatch.DispatchNode#lookup}. The only way to fail if method is not
-         * null and not undefined is visibility. */
+        /** See {@link LookupMethodNode}. The only way to fail if method is not null and not undefined is visibility. */
         private Visibility lastCallWasCallingPrivateOrProtectedMethod(Object self, String name,
                 FrameAndCallNode callerFrame) {
             final DeclarationContext declarationContext = RubyArguments.tryGetDeclarationContext(callerFrame.frame);

@@ -19,8 +19,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.NewDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchNode;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -114,7 +112,7 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
             return nil;
         }
 
-        if (result == DispatchNode.MISSING) {
+        if (result == NewDispatchHeadNode.MISSING) {
             return nil;
         }
 

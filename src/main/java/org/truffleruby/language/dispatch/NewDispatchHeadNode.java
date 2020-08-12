@@ -12,6 +12,7 @@ package org.truffleruby.language.dispatch;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeCost;
 import com.oracle.truffle.api.profiles.BranchProfile;
@@ -38,9 +39,12 @@ import org.truffleruby.language.objects.MetaClassNode;
 import org.truffleruby.language.objects.MetaClassNodeGen;
 import org.truffleruby.options.Options;
 
-import static org.truffleruby.language.dispatch.DispatchNode.MISSING;
-
 public class NewDispatchHeadNode extends FrameSendingNode {
+
+    private static final class Missing implements TruffleObject {
+    }
+
+    public static final Missing MISSING = new Missing();
 
     // NOTE(norswap): We need these static fields to be able to specify these values as `Cached#parameters` string
     //   values. We also want to use `parameters` rather than factory methods because Truffle uses it to automatically

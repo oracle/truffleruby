@@ -225,7 +225,7 @@ public class RubyCallNode extends RubyContextSourceNode {
             if (methodNotFoundProfile.profile(method == null)) {
                 final Object r = respondToMissing.call(receiverObject, "respond_to_missing?", methodNameSymbol, false);
 
-                if (r != DispatchNode.MISSING && !respondToMissingCast.executeToBoolean(r)) {
+                if (r != NewDispatchHeadNode.MISSING && !respondToMissingCast.executeToBoolean(r)) {
                     return nil;
                 }
             } else if (methodUndefinedProfile.profile(method.isUndefined())) {

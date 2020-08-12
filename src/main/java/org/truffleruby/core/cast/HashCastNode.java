@@ -18,8 +18,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.NewDispatchHeadNode;
-import org.truffleruby.language.dispatch.DispatchNode;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -77,7 +75,7 @@ public abstract class HashCastNode extends RubyContextSourceNode {
             @Cached BranchProfile errorProfile) {
         final Object result = toHashNode.call(object, "to_hash");
 
-        if (result == DispatchNode.MISSING) {
+        if (result == NewDispatchHeadNode.MISSING) {
             return nil;
         }
 
