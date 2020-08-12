@@ -14,9 +14,8 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.dispatch.DispatchNode;
-import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
 import org.truffleruby.language.library.RubyLibrary;
 
 import com.oracle.truffle.api.dsl.Cached;
@@ -103,7 +102,7 @@ public abstract class ImmutableRubyObject implements TruffleObject {
     @ExportMessage
     public Object getMembers(boolean internal,
             @CachedContext(RubyLanguage.class) RubyContext context,
-            @Exclusive @Cached CallDispatchHeadNode dispatchNode) {
+            @Exclusive @Cached NewDispatchHeadNode dispatchNode) {
         return dispatchNode.call(
                 context.getCoreLibrary().truffleInteropModule,
                 // language=ruby prefix=Truffle::Interop.
@@ -114,15 +113,15 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberReadable(String name,
-            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode) {
+            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") NewDispatchHeadNode definedNode) {
         return definedNode.doesRespondTo(null, name, this);
     }
 
     @ExportMessage
     public Object readMember(String name,
-            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
+            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") NewDispatchHeadNode definedNode,
             @Cached ForeignToRubyNode nameToRubyNode,
-            @Cached @Exclusive CallDispatchHeadNode dispatch,
+            @Cached @Exclusive NewDispatchHeadNode dispatch,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
         if (definedNode.doesRespondTo(null, name, this)) {
@@ -136,13 +135,13 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberInvocable(String name,
-            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode) {
+            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") NewDispatchHeadNode definedNode) {
         return definedNode.doesRespondTo(null, name, this);
     }
 
     @ExportMessage
     public Object invokeMember(String name, Object[] arguments,
-            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") CallDispatchHeadNode dispatchMember,
+            @Exclusive @Cached(parameters = "PRIVATE_RETURN_MISSING") NewDispatchHeadNode dispatchMember,
             @Exclusive @Cached ForeignToRubyArgumentsNode foreignToRubyArgumentsNode,
             @Shared("errorProfile") @Cached BranchProfile errorProfile)
             throws UnknownIdentifierException {
@@ -157,8 +156,8 @@ public abstract class ImmutableRubyObject implements TruffleObject {
 
     @ExportMessage
     public boolean isMemberInternal(String name,
-            @Cached @Shared("definedNode") DoesRespondDispatchHeadNode definedNode,
-            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") DoesRespondDispatchHeadNode definedPublicNode) {
+            @Cached(parameters = "PRIVATE_DOES_RESPOND") @Shared("definedNode") NewDispatchHeadNode definedNode,
+            @Exclusive @Cached(parameters = "PUBLIC_DOES_RESPOND") NewDispatchHeadNode definedPublicNode) {
         // defined but not publicly
         return definedNode.doesRespondTo(null, name, this) &&
                 !definedPublicNode.doesRespondTo(null, name, this);

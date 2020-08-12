@@ -39,7 +39,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.parser.Helpers;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -59,7 +59,7 @@ public abstract class GetTimeZoneNode extends RubyContextNode {
         TZ_UNCHANGED.invalidate();
     }
 
-    @Child private CallDispatchHeadNode lookupEnvNode = CallDispatchHeadNode.create(PRIVATE);
+    @Child private NewDispatchHeadNode lookupEnvNode = NewDispatchHeadNode.create(PRIVATE);
 
     public abstract TimeZoneAndName executeGetTimeZone();
 

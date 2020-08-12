@@ -12,21 +12,21 @@ package org.truffleruby.language.arguments;
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
-import org.truffleruby.language.dispatch.DoesRespondDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_DOES_RESPOND;
 
 public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
 
     private final int minArgumentCount;
 
-    @Child private DoesRespondDispatchHeadNode respondToToHashNode;
-    @Child private CallDispatchHeadNode callToHashNode;
+    @Child private NewDispatchHeadNode respondToToHashNode;
+    @Child private NewDispatchHeadNode callToHashNode;
 
     private final ConditionProfile notEnoughArgumentsProfile = ConditionProfile.create();
     private final ConditionProfile lastArgumentIsHashProfile = ConditionProfile.create();
@@ -70,7 +70,7 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
     private boolean respondToToHash(VirtualFrame frame, Object lastArgument) {
         if (respondToToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            respondToToHashNode = insert(DoesRespondDispatchHeadNode.create());
+            respondToToHashNode = insert(NewDispatchHeadNode.create(PRIVATE_DOES_RESPOND));
         }
         return respondToToHashNode.doesRespondTo(frame, "to_hash", lastArgument);
     }
@@ -78,7 +78,7 @@ public class ReadUserKeywordsHashNode extends RubyContextSourceNode {
     private Object callToHash(VirtualFrame frame, Object lastArgument) {
         if (callToHashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callToHashNode = insert(CallDispatchHeadNode.create(PRIVATE));
+            callToHashNode = insert(NewDispatchHeadNode.create(PRIVATE));
         }
         return callToHashNode.call(lastArgument, "to_hash");
     }

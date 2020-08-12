@@ -26,7 +26,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -116,7 +116,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     protected RubyBigDecimal createInfinity(BigDecimalType type, Object digits, boolean strict,
             @Cached BooleanCastNode booleanCastNode,
             @Cached GetIntegerConstantNode getIntegerConstantNode,
-            @Cached(parameters = "PRIVATE") CallDispatchHeadNode modeCallNode,
+            @Cached(parameters = "PRIVATE") NewDispatchHeadNode modeCallNode,
             @Cached ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 
@@ -137,7 +137,7 @@ public abstract class CreateBigDecimalNode extends BigDecimalCoreMethodNode {
     protected RubyBigDecimal createNaN(BigDecimalType type, Object digits, boolean strict,
             @Cached BooleanCastNode booleanCastNode,
             @Cached GetIntegerConstantNode getIntegerConstantNode,
-            @Cached(parameters = "PRIVATE") CallDispatchHeadNode modeCallNode,
+            @Cached(parameters = "PRIVATE") NewDispatchHeadNode modeCallNode,
             @Cached ConditionProfile raiseProfile) {
         // TODO (pitr 21-Jun-2015): raise on underflow
 

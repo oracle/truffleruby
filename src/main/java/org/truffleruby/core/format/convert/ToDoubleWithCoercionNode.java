@@ -10,7 +10,7 @@
 package org.truffleruby.core.format.convert;
 
 import org.truffleruby.core.format.FormatNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -22,13 +22,13 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 @NodeChild("value")
 public abstract class ToDoubleWithCoercionNode extends FormatNode {
 
-    @Child private CallDispatchHeadNode floatNode;
+    @Child private NewDispatchHeadNode floatNode;
 
     @Specialization
     protected Object toDouble(VirtualFrame frame, Object value) {
         if (floatNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            floatNode = insert(CallDispatchHeadNode.create(PRIVATE));
+            floatNode = insert(NewDispatchHeadNode.create(PRIVATE));
         }
 
         return floatNode.call(getContext().getCoreLibrary().kernelModule, "Float", value);

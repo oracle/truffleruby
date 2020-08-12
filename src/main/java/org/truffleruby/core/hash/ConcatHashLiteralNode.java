@@ -11,7 +11,7 @@ package org.truffleruby.core.hash;
 
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -22,7 +22,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 public class ConcatHashLiteralNode extends RubyContextSourceNode {
 
     @Children private final RubyNode[] children;
-    @Child private CallDispatchHeadNode hashMergeNode;
+    @Child private NewDispatchHeadNode hashMergeNode;
 
     public ConcatHashLiteralNode(RubyNode[] children) {
         assert children.length > 1;
@@ -35,7 +35,7 @@ public class ConcatHashLiteralNode extends RubyContextSourceNode {
         final RubyHash hash = HashOperations.newEmptyHash(getContext());
         if (hashMergeNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashMergeNode = insert(CallDispatchHeadNode.create(PRIVATE));
+            hashMergeNode = insert(NewDispatchHeadNode.create(PRIVATE));
         }
         for (int i = 0; i < children.length; i++) {
             hashMergeNode.call(hash, "merge!", children[i].execute(frame));

@@ -42,6 +42,17 @@ import static org.truffleruby.language.dispatch.DispatchNode.MISSING;
 
 public class NewDispatchHeadNode extends FrameSendingNode {
 
+    // NOTE(norswap): We need these static fields to be able to specify these values as `Cached#parameters` string
+    //   values. We also want to use `parameters` rather than factory methods because Truffle uses it to automatically
+    //   generate uncached instances where required.
+
+    public static final DispatchConfiguration PRIVATE = DispatchConfiguration.PRIVATE;
+    public static final DispatchConfiguration PUBLIC = DispatchConfiguration.PUBLIC;
+    public static final DispatchConfiguration PRIVATE_RETURN_MISSING = DispatchConfiguration.PRIVATE_RETURN_MISSING;
+    public static final DispatchConfiguration PUBLIC_RETURN_MISSING = DispatchConfiguration.PUBLIC_RETURN_MISSING;
+    public static final DispatchConfiguration PRIVATE_DOES_RESPOND = DispatchConfiguration.PRIVATE_DOES_RESPOND;
+    public static final DispatchConfiguration PUBLIC_DOES_RESPOND = DispatchConfiguration.PUBLIC_DOES_RESPOND;
+
     public static NewDispatchHeadNode create(DispatchConfiguration config) {
         return new NewDispatchHeadNode(config);
     }
@@ -109,6 +120,15 @@ public class NewDispatchHeadNode extends FrameSendingNode {
 
     public Object callWithBlock(Object receiver, String method, RubyProc block, Object... arguments) {
         return execute(null, receiver, method, block, arguments);
+    }
+
+    public Object dispatch(VirtualFrame frame, Object receiver, Object methodName, RubyProc block, Object[] arguments) {
+        return execute(frame, receiver, methodName, block, arguments);
+    }
+
+    public boolean doesRespondTo(VirtualFrame frame, Object methodName, Object receiver) {
+        assert config == PRIVATE_DOES_RESPOND || config == PUBLIC_DOES_RESPOND;
+        return (boolean) execute(frame, receiver, methodName, null, EMPTY_ARGUMENTS);
     }
 
     public Object execute(VirtualFrame frame, Object receiver, Object methodName, RubyProc block, Object[] arguments) {

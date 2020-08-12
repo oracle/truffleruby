@@ -21,8 +21,8 @@ import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.library.RubyLibrary;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -42,8 +42,8 @@ public abstract class ToStringNode extends FormatNode {
     private final boolean inspectOnConversionFailure;
     private final Object valueOnNil;
 
-    @Child private CallDispatchHeadNode toStrNode;
-    @Child private CallDispatchHeadNode toSNode;
+    @Child private NewDispatchHeadNode toStrNode;
+    @Child private NewDispatchHeadNode toSNode;
     @Child private KernelNodes.ToSNode inspectNode;
 
     private final ConditionProfile taintedProfile = ConditionProfile.create();
@@ -113,7 +113,7 @@ public abstract class ToStringNode extends FormatNode {
             @Cached RopeNodes.BytesNode bytesNode) {
         if (toSNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toSNode = insert(CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
+            toSNode = insert(NewDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
         }
 
         final Object value = toSNode.call(array, "to_s");
@@ -162,10 +162,10 @@ public abstract class ToStringNode extends FormatNode {
         return object.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    private CallDispatchHeadNode getToStrNode() {
+    private NewDispatchHeadNode getToStrNode() {
         if (toStrNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toStrNode = insert(CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
+            toStrNode = insert(NewDispatchHeadNode.create(PRIVATE_RETURN_MISSING));
         }
         return toStrNode;
     }

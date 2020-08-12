@@ -20,7 +20,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.utils.Utils;
 
 /** Node used to convert a value into a 32-bits Java int, calling {@code to_int} if the value is not yet a Ruby integer.
@@ -109,7 +109,7 @@ public abstract class ToIntNode extends RubyContextSourceNode {
 
     @Specialization(guards = { "!isRubyInteger(object)", "!isDouble(object)", "!isNil(object)" })
     protected int coerceObject(Object object,
-            @Cached CallDispatchHeadNode toIntNode,
+            @Cached NewDispatchHeadNode toIntNode,
             @Cached ToIntNode fitNode) {
         final Object coerced = toIntNode
                 .call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);

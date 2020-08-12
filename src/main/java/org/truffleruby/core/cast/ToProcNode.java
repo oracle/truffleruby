@@ -14,7 +14,7 @@ import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -38,7 +38,7 @@ public abstract class ToProcNode extends RubyContextSourceNode {
 
     @Specialization(guards = { "!isNil(object)", "!isRubyProc(object)" })
     protected RubyProc doObject(VirtualFrame frame, Object object,
-            @Cached(parameters = "PRIVATE") CallDispatchHeadNode toProc,
+            @Cached(parameters = "PRIVATE") NewDispatchHeadNode toProc,
             @Cached BranchProfile errorProfile) {
         final Object coerced;
         try {

@@ -13,7 +13,7 @@ import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -29,7 +29,7 @@ public abstract class BigDecimalCoerceNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object coerce(int value,
-            @Cached(parameters = "PUBLIC") CallDispatchHeadNode coerce) {
+            @Cached(parameters = "PUBLIC") NewDispatchHeadNode coerce) {
         return coerce.call(
                 getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_integer_to_bigdecimal",
@@ -38,7 +38,7 @@ public abstract class BigDecimalCoerceNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object coerce(long value,
-            @Cached(parameters = "PUBLIC") CallDispatchHeadNode coerce) {
+            @Cached(parameters = "PUBLIC") NewDispatchHeadNode coerce) {
         return coerce.call(
                 getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_integer_to_bigdecimal",
@@ -47,7 +47,7 @@ public abstract class BigDecimalCoerceNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object coerceBignum(RubyBignum value,
-            @Cached(parameters = "PUBLIC") CallDispatchHeadNode coerce) {
+            @Cached(parameters = "PUBLIC") NewDispatchHeadNode coerce) {
         return coerce.call(
                 getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_integer_to_bigdecimal",
@@ -56,7 +56,7 @@ public abstract class BigDecimalCoerceNode extends RubyContextSourceNode {
 
     @Specialization
     protected Object coerce(double value,
-            @Cached(parameters = "PUBLIC") CallDispatchHeadNode coerce) {
+            @Cached(parameters = "PUBLIC") NewDispatchHeadNode coerce) {
         return coerce.call(
                 getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_float_to_bigdecimal",
@@ -65,7 +65,7 @@ public abstract class BigDecimalCoerceNode extends RubyContextSourceNode {
 
     @Specialization(guards = "isRubyRational(value)")
     protected Object coerceRational(RubyDynamicObject value,
-            @Cached(parameters = "PUBLIC") CallDispatchHeadNode coerce) {
+            @Cached(parameters = "PUBLIC") NewDispatchHeadNode coerce) {
         return coerce.call(
                 getContext().getCoreLibrary().bigDecimalOperationsModule,
                 "coerce_rational_to_bigdecimal",

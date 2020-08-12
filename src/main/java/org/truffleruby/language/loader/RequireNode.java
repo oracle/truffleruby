@@ -32,7 +32,7 @@ import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.TranslateExceptionNode;
 import org.truffleruby.parser.ParserContext;
@@ -54,9 +54,9 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 public abstract class RequireNode extends RubyContextNode {
 
     @Child private IndirectCallNode callNode = IndirectCallNode.create();
-    @Child private CallDispatchHeadNode isInLoadedFeatures = CallDispatchHeadNode.create(PRIVATE);
+    @Child private NewDispatchHeadNode isInLoadedFeatures = NewDispatchHeadNode.create(PRIVATE);
     @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
-    @Child private CallDispatchHeadNode addToLoadedFeatures = CallDispatchHeadNode.create(PRIVATE);
+    @Child private NewDispatchHeadNode addToLoadedFeatures = NewDispatchHeadNode.create(PRIVATE);
 
     @Child private WarningNode warningNode;
 

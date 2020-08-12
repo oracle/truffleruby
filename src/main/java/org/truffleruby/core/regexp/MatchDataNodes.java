@@ -45,7 +45,7 @@ import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
@@ -620,7 +620,7 @@ public abstract class MatchDataNodes {
         @Specialization
         protected RubyRegexp regexp(RubyMatchData matchData,
                 @Cached ConditionProfile profile,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode stringToRegexp) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode stringToRegexp) {
             final RubyDynamicObject value = matchData.regexp;
 
             if (profile.profile(value instanceof RubyRegexp)) {

@@ -14,7 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.parser.Identifiers;
 
@@ -66,7 +66,7 @@ public class GlobalScope {
         @TruffleBoundary
         protected Object readMember(String member,
                 @CachedContext(RubyLanguage.class) RubyContext context,
-                @Exclusive @Cached CallDispatchHeadNode evalNode) throws UnknownIdentifierException {
+                @Exclusive @Cached NewDispatchHeadNode evalNode) throws UnknownIdentifierException {
             if (!isMemberReadable(member)) {
                 throw UnknownIdentifierException.create(member);
             } else {
@@ -80,8 +80,8 @@ public class GlobalScope {
         @TruffleBoundary
         protected void writeMember(String member, Object value,
                 @CachedContext(RubyLanguage.class) RubyContext context,
-                @Exclusive @Cached CallDispatchHeadNode evalNode,
-                @Exclusive @Cached CallDispatchHeadNode callNode) throws UnknownIdentifierException {
+                @Exclusive @Cached NewDispatchHeadNode evalNode,
+                @Exclusive @Cached NewDispatchHeadNode callNode) throws UnknownIdentifierException {
             if (!isValidGlobalVariableName(member)) {
                 throw UnknownIdentifierException.create(member);
             } else {

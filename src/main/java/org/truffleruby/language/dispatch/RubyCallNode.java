@@ -34,7 +34,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
-import static org.truffleruby.language.dispatch.CallDispatchHeadNode.PRIVATE_RETURN_MISSING;
+import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE_RETURN_MISSING;
 
 public class RubyCallNode extends RubyContextSourceNode {
 
@@ -51,7 +51,7 @@ public class RubyCallNode extends RubyContextSourceNode {
     private final boolean isSafeNavigation;
     private final boolean isAttrAssign;
 
-    @Child private CallDispatchHeadNode dispatchHead;
+    @Child private NewDispatchHeadNode dispatchHead;
     @Child private ArrayToObjectArrayNode toObjectArrayNode;
     @Child private DefinedNode definedNode;
 
@@ -112,7 +112,7 @@ public class RubyCallNode extends RubyContextSourceNode {
             Object[] argumentsObjects) {
         if (dispatchHead == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            dispatchHead = insert(CallDispatchHeadNode.create(ignoreVisibility
+            dispatchHead = insert(NewDispatchHeadNode.create(ignoreVisibility
                     ? DispatchConfiguration.PRIVATE
                     : DispatchConfiguration.PROTECTED));
         }
@@ -180,7 +180,7 @@ public class RubyCallNode extends RubyContextSourceNode {
 
         private final RubySymbol methodNameSymbol = getContext().getSymbol(methodName);
 
-        @Child private CallDispatchHeadNode respondToMissing = CallDispatchHeadNode.create(PRIVATE_RETURN_MISSING);
+        @Child private NewDispatchHeadNode respondToMissing = NewDispatchHeadNode.create(PRIVATE_RETURN_MISSING);
         @Child private BooleanCastNode respondToMissingCast = BooleanCastNodeGen.create(null);
 
         // TODO CS-10-Apr-17 see below

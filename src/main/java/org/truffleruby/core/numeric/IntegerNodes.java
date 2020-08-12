@@ -42,7 +42,7 @@ import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.WarnNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.methods.UnsupportedOperationBehavior;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -165,7 +165,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object addCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCoerced) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.PLUS, b);
         }
     }
@@ -222,7 +222,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object subCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCoerced) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MINUS, b);
         }
 
@@ -284,7 +284,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object mul(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCoerced) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MULTIPLY, b);
         }
 
@@ -439,7 +439,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object divCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCoerced) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.DIVIDE, b);
         }
 
@@ -589,7 +589,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object modCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCoerced) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_coerced", CoreSymbols.MODULO, b);
         }
 
@@ -677,7 +677,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCompare) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.LESS_THAN, b);
         }
     }
@@ -722,7 +722,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object lessEqualCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCompare) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.LEQ, b);
         }
 
@@ -773,7 +773,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object equal(VirtualFrame frame, Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode reverseCallNode,
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode reverseCallNode,
                 @Cached BooleanCastNode booleanCastNode) {
             final Object reversedResult = reverseCallNode.call(b, "==", a);
             return booleanCastNode.executeToBoolean(reversedResult);
@@ -846,7 +846,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object compare(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCompare) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare_no_error", b);
         }
 
@@ -892,7 +892,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterEqualCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCompare) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.GEQ, b);
         }
 
@@ -938,7 +938,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyNumber(b)")
         protected Object greaterCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCompare) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare", CoreSymbols.GREATER_THAN, b);
         }
 
@@ -1027,7 +1027,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object bitAndCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCoerced) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", CoreSymbols.AMPERSAND, b);
         }
 
@@ -1065,7 +1065,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object bitOrCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCoerced) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", CoreSymbols.PIPE, b);
         }
 
@@ -1101,7 +1101,7 @@ public abstract class IntegerNodes {
 
         @Specialization(guards = "!isRubyInteger(b)")
         protected Object bitXOrCoerced(Object a, Object b,
-                @Cached(parameters = "PRIVATE") CallDispatchHeadNode redoCoerced) {
+                @Cached(parameters = "PRIVATE") NewDispatchHeadNode redoCoerced) {
             return redoCoerced.call(a, "redo_bit_coerced", CoreSymbols.CIRCUMFLEX, b);
         }
 
@@ -1112,7 +1112,7 @@ public abstract class IntegerNodes {
 
         @Child private AbsNode absNode;
         @Child private RightShiftNode rightShiftNode;
-        @Child private CallDispatchHeadNode fallbackCallNode;
+        @Child private NewDispatchHeadNode fallbackCallNode;
 
         public abstract Object executeLeftShift(Object a, Object b);
 
@@ -1219,7 +1219,7 @@ public abstract class IntegerNodes {
     @CoreMethod(names = ">>", required = 1, lowerFixnum = 1)
     public abstract static class RightShiftNode extends BignumCoreMethodNode {
 
-        @Child private CallDispatchHeadNode fallbackCallNode;
+        @Child private NewDispatchHeadNode fallbackCallNode;
         @Child private LeftShiftNode leftShiftNode;
 
         public abstract Object executeRightShift(Object a, Object b);
@@ -1850,7 +1850,7 @@ public abstract class IntegerNodes {
             unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class DownToNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode downtoInternalCall;
+        @Child private NewDispatchHeadNode downtoInternalCall;
 
         @Specialization
         protected Object downto(int from, int to, RubyProc block) {
@@ -1894,7 +1894,7 @@ public abstract class IntegerNodes {
         protected Object downto(Object from, Object to, RubyProc block) {
             if (downtoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                downtoInternalCall = insert(CallDispatchHeadNode.create(PRIVATE));
+                downtoInternalCall = insert(NewDispatchHeadNode.create(PRIVATE));
             }
 
             return downtoInternalCall.callWithBlock(from, "downto_internal", block, to);
@@ -1930,7 +1930,7 @@ public abstract class IntegerNodes {
             unsupportedOperationBehavior = UnsupportedOperationBehavior.ARGUMENT_ERROR)
     public abstract static class UpToNode extends YieldingCoreMethodNode {
 
-        @Child private CallDispatchHeadNode uptoInternalCall;
+        @Child private NewDispatchHeadNode uptoInternalCall;
 
         @Specialization
         protected Object upto(int from, int to, RubyProc block) {
@@ -1974,7 +1974,7 @@ public abstract class IntegerNodes {
         protected Object upto(Object from, Object to, RubyProc block) {
             if (uptoInternalCall == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                uptoInternalCall = insert(CallDispatchHeadNode.create(PRIVATE));
+                uptoInternalCall = insert(NewDispatchHeadNode.create(PRIVATE));
             }
 
             return uptoInternalCall.callWithBlock(from, "upto_internal", block, to);

@@ -12,7 +12,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -49,7 +49,7 @@ public abstract class ToRubyIntegerNode extends RubyContextSourceNode {
 
     @Specialization(guards = "!isRubyInteger(object)")
     protected Object coerceObject(Object object,
-            @Cached CallDispatchHeadNode toIntNode) {
+            @Cached NewDispatchHeadNode toIntNode) {
         return toIntNode.call(getContext().getCoreLibrary().truffleTypeModule, "rb_to_int_fallback", object);
     }
 }

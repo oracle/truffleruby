@@ -13,7 +13,7 @@ import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.FrameSendingNode;
 import org.truffleruby.language.arguments.RubyArguments;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.methods.CallInternalMethodNode;
 import org.truffleruby.language.methods.InternalMethod;
 
@@ -28,7 +28,7 @@ public class CallSuperMethodNode extends FrameSendingNode {
     private final ConditionProfile missingProfile = ConditionProfile.create();
 
     @Child private CallInternalMethodNode callMethodNode;
-    @Child private CallDispatchHeadNode callMethodMissingNode;
+    @Child private NewDispatchHeadNode callMethodMissingNode;
 
     public static CallSuperMethodNode create() {
         return new CallSuperMethodNode();
@@ -68,7 +68,7 @@ public class CallSuperMethodNode extends FrameSendingNode {
     private Object callMethodMissing(VirtualFrame frame, Object receiver, RubyProc block, Object[] arguments) {
         if (callMethodMissingNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callMethodMissingNode = insert(CallDispatchHeadNode.create(PRIVATE));
+            callMethodMissingNode = insert(NewDispatchHeadNode.create(PRIVATE));
         }
         return callMethodMissingNode.callWithBlock(receiver, "method_missing", block, arguments);
     }

@@ -13,7 +13,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Cached;
@@ -24,7 +24,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public abstract class ToFNode extends RubyContextNode {
 
-    @Child private CallDispatchHeadNode toFNode;
+    @Child private NewDispatchHeadNode toFNode;
 
     public static ToFNode create() {
         return ToFNodeGen.create();
@@ -62,7 +62,7 @@ public abstract class ToFNode extends RubyContextNode {
     private double coerceObject(Object object, BranchProfile errorProfile) {
         if (toFNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            toFNode = insert(CallDispatchHeadNode.create(PRIVATE));
+            toFNode = insert(NewDispatchHeadNode.create(PRIVATE));
         }
 
         final Object coerced;

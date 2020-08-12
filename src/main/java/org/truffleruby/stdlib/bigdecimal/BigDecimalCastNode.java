@@ -44,7 +44,7 @@ import org.truffleruby.core.numeric.BigDecimalOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.objects.IsANode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -95,8 +95,8 @@ public abstract class BigDecimalCastNode extends RubyContextNode {
     @Specialization(guards = { "!isRubyNumber(value)", "!isRubyBigDecimal(value)" })
     protected Object doOther(Object value, int digits, RoundingMode roundingMode,
             @Cached IsANode isRationalNode,
-            @Cached(parameters = "PRIVATE") CallDispatchHeadNode numeratorCallNode,
-            @Cached(parameters = "PRIVATE") CallDispatchHeadNode denominatorCallNode) {
+            @Cached(parameters = "PRIVATE") NewDispatchHeadNode numeratorCallNode,
+            @Cached(parameters = "PRIVATE") NewDispatchHeadNode denominatorCallNode) {
         if (isRationalNode.executeIsA(value, coreLibrary().rationalClass)) {
             final Object numerator = numeratorCallNode.call(value, "numerator");
             final Object denominator = denominatorCallNode.call(value, "denominator");

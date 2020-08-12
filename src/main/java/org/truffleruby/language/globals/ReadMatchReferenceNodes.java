@@ -12,7 +12,7 @@ package org.truffleruby.language.globals;
 import org.truffleruby.RubyContext;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -25,7 +25,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
 
     public static class ReadNthMatchNode extends RubyContextSourceNode {
         @Child private RubyNode readMatchNode;
-        @Child private CallDispatchHeadNode getIndexNode;
+        @Child private NewDispatchHeadNode getIndexNode;
         private final int index;
 
         protected final ConditionProfile matchNilProfile = ConditionProfile.create();
@@ -49,7 +49,7 @@ public abstract class ReadMatchReferenceNodes extends RubyContextSourceNode {
         private Object callGetIndex(VirtualFrame frame, Object match, int index) {
             if (getIndexNode == null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
-                getIndexNode = insert(CallDispatchHeadNode.create(PRIVATE));
+                getIndexNode = insert(NewDispatchHeadNode.create(PRIVATE));
             }
             return getIndexNode.call(match, "[]", index);
         }

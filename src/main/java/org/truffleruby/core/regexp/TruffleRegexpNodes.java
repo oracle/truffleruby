@@ -51,7 +51,7 @@ import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -119,7 +119,7 @@ public class TruffleRegexpNodes {
 
         @Child StringAppendPrimitiveNode appendNode = StringAppendPrimitiveNode.create();
         @Child ToSNode toSNode = ToSNode.create();
-        @Child CallDispatchHeadNode copyNode = CallDispatchHeadNode.create(PRIVATE);
+        @Child NewDispatchHeadNode copyNode = NewDispatchHeadNode.create(PRIVATE);
         @Child private SameOrEqualNode sameOrEqualNode = SameOrEqualNode.create();
         @Child private StringNodes.MakeStringNode makeStringNode = StringNodes.MakeStringNode.create();
 
@@ -289,7 +289,7 @@ public class TruffleRegexpNodes {
 
         @Child private TaintResultNode taintResultNode = new TaintResultNode();
         @Child private AllocateHelperNode allocateNode = AllocateHelperNode.create();
-        @Child private CallDispatchHeadNode dupNode = CallDispatchHeadNode.create(PRIVATE);
+        @Child private NewDispatchHeadNode dupNode = NewDispatchHeadNode.create(PRIVATE);
 
         public static MatchNode create() {
             return MatchNodeGen.create();

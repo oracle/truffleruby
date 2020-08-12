@@ -13,7 +13,7 @@ import java.util.Set;
 
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -61,7 +61,7 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
     @ExportMessage
     public Object readArrayElement(long index,
             @Cached @Shared("error") BranchProfile errorProfile,
-            @Cached @Exclusive CallDispatchHeadNode dispatch) throws InvalidArrayIndexException {
+            @Cached @Exclusive NewDispatchHeadNode dispatch) throws InvalidArrayIndexException {
         if (inBounds(index)) {
             // FIXME (pitr 11-Feb-2020): use ArrayReadNormalizedNode
             // @Cached ArrayReadNormalizedNode readNode
@@ -76,7 +76,7 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
     @ExportMessage
     public void writeArrayElement(long index, Object value,
             @Cached @Shared("error") BranchProfile errorProfile,
-            @Cached @Exclusive CallDispatchHeadNode dispatch) throws InvalidArrayIndexException {
+            @Cached @Exclusive NewDispatchHeadNode dispatch) throws InvalidArrayIndexException {
         if (index >= 0 && RubyGuards.fitsInInteger(index)) {
             // FIXME (pitr 11-Feb-2020): use ArrayWriteNormalizedNode
             // @Cached ArrayWriteNormalizedNode writeNode
@@ -90,7 +90,7 @@ public final class RubyArray extends RubyDynamicObject implements ObjectGraphNod
 
     @ExportMessage
     public void removeArrayElement(long index,
-            @Cached @Exclusive CallDispatchHeadNode dispatch,
+            @Cached @Exclusive NewDispatchHeadNode dispatch,
             @Cached @Shared("error") BranchProfile errorProfile) throws InvalidArrayIndexException {
         if (inBounds(index)) {
             // FIXME (pitr 11-Feb-2020): use delete-at node directly

@@ -40,7 +40,7 @@ import org.truffleruby.language.Visibility;
 import org.truffleruby.language.arguments.ReadCallerFrameNode;
 import org.truffleruby.language.arguments.RubyArguments;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.dispatch.RubyCallNode;
 import org.truffleruby.language.eval.CreateEvalSourceNode;
 import org.truffleruby.language.loader.CodeLoader;
@@ -95,7 +95,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "!=", required = 1)
     public abstract static class NotEqualNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode equalNode = CallDispatchHeadNode.create(PRIVATE);
+        @Child private NewDispatchHeadNode equalNode = NewDispatchHeadNode.create(PRIVATE);
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
         @Specialization
@@ -584,7 +584,7 @@ public abstract class BasicObjectNodes {
     @CoreMethod(names = "__send__", needsBlock = true, rest = true, required = 1)
     public abstract static class SendNode extends CoreMethodArrayArgumentsNode {
 
-        @Child private CallDispatchHeadNode dispatchNode = CallDispatchHeadNode.create(CallDispatchHeadNode.PRIVATE);
+        @Child private NewDispatchHeadNode dispatchNode = NewDispatchHeadNode.create(NewDispatchHeadNode.PRIVATE);
         @Child private ReadCallerFrameNode readCallerFrame = ReadCallerFrameNode.create();
 
         @Specialization

@@ -11,7 +11,7 @@ package org.truffleruby.core.kernel;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNode;
 import org.truffleruby.language.globals.ReadGlobalVariableNodeGen;
 import org.truffleruby.language.globals.WriteSimpleGlobalVariableNode;
@@ -20,7 +20,7 @@ import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class AutoSplitNode extends RubyContextSourceNode {
 
-    @Child private CallDispatchHeadNode callSplitNode = CallDispatchHeadNode.create(PRIVATE);
+    @Child private NewDispatchHeadNode callSplitNode = NewDispatchHeadNode.create(PRIVATE);
     @Child private ReadGlobalVariableNode readGlobalVariableNode = ReadGlobalVariableNodeGen.create("$_");
     @Child private WriteSimpleGlobalVariableNode writeSimpleGlobalVariableNode = WriteSimpleGlobalVariableNode
             .create("$F");

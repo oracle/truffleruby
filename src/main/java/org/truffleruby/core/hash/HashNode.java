@@ -16,13 +16,13 @@ import org.truffleruby.core.cast.ToRubyIntegerNode;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.language.RubyContextNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 
 import static org.truffleruby.language.dispatch.DispatchConfiguration.PRIVATE;
 
 public class HashNode extends RubyContextNode {
 
-    @Child private CallDispatchHeadNode hashNode;
+    @Child private NewDispatchHeadNode hashNode;
     @Child private ObjectIDNode objectIDNode;
     @Child private ToRubyIntegerNode toRubyInteger;
 
@@ -70,7 +70,7 @@ public class HashNode extends RubyContextNode {
     private Object hash(Object object) {
         if (hashNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            hashNode = insert(CallDispatchHeadNode.create(PRIVATE));
+            hashNode = insert(NewDispatchHeadNode.create(PRIVATE));
         }
         return hashNode.call(object, "hash");
     }

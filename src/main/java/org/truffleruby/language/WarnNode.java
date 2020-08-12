@@ -14,7 +14,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
-import org.truffleruby.language.dispatch.CallDispatchHeadNode;
+import org.truffleruby.language.dispatch.NewDispatchHeadNode;
 import org.truffleruby.language.globals.ReadSimpleGlobalVariableNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -29,7 +29,7 @@ public class WarnNode extends RubyContextNode {
 
     @Child protected ReadSimpleGlobalVariableNode readVerboseNode = ReadSimpleGlobalVariableNode.create("$VERBOSE");
 
-    @Child private CallDispatchHeadNode callWarnNode;
+    @Child private NewDispatchHeadNode callWarnNode;
     @Child private MakeStringNode makeStringNode;
 
     public boolean shouldWarn() {
@@ -56,7 +56,7 @@ public class WarnNode extends RubyContextNode {
 
         if (callWarnNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            callWarnNode = insert(CallDispatchHeadNode.create(PRIVATE));
+            callWarnNode = insert(NewDispatchHeadNode.create(PRIVATE));
         }
         callWarnNode.call(getContext().getCoreLibrary().kernelModule, "warn", warningString);
     }
