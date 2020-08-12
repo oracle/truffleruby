@@ -242,7 +242,7 @@ public class CExtNodes {
             if (positiveProfile.profile(num >= 0)) {
                 return num;
             } else {
-                return BignumOperations.createBignum(getContext(), toUnsigned(num));
+                return BignumOperations.createBignum(toUnsigned(num));
             }
         }
 

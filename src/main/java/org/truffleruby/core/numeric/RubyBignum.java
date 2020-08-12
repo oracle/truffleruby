@@ -9,27 +9,69 @@
  */
 package org.truffleruby.core.numeric;
 
-import java.math.BigInteger;
-
-import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.library.RubyLibrary;
-
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.CachedContext;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.RubyContext;
+import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.ValueWrapper;
+import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.language.ImmutableRubyObject;
 
-@ExportLibrary(RubyLibrary.class)
-public class RubyBignum extends RubyDynamicObject {
+import java.math.BigInteger;
+
+@ExportLibrary(InteropLibrary.class)
+public class RubyBignum extends ImmutableRubyObject {
 
     public final BigInteger value;
+    private ValueWrapper valueWrapper;
+    private long objectId;
 
-    public RubyBignum(Shape shape, BigInteger value) {
-        super(shape);
+    public RubyBignum(BigInteger value) {
         this.value = value;
+        this.valueWrapper = null;
+    }
+
+    public long getObjectId() {
+        return objectId;
+    }
+
+    public void setObjectId(long objectId) {
+        this.objectId = objectId;
+    }
+
+    public ValueWrapper getValueWrapper() {
+        return valueWrapper;
+    }
+
+    public void setValueWrapper(ValueWrapper valueWrapper) {
+        this.valueWrapper = valueWrapper;
+    }
+
+    @TruffleBoundary
+    @Override
+    public String toString() {
+        return value.toString();
+    }
+
+    // region InteropLibrary messages
+    @Override
+    @ExportMessage
+    public String toDisplayString(boolean allowSideEffects) {
+        return toString();
     }
 
     @ExportMessage
-    protected void freeze() {
+    public boolean hasMetaObject() {
+        return true;
     }
 
+    @ExportMessage
+    public RubyClass getMetaObject(
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().integerClass;
+    }
+    // endregion
 }

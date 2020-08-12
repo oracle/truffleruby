@@ -17,7 +17,6 @@ import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 
 import java.math.BigInteger;
 
-import org.truffleruby.RubyContext;
 import org.truffleruby.cext.ValueWrapperManager;
 import org.truffleruby.core.numeric.BignumOperations;
 
@@ -69,17 +68,17 @@ public abstract class ObjectIDOperations {
     }
 
     @TruffleBoundary // BigInteger
-    public static RubyBignum largeFixnumToID(RubyContext context, long fixnum) {
+    public static RubyBignum largeFixnumToID(long fixnum) {
         assert !isSmallFixnum(fixnum);
         BigInteger big = unsignedBigInteger(fixnum);
-        return BignumOperations.createBignum(context, big.or(LARGE_FIXNUM_FLAG));
+        return BignumOperations.createBignum(big.or(LARGE_FIXNUM_FLAG));
     }
 
     @TruffleBoundary // BigInteger
-    public static RubyBignum floatToID(RubyContext context, double value) {
+    public static RubyBignum floatToID(double value) {
         long bits = Double.doubleToRawLongBits(value);
         BigInteger big = unsignedBigInteger(bits);
-        return BignumOperations.createBignum(context, big.or(FLOAT_FLAG));
+        return BignumOperations.createBignum(big.or(FLOAT_FLAG));
     }
 
     // ID => primitive

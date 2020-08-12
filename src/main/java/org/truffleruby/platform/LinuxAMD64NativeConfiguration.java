@@ -679,9 +679,9 @@ public class LinuxAMD64NativeConfiguration extends DefaultNativeConfiguration {
         configuration.config("platform.process.RLIMIT_SIGPENDING", 11);
         configuration.config("platform.process.RLIMIT_MSGQUEUE", 12);
         configuration.config("platform.process.RLIMIT_NICE", 13);
-        configuration.config("platform.process.RLIM_INFINITY", newBignum(context, "18446744073709551615"));
-        configuration.config("platform.process.RLIM_SAVED_MAX", newBignum(context, "18446744073709551615"));
-        configuration.config("platform.process.RLIM_SAVED_CUR", newBignum(context, "18446744073709551615"));
+        configuration.config("platform.process.RLIM_INFINITY", newBignum("18446744073709551615"));
+        configuration.config("platform.process.RLIM_SAVED_MAX", newBignum("18446744073709551615"));
+        configuration.config("platform.process.RLIM_SAVED_CUR", newBignum("18446744073709551615"));
         configuration.config("platform.signal.SIGHUP", 1);
         configuration.config("platform.signal.SIGINT", 2);
         configuration.config("platform.signal.SIGQUIT", 3);

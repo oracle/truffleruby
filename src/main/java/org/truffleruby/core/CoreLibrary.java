@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.transcode.EConvFlags;
-import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.SuppressFBWarnings;
@@ -115,8 +114,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleOptions;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.object.Layout;
-import com.oracle.truffle.api.object.Property;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -155,9 +152,6 @@ public class CoreLibrary {
 
     private static final String ERRNO_CONFIG_PREFIX = NativeConfiguration.PREFIX + "errno.";
 
-    private static final Property ALWAYS_FROZEN_PROPERTY = Property
-            .create(Layouts.FROZEN_IDENTIFIER, Layout.createLayout().createAllocator().constantLocation(true), 0);
-
     private final RubyContext context;
 
     public final SourceSection sourceSection;
@@ -166,7 +160,6 @@ public class CoreLibrary {
     public final RubyClass arrayClass;
     public final Shape arrayShape;
     public final RubyClass basicObjectClass;
-    public final Shape bignumShape;
     public final Shape bindingShape;
     public final RubyClass classClass;
     public final Shape classShape;
@@ -495,7 +488,6 @@ public class CoreLibrary {
         complexClass = defineClass(numericClass, "Complex");
         floatClass = defineClass(numericClass, "Float");
         integerClass = defineClass(numericClass, "Integer");
-        bignumShape = createShape(RubyBignum.class, integerClass).addProperty(ALWAYS_FROZEN_PROPERTY);
         rationalClass = defineClass(numericClass, "Rational");
 
         // Classes defined in Object
@@ -1005,6 +997,8 @@ public class CoreLibrary {
             return ((RubyDynamicObject) object).getLogicalClass();
         } else if (object instanceof Nil) {
             return nilClass;
+        } else if (object instanceof RubyBignum) {
+            return integerClass;
         } else if (object instanceof RubySymbol) {
             return symbolClass;
         } else if (object instanceof Boolean) {

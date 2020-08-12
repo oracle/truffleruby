@@ -13,6 +13,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.basicobject.BasicObjectType;
 import org.truffleruby.core.klass.RubyClass;
+import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyBaseNode;
@@ -57,6 +58,12 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     @Specialization
     protected RubyClass metaClassLong(long value,
+            @CachedContext(RubyLanguage.class) RubyContext context) {
+        return context.getCoreLibrary().integerClass;
+    }
+
+    @Specialization
+    protected RubyClass metaClassBignum(RubyBignum value,
             @CachedContext(RubyLanguage.class) RubyContext context) {
         return context.getCoreLibrary().integerClass;
     }

@@ -444,7 +444,7 @@ public class BodyTranslator extends Translator {
 
     private RubyNode bignumOrFixnumNode(BigInteger value) {
         if (value.bitLength() >= 64) {
-            return new ObjectLiteralNode(BignumOperations.createBignum(context, value));
+            return new ObjectLiteralNode(BignumOperations.createBignum(value));
         } else {
             return new LongFixnumLiteralNode(value.longValue());
         }
