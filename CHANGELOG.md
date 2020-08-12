@@ -17,6 +17,7 @@ Compatibility:
 * Fix the caller location for `#method_added` (#2059).
 * Fix issue with `Float#round` when `self` is `-0.0`.
 * Fix `String#unpack` issue with `m0` format (#2065).
+* Fix issue with `File.absolute_path` returning a path to current directory (#2062).
 
 Performance:
 

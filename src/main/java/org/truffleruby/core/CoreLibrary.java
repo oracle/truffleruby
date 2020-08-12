@@ -1201,6 +1201,7 @@ public class CoreLibrary {
             "/core/encoding.rb",
             "/core/env.rb",
             "/core/errno.rb",
+            "/core/truffle/file_operations.rb",
             "/core/file.rb",
             "/core/dir.rb",
             "/core/dir_glob.rb",
