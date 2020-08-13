@@ -63,7 +63,7 @@ module Truffle
         if (nil == Primitive.object_hidden_var_get(re, TREGEX))
           Primitive.object_hidden_var_set(re, TREGEX, tregex_engine.call(re.source))
         end
-        raise RuntimeeError, 'Backwards searching not yet supported' unless to >= from
+        raise RuntimeError, 'Backwards searching not yet supported' unless to >= from
         tr = Primitive.object_hidden_var_get(re, TREGEX)
         if USE_TRUFFLE_REGEX_EXEC_BYTES && str.encoding == Encoding::UTF_8
           bytes = Truffle::StringOperations.raw_bytes(str)

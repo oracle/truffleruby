@@ -16,6 +16,7 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.language.control.RaiseException;
 
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -70,4 +71,13 @@ public class TruffleStringNodes {
 
     }
 
+    @CoreMethod(names = "raw_bytes", onSingleton = true, required = 1)
+    public abstract static class RawBytesNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object rawBytes(RubyString string) {
+            Object bytes = string.rope.getBytes();
+            return getContext().getEnv().asGuestValue(bytes);
+        }
+    }
 }
