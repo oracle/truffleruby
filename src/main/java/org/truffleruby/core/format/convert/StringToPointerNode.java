@@ -19,6 +19,7 @@ import org.truffleruby.core.format.FormatFrameDescriptor;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.control.JavaException;
 
@@ -31,8 +32,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 @NodeChild("value")
 public abstract class StringToPointerNode extends FormatNode {
 
-    @Specialization(guards = "isNil(nil)")
-    protected long toPointer(Object nil) {
+    @Specialization
+    protected long toPointer(Nil nil) {
         return 0;
     }
 

@@ -14,6 +14,7 @@ import org.truffleruby.core.format.exceptions.CantConvertException;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -56,8 +57,8 @@ public abstract class ToLongNode extends FormatNode {
         return BigIntegerOps.longValue(object);
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected long toLongNil(Object nil) {
+    @Specialization
+    protected long toLongNil(Nil nil) {
         throw new NoImplicitConversionException(nil, "Integer");
     }
 

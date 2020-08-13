@@ -34,6 +34,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.CoreSymbols;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -421,8 +422,8 @@ public abstract class FloatNodes {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }
 
-        @Specialization(guards = { "!isNaN(a)", "isNil(b)" })
-        protected Object compare(double a, Object b,
+        @Specialization(guards = { "!isNaN(a)" })
+        protected Object compare(double a, Nil b,
                 @Cached("createPrivate()") CallDispatchHeadNode redoCompare) {
             return redoCompare.call(a, "redo_compare_bad_coerce_return_error", b);
         }

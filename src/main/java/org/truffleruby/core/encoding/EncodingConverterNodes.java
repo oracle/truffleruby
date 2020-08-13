@@ -48,6 +48,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -206,10 +207,10 @@ public abstract class EncodingConverterNodes {
             throw new UnsupportedOperationException("not implemented");
         }
 
-        @Specialization(guards = { "isNil(source)" })
+        @Specialization
         protected Object primitiveConvertNilSource(
                 RubyEncodingConverter encodingConverter,
-                Object source,
+                Nil source,
                 RubyString target,
                 int offset,
                 int size,

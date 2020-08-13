@@ -12,6 +12,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -85,8 +86,8 @@ public abstract class ArrayCastNode extends RubyContextSourceNode {
         return array;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object cast(Object nil) {
+    @Specialization
+    protected Object cast(Nil nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
                 return ArrayHelpers.createEmptyArray(getContext());

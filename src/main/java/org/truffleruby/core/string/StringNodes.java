@@ -1383,8 +1383,8 @@ public abstract class StringNodes {
             return string;
         }
 
-        @Specialization(guards = "isNil(encoding)")
-        protected RubyString initializeJavaStringNoEncoding(RubyString string, String from, Object encoding) {
+        @Specialization
+        protected RubyString initializeJavaStringNoEncoding(RubyString string, String from, Nil encoding) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError(
@@ -5065,8 +5065,8 @@ public abstract class StringNodes {
             return getContext().getEnv().asGuestValue(bytesWithNull);
         }
 
-        @Specialization(guards = "isNil(string)")
-        protected Object emptyString(Object string) {
+        @Specialization
+        protected Object emptyString(Nil string) {
             return getContext().getEnv().asGuestValue(null);
         }
 

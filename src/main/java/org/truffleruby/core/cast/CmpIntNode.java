@@ -23,6 +23,7 @@ package org.truffleruby.core.cast;
 import org.truffleruby.core.numeric.BigIntegerOps;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -63,8 +64,8 @@ public abstract class CmpIntNode extends RubyContextNode {
         return BigIntegerOps.signum(value.value);
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected int cmpNil(Object nil, Object receiver, Object other) {
+    @Specialization
+    protected int cmpNil(Nil nil, Object receiver, Object other) {
         throw new RaiseException(getContext(), coreExceptions().argumentError(formatMessage(receiver, other), this));
     }
 

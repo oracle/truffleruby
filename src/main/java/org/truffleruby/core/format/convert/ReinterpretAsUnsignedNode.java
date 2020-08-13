@@ -15,6 +15,7 @@ import org.truffleruby.core.format.MissingValue;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.truffleruby.core.numeric.BigIntegerOps;
+import org.truffleruby.language.Nil;
 
 @NodeChild("value")
 public abstract class ReinterpretAsUnsignedNode extends FormatNode {
@@ -24,8 +25,8 @@ public abstract class ReinterpretAsUnsignedNode extends FormatNode {
         return missingValue;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object asUnsigned(Object nil) {
+    @Specialization
+    protected Object asUnsigned(Nil nil) {
         return nil;
     }
 

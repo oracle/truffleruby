@@ -14,6 +14,7 @@ import org.truffleruby.core.cast.ToStrNode;
 import org.truffleruby.core.format.FormatNode;
 import org.truffleruby.core.format.exceptions.NoImplicitConversionException;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.library.RubyLibrary;
 
@@ -28,8 +29,8 @@ public abstract class ToStringObjectNode extends FormatNode {
 
     public abstract Object executeToStringObject(VirtualFrame frame, Object object);
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object toStringString(Object nil) {
+    @Specialization
+    protected Object toStringString(Nil nil) {
         return nil;
     }
 

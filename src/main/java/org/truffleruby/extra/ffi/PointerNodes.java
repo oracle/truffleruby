@@ -31,6 +31,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -262,8 +263,8 @@ public abstract class PointerNodes {
             return instance;
         }
 
-        @Specialization(guards = "isNil(limit)")
-        protected RubyString readStringToNull(long address, Object limit,
+        @Specialization
+        protected RubyString readStringToNull(long address, Nil limit,
                 @Cached RopeNodes.MakeLeafRopeNode makeLeafRopeNode) {
             final Pointer ptr = new Pointer(address);
             checkNull(ptr);

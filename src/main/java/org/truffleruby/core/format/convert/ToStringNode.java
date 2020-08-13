@@ -19,6 +19,7 @@ import org.truffleruby.core.kernel.KernelNodes;
 import org.truffleruby.core.rope.RopeNodes;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.library.RubyLibrary;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -58,8 +59,8 @@ public abstract class ToStringNode extends FormatNode {
 
     public abstract Object executeToString(VirtualFrame frame, Object object);
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object toStringNil(Object nil) {
+    @Specialization
+    protected Object toStringNil(Nil nil) {
         return valueOnNil;
     }
 

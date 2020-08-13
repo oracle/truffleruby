@@ -11,6 +11,7 @@ package org.truffleruby.core.cast;
 
 import org.truffleruby.core.hash.RubyHash;
 import org.truffleruby.core.numeric.RubyBignum;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
@@ -54,8 +55,8 @@ public abstract class HashCastNode extends RubyContextSourceNode {
         return nil;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object castNil(Object nil) {
+    @Specialization
+    protected Object castNil(Nil nil) {
         return nil;
     }
 

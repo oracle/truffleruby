@@ -598,8 +598,8 @@ public abstract class KernelNodes {
             return self;
         }
 
-        @Specialization(guards = "isNil(nil)")
-        protected Object cloneNil(Object nil, boolean freeze,
+        @Specialization
+        protected Object cloneNil(Nil nil, boolean freeze,
                 @Cached ConditionProfile freezeProfile) {
             if (freezeProfile.profile(!freeze)) {
                 raiseCantUnfreezeError(nil);
@@ -902,8 +902,8 @@ public abstract class KernelNodes {
         }
 
         @TruffleBoundary
-        @Specialization(guards = "isNil(self)")
-        protected int hash(Object self) {
+        @Specialization
+        protected int hash(Nil self) {
             // TODO(CS 8 Jan 15) we shouldn't use the Java class hierarchy like this - every class should define it's
             // own @CoreMethod hash
             return System.identityHashCode(self);

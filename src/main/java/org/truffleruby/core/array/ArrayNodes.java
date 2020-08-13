@@ -62,6 +62,7 @@ import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.Visibility;
@@ -1297,53 +1298,45 @@ public abstract class ArrayNodes {
         @Specialization(
                 guards = {
                         "isEmptyArray(array)",
-                        "wasProvided(initialOrSymbol)",
-                        "isNil(block)" })
-        protected Object injectSymbolEmptyArray(
-                RubyArray array,
-                Object initialOrSymbol,
-                RubySymbol symbol,
-                Object block) {
+                        "wasProvided(initialOrSymbol)" })
+        protected Object injectSymbolEmptyArray(RubyArray array, Object initialOrSymbol, RubySymbol symbol, Nil block) {
             return initialOrSymbol;
         }
 
-        @Specialization(guards = { "isEmptyArray(array)", "isNil(block)" })
+        @Specialization(guards = { "isEmptyArray(array)" })
         protected Object injectSymbolEmptyArrayNoInitial(
                 RubyArray array,
                 RubySymbol initialOrSymbol,
                 NotProvided symbol,
-                Object block) {
+                Nil block) {
             return nil;
         }
 
         @Specialization(
                 guards = {
                         "!isEmptyArray(array)",
-                        "wasProvided(initialOrSymbol)",
-                        "isNil(block)" },
+                        "wasProvided(initialOrSymbol)" },
                 limit = "storageStrategyLimit()")
         protected Object injectSymbolWithInitial(
                 VirtualFrame frame,
                 RubyArray array,
                 Object initialOrSymbol,
                 RubySymbol symbol,
-                Object block,
+                Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores) {
             final Object store = array.store;
             return injectSymbolHelper(frame, array, symbol, stores, store, initialOrSymbol, 0);
         }
 
         @Specialization(
-                guards = {
-                        "!isEmptyArray(array)",
-                        "isNil(block)" },
+                guards = { "!isEmptyArray(array)" },
                 limit = "storageStrategyLimit()")
         protected Object injectSymbolNoInitial(
                 VirtualFrame frame,
                 RubyArray array,
                 RubySymbol initialOrSymbol,
                 NotProvided symbol,
-                Object block,
+                Nil block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores) {
             final Object store = array.store;
             return injectSymbolHelper(frame, array, initialOrSymbol, stores, store, stores.read(store, 0), 1);
