@@ -71,5 +71,73 @@ module Truffle
 
       [first, last, step_size]
     end
+
+    # MRI: r_cover_range_p
+    def self.range_cover?(range, other)
+      e = range.end
+      other_b = other.begin
+      other_e = other.end
+
+      return false if !Primitive.nil?(e) && Primitive.nil?(other_e)
+
+      return false if !Primitive.nil?(other_e) &&
+          range_less(other_b, other_e) > (other.exclude_end? ? -1 : 0)
+
+      return false unless cover?(range, other_b)
+
+      compare_end = range_less(e, other_e)
+
+      if (range.exclude_end? && other.exclude_end?) ||
+          (!range.exclude_end? && !other.exclude_end?)
+        return compare_end >= 0
+      elsif range.exclude_end?
+        return compare_end > 0
+      elsif compare_end >= 0
+        return true
+      end
+
+      other_max = begin
+                    other.max
+                  rescue TypeError
+                    nil
+                  end
+      return false if Primitive.nil?(other_max)
+
+      range_less(e, other_max) >= 0
+    end
+
+    # MRI: r_cover_p
+    def self.cover?(range, value)
+      # MRI uses <=> to compare, so must we.
+      beg_compare = (range.begin <=> value)
+      return false unless beg_compare
+
+      if Comparable.compare_int(beg_compare) <= 0
+        return true if endless?(range)
+        end_compare = (value <=> range.end)
+
+        if range.exclude_end?
+          return true if Comparable.compare_int(end_compare) < 0
+        else
+          return true if Comparable.compare_int(end_compare) <= 0
+        end
+      end
+
+      false
+    end
+
+    def self.endless?(range)
+      Primitive.nil? range.end
+    end
+
+    # MRI: r_less
+    def self.range_less(a, b)
+      compare = a <=> b
+      if Primitive.nil?(compare)
+        1
+      else
+        Comparable.compare_int(compare)
+      end
+    end
   end
 end
