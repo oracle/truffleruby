@@ -17,7 +17,8 @@ import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.language.RubyBaseNode;
 
 
-/** Truncates an array by setting its size and clearing the remainder of the store with default values. */
+/** Truncates an array by setting its size and clearing the remainder of the store for non-primitive store, in order to
+ * avoid memory leaks. */
 @ImportStatic(ArrayGuards.class)
 public abstract class ArrayTruncateNode extends RubyBaseNode {
 
