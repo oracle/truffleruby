@@ -468,14 +468,9 @@ public abstract class HashNodes {
             final int size = hash.size;
             final Object[] storeCopy = PackedArrayStrategy.copyStore(getContext(), originalStore);
 
-            int count = 0;
-
+            int n = 0;
             try {
-                for (int n = 0; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; n < getContext().getOptions().HASH_PACKED_ARRAY_MAX; n++) {
                     if (n < size) {
                         yieldPair(
                                 block,
@@ -484,9 +479,7 @@ public abstract class HashNodes {
                     }
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                LoopNode.reportLoopCount(this, n);
             }
 
             return hash;
@@ -695,9 +688,7 @@ public abstract class HashNodes {
                     }
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, length);
-                }
+                LoopNode.reportLoopCount(this, length);
             }
 
             return createArray(arrayBuilderNode.finish(state, length), length);
@@ -722,9 +713,7 @@ public abstract class HashNodes {
                     entry = entry.getNextInSequence();
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, length);
-                }
+                LoopNode.reportLoopCount(this, length);
             }
 
             return createArray(arrayBuilderNode.finish(state, length), length);

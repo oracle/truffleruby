@@ -11,7 +11,6 @@ package org.truffleruby.core.format.control;
 
 import org.truffleruby.core.format.FormatNode;
 
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 
@@ -28,11 +27,11 @@ public class RepeatLoopNode extends FormatNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        for (int i = 0; i < count; i++) {
-            child.execute(frame);
-        }
-
-        if (CompilerDirectives.inInterpreter()) {
+        try {
+            for (int i = 0; i < count; i++) {
+                child.execute(frame);
+            }
+        } finally {
             LoopNode.reportLoopCount(this, count);
         }
 

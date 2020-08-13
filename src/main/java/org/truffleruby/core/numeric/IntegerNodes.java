@@ -1852,20 +1852,13 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object downto(int from, int to, RubyProc block) {
-            int count = 0;
-
+            int i = from;
             try {
-                for (int i = from; i >= to; i--) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; i >= to; i--) {
                     yield(block, i);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                LoopNode.reportLoopCount(this, from - i + 1);
             }
 
             return nil;
@@ -1878,21 +1871,13 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object downto(long from, long to, RubyProc block) {
-            // TODO BJF 22-Apr-2015 how to handle reportLoopCount(long)
-            int count = 0;
-
+            long i = from;
             try {
-                for (long i = from; i >= to; i--) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; i >= to; i--) {
                     yield(block, i);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                reportLongLoopCount(from - i + 1);
             }
 
             return nil;
@@ -1947,20 +1932,13 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object upto(int from, int to, RubyProc block) {
-            int count = 0;
-
+            int i = from;
             try {
-                for (int i = from; i <= to; i++) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; i <= to; i++) {
                     yield(block, i);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                LoopNode.reportLoopCount(this, i - from + 1);
             }
 
             return nil;
@@ -1973,20 +1951,13 @@ public abstract class IntegerNodes {
 
         @Specialization
         protected Object upto(long from, long to, RubyProc block) {
-            int count = 0;
-
+            long i = from;
             try {
-                for (long i = from; i <= to; i++) {
-                    if (CompilerDirectives.inInterpreter()) {
-                        count++;
-                    }
-
+                for (; i <= to; i++) {
                     yield(block, i);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, count);
-                }
+                reportLongLoopCount(i - from + 1);
             }
 
             return nil;

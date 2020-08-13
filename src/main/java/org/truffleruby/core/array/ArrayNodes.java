@@ -1142,9 +1142,7 @@ public abstract class ArrayNodes {
                     arrayBuilder.appendValue(state, n, value);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
+                LoopNode.reportLoopCount(this, n);
                 setStoreAndSize(array, arrayBuilder.finish(state, n), n);
             }
 
@@ -1288,9 +1286,7 @@ public abstract class ArrayNodes {
                     accumulator = yield(block, accumulator, stores.read(store, n));
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
+                LoopNode.reportLoopCount(this, n);
             }
 
             return accumulator;
@@ -1357,16 +1353,13 @@ public abstract class ArrayNodes {
                 ArrayStoreLibrary stores, Object store, Object initial, int start) {
             Object accumulator = initial;
             int n = start;
-
             try {
                 for (; n < array.size; n++) {
                     accumulator = dispatch
                             .dispatch(frame, accumulator, symbol, null, new Object[]{ stores.read(store, n) });
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
+                LoopNode.reportLoopCount(this, n);
             }
             return accumulator;
         }
@@ -1393,9 +1386,7 @@ public abstract class ArrayNodes {
                     arrayBuilder.appendValue(state, n, mappedValue);
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
+                LoopNode.reportLoopCount(this, n);
             }
 
             return createArray(arrayBuilder.finish(state, size), size);
@@ -1679,9 +1670,7 @@ public abstract class ArrayNodes {
                     }
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
+                LoopNode.reportLoopCount(this, n);
             }
 
             return createArray(arrayBuilder.finish(state, selectedSize), selectedSize);
@@ -1744,9 +1733,7 @@ public abstract class ArrayNodes {
                 stores.copyContents(filler, 0, store, i, n - i);
                 setSize(array, i);
 
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
+                LoopNode.reportLoopCount(this, n);
             }
 
             if (i != n) {
@@ -1933,9 +1920,7 @@ public abstract class ArrayNodes {
                     }
                 }
             } finally {
-                if (CompilerDirectives.inInterpreter()) {
-                    LoopNode.reportLoopCount(this, n);
-                }
+                LoopNode.reportLoopCount(this, n);
             }
 
             return createArray(arrayBuilder.finish(state, selectedSize), selectedSize);
