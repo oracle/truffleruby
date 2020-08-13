@@ -93,7 +93,7 @@ public class CachedMethodMissingDispatchNode extends CachedDispatchNode {
     @Override
     protected boolean guard(Object methodName, Object receiver) {
         return guardName(methodName) &&
-                metaClassNode.executeMetaClass(receiver) == expectedClass;
+                metaClassNode.execute(receiver) == expectedClass;
     }
 
     @Override

@@ -168,10 +168,10 @@ public abstract class LookupMethodNode extends RubyBaseNode {
             if (noCallerMethodProfile.profile(callerMethod == null)) {
                 callerClass = context.getCoreLibrary().objectClass;
             } else if (!isSendProfile.profile(context.getCoreLibrary().isSend(callerMethod))) {
-                callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(frame));
+                callerClass = callerMetaClassNode.execute(RubyArguments.getSelf(frame));
             } else {
                 Frame callerFrame = context.getCallStack().getCallerFrameIgnoringSend(FrameAccess.READ_ONLY);
-                callerClass = callerMetaClassNode.executeMetaClass(RubyArguments.getSelf(callerFrame));
+                callerClass = callerMetaClassNode.execute(RubyArguments.getSelf(callerFrame));
             }
 
             if (!isVisibleProfile.profile(method.isProtectedMethodVisibleTo(callerClass))) {
@@ -183,7 +183,7 @@ public abstract class LookupMethodNode extends RubyBaseNode {
     }
 
     protected RubyClass metaClass(MetaClassNode metaClassNode, Object object) {
-        return metaClassNode.executeMetaClass(object);
+        return metaClassNode.execute(object);
     }
 
     protected MethodLookupResult doCachedLookup(

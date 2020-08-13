@@ -1337,7 +1337,7 @@ public abstract class KernelNodes {
         @Specialization(guards = "regular")
         protected RubyArray methodsRegular(Object self, boolean regular,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyModule metaClass = metaClassNode.executeMetaClass(self);
+            final RubyModule metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getContext(), regular, MethodFilter.PUBLIC_PROTECTED)
@@ -1398,7 +1398,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray privateMethods(Object self, boolean includeAncestors) {
-            RubyClass metaClass = metaClassNode.executeMetaClass(self);
+            RubyClass metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PRIVATE)
@@ -1435,7 +1435,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray protectedMethods(Object self, boolean includeAncestors) {
-            final RubyClass metaClass = metaClassNode.executeMetaClass(self);
+            final RubyClass metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PROTECTED)
@@ -1479,7 +1479,7 @@ public abstract class KernelNodes {
         @TruffleBoundary
         @Specialization
         protected RubyArray publicMethods(Object self, boolean includeAncestors) {
-            final RubyModule metaClass = metaClassNode.executeMetaClass(self);
+            final RubyModule metaClass = metaClassNode.execute(self);
 
             Object[] objects = metaClass.fields
                     .filterMethodsOnObject(getContext(), includeAncestors, MethodFilter.PUBLIC)
@@ -1671,7 +1671,7 @@ public abstract class KernelNodes {
                 @Cached BranchProfile errorProfile,
                 @Cached ConditionProfile singletonProfile,
                 @Cached ConditionProfile methodProfile) {
-            final RubyClass metaClass = metaClassNode.executeMetaClass(self);
+            final RubyClass metaClass = metaClassNode.execute(self);
 
             if (singletonProfile.profile(metaClass.isSingleton)) {
                 final InternalMethod method = metaClass.fields.getMethod(name);
@@ -1710,7 +1710,7 @@ public abstract class KernelNodes {
         @Specialization
         protected RubyArray singletonMethods(Object self, boolean includeAncestors,
                 @Cached MetaClassNode metaClassNode) {
-            final RubyClass metaClass = metaClassNode.executeMetaClass(self);
+            final RubyClass metaClass = metaClassNode.execute(self);
 
             if (!metaClass.isSingleton) {
                 return ArrayHelpers.createEmptyArray(getContext());

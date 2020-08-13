@@ -482,7 +482,7 @@ public class CExtNodes {
         @Specialization
         protected RubyClass rb_class_of(Object object,
                 @Cached MetaClassNode metaClassNode) {
-            return metaClassNode.executeMetaClass(object);
+            return metaClassNode.execute(object);
         }
 
     }
@@ -890,7 +890,7 @@ public class CExtNodes {
             final Frame callingMethodFrame = findCallingMethodFrame();
             final InternalMethod callingMethod = RubyArguments.getMethod(callingMethodFrame);
             final Object callingSelf = RubyArguments.getSelf(callingMethodFrame);
-            final RubyClass callingMetaclass = metaClassNode.executeMetaClass(callingSelf);
+            final RubyClass callingMetaclass = metaClassNode.execute(callingSelf);
             final MethodLookupResult superMethodLookup = ModuleOperations
                     .lookupSuperMethod(callingMethod, callingMetaclass);
             final InternalMethod superMethod = superMethodLookup.getMethod();

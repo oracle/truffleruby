@@ -63,7 +63,7 @@ public abstract class LookupSuperMethodNode extends RubyContextNode {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             metaClassNode = insert(MetaClassNode.create());
         }
-        return metaClassNode.executeMetaClass(object);
+        return metaClassNode.execute(object);
     }
 
     @TruffleBoundary
