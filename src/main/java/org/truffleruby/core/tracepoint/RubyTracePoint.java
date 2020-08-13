@@ -13,8 +13,12 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ObjectGraphNode;
 
-public class RubyTracePoint extends RubyDynamicObject {
+import java.util.Set;
+
+public class RubyTracePoint extends RubyDynamicObject implements ObjectGraphNode {
 
     TracePointEvent[] events;
     RubyProc proc;
@@ -25,4 +29,8 @@ public class RubyTracePoint extends RubyDynamicObject {
         this.proc = proc;
     }
 
+    @Override
+    public void getAdjacentObjects(Set<Object> reachable) {
+        ObjectGraph.addProperty(reachable, proc);
+    }
 }

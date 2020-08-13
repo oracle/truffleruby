@@ -69,7 +69,7 @@ public class RubyProc extends RubyDynamicObject implements ObjectGraphNode {
 
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
-        ObjectGraph.addProperty(reachable, declarationFrame);
+        ObjectGraph.getObjectsInFrame(declarationFrame, reachable);
         ObjectGraph.addProperty(reachable, method);
         ObjectGraph.addProperty(reachable, block);
     }

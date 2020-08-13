@@ -17,7 +17,6 @@ import java.util.IdentityHashMap;
 import java.util.Set;
 
 import org.truffleruby.RubyContext;
-import org.truffleruby.core.hash.Entry;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyDynamicObject;
@@ -127,37 +126,18 @@ public abstract class ObjectGraph {
         return reachable;
     }
 
-    public static void addProperty(final Set<Object> reachable, final Object value) {
+    public static void addProperty(Set<Object> reachable, Object value) {
+        assert !(value instanceof Frame) : "Frame should be handled directly with ObjectGraphNode";
+        assert !(value instanceof Collection) : "Collection should be handled directly with ObjectGraphNode";
+
         if (isSymbolOrDynamicObject(value)) {
             reachable.add(value);
-        } else if (value instanceof Entry[]) {
-            for (Entry bucket : (Entry[]) value) {
-                while (bucket != null) {
-                    if (isSymbolOrDynamicObject(bucket.getKey())) {
-                        reachable.add(bucket.getKey());
-                    }
-
-                    if (isSymbolOrDynamicObject(bucket.getValue())) {
-                        reachable.add(bucket.getValue());
-                    }
-
-                    bucket = bucket.getNextInLookup();
-                }
-            }
         } else if (value instanceof Object[]) {
             for (Object element : (Object[]) value) {
                 if (isSymbolOrDynamicObject(element)) {
                     reachable.add(element);
                 }
             }
-        } else if (value instanceof Collection<?>) {
-            for (Object element : ((Collection<?>) value)) {
-                if (isSymbolOrDynamicObject(element)) {
-                    reachable.add(element);
-                }
-            }
-        } else if (value instanceof Frame) {
-            getObjectsInFrame((Frame) value, reachable);
         } else if (value instanceof ObjectGraphNode) {
             ((ObjectGraphNode) value).getAdjacentObjects(reachable);
         }

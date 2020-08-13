@@ -12,8 +12,12 @@ package org.truffleruby.core.range;
 import org.truffleruby.language.Nil;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ObjectGraphNode;
 
-public final class RubyObjectRange extends RubyRange {
+import java.util.Set;
+
+public final class RubyObjectRange extends RubyRange implements ObjectGraphNode {
 
     public Object begin;
     public Object end;
@@ -32,4 +36,9 @@ public final class RubyObjectRange extends RubyRange {
         return end != Nil.INSTANCE;
     }
 
+    @Override
+    public void getAdjacentObjects(Set<Object> reachable) {
+        ObjectGraph.addProperty(reachable, begin);
+        ObjectGraph.addProperty(reachable, end);
+    }
 }

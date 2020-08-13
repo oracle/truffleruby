@@ -53,13 +53,8 @@ public class RubyException extends RubyDynamicObject implements ObjectGraphNode 
 
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
-        if (ObjectGraph.isSymbolOrDynamicObject(message)) {
-            reachable.add(message);
-        }
-
-        if (ObjectGraph.isSymbolOrDynamicObject(cause)) {
-            reachable.add(cause);
-        }
+        ObjectGraph.addProperty(reachable, message);
+        ObjectGraph.addProperty(reachable, cause);
     }
 
 }

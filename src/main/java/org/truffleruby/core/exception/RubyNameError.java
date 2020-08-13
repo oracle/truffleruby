@@ -33,14 +33,8 @@ public class RubyNameError extends RubyException implements ObjectGraphNode {
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         super.getAdjacentObjects(reachable);
-
-        if (ObjectGraph.isSymbolOrDynamicObject(receiver)) {
-            reachable.add(receiver);
-        }
-
-        if (ObjectGraph.isSymbolOrDynamicObject(name)) {
-            reachable.add(name);
-        }
+        ObjectGraph.addProperty(reachable, receiver);
+        ObjectGraph.addProperty(reachable, name);
     }
 
 }

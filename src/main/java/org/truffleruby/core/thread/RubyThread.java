@@ -92,9 +92,7 @@ public class RubyThread extends RubyDynamicObject implements ObjectGraphNode {
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         ObjectGraph.addProperty(reachable, threadLocalVariables);
-        if (name != Nil.INSTANCE) {
-            ObjectGraph.addProperty(reachable, name);
-        }
+        ObjectGraph.addProperty(reachable, name);
     }
 
 }

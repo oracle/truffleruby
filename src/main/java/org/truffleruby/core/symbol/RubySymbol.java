@@ -26,7 +26,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
-public class RubySymbol extends ImmutableRubyObject implements TruffleObject {
+public final class RubySymbol extends ImmutableRubyObject implements TruffleObject {
 
     public static final int UNASSIGNED_ID = -1;
 
