@@ -11,8 +11,6 @@ package org.truffleruby.core.method;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyDynamicObject;
@@ -22,6 +20,8 @@ import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
@@ -40,10 +40,8 @@ public class RubyMethod extends RubyDynamicObject implements ObjectGraphNode {
 
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
-        if (ObjectGraph.isSymbolOrDynamicObject(receiver)) {
-            reachable.add(receiver);
-        }
-        method.getAdjacentObjects(reachable);
+        ObjectGraph.addProperty(reachable, receiver);
+        ObjectGraph.addProperty(reachable, method);
     }
 
     // region SourceLocation

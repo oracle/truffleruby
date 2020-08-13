@@ -375,7 +375,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
 
         if (SharedObjects.isShared(context, rubyModuleObject)) {
             Set<Object> adjacent = ObjectGraph.newObjectSet();
-            method.getAdjacentObjects(adjacent);
+            ObjectGraph.addProperty(adjacent, method);
             for (Object object : adjacent) {
                 SharedObjects.writeBarrier(context, object);
             }
@@ -758,28 +758,24 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         }
 
         for (RubyModule module : prependedAndIncludedModules()) {
-            adjacent.add(module);
+            ObjectGraph.addProperty(adjacent, module);
         }
 
         if (rubyModuleObject instanceof RubyClass) {
             RubyClass superClass = ClassNodes.getSuperClass((RubyClass) rubyModuleObject);
-            if (superClass != null) {
-                adjacent.add(superClass);
-            }
+            ObjectGraph.addProperty(adjacent, superClass);
         }
 
         for (RubyConstant constant : constants.values()) {
-            constant.getAdjacentObjects(adjacent);
+            ObjectGraph.addProperty(adjacent, constant);
         }
 
         for (Object value : classVariables.values()) {
-            if (ObjectGraph.isSymbolOrDynamicObject(value)) {
-                adjacent.add(value);
-            }
+            ObjectGraph.addProperty(adjacent, value);
         }
 
         for (InternalMethod method : methods.values()) {
-            method.getAdjacentObjects(adjacent);
+            ObjectGraph.addProperty(adjacent, method);
         }
     }
 

@@ -10,8 +10,10 @@
 package org.truffleruby.core.hash;
 
 import java.util.Iterator;
+import java.util.Set;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.objects.ObjectGraph;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
@@ -166,6 +168,15 @@ public abstract class BucketsStrategy {
             }
 
         };
+    }
+
+    public static void getAdjacentObjects(Set<Object> reachable, Entry firstInSequence) {
+        Entry entry = firstInSequence;
+        while (entry != null) {
+            ObjectGraph.addProperty(reachable, entry.getKey());
+            ObjectGraph.addProperty(reachable, entry.getValue());
+            entry = entry.getNextInSequence();
+        }
     }
 
     public static void copyInto(RubyContext context, RubyHash from, RubyHash to) {

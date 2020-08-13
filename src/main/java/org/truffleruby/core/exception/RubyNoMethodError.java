@@ -40,10 +40,7 @@ public final class RubyNoMethodError extends RubyNameError implements ObjectGrap
     @Override
     public void getAdjacentObjects(Set<Object> reachable) {
         super.getAdjacentObjects(reachable);
-
-        if (ObjectGraph.isSymbolOrDynamicObject(args)) {
-            reachable.add(args);
-        }
+        ObjectGraph.addProperty(reachable, args);
     }
 
 }

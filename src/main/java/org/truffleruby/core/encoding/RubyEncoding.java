@@ -14,8 +14,12 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.language.RubyDynamicObject;
 
 import com.oracle.truffle.api.object.Shape;
+import org.truffleruby.language.objects.ObjectGraph;
+import org.truffleruby.language.objects.ObjectGraphNode;
 
-public class RubyEncoding extends RubyDynamicObject {
+import java.util.Set;
+
+public class RubyEncoding extends RubyDynamicObject implements ObjectGraphNode {
 
     public final Encoding encoding;
     public final RubyString name;
@@ -26,4 +30,8 @@ public class RubyEncoding extends RubyDynamicObject {
         this.name = name;
     }
 
+    @Override
+    public void getAdjacentObjects(Set<Object> reachable) {
+        ObjectGraph.addProperty(reachable, name);
+    }
 }
