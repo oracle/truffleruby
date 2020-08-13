@@ -1539,8 +1539,18 @@ class String
     s
   end
 
+  def casecmp(other)
+    other = Truffle::Type.rb_check_convert_type(other , String, :to_str)
+    if Primitive.nil? other
+      nil
+    else
+      Primitive.string_casecmp(self, other)
+    end
+  end
+
   def casecmp?(other)
-    other = StringValue(other)
+    other = Truffle::Type.rb_check_convert_type(other , String, :to_str)
+    return nil if Primitive.nil? other
 
     enc = Encoding.compatible?(encoding, other.encoding)
     if Primitive.nil? enc

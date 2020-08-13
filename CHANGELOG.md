@@ -19,6 +19,7 @@ Compatibility:
 * Fix `String#unpack` issue with `m0` format (#2065).
 * Fix issue with `File.absolute_path` returning a path to current directory (#2062).
 * Update `Range#cover?` to handle `Range` parameter.
+* Fix `String#{casecmp, casecmp?}` parameter conversion.
 
 Performance:
 
