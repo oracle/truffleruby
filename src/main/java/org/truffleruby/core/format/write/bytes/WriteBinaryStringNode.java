@@ -14,6 +14,7 @@ import org.truffleruby.core.format.FormatNode;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import org.truffleruby.language.Nil;
 
 @NodeChild("value")
 public abstract class WriteBinaryStringNode extends FormatNode {
@@ -40,8 +41,8 @@ public abstract class WriteBinaryStringNode extends FormatNode {
         this.appendNull = appendNull;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object write(VirtualFrame frame, Object nil) {
+    @Specialization
+    protected Object write(VirtualFrame frame, Nil nil) {
         if (padOnNil) {
             for (int n = 0; n < width; n++) {
                 writeByte(frame, padding);

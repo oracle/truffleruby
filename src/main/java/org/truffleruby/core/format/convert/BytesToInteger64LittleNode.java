@@ -14,6 +14,7 @@ import org.truffleruby.core.format.MissingValue;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.Nil;
 
 @NodeChild("bytes")
 public abstract class BytesToInteger64LittleNode extends FormatNode {
@@ -23,8 +24,8 @@ public abstract class BytesToInteger64LittleNode extends FormatNode {
         return missingValue;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object decode(Object nil) {
+    @Specialization
+    protected Object decode(Nil nil) {
         return nil;
     }
 

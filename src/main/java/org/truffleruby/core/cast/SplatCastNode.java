@@ -15,6 +15,7 @@ import org.truffleruby.core.array.ArrayHelpers;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -56,8 +57,8 @@ public abstract class SplatCastNode extends RubyContextSourceNode {
 
     public abstract RubyNode getChild();
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object splatNil(VirtualFrame frame, Object nil) {
+    @Specialization
+    protected Object splatNil(VirtualFrame frame, Nil nil) {
         switch (nilBehavior) {
             case EMPTY_ARRAY:
                 return ArrayHelpers.createEmptyArray(getContext());

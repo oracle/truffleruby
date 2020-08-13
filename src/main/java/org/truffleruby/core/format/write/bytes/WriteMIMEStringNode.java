@@ -50,6 +50,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import org.truffleruby.core.rope.RopeOperations;
+import org.truffleruby.language.Nil;
 
 @NodeChild("value")
 public abstract class WriteMIMEStringNode extends FormatNode {
@@ -60,8 +61,8 @@ public abstract class WriteMIMEStringNode extends FormatNode {
         this.length = length;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object write(Object nil) {
+    @Specialization
+    protected Object write(Nil nil) {
         return null;
     }
 

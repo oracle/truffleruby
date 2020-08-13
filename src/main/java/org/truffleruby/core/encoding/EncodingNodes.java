@@ -45,6 +45,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
@@ -590,8 +591,8 @@ public abstract class EncodingNodes {
             return encoding;
         }
 
-        @Specialization(guards = "isNil(encoding)")
-        protected RubyEncoding noDefaultExternal(Object encoding) {
+        @Specialization
+        protected RubyEncoding noDefaultExternal(Nil encoding) {
             throw new RaiseException(
                     getContext(),
                     coreExceptions().argumentError("default external can not be nil", this));
@@ -608,8 +609,8 @@ public abstract class EncodingNodes {
             return encoding;
         }
 
-        @Specialization(guards = "isNil(encoding)")
-        protected Object noDefaultInternal(Object encoding) {
+        @Specialization
+        protected Object noDefaultInternal(Nil encoding) {
             getContext().getEncodingManager().setDefaultInternalEncoding(null);
             return nil;
         }

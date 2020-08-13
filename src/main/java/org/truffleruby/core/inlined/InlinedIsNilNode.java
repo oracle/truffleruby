@@ -10,6 +10,7 @@
 package org.truffleruby.core.inlined;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.dispatch.RubyCallNodeParameters;
 import org.truffleruby.language.methods.LookupMethodNode;
 
@@ -28,8 +29,8 @@ public abstract class InlinedIsNilNode extends UnaryInlinedOperationNode {
                 context.getCoreMethods().nilClassIsNilAssumption);
     }
 
-    @Specialization(guards = "isNil(self)", assumptions = "assumptions")
-    protected boolean nil(Object self) {
+    @Specialization(assumptions = "assumptions")
+    protected boolean nil(Nil self) {
         return true;
     }
 

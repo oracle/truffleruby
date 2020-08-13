@@ -39,6 +39,7 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyNode;
@@ -164,8 +165,8 @@ public abstract class TypeNodes {
             return ArrayHelpers.createEmptyArray(getContext());
         }
 
-        @Specialization(guards = "isNil(object)")
-        protected RubyArray instanceVariablesNil(Object object) {
+        @Specialization
+        protected RubyArray instanceVariablesNil(Nil object) {
             return ArrayHelpers.createEmptyArray(getContext());
         }
 

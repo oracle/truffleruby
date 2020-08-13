@@ -10,6 +10,7 @@
 package org.truffleruby.core.cast;
 
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -38,8 +39,8 @@ public abstract class BooleanCastWithDefaultNode extends RubyContextSourceNode {
         return value;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected boolean doNil(Object nil) {
+    @Specialization
+    protected boolean doNil(Nil nil) {
         return false;
     }
 

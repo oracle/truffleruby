@@ -13,6 +13,7 @@ import org.truffleruby.core.format.FormatNode;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
+import org.truffleruby.language.Nil;
 
 @NodeChild("value")
 public abstract class ReinterpretByteAsIntegerNode extends FormatNode {
@@ -23,8 +24,8 @@ public abstract class ReinterpretByteAsIntegerNode extends FormatNode {
         this.signed = signed;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected Object decode(Object nil) {
+    @Specialization
+    protected Object decode(Nil nil) {
         return nil;
     }
 

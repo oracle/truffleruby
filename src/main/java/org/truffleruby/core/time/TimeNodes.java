@@ -34,6 +34,7 @@ import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.core.time.RubyDateFormatter.Token;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.Visibility;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
@@ -91,8 +92,8 @@ public abstract class TimeNodes {
 
         @Child private GetTimeZoneNode getTimeZoneNode = GetTimeZoneNodeGen.create();
 
-        @Specialization(guards = "isNil(offset)")
-        protected RubyTime localtime(RubyTime time, Object offset,
+        @Specialization
+        protected RubyTime localtime(RubyTime time, Nil offset,
                 @Cached StringNodes.MakeStringNode makeStringNode) {
             final TimeZoneAndName timeZoneAndName = getTimeZoneNode.executeGetTimeZone();
             final ZonedDateTime newDateTime = withZone(time.dateTime, timeZoneAndName.getZone());

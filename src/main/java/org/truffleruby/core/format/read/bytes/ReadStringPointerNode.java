@@ -17,6 +17,7 @@ import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
 
@@ -39,8 +40,8 @@ public abstract class ReadStringPointerNode extends FormatNode {
         this.limit = limit;
     }
 
-    @Specialization(guards = "isNil(nil)")
-    protected MissingValue decode(Object nil) {
+    @Specialization
+    protected MissingValue decode(Nil nil) {
         return MissingValue.INSTANCE;
     }
 

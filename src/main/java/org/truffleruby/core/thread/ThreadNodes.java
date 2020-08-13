@@ -76,6 +76,7 @@ import org.truffleruby.core.symbol.CoreSymbols;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.core.thread.ThreadManager.UnblockingAction;
 import org.truffleruby.core.thread.ThreadManager.UnblockingActionHolder;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.SafepointAction;
 import org.truffleruby.language.SafepointManager;
@@ -347,8 +348,8 @@ public abstract class ThreadNodes {
             return thread;
         }
 
-        @Specialization(guards = "isNil(timeout)")
-        protected RubyThread join(RubyThread thread, Object timeout) {
+        @Specialization
+        protected RubyThread join(RubyThread thread, Nil timeout) {
             return join(thread, NotProvided.INSTANCE);
         }
 
