@@ -9,7 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import java.util.Iterator;
 import java.util.Set;
 
 import org.truffleruby.RubyContext;
@@ -142,32 +141,6 @@ public abstract class BucketsStrategy {
         hash.store = newEntries;
 
         assert HashOperations.verifyStore(context, hash);
-    }
-
-    public static Iterator<KeyValue> iterateKeyValues(final Entry firstInSequence) {
-        return new Iterator<KeyValue>() {
-
-            private Entry entry = firstInSequence;
-
-            @Override
-            public boolean hasNext() {
-                return entry != null;
-            }
-
-            @Override
-            public KeyValue next() {
-                assert hasNext();
-                final KeyValue entryResult = new KeyValue(entry.getKey(), entry.getValue());
-                entry = entry.getNextInSequence();
-                return entryResult;
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-
-        };
     }
 
     public static void getAdjacentObjects(Set<Object> reachable, Entry firstInSequence) {

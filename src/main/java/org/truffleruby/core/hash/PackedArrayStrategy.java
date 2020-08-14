@@ -9,9 +9,6 @@
  */
 package org.truffleruby.core.hash;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-
 import org.truffleruby.RubyContext;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -128,41 +125,4 @@ public abstract class PackedArrayStrategy {
 
         assert HashOperations.verifyStore(context, hash);
     }
-
-    @TruffleBoundary
-    public static Iterator<KeyValue> iterateKeyValues(final Object[] store, final int size) {
-        return new Iterator<KeyValue>() {
-
-            private int index = 0;
-
-            @Override
-            public boolean hasNext() {
-                return index < size;
-            }
-
-            @Override
-            public KeyValue next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
-                }
-
-                final int finalIndex = index;
-
-                final KeyValue entryResult = new KeyValue(
-                        PackedArrayStrategy.getKey(store, finalIndex),
-                        PackedArrayStrategy.getValue(store, finalIndex));
-
-                index++;
-
-                return entryResult;
-            }
-
-            @Override
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-
-        };
-    }
-
 }
