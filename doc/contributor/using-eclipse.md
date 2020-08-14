@@ -16,13 +16,13 @@ need a full rebuild. For these reason, we recommend
 First, make sure the project is already built from the command line:
 
 ```bash
-$ jt build
+jt build
 ```
 
 ## Generate the Project Files
 
 ```bash
-$ jt mx eclipseinit
+jt mx eclipseinit
 ```
 
 ## Import the Projects
@@ -44,6 +44,6 @@ There should be now 4 projects in your workspace:
 ## Running from the Eclipse Files Directly
 
 ```bash
-$ jt ruby -e 'p Truffle'
+jt ruby -e 'p Truffle'
 Truffle
 ```

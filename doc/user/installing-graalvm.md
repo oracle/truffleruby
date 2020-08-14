@@ -45,7 +45,7 @@ This is done using the `gu` command. The Ruby package is the same for both
 editions of GraalVM and comes from GitHub.
 
 ```bash
-$ gu install ruby
+gu install ruby
 ```
 
 This command will show a message mentioning to run a post-install script.
@@ -73,7 +73,7 @@ use the new language. Rebuilding the executable images can take a few minutes
 and you should have about 10 GB of RAM available.
 
 ```bash
-$ gu rebuild-images polyglot libpolyglot
+gu rebuild-images polyglot libpolyglot
 ```
 
 To be able to do so, you may need to install the `native-image` component if you

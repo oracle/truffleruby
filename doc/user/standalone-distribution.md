@@ -71,11 +71,11 @@ Set `TRUFFLERUBY_VERSION` to the latest TruffleRuby version from
 [GitHub releases](https://github.com/oracle/truffleruby/releases/latest).
 
 ```bash
-$ export TRUFFLERUBY_VERSION=<desired_version>
-$ curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
-$ export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
-$ $PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/lib/truffle/post_install_hook.sh
-$ ruby -v # => truffleruby 20.0.0, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
+export TRUFFLERUBY_VERSION=<desired_version>
+curl -L https://github.com/oracle/truffleruby/releases/download/vm-$TRUFFLERUBY_VERSION/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64.tar.gz | tar xz
+export PATH="$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/bin:$PATH"
+$PWD/truffleruby-$TRUFFLERUBY_VERSION-linux-amd64/lib/truffle/post_install_hook.sh
+ruby -v # => truffleruby 20.0.0, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
 ```
 
 ### Latest Nightly Build
@@ -83,10 +83,10 @@ $ ruby -v # => truffleruby 20.0.0, like ruby x.y.z, GraalVM CE Native [x86_64-li
 Here are the instructions for installing the latest nightly build manually:
 
 ```bash
-$ curl -L https://github.com/ruby/truffleruby-dev-builder/releases/latest/download/truffleruby-head-ubuntu-18.04.tar.gz | tar xz
-$ export PATH="$PWD/truffleruby-head/bin:$PATH"
-$ $PWD/truffleruby-head/lib/truffle/post_install_hook.sh
-$ ruby -v # => truffleruby 20.1.0-dev-e8ccba87, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
+curl -L https://github.com/ruby/truffleruby-dev-builder/releases/latest/download/truffleruby-head-ubuntu-18.04.tar.gz | tar xz
+export PATH="$PWD/truffleruby-head/bin:$PATH"
+$PWD/truffleruby-head/lib/truffle/post_install_hook.sh
+ruby -v # => truffleruby 20.1.0-dev-e8ccba87, like ruby x.y.z, GraalVM CE Native [x86_64-linux]
 ```
 
 ### RubyGems Configuration

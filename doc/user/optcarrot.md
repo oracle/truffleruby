@@ -7,7 +7,7 @@ Start by [installing GraalVM](installing-graalvm.md).
 Then add GraalVM/bin in PATH (or use a Ruby manager):
 
 ```bash
-$ export PATH="/path/to/graalvm/bin:$PATH"
+export PATH="/path/to/graalvm/bin:$PATH"
 ```
 
 You also need to install SDL2:
@@ -18,8 +18,8 @@ You also need to install SDL2:
 Then clone the optcarrot repository:
 
 ```bash
-$ git clone https://github.com/eregon/optcarrot.git
-$ cd optcarrot
+git clone https://github.com/eregon/optcarrot.git
+cd optcarrot
 ```
 
 Then you can play the Lan Master game.
@@ -27,13 +27,13 @@ Then you can play the Lan Master game.
 On Linux:
 
 ```bash
-$ ruby --jvm bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
+ruby --jvm bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 On macOS, you need an extra flag for the GUI to appear: `--vm.XstartOnFirstThread`
 
 ```bash
-$ ruby --jvm --vm.XstartOnFirstThread bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
+ruby --jvm --vm.XstartOnFirstThread bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 (`--audio=none` is used since the audio it not nice at non-60FPS speeds)
@@ -50,13 +50,13 @@ More information can be found in this [blog post](https://eregon.me/blog/2016/11
 You can also run it on MRI for comparison.
 You will need to install the FFI gem with:
 ```bash
-$ gem install --user ffi
-$ ruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
+gem install --user ffi
+ruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 You can also run it on JRuby if desired:
 ```bash
-$ jruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
+jruby bin/optcarrot --print-fps --sdl2 --audio=none examples/Lan_Master.nes
 ```
 
 ## Running as a Benchmark from the TruffleRuby Repository

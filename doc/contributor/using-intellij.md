@@ -19,7 +19,7 @@ We refer to these global settings as `Preferences` in the rest of the document.
 First, make sure the project is already built from the command line:
 
 ```bash
-$ jt build
+jt build
 ```
 
 ## Install Eclipse Code Formatter Plugin
@@ -62,14 +62,14 @@ should be created automatically when the IDE starts.
 ## Generate the Project Files
 
 ```bash
-$ jt idea
+jt idea
 ```
 
 If you want to include other GraalVM projects besides TruffleRuby and its dependencies, you can do so
 by dynamically importing (`--dy`) other suites. For example, to have Native Image and Tools in the IDE:
 
 ```bash
-$ jt idea --dy /substratevm,/tools
+jt idea --dy /substratevm,/tools
 ```
 
 ## Import the Project

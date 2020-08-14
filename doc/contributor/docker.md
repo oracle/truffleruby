@@ -16,10 +16,10 @@ built to use TruffleRuby.
 For example, to run a full set of tests on a set of new release candidate tarballs:
 
 ```bash
-$ jt docker test --graalvm graalvm-ce.tar.gz llvm-toolchain-installable.jar:ruby-installable-ce.jar --test release_branch
-$ jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --test release_branch
-$ jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --rebuild-images native-image-installable-ee.jar --test release_branch
-$ jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
+jt docker test --graalvm graalvm-ce.tar.gz llvm-toolchain-installable.jar:ruby-installable-ce.jar --test release_branch
+jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --test release_branch
+jt docker test --graalvm graalvm-ee.tar.gz llvm-toolchain-installable.jar:ruby-installable-ee.jar --rebuild-images native-image-installable-ee.jar --test release_branch
+jt docker test --standalone truffleruby-linux-amd64.tar.gz --test release_branch
 ```
 
 ## Distributions
@@ -62,7 +62,7 @@ as repository URLs being cached that become unavailable). Therefore we recommend
 regularly clearing your Docker cache.
 
 ```bash
-$ docker system prune -a -f
+docker system prune -a -f
 ```
 
 ## Version incompatibilities
