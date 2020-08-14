@@ -20,12 +20,12 @@ that is unique to us - it applies to many sophisticated virtual machines - but
 most Ruby implementations are not yet doing optimisations powerful enough to
 show them so it may be a new problem to some people in the Ruby community.
 
-### Using the Enterprise Edition of GraalVM
+## Using the Enterprise Edition of GraalVM
 
 To experiment with how fast TruffleRuby can be we recommend using the
 [Enterprise Edition of GraalVM and rebuilding the Ruby executable images](installing-graalvm.md).
 
-### Using the JVM Configuration
+## Using the JVM Configuration
 
 For the best peak performance, you want to use the JVM configuration, using
 `--jvm`. The default native configuration starts faster but doesn't quite reach
@@ -47,8 +47,8 @@ try to work around errors and you will not see that there is a problem.
 
 ## How to Write a Performance Benchmark
 
-It is recomended that you use
-[`benchmark-ips`](https://github.com/evanphx/benchmark-ips), by Evan Phoenix, to
+The TruffleRuby team recommends that you use
+[`benchmark-ips`](https://github.com/evanphx/benchmark-ips) to
 check the performance of TruffleRuby, and it makes things easier for us if you
 report any potential performance problems using a report from `benchmark-ips`.
 
@@ -58,22 +58,17 @@ A benchmark could look like this:
 require 'benchmark/ips'
 
 Benchmark.ips do |x|
-
-  x.iterations = 3
+  x.iterations = 2
 
   x.report("adding") do
     14 + 2
   end
-
 end
 ```
 
 We use the `x.iterations =` extension in `benchmark-ips` to run the warmup and
-measurement cycles of `benchmark-ips` three times, because otherwise the first
-transition from warmup to measurement triggers one of those stable state upsets
-described above and will temporarily lower performance just as timing starts. I
-wrote about this issue in [more technical depth](https://github.com/evanphx/benchmark-ips/pull/58) if you want to know
-more details.
+measurement cycles of `benchmark-ips` two times, to ensure the result are stable
+and enough warmup was provided (which be tweaked with `x.warmup = 5`).
 
 You should see something like this:
 
@@ -81,15 +76,13 @@ You should see something like this:
 Warming up --------------------------------------
               adding    20.933k i/100ms
               adding     1.764M i/100ms
-              adding     1.909M i/100ms
 Calculating -------------------------------------
               adding      2.037B (±12.7%) i/s -      9.590B in   4.965741s
               adding      2.062B (±11.5%) i/s -     10.123B in   4.989398s
-              adding      2.072B (±10.5%) i/s -     10.176B in   4.975818s
 ```
 
-We want to look at the last line, which says that TruffleRuby runs 2.072 billion
-iterations of this block per second, with a margin of error of ±10.5%.
+We want to look at the last line, which says that TruffleRuby runs 2.062 billion
+iterations of this block per second, with a margin of error of ±11.5%.
 
 Compare that to an implementation like Rubinius:
 
@@ -97,11 +90,9 @@ Compare that to an implementation like Rubinius:
 Warming up --------------------------------------
               adding    71.697k i/100ms
               adding    74.983k i/100ms
-              adding    75.195k i/100ms
 Calculating -------------------------------------
               adding      2.111M (±12.2%) i/s -     10.302M
               adding      2.126M (±10.6%) i/s -     10.452M
-              adding      2.134M (± 9.2%) i/s -     10.527M
 ```
 
 It can be described as a thousand times faster than Rubinius. That seems like

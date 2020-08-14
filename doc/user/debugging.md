@@ -27,8 +27,8 @@ performance, so it should only be used for debugging.
 
 ## More Information in Backtraces
 
-The goal is to match MRI's backtrace format as closely as possible. This sometimes means
-that an extra available information is not displayed.
+TruffleRuby tries to match MRI's backtrace format as closely as possible.
+This sometimes means that extra available information is not displayed.
 When debugging you may want to see this information.
 
 An option to show more information is `--backtraces-interleave-java=true`

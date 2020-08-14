@@ -30,8 +30,8 @@ rvm:
   - truffleruby-head
 ```
 
-See [here](https://docs.travis-ci.com/user/languages/ruby#truffleruby) for details.
-[Report](https://github.com/oracle/truffleruby/issues) any issue you might find while testing with TruffleRuby.
+See [the TravisCI documentation](https://docs.travis-ci.com/user/languages/ruby#truffleruby) for details.
+Please [report](https://github.com/oracle/truffleruby/issues) any issue you might find while testing with TruffleRuby.
 
 ## Testing TruffleRuby in GitHub Actions
 

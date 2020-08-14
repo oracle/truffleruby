@@ -1,13 +1,17 @@
 # Using TruffleRuby with GraalVM
 
-[GraalVM](http://graalvm.org/) is the platform on which TruffleRuby runs. When
-running on GraalVM Enterprise Edition, TruffleRuby performs and scales better,
-unlike GraalVM Community Edition.
+[GraalVM](http://graalvm.org/) is the platform on which TruffleRuby runs.
 
 ## Dependencies
 
 [TruffleRuby's dependencies](../../README.md#dependencies) need to be installed
 for TruffleRuby to run correctly.
+
+## Community Edition and Enterprise Edition
+
+GraalVM is available in a Community Edition, which is open-source, and an
+Enterprise Edition which has better performance and scalability.
+See [the website](https://www.graalvm.org/downloads) for a comparison.
 
 ## Installing the Base Image
 
@@ -15,9 +19,11 @@ GraalVM starts with a base image which provides the platform for
 high-performance language runtimes.
 
 The Community Edition base image can be installed from GitHub, under an open
-source licence. The Enterprise Edition base image can only be installed from the
+source licence. The Enterprise Edition base image can be installed from the
 Oracle Technology Network using the OTN licence.
-See [GraalVM Downloads](https://www.graalvm.org/downloads) page for download links.
+
+See the [GraalVM Downloads](https://www.graalvm.org/downloads) page for download links.
+
 Nightly builds of the GraalVM Community Edition are
 [also available](https://github.com/graalvm/graalvm-ce-dev-builds/releases).
 
@@ -44,7 +50,8 @@ $ gu install ruby
 
 This command will show a message mentioning to run a post-install script.
 This is necessary to make the Ruby openssl C extension work with your system libssl.
-Run that script. The path of the script will be:
+Please run that script now.
+The path of the script will be:
 ```bash
 # Java 8
 jre/languages/ruby/lib/truffle/post_install_hook.sh
@@ -56,7 +63,7 @@ $(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')/lib/truffle/po
 
 You can also download the Ruby component (`ruby-installable-...`) manually from
 https://github.com/oracle/truffleruby/releases/latest. Then install it with
-`gu install --file path/to/ruby-installable`.
+`gu install --file path/to/ruby-installable-...`.
 
 If you are installing Ruby into GraalVM Enterprise, then you need to download the Ruby
 Enterprise installable from OTN and install using `--file` in the same way.

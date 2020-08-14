@@ -1,7 +1,7 @@
 # Migration from JRuby to TruffleRuby
 
-It is recommended that people trying TruffleRuby on their gems and applications
-[get in touch with TruffleRuby team](../../README.md#contact) for help.
+When trying TruffleRuby on your gems and applications, you are encouraged to
+[get in touch with the TruffleRuby team](../../README.md#contact) for help.
 
 ## Deployment
 
@@ -22,7 +22,7 @@ JRuby supports many different ways to embed Ruby in Java, including JSR 223
 (also know as `javax.script`), the Bean Scripting Framework (BSF), JRuby Embed
 (also known as Red Bridge), and the JRuby direct embedding API.
 
-It is recommended that TruffleRuby is embedded via the Polyglot API, which is part of
+Thes best way to embed TruffleRuby is to use the Polyglot API, which is part of
 GraalVM. The API is different because it is designed to support many languages,
 not just Ruby.
 
@@ -437,7 +437,7 @@ TruffleRuby you use the read notation to read them as a property,
 In JRuby you can add classes and jars to the classpath using `require`. In
 TruffleRuby at the moment you use the `-classpath` JVM flag as normal.
 
-### Additional Java Specific Methods
+### Additional Java-Specific Methods
 
 JRuby defines these methods on Java objects, use these equivalents instead.
 

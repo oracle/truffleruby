@@ -4,7 +4,7 @@ TruffleRuby is intended to be usable as a standard Ruby implementation that runs
 programs developed on other implementations, but it also provides additional
 functionality beyond that of other implementations.
 
-Also see the [Compatibility](compatibility.md) guide with
+See the [Compatibility](compatibility.md) guide for compatibility with
 other Ruby implementations.
 
 ## Detecting If You Run on TruffleRuby
@@ -85,7 +85,8 @@ regardless of the version of the `ffi` gem.
 ## Polyglot Programming
 
 The `Polyglot` and `Java` modules provides access to the polyglot programming
-functionality of GraalVM. Continue reading to the [Polyglot Programming](polyglot.md) guide.
+functionality of GraalVM.
+They are described in the [Polyglot Programming](polyglot.md) guide.
 
 ## Unsupported Additional Functionality
 

@@ -1,6 +1,6 @@
 # Security
 
-Report security vulnerabilities via the process outlined at [reporting vulnerabilities guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html).
+Please report security vulnerabilities via the process outlined at [reporting vulnerabilities guide](https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html).
 Specific guidelines for reporting security issues of the GraalVM project including TruffleRuby can be found in the [SECURITY.md file](../../SECURITY.md).
 
 ## Unimplemented Security Features
@@ -149,4 +149,4 @@ CVE-2018-1000201 | A DLL loading issue can be hijacked on Windows when a `Symbol
 
 TruffleRuby uses `MurmurHash2` hashing with a seed from `/dev/urandom` - it
 cannot be configured to use any other hashing algorithm. For hashing strings,
-use Java's hash algorithm (and then `MurmurHash2` on top).
+TruffleRuby uses Java's hash algorithm (and then `MurmurHash2` on top).
