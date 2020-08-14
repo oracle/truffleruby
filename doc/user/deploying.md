@@ -21,7 +21,7 @@ standalone native executable. This means that you do not need a JVM installed on
 your system to use it.
 
 The advantages of the Native configuration are that it [starts about as fast as
-MRI](https://github.com/oracle/truffleruby/blob/master/doc/contributor/native-image.md),
+MRI](https://eregon.me/blog/2019/04/24/how-truffleruby-startup-became-faster-than-mri.html),
 it may use less memory, and it becomes fast in less time than the *JVM*
 configuration. The disadvantages are that you can't use Java tools like
 VisualVM, it is less convenient for Java interoperability
