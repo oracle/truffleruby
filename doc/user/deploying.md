@@ -26,10 +26,9 @@ are that you can't use Java tools like VisualVM, it is less convenient for Java
 interoperability, and *peak performance may be lower than on the JVM*. You can
 select the Native configuration by passing `--native`.
 
-When building from source, you'll need to select the `--native` [build configuration]
+When building from source, you'll need to select the `--native`
+[build configuration](../contributor/workflow.md#building)
 to be able to use the runtime native configuration.
-
-[build configuration]: ../contributor/workflow.md#building
 
 ### JVM Configuration
 
