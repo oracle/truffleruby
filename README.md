@@ -111,9 +111,7 @@ but this can only be done on a best effort basis.
 
 You may also need to set up a [UTF-8 locale](doc/user/utf8-locale.md).
 
-See the [contributor workflow] document if you wish to build TruffleRuby from source.
-
-[contributor workflow]: doc/contributor/workflow.md
+See the [contributor workflow](doc/contributor/workflow.md) document if you wish to build TruffleRuby from source.
 
 ## Current Status
 
