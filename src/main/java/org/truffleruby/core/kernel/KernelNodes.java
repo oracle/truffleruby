@@ -530,7 +530,7 @@ public abstract class KernelNodes {
             return BooleanCastWithDefaultNodeGen.create(true, freeze);
         }
 
-        @Specialization(guards = "!isRubyBignum(self)", limit = "getRubyLibraryCacheLimit()")
+        @Specialization(limit = "getRubyLibraryCacheLimit()")
         protected RubyDynamicObject clone(RubyDynamicObject self, boolean freeze,
                 @Cached ConditionProfile isSingletonProfile,
                 @Cached ConditionProfile freezeProfile,

@@ -668,15 +668,9 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         return refinements;
     }
 
-    public void setSuperClass(RubyClass superclass, boolean markAsInitialized) {
+    public void setSuperClass(RubyClass superclass) {
         assert rubyModuleObject instanceof RubyClass;
-
         this.parentModule = superclass.fields.start;
-
-        if (markAsInitialized) {
-            ((RubyClass) rubyModuleObject).superclass = superclass;
-        }
-
         newHierarchyVersion();
     }
 
