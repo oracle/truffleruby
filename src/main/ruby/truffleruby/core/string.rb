@@ -1452,7 +1452,7 @@ class String
       case original_prefix
       when Regexp
         Truffle::Type.compatible_encoding(self, original_prefix)
-        match_data = original_prefix.match_onwards(self, 0, true)
+        match_data = Truffle::RegexpOperations.match_onwards(original_prefix, self, 0, true)
         Truffle::RegexpOperations.set_last_match(match_data, binding)
         return true if match_data
       else

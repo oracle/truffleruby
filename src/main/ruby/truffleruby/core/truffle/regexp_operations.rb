@@ -11,7 +11,26 @@
 module Truffle
   module RegexpOperations
 
-    USE_TRUFFLE_REGEX = false
+    def self.search_region(re, str, start_index, end_index, forward)
+      raise TypeError, 'uninitialized regexp' unless initialized?(re)
+      if (!str.valid_encoding?)
+        raise ArgumentError, "invalid byte sequence in #{str.encoding}"
+      end
+      if forward
+        from = start_index
+        to = end_index
+      else
+        from = end_index
+        to = start_index
+      end
+      match_in_region(re, str, from, to, false, true, 0)
+    end
+
+    def self.match_onwards(re, str, from, at_start)
+      md = match_in_region(re, str, from, str.bytesize, at_start, true, from)
+      fixup_matchdata(md, from) if md
+      md
+    end
 
     def self.match(re, str, pos=0)
       return nil unless str

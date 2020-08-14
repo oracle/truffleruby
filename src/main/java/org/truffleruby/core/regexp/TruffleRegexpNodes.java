@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jcodings.Encoding;
 import org.jcodings.specific.ASCIIEncoding;
+import org.jcodings.specific.USASCIIEncoding;
 import org.jcodings.specific.UTF8Encoding;
 import org.joni.Matcher;
 import org.joni.Option;
@@ -33,11 +34,11 @@ import org.truffleruby.core.array.ArrayBuilderNode;
 import org.truffleruby.core.array.ArrayBuilderNode.BuilderState;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.cast.TaintResultNode;
-import org.truffleruby.core.encoding.EncodingNodes;
 import org.truffleruby.core.hash.ReHashable;
 import org.truffleruby.core.kernel.KernelNodes.SameOrEqualNode;
 import org.truffleruby.core.regexp.RegexpNodes.ToSNode;
 import org.truffleruby.core.regexp.TruffleRegexpNodesFactory.MatchNodeGen;
+import org.truffleruby.core.rope.CodeRange;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.rope.RopeBuilder;
 import org.truffleruby.core.rope.RopeNodes;
@@ -46,7 +47,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.core.string.StringNodes.StringAppendPrimitiveNode;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.core.string.StringUtils;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -54,7 +54,6 @@ import org.truffleruby.language.objects.AllocateHelperNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -63,6 +62,53 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @CoreModule("Truffle::RegexpOperations")
 public class TruffleRegexpNodes {
+
+    @TruffleBoundary
+    public static Matcher createMatcher(RubyContext context, RubyRegexp regexp, Rope stringRope, byte[] stringBytes,
+            boolean encodingConversion, int start, Node currentNode) {
+        final Encoding enc = checkEncoding(regexp, stringRope.getEncoding(), stringRope.getCodeRange(), true);
+        Regex regex = regexp.regex;
+
+        if (encodingConversion && regex.getEncoding() != enc) {
+            EncodingCache encodingCache = regexp.cachedEncodings;
+            regex = encodingCache.getOrCreate(enc, e -> makeRegexpForEncoding(context, regexp, e, currentNode));
+        }
+
+        return regex.matcher(stringBytes, start, stringBytes.length);
+    }
+
+    @TruffleBoundary
+    public static Encoding checkEncoding(RubyRegexp regexp, Encoding strEnc, CodeRange codeRange, boolean warn) {
+        final Encoding regexEnc = regexp.regex.getEncoding();
+
+        if (strEnc == regexEnc) {
+            return regexEnc;
+        } else if (regexEnc == USASCIIEncoding.INSTANCE && codeRange == CodeRange.CR_7BIT) {
+            return regexEnc;
+        } else if (strEnc.isAsciiCompatible() && regexp.options.isFixed()) {
+            return regexEnc;
+        }
+        return strEnc;
+    }
+
+    private static Regex makeRegexpForEncoding(RubyContext context, RubyRegexp regexp, Encoding enc, Node currentNode) {
+        final Encoding[] fixedEnc = new Encoding[]{ null };
+        final Rope sourceRope = regexp.source;
+        final RopeBuilder preprocessed = ClassicRegexp
+                .preprocess(context, sourceRope, enc, fixedEnc, RegexpSupport.ErrorMode.RAISE);
+        final RegexpOptions options = regexp.options;
+        try {
+            return new Regex(
+                    preprocessed.getUnsafeBytes(),
+                    0,
+                    preprocessed.getLength(),
+                    options.toJoniOptions(),
+                    enc,
+                    new RegexWarnCallback(context));
+        } catch (SyntaxException e) {
+            throw new RaiseException(context, context.getCoreExceptions().regexpError(e.getMessage(), currentNode));
+        }
+    }
 
     @CoreMethod(names = "union", onSingleton = true, required = 2, rest = true)
     public static abstract class RegexpUnionNode extends CoreMethodArrayArgumentsNode {
@@ -135,51 +181,6 @@ public class TruffleRegexpNodes {
         }
     }
 
-    @CoreMethod(names = "search_region", onSingleton = true, required = 5, lowerFixnum = { 3, 4 })
-    @ImportStatic(RegexpGuards.class)
-    public static abstract class RegexpSearchRegionNode extends CoreMethodArrayArgumentsNode {
-
-        @Child RopeNodes.CodeRangeNode rangeNode = RopeNodes.CodeRangeNode.create();
-
-        @Specialization(guards = { "!isInitialized(regexp)" })
-        protected Object notInitialized(RubyRegexp regexp, RubyString string, int start, int end, boolean forward) {
-            throw new RaiseException(getContext(), coreExceptions().typeError("uninitialized Regexp", this));
-        }
-
-        @Specialization(guards = { "!isValidEncoding(string, rangeNode)" })
-        protected Object invalidEncoding(RubyRegexp regexp, RubyString string, int start, int end, boolean forward) {
-            throw new RaiseException(getContext(), coreExceptions().argumentError(formatError(string), this));
-        }
-
-        @TruffleBoundary
-        private String formatError(RubyString string) {
-            return StringUtils.format("invalid byte sequence in %s", string.rope.getEncoding());
-        }
-
-        @Specialization(
-                guards = { "isInitialized(regexp)", "isValidEncoding(string, rangeNode)" })
-        protected Object searchRegion(RubyRegexp regexp, RubyString string, int start, int end, boolean forward,
-                @Cached ConditionProfile forwardSearchProfile,
-                @Cached RopeNodes.BytesNode bytesNode,
-                @Cached TruffleRegexpNodes.MatchNode matchNode,
-                @Cached EncodingNodes.CheckEncodingNode checkEncodingNode) {
-            checkEncodingNode.executeCheckEncoding(regexp, string);
-
-            final Rope rope = string.rope;
-            final Matcher matcher = RegexpNodes
-                .createMatcher(getContext(), regexp, rope, bytesNode.execute(rope), true, 0, this);
-
-            if (forwardSearchProfile.profile(forward)) {
-                // Search forward through the string.
-                return matchNode.execute(regexp, string, matcher, start, end, false);
-            } else {
-                // Search backward through the string.
-                return matchNode.execute(regexp, string, matcher, end, start, false);
-            }
-        }
-
-    }
-
     public static abstract class RegexpStatsNode extends CoreMethodArrayArgumentsNode {
 
         @TruffleBoundary
@@ -213,6 +214,46 @@ public class TruffleRegexpNodes {
         protected Object buildStatsArray(
                 @Cached ArrayBuilderNode arrayBuilderNode) {
             return fillinInstrumentData(matchedRegexps, arrayBuilderNode, getContext());
+        }
+    }
+
+    @CoreMethod(names = "fixup_matchdata", onSingleton = true, required = 2, lowerFixnum = 2)
+    public abstract static class FixupMatchData extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected RubyMatchData fixupMatchData(RubyMatchData matchData, int startPos) {
+            RegexpNodes.fixupMatchDataForStart(matchData, startPos);
+            return matchData;
+        }
+    }
+
+    @CoreMethod(names = "initialized?", onSingleton = true, required = 1)
+    public static abstract class InitializedNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected boolean initialized(RubyRegexp regexp) {
+            return RegexpGuards.isInitialized(regexp);
+        }
+    }
+
+    @CoreMethod(names = "match_in_region", onSingleton = true, required = 7, lowerFixnum = { 3, 4, 7 })
+    public static abstract class MatchInRegionNode extends CoreMethodArrayArgumentsNode {
+
+        @Specialization
+        protected Object matchInRegion(RubyRegexp regexp, RubyString string, int fromPos, int toPos, boolean atStart,
+                boolean encodingConversion, int startPos,
+                @Cached RopeNodes.BytesNode bytesNode,
+                @Cached TruffleRegexpNodes.MatchNode matchNode) {
+            Rope rope = string.rope;
+            Matcher matcher = createMatcher(
+                    getContext(),
+                    regexp,
+                    rope,
+                    bytesNode.execute(rope),
+                    encodingConversion,
+                    startPos,
+                    this);
+            return matchNode.execute(regexp, string, matcher, fromPos, toPos, atStart);
         }
     }
 
