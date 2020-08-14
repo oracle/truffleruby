@@ -32,6 +32,13 @@ Whichever edition you get you will get a tarball which you can extract. There
 will be a `bin` directory (`Contents/Home/bin` on macOS) which you can add to
 your `$PATH` if you want to.
 
+### Installing with asdf
+
+Using [asdf](https://github.com/asdf-vm/asdf) and
+[asdf-java](https://github.com/halcyon/asdf-java) installation is as easy as
+`asdf install java graalvm-20.1.0+java11` (look up versions via
+`asdf list-all java | grep graalvm`)
+
 ## Installing Ruby and Other Languages
 
 After installing GraalVM you then need to install the Ruby language into it.
