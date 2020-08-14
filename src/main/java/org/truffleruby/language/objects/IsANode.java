@@ -34,13 +34,13 @@ public abstract class IsANode extends RubyBaseNode {
 
     @Specialization(
             guards = {
-                    "metaClassNode.executeMetaClass(self) == cachedMetaClass",
+                    "metaClassNode.execute(self) == cachedMetaClass",
                     "module == cachedModule" },
             assumptions = "getHierarchyUnmodifiedAssumption(cachedModule)",
             limit = "getCacheLimit()")
     protected boolean isACached(Object self, RubyModule module,
             @Cached MetaClassNode metaClassNode,
-            @Cached("metaClassNode.executeMetaClass(self)") RubyClass cachedMetaClass,
+            @Cached("metaClassNode.execute(self)") RubyClass cachedMetaClass,
             @Cached("module") RubyModule cachedModule,
             @Cached("isA(cachedMetaClass, cachedModule)") boolean result) {
         return result;
@@ -53,7 +53,7 @@ public abstract class IsANode extends RubyBaseNode {
     @Specialization(replaces = "isACached")
     protected boolean isAUncached(Object self, RubyModule module,
             @Cached MetaClassNode metaClassNode) {
-        return isA(metaClassNode.executeMetaClass(self), module);
+        return isA(metaClassNode.execute(self), module);
     }
 
     @TruffleBoundary

@@ -207,7 +207,7 @@ public abstract class MethodNodes {
         protected Object superMethod(RubyMethod method) {
             Object receiver = method.receiver;
             InternalMethod internalMethod = method.method;
-            RubyClass selfMetaClass = metaClassNode.executeMetaClass(receiver);
+            RubyClass selfMetaClass = metaClassNode.execute(receiver);
             MethodLookupResult superMethod = ModuleOperations.lookupSuperMethod(internalMethod, selfMetaClass);
             if (!superMethod.isDefined()) {
                 return nil;

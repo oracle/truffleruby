@@ -34,7 +34,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return MetaClassNodeGen.create();
     }
 
-    public abstract RubyClass executeMetaClass(Object value);
+    public abstract RubyClass execute(Object value);
 
     // Cover all primitives
 
@@ -104,7 +104,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
 
     @Specialization(guards = "updateShape(object)")
     protected RubyClass updateShapeAndMetaClass(RubyDynamicObject object) {
-        return executeMetaClass(object);
+        return execute(object);
     }
 
     @Specialization(replaces = { "metaClassCached", "updateShapeAndMetaClass" })

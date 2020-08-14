@@ -134,7 +134,7 @@ public abstract class VMPrimitiveNodes {
                 @Cached MetaClassNode metaClassNode,
                 @Cached YieldNode yieldNode,
                 @Cached ConditionProfile isSingletonProfile) {
-            final RubyClass metaClass = metaClassNode.executeMetaClass(object);
+            final RubyClass metaClass = metaClassNode.execute(object);
 
             if (isSingletonProfile.profile(metaClass.isSingleton)) {
                 for (RubyModule included : metaClass.fields.prependedAndIncludedModules()) {
