@@ -11,13 +11,13 @@ message when installing TruffleRuby via `gu install` in GraalVM.
 ### RedHat-based: Fedora, Oracle Linux, etc
 
 ```bash
-$ sudo dnf install openssl-devel
+sudo dnf install openssl-devel
 ```
 
 ### Debian-based: Ubuntu, etc
 
 ```bash
-$ sudo apt-get install libssl-dev
+sudo apt-get install libssl-dev
 ```
 
 ### macOS
@@ -29,7 +29,7 @@ On macOS the system version is too old.
 We recommend installing libssl via [Homebrew](https://brew.sh).
 
 ```bash
-$ brew install openssl
+brew install openssl
 ```
 
 #### MacPorts
@@ -37,5 +37,5 @@ $ brew install openssl
 MacPorts should also work but is not actively tested.
 
 ```bash
-$ sudo port install openssl
+sudo port install openssl
 ```

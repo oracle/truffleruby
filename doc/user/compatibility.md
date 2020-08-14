@@ -1,47 +1,40 @@
 # Compatibility
 
 TruffleRuby aims to be fully compatible with the standard implementation of
-Ruby, MRI, version 2.6.6.
+Ruby, MRI, version 2.6.6, [including C extensions](#c-extension-compatibility).
+TruffleRuby is still in development, so it is not 100% compatible yet.
 
 Any incompatibility with MRI is considered a bug, except for rare cases detailed below.
-If you find an incompatibility with MRI, please [report](https://github.com/oracle/truffleruby/issues) it to us.
+If you find an incompatibility with MRI, please [report](https://github.com/oracle/truffleruby/issues) it.
 
-Our policy is to match the behaviour of MRI, except where we do not know how to
-do so with good performance for typical Ruby programs. Some features work but
-will have very low performance whenever they are used and we advise against
-using them on TruffleRuby if you can. Some features are missing entirely and may
-never be implemented. In a few limited cases, we are deliberately incompatible
+TruffleRuby tries to match the behavior of MRI as much as possible.
+In a few limited cases, TruffleRuby is deliberately incompatible
 with MRI in order to provide a greater capability.
 
-In general, we are not looking to debate whether Ruby features are good, bad, or
-if we could design the language better. If we can support a feature, we will do.
-
-In the future, we aim to provide compatibility with extra functionality provided
-by JRuby, but at the moment we do not.
+In the future, TruffleRuby aims to provide compatibility with extra functionality provided
+by JRuby.
 
 ## Identification
 
-TruffleReport defines these constants for identification:
+TruffleRuby defines these constants for identification:
 
 - `RUBY_ENGINE` is `'truffleruby'`
 - `RUBY_VERSION` is the compatible MRI version
-- `RUBY_REVISION` is the compatible MRI version revision
+- `RUBY_REVISION` is the full `git` commit hash used to build TruffleRuby (similar to MRI 2.7+)
+- `RUBY_RELEASE_DATE` is the `git` commit date
 - `RUBY_PATCHLEVEL` is always zero
-- `RUBY_RELEASE_DATE` is the Git commit date
 - `RUBY_ENGINE_VERSION` is the GraalVM version, or `0.0-` and the Git commit hash if your build is not part of a GraalVM release.
 
-Additionally, TruffleRuby defines:
-
-- `TruffleRuby.revision` which is the Git commit hash
-
-In the C API, we define a preprocessor macro `TRUFFLERUBY`.
+In the C API, the preprocessor macro `TRUFFLERUBY` is defined,
+which can be checked with `#ifdef TRUFFLERUBY`.
 
 ## Features Entirely Missing
 
 #### Continuations and `callcc`
 
+Continuations are obsolete in MRI, and Fibers are recommended instead.
 Continuations and `callcc` are unlikely to ever be implemented in TruffleRuby,
-as their semantics fundamentally do not match the technology that we are using.
+as their semantics fundamentally do not match the JVM architecture.
 
 #### Fork
 
@@ -58,7 +51,7 @@ Process.respond_to?(:fork)
 
 The following standard libraries are unsupported.
 
-* `continuation`
+* `continuation` (obsolete in MRI)
 * `dbm`
 * `gdbm`
 * `sdbm`
@@ -68,18 +61,19 @@ The following standard libraries are unsupported.
 * `io/console` (partially implemented, could be implemented in the future)
 * `io/wait` (partially implemented, could be implemented in the future)
 * `pty` (could be implemented in the future)
-* `win32`
-* `win32ole`
+* `win32` (only relevant on Windows)
+* `win32ole` (only relevant on Windows)
 
-We provide our own included implementation of the interface of the `ffi` gem,
-like JRuby and Rubinius. The implementation should be fairly complete and passes
-all the specs of the `ffi` gem except for some rarely-used corner cases.
+TruffleRuby provides its own backend implementation for the `ffi` gem, similar
+to JRuby. This should be completely transparent and behave the same as on MRI.
+The implementation should be fairly complete and passes all the specs of the
+`ffi` gem except for some rarely-used corner cases.
 
 #### Safe levels
 
 `$SAFE` and `Thread#safe_level` are `0` and no other levels are implemented.
 Trying to use level `1` will raise a `SecurityError`. Other levels will raise
-`ArgumentError` as in standard Ruby. See our [security notes](known-cves.md) for
+`ArgumentError` as in standard Ruby. See the [security notes](known-cves.md) for
 more explanation on this.
 
 #### Internal MRI functionality
@@ -93,7 +87,7 @@ more explanation on this.
 In MRI, threads are scheduled concurrently but not in parallel. In TruffleRuby
 threads are scheduled in parallel. As in JRuby and Rubinius, you are responsible
 for correctly synchronising access to your own shared mutable data structures,
-and we will be responsible for correctly synchronising the state of the
+and TruffleRuby will be responsible for correctly synchronising the state of the
 interpreter.
 
 #### Threads detect interrupts at different points
@@ -101,24 +95,22 @@ interpreter.
 TruffleRuby threads may detect that they have been interrupted at different
 points in the program to where it would on MRI. In general, TruffleRuby seems
 to detect an interrupt sooner than MRI. JRuby and Rubinius are also different
-to MRI, the behaviour isn't documented in MRI, and it's likely to change
-between MRI versions, so we would not recommend depending on interrupt points
-at all.
+to MRI, the behaviour is not documented in MRI, and it is likely to change
+between MRI versions, so it is not recommended to depend on interrupt points.
 
 #### Fibers do not have the same performance characteristics as in MRI
 
 Most use cases of fibers rely on them being easy and cheap to start up and
-having low memory overheads. In TruffleRuby we implement fibers using operating
-system threads, so they have the same performance characteristics as Ruby
-threads. As with coroutines and continuations, a conventional implementation
-of fibers fundamentally isn't compatible with the execution model we are
-currently using.
+having low memory overheads. In TruffleRuby, fibers are currently implemented
+using operating system threads, so they have the same performance characteristics as Ruby
+threads. This [will be addressed](https://medium.com/graalvm/bringing-fibers-to-truffleruby-1b5d2e258953)
+once the Loom project becomes stable and available in JVM releases.
 
 #### Some classes marked as internal will be different
 
-MRI provides some classes that are described in the documentation as being only
-available on MRI (C Ruby). We implement these classes if it's practical to do
-so, but this isn't always the case. For example `RubyVM` is not available.
+MRI provides some classes that are described in the documentation as being
+available only on MRI (CRuby). These classes are implemented if it is practical to do
+so, but this is not always the case. For example `RubyVM` is not available.
 
 ## Features with Subtle Differences
 
@@ -146,11 +138,11 @@ precision. This applies to `Time.now` and
 Ruby Strings are represented as a Java `byte[]`. The JVM enforces a maximum
 array size of 2<sup>31</sup>-1 (by storing the size in a 32-bit signed `int`),
 and therefore Ruby Strings cannot be longer than 2<sup>31</sup>-1 bytes. That
-is, Strings must be smaller than 2GB. This is the same restriction as JRuby. We
-could try to workaround by using native strings, but this would be a large
-effort to support every Ruby String operation on native strings.
+is, Strings must be smaller than 2GB. This is the same restriction as JRuby.
+A possible workaround could be to use natively-allocated strings, but it would
+be a large effort to support every Ruby String operation on native strings.
 
-#### Setting the process title doesn't always work
+#### The process title might be truncated
 
 Setting the process title (via `$0` or `Process.setproctitle` in Ruby) is done
 as best-effort. It may not work, or the title you try to set may be truncated.
@@ -193,8 +185,9 @@ signal handling code that runs on MRI can run on TruffleRuby without modificatio
 in the GraalVM Native Image.
 
 However, when run on the JVM, TruffleRuby is unable to trap `USR1` or `QUIT`,
-as these are reserved by the JVM itself. Any code that relies on being able to
-trap those signals will need to fallover to another available signal. Additionally,
+as these signals are reserved by the JVM. In such a case `trap(:USR1) {}` will
+raise an `ArgumentError`.  Any code that relies on being able to
+trap those signals will need to fall back to another available signal. Additionally,
 `FPE`, `ILL`, `KILL`, `SEGV`, `STOP`, and `VTALRM` cannot be trapped, but these
 signals are also unavailable on MRI.
 
@@ -207,26 +200,25 @@ handled by another language become unavailable for TruffleRuby to trap.
 
 Using most methods on `ObjectSpace` will temporarily lower the performance of
 your program. Using them in test cases and other similar 'offline' operations is
-fine, but you probably don't want to use them in the inner loop of your
+fine, but you probably do not want to use them in the inner loop of your
 production application.
 
 #### `set_trace_func`
 
 Using `set_trace_func` will temporarily lower the performance of your program.
-As with `ObjectSpace`, we would recommend that you do not use this in the inner
+As with `ObjectSpace`, it is recommended that you do not use this in the inner
 loop of your production application.
 
 #### Backtraces
 
-Throwing exceptions, and other operations which need to create a backtrace, are
-slower than on MRI. This is because we have to undo optimizations that we have
-applied to run your Ruby code fast in order to recreate the backtrace entries.
-We wouldn't recommend using exceptions for control flow on any implementation of
+Throwing exceptions and other operations which need to create a backtrace are
+slower than on MRI. This is because TruffleRuby needs to undo optimizations that have
+been applied to run your Ruby code fast in order to recreate the backtrace entries.
+It is not recommended using exceptions for control flow on any implementation of
 Ruby anyway.
 
-To help alleviate this problem in some cases backtraces are automatically
-disabled where we dynamically detect that they probably won't be used. See the
-experimental `--backtraces-omit-unused` option.
+To help alleviate this problem, backtraces are automatically disabled
+in cases where we can detect that they will not be used.
 
 ## C Extension Compatibility
 
@@ -250,35 +242,28 @@ fixed, please report these cases.
 #### mark functions of `RDATA` and `RTYPEDDATA`
 
 The `mark` functions of `RDATA` and `RTYPEDDATA` are not called during
-garbage collection but periodically. We cache information
-about objects as they are assigned to structs, and periodically run
+garbage collection but periodically. The information about objects is cached
+as they are assigned to structs, and TruffleRuby periodically runs
 all `mark` functions when the cache has become full to represent those
-object relationships in a way that the our garbage collector will
+object relationships in a way that the garbage collector will
 understand. The process should behave identically to MRI.
 
 ## Compatibility with JRuby
 
-#### Ruby to Java interop
+#### Ruby to Java interoperability
 
-TruffleRuby does not support the same interop to Java interface as JRuby does.
-We provide [an alternate polyglot API](polyglot.md) for interoperating with
+TruffleRuby does not support the same interoperability interface to Java as JRuby does.
+TruffleRuby provides an [alternate polyglot API](polyglot.md) for interoperating with
 multiple languages, including Java, instead.
 
 #### Java to Ruby interop
 
 Calling Ruby code from Java is supported by the
-[GraalVM polyglot API](http://www.graalvm.org/truffle/javadoc/org/graalvm/polyglot/package-summary.html).
+[GraalVM Polyglot API](http://www.graalvm.org/truffle/javadoc/org/graalvm/polyglot/package-summary.html).
 
 #### Java extensions
 
-Use Java extensions written for JRuby is not supported. We could apply the same
-techniques as we have developed to run C extensions to this problem, but it's
-not clear if this will ever be a priority.
-
-## Compatibility with Rubinius
-
-We do not have any plans at the moment to provide support for Rubinius'
-extensions to Ruby.
+Using Java extensions written for JRuby is not supported.
 
 ## Features Not Yet Supported in Native Configuration
 
@@ -287,29 +272,20 @@ on the JVM. There are differences in resource management, as both VMs use
 different garbage collectors. But, functionality-wise, they are essentially on
 par with one another.
 
+## Java Interoperability With the Native Configuration
+
 Java interoperability works in the native configuration but requires more setup.
 First, only for classes loaded in the image can be accessed.
 You can add more classes by compiling a native image including TruffleRuby.
-See https://www.graalvm.org/docs/reference-manual/embed/#build-native-images-from-polyglot-applications for details.
+See [here](https://www.graalvm.org/docs/reference-manual/embed-languages/#build-native-images-from-polyglot-applications) for more details.
 
 ## Spec Completeness
 
 'How many specs are there?' is not a question with an easy precise answer. The
 number of specs varies for different versions of the Ruby language, different
-platforms, different versions of the specs, and different configurations of
-the specs. The specs for the standard library and C extension API are also
-very uneven and they so can give misleading results.
+platforms and different versions of the specs.
+The specs for the standard library and C extension API are also
+very uneven and they can give misleading results.
 
-For the command line interface, the language, and the core library specs,
-which covers the bulk of what TruffleRuby reimplements, this is how many spec
-examples TruffleRuby runs successfully compared to our compatible version of
-MRI running the version of specs from TruffleRuby:
-
-<!--
-  For example `jt test :language` in TruffleRuby and `make test-spec MSPECOPT=:language`
-  in MRI, having copied our specs over theirs.
--->
-
-* Command line 112 / 136, **82%**
-* Language 2270 / 2332, **97%**
-* Core library 19453 / 20644, **94%**
+[This blog post](https://eregon.me/blog/2020/06/27/ruby-spec-compatibility-report.html)
+summarize how many specs TruffleRuby passes.

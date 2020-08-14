@@ -1,6 +1,6 @@
 # Ruby Managers and Installers
 
-If you [installed GraalVM](installing-graalvm.md), it is recommended to add
+If you have [installed GraalVM](installing-graalvm.md), it is recommended to add
 TruffleRuby to a Ruby manager. See
 [Configuring Ruby managers for the full GraalVM distribution](#configuring-ruby-managers-for-the-full-graalvm-distribution)
 below.
@@ -14,19 +14,19 @@ TruffleRuby is supported by the 3 major Ruby installers.
 Upgrade RVM to let RVM know about the latest TruffleRuby release:
 
 ```bash
-$ rvm get head
+rvm get head
 ```
 
 Install the latest TruffleRuby release with:
 
 ```bash
-$ rvm install truffleruby
+rvm install truffleruby
 ```
 
 You can also install the latest nightly build of TruffleRuby with:
 
 ```bash
-$ rvm install truffleruby-head
+rvm install truffleruby-head
 ```
 
 ### ruby-build and rbenv
@@ -42,25 +42,25 @@ On macOS, if `ruby-build` is installed via Homebrew and you do not see the
 you might need to install the HEAD version of `ruby-build` with:
 
 ```bash
-$ brew reinstall --HEAD ruby-build
+brew reinstall --HEAD ruby-build
 ```
 
 Check the latest available version of TruffleRuby with:
 
 ```bash
-$ rbenv install --list | grep truffleruby
+rbenv install --list | grep truffleruby
 ```
 
 Then install the latest TruffleRuby release with:
 
 ```bash
-$ rbenv install truffleruby-[LATEST_VERSION]
+rbenv install truffleruby-[LATEST_VERSION]
 ```
 
 You can also install the latest nightly build of TruffleRuby with:
 
 ```bash
-$ rbenv install truffleruby-dev
+rbenv install truffleruby-dev
 ```
 
 ### ruby-install and chruby
@@ -69,7 +69,7 @@ First, you need at least `ruby-install` 0.7.1 to get TruffleRuby support.
 Check your version with:
 
 ```bash
-$ ruby-install --version
+ruby-install --version
 ```
 
 If it is older than `0.7.1`, you need to update to latest `ruby-install`.
@@ -80,15 +80,15 @@ installing it.
 Then install the latest TruffleRuby release with:
 
 ```bash
-$ ruby-install --latest
-$ ruby-install truffleruby
+ruby-install --latest
+ruby-install truffleruby
 ```
 
 `ruby-install` does not support installing nightly builds.
 Please use `ruby-build` (which also works with `chruby`) if you want to install nightly builds:
 
 ```bash
-$ ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
+ruby-build truffleruby-dev ~/.rubies/truffleruby-dev
 ```
 
 There are also instructions on the
@@ -97,23 +97,22 @@ if you prefer to install TruffleRuby manually.
 
 ## Configuring Ruby Managers for the Full GraalVM Distribution
 
-When [installing GraalVM](installing-graalvm.md), it is recommended to add
+When [installing GraalVM and Ruby](installing-graalvm.md), it is recommended to add
 TruffleRuby to a Ruby manager for ease of use.
 
-First, [install GraalVM and Ruby](installing-graalvm.md).
 Make sure you ran the post-install script *before* adding GraalVM to Ruby managers.
 
 Then follow these steps to integrate GraalVM with your Ruby manager.
 
-First, we must find the TruffleRuby home.
+The first step is to find the TruffleRuby home.
 On macOS, run:
 ```bash
-$ ruby_home=$(path/to/graalvm/Contents/Home/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')
+ruby_home=$(path/to/graalvm/Contents/Home/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')
 ```
 
 On Linux and other platforms, run:
 ```bash
-$ ruby_home=$(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')
+ruby_home=$(path/to/graalvm/bin/ruby -e 'print RbConfig::CONFIG["prefix"]')
 ```
 
 ### rbenv
@@ -122,9 +121,9 @@ To add TruffleRuby to `rbenv`, create a symbolic link in the `versions` director
 of rbenv:
 
 ```bash
-$ ln -s "$ruby_home" "$RBENV_ROOT/versions/truffleruby"
-$ rbenv shell truffleruby
-$ ruby --version
+ln -s "$ruby_home" "$RBENV_ROOT/versions/truffleruby"
+rbenv shell truffleruby
+ruby --version
 ```
 
 ### chruby
@@ -132,9 +131,9 @@ $ ruby --version
 To add TruffleRuby to `chruby`, create a symbolic link to the `$HOME/.rubies` directory:
 
 ```bash
-$ ln -s "$ruby_home" "$HOME/.rubies/truffleruby"
-$ chruby truffleruby
-$ ruby --version
+ln -s "$ruby_home" "$HOME/.rubies/truffleruby"
+chruby truffleruby
+ruby --version
 ```
 
 ### RVM
@@ -142,9 +141,9 @@ $ ruby --version
 RVM has a command for adding a precompiled Ruby to the list of available rubies.
 
 ```bash
-$ rvm mount "$ruby_home" -n truffleruby
-$ rvm use ext-truffleruby
-$ ruby --version
+rvm mount "$ruby_home" -n truffleruby
+rvm use ext-truffleruby
+ruby --version
 ```
 
 ### asdf (with asdf-ruby plugin)
@@ -170,9 +169,9 @@ It can be fixed for the current terminal by clearing
 the environment with one of the following commands:
 
 ```bash
-$ rbenv system
-$ chruby system
-$ rvm use system
+rbenv system
+chruby system
+rvm use system
 # Or manually:
-$ unset GEM_HOME GEM_PATH
+unset GEM_HOME GEM_PATH
 ```

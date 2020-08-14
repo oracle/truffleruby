@@ -9,13 +9,13 @@ The `make` utility as well as the dependencies of the toolchain still need to be
 ### RedHat-based: Fedora, Oracle Linux, etc
 
 ```bash
-$ sudo dnf install make gcc
+sudo dnf install make gcc
 ```
 
 ### Debian-based: Ubuntu, etc
 
 ```bash
-$ sudo apt-get install make gcc
+sudo apt-get install make gcc
 ```
 
 ### Mandriva-based and other Linux distributions
@@ -31,8 +31,8 @@ The proper fix is for those distributions to upstream their changes to LLVM.
 
 A workaround is to create a symlink explicitly so that the LLVM toolchain can find `libgcc_s`:
 ```bash
-$ cd /usr/lib/gcc
-$ sudo ln -s x86_64-mandriva-linux-gnu x86_64-linux-gnu
+cd /usr/lib/gcc
+sudo ln -s x86_64-mandriva-linux-gnu x86_64-linux-gnu
 ```
 
 ### macOS
@@ -40,7 +40,7 @@ $ sudo ln -s x86_64-mandriva-linux-gnu x86_64-linux-gnu
 On macOS, make sure you have installed the command line developer tools from Xcode:
 
 ```bash
-$ xcode-select --install
+xcode-select --install
 ```
 
 You might need to add `export SDKROOT=$(xcrun --show-sdk-path)` in your shell profile.

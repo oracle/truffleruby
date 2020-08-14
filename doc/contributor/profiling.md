@@ -27,13 +27,13 @@ handled by the `open` command on macOS and the `xdg-open` command on Linux.
 To illustrate, here's a command for profiling and inline script.
 
 ```bash
-$ jt profile -e "x = 'abc'; 100_000.times { x.upcase }"
+jt profile -e "x = 'abc'; 100_000.times { x.upcase }"
 ```
 
 Here's a command for profiling the `gem list` command:
 
 ```bash
-$ jt profile -S gem list
+jt profile -S gem list
 ```
 
 #### The Less Easy Way
@@ -48,7 +48,7 @@ Creating the flame graph is a multi-stage process. First, we need to profile the
 with the JSON formatter:
 
 ```bash
-$ jt ruby --cpusampler --cpusampler.SampleInternal --cpusampler.Mode=roots --cpusampler.Output=json -e 'p :hello' > simple-app.json
+jt ruby --cpusampler --cpusampler.SampleInternal --cpusampler.Mode=roots --cpusampler.Output=json -e 'p :hello' > simple-app.json
 ```
 
 Since we want to profile the TruffleRuby runtime itself, we use the
@@ -67,7 +67,7 @@ into TruffleRuby's parent directory. Now you can run the script to transform the
 pipe it into the script that will generate the SVG data:
 
 ```bash
-$ ../FlameGraph/stackcollapse-graalvm.rb simple-app.json | ../FlameGraph/flamegraph.pl > simple-app.svg
+../FlameGraph/stackcollapse-graalvm.rb simple-app.json | ../FlameGraph/flamegraph.pl > simple-app.svg
 ```
 
 At this point, you should open the SVG file in a Chromium-based web browser. Your system

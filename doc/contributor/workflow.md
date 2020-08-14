@@ -18,14 +18,14 @@ Additionally, you will need:
 We recommend creating an extra directory for building TruffleRuby:
 
 ```bash
-$ mkdir truffleruby-ws
-$ cd truffleruby-ws
+mkdir truffleruby-ws
+cd truffleruby-ws
 ```
 
 You can then clone the repository:
 ```bash
-$ git clone https://github.com/oracle/truffleruby.git
-$ cd truffleruby
+git clone https://github.com/oracle/truffleruby.git
+cd truffleruby
 ```
 
 ## Developer tool
@@ -33,24 +33,24 @@ $ cd truffleruby
 We then use a Ruby script to run most commands.
 
 ```bash
-$ ruby tool/jt.rb --help
+ruby tool/jt.rb --help
 ```
 
 Most of us add an alias to our shell profile file so that it can be run with
 just `jt`. To allow this to run from any path, add this to your `.bash_profile`:
 
 ```bash
-$ echo 'alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb' >> ~/.bash_profile
+echo 'alias jt=/path/to/mri/bin/ruby /path/to/truffleruby/tool/jt.rb' >> ~/.bash_profile
 ```
 
 ```bash
-$ jt --help
+jt --help
 ```
 
 ## Building
 
 ```bash
-$ jt build
+jt build
 ```
 
 By default the `jt build` command builds a small JVM-only (no native images)
@@ -69,7 +69,7 @@ The `native` build configuration can run both the `--native` and `--jvm` [runtim
 
 To build one of these build configurations, pass `--env` to the build command:
 ```bash
-$ jt build [--env BUILD_CONFIGURATION]
+jt build [--env BUILD_CONFIGURATION]
 ```
 
 You can create a new build configuration by creating an [mx env file] in `mx.truffleruby`.
@@ -137,13 +137,13 @@ You can also use `jt` to run other TruffleRuby builds (see the [Building](#build
 pass the build name after `--use`:
 
 ```bash
-$ jt --use BUILD_NAME ruby ...
+jt --use BUILD_NAME ruby ...
 ```
 
 You can also pass the path to a Ruby executable after `--use`, e.g.:
 
 ```bash
-$ jt --use /usr/bin/ruby ruby ...
+jt --use /usr/bin/ruby ruby ...
 ```
 
 ## Testing
@@ -159,7 +159,7 @@ The basic test to run every time you make changes is the "fast specs", a subset
 of specs which runs in reasonable time.
 
 ```bash
-$ jt [--use BUILD_CONFIGURATION] test fast
+jt [--use BUILD_CONFIGURATION] test fast
 ```
 
 Other tests take longer and require more setup, so we don't normally run them
@@ -177,7 +177,7 @@ jt --use /full/path/to/bin/ruby test path/to/spec.rb
 Specify JVM options with `--vm.option`.
 
 ```bash
-$ jt ruby --vm.Xmx1G test.rb
+jt ruby --vm.Xmx1G test.rb
 ```
 
 TruffleRuby options are set with `--name=value`. For example
@@ -193,12 +193,12 @@ Ruby command line options and arguments can also be set in `RUBYOPT` or
 
 To build TruffleRuby with the GraalVM CE compiler, use:
 ```bash
-$ jt build --env jvm-ce
+jt build --env jvm-ce
 ```
 
 Then, run TruffleRuby with:
 ```bash
-$ jt --use jvm-ce ruby ...
+jt --use jvm-ce ruby ...
 ```
 
 We have flags in `jt` to set some options, such as `--trace` for
@@ -214,16 +214,16 @@ Let's look at the example of building with [graaljs](https://github.com/graalvm/
 
 Building is as simple as cloning the repository and using the right env file:
 ```bash
-$ cd truffleruby-ws/truffleruby
-$ git clone https://github.com/graalvm/graaljs.git ../graaljs
-$ jt build --env jvm-js
+cd truffleruby-ws/truffleruby
+git clone https://github.com/graalvm/graaljs.git ../graaljs
+jt build --env jvm-js
 ```
 
 Similar for building with [graalpython](https://github.com/graalvm/graalpython):
 ```
-$ cd truffleruby-ws/truffleruby
-$ git clone https://github.com/graalvm/graalpython.git ../graalpython
-$ jt build --env jvm-py
+cd truffleruby-ws/truffleruby
+git clone https://github.com/graalvm/graalpython.git ../graalpython
+jt build --env jvm-py
 ```
 
 Then, run TruffleRuby with `--polyglot` support and evaluate some JavaScript:
@@ -243,7 +243,7 @@ things partially evaluate as we expect, that things optimise as we'd expect,
 that on-stack-replacement works and so on.
 
 ```bash
-$ jt test compiler
+jt test compiler
 ```
 
 ## How to fix a failing spec
@@ -252,7 +252,7 @@ We usually use the `jt untag` command to work on failing specs. It runs only
 specs that are marked as failing.
 
 ```bash
-$ jt untag spec/ruby/core/string
+jt untag spec/ruby/core/string
 ```
 
 When you find a spec that you want to work on, it can be easier to look at the
@@ -276,7 +276,7 @@ It is possible to run specs for Ruby 2.7 features by setting
 
 ```bash
 # File.absolute_path? is introduced in 2.7
-$ PRETEND_RUBY_VERSION=2.7.0 jt test spec/ruby/core/file/absolute_path_spec.rb
+PRETEND_RUBY_VERSION=2.7.0 jt test spec/ruby/core/file/absolute_path_spec.rb
 ```
 
 This also works for `jt tag`/`jt untag`.

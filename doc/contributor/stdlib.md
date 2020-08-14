@@ -124,14 +124,14 @@ TruffleRuby in the future, as some default gems we use differ from the originals
 
 To list default gems, use:
 ```
-$ gem list | grep default:
+gem list | grep default:
 ```
 
 ### Bundled gems
 
 The list of bundled gems is available in MRI under `gems/bundled_gems`
 ```
-$ cat gems/bundled_gems
+cat gems/bundled_gems
 ```
 
 * `did_you_mean` 1.3.0 (helper to suggest method names on method missing)

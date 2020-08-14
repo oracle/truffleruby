@@ -14,7 +14,7 @@ Java exceptions can be printed with `--exceptions-print-uncaught-java` or
 
 See other `--backtraces-*` and `--exceptions-*` options for more possibilities.
 
-## Printing Stacktraces and Backtraces of a running Process
+## Printing Stacktraces and Backtraces of a Running Process
 
 One can send the `SIGQUIT` signal to TruffleRuby to make it print the Java stacktraces of all threads.
 `Ctrl + \ ` can be used to send `SIGQUIT` to the current process in a terminal.
@@ -27,8 +27,8 @@ performance, so it should only be used for debugging.
 
 ## More Information in Backtraces
 
-We try to match MRI's backtrace format as closely as possible. This sometimes means
-that we don't display extra information that we actually do have available.
+TruffleRuby tries to match MRI's backtrace format as closely as possible.
+This sometimes means that extra available information is not displayed.
 When debugging you may want to see this information.
 
 An option to show more information is `--backtraces-interleave-java=true`

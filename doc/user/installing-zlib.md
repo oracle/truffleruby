@@ -6,13 +6,13 @@ library that the module uses.
 ### RedHat-based: Fedora, Oracle Linux, etc
 
 ```bash
-$ sudo dnf install zlib-devel
+sudo dnf install zlib-devel
 ```
 
 ### Debian-based: Ubuntu, etc
 
 ```bash
-$ sudo apt-get install libz-dev
+sudo apt-get install libz-dev
 ```
 
 ### macOS

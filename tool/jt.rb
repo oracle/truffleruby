@@ -2197,7 +2197,7 @@ EOS
     end
   end
 
-  private def check_documentation_urls
+  def check_documentation_urls
     url_base = 'https://github.com/oracle/truffleruby/blob/master/doc/'
     # Explicit list of URLs, so they can be added manually
     # Notably, Ruby installers reference the LLVM urls

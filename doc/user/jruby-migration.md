@@ -1,7 +1,7 @@
 # Migration from JRuby to TruffleRuby
 
-We recommend that people trying TruffleRuby on their gems and applications
-[get in touch with us](../../README.md#contact) for help.
+When trying TruffleRuby on your gems and applications, you are encouraged to
+[get in touch with the TruffleRuby team](../../README.md#contact) for help.
 
 ## Deployment
 
@@ -9,12 +9,12 @@ If you are migrating from JRuby probably the easiest way to use TruffleRuby is
 via [GraalVM](installing-graalvm.md), which gives you a JVM,
 JavaScript, Ruby and other languages in one package.
 
-If you don't need the Java interop capabilities of TruffleRuby then you could
+If you do not need the Java interoperability capabilities of TruffleRuby, then you could
 also install via your [Ruby manager/installer](ruby-managers.md)
 as any other implementation of Ruby.
 
 You can also use the [standalone distribution](standalone-distribution.md) as
-a simple tarball. The standalone distribution doesn't allow for Java interop.
+a simple tarball. The standalone distribution does not allow for Java interoperability.
 
 ## Using Ruby from Java
 
@@ -22,8 +22,8 @@ JRuby supports many different ways to embed Ruby in Java, including JSR 223
 (also know as `javax.script`), the Bean Scripting Framework (BSF), JRuby Embed
 (also known as Red Bridge), and the JRuby direct embedding API.
 
-We recommend that TruffleRuby is embedded via the Polyglot API, which is part of
-GraalVM. The API is different because it's designed to support many languages,
+Thes best way to embed TruffleRuby is to use the Polyglot API, which is part of
+GraalVM. The API is different because it is designed to support many languages,
 not just Ruby.
 
 TruffleRuby also supports JSR 223, compatible with JRuby, to make it
@@ -35,7 +35,7 @@ See the [polyglot](polyglot.md) documentation for more information about how to
 use Ruby from other languages including Java - this document only shows the
 comparison to JRuby.
 
-### Creating a context
+### Creating a Context
 
 In JRuby with JSR 223 where you would have written:
 
@@ -90,14 +90,14 @@ try (Context polyglot = Context.newBuilder().allowAllAccess(true).build()) {
 See the [Context API](https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/Context.html)
 for detailed documentation about `Context`.
 
-### Setting options
+### Setting Options
 
 You can set TruffleRuby [options](options.md) via system properties, or via the
 `.option(name, value)` builder method.
 
-### Evaluating code
+### Evaluating Code
 
-In JRuby where you would have written one of these (each time we show the JRuby example we'll show one of the options available on each line):
+In JRuby where you would have written one of these JRuby examples, the options available are given:
 
 ```java
 scriptEngine.eval("puts 'hello'");
@@ -115,7 +115,7 @@ polyglot.eval("ruby", "puts 'hello'");
 Note that `eval` supports multiple languages, so you need to specify the
 language each time.
 
-### Evaluating code with parameters
+### Evaluating Code with Parameters
 
 In JRuby with JSR 223 you can pass parameters, called bindings, into a script.
 
@@ -133,7 +133,7 @@ return a proc which does take parameters, and then call `execute` on this value.
 polyglot.eval("ruby", "-> a, b { puts a + b }").execute(14, 2);
 ```
 
-### Primitive values
+### Primitive Values
 
 The different embedding APIs handle primitive values in different ways. In JSR
 223, BSF, and JRuby Embed, the return type is `Object` and can be cast to a
@@ -156,12 +156,12 @@ can test this.
 polyglot.eval("ruby", "14 + 2").asLong();
 ```
 
-### Calling methods
+### Calling Methods
 
 To call a method on an object you get from an `eval`, or any other object, in
 the JRuby embedding APIs you either need to ask the context to invoke the
 method, or in the case of direct embedding you need to call a method on the
-receiver and marshal the arguments into JRuby types yourself. The BSF doesn't
+receiver and marshal the arguments into JRuby types yourself. The BSF does not
 appear to have a way to call methods.
 
 ```java
@@ -184,7 +184,7 @@ To call methods on a primitive, use a lambda:
 polyglot.eval("ruby", "-> x { x.succ }").execute(2).asInt();
 ```
 
-### Passing blocks
+### Passing Blocks
 
 Blocks are a Ruby-specific language feature, so they don't appear in language
 agnostic APIs like JSR 223 and BSF. The JRuby Embed API and direct embedding do
@@ -199,7 +199,7 @@ polyglot.eval("ruby", "-> block { (1..3).each { |n| block.call n } }")
   .execute(polyglot.asValue((IntConsumer) n -> System.out.println(n)));
 ```
 
-### Creating objects
+### Creating Objects
 
 JRuby embedding APIs don't have support for creating new objects, but you can
 just call the `new` method yourself.
@@ -218,12 +218,12 @@ You can use `canInstantiate` to see if this will be possible.
 polyglot.eval("ruby", "Time").newInstance(2021, 3, 18);
 ```
 
-### Handling strings
+### Handling Strings
 
 In JRuby's embedding APIs you would use `toString` to convert to a Java
 `String`. Use `asString` in TruffleRuby (and `isString` to check).
 
-### Accessing arrays
+### Accessing Arrays
 
 JRuby's arrays implement `List<Object>`, so you can cast to this interface to
 access them.
@@ -243,7 +243,7 @@ polyglot.eval("ruby", "[3, 4, 5]").getArrayElement(1);
 polyglot.eval("ruby", "[3, 4, 5]").as(List.class).get(1);
 ```
 
-### Accessing hashes
+### Accessing Hashes
 
 JRuby's hashes implement `Map<Object, Object>`, so you can cast to this
 interface to access them.
@@ -263,7 +263,7 @@ Value accessor = polyglot.eval("ruby", "-> hash, key { hash[key] }");
 accessor.execute(hash, "b");
 ```
 
-### Implementing interfaces
+### Implementing Interfaces
 
 You may want to implement a Java interface using a Ruby object (example copied
 from the JRuby wiki).
@@ -313,7 +313,7 @@ JRuby allows the name of the Ruby method to be `get_fluid_force`, using Ruby
 conventions, instead of `getFluidForce`, using Java conventions. TruffleRuby
 does not support this at the moment.
 
-### Implementing lambdas
+### Implementing Lambdas
 
 As far as we know, JSR 223, BSF, JRuby Embed and direct embedding do not have a
 convenient way to get a Java lambda from a Ruby lambda.
@@ -327,7 +327,7 @@ BiFunction<Integer, Integer, Integer> adder = polyglot.eval("ruby", "-> a, b { a
 adder.apply(14, 2).intValue();
 ```
 
-### Parse once run many times
+### Parse Once Run Many Times
 
 Some of the JRuby embedding APIs allow a script to be compiled once and then
 eval'd several times.
@@ -347,9 +347,9 @@ parsedOnce.execute();
 
 ## Using Java from Ruby
 
-TruffleRuby provides its own scheme for Java interop that is consistent for
+TruffleRuby provides its own scheme for Java interoperability that is consistent for
 use from any GraalVM language, to any other GraalVM language. This isn't
-compatible with existing JRuby Java interop, so you will need to migrate.
+compatible with existing JRuby Java interoperability, so you will need to migrate.
 
 Polyglot programming in general is [documented elsewhere](polyglot.md) - this
 section describes it relative to JRuby.
@@ -357,15 +357,14 @@ section describes it relative to JRuby.
 This example is from the JRuby wiki:
 
 ```ruby
-# This is the 'magical Java require line'.
 require 'java'
 
-# With the 'require' above, we can now refer to things that are part of the
+# With the 'require' above, you now can refer to things that are part of the
 # standard Java platform via their full paths.
 frame = javax.swing.JFrame.new("Window") # Creating a Java JFrame
 label = javax.swing.JLabel.new("Hello")
 
-# We can transparently call Java methods on Java objects, just as if they were defined in Ruby.
+# You can transparently call Java methods on Java objects, just as if they were defined in Ruby.
 frame.add(label)  # Invoking the Java method 'add'.
 frame.setDefaultCloseOperation(javax.swing.JFrame::EXIT_ON_CLOSE)
 frame.pack
@@ -400,7 +399,7 @@ Do not `require 'java'` in TruffleRuby. However, you do need to run in `--jvm`
 mode. This is only available in GraalVM - not in the standalone distribution
 installed by Ruby version managers and installers.
 
-### Referring to classes
+### Referring to Classes
 
 In JRuby Java classes can either be referenced in the `Java` module, such as
 `Java::ComFoo::Bar`, or if they have a common TLD they can be referenced as
@@ -412,14 +411,14 @@ In TruffleRuby Java classes are referred to using either
 or you can use `Java.import 'com.foo.Bar'` to have `Bar` defined as a top-level
 constant.
 
-### Wildcard package imports
+### Wildcard Package Imports
 
 JRuby lets you `include_package 'com.foo'` which will make all classes in that
 package available as constants in the current scope.
 
 In TruffleRuby you refer to classes explicitly.
 
-### Calling methods and creating instances
+### Calling Methods and Creating Instances
 
 In both JRuby and TruffleRuby you call Java methods as you would a Ruby method.
 
@@ -427,18 +426,18 @@ JRuby will rewrite method names such as `my_method` to the Java convention of
 `myMethod`, and converts `getFoo` to `foo`, and `setFoo` to `foo=`. TruffleRuby
 does not do these conversions.
 
-### Referring to constants
+### Referring to Constants
 
 In JRuby, Java constants are modelled as Ruby constants, `MyClass::FOO`. In
 TruffleRuby you use the read notation to read them as a property,
 `MyClass[:FOO]`.
 
-### Using classes from jar files
+### Using Classes from JAR files
 
 In JRuby you can add classes and jars to the classpath using `require`. In
 TruffleRuby at the moment you use the `-classpath` JVM flag as normal.
 
-### Additional Java-specific methods
+### Additional Java-Specific Methods
 
 JRuby defines these methods on Java objects, use these equivalents instead.
 
@@ -454,13 +453,13 @@ JRuby defines these methods on Java objects, use these equivalents instead.
 
 `java_alias` - not supported.
 
-### Creating Java arrays
+### Creating Java Arrays
 
 In JRuby you use `Java::byte[1024].new`.
 
 In TruffleRuby you would use `Java.type('byte[]').new(1024)`
 
-### Implementing Java interfaces
+### Implementing Java Interfaces
 
 JRuby has several ways to implement an interface. For example to add an action
 listener to a Swing button we could do any of these three things.
@@ -497,18 +496,18 @@ button.addActionListener -> event {
 }
 ```
 
-### Generating Java classes at runtime
+### Generating Java Classes at Runtime
 
 JRuby supports converting a Ruby class to a concrete Java class using `become_java!`.
 
 TruffleRuby does not support this. We recommend using a proper Java interface as
 your interface between Java and Ruby.
 
-### Reopening Java classes
+### Reopening Java Classes
 
 Java classes cannot be re-opened in TruffleRuby.
 
-### Subclassing Java classes
+### Subclassing Java Classes
 
 Java classes cannot be subclassed in TruffleRuby. Use composition or interfaces
 instead.
@@ -524,7 +523,7 @@ moment. We recommend using Java interop as described above.
 
 ## Tooling
 
-### Standalone classes and jars
+### Standalone Classes and JARs
 
 JRuby supports compiling to standalone source classes and compiled jars
 from Ruby using `jrubyc`.

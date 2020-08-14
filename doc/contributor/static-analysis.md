@@ -12,8 +12,8 @@ code. We occasionally run this tool locally but only take its output as a
 suggestion. We use a default configuration.
 
 ```bash
-$ scan-build --use-analyzer `which clang` -analyze-headers clang -c --std=c99 -Ilib/cext/include src/main/c/cext/ruby.c src/main/c/truffleposix/truffleposix.c
-$ scan-view ...as instructed by scan-build...
+scan-build --use-analyzer `which clang` -analyze-headers clang -c --std=c99 -Ilib/cext/include src/main/c/cext/ruby.c src/main/c/truffleposix/truffleposix.c
+scan-view ...as instructed by scan-build...
 ```
 
 ## Java
@@ -24,7 +24,7 @@ We have a tool to check that some use of our internal annotations and the
 Truffle DSL are correct. Passing this is enforced in our CI gate.
 
 ```bash
-$ jt check_dsl_usage
+jt check_dsl_usage
 ```
 
 ### CheckStyle
@@ -33,7 +33,7 @@ $ jt check_dsl_usage
 Passing CheckStyle is enforced in our CI gate.
 
 ```bash
-$ mx checkstyle
+mx checkstyle
 ```
 
 ### SpotBugs
@@ -43,7 +43,7 @@ errors. We run it with the default Graal project configuration. Passing
 SpotBugs is enforced in our CI gate.
 
 ```bash
-$ mx spotbugs
+mx spotbugs
 ```
 
 ## Ruby
@@ -55,7 +55,7 @@ It's configured in `.rubocop.yml`, and can be run locally as `jt rubocop`.
 Passing Rubocop is enforced in our CI gate.
 
 ```bash
-$ jt rubocop
+jt rubocop
 ```
 
 ### Fasterer
@@ -65,8 +65,8 @@ performance improvements. We occasionally run this tool locally but only take
 its output as a suggestion. We use a default configuration.
 
 ```bash
-$ gem install fasterer
-$ fasterer lib/truffle lib/cext src/main
+gem install fasterer
+fasterer lib/truffle lib/cext src/main
 ```
 
 ### Reek
@@ -79,8 +79,8 @@ we're implementing a set API, because we're doing something low-level or
 outside normal Ruby semantics, or for performance reasons.
 
 ```bash
-$ gem install reek
-$ reek lib/truffle lib/cext src/main
+gem install reek
+reek lib/truffle lib/cext src/main
 ```
 
 ### Flog
@@ -90,8 +90,8 @@ check that your methods do not appear near the top of this list. We
 occasionally run this tool locally but only take its output as a suggestion.
 
 ```bash
-$ gem install flog
-$ flog -m -t 10 lib/truffle lib/cext src/main
+gem install flog
+flog -m -t 10 lib/truffle lib/cext src/main
 ```
 
 ### Flay
@@ -101,8 +101,8 @@ could potentially be factored out. We occasionally run this tool locally but
 only take its output as a suggestion.
 
 ```bash
-$ gem install flay
-$ flay lib/truffle lib/cext src/main
+gem install flay
+flay lib/truffle lib/cext src/main
 ```
 
 ### Brakeman
@@ -113,6 +113,6 @@ specific to Rails, but we do run it ocassionally anyway and take its output as
 a suggestion.
 
 ```bash
-$ gem install brakeman
-$ brakeman --force-scan --run-all-checks --interprocedural --no-pager --add-libs-path src --only-files lib/truffle/,lib/cext/,src/main/ruby/truffleruby/
+gem install brakeman
+brakeman --force-scan --run-all-checks --interprocedural --no-pager --add-libs-path src --only-files lib/truffle/,lib/cext/,src/main/ruby/truffleruby/
 ```

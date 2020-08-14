@@ -11,7 +11,7 @@ for TruffleRuby to run correctly.
 
 GraalVM is available in a Community Edition, which is open-source, and an
 Enterprise Edition which has better performance and scalability.
-See https://www.graalvm.org/downloads for a comparison.
+See [the website](https://www.graalvm.org/downloads) for a comparison.
 
 ## Installing the Base Image
 
@@ -19,11 +19,10 @@ GraalVM starts with a base image which provides the platform for
 high-performance language runtimes.
 
 The Community Edition base image can be installed from GitHub, under an open
-source licence.
-The Enterprise Edition base image can only be installed from the Oracle
-Technology Network using the OTN licence.
+source licence. The Enterprise Edition base image can be installed from the
+Oracle Technology Network using the OTN licence.
 
-See https://www.graalvm.org/downloads for download links.
+See the [GraalVM Downloads](https://www.graalvm.org/downloads) page for download links.
 
 Nightly builds of the GraalVM Community Edition are
 [also available](https://github.com/graalvm/graalvm-ce-dev-builds/releases).
@@ -46,7 +45,7 @@ This is done using the `gu` command. The Ruby package is the same for both
 editions of GraalVM and comes from GitHub.
 
 ```bash
-$ gu install ruby
+gu install ruby
 ```
 
 This command will show a message mentioning to run a post-install script.
@@ -66,19 +65,19 @@ You can also download the Ruby component (`ruby-installable-...`) manually from
 https://github.com/oracle/truffleruby/releases/latest. Then install it with
 `gu install --file path/to/ruby-installable-...`.
 
-If you are installing Ruby into GraalVM EE then you need to download the Ruby
-EE installable from OTN and install using `--file` in the same way.
+If you are installing Ruby into GraalVM Enterprise, then you need to download the Ruby
+Enterprise installable from OTN and install using `--file` in the same way.
 
 After installing Ruby you may want to rebuild other images so that they can
 use the new language. Rebuilding the executable images can take a few minutes
 and you should have about 10 GB of RAM available.
 
 ```bash
-$ gu rebuild-images polyglot libpolyglot
+gu rebuild-images polyglot libpolyglot
 ```
 
 To be able to do so, you may need to install the `native-image` component if you
-haven't done so already:
+have not done so already:
 
 ```bash
 gu install native-image

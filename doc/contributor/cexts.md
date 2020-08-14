@@ -6,12 +6,12 @@ There are various ways to test C extensions.
 Here is a list going from testing single functions to testing Bundler.
 
 ```bash
-$ jt test :capi
-$ jt test :truffle_capi
-$ jt test :library_cext
-$ jt test mri --all-sulong
-$ jt test cexts
-$ jt test bundle
+jt test :capi
+jt test :truffle_capi
+jt test :library_cext
+jt test mri --all-sulong
+jt test cexts
+jt test bundle
 ```
 
 Note: the last 2 currently require the gem test pack.
@@ -29,7 +29,7 @@ jt cextc bench/chunky_png/oily_png
 Then follow the instructions for benchmarking above, and then try:
 
 ```bash
-$ USE_CEXTS=true TRUFFLERUBYOPT="--experimental-options --cexts-log-load" jt benchmark bench/chunky_png/chunky-color-r.rb --simple
+USE_CEXTS=true TRUFFLERUBYOPT="--experimental-options --cexts-log-load" jt benchmark bench/chunky_png/chunky-color-r.rb --simple
 ```
 
 These benchmarks have Ruby fallbacks, so we should carefully check that the
