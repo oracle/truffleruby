@@ -28,6 +28,8 @@ import com.oracle.truffle.api.object.Shape;
 public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
     public final boolean isSingleton;
+    /** If this is an object's metaclass, then nonSingletonClass is the logical class of the object. */
+    public final RubyClass nonSingletonClass;
     public final RubyDynamicObject attached;
     public Shape instanceShape = null;
     /* a RubyClass, or nil for BasicObject, or null when not yet initialized */
@@ -43,6 +45,21 @@ public final class RubyClass extends RubyModule implements ObjectGraphNode {
         this.isSingleton = isSingleton;
         this.attached = attached;
         this.superclass = superclass;
+
+        this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
+    }
+
+    private RubyClass computeNonSingletonClass(boolean isSingleton, Object superclassObject) {
+        if (isSingleton) {
+            RubyClass superclass = ((RubyClass) superclassObject);
+            if (superclass.isSingleton) {
+                return superclass.nonSingletonClass;
+            } else {
+                return superclass;
+            }
+        } else {
+            return this;
+        }
     }
 
     public boolean isInitialized() {
