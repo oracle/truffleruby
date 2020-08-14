@@ -36,7 +36,7 @@ Run the fixed-workload harness with minimal dependencies with:
 ```bash
 $ jt --use native ruby bench/optcarrot/fixed-workload.rb
 # or
-$ jt --use jvm-ce benchmark bench/classic/mandelbrot.rb --simple
+$ jt --use jvm-ce ruby bench/optcarrot/fixed-workload.rb
 ```
 
 # Benchmarking Other Implementations
