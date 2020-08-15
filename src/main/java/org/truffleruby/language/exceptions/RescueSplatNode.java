@@ -9,10 +9,11 @@
  */
 package org.truffleruby.language.exceptions;
 
+import com.oracle.truffle.api.nodes.LoopNode;
 import org.truffleruby.RubyContext;
-import org.truffleruby.collections.BoundaryIterable;
-import org.truffleruby.core.array.ArrayOperations;
+import org.truffleruby.core.array.ArrayGuards;
 import org.truffleruby.core.array.RubyArray;
+import org.truffleruby.core.array.library.ArrayStoreLibrary;
 import org.truffleruby.core.cast.SplatCastNode;
 import org.truffleruby.core.cast.SplatCastNodeGen;
 import org.truffleruby.core.exception.RubyException;
@@ -22,7 +23,8 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class RescueSplatNode extends RescueNode {
 
-    @Child private RubyNode splatCastNode;
+    @Child private SplatCastNode splatCastNode;
+    @Child private ArrayStoreLibrary stores;
 
     public RescueSplatNode(RubyNode handlingClassesArray, RubyNode rescueBody) {
         super(rescueBody);
@@ -30,19 +32,22 @@ public class RescueSplatNode extends RescueNode {
                 SplatCastNode.NilBehavior.EMPTY_ARRAY,
                 true,
                 handlingClassesArray);
+        this.stores = ArrayStoreLibrary.getFactory().createDispatched(ArrayGuards.storageStrategyLimit());
     }
 
     @Override
     public boolean canHandle(VirtualFrame frame, RubyException exception) {
         final RubyArray handlingClasses = (RubyArray) splatCastNode.execute(frame);
 
-        // TODO (norswap, eregon, 02 Mar 2020)
-        //  This should use a node to iterate or we should move the logic to Ruby.
-        //  This is only for rescue *array which seems very rare.
-        for (Object handlingClass : new BoundaryIterable<>(ArrayOperations.toIterable(handlingClasses))) {
-            if (matches(exception, handlingClass)) {
-                return true;
+        int i = 0;
+        try {
+            for (; i < handlingClasses.size; ++i) {
+                if (matches(exception, stores.read(handlingClasses.store, i))) {
+                    return true;
+                }
             }
+        } finally {
+            LoopNode.reportLoopCount(this, i);
         }
 
         return false;
@@ -52,5 +57,4 @@ public class RescueSplatNode extends RescueNode {
     public Object isDefined(VirtualFrame frame, RubyContext context) {
         return RubyNode.defaultIsDefined(context, this);
     }
-
 }
