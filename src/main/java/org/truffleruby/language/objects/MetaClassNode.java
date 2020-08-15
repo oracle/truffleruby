@@ -91,14 +91,24 @@ public abstract class MetaClassNode extends RubyBaseNode {
     // Cover all RubyDynamicObject cases with cached and uncached
 
     @Specialization(
+            guards = { "object == cachedObject", "metaClass.isSingleton" },
+            limit = "getIdentityCacheLimit()")
+    protected RubyClass singletonClassCached(RubyDynamicObject object,
+            @Cached("object") RubyDynamicObject cachedObject,
+            @Cached("object.getMetaClass()") RubyClass metaClass) {
+
+        return metaClass;
+    }
+
+    @Specialization(
             guards = "object.getShape() == cachedShape",
             assumptions = "cachedShape.getValidAssumption()",
+            replaces = "singletonClassCached",
             limit = "getCacheLimit()")
     protected RubyClass metaClassCached(RubyDynamicObject object,
             @Cached("object.getShape()") Shape cachedShape,
-            // used only during instantiation when it's always correct for a given object
-            @CachedContext(RubyLanguage.class) RubyContext context,
             @Cached("getMetaClass(cachedShape)") RubyClass metaClass) {
+
         return metaClass;
     }
 
@@ -107,7 +117,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return execute(object);
     }
 
-    @Specialization(replaces = { "metaClassCached", "updateShapeAndMetaClass" })
+    @Specialization(replaces = { "metaClassCached", "singletonClassCached", "updateShapeAndMetaClass" })
     protected RubyClass metaClassUncached(RubyDynamicObject object) {
         return object.getMetaClass();
     }
@@ -124,4 +134,7 @@ public abstract class MetaClassNode extends RubyBaseNode {
         return RubyLanguage.getCurrentContext().getOptions().CLASS_CACHE;
     }
 
+    protected int getIdentityCacheLimit() {
+        return RubyLanguage.getCurrentContext().getOptions().IDENTITY_CACHE;
+    }
 }
