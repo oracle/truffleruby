@@ -40,7 +40,7 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
-import org.truffleruby.language.control.JavaException;
+import org.truffleruby.language.control.RaiseException;
 
 
 public class RubyWarnings implements WarnCallback {
@@ -111,7 +111,7 @@ public class RubyWarnings implements WarnCallback {
             try {
                 context.getEnv().err().write(message.getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
-                throw new JavaException(e);
+                throw new RaiseException(context, context.getCoreExceptions().ioError(e, null));
             }
         }
     }

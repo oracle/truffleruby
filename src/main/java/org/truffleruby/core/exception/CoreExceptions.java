@@ -854,6 +854,11 @@ public class CoreExceptions {
         return loadError(StringUtils.format("cannot load such file -- %s", name), name, currentNode);
     }
 
+    @TruffleBoundary
+    public RubyException loadError(IOException exception, String path, Node currentNode) {
+        return loadError(BacktraceFormatter.formatJavaThrowableMessage(exception), path, currentNode);
+    }
+
     // ZeroDivisionError
 
     public RubyException zeroDivisionError(Node currentNode) {

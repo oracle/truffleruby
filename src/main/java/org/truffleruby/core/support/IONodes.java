@@ -86,7 +86,6 @@ import org.truffleruby.core.thread.ThreadManager.BlockingAction;
 import org.truffleruby.extra.ffi.Pointer;
 import org.truffleruby.extra.ffi.RubyPointer;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.AllocateHelperNode;
 import org.truffleruby.platform.Platform;
@@ -444,7 +443,7 @@ public abstract class IONodes {
                 try {
                     return stream.read(buffer, 0, length);
                 } catch (IOException e) {
-                    throw new JavaException(e);
+                    throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
                 }
             });
 
@@ -491,7 +490,7 @@ public abstract class IONodes {
                 try {
                     stream.write(bytes);
                 } catch (IOException e) {
-                    throw new JavaException(e);
+                    throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
                 }
                 return BlockingAction.SUCCESS;
             });

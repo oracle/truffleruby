@@ -9,6 +9,7 @@
  */
 package org.truffleruby.stdlib.digest;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import org.jcodings.specific.ASCIIEncoding;
@@ -23,7 +24,6 @@ import org.truffleruby.core.rope.Rope;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes;
 import org.truffleruby.language.RubyContextSourceNode;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.objects.AllocateHelperNode;
 
 import java.security.MessageDigest;
@@ -37,7 +37,7 @@ public abstract class DigestNodes {
         try {
             return MessageDigest.getInstance(name);
         } catch (NoSuchAlgorithmException e) {
-            throw new JavaException(e);
+            throw CompilerDirectives.shouldNotReachHere(e);
         }
     }
 
@@ -159,7 +159,7 @@ public abstract class DigestNodes {
             try {
                 clonedDigest = (MessageDigest) digest.clone();
             } catch (CloneNotSupportedException e) {
-                throw new JavaException(e);
+                throw CompilerDirectives.shouldNotReachHere(e);
             }
 
             return clonedDigest.digest();

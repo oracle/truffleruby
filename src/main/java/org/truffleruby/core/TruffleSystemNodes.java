@@ -64,7 +64,6 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.interop.FromJavaStringNode;
 import org.truffleruby.interop.ToJavaStringNode;
 import org.truffleruby.language.RubyDynamicObject;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.Platform;
 import org.truffleruby.shared.BasicPlatform;
@@ -140,7 +139,7 @@ public abstract class TruffleSystemNodes {
                 // Let the following chdir() fail
                 return nil;
             } catch (IOException e) {
-                throw new JavaException(e);
+                throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
             getContext().getEnv().setCurrentWorkingDirectory(canonicalFile);
             getContext().getFeatureLoader().setWorkingDirectory(canonicalFile.getPath());

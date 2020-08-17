@@ -84,7 +84,6 @@ import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.globals.GlobalVariableReader;
 import org.truffleruby.language.globals.GlobalVariables;
@@ -312,7 +311,7 @@ public class CoreLibrary {
         try {
             source = builder.build();
         } catch (IOException e) {
-            throw new JavaException(e);
+            throw CompilerDirectives.shouldNotReachHere(e);
         }
 
         return source.createUnavailableSection();
@@ -332,7 +331,7 @@ public class CoreLibrary {
         try {
             return new File(path).getCanonicalPath();
         } catch (IOException e) {
-            throw new JavaException(e);
+            throw CompilerDirectives.shouldNotReachHere(e);
         }
     }
 
@@ -930,7 +929,7 @@ public class CoreLibrary {
                 TranslatorDriver.printParseTranslateExecuteMetric("after-execute", context, source.getSource());
             }
         } catch (IOException e) {
-            throw new JavaException(e);
+            throw CompilerDirectives.shouldNotReachHere(e);
         } catch (RaiseException e) {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(
                     "Exception while loading core library:\n",

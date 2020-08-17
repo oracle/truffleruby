@@ -35,6 +35,7 @@ import org.truffleruby.core.array.ArrayToObjectArrayNode;
 import org.truffleruby.core.array.RubyArray;
 import org.truffleruby.core.encoding.RubyEncoding;
 import org.truffleruby.core.exception.ErrnoErrorNode;
+import org.truffleruby.core.exception.ExceptionOperations;
 import org.truffleruby.core.hash.HashNode;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.MethodLookupResult;
@@ -61,7 +62,9 @@ import org.truffleruby.core.string.StringSupport;
 import org.truffleruby.core.support.TypeNodes;
 import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.RubyPointer;
+import org.truffleruby.interop.InteropNodes;
 import org.truffleruby.interop.ToJavaStringNode;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.LexicalScope;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyContextNode;
@@ -76,7 +79,6 @@ import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.constants.LookupConstantNode;
 import org.truffleruby.language.control.BreakException;
 import org.truffleruby.language.control.BreakID;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -102,10 +104,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameInstance.FrameAccess;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
@@ -125,7 +124,7 @@ public class CExtNodes {
         protected Object callCWithMutex(Object receiver, RubyArray argsArray,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
-                @Cached BranchProfile exceptionProfile,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
@@ -136,27 +135,17 @@ public class CExtNodes {
                 if (ownedProfile.profile(!owned)) {
                     MutexOperations.lockInternal(getContext(), lock, this);
                     try {
-                        return execute(receiver, args, receivers, exceptionProfile);
+                        return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
                     } finally {
                         MutexOperations.unlockInternal(lock);
                     }
                 } else {
-                    return execute(receiver, args, receivers, exceptionProfile);
+                    return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
                 }
             } else {
-                return execute(receiver, args, receivers, exceptionProfile);
+                return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
             }
 
-        }
-
-        private Object execute(Object receiver, Object[] args, InteropLibrary receivers,
-                BranchProfile exceptionProfile) {
-            try {
-                return receivers.execute(receiver, args);
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
         }
 
         protected int getCacheLimit() {
@@ -191,7 +180,7 @@ public class CExtNodes {
         protected Object callCWithoutMutex(Object receiver, RubyArray argsArray,
                 @Cached ArrayToObjectArrayNode arrayToObjectArrayNode,
                 @CachedLibrary("receiver") InteropLibrary receivers,
-                @Cached BranchProfile exceptionProfile,
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode,
                 @Cached ConditionProfile ownedProfile) {
             final Object[] args = arrayToObjectArrayNode.executeToObjectArray(argsArray);
 
@@ -202,27 +191,17 @@ public class CExtNodes {
                 if (ownedProfile.profile(owned)) {
                     MutexOperations.unlockInternal(lock);
                     try {
-                        return execute(receiver, args, receivers, exceptionProfile);
+                        return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
                     } finally {
                         MutexOperations.lockInternal(getContext(), lock, this);
                     }
                 } else {
-                    return execute(receiver, args, receivers, exceptionProfile);
+                    return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
                 }
             } else {
-                return execute(receiver, args, receivers, exceptionProfile);
+                return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
             }
 
-        }
-
-        private Object execute(Object receiver, Object[] args, InteropLibrary receivers,
-                BranchProfile exceptionProfile) {
-            try {
-                return receivers.execute(receiver, args);
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
         }
 
         protected int getCacheLimit() {
@@ -1203,6 +1182,7 @@ public class CExtNodes {
     @CoreMethod(names = "raise_exception", onSingleton = true, required = 1)
     public abstract static class RaiseExceptionNode extends CoreMethodArrayArgumentsNode {
 
+        /** Profiled version of {@link ExceptionOperations#rethrow(Throwable)} */
         @Specialization
         protected Object executeThrow(CapturedException captured,
                 @Cached ConditionProfile runtimeExceptionProfile,
@@ -1213,7 +1193,7 @@ public class CExtNodes {
             } else if (errorProfile.profile(e instanceof Error)) {
                 throw (Error) e;
             } else {
-                throw new JavaException(e);
+                throw CompilerDirectives.shouldNotReachHere("Checked Java Throwable rethrown", e);
             }
         }
     }
@@ -1265,14 +1245,14 @@ public class CExtNodes {
         protected Object rbTrEncMbcCaseFold(RubyEncoding enc, int flags, RubyString string, Object write_p, Object p,
                 @CachedLibrary("write_p") InteropLibrary receivers,
                 @Cached AllocateHelperNode allocateNode,
-                @Cached BranchProfile exceptionProfile) {
+                @Cached TranslateInteropExceptionNode translateInteropExceptionNode) {
             final byte[] bytes = string.rope.getBytes();
             final byte[] to = new byte[bytes.length];
             final IntHolder intHolder = new IntHolder();
             intHolder.value = 0;
             final int resultLength = enc.encoding
                     .mbcCaseFold(flags, bytes, intHolder, bytes.length, to);
-            execute(write_p, new Object[]{ p, intHolder.value }, receivers, exceptionProfile);
+            InteropNodes.execute(write_p, new Object[]{ p, intHolder.value }, receivers, translateInteropExceptionNode);
             final byte[] result = new byte[resultLength];
             if (resultLength > 0) {
                 System.arraycopy(to, 0, result, 0, resultLength);
@@ -1282,16 +1262,6 @@ public class CExtNodes {
                     allocateNode,
                     this,
                     RopeOperations.create(result, USASCIIEncoding.INSTANCE, CodeRange.CR_UNKNOWN));
-        }
-
-        private void execute(Object receiver, Object[] args, InteropLibrary receivers,
-                BranchProfile exceptionProfile) {
-            try {
-                receivers.execute(receiver, args);
-            } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                exceptionProfile.enter();
-                throw new JavaException(e);
-            }
         }
 
         protected int getCacheLimit() {

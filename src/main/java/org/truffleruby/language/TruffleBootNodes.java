@@ -28,7 +28,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringNodes.MakeStringNode;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.core.symbol.RubySymbol;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.exceptions.TopLevelRaiseHandler;
@@ -197,7 +196,7 @@ public abstract class TruffleBootNodes {
                         throw new IllegalStateException();
                 }
             } catch (IOException e) {
-                throw new JavaException(e);
+                throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
 
             getContext().getCoreLibrary().globalVariables.getStorage("$0").setValueInternal(dollarZeroValue);

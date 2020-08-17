@@ -32,8 +32,8 @@ import org.truffleruby.core.support.IONodes.IOThreadBufferAllocateNode;
 import org.truffleruby.core.thread.RubyThread;
 import org.truffleruby.extra.TruffleRubyNodes;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyConstant;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.platform.NativeConfiguration;
 import org.truffleruby.platform.Platform;
@@ -42,10 +42,12 @@ import org.truffleruby.platform.TruffleNFIPlatform.NativeFunction;
 import org.truffleruby.shared.Metrics;
 import org.truffleruby.shared.TruffleRuby;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
@@ -222,7 +224,7 @@ public class FeatureLoader {
         try {
             return new File(absolutePath).getCanonicalPath();
         } catch (IOException e) {
-            throw new JavaException(e);
+            throw CompilerDirectives.shouldNotReachHere(e);
         }
     }
 
@@ -411,7 +413,7 @@ public class FeatureLoader {
                         context.getCoreExceptions().loadError(
                                 "Sulong is required to support C extensions, and it doesn't appear to be available",
                                 feature,
-                                null));
+                                requireNode));
             }
 
             Metrics.printTime("before-load-cext-support");
@@ -424,7 +426,7 @@ public class FeatureLoader {
                 final Object truffleCExt = truffleModule.fields.getConstant("CExt").getValue();
 
                 final String rubyLibPath = context.getRubyHome() + "/lib/cext/libtruffleruby" + Platform.LIB_SUFFIX;
-                final Object library = loadCExtLibRuby(rubyLibPath, feature);
+                final Object library = loadCExtLibRuby(rubyLibPath, feature, requireNode);
 
                 final Object initFunction = requireNode
                         .findFunctionInLibrary(library, "rb_tr_init", rubyLibPath);
@@ -436,7 +438,7 @@ public class FeatureLoader {
                     // Truffle::CExt.register_libtruffleruby(libtruffleruby)
                     interop.invokeMember(truffleCExt, "register_libtruffleruby", library);
                 } catch (InteropException e) {
-                    throw new JavaException(e);
+                    throw TranslateInteropExceptionNode.getUncached().execute(e);
                 }
             } finally {
                 Metrics.printTime("after-load-cext-support");
@@ -446,7 +448,7 @@ public class FeatureLoader {
         }
     }
 
-    private Object loadCExtLibRuby(String rubyLibPath, String feature) {
+    private Object loadCExtLibRuby(String rubyLibPath, String feature, Node currentNode) {
         if (context.getOptions().CEXTS_LOG_LOAD) {
             RubyLanguage.LOGGER.info(() -> String.format("loading cext implementation %s", rubyLibPath));
         }
@@ -461,30 +463,20 @@ public class FeatureLoader {
                             null));
         }
 
-        return loadCExtLibrary("libtruffleruby", rubyLibPath);
+        return loadCExtLibrary("libtruffleruby", rubyLibPath, currentNode);
     }
 
     @TruffleBoundary
-    public Object loadCExtLibrary(String feature, String path) {
+    public Object loadCExtLibrary(String feature, String path, Node currentNode) {
         Metrics.printTime("before-load-cext-" + feature);
         try {
             final TruffleFile truffleFile = FileLoader.getSafeTruffleFile(context, path);
-            if (!truffleFile.exists()) {
-                throw new RaiseException(
-                        context,
-                        context.getCoreExceptions().loadError(path + " does not exist", path, null));
-            }
+            FileLoader.ensureReadable(context, truffleFile, currentNode);
 
             final Source source = Source.newBuilder("llvm", truffleFile).build();
-            final Object result;
-            try {
-                result = context.getEnv().parseInternal(source).call();
-            } catch (Exception e) {
-                throw new JavaException(e);
-            }
-            return result;
+            return context.getEnv().parseInternal(source).call();
         } catch (IOException e) {
-            throw new JavaException(e);
+            throw new RaiseException(context, context.getCoreExceptions().loadError(e, path, currentNode));
         } finally {
             Metrics.printTime("after-load-cext-" + feature);
         }
