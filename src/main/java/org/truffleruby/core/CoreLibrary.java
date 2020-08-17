@@ -86,7 +86,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.TruffleFatalException;
 import org.truffleruby.language.globals.GlobalVariableReader;
 import org.truffleruby.language.globals.GlobalVariables;
 import org.truffleruby.language.loader.CodeLoader;
@@ -936,7 +935,7 @@ public class CoreLibrary {
             context.getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(
                     "Exception while loading core library:\n",
                     e.getException());
-            throw new TruffleFatalException("couldn't load the core library", e);
+            throw CompilerDirectives.shouldNotReachHere("couldn't load the core library", e);
         }
     }
 
