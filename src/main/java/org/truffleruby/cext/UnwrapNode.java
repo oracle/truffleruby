@@ -10,7 +10,6 @@
 package org.truffleruby.cext;
 
 import static org.truffleruby.cext.ValueWrapperManager.FALSE_HANDLE;
-import static org.truffleruby.cext.ValueWrapperManager.NIL_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.TRUE_HANDLE;
 import static org.truffleruby.cext.ValueWrapperManager.UNDEF_HANDLE;
 
@@ -66,8 +65,7 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected Object unwrapNil(long handle,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
+        protected Object unwrapNil(long handle) {
             return nil;
         }
 
@@ -128,9 +126,8 @@ public abstract class UnwrapNode extends RubyBaseNode {
         }
 
         @Specialization(guards = "handle == NIL_HANDLE")
-        protected ValueWrapper unwrapNil(long handle,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            return new ValueWrapper(nil, NIL_HANDLE, null);
+        protected ValueWrapper unwrapNil(long handle) {
+            return nil.getValueWrapper();
         }
 
         @Specialization(guards = "isTaggedLong(handle)")

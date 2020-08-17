@@ -22,7 +22,7 @@ public abstract class RubyBaseNode extends Node {
 
     public static final Object[] EMPTY_ARGUMENTS = ArrayUtils.EMPTY_ARRAY;
 
-    public static final Object nil = Nil.INSTANCE;
+    public static final Nil nil = Nil.INSTANCE;
 
     public void reportLongLoopCount(long count) {
         assert count >= 0L;

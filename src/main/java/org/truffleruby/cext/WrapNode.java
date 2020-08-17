@@ -12,18 +12,19 @@ package org.truffleruby.cext;
 import static org.truffleruby.cext.ValueWrapperManager.LONG_TAG;
 import static org.truffleruby.cext.ValueWrapperManager.UNSET_HANDLE;
 
+import com.oracle.truffle.api.dsl.ImportStatic;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.Layouts;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.core.numeric.RubyBignum;
 import org.truffleruby.core.rope.RopeOperations;
-import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.extra.ffi.Pointer;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 import org.truffleruby.language.RubyDynamicObject;
+import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.objects.ReadObjectFieldNode;
 import org.truffleruby.language.objects.WriteObjectFieldNode;
@@ -35,6 +36,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @GenerateUncached
+@ImportStatic(RubyGuards.class)
 public abstract class WrapNode extends RubyBaseNode {
 
     public static WrapNode create() {
@@ -85,33 +87,12 @@ public abstract class WrapNode extends RubyBaseNode {
     }
 
     @Specialization
-    protected ValueWrapper wrapNil(Nil value,
-            @CachedContext(RubyLanguage.class) RubyContext context) {
-        return context.getValueWrapperManager().nilWrapper;
+    protected ValueWrapper wrapNil(Nil value) {
+        return value.getValueWrapper();
     }
 
-    @Specialization
-    protected ValueWrapper wrapBignum(RubyBignum value,
-            @Cached BranchProfile noHandleProfile) {
-        ValueWrapper wrapper = value.getValueWrapper();
-        if (wrapper == null) {
-            noHandleProfile.enter();
-            synchronized (value) {
-                wrapper = value.getValueWrapper();
-                if (wrapper == null) {
-                    /* This is double-checked locking, but it's safe because the object that we create, the
-                     * ValueWrapper, is not published until after a memory store fence. */
-                    wrapper = new ValueWrapper(value, UNSET_HANDLE, null);
-                    Pointer.UNSAFE.storeFence();
-                    value.setValueWrapper(wrapper);
-                }
-            }
-        }
-        return wrapper;
-    }
-
-    @Specialization
-    protected ValueWrapper wrapSymbol(RubySymbol value,
+    @Specialization(guards = "!isNil(value)")
+    protected ValueWrapper wrapImmutable(ImmutableRubyObject value,
             @Cached BranchProfile noHandleProfile) {
         ValueWrapper wrapper = value.getValueWrapper();
         if (wrapper == null) {

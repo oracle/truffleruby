@@ -11,7 +11,6 @@ package org.truffleruby.core.symbol;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.Hashing;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.rope.Rope;
@@ -35,15 +34,12 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
     private final String string;
     private final Rope rope;
     private final int javaStringHashCode;
-    private long objectId;
-    private ValueWrapper valueWrapper;
     private final long id;
 
     public RubySymbol(String string, Rope rope, long id) {
         this.string = string;
         this.rope = rope;
         this.javaStringHashCode = string.hashCode();
-        this.valueWrapper = null;
         this.id = id;
     }
 
@@ -61,22 +57,6 @@ public final class RubySymbol extends ImmutableRubyObject implements TruffleObje
 
     public Rope getRope() {
         return rope;
-    }
-
-    public long getObjectId() {
-        return objectId;
-    }
-
-    public void setObjectId(long objectId) {
-        this.objectId = objectId;
-    }
-
-    public ValueWrapper getValueWrapper() {
-        return valueWrapper;
-    }
-
-    public void setValueWrapper(ValueWrapper valueWrapper) {
-        this.valueWrapper = valueWrapper;
     }
 
     public long computeHashCode(Hashing hashing) {
