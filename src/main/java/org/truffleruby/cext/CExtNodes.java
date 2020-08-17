@@ -130,17 +130,17 @@ public class CExtNodes {
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = lock.isHeldByCurrentThread();
+                boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
 
-                if (ownedProfile.profile(!owned)) {
+                if (!owned) {
                     MutexOperations.lockInternal(getContext(), lock, this);
-                    try {
-                        return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
-                    } finally {
+                }
+                try {
+                    return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                } finally {
+                    if (!owned) {
                         MutexOperations.unlockInternal(lock);
                     }
-                } else {
-                    return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
                 }
             } else {
                 return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
@@ -186,17 +186,17 @@ public class CExtNodes {
 
             if (getContext().getOptions().CEXT_LOCK) {
                 final ReentrantLock lock = getContext().getCExtensionsLock();
-                boolean owned = lock.isHeldByCurrentThread();
+                boolean owned = ownedProfile.profile(lock.isHeldByCurrentThread());
 
-                if (ownedProfile.profile(owned)) {
+                if (owned) {
                     MutexOperations.unlockInternal(lock);
-                    try {
-                        return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
-                    } finally {
+                }
+                try {
+                    return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
+                } finally {
+                    if (owned) {
                         MutexOperations.lockInternal(getContext(), lock, this);
                     }
-                } else {
-                    return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
                 }
             } else {
                 return InteropNodes.execute(receiver, args, receivers, translateInteropExceptionNode);
