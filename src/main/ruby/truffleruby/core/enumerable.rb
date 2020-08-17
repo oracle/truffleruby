@@ -114,7 +114,10 @@ module Enumerable
     seq = 0
     if !Primitive.undefined?(item)
       warn 'given block not used', uplevel: 1 if block_given?
-      each { |o| seq += 1 if item == o }
+      each do
+        o = Primitive.single_block_arg
+        seq += 1 if item == o
+      end
     elsif block_given?
       each { |o| seq += 1 if yield(o) }
     else
@@ -960,7 +963,8 @@ module Enumerable
     result = []
     if block_given?
       h = {}
-      each do |e|
+      each do
+        e = Primitive.single_block_arg
         v = yield(e)
         unless h.key?(v)
           h[v] = true
@@ -969,7 +973,8 @@ module Enumerable
       end
     else
       h = {}
-      each do |e|
+      each do
+        e = Primitive.single_block_arg
         unless h.key?(e)
           h[e] = true
           result << e
