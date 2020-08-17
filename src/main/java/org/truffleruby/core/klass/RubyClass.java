@@ -11,8 +11,6 @@ package org.truffleruby.core.klass;
 
 import java.util.Set;
 
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
 import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.language.RubyDynamicObject;
@@ -21,6 +19,8 @@ import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
 
 import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.Shape;
 
@@ -28,15 +28,48 @@ import com.oracle.truffle.api.object.Shape;
 public final class RubyClass extends RubyModule implements ObjectGraphNode {
 
     public final boolean isSingleton;
+    /** If this is an object's metaclass, then nonSingletonClass is the logical class of the object. */
+    public final RubyClass nonSingletonClass;
     public final RubyDynamicObject attached;
     public Shape instanceShape = null;
     /* a RubyClass, or nil for BasicObject, or null when not yet initialized */
-    public Object superclass = null;
+    public Object superclass;
 
-    public RubyClass(Shape shape, ModuleFields fields, boolean isSingleton, RubyDynamicObject attached) {
+    public RubyClass(
+            Shape shape,
+            ModuleFields fields,
+            boolean isSingleton,
+            RubyDynamicObject attached,
+            Object superclass) {
         super(shape, fields);
         this.isSingleton = isSingleton;
         this.attached = attached;
+        this.superclass = superclass;
+
+        this.nonSingletonClass = computeNonSingletonClass(isSingleton, superclass);
+    }
+
+    private RubyClass computeNonSingletonClass(boolean isSingleton, Object superclassObject) {
+        if (isSingleton) {
+            RubyClass superclass = ((RubyClass) superclassObject);
+            if (superclass.isSingleton) {
+                return superclass.nonSingletonClass;
+            } else {
+                return superclass;
+            }
+        } else {
+            return this;
+        }
+    }
+
+    public boolean isInitialized() {
+        return superclass != null;
+    }
+
+    public void setSuperClass(RubyClass superclass) {
+        assert this.superclass == null || this.superclass == superclass;
+        this.superclass = superclass;
+        fields.setSuperClass(superclass);
     }
 
     @Override

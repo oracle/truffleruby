@@ -382,7 +382,7 @@ public class CoreLibrary {
         classShape = classClass.getShape();
         classClass.instanceShape = classShape;
 
-        basicObjectClass = ClassNodes.createBootClass(context, null, classShape, null, "BasicObject");
+        basicObjectClass = ClassNodes.createBootClass(context, null, classShape, Nil.INSTANCE, "BasicObject");
         Shape basicObjectShape = createShape(RubyBasicObject.class, basicObjectClass);
         basicObjectClass.instanceShape = basicObjectShape;
 
@@ -396,7 +396,7 @@ public class CoreLibrary {
 
         // Close the cycles
         // Set superclass of Class to Module
-        classClass.fields.setSuperClass(moduleClass, true);
+        classClass.setSuperClass(moduleClass);
 
         // Set constants in Object and lexical parents
         classClass.fields.getAdoptedByLexicalParent(context, objectClass, "Class", node);
@@ -698,10 +698,6 @@ public class CoreLibrary {
         argv = new RubyArray(arrayShape, ArrayStoreLibrary.INITIAL_STORE, 0);
 
         globalVariables = new GlobalVariables();
-
-        // No need for new version since it's null before which is not cached
-        assert basicObjectClass.superclass == null;
-        basicObjectClass.superclass = Nil.INSTANCE;
 
         patchFiles = initializePatching(context);
     }

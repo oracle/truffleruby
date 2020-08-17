@@ -24,6 +24,7 @@ public final class BasicObjectType extends ObjectType {
     }
 
     public RubyClass getLogicalClass() {
+        assert logicalClass == metaClass.nonSingletonClass;
         return logicalClass;
     }
 
@@ -32,6 +33,7 @@ public final class BasicObjectType extends ObjectType {
     }
 
     public RubyClass getMetaClass() {
+        assert metaClass.nonSingletonClass == logicalClass;
         return metaClass;
     }
 

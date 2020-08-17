@@ -19,6 +19,7 @@ import org.truffleruby.core.module.ModuleFields;
 import org.truffleruby.core.module.RubyModule;
 import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.string.StringUtils;
+import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.Visibility;
@@ -62,7 +63,7 @@ public abstract class ClassNodes {
         model.setFullName("Class");
 
         final Shape tempShape = CoreLibrary.createShape(RubyClass.class, null);
-        final RubyClass rubyClass = new RubyClass(tempShape, model, false, null);
+        final RubyClass rubyClass = new RubyClass(tempShape, model, false, null, null);
 
         setLogicalAndMetaClass(rubyClass, rubyClass);
 
@@ -78,15 +79,15 @@ public abstract class ClassNodes {
      * outside this class. */
     @TruffleBoundary
     public static RubyClass createBootClass(RubyContext context, SourceSection sourceSection,
-            Shape classShape, RubyClass superclass, String name) {
+            Shape classShape, Object superclass, String name) {
         final ModuleFields fields = new ModuleFields(context, sourceSection, null, name);
-        final RubyClass rubyClass = new RubyClass(classShape, fields, false, null);
+        final RubyClass rubyClass = new RubyClass(classShape, fields, false, null, superclass);
 
         fields.rubyModuleObject = rubyClass;
         fields.setFullName(name);
 
-        if (superclass != null) {
-            fields.setSuperClass(superclass, true);
+        if (superclass != Nil.INSTANCE) {
+            rubyClass.setSuperClass((RubyClass) superclass);
         }
 
         return rubyClass;
@@ -109,13 +110,13 @@ public abstract class ClassNodes {
                         superclass,
                         name,
                         true,
-                        attached,
-                        true));
+                        attached));
     }
 
     @TruffleBoundary
     public static RubyClass createInitializedRubyClass(RubyContext context, SourceSection sourceSection,
             RubyModule lexicalParent, RubyClass superclass, String name) {
+        assert superclass != null;
         final RubyClass rubyClass = createRubyClass(
                 context,
                 sourceSection,
@@ -124,8 +125,7 @@ public abstract class ClassNodes {
                 superclass,
                 name,
                 false,
-                null,
-                true);
+                null);
         ensureItHasSingletonClassCreated(context, rubyClass);
         return rubyClass;
     }
@@ -138,15 +138,10 @@ public abstract class ClassNodes {
             RubyClass superclass,
             String name,
             boolean isSingleton,
-            RubyDynamicObject attached,
-            boolean initialized) {
+            RubyDynamicObject attached) {
+        assert superclass != null;
         final ModuleFields fields = new ModuleFields(context, sourceSection, lexicalParent, name);
-
-        final RubyClass rubyClass = new RubyClass(classShape, fields, isSingleton, attached);
-        if (initialized) {
-            rubyClass.superclass = superclass;
-        }
-
+        final RubyClass rubyClass = new RubyClass(classShape, fields, isSingleton, attached, superclass);
         fields.rubyModuleObject = rubyClass;
 
         if (lexicalParent != null) {
@@ -155,9 +150,7 @@ public abstract class ClassNodes {
             fields.setFullName(name);
         }
 
-        if (superclass != null) {
-            fields.setSuperClass(superclass, false);
-        }
+        rubyClass.setSuperClass(superclass);
 
         // Singleton classes cannot be instantiated
         if (!isSingleton) {
@@ -168,10 +161,27 @@ public abstract class ClassNodes {
     }
 
     @TruffleBoundary
+    public static RubyClass createUninitializedRubyClass(RubyContext context,
+            SourceSection sourceSection,
+            Shape classShape) {
+        final ModuleFields fields = new ModuleFields(context, sourceSection, null, null);
+        final RubyClass rubyClass = new RubyClass(classShape, fields, false, null, null);
+        fields.rubyModuleObject = rubyClass;
+
+        // For Class.allocate, set it in the fields but not in RubyClass#superclass to mark as not yet initialized
+        fields.setSuperClass(context.getCoreLibrary().objectClass);
+
+        setInstanceShape(rubyClass, context.getCoreLibrary().objectClass);
+
+        assert !rubyClass.isInitialized();
+        return rubyClass;
+    }
+
+    @TruffleBoundary
     public static void initialize(RubyContext context, RubyClass rubyClass, RubyClass superclass) {
         assert !rubyClass.isSingleton : "Singleton classes can only be created internally";
 
-        rubyClass.fields.setSuperClass(superclass, true);
+        rubyClass.setSuperClass(superclass);
 
         ensureItHasSingletonClassCreated(context, rubyClass);
 
@@ -236,8 +246,7 @@ public abstract class ClassNodes {
                 singletonSuperclass,
                 name,
                 true,
-                rubyClass,
-                true);
+                rubyClass);
         SharedObjects.propagate(context, rubyClass, metaClass);
         setMetaClass(rubyClass, metaClass);
 
@@ -366,16 +375,10 @@ public abstract class ClassNodes {
         @Specialization
         protected RubyClass allocate(RubyClass classClass) {
             assert classClass == coreLibrary().classClass : "Subclasses of class Class are forbidden in Ruby";
-            return createRubyClass(
+            return createUninitializedRubyClass(
                     getContext(),
                     getEncapsulatingSourceSection(),
-                    coreLibrary().classShape,
-                    null,
-                    coreLibrary().objectClass,
-                    null,
-                    false,
-                    null,
-                    false);
+                    coreLibrary().classShape);
         }
 
     }

@@ -83,7 +83,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
     }
 
     private void initializeCommon(RubyClass rubyClass, RubyClass superclass, boolean superClassProvided) {
-        if (isInitialized(rubyClass)) {
+        if (rubyClass.isInitialized()) {
             errorProfile.enter();
             throw new RaiseException(
                     getContext(),
@@ -92,7 +92,7 @@ public abstract class InitializeClassNode extends RubyContextNode {
 
         if (superClassProvided) {
             checkInheritable(superclass);
-            if (!isInitialized(superclass)) {
+            if (!superclass.isInitialized()) {
                 errorProfile.enter();
                 throw new RaiseException(
                         getContext(),
@@ -101,10 +101,6 @@ public abstract class InitializeClassNode extends RubyContextNode {
         }
 
         ClassNodes.initialize(getContext(), rubyClass, superclass);
-    }
-
-    private boolean isInitialized(RubyClass rubyClass) {
-        return rubyClass.superclass != null;
     }
 
     // rb_check_inheritable
