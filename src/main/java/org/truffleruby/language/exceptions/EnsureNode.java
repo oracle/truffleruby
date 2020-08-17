@@ -9,9 +9,12 @@
  */
 package org.truffleruby.language.exceptions;
 
+import org.truffleruby.core.exception.ExceptionOperations;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
+import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -22,7 +25,7 @@ public class EnsureNode extends RubyContextSourceNode {
     @Child private RubyNode tryPart;
     @Child private RubyNode ensurePart;
 
-    @Child private SetExceptionVariableNode setExceptionVariableNode;
+    @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode;
 
     private final BranchProfile rubyExceptionPath = BranchProfile.create();
     private final BranchProfile javaExceptionPath = BranchProfile.create();
@@ -34,49 +37,66 @@ public class EnsureNode extends RubyContextSourceNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        final Object value;
-
-        try {
-            value = tryPart.execute(frame);
-        } catch (RaiseException exception) {
-            rubyExceptionPath.enter();
-            setLastExceptionAndRunEnsure(frame, exception);
-            throw exception;
-        } catch (Throwable throwable) {
-            javaExceptionPath.enter();
-            ensurePart.doExecuteVoid(frame);
-            throw throwable;
-        }
-
-        ensurePart.doExecuteVoid(frame);
-
-        return value;
+        return executeCommon(frame, false);
     }
 
     @Override
     public void doExecuteVoid(VirtualFrame frame) {
-        try {
-            tryPart.doExecuteVoid(frame);
-        } catch (RaiseException exception) {
-            rubyExceptionPath.enter();
-            setLastExceptionAndRunEnsure(frame, exception);
-            throw exception;
-        } catch (Throwable throwable) {
-            javaExceptionPath.enter();
-            ensurePart.doExecuteVoid(frame);
-            throw throwable;
-        }
-
-        ensurePart.doExecuteVoid(frame);
+        executeCommon(frame, true);
     }
 
-    private void setLastExceptionAndRunEnsure(VirtualFrame frame, RaiseException exception) {
-        if (setExceptionVariableNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            setExceptionVariableNode = insert(new SetExceptionVariableNode());
+    /** The reason this is so complicated is to avoid duplication of the ensurePart so it is PE'd only once, no matter
+     * which execution paths are taken (GR-25608). */
+    public Object executeCommon(VirtualFrame frame, boolean executeVoid) {
+        Object value = nil;
+        RaiseException raiseException = null;
+        Throwable javaException = null;
+
+        try {
+            if (executeVoid) {
+                tryPart.doExecuteVoid(frame);
+            } else {
+                value = tryPart.execute(frame);
+            }
+        } catch (RaiseException exception) {
+            rubyExceptionPath.enter();
+            raiseException = exception;
+        } catch (Throwable throwable) {
+            javaExceptionPath.enter();
+            javaException = throwable;
         }
 
-        setExceptionVariableNode.setLastExceptionAndRun(frame, exception, ensurePart);
+        ThreadLocalGlobals threadLocalGlobals = null;
+        Object previousException = null;
+        if (raiseException != null) {
+            threadLocalGlobals = getThreadLocalGlobals();
+            previousException = threadLocalGlobals.exception;
+            threadLocalGlobals.exception = raiseException.getException();
+        }
+        try {
+            ensurePart.doExecuteVoid(frame);
+        } finally {
+            if (raiseException != null) {
+                threadLocalGlobals.exception = previousException;
+            }
+        }
+
+        if (raiseException != null) {
+            throw raiseException;
+        } else if (javaException != null) {
+            throw ExceptionOperations.rethrow(javaException);
+        } else {
+            return value;
+        }
+    }
+
+    private ThreadLocalGlobals getThreadLocalGlobals() {
+        if (getCurrentRubyThreadNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            getCurrentRubyThreadNode = insert(GetCurrentRubyThreadNode.create());
+        }
+
+        return getCurrentRubyThreadNode.execute().threadLocalGlobals;
     }
 
 }

@@ -10,6 +10,7 @@
 package org.truffleruby.language.exceptions;
 
 import org.truffleruby.RubyContext;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextSourceNode;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.control.RaiseException;
@@ -25,6 +26,7 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.ExplodeLoop.LoopExplosionKind;
 import com.oracle.truffle.api.profiles.BranchProfile;
+import org.truffleruby.language.threadlocal.ThreadLocalGlobals;
 
 public class TryNode extends RubyContextSourceNode {
 
@@ -33,7 +35,7 @@ public class TryNode extends RubyContextSourceNode {
     @Child private RubyNode elsePart;
     private final boolean canOmitBacktrace;
 
-    @Child private SetExceptionVariableNode setExceptionVariableNode;
+    @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode;
 
     private final BranchProfile elseProfile = BranchProfile.create();
     private final BranchProfile controlFlowProfile = BranchProfile.create();
@@ -99,8 +101,6 @@ public class TryNode extends RubyContextSourceNode {
                      * exception is no longer being thrown on the exception path and the lazy stacktrace is no longer
                      * filled. */
                     TruffleStackTrace.fillIn(exception);
-
-                    CompilerAsserts.partialEvaluationConstant(rescue);
                     return setLastExceptionAndRunRescue(frame, exception, rescue);
                 }
             }
@@ -109,22 +109,33 @@ public class TryNode extends RubyContextSourceNode {
         throw exception;
     }
 
+    private Object setLastExceptionAndRunRescue(VirtualFrame frame, RaiseException exception, RescueNode rescue) {
+        final ThreadLocalGlobals threadLocalGlobals = getThreadLocalGlobals();
+        final Object previousException = threadLocalGlobals.exception;
+        threadLocalGlobals.exception = exception.getException();
+        try {
+            CompilerAsserts.partialEvaluationConstant(rescue);
+            return rescue.execute(frame);
+        } finally {
+            threadLocalGlobals.exception = previousException;
+        }
+    }
+
+    private ThreadLocalGlobals getThreadLocalGlobals() {
+        if (getCurrentRubyThreadNode == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            getCurrentRubyThreadNode = insert(GetCurrentRubyThreadNode.create());
+        }
+
+        return getCurrentRubyThreadNode.execute().threadLocalGlobals;
+    }
+
     @TruffleBoundary
     private void printBacktraceOnRescue(RescueNode rescue, RaiseException exception) {
         String info = "rescued at " + RubyContext.fileLine(
                 getContext().getCallStack().getTopMostUserSourceSection(rescue.getEncapsulatingSourceSection())) +
                 ":\n";
         getContext().getDefaultBacktraceFormatter().printRubyExceptionOnEnvStderr(info, exception.getException());
-    }
-
-    private Object setLastExceptionAndRunRescue(VirtualFrame frame, RaiseException exception,
-            RubyNode rescue) {
-        if (setExceptionVariableNode == null) {
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            setExceptionVariableNode = insert(new SetExceptionVariableNode());
-        }
-
-        return setExceptionVariableNode.setLastExceptionAndRun(frame, exception, rescue);
     }
 
 }

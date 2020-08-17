@@ -12,6 +12,7 @@ package org.truffleruby.language.exceptions;
 import org.truffleruby.core.cast.IntegerCastNodeGen;
 import org.truffleruby.core.exception.RubyException;
 import org.truffleruby.core.kernel.AtExitManager;
+import org.truffleruby.core.thread.GetCurrentRubyThreadNode;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.control.ExitException;
 import org.truffleruby.language.control.RaiseException;
@@ -22,7 +23,7 @@ import com.oracle.truffle.api.CompilerDirectives;
 
 public class TopLevelRaiseHandler extends RubyContextNode {
 
-    @Child private SetExceptionVariableNode setExceptionVariableNode;
+    @Child private GetCurrentRubyThreadNode getCurrentRubyThreadNode;
 
     public int execute(Runnable body) {
         int exitCode = 0;
@@ -74,12 +75,12 @@ public class TopLevelRaiseHandler extends RubyContextNode {
     }
 
     private void setLastException(RubyException exception) {
-        if (setExceptionVariableNode == null) {
+        if (getCurrentRubyThreadNode == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            setExceptionVariableNode = insert(new SetExceptionVariableNode());
+            getCurrentRubyThreadNode = insert(GetCurrentRubyThreadNode.create());
         }
 
-        setExceptionVariableNode.setLastException(exception);
+        getCurrentRubyThreadNode.execute().threadLocalGlobals.exception = exception;
     }
 
     private void handleSignalException(RubyException exception) {
