@@ -61,7 +61,12 @@ module Truffle
     def self.match_in_region(re, str, from, to, at_start, encoding_conversion, start)
       if USE_TRUFFLE_REGEX
         if (nil == Primitive.object_hidden_var_get(re, TREGEX))
-          Primitive.object_hidden_var_set(re, TREGEX, tregex_engine.call(re.source))
+          begin
+            Primitive.object_hidden_var_set(re, TREGEX, tregex_engine.call(re.source))
+          rescue => e
+            $stderr.puts "Failure to compile #{re.source} using tregex - generated error #{e}."
+            return match_in_region_joni(re, str, from, to, at_start, encoding_conversion, start)
+          end
         end
         raise RuntimeError, 'Backwards searching not yet supported' unless to >= from
         tr = Primitive.object_hidden_var_get(re, TREGEX)
