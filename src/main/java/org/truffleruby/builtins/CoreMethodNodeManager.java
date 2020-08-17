@@ -12,6 +12,7 @@ package org.truffleruby.builtins;
 import java.util.List;
 import java.util.function.Function;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
@@ -36,7 +37,6 @@ import org.truffleruby.language.arguments.ReadKeywordArgumentNode;
 import org.truffleruby.language.arguments.ReadPreArgumentNode;
 import org.truffleruby.language.arguments.ReadRemainingArgumentsNode;
 import org.truffleruby.language.arguments.ReadSelfNode;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.methods.Arity;
 import org.truffleruby.language.methods.DeclarationContext;
 import org.truffleruby.language.methods.ExceptionTranslatingNode;
@@ -408,7 +408,7 @@ public class CoreMethodNodeManager {
             Class<?> nodeFactoryClass = Class.forName(nodeFactoryName);
             instance = nodeFactoryClass.getMethod("getInstance").invoke(null);
         } catch (ReflectiveOperationException e) {
-            throw new JavaException(e);
+            throw CompilerDirectives.shouldNotReachHere(e);
         }
         return (NodeFactory<? extends RubyNode>) instance;
     }

@@ -20,7 +20,6 @@ import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringCachingGuards;
 import org.truffleruby.core.string.StringOperations;
 import org.truffleruby.language.NotProvided;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CallTarget;
@@ -104,7 +103,7 @@ public abstract class PolyglotNodes {
                 }
                 source = Source.newBuilder(language, file).build();
             } catch (IOException e) {
-                throw new JavaException(e);
+                throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
 
             return eval(source);
@@ -135,7 +134,7 @@ public abstract class PolyglotNodes {
                 final TruffleFile file = getContext().getEnv().getPublicTruffleFile(path);
                 return Source.newBuilder(language, file).build();
             } catch (IOException e) {
-                throw new JavaException(e);
+                throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
         }
 

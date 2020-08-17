@@ -39,7 +39,6 @@ import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.RubyNode;
 import org.truffleruby.language.RubySourceNode;
 import org.truffleruby.language.Visibility;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.DispatchNode;
 import org.truffleruby.shared.TruffleRuby;
@@ -69,6 +68,27 @@ import com.oracle.truffle.api.source.Source;
 @CoreModule("Truffle::Interop")
 public abstract class InteropNodes {
 
+    private abstract static class InteropCoreMethodArrayArgumentsNode extends CoreMethodArrayArgumentsNode {
+        protected int getCacheLimit() {
+            return getContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    private abstract static class InteropPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
+        protected int getCacheLimit() {
+            return getContext().getOptions().METHOD_LOOKUP_CACHE;
+        }
+    }
+
+    public static Object execute(Object receiver, Object[] args, InteropLibrary receivers,
+            TranslateInteropExceptionNode translateInteropExceptionNode) {
+        try {
+            return receivers.execute(receiver, args);
+        } catch (InteropException e) {
+            throw translateInteropExceptionNode.execute(e);
+        }
+    }
+
     @CoreMethod(names = "import_file", onSingleton = true, required = 1)
     public abstract static class ImportFileNode extends CoreMethodArrayArgumentsNode {
 
@@ -83,24 +103,12 @@ public abstract class InteropNodes {
                 final Source source = Source.newBuilder(TruffleRuby.LANGUAGE_ID, file).build();
                 getContext().getEnv().parsePublic(source).call();
             } catch (IOException e) {
-                throw new JavaException(e);
+                throw new RaiseException(getContext(), coreExceptions().ioError(e, this));
             }
 
             return nil;
         }
 
-    }
-
-    private abstract static class InteropCoreMethodArrayArgumentsNode extends CoreMethodArrayArgumentsNode {
-        protected int getCacheLimit() {
-            return getContext().getOptions().METHOD_LOOKUP_CACHE;
-        }
-    }
-
-    private abstract static class InteropPrimitiveArrayArgumentsNode extends PrimitiveArrayArgumentsNode {
-        protected int getCacheLimit() {
-            return getContext().getOptions().METHOD_LOOKUP_CACHE;
-        }
     }
 
     @CoreMethod(names = "executable?", onSingleton = true, required = 1)
@@ -131,14 +139,8 @@ public abstract class InteropNodes {
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached ForeignToRubyNode foreignToRubyNode,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-            final Object foreign;
-
-            try {
-                foreign = receivers.execute(receiver, rubyToForeignArgumentsNode.executeConvert(args));
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
-
+            final Object[] convertedArgs = rubyToForeignArgumentsNode.executeConvert(args);
+            final Object foreign = InteropNodes.execute(receiver, convertedArgs, receivers, translateInteropException);
             return foreignToRubyNode.executeConvert(foreign);
         }
 
@@ -154,11 +156,7 @@ public abstract class InteropNodes {
         protected Object executeWithoutConversionForeignCached(Object receiver, Object[] args,
                 @CachedLibrary("receiver") InteropLibrary receivers,
                 @Cached TranslateInteropExceptionNode translateInteropException) {
-            try {
-                return receivers.execute(receiver, args);
-            } catch (InteropException e) {
-                throw translateInteropException.execute(e);
-            }
+            return InteropNodes.execute(receiver, args, receivers, translateInteropException);
         }
     }
 

@@ -17,17 +17,20 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.core.array.ArrayUtils;
 import org.truffleruby.core.cast.BooleanCastNode;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.string.StringOperations;
+import org.truffleruby.interop.InteropNodes;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyContextNode;
 import org.truffleruby.language.RubyRootNode;
 import org.truffleruby.language.WarningNode;
 import org.truffleruby.language.constants.GetConstantNode;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
 import org.truffleruby.language.methods.DeclarationContext;
@@ -39,7 +42,6 @@ import org.truffleruby.shared.Metrics;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -182,7 +184,7 @@ public abstract class RequireNode extends RubyContextNode {
 
     private boolean parseAndCall(String feature, String expandedPath) {
         if (isCExtension(expandedPath)) {
-            requireCExtension(feature, expandedPath);
+            requireCExtension(feature, expandedPath, this);
         } else {
             // All other files are assumed to be Ruby, the file type detection is not enough
             final RubySource source;
@@ -226,7 +228,7 @@ public abstract class RequireNode extends RubyContextNode {
     }
 
     @TruffleBoundary
-    private void requireCExtension(String feature, String expandedPath) {
+    private void requireCExtension(String feature, String expandedPath, Node currentNode) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
 
         final Object library;
@@ -239,7 +241,7 @@ public abstract class RequireNode extends RubyContextNode {
                         .info(String.format("loading cext module %s (requested as %s)", expandedPath, feature));
             }
 
-            library = featureLoader.loadCExtLibrary(feature, expandedPath);
+            library = featureLoader.loadCExtLibrary(feature, expandedPath, currentNode);
         } catch (Exception e) {
             handleCExtensionException(feature, e);
             throw e;
@@ -253,14 +255,17 @@ public abstract class RequireNode extends RubyContextNode {
         if (!initFunctionInteropLibrary.isExecutable(initFunction)) {
             throw new RaiseException(
                     getContext(),
-                    coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, null));
+                    coreExceptions().loadError(initFunctionName + "() is not executable", expandedPath, currentNode));
         }
 
         requireMetric("before-execute-" + feature);
         try {
-            initFunctionInteropLibrary.execute(initFunction);
-        } catch (InteropException e) {
-            throw new JavaException(e);
+            InteropNodes
+                    .execute(
+                            initFunction,
+                            ArrayUtils.EMPTY_ARRAY,
+                            initFunctionInteropLibrary,
+                            TranslateInteropExceptionNode.getUncached());
         } finally {
             requireMetric("after-execute-" + feature);
         }
@@ -275,7 +280,7 @@ public abstract class RequireNode extends RubyContextNode {
                     getContext(),
                     coreExceptions().loadError(String.format("%s() not found", functionName), path, null));
         } catch (UnsupportedMessageException e) {
-            throw new JavaException(e);
+            throw TranslateInteropExceptionNode.getUncached().execute(e);
         }
 
         if (function == null) {

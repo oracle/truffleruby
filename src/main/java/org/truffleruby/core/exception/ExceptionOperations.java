@@ -9,6 +9,7 @@
  */
 package org.truffleruby.core.exception;
 
+import com.oracle.truffle.api.CompilerDirectives;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.core.module.ModuleFields;
@@ -19,7 +20,6 @@ import org.truffleruby.core.thread.ThreadNodes.ThreadGetExceptionNode;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.RubyGuards;
 import org.truffleruby.language.backtrace.Backtrace;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -104,13 +104,14 @@ public abstract class ExceptionOperations {
         return (RubyProc) context.getCoreLibrary().truffleExceptionOperationsModule.fields.getConstant(name).getValue();
     }
 
+    /** @see org.truffleruby.cext.CExtNodes.RaiseExceptionNode */
     public static RuntimeException rethrow(Throwable throwable) {
         if (throwable instanceof RuntimeException) {
             throw (RuntimeException) throwable;
         } else if (throwable instanceof Error) {
             throw (Error) throwable;
         } else {
-            throw new JavaException(throwable);
+            throw CompilerDirectives.shouldNotReachHere("Checked Java Throwable rethrown", throwable);
         }
     }
 

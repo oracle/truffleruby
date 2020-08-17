@@ -28,6 +28,11 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 
 @GenerateUncached
 public abstract class TranslateInteropExceptionNode extends RubyBaseNode {
+
+    public static TranslateInteropExceptionNode getUncached() {
+        return TranslateInteropExceptionNodeGen.getUncached();
+    }
+
     public final RuntimeException execute(InteropException exception) {
         return execute(exception, false, null, null);
     }

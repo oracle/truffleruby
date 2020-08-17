@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
+import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -38,20 +39,20 @@ public class FileLoader {
         this.context = context;
     }
 
-    public void ensureReadable(TruffleFile file) {
+    public static void ensureReadable(RubyContext context, TruffleFile file, Node currentNode) {
         if (!file.exists()) {
             throw new RaiseException(
                     context,
                     context.getCoreExceptions().loadError(
                             "No such file or directory -- " + file,
-                            file.toString(),
-                            null));
+                            file.getPath(),
+                            currentNode));
         }
 
         if (!file.isReadable()) {
             throw new RaiseException(
                     context,
-                    context.getCoreExceptions().loadError("Permission denied -- " + file, file.toString(), null));
+                    context.getCoreExceptions().loadError("Permission denied -- " + file, file.getPath(), currentNode));
         }
     }
 
@@ -61,7 +62,7 @@ public class FileLoader {
         }
 
         final TruffleFile file = getSafeTruffleFile(context, path);
-        ensureReadable(file);
+        ensureReadable(context, file, null);
 
         /* We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
          * We could convert the CharSequence back to bytes, but that's more expensive than just reading the bytes once

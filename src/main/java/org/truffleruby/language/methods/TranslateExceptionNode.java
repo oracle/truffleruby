@@ -23,9 +23,7 @@ import org.truffleruby.language.backtrace.Backtrace;
 import org.truffleruby.language.backtrace.BacktraceFormatter;
 import org.truffleruby.language.backtrace.BacktraceFormatter.FormattingFlags;
 import org.truffleruby.language.backtrace.BacktraceInterleaver;
-import org.truffleruby.language.control.JavaException;
 import org.truffleruby.language.control.RaiseException;
-import org.truffleruby.language.control.TruffleFatalException;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -85,9 +83,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             return new RaiseException(
                     context,
                     translateUnsupportedSpecialization(context, exception, unsupportedOperationBehavior));
-        } catch (TruffleFatalException exception) {
-            errorProfile.enter();
-            return exception;
         } catch (StackOverflowError error) {
             errorProfile.enter();
             return new RaiseException(context, translateStackOverflow(context, error));
@@ -239,11 +234,6 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
             }
         }
 
-        Throwable t = throwable;
-        if (t instanceof JavaException) {
-            t = t.getCause();
-        }
-
         // NOTE (eregon, 2 Feb. 2018): This could maybe be modeled as translating each exception to
         // a Ruby one and linking them with Ruby Exception#cause.
         // But currently we and MRI do not display the cause message or backtrace by default.
@@ -251,6 +241,7 @@ public abstract class TranslateExceptionNode extends RubyBaseNode {
         final StringBuilder builder = new StringBuilder();
         boolean firstException = true;
         Backtrace lastBacktrace = null;
+        Throwable t = throwable;
 
         while (t != null) {
             if (t.getClass().getSimpleName().equals("LazyStackTrace")) {

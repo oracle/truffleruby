@@ -13,7 +13,7 @@ import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManager.AllocateHandleNode;
 import org.truffleruby.cext.ValueWrapperManager.HandleBlock;
 import org.truffleruby.core.MarkingServiceNodes.KeepAliveNode;
-import org.truffleruby.language.control.JavaException;
+import org.truffleruby.interop.TranslateInteropExceptionNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -85,7 +85,7 @@ public class ValueWrapper implements TruffleObject {
             try {
                 return "VALUE: " + interop.asString(interop.toDisplayString(object, allowSideEffects));
             } catch (UnsupportedMessageException e) {
-                throw new JavaException(e);
+                throw TranslateInteropExceptionNode.getUncached().execute(e);
             }
         } else {
             return "VALUE: " + toString();

@@ -12,7 +12,6 @@ package org.truffleruby.language.loader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import com.oracle.truffle.api.nodes.Node;
 import org.jcodings.specific.UTF8Encoding;
 import org.truffleruby.RubyContext;
 import org.truffleruby.core.rope.CodeRange;
@@ -23,6 +22,7 @@ import org.truffleruby.shared.TruffleRuby;
 
 import com.oracle.truffle.api.TruffleFile;
 import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.Source;
 
 /*
@@ -84,7 +84,7 @@ public class MainLoader {
         final FileLoader fileLoader = new FileLoader(context);
 
         final TruffleFile file = env.getPublicTruffleFile(mainPath);
-        fileLoader.ensureReadable(file);
+        FileLoader.ensureReadable(context, file, currentNode);
 
         /* We read the file's bytes ourselves because the lexer works on bytes and Truffle only gives us a CharSequence.
          * We could convert the CharSequence back to bytes, but that's more expensive than just reading the bytes once
