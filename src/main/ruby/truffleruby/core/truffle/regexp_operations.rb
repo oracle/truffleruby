@@ -68,10 +68,13 @@ module Truffle
             return match_in_region_joni(re, str, from, to, at_start, encoding_conversion, start)
           end
         end
-        raise RuntimeError, 'Backwards searching not yet supported' unless to >= from
+        if to < from
+          $stderr.puts 'Backwards searching not yet supported'
+          return match_in_region_joni(re, str, from, to, at_start, encoding_conversion, start)
+        end
         tr = Primitive.object_hidden_var_get(re, TREGEX)
         if USE_TRUFFLE_REGEX_EXEC_BYTES && str.encoding == Encoding::UTF_8
-          bytes = Truffle::StringOperations.raw_bytes(str)
+          bytes = Truffle::StringOperations.raw_bytes(str.byteslice(from, to - from))
           tr_match = tr.execBytes(bytes, from)
         else
           tr_match = tr.exec(str, from)
@@ -84,8 +87,8 @@ module Truffle
             a_start = tr_match.getStart(pos)
             a_end = tr_match.getEnd(pos)
             break if (a_start == -1)
-            starts << a_start
-            ends << a_end
+            starts << a_start + from
+            ends << a_end + from
             pos += 1
           end
           Primitive.matchdata_create(re, str, starts, ends)
@@ -115,6 +118,19 @@ module Truffle
 
       nd = match.byte_begin(0) - 1
       source.byteslice(idx, nd-idx+1)
+    end
+
+    def self.compare_engines(&block)
+      use_tregex = const_get(:USE_TRUFFLE_REGEX)
+      begin
+        const_set(:USE_TRUFFLE_REGEX, false)
+        r1 = yield
+        const_set(:USE_TRUFFLE_REGEX, true)
+        r2 = yield
+      ensure
+        const_set(:USE_TRUFFLE_REGEX, use_tregex)
+      end
+      return r1 == r2
     end
   end
 end
