@@ -68,6 +68,8 @@ public class CoreMethods {
     public final InternalMethod BINDING;
     public final InternalMethod NOT;
     public final InternalMethod KERNEL_IS_NIL;
+    public final InternalMethod KERNEL_IS_A;
+    public final InternalMethod KERNEL_KIND_OF;
     public final InternalMethod STRING_BYTESIZE;
 
     public CoreMethods(RubyContext context) {
@@ -121,6 +123,8 @@ public class CoreMethods {
         EXCEPTION_BACKTRACE = getMethod(exceptionClass, "backtrace");
         KERNEL_IS_NIL = getMethod(kernelModule, "nil?");
         STRING_BYTESIZE = getMethod(stringClass, "bytesize");
+        KERNEL_IS_A = getMethod(kernelModule, "is_a?");
+        KERNEL_KIND_OF = getMethod(kernelModule, "kind_of?");
     }
 
     private Assumption registerAssumption(RubyClass klass, String methodName) {
@@ -207,6 +211,10 @@ public class CoreMethods {
                     return InlinedGreaterThanNodeGen.create(context, callParameters, self, args[0]);
                 case ">=":
                     return InlinedGreaterOrEqualNodeGen.create(context, callParameters, self, args[0]);
+                case "is_a?":
+                    return InlinedIsANodeGen.create(context, callParameters, self, args[0]);
+                case "kind_of?":
+                    return InlinedKindOfNodeGen.create(context, callParameters, self, args[0]);
                 default:
             }
         }
