@@ -71,6 +71,7 @@ public class CoreMethods {
     public final InternalMethod KERNEL_IS_A;
     public final InternalMethod KERNEL_KIND_OF;
     public final InternalMethod STRING_BYTESIZE;
+    public final InternalMethod MODULE_CASE_EQUAL;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
@@ -79,6 +80,7 @@ public class CoreMethods {
         final RubyModule kernelModule = context.getCoreLibrary().kernelModule;
         final RubyClass integerClass = context.getCoreLibrary().integerClass;
         final RubyClass floatClass = context.getCoreLibrary().floatClass;
+        final RubyClass moduleClass = context.getCoreLibrary().moduleClass;
         final RubyClass nilClass = context.getCoreLibrary().nilClass;
         final RubyClass stringClass = context.getCoreLibrary().stringClass;
 
@@ -125,6 +127,7 @@ public class CoreMethods {
         STRING_BYTESIZE = getMethod(stringClass, "bytesize");
         KERNEL_IS_A = getMethod(kernelModule, "is_a?");
         KERNEL_KIND_OF = getMethod(kernelModule, "kind_of?");
+        MODULE_CASE_EQUAL = getMethod(moduleClass, "===");
     }
 
     private Assumption registerAssumption(RubyClass klass, String methodName) {
@@ -203,6 +206,8 @@ public class CoreMethods {
                     return InlinedBitOrNodeGen.create(context, callParameters, self, args[0]);
                 case "==":
                     return InlinedEqualNodeGen.create(context, callParameters, self, args[0]);
+                case "===":
+                    return InlinedCaseEqualNodeGen.create(context, callParameters, self, args[0]);
                 case "<":
                     return InlinedLessThanNodeGen.create(context, callParameters, self, args[0]);
                 case "<=":
