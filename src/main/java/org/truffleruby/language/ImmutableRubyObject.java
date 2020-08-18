@@ -11,6 +11,7 @@ package org.truffleruby.language;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
+import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.interop.ForeignToRubyArgumentsNode;
 import org.truffleruby.interop.ForeignToRubyNode;
 import org.truffleruby.language.dispatch.CallDispatchHeadNode;
@@ -35,6 +36,25 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 @ExportLibrary(RubyLibrary.class)
 @ExportLibrary(InteropLibrary.class)
 public abstract class ImmutableRubyObject implements TruffleObject {
+
+    protected ValueWrapper valueWrapper;
+    protected long objectId;
+
+    public long getObjectId() {
+        return objectId;
+    }
+
+    public void setObjectId(long objectId) {
+        this.objectId = objectId;
+    }
+
+    public ValueWrapper getValueWrapper() {
+        return valueWrapper;
+    }
+
+    public void setValueWrapper(ValueWrapper valueWrapper) {
+        this.valueWrapper = valueWrapper;
+    }
 
     // region RubyLibrary messages
     @ExportMessage

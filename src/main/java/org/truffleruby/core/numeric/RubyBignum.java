@@ -16,7 +16,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
-import org.truffleruby.cext.ValueWrapper;
 import org.truffleruby.core.klass.RubyClass;
 import org.truffleruby.language.ImmutableRubyObject;
 
@@ -26,28 +25,9 @@ import java.math.BigInteger;
 public class RubyBignum extends ImmutableRubyObject {
 
     public final BigInteger value;
-    private ValueWrapper valueWrapper;
-    private long objectId;
 
     public RubyBignum(BigInteger value) {
         this.value = value;
-        this.valueWrapper = null;
-    }
-
-    public long getObjectId() {
-        return objectId;
-    }
-
-    public void setObjectId(long objectId) {
-        this.objectId = objectId;
-    }
-
-    public ValueWrapper getValueWrapper() {
-        return valueWrapper;
-    }
-
-    public void setValueWrapper(ValueWrapper valueWrapper) {
-        this.valueWrapper = valueWrapper;
     }
 
     @TruffleBoundary

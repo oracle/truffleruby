@@ -28,6 +28,7 @@ import org.truffleruby.core.proc.RubyProc;
 import org.truffleruby.core.rope.RopeOperations;
 import org.truffleruby.core.string.RubyString;
 import org.truffleruby.core.symbol.RubySymbol;
+import org.truffleruby.language.ImmutableRubyObject;
 import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyDynamicObject;
@@ -242,28 +243,14 @@ public abstract class BasicObjectNodes {
             return ObjectIDOperations.floatToID(value);
         }
 
-        @Specialization
-        protected long objectID(RubySymbol symbol,
+        @Specialization(guards = "!isNil(object)")
+        protected long objectIDImmutable(ImmutableRubyObject object,
                 @CachedContext(RubyLanguage.class) RubyContext context) {
-            final long id = symbol.getObjectId();
+            final long id = object.getObjectId();
 
             if (id == 0) {
                 final long newId = context.getObjectSpaceManager().getNextObjectID();
-                symbol.setObjectId(newId);
-                return newId;
-            }
-
-            return id;
-        }
-
-        @Specialization
-        protected long objectIDBignum(RubyBignum bignum,
-                @CachedContext(RubyLanguage.class) RubyContext context) {
-            final long id = bignum.getObjectId();
-
-            if (id == 0) {
-                final long newId = context.getObjectSpaceManager().getNextObjectID();
-                bignum.setObjectId(newId);
+                object.setObjectId(newId);
                 return newId;
             }
 

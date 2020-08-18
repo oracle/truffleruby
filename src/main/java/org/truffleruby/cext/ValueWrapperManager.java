@@ -19,7 +19,6 @@ import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.cext.ValueWrapperManagerFactory.AllocateHandleNodeGen;
 import org.truffleruby.cext.ValueWrapperManagerFactory.GetHandleBlockHolderNodeGen;
-import org.truffleruby.language.Nil;
 import org.truffleruby.language.NotProvided;
 import org.truffleruby.language.RubyBaseNode;
 
@@ -57,7 +56,6 @@ public class ValueWrapperManager {
     public final ValueWrapper trueWrapper = new ValueWrapper(true, TRUE_HANDLE, null);
     public final ValueWrapper falseWrapper = new ValueWrapper(false, FALSE_HANDLE, null);
     public final ValueWrapper undefWrapper = new ValueWrapper(NotProvided.INSTANCE, UNDEF_HANDLE, null);
-    public final ValueWrapper nilWrapper;
 
     private volatile HandleBlockWeakReference[] blockMap = new HandleBlockWeakReference[0];
 
@@ -68,7 +66,6 @@ public class ValueWrapperManager {
     public ValueWrapperManager(RubyContext context) {
         this.context = context;
         this.threadBlocks = ThreadLocal.withInitial(this::makeThreadData);
-        nilWrapper = new ValueWrapper(Nil.INSTANCE, NIL_HANDLE, null);
     }
 
     public HandleThreadData makeThreadData() {
