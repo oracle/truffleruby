@@ -8,6 +8,7 @@
 
 require_relative 'patches/json_patches'
 require_relative 'patches/nokogiri_patches'
+require_relative 'patches/oci8_patches'
 require_relative 'patches/pg_patches'
 
 module Truffle
@@ -36,6 +37,7 @@ module Truffle
 
       add_gem_patches(PATCHED_FILES, ::JsonPatches::PATCHES)
       add_gem_patches(PATCHED_FILES, ::NokogiriPatches::PATCHES)
+      add_gem_patches(PATCHED_FILES, ::OCI8Patches::PATCHES)
       add_gem_patches(PATCHED_FILES, ::PgPatches::PATCHES)
 
       def self.makefile_matcher(command1, command2)
