@@ -262,10 +262,6 @@ public class TranslatorDriver {
         RubyNode beginNode = beginNodeMemo.get();
 
         // Load arguments
-
-        final RubyNode writeSelfNode = Translator.loadSelf(context, environment);
-        truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));
-
         if (argumentNames != null && argumentNames.length > 0) {
             final List<RubyNode> sequence = new ArrayList<>();
 
@@ -314,6 +310,9 @@ public class TranslatorDriver {
                     sourceIndexLength,
                     Arrays.asList(beginNode, truffleNode));
         }
+
+        final RubyNode writeSelfNode = Translator.loadSelf(context, environment);
+        truffleNode = Translator.sequence(sourceIndexLength, Arrays.asList(writeSelfNode, truffleNode));
 
         // Catch next
 
