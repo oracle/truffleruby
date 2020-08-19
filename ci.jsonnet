@@ -191,12 +191,6 @@ local part_definitions = {
         HOST_VM_CONFIG: "graal-enterprise",
       },
     } + svm,
-    old_inlining+: {
-      environment+: {
-        HOST_VM_CONFIG+: "-old-inlining",
-        TRUFFLERUBYOPT+: "--experimental-options --engine.LanguageAgnosticInlining=false"
-      },
-    },
     native_RemoveSaturatedTypeFlows: $.env.native + {
       environment+: {
         EXTRA_IMAGE_BUILDER_ARGUMENTS: "-H:+RemoveSaturatedTypeFlows",
@@ -515,17 +509,13 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
     local shared = $.use.truffleruby + $.use.build + $.cap.daily + $.cap.bench,
 
     "graal-core": shared + $.env.jvm_ce,
-    "graal-core-old-inlining": shared + $.env.jvm_ce + $.env.old_inlining,
     "graal-enterprise": shared + $.env.jvm_ee,
-    "graal-enterprise-old-inlining": shared + $.env.jvm_ee + $.env.old_inlining,
   },
   local svm_configurations = {
     local shared = $.cap.bench + $.cap.daily + $.use.truffleruby + $.use.build,
 
     "svm-graal-core": shared + $.env.native,
-    "svm-graal-core-old-inlining": shared + $.env.native + $.env.old_inlining,
     "svm-graal-enterprise": shared + $.env.native_ee,
-    "svm-graal-enterprise-old-inlining": shared + $.env.native_ee + $.env.old_inlining,
   },
 
   bench_builds:
@@ -534,9 +524,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
                      $.benchmark.runner + $.benchmark.compiler_metrics + { timelimit: "00:50:00" },
 
       "ruby-metrics-compiler-graal-core": shared + graal_configurations["graal-core"],
-      "ruby-metrics-compiler-graal-core-old-inlining": shared + graal_configurations["graal-core-old-inlining"],
       "ruby-metrics-compiler-graal-enterprise": shared + graal_configurations["graal-enterprise"],
-      "ruby-metrics-compiler-graal-enterprise-old-inlining": shared + graal_configurations["graal-enterprise-old-inlining"],
     } +
 
     {
@@ -564,13 +552,9 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-classic-mri": shared + other_rubies.mri + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-jruby": shared + other_rubies.jruby + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-graal-core": shared + graal_configurations["graal-core"] + { timelimit: "00:35:00" },
-      "ruby-benchmarks-classic-graal-core-old-inlining": shared + graal_configurations["graal-core-old-inlining"] + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-graal-enterprise": shared + graal_configurations["graal-enterprise"] + { timelimit: "00:35:00" },
-      "ruby-benchmarks-classic-graal-enterprise-old-inlining": shared + graal_configurations["graal-enterprise-old-inlining"] + { timelimit: "00:35:00" },
       "ruby-benchmarks-classic-svm-graal-core": shared + svm_configurations["svm-graal-core"] + { timelimit: "01:10:00" },
-      "ruby-benchmarks-classic-svm-graal-core-old-inlining": shared + svm_configurations["svm-graal-core-old-inlining"] + { timelimit: "01:10:00" },
       "ruby-benchmarks-classic-svm-graal-enterprise": shared + svm_configurations["svm-graal-enterprise"] + { timelimit: "01:10:00" },
-      "ruby-benchmarks-classic-svm-graal-enterprise-old-inlining": shared + svm_configurations["svm-graal-enterprise-old-inlining"] + { timelimit: "01:10:00" },
     } +
 
     {
@@ -580,43 +564,29 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-chunky-mri": shared + chunky + other_rubies.mri,
       "ruby-benchmarks-chunky-jruby": shared + chunky + other_rubies.jruby,
       "ruby-benchmarks-chunky-graal-core": shared + chunky + graal_configurations["graal-core"],
-      "ruby-benchmarks-chunky-graal-core-old-inlining": shared + chunky + graal_configurations["graal-core-old-inlining"],
       "ruby-benchmarks-chunky-graal-enterprise": shared + chunky + graal_configurations["graal-enterprise"],
-      "ruby-benchmarks-chunky-graal-enterprise-old-inlining": shared + chunky + graal_configurations["graal-enterprise-old-inlining"],
       local psd = $.benchmark.runner + $.benchmark.psd + { timelimit: "02:00:00" },
       "ruby-benchmarks-psd-mri": shared + psd + other_rubies.mri,
       "ruby-benchmarks-psd-jruby": shared + psd + other_rubies.jruby,
       "ruby-benchmarks-psd-graal-core": shared + psd + graal_configurations["graal-core"],
-      "ruby-benchmarks-psd-graal-core-old-inlining": shared + psd + graal_configurations["graal-core-old-inlining"],
       "ruby-benchmarks-psd-graal-enterprise": shared + psd + graal_configurations["graal-enterprise"],
-      "ruby-benchmarks-psd-graal-enterprise-old-inlining": shared + psd + graal_configurations["graal-enterprise-old-inlining"],
       "ruby-benchmarks-psd-svm-graal-core": shared + psd + svm_configurations["svm-graal-core"],
-      "ruby-benchmarks-psd-svm-graal-core-old-inlining": shared + psd + svm_configurations["svm-graal-core-old-inlining"],
       "ruby-benchmarks-psd-svm-graal-enterprise": shared + psd + svm_configurations["svm-graal-enterprise"],
-      "ruby-benchmarks-psd-svm-graal-enterprise-old-inlining": shared + psd + svm_configurations["svm-graal-enterprise-old-inlining"],
       local asciidoctor = $.benchmark.runner + $.benchmark.asciidoctor + { timelimit: "00:55:00" },
       "ruby-benchmarks-asciidoctor-mri": shared + asciidoctor + other_rubies.mri,
       "ruby-benchmarks-asciidoctor-jruby": shared + asciidoctor + other_rubies.jruby,
       "ruby-benchmarks-asciidoctor-graal-core": shared + asciidoctor + graal_configurations["graal-core"],
-      "ruby-benchmarks-asciidoctor-graal-core-old-inlining": shared + asciidoctor + graal_configurations["graal-core-old-inlining"],
       "ruby-benchmarks-asciidoctor-graal-enterprise": shared + asciidoctor + graal_configurations["graal-enterprise"],
-      "ruby-benchmarks-asciidoctor-graal-enterprise-old-inlining": shared + asciidoctor + graal_configurations["graal-enterprise-old-inlining"],
       "ruby-benchmarks-asciidoctor-svm-graal-core": shared + asciidoctor + svm_configurations["svm-graal-core"],
-      "ruby-benchmarks-asciidoctor-svm-graal-core-old-inlining": shared + asciidoctor + svm_configurations["svm-graal-core-old-inlining"],
       "ruby-benchmarks-asciidoctor-svm-graal-enterprise": shared + asciidoctor + svm_configurations["svm-graal-enterprise"],
-      "ruby-benchmarks-asciidoctor-svm-graal-enterprise-old-inlining": shared + asciidoctor + svm_configurations["svm-graal-enterprise-old-inlining"],
       local other = $.benchmark.runner + $.benchmark.other + $.benchmark.other_extra + { timelimit: "00:40:00" },
       local svm_other = $.benchmark.runner + $.benchmark.other + { timelimit: "01:00:00" },
       "ruby-benchmarks-other-mri": shared + other + other_rubies.mri,
       "ruby-benchmarks-other-jruby": shared + other + other_rubies.jruby,
       "ruby-benchmarks-other-graal-core": shared + other + graal_configurations["graal-core"],
-      "ruby-benchmarks-other-graal-core-old-inlining": shared + other + graal_configurations["graal-core-old-inlining"],
       "ruby-benchmarks-other-graal-enterprise": shared + other + graal_configurations["graal-enterprise"],
-      "ruby-benchmarks-other-graal-enterprise-old-inlining": shared + other + graal_configurations["graal-enterprise-old-inlining"],
       "ruby-benchmarks-other-svm-graal-core": shared + svm_other + svm_configurations["svm-graal-core"],
-      "ruby-benchmarks-other-svm-graal-core-old-inlining": shared + svm_other + svm_configurations["svm-graal-core-old-inlining"],
       "ruby-benchmarks-other-svm-graal-enterprise": shared + svm_other + svm_configurations["svm-graal-enterprise"],
-      "ruby-benchmarks-other-svm-graal-enterprise-old-inlining": shared + svm_other + svm_configurations["svm-graal-enterprise-old-inlining"],
     } +
 
     {
@@ -627,9 +597,7 @@ local composition_environment = utils.add_inclusion_tracking(part_definitions, "
       "ruby-benchmarks-server-mri": shared + other_rubies.mri,
       "ruby-benchmarks-server-jruby": shared + other_rubies.jruby,
       "ruby-benchmarks-server-graal-core": shared + graal_configurations["graal-core"],
-      "ruby-benchmarks-server-graal-core-old-inlining": shared + graal_configurations["graal-core-old-inlining"],
       "ruby-benchmarks-server-graal-enterprise": shared + graal_configurations["graal-enterprise"],
-      "ruby-benchmarks-server-graal-enterprise-old-inlining": shared + graal_configurations["graal-enterprise-old-inlining"],
     } +
 
     {
