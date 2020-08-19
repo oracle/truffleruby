@@ -334,7 +334,7 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
         final ReentrantLock lock = fileLocks.get(filename.toString());
         if (lock.isLocked()) {
             // We need to handle the new autoload constant immediately
-            // if Object.autolaod(name, filename) is executed from filename.rb
+            // if Object.autoload(name, filename) is executed from filename.rb
             GetConstantNode.autoloadConstantStart(autoloadConstant);
         }
 

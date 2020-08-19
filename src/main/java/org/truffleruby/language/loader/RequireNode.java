@@ -87,47 +87,45 @@ public abstract class RequireNode extends RubyContextNode {
     private boolean requireConsideringAutoload(String feature, String expandedPath, RubyString pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final List<RubyConstant> autoloadConstants = featureLoader.getAutoloadConstants(expandedPath);
-        try {
-            if (autoloadConstants != null) {
-                if (getContext().getOptions().LOG_AUTOLOAD) {
-                    String info = autoloadConstants
-                            .stream()
-                            .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
-                            .collect(Collectors.joining(" and "));
-                    RubyLanguage.LOGGER
-                            .info(() -> String.format(
-                                    "%s: requiring %s which is registered as an autoload for %s",
-                                    RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                                    feature,
-                                    info));
-                }
-
-                for (RubyConstant autoloadConstant : autoloadConstants) {
-                    GetConstantNode.autoloadConstantStart(autoloadConstant);
-                }
+        if (autoloadConstants != null) {
+            if (getContext().getOptions().LOG_AUTOLOAD) {
+                String info = autoloadConstants
+                        .stream()
+                        .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
+                        .collect(Collectors.joining(" and "));
+                RubyLanguage.LOGGER
+                        .info(() -> String.format(
+                                "%s: requiring %s which is registered as an autoload for %s",
+                                RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
+                                feature,
+                                info));
             }
 
+            for (RubyConstant autoloadConstant : autoloadConstants) {
+                GetConstantNode.autoloadConstantStart(autoloadConstant);
+            }
+        }
+
+        try {
             return doRequire(feature, expandedPath, pathString);
         } finally {
             final List<RubyConstant> releasedConstants = featureLoader.getAutoloadConstants(expandedPath);
             if (releasedConstants != null) {
-                if (getContext().getOptions().LOG_AUTOLOAD) {
-                    String info = autoloadConstants
-                            .stream()
-                            .filter(c -> c.getAutoloadConstant().isAutoloading())
-                            .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
-                            .collect(Collectors.joining(" and "));
-                    RubyLanguage.LOGGER
-                            .info(() -> String.format(
-                                    "%s: during requiring %s was successfully autoloaded %s",
-                                    RubyContext.fileLine(getContext().getCallStack().getTopMostUserSourceSection()),
-                                    feature,
-                                    info));
-                }
-
                 for (RubyConstant autoloadConstant : releasedConstants) {
                     if (autoloadConstant.getAutoloadConstant().isAutoloading()) {
-                        GetConstantNode.autoloadUndefineConstantIfStillAutoload(autoloadConstant);
+                        final boolean isStillAutoload = GetConstantNode
+                                .autoloadUndefineConstantIfStillAutoload(autoloadConstant);
+                        if (getContext().getOptions().LOG_AUTOLOAD) {
+                            RubyLanguage.LOGGER.info(
+                                    String.format(
+                                            "%s: during requiring %s %s autoloaded %s",
+                                            RubyContext.fileLine(
+                                                    getContext().getCallStack().getTopMostUserSourceSection()),
+                                            feature,
+                                            isStillAutoload ? "was successfully" : "was not",
+                                            autoloadConstant + " with " +
+                                                    autoloadConstant.getAutoloadConstant().getAutoloadPath()));
+                        }
                         GetConstantNode.autoloadConstantStop(autoloadConstant);
                         featureLoader.removeAutoload(autoloadConstant);
                     }

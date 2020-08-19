@@ -139,10 +139,10 @@ public abstract class GetConstantNode extends RubyContextNode {
 
     /** Subset of {@link #autoloadResolveConstant} which does not try to resolve the constant. */
     @TruffleBoundary
-    public static void autoloadUndefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
+    public static boolean autoloadUndefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
         final RubyModule autoloadConstantModule = autoloadConstant.getDeclaringModule();
         final ModuleFields fields = autoloadConstantModule.fields;
-        fields.undefineConstantIfStillAutoload(autoloadConstant);
+        return fields.undefineConstantIfStillAutoload(autoloadConstant);
     }
 
     @TruffleBoundary
