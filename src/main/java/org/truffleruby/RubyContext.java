@@ -885,7 +885,10 @@ public class RubyContext {
 
     @TruffleBoundary
     public static Object createTRegexEngine(Env env) {
-        Source engineBuilderRequest = Source.newBuilder(REGEX_LANGUAGE_ID, "", "TRegex Engine Builder Request").internal(true).build();
+        Source engineBuilderRequest = Source
+                .newBuilder(REGEX_LANGUAGE_ID, "", "TRegex Engine Builder Request")
+                .internal(true)
+                .build();
         Object regexEngineBuilder = env.parseInternal(engineBuilderRequest).call();
         String regexOptions = "";
         try {
