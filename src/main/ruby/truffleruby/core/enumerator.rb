@@ -498,8 +498,11 @@ class Enumerator
       end
     end
 
+    def chunk(&original_block)
+      super.lazy
+    end
+
     # clone these methods from the superclass
-    alias_method :chunk, :chunk
     alias_method :chunk_while, :chunk_while
     alias_method :slice_after, :slice_after
     alias_method :slice_before, :slice_before
