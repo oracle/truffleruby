@@ -11,13 +11,13 @@ package org.truffleruby.language.loader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
@@ -46,6 +46,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class RequireNode extends RubyContextNode {
@@ -79,13 +80,31 @@ public abstract class RequireNode extends RubyContextNode {
         }
     }
 
+    /** During the require operation we need to load constants marked as autoloaded for the expandedPath (see
+     * {@code FeatureLoader#registeredAutoloads}) and mark them as started loading (via locks). After require we
+     * re-select autoload constants (because their list can be supplemented with constants that are loaded themselves
+     * (i.e. Object.autoload(:C, __FILE__))) and remove them from autoload registry. More details here:
+     * https://github.com/oracle/truffleruby/pull/2060#issuecomment-668627142 **/
     private boolean requireConsideringAutoload(String feature, String expandedPath, RubyString pathString) {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
-        final List<RubyConstant> autoloadConstants = featureLoader.getAutoloadConstants(expandedPath);
-        if (autoloadConstants != null) {
-            if (getContext().getOptions().LOG_AUTOLOAD) {
-                String info = autoloadConstants
+        final List<RubyConstant> constantsUnfiltered = featureLoader.getAutoloadConstants(expandedPath);
+        final List<RubyConstant> alreadyAutoloading = new ArrayList<>();
+        if (!constantsUnfiltered.isEmpty()) {
+            final List<RubyConstant> toAutoload = new ArrayList<>();
+            for (RubyConstant constant : constantsUnfiltered) {
+                // Do not autoload recursively from the #require call in GetConstantNode
+                if (constant.getAutoloadConstant().isAutoloading()) {
+                    alreadyAutoloading.add(constant);
+                } else {
+                    toAutoload.add(constant);
+                }
+            }
+
+
+            if (getContext().getOptions().LOG_AUTOLOAD && !toAutoload.isEmpty()) {
+                String info = toAutoload
                         .stream()
+                        .filter(c -> !c.getAutoloadConstant().isAutoloading())
                         .map(c -> c + " with " + c.getAutoloadConstant().getAutoloadPath())
                         .collect(Collectors.joining(" and "));
                 RubyLanguage.LOGGER
@@ -96,20 +115,24 @@ public abstract class RequireNode extends RubyContextNode {
                                 info));
             }
 
-            for (RubyConstant autoloadConstant : autoloadConstants) {
-                GetConstantNode.autoloadConstantStart(autoloadConstant);
+            for (RubyConstant constant : toAutoload) {
+                GetConstantNode.autoloadConstantStart(constant);
             }
-            try {
-                return doRequire(feature, expandedPath, pathString);
-            } finally {
-                for (RubyConstant autoloadConstant : autoloadConstants) {
-                    GetConstantNode.autoloadUndefineConstantIfStillAutoload(autoloadConstant);
-                    GetConstantNode.autoloadConstantStop(autoloadConstant);
-                    featureLoader.removeAutoload(autoloadConstant);
+        }
+
+        try {
+            return doRequire(feature, expandedPath, pathString);
+        } finally {
+            final List<RubyConstant> releasedConstants = featureLoader.getAutoloadConstants(expandedPath);
+            for (RubyConstant constant : releasedConstants) {
+                if (constant.getAutoloadConstant().isAutoloadingThread() && !alreadyAutoloading.contains(constant)) {
+                    final boolean undefined = GetConstantNode
+                            .autoloadUndefineConstantIfStillAutoload(constant);
+                    GetConstantNode.logAutoloadResult(getContext(), constant, undefined);
+                    GetConstantNode.autoloadConstantStop(constant);
+                    featureLoader.removeAutoload(constant);
                 }
             }
-        } else {
-            return doRequire(feature, expandedPath, pathString);
         }
     }
 

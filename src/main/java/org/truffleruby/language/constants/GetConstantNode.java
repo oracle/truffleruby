@@ -27,6 +27,7 @@ import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class GetConstantNode extends RubyContextNode {
 
@@ -139,10 +140,23 @@ public abstract class GetConstantNode extends RubyContextNode {
 
     /** Subset of {@link #autoloadResolveConstant} which does not try to resolve the constant. */
     @TruffleBoundary
-    public static void autoloadUndefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
+    public static boolean autoloadUndefineConstantIfStillAutoload(RubyConstant autoloadConstant) {
         final RubyModule autoloadConstantModule = autoloadConstant.getDeclaringModule();
         final ModuleFields fields = autoloadConstantModule.fields;
-        fields.undefineConstantIfStillAutoload(autoloadConstant);
+        return fields.undefineConstantIfStillAutoload(autoloadConstant);
+    }
+
+    @TruffleBoundary
+    public static void logAutoloadResult(RubyContext context, RubyConstant constant, boolean undefined) {
+        if (context.getOptions().LOG_AUTOLOAD) {
+            final SourceSection section = context.getCallStack().getTopMostUserSourceSection();
+            final String message = RubyContext.fileLine(section) + ": " + constant + " " +
+                    (undefined
+                            ? "was marked as undefined as it was not assigned in "
+                            : "was successfully autoloaded from ") +
+                    constant.getAutoloadConstant().getAutoloadPath();
+            RubyLanguage.LOGGER.info(message);
+        }
     }
 
     @TruffleBoundary
@@ -158,9 +172,11 @@ public abstract class GetConstantNode extends RubyContextNode {
                 (ModuleOperations.inAncestorsOf(resolvedConstant.getDeclaringModule(), autoloadConstantModule) ||
                         resolvedConstant.getDeclaringModule() == coreLibrary().objectClass)) {
             // all is good, just return that constant
+            logAutoloadResult(getContext(), autoloadConstant, false);
         } else {
             // If the autoload constant was not set in the ancestors, undefine the constant
-            fields.undefineConstantIfStillAutoload(autoloadConstant);
+            boolean undefined = fields.undefineConstantIfStillAutoload(autoloadConstant);
+            logAutoloadResult(getContext(), autoloadConstant, undefined);
 
             // redo lookup, to consider the undefined constant
             resolvedConstant = lookupConstantNode.lookupConstant(lexicalScope, module, name);

@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
@@ -32,8 +33,10 @@ import org.truffleruby.core.symbol.RubySymbol;
 import org.truffleruby.language.RubyConstant;
 import org.truffleruby.language.RubyDynamicObject;
 import org.truffleruby.language.RubyGuards;
+import org.truffleruby.language.constants.GetConstantNode;
 import org.truffleruby.language.control.RaiseException;
 import org.truffleruby.language.library.RubyLibrary;
+import org.truffleruby.language.loader.ReentrantLockFreeingMap;
 import org.truffleruby.language.methods.InternalMethod;
 import org.truffleruby.language.objects.ObjectGraph;
 import org.truffleruby.language.objects.ObjectGraphNode;
@@ -327,6 +330,14 @@ public class ModuleFields extends ModuleChain implements ObjectGraphNode {
                     autoloadConstant,
                     filename));
         }
+        final ReentrantLockFreeingMap<String> fileLocks = getContext().getFeatureLoader().getFileLocks();
+        final ReentrantLock lock = fileLocks.get(filename.toString());
+        if (lock.isLocked()) {
+            // We need to handle the new autoload constant immediately
+            // if Object.autoload(name, filename) is executed from filename.rb
+            GetConstantNode.autoloadConstantStart(autoloadConstant);
+        }
+
         context.getFeatureLoader().addAutoload(autoloadConstant);
     }
 
