@@ -42,7 +42,7 @@ public class EnsureSymbolKeysNode extends RubyContextSourceNode implements BiCon
             errorProfile.enter();
             throw new RaiseException(
                     getContext(),
-                    coreExceptions().typeErrorWrongArgumentType(key, "Symbol", EnsureSymbolKeysNode.this));
+                    coreExceptions().typeErrorWrongArgumentType(key, "Symbol", this));
         }
     }
 }
