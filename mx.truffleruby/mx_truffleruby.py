@@ -199,7 +199,7 @@ mx_sdk.register_graalvm_component(mx_sdk.GraalVmLanguage(
     standalone_dir_name='truffleruby-<version>-<graalvm_os>-<arch>',
     license_files=[],
     third_party_license_files=[],
-    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'LLVM.org toolchain'],
+    dependencies=['rbyl', 'Truffle', 'Truffle NFI', 'LLVM Runtime Native', 'LLVM.org toolchain', 'TRegex'],
     standalone_dependencies={
         'LLVM Runtime Core': ('lib/sulong', []),
         'LLVM Runtime Native': ('lib/sulong', []),

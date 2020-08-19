@@ -2,8 +2,17 @@ suite = {
     "mxversion": "5.275.3",
     "name": "truffleruby",
 
-    "imports": {
-        "suites": [
+    "imports" : {
+        "suites" : [
+            {
+                "name": "regex",
+                "subdir": True,
+                "version": "77083ab290a8be68d491aae0921e52ea51576ab0",
+                "urls": [
+                    {"url": "https://github.com/oracle/graal.git", "kind" : "git"},
+                    {"url": "https://curio.ssw.jku.at/nexus/content/repositories/snapshots", "kind" : "binary"},
+                ]
+            },
             {
                 "name": "sulong",
                 "subdir": True,
@@ -171,6 +180,7 @@ suite = {
                 "truffleruby:TRUFFLERUBY-SHARED",
                 "truffle:TRUFFLE_API",
                 "sdk:JLINE3",
+                "regex:TREGEX",
                 "sulong:SULONG_API",
                 "JONI",
                 "JCODINGS",
@@ -360,6 +370,7 @@ suite = {
                 "org.truffleruby.ruby",
             ],
             "distDependencies": [
+                "regex:TREGEX",
                 "truffle:TRUFFLE_API",
                 "truffle:TRUFFLE_NFI",
                 "sulong:SULONG_API",
