@@ -29,9 +29,10 @@ public abstract class InlinedKindOfNode extends BinaryInlinedOperationNode {
 
     @Specialization(
             guards = {
-                    "!isForeignObject(self)",
+                    "isRubyValue(self)",
                     "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_KIND_OF",
             },
+            assumptions = "assumptions",
             limit = "1")
     protected boolean doKindOf(VirtualFrame frame, Object self, RubyModule module,
             @Cached LookupMethodNode lookupNode,
