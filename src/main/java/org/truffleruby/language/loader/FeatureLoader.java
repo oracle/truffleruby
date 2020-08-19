@@ -12,6 +12,7 @@ package org.truffleruby.language.loader;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -124,12 +125,7 @@ public class FeatureLoader {
             final String expandedAutoloadPath = findFeature(entry.getKey());
 
             if (expandedPath.equals(expandedAutoloadPath)) {
-                for (RubyConstant constant : entry.getValue()) {
-                    // Do not autoload recursively from the #require call in GetConstantNode
-                    if (!constant.getAutoloadConstant().isAutoloading()) {
-                        constants.add(constant);
-                    }
-                }
+                constants.addAll(Arrays.asList(entry.getValue()));
             }
         }
 
