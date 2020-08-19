@@ -22,10 +22,7 @@ public abstract class ArrayHelpers {
     /** Sets the size of the given array
      *
      * Asserts that the size is valid for the current store of the array. If setting both size and store, use
-     * setStoreAndSize or be sure to setStore before setSize as this assertion may fail.
-     * 
-     * @param array
-     * @param size */
+     * setStoreAndSize or be sure to setStore before setSize as this assertion may fail. */
     public static void setSize(RubyArray array, int size) {
         assert ArrayOperations.getStoreCapacity(array) >= size;
         array.size = size;

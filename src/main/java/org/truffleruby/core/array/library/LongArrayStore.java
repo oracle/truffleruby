@@ -140,11 +140,6 @@ public class LongArrayStore {
     }
 
     @ExportMessage
-    protected static void clear(long[] store, int start, int length) {
-        Arrays.fill(store, start, start + length, 0);
-    }
-
-    @ExportMessage
     static class Fill {
         @Specialization
         protected static void fill(long[] store, int start, int length, int value) {

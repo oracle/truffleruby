@@ -514,6 +514,8 @@ public abstract class ArrayNodes {
                 }
             }
 
+            stores.clear(oldStore, m, size - m);
+
             array.store = newStore;
             array.size = m;
 
@@ -523,7 +525,6 @@ public abstract class ArrayNodes {
                 return array;
             }
         }
-
     }
 
     @CoreMethod(names = "concat", optional = 1, rest = true, raiseIfFrozenSelf = true)
@@ -604,45 +605,12 @@ public abstract class ArrayNodes {
         @Child private TypeNodes.CheckFrozenNode raiseIfFrozenNode;
 
         @Specialization(
-                guards = { "stores.isMutable(array.store)" },
+                guards = "stores.isMutable(array.store)",
                 limit = "storageStrategyLimit()")
         protected Object delete(VirtualFrame frame, RubyArray array, Object value, Object maybeBlock,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores) {
-            final int size = array.size;
-            final Object store = array.store;
 
-            Object found = nil;
-
-            int i = 0;
-            int n = 0;
-            while (n < size) {
-                final Object stored = stores.read(store, n);
-
-                if (sameOrEqualNode.executeSameOrEqual(stored, value)) {
-                    checkFrozen(array);
-                    found = stored;
-                    n++;
-                } else {
-                    if (i != n) {
-                        stores.write(store, i, stores.read(store, n));
-                    }
-
-                    i++;
-                    n++;
-                }
-            }
-
-            if (i != n) {
-                array.store = store;
-                array.size = i;
-                return found;
-            } else {
-                if (maybeBlock == NotProvided.INSTANCE) {
-                    return nil;
-                } else {
-                    return yield((RubyProc) maybeBlock, value);
-                }
-            }
+            return delete(frame, array, value, maybeBlock, true, array.store, array.store, stores, stores);
         }
 
         @Specialization(
@@ -651,10 +619,22 @@ public abstract class ArrayNodes {
         protected Object delete(VirtualFrame frame, RubyArray array, Object value, Object maybeBlock,
                 @CachedLibrary("array.store") ArrayStoreLibrary oldStores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary newStores) {
-            final int size = array.size;
-            final Object oldStore = array.store;
-            final Object newStore = oldStores.allocator(oldStore).allocate(size);
 
+            final Object oldStore = array.store;
+            final Object newStore = oldStores.allocator(oldStore).allocate(array.size);
+            return delete(frame, array, value, maybeBlock, false, oldStore, newStore, oldStores, newStores);
+        }
+
+        private Object delete(VirtualFrame frame, RubyArray array, Object value, Object maybeBlock,
+                boolean sameStores,
+                Object oldStore,
+                Object newStore,
+                ArrayStoreLibrary oldStores,
+                ArrayStoreLibrary newStores) {
+
+            assert !sameStores || (oldStore == newStore && oldStores == newStores);
+
+            final int size = array.size;
             Object found = nil;
 
             int i = 0;
@@ -675,6 +655,9 @@ public abstract class ArrayNodes {
             }
 
             if (i != n) {
+                if (sameStores) {
+                    oldStores.clear(oldStore, i, size - i);
+                }
                 array.store = newStore;
                 array.size = i;
                 return found;
@@ -694,7 +677,6 @@ public abstract class ArrayNodes {
             }
             raiseIfFrozenNode.execute(object);
         }
-
     }
 
     @CoreMethod(names = "delete_at", required = 1, raiseIfFrozenSelf = true, lowerFixnum = 1)
@@ -725,6 +707,7 @@ public abstract class ArrayNodes {
                 final Object store = array.store;
                 final Object value = stores.read(store, i);
                 stores.copyContents(store, i + 1, store, i, size - i - 1);
+                stores.clear(store, size - 1, 1);
                 array.store = store;
                 array.size = size - 1;
                 return value;
@@ -1557,12 +1540,11 @@ public abstract class ArrayNodes {
             final int numPop = minProfile.profile(size < n) ? size : n;
             final Object store = array.store;
 
-            // Extract values in a new array
-            final Object popped = stores.extractRange(store, size - numPop, size);
+            final Object popped = stores.extractRange(store, size - numPop, size); // copy on write
+            final Object prefix = stores.extractRange(store, 0, size - numPop);    // copy on write
+            // NOTE(norswap): if one of these two arrays outlives the other, you get a memory leak
 
-            // Remove the end from the original array.
-            setStoreAndSize(array, stores.extractRange(store, 0, size - numPop), size - numPop);
-
+            setStoreAndSize(array, prefix, size - numPop);
             return createArray(popped, numPop);
         }
 
@@ -1678,15 +1660,24 @@ public abstract class ArrayNodes {
 
         @Child private BooleanCastNode booleanCastNode = BooleanCastNode.create();
 
-        @Specialization(guards = "stores.isMutable(array.store)", limit = "storageStrategyLimit()")
-        protected Object rejectInPlaceMutable(RubyArray array, RubyProc block,
+        @Specialization(guards = "array.size == 0")
+        protected Object rejectEmpty(RubyArray array, RubyProc block) {
+            return nil;
+        }
+
+        @Specialization(
+                guards = { "array.size > 0", "stores.isMutable(array.store)" },
+                limit = "storageStrategyLimit()")
+        protected Object rejectInPlaceMutableStore(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores) {
             return rejectInPlaceInternal(array, block, mutablestores, array.store);
         }
 
-        @Specialization(guards = "!stores.isMutable(array.store)", limit = "storageStrategyLimit()")
-        protected Object rejectInPlaceImmutable(RubyArray array, RubyProc block,
+        @Specialization(
+                guards = { "array.size > 0", "!stores.isMutable(array.store)" },
+                limit = "storageStrategyLimit()")
+        protected Object rejectInPlaceImmutableStore(RubyArray array, RubyProc block,
                 @CachedLibrary("array.store") ArrayStoreLibrary stores,
                 @CachedLibrary(limit = "1") ArrayStoreLibrary mutablestores) {
             final Object mutableStore = stores.allocator(array.store).allocate(array.size);
@@ -1722,8 +1713,7 @@ public abstract class ArrayNodes {
                 }
 
                 // Null out the elements behind the size
-                final Object filler = stores.allocator(store).allocate(n - i);
-                stores.copyContents(filler, 0, store, i, n - i);
+                stores.clear(store, i, n - i);
                 setSize(array, i);
 
                 LoopNode.reportLoopCount(this, n);
@@ -1735,7 +1725,6 @@ public abstract class ArrayNodes {
                 return nil;
             }
         }
-
     }
 
     @CoreMethod(names = "replace", required = 1, raiseIfFrozenSelf = true)
@@ -1946,10 +1935,9 @@ public abstract class ArrayNodes {
             final int size = array.size;
             final Object store = array.store;
             final Object value = stores.read(store, 0);
-            final Object cowStore = stores.extractRange(store, 1, size);
-            array.store = cowStore;
+            stores.clear(store, 0, 1);
+            array.store = stores.extractRange(store, 1, size);
             setSize(array, size - 1);
-
             return value;
         }
 
@@ -1979,12 +1967,9 @@ public abstract class ArrayNodes {
             final int size = array.size;
             final int numShift = minProfile.profile(size < n) ? size : n;
             final Object store = array.store;
-            // Extract values in a new array
             final Object result = stores.extractRange(store, 0, numShift);
-            final Object cowStore = stores.extractRange(store, numShift, size);
-            array.store = cowStore;
-            array.size = size - numShift;
-
+            array.store = stores.extractRange(store, numShift, size);
+            setSize(array, size - numShift);
             return createArray(result, numShift);
         }
 
@@ -1993,7 +1978,6 @@ public abstract class ArrayNodes {
                 @Cached ToIntNode toIntNode) {
             return executeShift(array, toIntNode.execute(n));
         }
-
     }
 
     @CoreMethod(names = { "size", "length" })
