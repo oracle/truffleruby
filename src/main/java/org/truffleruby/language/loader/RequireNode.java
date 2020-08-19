@@ -128,15 +128,7 @@ public abstract class RequireNode extends RubyContextNode {
                 if (constant.getAutoloadConstant().isAutoloadingThread() && !alreadyAutoloading.contains(constant)) {
                     final boolean undefined = GetConstantNode
                             .autoloadUndefineConstantIfStillAutoload(constant);
-                    if (getContext().getOptions().LOG_AUTOLOAD) {
-                        final SourceSection section = getContext().getCallStack().getTopMostUserSourceSection();
-                        final String message = RubyContext.fileLine(section) + ": " + constant + " " +
-                                (undefined
-                                        ? "was marked as undefined as it was not assigned in "
-                                        : "was successfully autoloaded from ") +
-                                constant.getAutoloadConstant().getAutoloadPath();
-                        RubyLanguage.LOGGER.info(message);
-                    }
+                    GetConstantNode.logAutoloadResult(getContext(), constant, undefined);
                     GetConstantNode.autoloadConstantStop(constant);
                     featureLoader.removeAutoload(constant);
                 }
