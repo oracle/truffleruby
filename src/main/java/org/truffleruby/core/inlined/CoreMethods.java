@@ -22,15 +22,22 @@ import org.truffleruby.parser.TranslatorEnvironment;
 
 import com.oracle.truffle.api.Assumption;
 
-/** We inline basic operations as it makes little sense to compile them in isolation without the surrounding method and
- * it delays more interesting compilations by filling the compilation queue. The performance in interpreter is typically
- * also improved, making inlined basic operations an optimization useful mostly for warmup. The choice of inlining a
- * basic operation is based on running benchmarks and observing which basic operations methods are compiled early.
+/** We inline basic operations directly in the AST (instead of a method call) as it makes little sense to compile them
+ * in isolation without the surrounding method and it delays more interesting compilations by filling the compilation
+ * queue. The performance in interpreter is typically also improved, making inlined basic operations an optimization
+ * useful mostly for warmup. The choice of inlining a basic operation is based on running benchmarks and observing which
+ * basic operations methods are compiled early. AST inlining is also useful to guarantee splitting for small operations
+ * which make sense to always split.
  * <p>
  * Each inlined basic operation has its own Node to conveniently express guards and assumptions. Inlined basic
  * operations execute in the caller frame, which may be useful for some operations accessing the caller frame like
- * Kernel#block_given?. Therefore, the guards must ensure no exception (e.g.: division by 0) can happen during the
- * inlined operation, as that would make the inlined operation NOT appear in the backtrace.
+ * Kernel#block_given?.
+ * <p>
+ * IMPORTANT: The specialization guards must ensure no exception (e.g.: division by 0) can happen during the inlined
+ * operation (and therefore no nested Ruby call as that could raise an exception), as that would make the inlined
+ * operation NOT appear in the backtrace which would be incorrect and confusing. Inlined nodes should use as few nodes
+ * as possible to save on footprint. In trivial cases it is better to inline the logic directly (e.g. for Integer#==
+ * with two int's).
  * <p>
  * Two strategies are used to check method re-definition.
  * <li>If the class is a leaf class (there cannot be instances of a subclass of that class), then we only need to check
@@ -38,7 +45,11 @@ import com.oracle.truffle.api.Assumption;
  * {@link ModuleFields#registerAssumption(String)}). In such cases the method must be public as we do not check
  * visibility.</li>
  * <li>Otherwise, we need to do a method lookup and verify the method that would be called is the standard definition we
- * expect.</li> */
+ * expect.</li>
+ * <p>
+ * Every specialization should use {@code assumptions = "assumptions",} to check at least the tracing Assumption. When
+ * adding a new node, it is a good idea to add a debug print in the non-inlined method and try calling it with and
+ * without a {@code set_trace_func proc{};} before to see if the inlined version is used correctly. */
 public class CoreMethods {
 
     private final RubyContext context;
