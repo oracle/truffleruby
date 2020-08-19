@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -108,7 +109,7 @@ public class FeatureLoader {
         try {
             final Map<String, List<RubyConstant>> constantsMap = registeredAutoloads.get(basename);
             if (constantsMap == null || constantsMap.isEmpty()) {
-                return null;
+                return Collections.emptyList();
             }
 
             // Deep-copy constantsMap so we can call findFeature() outside the lock
@@ -129,11 +130,7 @@ public class FeatureLoader {
             }
         }
 
-        if (constants.isEmpty()) {
-            return null;
-        } else {
-            return constants;
-        }
+        return constants;
     }
 
     public void removeAutoload(RubyConstant constant) {

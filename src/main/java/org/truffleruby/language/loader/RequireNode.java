@@ -89,7 +89,7 @@ public abstract class RequireNode extends RubyContextNode {
         final FeatureLoader featureLoader = getContext().getFeatureLoader();
         final List<RubyConstant> constantsUnfiltered = featureLoader.getAutoloadConstants(expandedPath);
         final List<RubyConstant> alreadyAutoloading = new ArrayList<>();
-        if (constantsUnfiltered != null) {
+        if (!constantsUnfiltered.isEmpty()) {
             final List<RubyConstant> toAutoload = new ArrayList<>();
             for (RubyConstant constant : constantsUnfiltered) {
                 // Do not autoload recursively from the #require call in GetConstantNode
@@ -101,7 +101,7 @@ public abstract class RequireNode extends RubyContextNode {
             }
 
 
-            if (getContext().getOptions().LOG_AUTOLOAD) {
+            if (getContext().getOptions().LOG_AUTOLOAD && !toAutoload.isEmpty()) {
                 String info = toAutoload
                         .stream()
                         .filter(c -> !c.getAutoloadConstant().isAutoloading())
@@ -124,24 +124,21 @@ public abstract class RequireNode extends RubyContextNode {
             return doRequire(feature, expandedPath, pathString);
         } finally {
             final List<RubyConstant> releasedConstants = featureLoader.getAutoloadConstants(expandedPath);
-            if (releasedConstants != null) {
-                for (RubyConstant constant : releasedConstants) {
-                    if (constant.getAutoloadConstant().isAutoloadingThread() &&
-                            !alreadyAutoloading.contains(constant)) {
-                        final boolean undefined = GetConstantNode
-                                .autoloadUndefineConstantIfStillAutoload(constant);
-                        if (getContext().getOptions().LOG_AUTOLOAD) {
-                            final SourceSection section = getContext().getCallStack().getTopMostUserSourceSection();
-                            final String message = RubyContext.fileLine(section) + ": " + constant + " " +
-                                    (undefined
-                                            ? "was marked as undefined as it was not assigned in "
-                                            : "was successfully autoloaded from ") +
-                                    constant.getAutoloadConstant().getAutoloadPath();
-                            RubyLanguage.LOGGER.info(message);
-                        }
-                        GetConstantNode.autoloadConstantStop(constant);
-                        featureLoader.removeAutoload(constant);
+            for (RubyConstant constant : releasedConstants) {
+                if (constant.getAutoloadConstant().isAutoloadingThread() && !alreadyAutoloading.contains(constant)) {
+                    final boolean undefined = GetConstantNode
+                            .autoloadUndefineConstantIfStillAutoload(constant);
+                    if (getContext().getOptions().LOG_AUTOLOAD) {
+                        final SourceSection section = getContext().getCallStack().getTopMostUserSourceSection();
+                        final String message = RubyContext.fileLine(section) + ": " + constant + " " +
+                                (undefined
+                                        ? "was marked as undefined as it was not assigned in "
+                                        : "was successfully autoloaded from ") +
+                                constant.getAutoloadConstant().getAutoloadPath();
+                        RubyLanguage.LOGGER.info(message);
                     }
+                    GetConstantNode.autoloadConstantStop(constant);
+                    featureLoader.removeAutoload(constant);
                 }
             }
         }
