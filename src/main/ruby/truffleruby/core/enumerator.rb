@@ -293,6 +293,8 @@ class Enumerator
       self
     end
 
+    # TODO: rewind and/or to_a/force behave improperly on outputs of take, drop, uniq, possibly more
+
     alias_method :force, :to_a
 
     def take(n)
@@ -505,8 +507,8 @@ class Enumerator
 
     def uniq
       if block_given?
+        h = {}
         Lazy.new(self, nil) do |yielder, *args|
-          h = {}
           val = args.length >= 2 ? args : args.first
           comp = yield(val)
           unless h.key?(comp)
@@ -515,8 +517,8 @@ class Enumerator
           end
         end
       else
+        h = {}
         Lazy.new(self, nil) do |yielder, *args|
-          h = {}
           val = args.length >= 2 ? args : args.first
           unless h.key?(val)
             h[val] = true
