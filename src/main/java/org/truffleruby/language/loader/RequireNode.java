@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
-import com.oracle.truffle.api.nodes.Node;
 import org.truffleruby.RubyContext;
 import org.truffleruby.RubyLanguage;
 import org.truffleruby.core.array.ArrayUtils;
@@ -46,6 +45,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.source.SourceSection;
 
 public abstract class RequireNode extends RubyContextNode {
@@ -115,19 +115,17 @@ public abstract class RequireNode extends RubyContextNode {
             final List<RubyConstant> releasedConstants = featureLoader.getAutoloadConstants(expandedPath);
             if (releasedConstants != null) {
                 for (RubyConstant autoloadConstant : releasedConstants) {
-                    if (autoloadConstant.getAutoloadConstant().isAutoloading()) {
-                        final boolean isStillAutoload = GetConstantNode
+                    if (autoloadConstant.getAutoloadConstant().isAutoloadingThread()) {
+                        final boolean undefined = GetConstantNode
                                 .autoloadUndefineConstantIfStillAutoload(autoloadConstant);
                         if (getContext().getOptions().LOG_AUTOLOAD) {
-                            RubyLanguage.LOGGER.info(
-                                    String.format(
-                                            "%s: during requiring %s %s autoloaded %s",
-                                            RubyContext.fileLine(
-                                                    getContext().getCallStack().getTopMostUserSourceSection()),
-                                            feature,
-                                            isStillAutoload ? "was successfully" : "was not",
-                                            autoloadConstant + " with " +
-                                                    autoloadConstant.getAutoloadConstant().getAutoloadPath()));
+                            final SourceSection section = getContext().getCallStack().getTopMostUserSourceSection();
+                            final String message = RubyContext.fileLine(section) + ": " + autoloadConstant + " " +
+                                    (undefined
+                                            ? "was marked as undefined as it was not assigned in "
+                                            : "was successfully autoloaded from ") +
+                                    autoloadConstant.getAutoloadConstant().getAutoloadPath();
+                            RubyLanguage.LOGGER.info(message);
                         }
                         GetConstantNode.autoloadConstantStop(autoloadConstant);
                         featureLoader.removeAutoload(autoloadConstant);
