@@ -29,9 +29,10 @@ public abstract class InlinedIsANode extends BinaryInlinedOperationNode {
 
     @Specialization(
             guards = {
-                    "!isForeignObject(self)",
+                    "isRubyValue(self)",
                     "lookupNode.lookup(frame, self, METHOD) == coreMethods().KERNEL_IS_A",
             },
+            assumptions = "assumptions",
             limit = "1")
     protected boolean doIsA(VirtualFrame frame, Object self, RubyModule module,
             @Cached LookupMethodNode lookupNode,
