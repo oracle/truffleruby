@@ -83,6 +83,7 @@ public class CoreMethods {
     public final InternalMethod KERNEL_KIND_OF;
     public final InternalMethod STRING_BYTESIZE;
     public final InternalMethod MODULE_CASE_EQUAL;
+    public final InternalMethod STRING_EQUAL;
 
     public CoreMethods(RubyContext context) {
         this.context = context;
@@ -139,6 +140,7 @@ public class CoreMethods {
         KERNEL_IS_A = getMethod(kernelModule, "is_a?");
         KERNEL_KIND_OF = getMethod(kernelModule, "kind_of?");
         MODULE_CASE_EQUAL = getMethod(moduleClass, "===");
+        STRING_EQUAL = getMethod(stringClass, "==");
     }
 
     private Assumption registerAssumption(RubyClass klass, String methodName) {
